@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+
+<div class="container justify-content-center">
+  <div class="row h-100 d-flex justify-content-center">
+    <div class="card">
+      <div class="card-header card-header-warning">
+        <h2>Create New Congress Master</h2>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          <input type="hidden" name="org" id="id_org">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="bmd-label-floating">Congress Master Name</label>
+                <input type="text" maxlength="100" name="name" id="id_name" class="form-control" required>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            {% include "generic_org_search_body.html" %}
+            <span id="id_org_name"></span>
+            <a class="cobalt_generic_org btn btn-warning btn-sm" data-toggle="modal" id="id_org_search" data-target="#cobalt_general_org_search"><span style="color: white;">Lookup Organisation</span></a>
+
+          </div>
+          <div class="row">
+            <button type="submit" class="btn btn-success">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block footer %}
+<script>
+{% include 'generic_org_search_footer.html' %}
+
+function cobaltOrgSearchOk() {
+  // clear the form
+  clearModalOrg();
+  $("#id_org").val(org_id);
+  $("#id_org_name").html(org_name);
+}
+
+</script>
+
+{% endblock %}

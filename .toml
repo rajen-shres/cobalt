@@ -1,0 +1,13 @@
+[tool.black]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | docs
+  | _build
+  | buck-out
+  | build
+  | migrations
+  | dist
+)/
+'''

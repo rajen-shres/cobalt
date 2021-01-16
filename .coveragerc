@@ -1,0 +1,16 @@
+# .coveragerc to control coverage.py
+
+[run]
+branch = True
+source = .
+omit =
+        *__migrations__*.py
+        __init__.py
+
+
+[html]
+branch = True
+source = .
+omit =
+        *__migrations__*.py
+        __init__.py

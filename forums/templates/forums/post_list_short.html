@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load humanize %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+<h2>View Posts - {{ forum }}</h2>
+
+<div class="container">
+  <div class="col-md-12 d-flex">
+    <div>
+      <a href="{% url "forums:forum_list" %}" class="btn btn-danger btn-sm">All Forums</a>
+      <!-- <a href="{% url "forums:post_search" %}" class="btn btn-primary btn-sm"><i class="material-icons">search</i> Search</a> -->
+    </div>
+    <div class="ml-auto">
+      {% if can_post %}
+      <button class="btn btn-success btn-sm" onclick="location.reload();location.href='{% url "forums:post_new_with_id" forum_id=forum.id %}'">Create New Post</button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% for thing in things %}
+<div class="container mt-2 bg-light">
+  <div class="row h-100">
+    <div class="col-2 my-auto">
+      <img width="60px" class="cobalt-rounded img-fluid  d-block mx-auto" src="/media/{{ thing.author.pic }}" />
+    </div>
+    <div class="col-10">
+      <div class="container">
+        <div class="row">
+          <div class="col-10">
+            <h3 class="p-0 m-0"><a href="{% url 'forums:post_detail' pk=thing.pk %}">{{ thing.title }}</a></h3>
+            <h5 class="p-0 m-0"><a href="{% url "accounts:public_profile" pk=thing.author.id %}">{{ thing.author.full_name }}</a> posted in {{ thing.forum.title }}</h5>
+            <p class="p-0 m-0 font-italic"><small>{{ thing.created_date|naturaltime }}</small></p>
+                        <p class="p-0 m-0"><small>{{ thing.created_date|cobalt_nice_datetime }}</small></p>
+          </div>
+          <div class="col-2 my-auto">
+            <div class="text-center display-2">
+              {{ thing.comment_count }}
+            </div>
+            <div class="text-center">
+              comment{{ thing.comment_count|pluralize}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% empty %}
+<br>
+<h2>Hmmm... There doesn't appear to be anything here yet.</h2>
+{% endfor %}
+<br>
+{% include 'utils/pagination_footer.html' %}
+
+
+{% endblock %}

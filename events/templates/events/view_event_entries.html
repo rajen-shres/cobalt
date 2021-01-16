@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+<div class="container">
+  <div class="card">
+    <div class="card-header card-header-primary">
+      <h2>{{ event.event_name}}</h2>
+      <h3>{{ congress }}</h3>
+      <h3>{{ date_string }} - {{ event.start_time|cobalt_time }} Start</h3>
+      <h4>{{ entries|length }} entries
+        {% if event.max_entries %}
+        out of a maximum of {{ event.max_entries }}
+        {% endif %}
+      </h4>
+    </div>
+    <div class="card-body">
+      <table class="table table-responsive">
+        <thead>
+          <tr>
+            <th>Entry</th>
+            <th>Status</th>
+            {% if categories %}
+            <th>Category</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+
+      {% for entry in entries %}
+      <tr>
+        <td class="py-1">
+        {% for player in entry.evententryplayer_set.all %}
+          {{ player.player.full_name }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+
+        </td>
+        <td class="py-1">
+        {{ entry.entry_status }}
+        </td>
+
+        {% if categories %}
+        <td>
+          {{ entry.category }}
+        </td>
+        {% endif %}
+
+        </tr>
+      {% empty %}
+      <h3>No entries yet</h3>
+      {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

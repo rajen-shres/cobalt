@@ -1,0 +1,248 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Events Overview &mdash; Cobalt 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Cobalt
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Cobalt Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">cobalt</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Cobalt</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Events Overview</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/events_overview.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <a class="reference internal image-reference" href="_images/cobalt.jpg" id="events-overview"><img alt="Cobalt Chemical Symbol" id="events-overview" src="_images/cobalt.jpg" style="width: 300px;" /></a>
+<div class="section" id="id1">
+<h1>Events Overview<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>Events handles anything related to creating, managing and entering a bridge
+event.</p>
+</div>
+<div class="section" id="modules">
+<h1>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h1>
+<p>Payments code lives in standard Django Python files - Models, Views, Forms,
+Templates etc. In addition the more backend functions that do not deal with
+users are stored in core.py. There is also some code included in the Models.py
+for Events. The two main areas to do the bulk of the work
+within Events are views.py and core.py. The description below does not
+differentiate between the location of a function.</p>
+</div>
+<div class="section" id="relationships">
+<h1>Relationships<a class="headerlink" href="#relationships" title="Permalink to this headline">¶</a></h1>
+<p>Congress elements are defined as follows:</p>
+<ul class="simple">
+<li><p><strong>CongressMaster</strong> - represents the series of congresses, basically the
+congress without the year and the details. These are linked to an organisation
+which is how security is controlled (at the organisation level).</p></li>
+<li><p><strong>Congress</strong> - a congress is a specific concrete instance underneath CongressMaster.
+Congresses have a lot of data associated with them. Only congresses with a
+status of “Published” can be seen by normal users.</p></li>
+<li><p><strong>Event</strong> - congresses must have events for people to play in.</p></li>
+<li><p><strong>Session</strong> - Events must have at least one session.</p></li>
+</ul>
+<p>Entries are linked to the congress structure as follows:</p>
+<ul class="simple">
+<li><p><strong>EventEntry</strong> - this connects to Event and represents a team, individual or
+pair who are playing in an Event within a Congress.</p></li>
+<li><p><strong>EventEntryPlayer</strong> - players who form part of an EventEntry.</p></li>
+<li><p><strong>BasketItem</strong> - a collection of one or more EventEntries created by a player
+who has not yet checked out. BasketItems are deleted once the checkout process
+has been completed.</p></li>
+</ul>
+</div>
+<div class="section" id="flow">
+<h1>Flow<a class="headerlink" href="#flow" title="Permalink to this headline">¶</a></h1>
+<img alt="Events Diagram" src="_images/events.jpg" />
+<p>Users view congresses and can choose to enter events. They may checkout after
+entering one event or build up a collection of events in their basket. There
+are three ways that a user can pay for an event. They can use their own system
+dollars to pay for themselves or team mates. If they have permission then they
+can use a team mates system dollars to pay for that person only. Finally, if
+the congress supports it then they pay using off-system methods such as
+bank transfers or cheques. These are handled by the convener.</p>
+<p>When a user checks out they are given a summary of what they are committing to
+and they are taken to the payment_api which handles the detail of collecting
+the funds. The EventEntryPlayer records are flagged for payment and if the
+payment succeeds then the entries are marked as paid. At this point any
+EventEntryPlayer records associated with this entry which are marked for payment
+with a team mate’s system dollars are also processed and all team mates are
+notified. Individual payment records per user are entered into the account of
+the organisation associated with the congress.</p>
+<p>If a player either does not make the payment or the payment fails then the
+items remain in their basket and no other payments are processed.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, ABF
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

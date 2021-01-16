@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load cobalt_tags %}
+{% load humanize %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-header card-header-warning">
+    <h2>User Activity</h2>
+  </div>
+  <div class="card-body">
+    <div class="card col-md-5 mx-auto">
+      <div class="card-header card-header-primary">
+        <h2>Summary</h2>
+      </div>
+      <div class="card-body text-center">
+        <table class="table table-sm">
+          <thead class="text-danger">
+          <tr>
+            <th>Timescale</th>
+            <th>Active Users</th>
+          </tr>
+          </thead>
+          <tbody>
+        <tr><td>Last 5 Mins <td>{{ last_5m }}</tr>
+        <tr><td>Last Hour <td>{{ last_1hr }}</tr>
+        <tr><td>Last Day <td>{{ last_day }}</tr>
+        <tr><td>Last Week <td>{{ last_week }}</tr>
+        <tr><td>Last Month <td>{{ last_month }}</tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+<br>
+    <div class="card col-md-7 mx-auto">
+      <div class="card-header card-header-success">
+        <h2>Users</h2>
+        <p>Excludes yourself</p>
+      </div>
+      <div class="card-body text-center">
+        <table class="table table-sm">
+          <thead class="text-primary">
+            <tr>
+              <th>Name</th>
+              <th>Last Activity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+              <tr><td>{{ user|cobalt_user_link }}<td><b>{{ user.last_activity|naturaltime }}</b> - {{ user.last_activity|cobalt_nice_datetime }}</tr>
+            {% endfor %}
+          </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</div>
+
+
+
+
+{% endblock %}

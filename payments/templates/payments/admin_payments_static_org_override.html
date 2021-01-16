@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load cobalt_tags %}
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "payments:statement_admin_summary" %}">Payments Admin</a></li>
+    <li class="breadcrumb-item"><a href="{% url "payments:admin_payments_static" %}">Payments Static</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Organisation Override</li>
+  </ol>
+</nav>
+
+<div class="container">
+  <div class="card">
+    <div class="card-header card-header-primary">
+      <h1>{{ BRIDGE_CREDITS }}</h1>
+      <h2>Organisation Static Override</h2>
+      <a href="{% url "payments:admin_payments_static_org_override_add" %}" class="btn btn-sm btn-secondary">Add</a>
+    </div>
+
+    {% if org_statics %}
+
+    <div class="card-body table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Organisation</th>
+            <th>Settlement Fee Percentage</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for org_static in org_statics %}
+            <tr>
+              <td>{{ org_static.organisation }}</td>
+              <td>{{ org_static.org_fee_percent }}</td>
+              <td><a href="{% url "payments:admin_payments_static_org_override_delete" item_id=org_static.id %}" class="btn btn-sm btn-danger">Delete</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  {% else %}
+  <h3>There are no overrides defined</h3>
+  {% endif %}
+  </div>
+</div>
+
+{% endblock %}

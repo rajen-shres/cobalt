@@ -1,0 +1,62 @@
+#!/bin/sh
+
+BRANCH=`git branch --show-current`
+
+echo ""
+echo ""
+echo "Running collect static..."
+./manage.py collectstatic --noinput
+
+echo ""
+echo ""
+echo "Adding changes to $BRANCH..."
+
+git add -A
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
+echo ""
+echo "Trying to commit changes to $BRANCH..."
+echo ""
+
+git commit -m "$BRANCH"
+if [ $? -ne 0 ];then
+
+  echo ""
+  echo "Commit failed, possible due to black. Re-trying..."
+  echo ""
+
+  git add -A
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Trying to commit changes to $BRANCH for a second time..."
+  echo ""
+
+  git commit -m "$BRANCH"
+  if [ $? -ne 0 ];then
+    echo "Failed to save changes, do this manually."
+    echo ""
+    echo "git add -A"
+    echo "git commit -m \"$BRANCH\""
+    echo ""
+    echo "Then run this:"
+    echo ""
+    echo "git push origin $BRANCH"
+    echo ""
+    echo ""
+    exit 1
+  fi
+fi
+
+echo ""
+echo "Pushing changes to github..."
+echo ""
+
+git push origin $BRANCH
+
+echo ""
+echo ""

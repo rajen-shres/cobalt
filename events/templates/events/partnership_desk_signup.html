@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+<div class="container">
+  <div class="card mx-auto">
+    <div class="card-header card-header-primary">
+      <h1>
+        <div class="d-flex justify-content-between">
+          <div>
+            Partnership Desk Sign Up
+          </div>
+          <div>
+            <i class="material-icons" style="font-size:60px">emoji_people</i>
+          </div>
+      </h1>
+
+      <h3>{{ event.event_name }} at {{ event.congress.name }}</h3>
+    </div>
+    <div class="card-body">
+
+  <form method="post">
+    {% csrf_token %}
+
+    <input type="hidden" name="player" value="{{ request.user.id }}">
+    <input type="hidden" name="event" value="{{ event.id }}">
+    <p><label for="id_private">Private Entry (name hidden): </label> <input type="checkbox" name="private" id="id_private"></p>
+    <p><label for="id_comment">Comment (optional): </label> <input type="text" name="comment" size="40" id="id_comment">
+    </p>
+    <br>
+    <div class="row">
+      <div class="col text-center">
+        <button class="btn btn-success" action="submit">Submit</button>
+      </div>
+    </div>
+  </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,13 @@
+<div class="card card-profile">
+  <div class="card-body">
+    <h3>{{ org.name }}</h3>
+    <h4 class="mb-0">{{ GLOBAL_ORG}} Club No. {{ org.org_id }}</h4>
+    <h4 class="mt-0 mb-0">{{ org.address1|default_if_none:"" }}</h4>
+    <h4 class="mt-0 mb-0">{{ org.address2|default_if_none:"" }}</h4>
+    <h4 class="mt-0 mb-0">{{ org.suburb|default_if_none:"" }}</h4>
+    <h4 class="mt-0 mb-0">{{ org.state|default_if_none:"" }} {{ org.postcode|default_if_none:"" }}</h4>
+    <div class="row justify-content-center">
+      <button onclick="cobaltOrgSearchOk();" class="btn btn-success">Ok</button>
+      <button onclick="location.reload(true);" class="btn btn-secondary">Cancel</button>
+    </div>
+  </div>

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<p>This screen allows a manual change to accounts to be made for test purposes.</p>
+<br><br>
+<div align="center">
+  <div class="card col-5">
+    <div class="card-header card-header-success">
+      <h4 class="card-title">Make Test Transaction</h4>
+    </div>
+    <div class="card-body" style="text-align: center">
+      <div class="text-left">
+        You are: {{ user.full_name }} ({{ GLOBAL_ORG }} Number: {{ user.system_number }})
+      </div>
+      <form action="test-transaction" method="post">
+        {% csrf_token %}
+        <table>
+          {{ form.as_table }}
+        </table>
+        <input type="submit" value="Apply" class="btn btn-block">
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

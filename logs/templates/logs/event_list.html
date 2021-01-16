@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load log %}
+{% block content %}
+<div class="col-md-12">
+  <div class="card">
+    <div class="card-header card-header-warning">
+      <h1>
+        <div class="d-flex justify-content-between">
+          <div>
+            Logs
+          </div>
+          <div>
+            <i class="material-icons" style="font-size:50px">build</i>
+          </div>
+      </h1>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-hover table-condensed">
+        <thead class="text-info">
+          <tr>
+            <th>Time Stamp</th>
+            <th>IP</th>
+            <th>Severity</th>
+            <th>User</th>
+            <th>Source</th>
+            <th>Sub Source</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for thing in things %}
+          <tr>
+            <td title="{{ thing.event_date }}">{{ thing.event_date|timesince }} ago</td>
+            <td>{{ thing.ip }}</td>
+            <td class="
+
+              {% if thing.severity == "DEBUG" %}bg-white{% endif %}
+              {% if thing.severity == "INFO" %}bg-light{% endif %}
+              {% if thing.severity == "WARN" %}bg-info{% endif %}
+              {% if thing.severity == "ERROR" %}bg-warning{% endif %}
+              {% if thing.severity == "HIGH" %}bg-danger text-blue{% endif %}
+              {% if thing.severity == "CRITICAL" %}bg-dark text-white font-weight-bold{% endif %}
+
+              ">{{ thing.severity }}</td>
+            <td>{{ thing.user }}</td>
+            <td>{{ thing.source }}</td>
+            <td>{{ thing.sub_source }}</td>
+            <td>{{ thing.message }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% include 'utils/pagination_footer.html' %}
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

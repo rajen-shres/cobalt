@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header card-header-success">
+    <h4 class="card-title">
+      {{ matches|length }} Matches
+  </div>
+  <div class="card-body table-responsive">
+    <table class="table table-hover">
+      <thead class="text-info">
+        <th>First Name
+        <th>Last Name
+        <th>{{ GLOBAL_ORG }} number
+        <th>Home Club
+        <th>Status
+      </thead>
+      <tbody>
+        {% for m in matches %}
+
+        <tr>
+          <td><a href="view/{{ m.ABFNumber }}"> {{ m.GivenNames }} </a>
+          <td><a href="view/{{ m.ABFNumber }}"> {{ m.Surname }} </a>
+          <td><a href="view/{{ m.ABFNumber }}"> {{ m.ABFNumber }} </a>
+          <td><a href="view/{{ m.ABFNumber }}"> {{ m.ClubName }} </a>
+          <td> {% if m.IsActive == "Y" %} Active {% else %} Inactive {% endif %}
+        </tr>
+
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

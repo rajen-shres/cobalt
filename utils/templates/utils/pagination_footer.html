@@ -1,0 +1,28 @@
+{% if things.paginator.num_pages > 1 %}
+
+<div class="pagination">
+    {% if things.has_previous %}
+    <a class="pagination-action" href="?{{ searchparams }}page=1">
+        <i class="fa fa-angle-double-left" aria-hidden="true"></i> </a>
+    <a class="pagination-action" href="?{{ searchparams }}page={{ things.previous_page_number }}">
+        <i class="fa fa-angle-left" aria-hidden="true"></i>
+    </a>
+    {% endif %}
+    {% for num in things.paginator.page_range %}
+        {% if things.number == num %}
+            <span class="pagination-number pagination-current">{{ num }}</span>
+        {% elif num > things.number|add:'-3' and num < things.number|add:'3' %}
+            <a class="pagination-number" href="?{{ searchparams }}page={{ num }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if things.has_next %}
+        <a class="pagination-action" href="?{{ searchparams }}page={{ things.next_page_number }}">
+            <i class="fa fa-angle-right" aria-hidden="true"></i>
+        </a>
+        <a class="pagination-action" href="?{{ searchparams }}page={{ things.paginator.num_pages }}">
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+        </a>
+    {% endif %}
+</div>
+
+{% endif %}

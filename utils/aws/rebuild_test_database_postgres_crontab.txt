@@ -1,0 +1,1 @@
+* * * * * /var/app/current/utils/aws/rebuild_test_database_postgres_cron.sh

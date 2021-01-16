@@ -1,0 +1,12 @@
+{% block content %}
+
+{% if actions %}
+  <option>---select---</option>
+
+  {% for action in actions %}
+    <option value="{{ action.0 }}">{{ action.0 }}</option>
+  {% endfor %}
+
+  <option value="all">all</option>
+{% endif %}  
+{% endblock %}

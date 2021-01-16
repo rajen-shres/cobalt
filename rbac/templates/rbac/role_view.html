@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "rbac:main_admin_screen" %}">Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Role View</li>
+  </ol>
+</nav>
+
+<h1>Role Based Access Control</h1>
+
+<div>
+  <div class="card">
+    <div class="card-header card-header-primary">
+      <h3 class="card-title">Role View</h3>
+    </div>
+    <div class="card-body">
+      <div class="container">
+
+        <h3>RBAC Model Defaults</h3>
+        <i>This is the default behaviour for a role if no rule is found.</i>
+        <table class="table table-responsive">
+          <thead>
+            <th>App</th>
+            <th>Model</th>
+            <th>Default Behaviour</th>
+          </thead>
+          <tbody>
+            {% for default in defaults %}
+            <tr>
+              <td>{{ default.app }}
+              <td>{{ default.model }}
+              <td>{{ default.default_behaviour }}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <h3>RBAC Roles and Actions</h3>
+        <i>Most roles also support a model_id attribute. For example,
+          events.org.6.edit grants the group the ability to manage
+          congresses for organisation 6 only.</i>
+        <table class="table table-responsive">
+          <thead>
+            <th>Role</th>
+            <th>Action</th>
+            <th>Description</th>
+          </thead>
+          <tbody>
+            {% for role in roles %}
+            <tr>
+              <td>{{ role.app }}.{{ role.model }}
+              <td>{{ role.valid_action }}
+              <td>{{ role.description }}
+                {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<br>
+{% endblock %}

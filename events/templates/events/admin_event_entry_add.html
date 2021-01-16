@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event.congress.id %}">{{ event.congress.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Add Entry</li>
+  </ol>
+</nav>
+
+<div class="container justify-content-center">
+  <div class="row h-100 d-flex justify-content-center">
+    <div class="card">
+      <div class="card-header card-header-warning">
+        <h2>Congress Admin View</h2>
+        <h3>{{ event.congress }}</h3>
+      </div>
+      <div class="card-body">
+
+        <div class="card">
+          <div class="card-header card-header-danger">
+            <h2>{{ event.event_name }} - Add Entry</h2>
+          </div>
+
+          <div class="card-body table-responsive">
+
+              {% for count in player_count %}
+
+              {% include "utils/generic_user_search_body.html" with search_id=count %}
+
+              <button style="width: 150px" class="cobalt_generic_member btn btn-sm btn-primary player_button"
+                data-toggle="modal" id="id_player_button_{{ count }}"
+                data-target="#cobalt_general_member_search{{ count }}"
+
+                {% if count > 0 %}
+                  disabled
+                {% endif %}
+
+                >Choose Player {{ count|add:1 }}
+              </button>
+
+              <button style="width: 150px" class="btn btn-sm btn-info btn-tba" id="id_player_tba_{{ count }}"
+
+              {% if count > 0 %}
+                disabled
+              {% endif %}
+
+              >Choose TBA
+              </button>
+
+              <span class="player_name" id="player_name_{{ count }}">
+
+              </span>
+              <br>
+              {% endfor %}
+              <form method="post">
+              {% csrf_token %}
+              {% for count in player_count %}
+              <input type='hidden' id='id_player_{{ count }}' name='player_{{ count }}'>
+              {% endfor %}
+              <br>
+              {% if categories %}
+              <label for="id_category">Category: </label>
+              <select class="selectpicker" data-style="btn btn-info" id="id_category" name="category">
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category }}</option>
+                {% endfor %}
+              </select>
+              <br><br>
+              {% endif %}
+              <div class="text-center">
+                <button type="submit" class="btn btn-success cobalt-save" id="submit_button" disabled>Create</button>
+                <a href="{% url "events:admin_event_summary" event_id=event.id %}" type="cancel" class="btn btn-info">Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+<script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
+<script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+<script>
+  {% for count in player_count %}
+    {% include 'utils/generic_user_search_footer.html' with search_id=count %}
+  {% endfor %}
+
+function check_submit_button(){
+// Check if submit button is ready to enable
+  var enabled_count = $('.cobalt-complete').length
+
+// set min players for completeness
+  var count_check = {{ player_count_number }};
+  if (count_check == 6){
+    count_check = 4;
+  }
+  console.log("count_check: " + count_check);
+  console.log("enabled_count: " + enabled_count);
+  if (enabled_count >= count_check){
+    $("#submit_button").prop("disabled", false);
+  }
+}
+
+function cobaltMemberSearchOk(search_id) {
+
+// check if entered already
+  $.getJSON("{% url "events:check_player_entry_ajax" %}" + "?member_id=" + member_id[search_id] + "&event_id={{ event.id }}")
+    .done(response => {
+
+  // already entered
+      if (response['message'] == "Already Entered"){
+        swal.fire({
+            title: "Error",
+            html: member_name[search_id] + " is already entered in this event",
+            icon: "error",
+            allowEnterKey: true,
+            allowEscapeKey: true,
+          })
+
+      } else {
+
+  // not entered so set up player
+        $("#player_name_" + search_id).text(member_name[search_id]);
+        $("#player_name_" + search_id).addClass("cobalt-complete");
+        $("#id_player_" + search_id).val(member_id[search_id]);
+
+  // enable next button
+        var next_search_id = parseInt(search_id) + 1;
+        $("#id_player_button_" + next_search_id).prop("disabled", false);
+        $("#id_player_tba_" + next_search_id).prop("disabled", false);
+
+        check_submit_button();
+
+      }
+    })
+}
+
+$(document).ready(function(){
+
+// handle tba
+  $(".btn-tba").click(function(event){
+    var id=$(this).attr('id').split("_")[3];
+    $("#player_name_" + id).text("TBA");
+    $("#player_name_" + id).addClass("cobalt-complete");
+    $("#id_player_" + id).val(2);
+    // enable next button
+    var next_search_id = parseInt(id) + 1;
+    $("#id_player_button_" + next_search_id).prop("disabled", false);
+    $("#id_player_tba_" + next_search_id).prop("disabled", false);
+
+    check_submit_button();
+
+    return false;
+
+  });
+
+});
+
+</script>
+{% endblock %}

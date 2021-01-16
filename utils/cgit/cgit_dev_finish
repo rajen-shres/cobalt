@@ -1,0 +1,89 @@
+#!/bin/bash
+
+BRANCH=`git branch --show-current`
+
+
+echo ""
+echo ""
+echo "Congratulations on finishing a feature."
+echo ""
+echo "I will check your branch is clean and then merge your changes into"
+echo "the develop branch. I will then deploy to the test system"
+echo "and if that works, delete the branch '$BRANCH'."
+echo ""
+read -p "Press key to continue..." -n1 -s
+
+if [[ -z $(git status -s) ]]
+then
+  echo ""
+  echo ""
+  echo "Pulling latest develop branch..."
+  echo ""
+
+  git pull origin develop
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+  
+  echo ""
+  echo "Checking out develop branch..."
+  echo ""
+
+  git checkout develop
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Merging $BRANCH into develop branch..."
+  echo ""
+
+  git merge $BRANCH
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Pushing develop branch to github..."
+  echo ""
+
+  git push origin develop
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Deploying to test server..."
+  echo ""
+
+  TESTENV=`eb list | grep cobalt-test` 
+  TESTNUM=`eb list | grep cobalt-test | wc | awk '{print $1}'`
+
+  if [ "$TESTNUM" = "1" ]
+  then
+   echo "Deploying code to $TESTENV..."
+   eb deploy $TESTENV
+  else
+   echo "Cannot deploy to Test, found more than one test environment."
+   echo $TESTENV
+  fi
+  echo ""
+  echo ""
+else
+  echo ""
+  echo ""
+  echo "Cannot comply with request."
+  echo "You can probably fix this by running cgi_test_save."
+  echo "There are uncommitted changes or other problems with your git status. See below."
+  echo ""
+  echo ""
+  git status
+  echo ""
+  echo ""
+  exit
+fi
+
+echo "Deleting branch $BRANCH..."
+echo ""
+
+git branch -d $BRANCH

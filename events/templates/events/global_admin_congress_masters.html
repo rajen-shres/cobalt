@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+
+<div class="container justify-content-center">
+  <div class="row h-100 d-flex justify-content-center">
+    <div class="card">
+      <div class="card-header card-header-warning">
+        <h2>Congress Master Admin</h2>
+        <h4>Here you can edit and create congress masters and control user access. We don't allow deletion as this also deletes the congress history and all entries etc.</h4>
+      </div>
+      <div class="card-body">
+        <div class="text-right">
+        <a class="text-right" href="{% url "events:global_admin_create_congress_master" %}">Create New Congress Master</a>
+        </div>
+        {% for state, congress_masters in grouped_by_state.items %}
+        <div class="card">
+          <div class="card-header card-header-primary">
+            <h2>{{ state }}</h2>
+          </div>
+          <div class="card-body table-responsive">
+
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Club</th>
+                  <th>Congress Master</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for congress_master in congress_masters %}
+              <tr>
+                <td>{{ congress_master.org }}
+                <td>{{ congress_master.name }}
+                <td><a href="{% url "events:global_admin_edit_congress_master" id=congress_master.id %}" class="btn btn-sm btn-info">Edit</a>
+              </tr>
+              {% endfor %}
+            </tbody>
+            </table>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

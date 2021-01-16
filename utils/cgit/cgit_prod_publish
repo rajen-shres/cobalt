@@ -1,0 +1,120 @@
+#!/bin/bash
+
+BRANCH=`git branch --show-current`
+
+if [[ $BRANCH != *"release"* ]]; then
+  echo "You are not on a release branch. Change to a release branch to perform this function."
+  exit 1
+fi
+
+clear
+echo "*************** PRODUCTION RELEASE ABOUT TO HAPPEN *********************"
+echo ""
+echo ""
+echo "Congratulations on being ready to release to production."
+echo ""
+echo "I will check out the release branch $BRANCH and install this in"
+echo "PRODUCTION. I will then get the other branches, develop and master"
+echo "in sync."
+echo ""
+echo ""
+read -p "Press key to continue..." -n1 -s
+
+if [[ -z $(git status -s) ]]
+then
+  echo ""
+  echo ""
+  echo "Pulling latest $BRANCH branch..."
+  echo ""
+
+  git pull origin $BRANCH
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+  
+  echo ""
+  echo "Checking out $BRANCH branch..."
+  echo ""
+
+  git checkout $BRANCH
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Deploying to PRODUCTION server..."
+  echo ""
+
+  PRODENV=`eb list | grep cobalt-production` 
+
+  eb deploy $PRODENV
+
+  echo ""
+  echo ""
+else
+  echo ""
+  echo ""
+  echo "Cannot comply with request."
+  echo "There are uncommitted changes or other problems with your git status. See below."
+  echo ""
+  echo ""
+  git status
+  echo ""
+  echo ""
+  exit
+fi
+
+echo ""
+echo "Pulling latest develop branch..."
+echo ""
+
+git pull origin develop
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
+echo ""
+echo "Checking out develop branch..."
+echo ""
+
+git checkout develop
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
+echo ""
+echo "Merging $BRANCH..."
+echo ""
+
+git merge $BRANCH
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
+echo ""
+echo "Pulling latest master branch..."
+echo ""
+
+git pull origin master
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
+echo ""      
+echo "Checking out master branch..."
+echo ""
+
+git checkout master
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
+echo ""   
+echo "Merging $BRANCH..."
+echo ""
+
+git merge $BRANCH
+if [ $? -ne 0 ];then
+ exit 1
+fi
+

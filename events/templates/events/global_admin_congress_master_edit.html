@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+
+<div class="container justify-content-center">
+  <div class="row h-100 d-flex justify-content-center">
+    <div class="card">
+      <div class="card-header card-header-warning">
+        <h2>Congress Master Edit</h2>
+        <h3>{{ congress_master.name }}</h3>
+        <h4>{{ congress_master.org }}</h4>
+      </div>
+      <div class="card-body">
+        <div class="card">
+          <div class="card-header card-header-primary">
+            <h2>Details</h2>
+          </div>
+          <div class="card-body">
+
+            <form method="post">
+              {% csrf_token %}
+
+              <input type="hidden" name="org" id="id_org" value="{{ form.org.value }}">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="bmd-label-floating">Congress Master Name</label>
+                    <input type="text" maxlength="100" name="name" id="id_name" class="form-control" value="{{ form.name.value }}"required>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+              <div class="col-md-6">
+                {% include "generic_org_search_body.html" %}
+                <span id="id_org_name">{{ congress_master.org }}</span>
+                <a class="cobalt_generic_org btn btn-warning btn-sm" data-toggle="modal" id="id_org_search" data-target="#cobalt_general_org_search"><span style="color: white;">Lookup Organisation</span></a>
+
+              </div>
+              </div>
+              <div class="row">
+                <div class="col text-center">
+                  <button type="submit" class="btn btn-success cobalt-save">Save</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <br>
+      <div class="card">
+        <div class="card-header card-header-danger">
+          <h2>Congress Conveners</h2>
+          <a href="{% url "rbac:group_view" group_id=rbac_group_id %}" class="btn btn-sm btn-secondary">View in RBAC</a>
+        </div>
+        <div class="card-body">
+        <ul>
+          {% for convener in conveners %}
+            <li>{{ convener|cobalt_user_link_short}}</li>
+          {% endfor %}
+        </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

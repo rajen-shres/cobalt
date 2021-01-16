@@ -1,0 +1,992 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+<style>
+.accordion {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 12px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+}
+
+.accordion:hover {
+  background-color: #ccc;
+}
+
+.accordion:after {
+  content: '\002B';
+  color: #777;
+  font-weight: bold;
+  float: right;
+  margin-left: 5px;
+}
+
+.active:after {
+  content: "\2212";
+}
+
+.panel {
+  padding: 0 18px;
+  background-color: white;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{% url "support:contact" %}" class="btn btn-info">Contact Support&nbsp;<i class="material-icons">email</i></a>
+
+<div class="card">
+  <div class="card-header card-header-warning">
+    <h1>
+      <div class="d-flex justify-content-between">
+        <div>
+          Frequently Asked Questions
+        </div>
+        <div>
+          <i class="material-icons" style="font-size:60px">support_agent</i>
+        </div>
+    </h1>
+  </div>
+  <div class="card-body">
+    <div class="container justify-content-center">
+
+      <a href="{% url "support:admin" %}">Administrator FAQ</a><br>
+      <img src="{% static "assets/img/faq2.jpg" %}" alt="FAQ" width="200px" class="mx-auto">
+
+
+
+      <!-- START -->
+
+
+
+
+      <!-- Users & security -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-primary">
+          <h2>Users & security</h2>
+        </div>
+        <div class="card-body">
+
+
+          <button class="accordion">Why do I need to be logged in?</button>
+          <div class="panel"><br>
+
+            <p>When logged in the system can see your personal profile information. This means:
+            </p>
+            <ul>
+
+              <li> Your own dashboard screen can be customised to you (see Dashboard for more information)
+
+              <li> Entering an event is a lot simpler because there is no need for you to input any identifying detail – the system already knows it is you.
+
+            </ul>
+
+          </div>
+          <button class="accordion">How do I logout?</button>
+          <div class="panel"><br>
+
+            <p>You can logout by clicking on the person icon at the top right hand corner of every screen. <i class="material-icons">person</i>
+            </p>
+            <p>Then choose logout.
+            </p>
+            <p>Always logout after using a shared computer.
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I change my password?</button>
+          <div class="panel"><br>
+
+            <p>You can change your password through your <a href="{% url "accounts:user_profile" %}">Profile</a> which you can get to by clicking on the person icon <i class="material-icons">person</i> at the top right of every screen and selecting
+              Profile.
+            </p>
+            <p>You can also go to the You can also go
+            </p>
+            <p>to the <a href="{% url "accounts:change_password" %}">Password Change Screen here</a>.
+            </p>
+          </div>
+          <button class="accordion">What are the password requirements?</button>
+          <div class="panel"><br>
+
+            <p>Password rules are:
+            </p>
+            <ul>
+
+              <li> At least 8 characters
+
+              <li> No common words (e.g. “password”)
+
+              <li> No multiple repeated characters
+
+            </ul>
+
+          </div>
+          <button class="accordion">Is this system secure?</button>
+          <div class="panel"><br>
+
+            <p>Yes.
+            </p>
+            <p>Here are some of the security features:
+            </p>
+            <ul>
+
+              <li> Data is encrypted at rest
+
+              <li> Data is encrypted in transit using TLS1.2
+
+              <li> Production data is not used in any other environment (e.g. Test)
+
+              <li> The system is built in Django, one of the most secure web frameworks available
+
+            </ul>
+
+          </div>
+          <button class="accordion">I’ve forgotten my password</button>
+          <div class="panel"><br>
+
+            <p>There is a password reset option on the login screen. You will be sent a link in email to reset your password.
+            </p>
+            <p>
+            </p>
+
+          </div>
+        </div>
+      </div>
+      <br>
+
+      <!-- Dashboard -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-danger">
+          <h2>Dashboard</h2>
+        </div>
+        <div class="card-body">
+
+
+          <button class="accordion">What are the different parts of the dashboard?</button>
+          <div class="panel"><br>
+
+            <p>On a large screen, the main menu is down the left and appears on every screen when you are logged in. On a smaller screen it appears on the top right of the screen as three horizonal lines.
+            </p>
+            <p>At the top right is the search window, as well as indications that you have notifications or unpaid items in your shopping cart. The people icon to the far right provides access to your Profile, Settings or to logout.
+            </p>
+            <p>At the top are three shortcuts – to your bridge credits account, your entries and your masterpoints.
+            </p>
+            <p>The central part of the page will contain your personal results in future (not yet active) and a summary of your upcoming event bookings.
+            </p>
+            <p>The remainder of the page contains Announcements and Discussions forums.
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">Where is the main menu?</button>
+          <div class="panel"><br>
+
+            <p>Down the left of the page are a series of tabs to cover different functions. This is the primary means of navigating around the system. This panel always remains visible and you can always click on one of these items to go there from
+              any
+              page you are on.
+            </p>
+            <p>The items in the menu are not the same for everyone – some players who have administrative access to certain areas will see additional items.
+            </p>
+          </div>
+          <button class="accordion">What are the shortcuts at the top?</button>
+          <div class="panel"><br>
+
+            <p>There are 3 shortcuts. These show a quick headline view of your bridge credit balance, your booked events and your masterpoints. Clicking on Bridge Credits takes you to the Payments page. Clicking on Masterpoints takes you to the
+              Masterpoints page. Clicking on Booked events opens a separate list of all events you are currently entered in.
+            </p>
+          </div>
+          <button class="accordion">How do I search?</button>
+          <div class="panel"><br>
+
+            <p>At the top right of the screen, key in your search term and click the search icon. This brings up a list of results which can be filtered by areas of the system.
+            </p>
+          </div>
+          <button class="accordion">Where do I find my notifications?</button>
+          <div class="panel"><br>
+
+            <p>If you have any notifications there will be a bell icon visible at the top right of the screen. The number in the red box is the number of notifications you have. Click to bring up a listing of the most recent notifications. At the
+              bottom
+              you can click “Show all notifications” to bring up full list – from which you can view them or delete them.
+            </p>
+          </div>
+          <button class="accordion">Where do I find the shopping cart?</button>
+          <div class="panel"><br>
+
+            <p>If you have any unpaid entries, there will be a shopping cart icon visible at the top right of the screen. The number in the red box is the number of items you have in the cart. Click to bring up the Congress checkout page from where
+              you
+              can complete payment or delete the entry.
+            </p>
+            <p>
+            </p>
+
+          </div>
+        </div>
+      </div>
+      <br>
+
+      <!-- Profile -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-warning">
+          <h2>Profile</h2>
+        </div>
+        <div class="card-body">
+
+
+          <button class="accordion">How do I open my profile page?</button>
+          <div class="panel"><br>
+
+            <p>Go to the top right of the screen, click the person icon and select Profile.
+            </p>
+          </div>
+          <button class="accordion">How do I update my profile?</button>
+          <div class="panel"><br>
+
+            <p>Your ABF number is fixed. All other fields can be edited. When you are done click “Update Profile” Email, first name, surname and date of birth are compulsory fields.
+            </p>
+          </div>
+          <button class="accordion">How do I add a photo?</button>
+          <div class="panel"><br>
+
+            <p>Click “Change Photo” and browse to find the photo you want. A preview will appear. Click Update to add it to your profile (if you do not click Update the new picture will not be included in your profile).
+            </p>
+            <p>There is a size limit of [WHAT?]
+            </p>
+            <p>You can also add a caption.
+            </p>
+          </div>
+          <button class="accordion">What are Teammates?</button>
+          <div class="panel"><br>
+
+            <p> Teammates are people you regularly play with, either as partner or teammates. There are two levels of teammate:
+            </p>
+            <ul>
+
+              <li> Teammate (basic) – this means that when you enter an event this person’s name will automatically be listed in the dropdown list for selecting other people in your entry. This means you can select them immediately without needing to
+                search for them.
+
+              <li> Teammate (plus) – this goes further. It means that you trust them so that when they put entries in which include you they can nominate that your entry fee is charged to your bridge credit account (provided it has sufficient funds
+                available). See Bridge Credits for more information.
+
+            </ul>
+
+          </div>
+          <button class="accordion">How do I add or change Teammates?</button>
+          <div class="panel"><br>
+
+            <p>To add a new teammate click the “Add Teammate” button and select the player you want to add.
+            </p>
+            <p>To delete a teammate click the red bin icon and confirm.
+            </p>
+            <p>To upgrade a teammate from basic to plus, click the blue dollar sign
+            </p>
+            <p>To downgrade a teammates from plus to basic, click the crossed out blue dollar sign
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I change my password?</button>
+          <div class="panel"><br>
+
+            <p>At the bottom of the Profile page, click the “Change Password” button.
+            </p>
+            <p>Enter your current password and then enter your new password twice to confirm.
+            </p>
+            <p>
+            </p>
+
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+      <!-- Settings -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-success">
+          <h2>Settings</h2>
+        </div>
+        <div class="card-body">
+
+
+          <button class="accordion">How do I open my Settings page?</button>
+          <div class="panel"><br>
+
+            <p>Go to the top right of the screen, click the person icon and select Settings.
+            </p>
+          </div>
+          <button class="accordion">How do I update my Settings?</button>
+          <div class="panel"><br>
+
+            <p>TBA when page is resolved.
+            </p>
+            <p>
+            </p>
+
+          </div>
+        </div>
+      </div>
+      <br>
+
+      <!-- Announcements -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-info">
+          <h2>Announcements</h2>
+        </div>
+        <div class="card-body">
+
+          <button class="accordion">What are Announcements?</button>
+          <div class="panel"><br>
+
+            <p>Announcements are a specific type of Forum. The initial release has Announcements from the ABF and your home State only.
+            </p>
+          </div>
+          <button class="accordion">How do I comment on an Announcement?</button>
+          <div class="panel"><br>
+
+            <p>In the same way you comment on a Forum. Click on the announcement you want to comment on, scroll to the bottom and in the window saying “N comments so far. Want to add yours?” type your comment.
+            </p>
+            <p>If you wish to respond to someone else’s comment, click on “Reply to this thread”, add your response and click “Publish”.
+            </p>
+          </div>
+          <button class="accordion">Can I turn off Announcements?</button>
+          <div class="panel"><br>
+
+            <p>Announcements from the ABF and your home State will always come through to your dashboard. These cannot be switched off.
+            </p>
+            <p>You can subscribe to announcements from other States if you wish.
+            </p>
+            <p>In future, there will be announcements from your home club (and other clubs if you wish) available as well.
+            </p>
+            <p>
+            </p>
+
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+      <!-- Discussion Forums -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-primary">
+          <h2>Discussion Forums</h2>
+        </div>
+        <div class="card-body">
+
+          <button class="accordion">Where do the Discussions on my dashboard come from?</button>
+          <div class="panel"><br>
+
+            <p>These Discussions are from the Forums you have chosen to follow (if you have not followed any forums, then everything is shown here). See how to Follow a forum.
+            </p>
+          </div>
+          <button class="accordion">How do I view and follow Forums?</button>
+          <div class="panel"><br>
+
+            <p>Click Forums in the main menu. You are presented with a list of all Forums available to you (including the total number of posts in them). Some Forums are Fixed, others you can Follow or Un-follow.
+            </p>
+            <p>To open a Forum click on the name.
+            </p>
+            <p>To follow a forum, click the Follow button (the button will change to Un-Follow). Posts from this forum will now be included on your dashboard.
+            </p>
+            <p>To unfollow a forum you are currently following, click the Un-Follow button (the button will change back to Follow). Provided you are following at least one forum, posts from this forum will no longer be included on your dashboard.
+            </p>
+            <p>If you are not following any Forums, posts from all discussion forums will get included in your dashboard.
+            </p>
+          </div>
+          <button class="accordion">How do I add a new post to a Forum?</button>
+          <div class="panel"><br>
+
+            <p>Open the Forum. There are two ways to do this:
+            </p>
+            <ul>
+
+              <li> Select the Forums main menu item and open the Forum you require
+
+              <li> On your dashboard find a post in the Forum you want and click the link to the Forum name (not the post itself).
+
+            </ul>
+
+            <p>
+            </p>
+            <p>Click “Create New Post” at the top right (if you do not see this button it means you do not have rights to post in this forum). Write your article and click “Publish.”
+            </p>
+          </div>
+          <button class="accordion">How do I make comments or replies to an existing post?</button>
+          <div class="panel"><br>
+
+            <p>Click on the post you want to comment on, scroll to the bottom and in the window saying “N comments so far. Want to add yours?” type your comment.
+            </p>
+            <p>If you wish to respond to someone else’s comment, click on “Reply to this thread”, add your response and click “Publish”.
+            </p>
+          </div>
+          <button class="accordion">How do I edit a comment I have made?</button>
+          <div class="panel"><br>
+
+            <p>Browse to find your comment in the forum post. Click “Edit comment”. Make the changes you want and click “Change”.
+            </p>
+          </div>
+          <button class="accordion">I am told I cannot make a comment – why not?</button>
+          <div class="panel"><br>
+
+            <p>You may have been blocked from commenting on that forum. If you have not received any notifications, contact Support.
+            </p>
+          </div>
+          <button class="accordion">How do I like a comment?</button>
+          <div class="panel"><br>
+
+            <p>At the bottom right of the comment, click “Like” – the number of likes on that comment will be incremented.
+            </p>
+          </div>
+          <button class="accordion">How do I report a comment to a Moderator?</button>
+          <div class="panel"><br>
+
+            <p>Under the end of the comment, click Report. Complete the box and click OK to submit your report to the forum moderators.
+            </p>
+          </div>
+          <button class="accordion">How do I follow a post and what happens when I do?</button>
+          <div class="panel"><br>
+
+            <p>When you are within a post, click “Follow”. You will now receive an email notification when anyone posts a comment in that post.
+            </p>
+          </div>
+          <button class="accordion">How do I see what comments another user has posted?</button>
+          <div class="panel"><br>
+
+            <p>Click on their username. A list of all their contributions is presented, sorted by Posts, Replies and Comments.
+            </p>
+            <p>Click on the item to be taken directly there (if you receive a blocked message you may be viewing a search result in a forum you do not have access to).
+            </p>
+            <p>
+            </p>
+            <p> 
+            </p>
+
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+      <!-- Masterpoints -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-danger">
+          <h2>Masterpoints</h2>
+        </div>
+        <div class="card-body">
+
+          <button class="accordion">How do I view my masterpoints?</button>
+          <div class="panel"><br>
+
+            <p>There are two ways to open your masterpoint display:
+            </p>
+            <ul>
+
+              <li> Click the Masterpoints shortcut along the top of your dashboard
+
+              <li> Click the Masterpoints menu item down the left of your screen
+
+            </ul>
+
+            <p>These take you to a page showing your masterpoint summary including a graph for the last 12 months and your detailed masterpoint statement.
+            </p>
+          </div>
+          <button class="accordion">How can I search for someone else’s masterpoints?</button>
+          <div class="panel"><br>
+
+            <p>Open your Masterpoint page. In the Lookup Masterpoints box you can search for players by first name, last name or ABF number. If there are multiple results, you will be shown a list you can select from. Otherwise you will be taken
+              directly
+              to that player’s Masterpoint record.
+            </p>
+          </div>
+          <button class="accordion">How do I see masterpoint reports?</button>
+          <div class="panel"><br>
+
+            <p>These remain in the current ABF Masterpoint Centre website. At the bottom left of the purple header click the link Visit the MasterPoints Centre for official figures. This will take you to the current ABF masterpoint website.
+            </p>
+            <p>
+            </p>
+
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+      <!-- Bridge Credits -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-warning">
+          <h2>Bridge Credits</h2>
+        </div>
+        <div class="card-body">
+
+
+          <button class="accordion">What are bridge credits?</button>
+          <div class="panel"><br>
+
+            <p>Bridge Credits are a new type of payment system for bridge.
+            </p>
+            <p>Bridge Credits will be entirely optional – players can continue to pay for events individually online by card or offline means just like they do now.
+            </p>
+            <p>If you do choose to use an ABF Bridge Credit account you can use it to pay for entries to bridge events and, in future, club sessions as well. You can top the account up with funds and use it like a prepayment system. See here for
+              manual
+              top-up and here for automatic top-up. This will save the need to input your card details every time you want to enter and pay for an event.
+            </p>
+            <p>You can also transfer credits to other players (e.g. if they paid for an entry for you).
+            </p>
+          </div>
+          <button class="accordion">What credit cards are supported?</button>
+          <div class="panel"><br>
+
+            <p>All common ones. TO CHECK WITH STRIPE
+            </p>
+          </div>
+          <button class="accordion">Where are my card details kept?</button>
+          <div class="panel"><br>
+
+            <p>The ABF does not store any card details. We use Stripe, a common online payment provider. All card details are encrypted and stored with Stripe.
+            </p>
+          </div>
+          <button class="accordion">How do I see my statement?</button>
+          <div class="panel"><br>
+
+            <p>Click on Payments in the left hand menu or the Bridge Credits shortcut on your dashboard.
+            </p>
+            <p>This will show an itemised statement with your latest balance. From here you can Transfer to other players, manually top-up your balance, download your statement to a csv file. You can also switch on auto top-up.
+            </p>
+          </div>
+          <button class="accordion">What different transactions can be in my account?</button>
+          <div class="panel"><br>
+
+            <p>Type Description
+            </p>
+            <p>Entry to an event An entry to a bridge congress run by a club, state or the ABF (the organising body will be shown in the Counterparty column).
+            </p>
+            <p>If you paid for other people in your entry, their names will be shown on separate lines.
+            </p>
+            <p>Refund A refund for a bridge congress – e.g. if you withdrew your entry (the organising body will be shown in the Counterparty column).
+            </p>
+            <p>Member Transfer Transferring Bridge Credits to another member (Out) or a transfer someone has made to your (In).
+            </p>
+            <p>Manual Top-Up A card payment made manually to top-up the balance on your account.
+            </p>
+            <p>Automatic Top-Up A pre-established card payment triggered automatically when your balance falls below 20 credits.
+            </p>
+            <p>Manual adjustment An adjustment to your account processed by an Administrator (their name will be shown in the Counterparty column).
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I manually top-up my account?</button>
+          <div class="panel"><br>
+
+            <p>From your statement click Top up Balance.
+            </p>
+            <p>Enter the amount (min $50, max $2,000) and click Top-up
+            </p>
+            <p>Enter your card details
+            </p>
+            <p>Click Pay
+            </p>
+            <p>After you get a success message, click Payments in the main menu. You should see the amount coming into your statement (note it can sometimes take a few minutes for payments to appear – try again if necessary).
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I transfer credits to other players?</button>
+          <div class="panel"><br>
+
+            <p>From your statement click Transfer.
+            </p>
+            <p>Lookup the member you want to transfer to (you can search by name or ABF number)
+            </p>
+            <p>Enter the amount you wish to transfer and a description
+            </p>
+            <p>Click Transfer
+            </p>
+            <p>The amount will be charged to your account (if you have an insufficient balance you will be invited to pay the difference directly using your card).
+            </p>
+            <p>An opposite amount will appear in the other player’s account.
+            </p>
+          </div>
+          <button class="accordion">What is automatic top-up?</button>
+          <div class="panel"><br>
+
+            <p>Automatic top-up allows your account to automatically have credit added to it whenever it drops below a low balance threshold (20 credits) without you having to do anything. It works in a similar way to a public transport stored value
+              card.
+            </p>
+            <p>In the normal course of events when your account falls below 20, an amount you have pre-selected will be taken from your credit card to top your account up again. There are some exceptions to this for large entry payments.
+            </p>
+            <p>This is convenient as it allows you to set your card up once and not have to worry about entering details again.
+            </p>
+          </div>
+          <button class="accordion">How do I set up automatic top-up for my account?</button>
+          <div class="panel"><br>
+
+            <p>On your statement click against the “Off” to move the slider bar in the header
+            </p>
+            <p>Select your auto-top up amount ($100 is set as the default)
+            </p>
+            <p>Enter your card details
+            </p>
+            <p>Click Save Card
+            </p>
+            <p>You should receive a success message (if your account is below 20 at the time, an initial top-up payment will be taken).
+            </p>
+            <p>From now on, if your account drops below 20, the system will automatically top-it up by the amount you selected (there are some exceptions to this for large entry payments).
+            </p>
+          </div>
+          <button class="accordion">How do I change my automatic top-up settings?</button>
+          <div class="panel"><br>
+
+            <p>On your statement click Update in the header:
+            </p>
+            <p>This will take you back to the setup page from where you can change the amount or the card details.
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I turn off automatic top-up?</button>
+          <div class="panel"><br>
+
+            <p>On your statement in the header click the “On” to move the slider bar to off.
+            </p>
+            <p>Confirm you wish to Stop Auto Top-up.
+            </p>
+          </div>
+          <button class="accordion">The system hasn’t charged what I expected it to</button>
+          <div class="panel"><br>
+
+            <p>Although the system operates similarly to public transport stored value cards there are some important differences. For public transport, individual amounts charged are relatively small and the top-up amount relatively large (e.g.
+              fares of
+              up to, say, $10 with a top-up amount of $50). For bridge this is only the case for club sessions. A congress entry (especially to a major National congress) can be a much larger amount.
+            </p>
+            <p>For example if you are paying a $500 entry for a team, if you do not have any balance on your account then topping up by $100 would have to happen 5 separate times. A transaction like this is treated separately and the top-up charged
+              is
+              simply the same as the payment value ($500 here).
+            </p>
+            <p>So the amount charged to top up your account is the HIGHER of:
+            </p>
+            <ul>
+
+              <li> The payment you want to make; and
+
+              <li> Your auto top-up amount.
+
+            </ul>
+
+            <p>This means that if you try to pay more than your automatic top-up amount, the system will effectively treat it as a distinct transaction on its own – it will top-up by that amount to enable the payment to be made, and leave your
+              overall
+              account balance unchanged.
+            </p>
+            <p>
+            </p>
+            <p>
+            </p>
+
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+      <!-- Congresses – listings -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-success">
+          <h2>Congresses – listings</h2>
+        </div>
+        <div class="card-body">
+
+
+          <button class="accordion">How do I view all upcoming congresses?</button>
+          <div class="panel"><br>
+
+            <p>If you are not logged into the system, you can click Congresses from the front page
+            </p>
+            <p>If you are logged into the system click Congresses in the left hand menu
+            </p>
+            <p>Congresses are listed by month. Click the red button to view the Congress webpage
+            </p>
+          </div>
+          <button class="accordion">What is on the congress webpage?</button>
+          <div class="panel"><br>
+
+            <p>Each Congress has its own webpage which shows all the important details about the Congress:
+            </p>
+            <ul>
+
+              <li> Sponsors
+
+              <li> People
+
+              <li> Links
+
+              <li> Latest News
+
+              <li> Bulletins
+
+              <li> General information
+
+              <li> Venue map and information
+
+              <li> Program of events – including links to Enter, view existing entries, and (if used by the Congress) the Partnership desk
+
+            </ul>
+
+            <p>
+            </p>
+
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+      <!-- Congresses – entries -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-info">
+          <h2>Congresses – entries</h2>
+        </div>
+        <div class="card-body">
+
+
+          <button class="accordion">How do I view my upcoming congress entries?</button>
+          <div class="panel"><br>
+
+            <p>On your dashboard you can click the Booked Events shortcut at the top for a full listing, or you can view a listing of the more immediate ones under Your Upcoming Events.
+            </p>
+            <p>Click the Congress name (on the left) to go to the Congress webpage
+            </p>
+            <p>Click the Event name (on the right) to go to your entry
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I make a new entry to a congress?</button>
+          <div class="panel"><br>
+
+            <p>Open the Congress webpage
+            </p>
+            <p>Browse to the Program section
+            </p>
+            <p>Select the event you want and click Enter
+            </p>
+            <p>If entries are not open, or the event is full, you will be notified. Otherwise you will be taken to the Entry screen.
+            </p>
+            <p>You will be selected as the first player automatically (you can change this).
+            </p>
+            <p>For a pairs entry you must complete both lines. For a teams entry you must complete at least 4 lines (and can add 1 or 2 more if required).
+            </p>
+            <p>Select the other players in the entry – players you have set as Teammates will already be in the dropdown listing, or you can search for other players, or put TBA.
+            </p>
+            <p>The system will automatically calculate the amount due per player (any player entitled to discounts will have a ticket appear that describes them).
+            </p>
+            <p>Select the payment method you want for each player.
+            </p>
+            <p>You may be able to select a Category or answer a Question – if the convener has set these up.
+            </p>
+            <p>Choose Checkout Now if you wish to complete the entry and pay.
+            </p>
+            <p>Choose Add to Cart if you wish to add this to a Shopping cart, add other entries and then pay for them all together.
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How can I pay for Congress entries?</button>
+          <div class="panel"><br>
+
+            <p>The payment methods available for players will vary depending on what the convener has specified for the event and the “teammate” status between you.
+            </p>
+            <p>Method Description
+            </p>
+            <p>My Bridge Credits This is the default. It is equivalent to paying by card.
+            </p>
+            <p>If you select this one of two things will happen when you pay:
+            </p>
+            <ul>
+
+              <li> If you already have funds in your bridge credit account, these will be used (if your balance is insufficient you will be given the option to make a manual credit card payment for the balance)
+
+              <li> If you do not have funds in your bridge credit account, you will be taken directly to a Stripe screen to input your card details and pay. The system will “top-up” your bridge credit account with these funds and then immediately use
+                them
+                to pay for the entry. That is exactly the same as paying through eWay today.
+
+            </ul>
+
+            <p>Their Bridge Credits This only arises if that player has set you as a “teammate plus” – i.e. they have authorised you to put in an entry and have their entry fee taken from THEIR bridge credit account.
+            </p>
+            <p>Bank Transfer Player intends to pay outside the system using a bank transfer
+            </p>
+            <p>Cheque Player intends to pay outside the system using a cheque
+            </p>
+            <p>Cash on the day Player intends to pay on the day using cash
+            </p>
+            <p>Ask them to pay This player is not being paid for at the time of making the entry – the expectation is they (or someone else) will login and pay later.
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I edit an existing entry to a congress?</button>
+          <div class="panel"><br>
+
+            <p>Open your entry (either by clicking “View Entry” from the Program listing on the Congress website, or from your dashboard).
+            </p>
+            <p>In the header on the screen, click the bar next to “Edit” to open the entry up for editing.
+            </p>
+            <p>You can now change player names, remove players, add players, etc.
+            </p>
+            <p>In some situations the amounts due will change (e.g. if you remove a youth player and replace them with a non-youth player). Where this gives rise to additional amounts payable, a “Pay Now” button will appear to the right which you can
+              use
+              to make any additional payment necessary.
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I withdraw my entry from a congress?</button>
+          <div class="panel"><br>
+
+            <p>Open your entry (either by clicking “View Entry” from the Program listing on the Congress website, or from your dashboard).
+            </p>
+            <p>At the bottom of the screen click the red button “Withdraw from event”.
+            </p>
+            <p>This will bring up a summary showing what refunds of bridge credits will be made (i.e. to the people who paid for them).
+            </p>
+            <p>Click Confirm to proceed with withdrawal. Click Cancel to go back to the entry screen.
+            </p>
+            <p>Note the convener sets the last date players can withdraw themselves. If it is too close to the start of the event, you will get a message and must contact the convener directly.
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I use the Partnership desk?</button>
+          <div class="panel"><br>
+
+            <p>Open the Congress webpage and browse to the Program section.
+            </p>
+            <p>For the event you wish to register for, click “Partnership Desk”.
+            </p>
+            <p>You can register privately (only the convener will be able to see your name) or publicly (all players will be able to see your name).
+            </p>
+            <p>If you want to contact another player already listed, click “Contact”. An email will be sent to the player with your contact details.
+            </p>
+            <p>You can withdraw from the desk at any time.
+            </p>
+            <p>
+            </p>
+
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+      <!-- Congresses – checkout payments -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-primary">
+          <h2>Congresses – checkout payments</h2>
+        </div>
+        <div class="card-body">
+
+
+          <button class="accordion">How do I complete a payment for a congress entry?</button>
+          <div class="panel"><br>
+
+            <p>If you make an entry to a Congress and click “Checkout” you will be immediately taken to the Congress checkout screen.
+            </p>
+            <p>If you add multiple entries to your shopping cart, you can also reach this screen by clicking on the shopping trolley icon at the top right of your screen:
+            </p>
+            <p>
+            </p>
+            <p>The screen shows the entries currently in the cart and the total you are due to pay yourself.
+            </p>
+            <p>You can delete entries you no longer want to complete by clicking the red delete icon
+            </p>
+            <p>Click the blue Details bar to expand and see all the components of the entries (this shows two columns – one for what you will be paying and one for other payments to be made by other players or by other methods).
+            </p>
+            <p>Click Confirm to process the entry(ies).
+            </p>
+          </div>
+          <button class="accordion">How do I open my shopping cart?</button>
+          <div class="panel"><br>
+
+            <p>Click on the shopping trolley icon at the top right of your screen (if this icon is not visible it means there is nothing in your cart):
+            </p>
+            <p>
+            </p>
+            <p>Complete checkout here.
+            </p>
+          </div>
+          <button class="accordion">What happens when I complete my payment for a congress?</button>
+          <div class="panel"><br>
+            <p>If you have sufficient funds in your bridge credit account (or you don’t have sufficient funds but you do have an automatic top-up arrangement in place) the payments will be made immediately through your account.
+            </p>
+            <p>If you do not have sufficient funds in your bridge credit account and you don’t have an automatic top-up arrangement in place, you will be taken direct to the payments screen. You will be asked to input your card details to make
+              payment.
+            </p>
+            <p>See payments here for details.
+            </p>
+            <p>You and other people in the entry will receive a confirmation email. There will also be a notification issued within the system.
+            </p>
+
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+
+
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+
+
+
+
+
+{% endblock %}
+
+{% block footer %}
+<script>
+
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.nextElementSibling;
+    if (panel.style.maxHeight) {
+      panel.style.maxHeight = null;
+    } else {
+      panel.style.maxHeight = panel.scrollHeight + "px";
+    }
+  });
+}
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,37 @@
+#!/bin/sh
+
+cat << EOF
+
+CGIT - Cobalt Git Commands
+
+These cgit commands automate the Git and Elastic Beanstalk commands
+used for standard activities. 
+
+For most commands to work you will need to be on the relevant branch.
+Use git checkout [branch] if necessary.
+
+Dev/Test
+--------
+
+cgit_dev_start            - start a new feature
+cgit_dev_save             - save work so far
+cgit_dev_finish           - merges into develop and deploys to test
+
+UAT
+---
+
+cgit_uat_publish          - pushes current develop to UAT, creates release
+cgit_uat_fix_start        - creates bugfix for a release in UAT
+cgit_uat_fix_save         - saves work so far 
+cgit_uat_fix_finish       - releases fix to UAT
+
+Production
+----------
+
+cgit_prod_publish         - push release to production
+cgit_prod_hotfix_start    - create hotfix 
+cgit_prod_hotfix_save     - save work so far 
+cgit_prod_hotfix_test     - releases hotfix to a test environment
+cgit_prod_hotfix_finish   - releases hotfix to production
+
+EOF

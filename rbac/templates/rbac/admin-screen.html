@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "rbac:main_admin_screen" %}">Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">View Access</li>
+  </ol>
+</nav>
+
+<h1>Role Based Access Controls</h1>
+<p>This shows the admin groups you are a member of. Groups control security within
+  the system.</p>
+
+{% if groups %}
+
+<div>
+  <div class="card col-lg-9">
+    <div class="card-header card-header-primary">
+      <h3 class="card-title">Admin Access - Groups</h3>
+      <h5>You are a member of the following admin groups</h5>
+    </div>
+    <div class="card-body" style="text-align: center">
+
+      <div class="container">
+        <div class="row">
+          <table class="table table-hover">
+            <thead class="text-info">
+              <tr>
+                <th>Group ID</th>
+                <th>Group Full Name</th>
+                <th>Group Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for group in groups %}
+              <tr>
+                <td><a href="{% url "rbac:admin_group_view" group_id=group.id %}">{{ group.id }}</a></td>
+                <td><a href="{% url "rbac:admin_group_view" group_id=group.id %}">{{ group.name_qualifier }}.{{ group.name_item }}</a></td>
+                <td><a href="{% url "rbac:admin_group_view" group_id=group.id %}">{{ group.description }}</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table><br>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<br>
+
+<div>
+  <div class="card col-lg-9">
+    <div class="card-header card-header-danger">
+      <h3 class="card-title">Admin Access - Roles</h3>
+      <h5>Your group membership provides you with the following roles. This defines what you can change.</h5>
+      <h5>You can change groups to add or remove these roles for group members.</h5>
+    </div>
+    <div class="card-body" style="text-align: center">
+
+      <div class="container">
+        <div class="row">
+          <table class="table table-hover">
+            <thead class="text-info">
+              <tr>
+                <th>Role ID</th>
+                <th>Group Full Name</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for role in roles %}
+              <tr>
+                <td>{{ role.id }}</td>
+                <td>{{ role.group }}</td>
+                <td>{{ role.role }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table><br>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<br>
+
+<div>
+  <div class="card col-lg-9">
+    <div class="card-header card-header-warning">
+      <h3 class="card-title">Admin Access - Tree</h3>
+      <h5>This defines where you can change things. You can change groups in the following parts of the tree.</h5>
+    </div>
+    <div class="card-body" style="text-align: center">
+
+      <div class="container">
+        <div class="row">
+          <table class="table table-hover">
+            <thead class="text-info">
+              <tr>
+                <th>ID</th>
+                <th>Tree</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for tree in trees %}
+              <tr>
+                <td>{{ tree.id }}</td>
+                <td>{{ tree.tree }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table><br>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<br>
+
+{% else %}
+<h2>Sorry, you don't appear to be in any groups at this time.</h2>
+{% endif %}
+
+{% endblock %}

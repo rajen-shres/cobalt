@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="content container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header card-header-success">
+          <div class="card-title">
+            <h2>Edit Comment</h2>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <form method="POST" class="post-form">
+            {% csrf_token %}
+
+            <input type="hidden" name="comment" id="id_comment" value="{{ form.id }}">
+            <input type="hidden" name="post" id="id_post" value="{{ post }}">
+
+            <div class="form-group row">
+              <label for="id_comment" class="col-sm-2">Comment</label>
+              <div class="col-sm-10">
+                {{ form.text|as_crispy_field }}
+              </div>
+            </div>
+
+            <div class="form-group row">
+              <button type="submit" class="save btn btn-primary btn-sm cobalt-save" name="publish">Change</button>
+              <a href="{% url "forums:post_detail" pk=post %}" class="save btn btn-info btn-sm" name="cancel">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

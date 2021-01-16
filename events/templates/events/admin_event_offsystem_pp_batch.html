@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event.congress.id %}">{{ event.congress.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url "events:admin_event_offsystem_pp" event_id=event.id %}">Club Pre-Paid</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Batch</li>
+  </ol>
+</nav>
+
+<div class="container justify-content-center">
+  <div class="row h-100 d-flex justify-content-center">
+    <div class="card">
+      <div class="card-header card-header-warning">
+        <h2>Congress Admin View</h2>
+        <h3>{{ event.congress }}</h3>
+      </div>
+      <div class="card-body">
+
+        <div class="card">
+          <div class="card-header card-header-info">
+            <h2>{{ event.event_name }} - Club Pre-Paid System</h2>
+            <p>This handles using an existing pre-paid system rather than using Bridge Credits.</p>
+          </div>
+
+          <div class="card-body table-responsive">
+
+            {% if event_entry_players %}
+
+            <form action="" method="post">
+              {% csrf_token %}
+              <div class="card-body table-responsive">
+                <div class="card container">
+                  <div class="card-header card-header-success">
+                    <h2>Players</h2>
+                  </div>
+                  <table class="bx-5">
+                    <thead>
+                      <th class="px-2">Include</th>
+                      <th class="px-2">Player</th>
+                      <th class="px-2">Entry Fee</th>
+                      <th class="px-2">Paymenmt Received</th>
+                      <th class="px-2">Outstanding</th>
+                    </thead>
+                    <tbody>
+                      {% for event_entry_player in event_entry_players %}
+                      <tr>
+                        <td class="px-2"><input type="checkbox" value="{{ event_entry_player.id }}" id="id_event_entry_players_list" name="event_entry_players_list" value="{{ event_entry_player.id }}"></td>
+                        <td class="px-2">{{ event_entry_player.player }}</td>
+                        <td class="px-2">{{ event_entry_player.entry_fee }}</td>
+                        <td class="px-2">{{ event_entry_player.payment_received }}</td>
+                        <td class="px-2">{{ event_entry_player.outstanding }}</td>
+                      </tr>
+                      {% endfor %}
+                      <tr>
+                        <td class="px-2"><input id="checkall" type="checkbox" value="All"> Select All</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="text-center">
+                  <button class="btn btn-success" type="submit" name="export">Export Selected to CSV</button>
+                  <button class="btn btn-primary" type="submit" name="confirm">Confirm PP Updated</button>
+                </div>
+            </form>
+          </div>
+        </div>
+
+            {% else %}
+            <h4>There are no unpaid entries using the club pre-paid system for this event</h4>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block footer %}
+<script>
+  $(document).ready(function() {
+    $("#checkall").click(function() {
+      $('input:checkbox').not(this).prop('checked', this.checked);
+    });
+  });
+</script>
+{% endblock %}

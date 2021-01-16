@@ -1,0 +1,28 @@
+#!/bin/sh
+
+if [ $# -ne 1 ]
+  then
+    echo ""
+    echo ""
+    echo "Usage $0 feature_branch"
+    echo ""
+    echo "e.g. $0 jira-254"
+    echo "or   $0 profile_rework"
+    echo ""
+    echo "You can use any meaningful name for the feature branch provided it doesn't clash. It is only a temporary label."
+    echo ""
+    echo ""
+    exit 1
+fi
+
+git pull origin develop
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+git checkout develop
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+git checkout -b $1

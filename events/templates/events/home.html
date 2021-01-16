@@ -1,0 +1,71 @@
+{% extends request.user.is_authenticated|yesno:"base.html,base_logged_out.html" %}
+{% load static %}
+
+{% block animate %}
+{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div class="card-header card-header-primary">
+    <h1>
+    <div class="d-flex justify-content-between">
+    <div>
+       Congresses
+    </div>
+    <div>
+       <i class="material-icons" style="font-size:50px">book_online</i>
+    </div>
+  </h1>
+  </div>
+  <div class="card-body text-center">
+
+    <div class="d-flex justify-content-between">
+          <div>
+            {% if draft_congress_flag %}
+              <a class="text-left" href="{% url "events:view_draft_congresses" %}">View Draft Congresses</a>
+            {% endif %}
+            </div>
+
+          <div class="pb-5">
+            {% if admin %}
+              <a class="text-right" href="{% url "events:create_congress_wizard" %}">Create New Congress</a>
+            {% endif %}
+          </div>
+     </div>
+
+    {% for month, congresses in grouped_by_month.items %}
+      <div>
+
+    <img src="{% static "assets/img/congress.jpg "%}" alt="congress" width="200px">
+    <h2>{{ month }}</h2>
+    {% for congress in congresses %}
+    <div class="card col-md-6 mx-auto">
+      <div class="card-body">
+        <a class="btn btn-sm btn-danger" href="{% url "events:view_congress" congress_id=congress.id %}">
+          <span style="font-size: 22px">
+          {{ congress }}
+          </span>
+        <br><span class="cobalt-text-transform-off " style="font-size: 14px">by</span><br>
+        <span style="font-size: 16px">
+          {{ congress.congress_master.org }}
+        </span>
+        </a>
+        <p>{{ congress.date_string }}</p>
+        {% if congress.convener %}
+        <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}" class="btn btn-sm btn-success">Edit</a>
+        <a class="btn btn-sm btn-info" href="{% url "events:admin_summary" congress_id=congress.id %}">Manage</a>
+        {% endif %}
+      </div>
+      <div class="card-footer text-muted">
+        {{ congress.msg }}
+      </div>
+    </div>
+
+    {% endfor %}
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+{% endblock %}

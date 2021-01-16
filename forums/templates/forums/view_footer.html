@@ -1,0 +1,34 @@
+<script>
+  jQuery(document).ready(function() {
+    // reload if back button used. Buttons are a mess otherwise
+    if (performance.navigation.type == 2) {
+      location.reload(true);
+    }
+
+    // change view if checkbox changes
+    $(".cobalt-checkbox").change(function() {
+      var preview_val = $("#id_preview").is(":checked");
+      var all_forums_val = $("#id_all_forums").is(":checked");
+      // change true=>True and false => False
+      if (preview_val) {
+        var preview = 1;
+      } else {
+        var preview = 0;
+      }
+
+      if (all_forums_val) {
+        var all_forums = 1;
+      } else {
+        var all_forums = 0;
+      }
+
+      // keep page number if set.
+      if (all_forums) {
+        window.location.href = "{% url "
+        forums: post_list_filter " %}?preview_view=" + preview + "&all_forums=" + all_forums;
+      } else {
+        window.location.href = location.origin + location.pathname + "?preview_view=" + preview + "&all_forums=" + all_forums;
+      }
+    });
+  });
+</script>

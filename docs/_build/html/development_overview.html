@@ -1,0 +1,308 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Development Overview &mdash; Cobalt 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Cobalt
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Cobalt Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">cobalt</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Cobalt</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Development Overview</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/development_overview.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <a class="reference internal image-reference" href="_images/cobalt.jpg" id="forums-overview"><img alt="Cobalt Chemical Symbol" id="forums-overview" src="_images/cobalt.jpg" style="width: 300px;" /></a>
+<div class="section" id="development-overview">
+<h1>Development Overview<a class="headerlink" href="#development-overview" title="Permalink to this headline">¶</a></h1>
+<p>Cobalt is written in Django. It is assumed that you already know Python,
+Django and the associated tools such as pip and virtualenv. If you don’t
+there are lots of resources available to help you.</p>
+<p>Before you get started make sure you have the following installed:</p>
+<ul class="simple">
+<li><p>Python 3.7+</p></li>
+<li><p>pip</p></li>
+<li><p>virtualenv</p></li>
+<li><p>git</p></li>
+<li><p>postgresql (<em>optional but highly recommended</em>)</p></li>
+</ul>
+</div>
+<div class="section" id="development-environment-set-up">
+<h1>Development Environment Set Up<a class="headerlink" href="#development-environment-set-up" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="code">
+<h2>Code<a class="headerlink" href="#code" title="Permalink to this headline">¶</a></h2>
+<p>You can use any OS you like for development, but for simplicity the commands
+shown here are for a Unix style environment such as Linux or Mac OS. The
+Windows equivalent commands will work just as well.</p>
+<p>Here are the basic steps to get started:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ mkdir cobalt-project
+$ virtualenv myenv   # specify -P python3.7 or similar if that is not your default
+$ . virtualenv/bin/activate
+$ mkdir cobalt
+$ cd cobalt
+</pre></div>
+</div>
+<p>Get code from github and set up:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git init
+$ git remote add origin https://github.com/mguthrieabf/cobalt.git
+$ git pull origin master
+</pre></div>
+</div>
+<p>Install requirements:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install -r requirements.txt
+</pre></div>
+</div>
+<p>Install development-only requirements:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install -r requirements-dev.txt
+</pre></div>
+</div>
+<p>We recommend using two pre-commits for Git which are described below. For now,
+just install them using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pre-commit install
+</pre></div>
+</div>
+</div>
+<div class="section" id="database">
+<h2>Database<a class="headerlink" href="#database" title="Permalink to this headline">¶</a></h2>
+<p>There are a number of problems with using SQLite3 especially on a Mac. It is
+strongly recommended that even for development, you set up a local Postgresql
+database.</p>
+</div>
+<div class="section" id="environment-variables">
+<h2>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h2>
+<p>Before running manage.py you will need to set some environment variables:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Postgres - use your own settings
+export RDS_DB_NAME=ebdb
+export RDS_HOSTNAME=127.0.0.1
+export RDS_PORT=5432
+export RDS_USERNAME=cobalt
+export RDS_PASSWORD=password
+
+# Masterpoints server - not essential
+export GLOBAL_MPSERVER=http://localhost:8081
+
+# Email
+export EMAIL_HOST=smtp.something.com
+export EMAIL_HOST_USER=userid
+export EMAIL_HOST_PASSWORD=password
+export DEFAULT_FROM_EMAIL=donotreply@something.com
+
+# Stripe - for payments. Set up a free Stripe account
+export STRIPE_SECRET_KEY=sk_test_key
+export STRIPE_PUBLISHABLE_KEY=pk_test_key
+
+# AWS - for SMS
+export AWS_ACCESS_KEY_ID=SOMETHING
+export AWS_SECRET_ACCESS_KEY=KEY
+</pre></div>
+</div>
+</div>
+<div class="section" id="management-commands">
+<h2>Management Commands<a class="headerlink" href="#management-commands" title="Permalink to this headline">¶</a></h2>
+<p>In your development environment you will need to run some management
+commands to set up static data. In the ABF system these get run automatically
+as part of the deployment to AWS. The easiest way to identify what needs to be
+run is to look at the commands that are run in AWS. Look in the root project
+directly at .ebextensions/python.config.</p>
+</div>
+</div>
+<div class="section" id="coding-standards">
+<h1>Coding Standards<a class="headerlink" href="#coding-standards" title="Permalink to this headline">¶</a></h1>
+<p>We try to follow basic Python and Django standards. To help to enforce this
+the pre-commits for Git that you added earlier will run two things:</p>
+<ul class="simple">
+<li><p><strong>Black</strong> - an opinionated code formatter. Black will reformat your code
+in a standard way. (It is called Black after the Henry Ford quote “Any colour
+as long as it is black”). Black can save you a lot of time as it allows you
+to write code in a way that is natural for writing (long lines, random choice of
+which quotes to use, etc) but then it will format it in a way that easier to read.</p></li>
+<li><p><strong>Flake8</strong> - a code checker. Flake8 is a reasonably generous code checker. It
+provides a basic level of assurance that the code is formatted okay.</p></li>
+</ul>
+<p>Additionally it is recommended the pylint is used before code is committed. Pylint
+is far stricter than Flake8 so insisting that code is fully compliant with pylint
+before allowing it to be committed would be too much. However, pylint will find a
+lot of things that Flake8 won’t. Run pylint but take its findings as recommendations
+not hard requirements.</p>
+</div>
+<div class="section" id="documentation">
+<h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h1>
+<p>If you found this then you presumably know where the documentation lives. If not,
+look at <a class="reference external" href="https://cobalt-bridge.readthedocs.io">https://cobalt-bridge.readthedocs.io</a>.</p>
+<p>To update the documentation look in the cobalt sub-directory docs.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, ABF
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

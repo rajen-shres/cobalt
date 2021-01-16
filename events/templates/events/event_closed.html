@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-header card-header-primary">
+    <h2>{{ event.event_name }}</h2>
+    <h3>{{ event.congress }}</h3>
+  </div>
+  <div class="card-body">
+    <h4>This event is not accepting entries at this time.</h4>
+  </div>
+</div>
+
+{% endblock %}

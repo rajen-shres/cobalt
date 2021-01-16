@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<style>
+textarea {
+  width: 450px;
+  height: 150px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <div class="row">
+    <div class="card col-lg-6 mx-auto">
+      <div class="card-header card-header-info">
+        <h2>Support Contact Form</h2>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="container">
+            <div class="row py-4 mx-auto">
+              <input type="text" placeholder="Subject" size="60" name="title" required>
+            </div>
+            <div class="row py-2 mx-auto">
+              <textarea rows="4"  name="message" placeholder="Enter your message" required></textarea>
+            </div>
+            <div class="row">
+              <button class="btn btn-success btn-sm mx-auto">Submit</button>
+
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

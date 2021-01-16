@@ -1,0 +1,58 @@
+
+{% load static %}
+<!doctype html>
+<html>
+<head>
+
+<title> Australian Bridge Federation </title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="{% static "assets/img/favicon.png" %}"/>
+<link href="{% static "assets/css/juliette.css" %}" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="{% static "assets/css/animate.4.0.0/animate.min.css" %}"/>
+
+
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+{% block header %}
+{% endblock %}
+</head>
+
+<body>
+
+
+	<div class="header">
+      <img href="/" src="{% static "assets/img/favicon.png" %}" height="35px">
+
+					<div class="header-left">
+	  						<a href="/" class="title"> AUSTRALIAN  BRIDGE FEDERATION </a>
+					</div>
+
+          <div class="header-right">
+            <a href="{% url "accounts:register" %}">Sign Up</a>
+            <a href="{% url "dashboard:dashboard" %}">Log In</a>
+          </div>
+
+	</div>
+
+
+	<div class="messagebar animate__animated animate__fadeInUp"> TECHNOLOGY TO SUPPORT BRIDGE </div>
+
+	<div class="content">
+
+    {% block content %}
+
+    {% endblock %}
+
+   </div>
+
+
+   <div id="footer"> AUSTRALIAN BRIDGE FEDERATION </div>
+</body>
+   {% block footer %}
+   {% endblock %}
+
+   <!-- Design work by Juliette Davies - www.juliettedavies.com  -->
+
+</html>

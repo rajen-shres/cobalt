@@ -1,0 +1,73 @@
+{% load humanize %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Statement</title>
+
+  <link href="{% static "assets/css/material-dashboard.css" %}" rel="stylesheet" />
+  <link href="{% static "assets/css/cobalt.css" %}" rel="stylesheet" />
+  <script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
+  <script src="{% static "assets/js/core/popper.min.js" %}"></script>
+  <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
+
+</head>
+
+<body>
+
+
+  <div class="container">
+    <div class="card">
+      <div class="card-header card-header-primary">
+        <h1>Statement for {{ user.full_name}} on {{ today }}</h1>
+        <h2>{{ summary.ABFNumber }} - {{ summary.RankName }} Master</h2>
+        <h3><i>{% if summary.IsActive %}Home club is {{club}}{% else %}Used to play at {{club}}{% endif %}</i></h3>
+        <h2>Balance: ${{ balance|intcomma }}</h2>
+      </div>
+      <div class="card-body table-responsive">
+        <table class="table table-hover">
+          <thead class="text-info">
+            <tr>
+              <th style="text-align: left">Date</th>
+              <th style="text-align: left">Reference</th>
+              <th style="text-align: left">Counterparty</th>
+              <th style="text-align: left">Type</th>
+              <th style="text-align: left">Description</th>
+              <th style="text-align: left">In($)</th>
+              <th style="text-align: left">Out($)</th>
+              <th style="text-align: left">Balance($)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in events %}
+            <tr>
+              <td>{{ event.created_date|date:"d M Y" }}</td>
+              <td>{{ event.reference_no }}</td>
+              <td>{{ event.other_member|default_if_none:"" }}{{ event.organisation|default_if_none:"" }}</td>
+              <td>{{ event.type }}</td>
+              <td>{{ event.description }}</td>
+              {% if event.amount >= 0 %}
+              <td class="text-right">{{ event.amount|floatformat:2|intcomma }}</td>
+              <td></td>
+              {% else %}
+              <td></td>
+              <td class="text-right">{{ event.amount|floatformat:2|intcomma|slice:"1:" }}</td>
+              {% endif %}
+              <td class="text-right">{{ event.balance|floatformat:2|intcomma }}</td>
+
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "payments:statement_admin_summary" %}">Payments Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Members with Balances</li>
+  </ol>
+</nav>
+
+<div class="">
+  <div class="card">
+    <div class="card-header card-header-primary">
+      <h1>{{ BRIDGE_CREDITS }} - Member Open Balances</h1>
+    </div>
+    <div class="card-body table-responsive">
+      <a href="{% url "payments:admin_members_with_balance_csv" %}" class="btn btn-sm btn-warning">Download All as CSV</a>
+      <table class="table table-responsive">
+        <thead>
+          <th>Member</th>
+          <th>Balance</th>
+          <th></th>
+        </thead>
+        <tbody>
+          {% for thing in things %}
+          <tr>
+            {% if thing.member.id %}
+              <td><a href=" {% url "accounts:public_profile" pk=thing.member.id %}">{{ thing.member }}</a></td>
+            {% else %}
+              <td>{{ thing.member }}</td>
+            {% endif %}
+            <td class="text-right">{{ thing.balance }}</td>
+            {% if thing.member.id %}
+              <td><a href="{% url "payments:statement_admin_view" member_id=thing.member.id %}" class="btn btn-sm btn-info">View Statement</a></td>
+            {% else %}
+              <td><a href="#" class="btn btn-sm btn-info">View Statement</a></td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+
+        </tbody>
+      </table>
+
+      {% include 'utils/pagination_footer.html' %}
+
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

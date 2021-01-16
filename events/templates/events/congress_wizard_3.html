@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% block headerjs %}
+{% include "events/congress_wizard_include_header.html" %}
+{% endblock %}
+{% block content %}
+{% include "events/congress_wizard_include_body.html" %}
+
+<div class="container">
+  <div class="row">
+    <div class="card">
+      <div class="card-header card-header-primary">
+        <h2>Venue Information</h2>
+      </div>
+      <div class="card-body">
+        <div class="container">
+          <form method="POST">
+            {% csrf_token %}
+            <div class="row">
+              <div class="col-3 justify-content-center align-self-center">
+                Venue Name
+              </div>
+              <div class="col-7">
+                <div id="div_id_venue_name" class="form-group">
+                  <span class="cobalt-form-error" id="id_venue_name_errors">{{ form.venue_name.errors|striptags }}</span>
+                  {% render_field form.venue_name class+="form-control" %}
+                </div>
+              </div>
+              <div class="col-2 justify-content-center align-self-center">
+                <a href="javascript:void(0)" onclick='help("Venue Name", "The name of the venue hosting the event.");'>help</a>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-3 justify-content-center align-self-center">
+                Venue Coordinates
+                <button type="button" name="lookup_button" id="lookup_button" class="btn btn-sm btn-info">Lookup</button>
+              </div>
+              <div class="col-7">
+                <div id="div_id_venue_location" class="form-group">
+                  <span class="cobalt-form-error" id="id_venue_location_errors">{{ form.venue_location.errors|striptags }}</span>
+                  {% render_field form.venue_location class+="form-control" %}
+                </div>
+              </div>
+              <div class="col-2 justify-content-center align-self-center">
+                <a href="javascript:void(0)"
+                  onclick='help("Venue Location", "The latitude and longitude of the venue. <br><br>You can use the lookup button to search for this. If the lookup button does not work for you then you can open another window and search in there. Find your location in Google Maps and right click on it. Choose <b>Whats Here</b> and it will show you the coordinates.");'>help</a>
+              </div>
+            </div>
+
+            <div class="card-body table-responsive" id="the_map" style="display:none">
+              <div id="regularMap" class="map"></div>
+            </div>
+
+            <hr>
+            <div class="row">
+              <div class="col-10 justify-content-center align-self-center">
+                <h3>Venue Transport Info</h3>
+              </div>
+              <div class="col-2 justify-content-center align-self-center">
+                <a href="javascript:void(0)" onclick='help("Venue Transport", "Details of how to get to the venue such as public transport and parking options.");'>help</a>
+              </div>
+              <div class="col-12">
+                {{ form.venue_transport|as_crispy_field }}
+              </div>
+            </div>
+
+            <hr>
+            <div class="row">
+              <div class="col-10 justify-content-center align-self-center">
+                <h3>Venue Catering Info</h3>
+              </div>
+              <div class="col-2 justify-content-center align-self-center">
+                <a href="javascript:void(0)" onclick='help("Venue Catering", "Details of catering options available at the venue.");'>help</a>
+              </div>
+              <div class="col-12">
+                {{ form.venue_catering|as_crispy_field }}
+              </div>
+            </div>
+
+            <hr>
+            <div class="row">
+              <div class="col-10 justify-content-center align-self-center">
+                <h3>Venue Additional Info</h3>
+              </div>
+              <div class="col-2 justify-content-center align-self-center">
+                <a href="javascript:void(0)" onclick='help("Venue Additional Info", "Anything else you have not already covered.");'>help</a>
+              </div>
+              <div class="col-12">
+                {{ form.venue_additional_info|as_crispy_field }}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col text-center">
+                <button class="btn btn-info btn-sm cobalt-save">Save/Next</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block footer %}
+{% include "events/congress_wizard_include_footer.html" %}
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDt0qnOZKvnJzLO83eg1KB0k8l5SH-NGzY"></script>
+<script>
+  // Google map
+  function googlemap(lat, lon) {
+    var myLatlng = new google.maps.LatLng(lat, lon);
+    var mapOptions = {
+      zoom: 15,
+      center: myLatlng,
+      scrollwheel: false,
+    }
+
+    var map = new google.maps.Map(document.getElementById("regularMap"), mapOptions);
+
+    var marker = new google.maps.Marker({
+      position: myLatlng,
+      title: "Venue Location"
+    });
+
+    marker.setMap(map);
+    $("#the_map").show()
+  }
+
+  $(document).ready(function() {
+
+    // lookup geo location info
+    $("#lookup_button").click(function(event) {
+
+      Swal.fire({
+        title: 'Enter location address',
+        input: 'text',
+        inputAttributes: {
+          autocapitalize: 'off'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Look up',
+        showLoaderOnConfirm: true,
+        preConfirm: (login) => {
+          return fetch(`/utils/geo-location/${login}`)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(response.statusText)
+              }
+              return response.json()
+            })
+            .catch(error => {
+              Swal.showValidationMessage(
+                `Request failed: ${error}`
+              )
+            })
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+      }).then((result) => {
+        if (result.value) {
+          $("#id_venue_location").val(result.value.data.lat + "," + result.value.data.lon);
+          googlemap(result.value.data.lat, result.value.data.lon);
+
+        }
+      })
+    });
+
+    // set map at start if we have coordinates
+
+      {% if form.venue_location.value %}
+
+    var venue_location = "{{ form.venue_location.value }}"
+    var parts = venue_location.split(',');
+    googlemap(parts[0], parts[1]);
+
+      {% endif %}
+
+  });
+</script>
+
+{% endblock %}

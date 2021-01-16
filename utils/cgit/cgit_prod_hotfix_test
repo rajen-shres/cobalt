@@ -1,0 +1,112 @@
+#!/bin/bash
+
+# Branch for a hotfix will be something like 1.2.3=hotfix=fix_the_bugs
+# The release branch associated with this will be release/1.2.3
+
+BRANCH=`git branch --show-current`
+
+if [[ $BRANCH != *"=HOTFIX="* ]]; then
+  echo ""
+  echo ""
+  echo "You are not on a hotfix branch. Your branch is $BRANCH."
+  echo ""
+  echo ""
+  exit 1
+fi
+
+RELEASE=`echo $BRANCH|cut -d= -f1`
+
+# Where do we deploy this?
+TESTENV=`eb list | grep cobalt-test` 
+TESTNUM=`eb list | grep cobalt-test | wc | awk '{print $1}'`
+
+# See if we got a parameter which overrides the default
+if [ "$1" != "" ];then
+  TESTNUM=1
+  TESTENV=$1
+fi
+
+echo ""
+echo ""
+echo "Congratulations on finishing a hotfix bug."
+echo ""
+echo "I will check your branch is clean and then merge your changes into"
+echo "the release branch. I will then deploy to the test system."
+echo ""
+echo "I won't delete the branch '$BRANCH'. You need to do that yourself."
+echo ""
+echo "The release I will be updating is $RELEASE"
+echo ""
+echo "By default I deploy the fix to test. To deploy to another environment"
+echo "provide that environment as a parameter."
+echo ""
+echo "Deploying to $TESTENV"
+echo ""
+read -p "Press key to continue..." -n1 -s
+
+if [[ -z $(git status -s) ]]
+then
+  echo ""
+  echo ""
+  echo "Pulling latest release/$RELEASE branch..."
+  echo ""
+
+  git pull origin release/$RELEASE
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+  
+  echo ""
+  echo "Checking out release/$RELEASE branch..."
+  echo ""
+
+  git checkout release/$RELEASE
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Merging $BRANCH into release/$RELEASE branch..."
+  echo ""
+
+  git merge $BRANCH
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Pushing release/$RELEASE branch to github..."
+  echo ""
+
+  git push origin release/$RELEASE
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Deploying to test server..."
+  echo ""
+
+  if [ "$TESTNUM" = "1" ]
+  then
+   echo "Deploying code to $TESTENV..."
+   eb deploy $TESTENV
+  else
+   echo "Cannot deploy to TEST, found more than one TEST environment."
+   echo $TESTENV
+  fi
+  echo ""
+  echo ""
+else
+  echo ""
+  echo ""
+  echo "Cannot comply with request."
+  echo "There are uncommitted changes or other problems with your git status. See below."
+  echo ""
+  echo ""
+  git status
+  echo ""
+  echo ""
+  exit
+fi
+

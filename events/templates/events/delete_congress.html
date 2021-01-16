@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-header card-header-danger">
+    <h2>Delete Congress - {{ congress }}</h2>
+    <h3>All data will be lost. This cannot be undone.</h3>
+  </div>
+  <div class="card-body">
+<form method="post">
+  {% csrf_token %}
+  <button class="btn btn-danger">Delete</button>
+  <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=7 %}" class="btn btn-success">cancel</a>
+</form>
+  </div>
+</div>
+
+{% endblock %}

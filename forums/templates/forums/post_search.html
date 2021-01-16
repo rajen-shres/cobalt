@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+<div class="container">
+  <div class="card">
+    <div class="card-header card-info">
+      <h2>Search</h2>
+    </div>
+    <div class="card-body">
+      <form method="get">
+        <div>
+          <div class="row">
+            <div class="col-3">
+              {{ filter.form.author.label_tag }}
+              <span class="cobalt-form-error">{{ filter.form.author.errors|striptags }}</span>
+              {% render_field filter.form.author class+="form-control" %}
+            </div>
+            <div class="col-3">
+              <label class="bmd-label-static">{{ filter.form.forum.label_tag }}</label>
+              <span class="cobalt-form-error">{{ filter.form.forum.errors|striptags }}</span>
+              {% render_field filter.form.forum class+="form-control" %}
+            </div>
+            <div class="col-3">
+              <label class="bmd-label-static">{{ filter.form.title.label_tag }}</label>
+              <span class="cobalt-form-error">{{ filter.form.title.errors|striptags }}</span>
+              {% render_field filter.form.title class+="form-control" %}
+            </div>
+
+          </div>
+          <br>
+          <button class="btn btn-info" type="submit">
+            <i class="material-icons">search</i> Search
+          </button>
+        </div>
+      </form>
+
+      <table class="table table-hover">
+        <thead>
+          <th>Post</th>
+          <th>User</th>
+          <th>Forum</th>
+        </thead>
+        <tbody>
+          {% for post in things %}
+          <tr>
+            <td><a href="{% url "forums:post_detail" pk=post.id %}">{{ post.title }}</a>
+            <td>{{ post.author }}
+            <td>{{ post.forum }}
+          </tr>
+          {% empty %}
+          No Results
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% include "utils/pagination_footer.html" %}
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

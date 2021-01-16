@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event_entry.event.congress.id %}">{{ event_entry.event.congress.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event_entry.event.id %}">{{ event_entry.event.event_name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url "events:admin_evententry" evententry_id=event_entry.id %}">Entry: {{ event_entry.id }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Move</li>
+  </ol>
+</nav>
+
+<div class="container justify-content-center">
+  <div class="row h-100 d-flex justify-content-center">
+    <div class="card">
+      <div class="card-header card-header-warning">
+        <h2>Congress Admin View</h2>
+        <h3>{{ event_entry.event.congress }}</h3>
+      </div>
+      <div class="card-body">
+<h4>If the entry fees are different you may need to do a manual adjustment</h4>
+        <div class="card">
+          <div class="card-header card-header-info">
+            <h2>{{ event_entry.event.event_name }} - Move Entry</h2>
+          </div>
+
+          <div class="card-body table-responsive">
+            <h3>
+            {% for event_entry_player in event_entry.evententryplayer_set.all %}
+                {{ event_entry_player.player.full_name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+            </h3>
+
+            {% if events %}
+
+            <br>
+            <form method='post'>
+              {% csrf_token %}
+              <input type="hidden" name="event_entry_id" value="{{ event_entry.id }}">
+
+              <select class="selectpicker" data-style="btn btn-success cobalt-text-transform-off w-auto" name="new_event_id">
+                <option selected disabled>Move to...</option>
+              {% for event in events %}
+                <option value="{{ event.id }}">{{ event }}</option>
+              {% endfor %}
+              </select>
+              <br>
+              <br>
+              <button type="submit" class="btn btn-primary cobalt-save" disabled id="change_button">Change</button>
+            </form>
+
+            {% else %}
+            <h2>No suitable events found to move this entry to</h2>
+
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block footer %}
+<script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
+<script>
+$(document).ready(function(){
+
+  $('.selectpicker').selectpicker('refresh');
+
+  $('.selectpicker').change(function(){
+    $('#change_button').removeAttr('disabled');
+  });
+
+});
+</script>
+{% endblock %}

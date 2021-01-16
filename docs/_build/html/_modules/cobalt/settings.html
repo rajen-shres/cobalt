@@ -1,0 +1,583 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cobalt.settings &mdash; Cobalt 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Cobalt
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Cobalt Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">cobalt</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Cobalt</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cobalt.settings</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cobalt.settings</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Cobalt Settings.py</span>
+<span class="sd">    ------------------</span>
+
+<span class="sd">This is the single settings.py for all Cobalt environments.</span>
+
+<span class="sd">We manage all configuration differences through environment variables.</span>
+<span class="sd">This provides security for confidential information in the online</span>
+<span class="sd">environments (Test, UAT and Production) which is managed by Elastic</span>
+<span class="sd">Beanstalk through settings which become environment at run-time.</span>
+
+<span class="sd">For development you also need to set environment variables or it</span>
+<span class="sd">won&#39;t work.</span>
+
+<span class="sd">readthedocs somehow runs the code as well in order to generate the</span>
+<span class="sd">documentation and this requires variables to defined so as well as importing</span>
+<span class="sd">the variables from the environment, we also have to define them (with dummy</span>
+<span class="sd">values) within this file.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">from</span> <span class="nn">django.contrib.messages</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">messages</span>
+
+<span class="c1">###########################################</span>
+<span class="c1"># function to set values from environment #</span>
+<span class="c1"># variables.                              #</span>
+<span class="c1">###########################################</span>
+
+
+<div class="viewcode-block" id="set_value"><a class="viewcode-back" href="../../cobalt.html#cobalt.settings.set_value">[docs]</a><span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="n">val_name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;not-set&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">val_name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">val_name</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">default</span></div>
+
+
+<span class="c1">###########################################</span>
+<span class="c1"># base settings that need to come first.  #</span>
+<span class="c1">###########################################</span>
+<span class="n">BASE_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))</span>
+
+<span class="c1">###########################################</span>
+<span class="c1"># Specific settings per environment.      #</span>
+<span class="c1"># Override through environment variables. #</span>
+<span class="c1"># Dummy values are required for read the  #</span>
+<span class="c1"># docs to work.                           #</span>
+<span class="c1">###########################################</span>
+<span class="c1"># basics</span>
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;SECRET_KEY&quot;</span><span class="p">)</span>
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Open case with AWS to get this to pass with spaces</span>
+<span class="n">ADMINS</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;Mark Guthrie&quot;</span><span class="p">,</span> <span class="s2">&quot;m@rkguthrie.com&quot;</span><span class="p">)]</span>
+<span class="c1"># admin_string = &#39;(&quot;Mark Guthrie&quot;, &quot;m@rkguthrie.com&quot;)&#39;</span>
+<span class="c1"># ADMINS = list(ast.literal_eval(admin_string))</span>
+
+<span class="n">SERVER_EMAIL</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;SERVER_EMAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;notset@abftech.com.au&quot;</span><span class="p">)</span>
+
+<span class="c1"># masterpoints server</span>
+<span class="n">GLOBAL_MPSERVER</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;GLOBAL_MPSERVER&quot;</span><span class="p">)</span>
+
+<span class="c1"># email</span>
+<span class="n">EMAIL_HOST</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;EMAIL_HOST&quot;</span><span class="p">)</span>
+<span class="n">EMAIL_HOST_USER</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;EMAIL_HOST_USER&quot;</span><span class="p">)</span>
+<span class="n">EMAIL_HOST_PASSWORD</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;EMAIL_HOST_PASSWORD&quot;</span><span class="p">)</span>
+<span class="n">DEFAULT_FROM_EMAIL</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;DEFAULT_FROM_EMAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;notset@fake.com&quot;</span><span class="p">)</span>
+<span class="n">SUPPORT_EMAIL</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;SUPPORT_EMAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;[m@rkguthrie.com]&quot;</span><span class="p">)</span>
+
+<span class="c1"># stripe</span>
+<span class="n">STRIPE_SECRET_KEY</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;STRIPE_SECRET_KEY&quot;</span><span class="p">)</span>
+<span class="n">STRIPE_PUBLISHABLE_KEY</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;STRIPE_PUBLISHABLE_KEY&quot;</span><span class="p">)</span>
+
+<span class="c1"># aws</span>
+<span class="n">AWS_ACCESS_KEY_ID</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;AWS_ACCESS_KEY_ID&quot;</span><span class="p">)</span>
+<span class="n">AWS_SECRET_ACCESS_KEY</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;AWS_SECRET_ACCESS_KEY&quot;</span><span class="p">)</span>
+
+<span class="c1"># our logical hostname (dev, test, uat, prod)</span>
+<span class="n">COBALT_HOSTNAME</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;COBALT_HOSTNAME&quot;</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1:8000&quot;</span><span class="p">)</span>
+
+<span class="c1"># Hostname set by AWS</span>
+<span class="n">HOSTNAME</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;HOSTNAME&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
+
+<span class="c1"># database</span>
+<span class="n">RDS_DB_NAME</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;RDS_DB_NAME&quot;</span><span class="p">)</span>
+<span class="n">RDS_USERNAME</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;RDS_USERNAME&quot;</span><span class="p">)</span>
+<span class="n">RDS_PASSWORD</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;RDS_PASSWORD&quot;</span><span class="p">)</span>
+<span class="n">RDS_HOSTNAME</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;RDS_HOSTNAME&quot;</span><span class="p">)</span>
+<span class="n">RDS_PORT</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;RDS_PORT&quot;</span><span class="p">)</span>
+<span class="n">USE_SQLITE</span> <span class="o">=</span> <span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;USE_SQLITE&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">USE_SQLITE</span> <span class="o">==</span> <span class="s2">&quot;True&quot;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using SQLite&quot;</span><span class="p">)</span>
+    <span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;ENGINE&quot;</span><span class="p">:</span> <span class="s2">&quot;django.db.backends.sqlite3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;NAME&quot;</span><span class="p">:</span> <span class="n">BASE_DIR</span> <span class="o">+</span> <span class="s2">&quot;/db.sqlite3&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+<span class="k">else</span><span class="p">:</span>
+
+    <span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;ENGINE&quot;</span><span class="p">:</span> <span class="s2">&quot;django.db.backends.postgresql_psycopg2&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;NAME&quot;</span><span class="p">:</span> <span class="n">RDS_DB_NAME</span><span class="p">,</span>
+            <span class="s2">&quot;USER&quot;</span><span class="p">:</span> <span class="n">RDS_USERNAME</span><span class="p">,</span>
+            <span class="s2">&quot;PASSWORD&quot;</span><span class="p">:</span> <span class="n">RDS_PASSWORD</span><span class="p">,</span>
+            <span class="s2">&quot;HOST&quot;</span><span class="p">:</span> <span class="n">RDS_HOSTNAME</span><span class="p">,</span>
+            <span class="s2">&quot;PORT&quot;</span><span class="p">:</span> <span class="n">RDS_PORT</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+
+<span class="c1">#########################################</span>
+<span class="c1"># Dynamic settings.                     #</span>
+<span class="c1">#########################################</span>
+<span class="n">ALLOWED_HOSTS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;.abftech.com.au&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;.eba-4ngvp62w.ap-southeast-2.elasticbeanstalk.com&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># For AWS we also need to add the local IP address as this is used by the health checks</span>
+<span class="c1"># We do this dynamically</span>
+<span class="c1"># Windows doesn&#39;t support this and isn&#39;t used on AWS so skip unless Unix</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
+    <span class="n">local_ip</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="s2">&quot;hostname -I 2&gt;/dev/null&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">ALLOWED_HOSTS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">local_ip</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+<span class="c1">#########################################</span>
+<span class="c1"># Common settings for all environments  #</span>
+<span class="c1">#########################################</span>
+<span class="n">AWS_REGION_NAME</span> <span class="o">=</span> <span class="s2">&quot;ap-southeast-2&quot;</span>
+
+<span class="n">INSTALLED_APPS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;calendar_app&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;notifications&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;events&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;forums&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;masterpoints&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;payments&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;support&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;accounts&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;dashboard&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;results&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;organisations&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;logs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;rbac&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;cobalt&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;utils&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.contrib.admin&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.contrib.auth&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.contrib.contenttypes&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.contrib.sessions&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.contrib.messages&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.contrib.staticfiles&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.contrib.humanize&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django_summernote&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;crispy_forms&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;health_check&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;health_check.db&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;health_check.cache&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;health_check.storage&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;widget_tweaks&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django_extensions&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.contrib.admindocs&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">MIDDLEWARE</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;django.middleware.security.SecurityMiddleware&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.contrib.sessions.middleware.SessionMiddleware&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.middleware.common.CommonMiddleware&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.middleware.csrf.CsrfViewMiddleware&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.contrib.auth.middleware.AuthenticationMiddleware&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.contrib.messages.middleware.MessageMiddleware&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;django.middleware.clickjacking.XFrameOptionsMiddleware&quot;</span><span class="p">,</span>
+    <span class="c1">#    &quot;django.middleware.common.BrokenLinkEmailsMiddleware&quot;,</span>
+<span class="p">]</span>
+
+<span class="n">ROOT_URLCONF</span> <span class="o">=</span> <span class="s2">&quot;cobalt.urls&quot;</span>
+
+<span class="n">TEMPLATES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;BACKEND&quot;</span><span class="p">:</span> <span class="s2">&quot;django.template.backends.django.DjangoTemplates&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;DIRS&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cobalt/templates&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;APP_DIRS&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s2">&quot;OPTIONS&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;context_processors&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;django.template.context_processors.debug&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;django.template.context_processors.request&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;django.contrib.auth.context_processors.auth&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;django.contrib.messages.context_processors.messages&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;cobalt.context_processors.global_settings&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">]</span>
+
+<span class="n">CRISPY_TEMPLATE_PACK</span> <span class="o">=</span> <span class="s2">&quot;bootstrap4&quot;</span>
+
+<span class="n">WSGI_APPLICATION</span> <span class="o">=</span> <span class="s2">&quot;cobalt.wsgi.application&quot;</span>
+
+<span class="n">AUTH_USER_MODEL</span> <span class="o">=</span> <span class="s2">&quot;accounts.User&quot;</span>
+
+<span class="n">AUTHENTICATION_BACKENDS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;accounts.backend.CobaltBackend&quot;</span><span class="p">]</span>
+
+<span class="n">AUTH_PASSWORD_VALIDATORS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;NAME&quot;</span><span class="p">:</span> <span class="s2">&quot;django.contrib.auth.password_validation.UserAttributeSimilarityValidator&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;NAME&quot;</span><span class="p">:</span> <span class="s2">&quot;django.contrib.auth.password_validation.MinimumLengthValidator&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;NAME&quot;</span><span class="p">:</span> <span class="s2">&quot;django.contrib.auth.password_validation.CommonPasswordValidator&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;NAME&quot;</span><span class="p">:</span> <span class="s2">&quot;django.contrib.auth.password_validation.NumericPasswordValidator&quot;</span><span class="p">},</span>
+<span class="p">]</span>
+
+<span class="n">EMAIL_BACKEND</span> <span class="o">=</span> <span class="s2">&quot;django.core.mail.backends.smtp.EmailBackend&quot;</span>
+<span class="n">EMAIL_USE_TLS</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">EMAIL_PORT</span> <span class="o">=</span> <span class="mi">587</span>
+
+<span class="n">LANGUAGE_CODE</span> <span class="o">=</span> <span class="s2">&quot;en-au&quot;</span>
+<span class="n">TIME_ZONE</span> <span class="o">=</span> <span class="s2">&quot;Australia/Sydney&quot;</span>
+<span class="n">USE_I18N</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">USE_L10N</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">USE_TZ</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">DATE_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;j M Y&quot;</span>
+<span class="n">TIME_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;g:I A&quot;</span>
+<span class="n">DATE_INPUT_FORMATS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> %b %Y&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/%m/%Y&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> %b %Y&quot;</span><span class="p">]</span>
+<span class="n">TIME_INPUT_FORMATS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;%I:%M %p&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># app specific static lives in app_name/static/app_name</span>
+<span class="c1"># general static lives in STATICFILES_DIRS</span>
+<span class="c1"># STATICFILES_DIRS = [os.path.join(BASE_DIR, &quot;cobalt/static/&quot;)]</span>
+
+<span class="c1"># This is where collectstatic will put the static files it finds</span>
+<span class="n">STATIC_ROOT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BASE_DIR</span><span class="p">,</span> <span class="s2">&quot;static&quot;</span><span class="p">)</span>
+
+<span class="c1"># External reference point to find static</span>
+<span class="n">STATIC_URL</span> <span class="o">=</span> <span class="s2">&quot;/static/&quot;</span>
+<span class="c1"># STATIC_URL = &quot;https://test.abftech.com.au/static/&quot;</span>
+
+
+<span class="c1"># append MD5 hash to filenames to prevent caching on version change</span>
+<span class="n">STATICFILES_STORAGE</span> <span class="o">=</span> <span class="s2">&quot;utils.storage.ForgivingManifestStaticFilesStorage&quot;</span>
+
+<span class="n">MEDIA_ROOT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BASE_DIR</span><span class="p">,</span> <span class="s2">&quot;media&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="s2">&quot;FILE_SYSTEM_ID&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>  <span class="c1"># AWS EFS for media</span>
+    <span class="n">MEDIA_ROOT</span> <span class="o">=</span> <span class="s2">&quot;/cobalt-media&quot;</span>
+<span class="n">MEDIA_URL</span> <span class="o">=</span> <span class="s2">&quot;/media/&quot;</span>
+
+<span class="n">LOGIN_REDIRECT_URL</span> <span class="o">=</span> <span class="s2">&quot;/dashboard&quot;</span>
+<span class="n">LOGOUT_REDIRECT_URL</span> <span class="o">=</span> <span class="s2">&quot;/accounts/login&quot;</span>
+
+<span class="n">MESSAGE_TAGS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">messages</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span> <span class="s2">&quot;alert-info&quot;</span><span class="p">,</span>
+    <span class="n">messages</span><span class="o">.</span><span class="n">INFO</span><span class="p">:</span> <span class="s2">&quot;alert-info&quot;</span><span class="p">,</span>
+    <span class="n">messages</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span> <span class="s2">&quot;alert-success&quot;</span><span class="p">,</span>
+    <span class="n">messages</span><span class="o">.</span><span class="n">WARNING</span><span class="p">:</span> <span class="s2">&quot;alert-warning&quot;</span><span class="p">,</span>
+    <span class="n">messages</span><span class="o">.</span><span class="n">ERROR</span><span class="p">:</span> <span class="s2">&quot;alert-danger&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">EMAIL_SUBJECT_PREFIX</span> <span class="o">=</span> <span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">] &quot;</span> <span class="o">%</span> <span class="n">COBALT_HOSTNAME</span>
+
+<span class="n">GLOBAL_ORG</span> <span class="o">=</span> <span class="s2">&quot;ABF&quot;</span>
+<span class="n">GLOBAL_TITLE</span> <span class="o">=</span> <span class="s2">&quot;ABF Technology&quot;</span>
+<span class="n">GLOBAL_CONTACT</span> <span class="o">=</span> <span class="s2">&quot;https://abf.com.au&quot;</span>
+<span class="n">GLOBAL_ABOUT</span> <span class="o">=</span> <span class="s2">&quot;https://abf.com.au&quot;</span>
+<span class="n">GLOBAL_PRIVACY</span> <span class="o">=</span> <span class="s2">&quot;https://abf.com.au&quot;</span>
+<span class="n">GLOBAL_PRODUCTION</span> <span class="o">=</span> <span class="s2">&quot;abftech.com.au&quot;</span>
+<span class="n">GLOBAL_CURRENCY_SYMBOL</span> <span class="o">=</span> <span class="s2">&quot;$&quot;</span>
+<span class="n">GLOBAL_CURRENCY_NAME</span> <span class="o">=</span> <span class="s2">&quot;Dollar&quot;</span>
+
+<span class="c1"># Payments auto amounts</span>
+<span class="n">AUTO_TOP_UP_LOW_LIMIT</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">AUTO_TOP_UP_DEFAULT_AMT</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">AUTO_TOP_UP_MIN_AMT</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">AUTO_TOP_UP_MAX_AMT</span> <span class="o">=</span> <span class="mi">2000</span>
+
+<span class="c1"># django-summernote provides the rich text entry fields</span>
+
+<span class="c1"># SUMMERNOTE_THEME = &#39;bs4&#39;</span>
+
+<span class="n">SUMMERNOTE_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;iframe&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">&quot;summernote&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;airMode&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="s2">&quot;100%&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="s2">&quot;600&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;lang&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;spellCheck&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s2">&quot;toolbar&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">[</span><span class="s2">&quot;style&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;style&quot;</span><span class="p">]],</span>
+            <span class="p">[</span><span class="s2">&quot;font&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;bold&quot;</span><span class="p">,</span> <span class="s2">&quot;italic&quot;</span><span class="p">,</span> <span class="s2">&quot;underline&quot;</span><span class="p">]],</span>
+            <span class="p">[</span><span class="s2">&quot;fontname&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;fontname&quot;</span><span class="p">]],</span>
+            <span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]],</span>
+            <span class="p">[</span><span class="s2">&quot;para&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ul&quot;</span><span class="p">,</span> <span class="s2">&quot;ol&quot;</span><span class="p">,</span> <span class="s2">&quot;paragraph&quot;</span><span class="p">]],</span>
+            <span class="p">[</span><span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;table&quot;</span><span class="p">]],</span>
+            <span class="p">[</span><span class="s2">&quot;insert&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;link&quot;</span><span class="p">,</span> <span class="s2">&quot;picture&quot;</span><span class="p">,</span> <span class="s2">&quot;hr&quot;</span><span class="p">]],</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;cards&quot;</span><span class="p">,</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;specialcharsspades&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;specialcharshearts&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;specialcharsdiamonds&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;specialcharsclubs&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;specialcharshand&quot;</span><span class="p">,</span>
+                <span class="p">],</span>
+            <span class="p">],</span>
+            <span class="p">[</span><span class="s2">&quot;view&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;fullscreen&quot;</span><span class="p">,</span> <span class="s2">&quot;codeview&quot;</span><span class="p">]],</span>
+            <span class="p">[</span><span class="s2">&quot;help&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;help&quot;</span><span class="p">]],</span>
+        <span class="p">],</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;attachment_require_authentication&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;disable_attachment&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">&quot;attachment_absolute_uri&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Default user to be the everyone user for RBAC</span>
+<span class="n">RBAC_EVERYONE</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># Org id for the system account</span>
+<span class="n">GLOBAL_ORG_ID</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># LOGGING = {</span>
+<span class="c1">#     &#39;version&#39;: 1,</span>
+<span class="c1">#     &#39;disable_existing_loggers&#39;: False,</span>
+<span class="c1">#     &#39;formatters&#39;: {</span>
+<span class="c1">#         &#39;verbose&#39;: {</span>
+<span class="c1">#             &#39;format&#39;: &#39;{levelname} {asctime} {module} {process:d} {thread:d} {message}&#39;,</span>
+<span class="c1">#             &#39;style&#39;: &#39;{&#39;,</span>
+<span class="c1">#         },</span>
+<span class="c1">#         &#39;simple&#39;: {</span>
+<span class="c1">#             &#39;format&#39;: &#39;{levelname} {message}&#39;,</span>
+<span class="c1">#             &#39;style&#39;: &#39;{&#39;,</span>
+<span class="c1">#         },</span>
+<span class="c1">#     },</span>
+<span class="c1">#</span>
+<span class="c1">#     &#39;handlers&#39;: {</span>
+<span class="c1">#         &#39;console&#39;: {</span>
+<span class="c1">#             &#39;level&#39;: &#39;INFO&#39;,</span>
+<span class="c1">#             &#39;class&#39;: &#39;logging.StreamHandler&#39;,</span>
+<span class="c1">#             &#39;formatter&#39;: &#39;simple&#39;</span>
+<span class="c1">#         },</span>
+<span class="c1">#         &#39;mail_admins&#39;: {</span>
+<span class="c1">#             &#39;level&#39;: &#39;ERROR&#39;,</span>
+<span class="c1">#             &#39;class&#39;: &#39;django.utils.log.AdminEmailHandler&#39;,</span>
+<span class="c1">#</span>
+<span class="c1">#         }</span>
+<span class="c1">#     },</span>
+<span class="c1">#     &#39;loggers&#39;: {</span>
+<span class="c1">#         &#39;django&#39;: {</span>
+<span class="c1">#             &#39;handlers&#39;: [&#39;console&#39;],</span>
+<span class="c1">#             &#39;propagate&#39;: True,</span>
+<span class="c1">#         },</span>
+<span class="c1">#         &#39;django.request&#39;: {</span>
+<span class="c1">#             &#39;handlers&#39;: [&#39;mail_admins&#39;],</span>
+<span class="c1">#             &#39;level&#39;: &#39;ERROR&#39;,</span>
+<span class="c1">#             &#39;propagate&#39;: False,</span>
+<span class="c1">#         },</span>
+<span class="c1">#     }</span>
+<span class="c1"># }</span>
+
+<span class="c1"># ADDITIONAL_LOGGING = {</span>
+<span class="c1">#     &#39;version&#39;: 1,</span>
+<span class="c1">#     &#39;disable_existing_loggers&#39;: False,</span>
+<span class="c1">#     &#39;handlers&#39;: {</span>
+<span class="c1">#         &#39;console&#39;: {</span>
+<span class="c1">#             &#39;class&#39;: &#39;logging.StreamHandler&#39;,</span>
+<span class="c1">#         },</span>
+<span class="c1">#     },</span>
+<span class="c1">#     &#39;loggers&#39;: {</span>
+<span class="c1">#         # The &#39;django&#39; logger is the catch-all logger for messages in the Django hierarchy</span>
+<span class="c1">#         # (cf. https://docs.djangoproject.com/en/1.11/topics/logging/#django)</span>
+<span class="c1">#         &#39;django&#39;: {</span>
+<span class="c1">#             &#39;handlers&#39;: [&#39;console&#39;,&#39;mail_admin&#39;],</span>
+<span class="c1">#             &#39;level&#39;: &#39;INFO&#39;,</span>
+<span class="c1">#         },</span>
+<span class="c1">#     },</span>
+<span class="c1"># }</span>
+
+<span class="c1"># logging</span>
+<span class="c1"># LOGGING = {</span>
+<span class="c1">#     &quot;version&quot;: 1,</span>
+<span class="c1">#     &quot;disable_existing_loggers&quot;: False,</span>
+<span class="c1">#     &quot;handlers&quot;: {</span>
+<span class="c1">#         &quot;file&quot;: {</span>
+<span class="c1">#             &quot;level&quot;: &quot;INFO&quot;,</span>
+<span class="c1">#             &quot;class&quot;: &quot;logging.FileHandler&quot;,</span>
+<span class="c1">#             &quot;filename&quot;: &quot;/tmp/cobalt.log&quot;,</span>
+<span class="c1">#         },</span>
+<span class="c1">#     },</span>
+<span class="c1">#     &quot;loggers&quot;: {&quot;django&quot;: {&quot;handlers&quot;: [&quot;file&quot;], &quot;level&quot;: &quot;DEBUG&quot;, &quot;propagate&quot;: True}},</span>
+<span class="c1"># }</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, ABF
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

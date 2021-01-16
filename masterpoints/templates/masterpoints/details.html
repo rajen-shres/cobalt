@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block header %}
+<style>
+/* Remove up and down from abf number */
+
+  /* Chrome, Safari, Edge, Opera */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Firefox */
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="ignore_cobalt_save"></div>
+<div class="container-fluid">
+  <div class="row">
+    <div class="card">
+      <div class="card-header card-header-primary">
+        <h4 class="card-title">
+        <h1>
+          <div class="d-flex justify-content-between">
+            <div>
+              {{ summary.GivenNames }} {{ summary.Surname }}
+            </div>
+            <div>
+              <i class="material-icons" style="font-size:60px">call_made</i>
+            </div>
+        </h1>
+          <h2>{{ summary.ABFNumber }} - {{ summary.RankName }} Master</h2>
+          <div>
+            <h3><i>{% if summary.IsActive %}Home club is {{club}}{% else %}Used to play at {{club}}{% endif %}</i></h3>
+          </div>
+          <div>
+            Visit <a href="http://www.abfmasterpoints.com.au/myawards.asp?search=name&nomenu=n" target="_blank"><span style="color: white;"><u>The MasterPoints Centre</u></span></a> for official figures.
+          </div>
+      </div>
+      <div class="container w-100">
+        <div class="row d-flex flex-wrap">
+          <div class="col">
+            <div class="card">
+              <div class="card-header card-header-info">
+                <h4 class="card-title">
+                  Summary
+              </div>
+
+              <div class="card-body table-responsive">
+                <table class="table table-hover">
+                  <tbody>
+                    <tr>
+                      <td style="color: orange;  font-weight: bold;">Gold
+                      <td style="text-align: right">{{ summary.TotalGold|floatformat:2|intcomma }}
+                    </tr>
+                    <tr>
+                      <td style="color: red; font-weight: bold;">Red
+                      <td style="text-align: right">{{ summary.TotalRed|floatformat:2|intcomma }}
+                    </tr>
+                    <tr>
+                      <td style="color: green; font-weight: bold;">Green
+                      <td style="text-align: right">{{ summary.TotalGreen|floatformat:2|intcomma }}
+                    </tr>
+                    <tr>
+                      <td style="color: black; font-weight: bold;">Total
+                      <td style="text-align: right; font-weight: bold;">{{ summary.TotalMPs|floatformat:2|intcomma }}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6" style="min-width: 500px;">
+            <div class="card">
+              <div class="card-header card-header-icon card-header-warning">
+                <div class="card-icon">
+                  <i class="material-icons">timeline</i>
+                </div>
+                <h4 class="card-title">{{ timescale }}
+                </h4>
+
+              </div>
+              <div class="card-body">
+                <div id="mpChart" class="ct-chart"></div>
+                <select class="selectpicker" data-style="btn btn-success btn-sm cobalt-text-transform-off w-auto" id="id_range">
+                  <option value="">RANGE...</option>
+                  <option value="1">Last 12 Months</option>
+                  <option value="2">Last 2 Years</option>
+                  <option value="5">Last 5 Years</option>
+                  <option value="10">Last 10 Years</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="col">
+            <div class="card">
+              <div class="card-header card-header-success">
+                <h4 class="card-title">
+                  Lookup Masterpoints
+              </div>
+
+              <div class="card-body table-responsive">
+
+                <form method="POST" action="/masterpoints/masterpoints_search">
+                  {% csrf_token %}
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="form-group">
+                        <label class="bmd-label-floating">{{ GLOBAL_ORG }} Number</label>
+                        <input name="system_number" id="id_system_number" type="number" min="0" step="1" class="form-control search-item" value="">
+                      </div>
+                    </div>
+                    <div class="col-md-12">
+                      <div class="form-group">
+                        <label class="bmd-label-floating">Last Name</label>
+                        <input name="last_name" id="id_last_name" type="text" class="form-control search-item" value="">
+                      </div>
+                    </div>
+                    <div class="col-md-12">
+                      <div class="form-group">
+                        <label class="bmd-label-floating">First Name</label>
+                        <input name="first_name" id="id_first_name" type="text" class="form-control search-item" value="">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="d-flex justify-content-center">
+                    <button id="button-submit" type="submit" class="btn btn-primary center-text cobalt-save" disabled>Search</button>
+                  </div>
+                  <div class="clearfix"></div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div>
+  <div class="card">
+    <div class="card-header card-header-warning">
+      <h4 class="card-title">
+        Recent Activity
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-hover">
+        <thead class="text-info">
+          <th>Month</th>
+          <th>Details</th>
+          <th class="text-right">Gold</th>
+          <th class="text-right">Red</th>
+          <th class="text-right">Green</th>
+          <th class="text-right">Total</th>
+        </thead>
+        <tbody>
+          <tr>
+
+            <td>
+            <td><b>Closing Total<b>
+            <td class="text-right" style="color: orange;">{{ summary.TotalGold|floatformat:2|intcomma }}
+            <td class="text-right" style="color: red;">{{ summary.TotalRed|floatformat:2|intcomma }}
+            <td class="text-right" style="color: green;">{{ summary.TotalGreen|floatformat:2|intcomma }}
+            <td class="text-right"><b>{{ summary.TotalMPs|floatformat:2|intcomma }}</b>
+          </tr>
+
+          {% for row in details %}
+
+          <tr>
+            <td>{{ row.PostingDateDisplay }}
+            <td>{{ row.EventDescription }}
+            <td class="text-right" style="color: orange;">
+              {% if row.MPColour == "Y" %}
+              {{ row.mps }}
+              {% endif %}
+            <td class="text-right" style="color: red;">
+              {% if row.MPColour == "R" %}
+              {{ row.mps }}
+              {% endif %}
+            <td class="text-right" style="color: green;">
+              {% if row.MPColour == "G" %}
+              {{ row.mps }}
+              {% endif %}
+            <td class="text-right">{{ row.running_total|floatformat:2|intcomma }}
+          </tr>
+          {% endfor %}
+
+          <tr>
+            <td>
+            <td><b>Opening Balance</b>
+            <td class="text-right" style="color: orange;"><b>{{ bottom.gold|floatformat:2|intcomma }}</b>
+            <td class="text-right" style="color: red;"><b>{{ bottom.red|floatformat:2|intcomma }}</b>
+            <td class="text-right" style="color: green;"><b>{{ bottom.green|floatformat:2|intcomma }}</b>
+            <td class="text-right"><b>{{ bottom.total|floatformat:2|intcomma }}</b>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block footer %}
+
+<script src="{% static "assets/js/plugins/chartist.min.js" %}"></script>
+<script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
+
+<script>
+  $(document).ready(function() {
+
+    if (window.performance.navigation.type === 2) {
+      // the page was navigated to via the forward or back button
+      // refresh to clean up
+      location.reload();
+    }
+
+    $('.selectpicker').selectpicker('refresh');
+
+    chartData = {
+      {% autoescape off %}
+      labels: {{ chart.labels }},
+      {% endautoescape %}
+      series: [{{ chart.green }},{{ chart.red }},{{ chart.gold }}]
+    };
+
+    chartOptions = {
+      lineSmooth: Chartist.Interpolation.cardinal({
+        tension: 10
+      }),
+      axisY: {
+        showGrid: true,
+        offset: 40
+      },
+      axisX: {
+        showGrid: false,
+        labelInterpolationFnc: function (value, index) {
+          return index % {{ points_every }} == 0 ? value: null;
+        },
+      },
+      showPoint: {{ show_point }},
+      height: '300px',
+      chartPadding: 28,
+    };
+
+
+    var chart = new Chartist.Line('#mpChart', chartData, chartOptions);
+
+    md.startAnimationForLineChart(chart);
+
+// change of range
+   $('#id_range').on("change", function() {
+      var range = $('#id_range').val();
+      window.location.href = "{% url "masterpoints:masterpoints_detail" system_number=system_number %}" + range + "/";
+    });
+
+  });
+
+// disable search until data entered
+
+  $('.search-item').keyup(function() {
+      var empty = true;
+      $('.search-item').each(function() {
+          if ($(this).val() != '') {
+              empty = false;
+          }
+      });
+
+      if (empty) {
+          $('#button-submit').attr('disabled', 'disabled'); // updated according to http://stackoverflow.com/questions/7637790/how-to-remove-disabled-attribute-with-jquery-ie
+      } else {
+          $('#button-submit').removeAttr('disabled'); // updated according to http://stackoverflow.com/questions/7637790/how-to-remove-disabled-attribute-with-jquery-ie
+      }
+  });
+
+</script>
+{% endblock %}

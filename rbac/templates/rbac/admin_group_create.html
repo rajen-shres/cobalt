@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "rbac:main_admin_screen" %}">Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Create RBAC Admin Group</li>
+  </ol>
+</nav>
+
+<div class="jumbotron">
+
+  <h1>Role Based Access Controls</h1>
+
+  <div class="card col-lg-9">
+    <div class="card-header card-header-danger">
+      <h3 class="card-title">Create Admin Group</h3>
+    </div>
+    <div class="card-body" style="text-align: center">
+      <div class="container">
+
+        <form method="POST">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-12">
+              <div class="form-group">
+                <label class="bmd-label-static">Location in Tree</label>
+                <span class="cobalt-form-error" id="id_name_qualifier_errors">{{ form.name_qualifier.errors|striptags }}</span>
+                {% render_field form.name_qualifier class+="form-control" %}
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <span class="cobalt-form-error" id="id_name_item_errors">{{ form.name_item.errors|striptags }}</span>
+                <label for="id_name_item" class="bmd-label-floating">Name</label>
+                {% render_field form.name_item class+="form-control" %}
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+
+              <div class="form-group">
+                <span class="cobalt-form-error" id="id_description_errors">{{ form.description.errors|striptags }}</span>
+                <label for="id_description" class="bmd-label-floating">Description</label>
+                {% render_field form.description class+="form-control" %}
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+
+              <div class="form-group">
+                <span class="cobalt-form-error" id="id_add_self_errors">{{ form.add_self.errors|striptags }}</span>
+                {% render_field form.add_self  %}
+                <label for="id_add_self" class="bmd-label-floating">Add Yourself to Group</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex">
+            <div>
+              <button type="submit" class="btn btn-primary center-text cobalt-save">Create</button>
+            </div>
+            <div class="ml-auto">
+              <a href="{% url "rbac:main_admin_screen" %}" class="btn btn-info center-text">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

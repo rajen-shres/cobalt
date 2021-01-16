@@ -1,0 +1,174 @@
+#!/bin/bash
+
+# Branch for a hotfix will be something like 1.2.3=hotflix=fix_the_bugs
+# The release branch associated with this will be release/1.2.3
+
+BRANCH=`git branch --show-current`
+
+if [[ $BRANCH != *"=HOTFIX="* ]]; then
+  echo ""
+  echo ""
+  echo "You are not on a hotfix branch. Your branch is $BRANCH."
+  echo ""
+  echo ""
+  exit 1
+fi
+
+RELEASE=`echo $BRANCH|cut -d= -f1`
+
+echo ""
+echo ""
+echo "Congratulations on finishing a hotfix."
+echo ""
+echo "I will check your branch is clean and then merge your changes into"
+echo "the release branch. I will then deploy to the PRODUCTION system"
+echo "and update develop and master."
+echo ""
+echo "I will then delete the branch '$BRANCH'."
+echo ""
+echo "The release I will be updating is $RELEASE"
+echo ""
+read -p "Press key to continue..." -n1 -s
+
+if [[ -z $(git status -s) ]]
+then
+  echo ""
+  echo ""
+  echo "Pulling latest release/$RELEASE branch..."
+  echo ""
+
+  git pull origin release/$RELEASE
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+  
+  echo ""
+  echo "Checking out release/$RELEASE branch..."
+  echo ""
+
+  git checkout release/$RELEASE
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Merging $BRANCH into release/$RELEASE branch..."
+  echo ""
+
+  git merge $BRANCH
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Pushing release/$RELEASE branch to github..."
+  echo ""
+
+  git push origin release/$RELEASE
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Deploying to PRODUCTION server..."
+  echo ""
+
+  PRODENV=`eb list | grep cobalt-prod` 
+
+  echo "Deploying code to $PRODENV..."
+  eb deploy $PRODENV
+  echo ""
+
+  echo ""
+  echo "Checking out develop..."
+  echo ""
+
+  git pull origin develop
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  git checkout develop
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Merging release/$RELEASE into develop..."
+  echo ""
+
+  git merge release/$RELEASE
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Pushing develop to github..."
+  echo ""
+
+  git push origin develop
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Checking out master..."
+  echo ""
+
+  git pull origin master
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  git checkout master
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Merging release/$RELEASE into master..."
+  echo ""
+
+  git merge release/$RELEASE
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Pushing master to github..."
+  echo ""
+
+  git push origin master
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Deleting $BRANCH..."
+  echo ""
+
+  git branch -d $BRANCH
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo "#######################"
+  echo "#                     #"
+  echo "#        DONE         #"
+  echo "#                     #"
+  echo "#######################"
+  echo ""
+  echo ""
+
+else
+  echo ""
+  echo ""
+  echo "Cannot comply with request."
+  echo "There are uncommitted changes or other problems with your git status. See below."
+  echo ""
+  echo ""
+  git status
+  echo ""
+  echo ""
+  exit
+fi

@@ -1,0 +1,35 @@
+<!-- Generic Member Search -->
+<div class="modal fade" id="cobalt_general_member_search" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold"><i class="material-icons">how_to_reg</i>&nbsp;&nbsp;Member Lookup</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="container">
+          <div id="cobalt-search" class="row justify-content-center">
+            <div class="col-12 form-group">
+              <label for="lastname" class="bmd-label-floating">Last Name</label>
+              <input type="text" class="form-control dynamic-search" id="id_{{ key }}_lastname" name="lastname" value="">
+            </div>
+
+            <div class="col-12 form-group">
+              <label for="" class="bmd-label-floating">First Name</label>
+              <input type="text" class="form-control dynamic-search" id="id_{{ key }}_firstname" name="firstname" value="">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="cobalt-member">
+      </div>
+      <div class="row justify-content-center"
+          <span id="search-results"></span>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Generic Member Search -->

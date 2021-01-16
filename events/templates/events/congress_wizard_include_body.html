@@ -1,0 +1,61 @@
+{% load static %}
+
+<!-- Instead of using {{ form.media }} we hardcode the static files here
+     so we can control the version that we use. Django-summernote comes with
+     an older version of summernote that has some bugs especially relating
+     to how it shakes when it is slowly scrolled. We point to a newer
+     version of summernote and it fixes the problem. -->
+
+<link href="{% static "forums/summernote/summernote-bs4.css" %}" type="text/css" media="all" rel="stylesheet">
+<link href="{% static "forums/summernote/django_summernote.css" %}" type="text/css" media="all" rel="stylesheet">
+<script type="text/javascript" src="{% static "forums/summernote/jquery.ui.widget.js" %}"></script>
+<script type="text/javascript" src="{% static "forums/summernote/jquery.iframe-transport.js" %}"></script>
+<script type="text/javascript" src="{% static "forums/summernote/jquery.fileupload.js" %}"></script>
+<script type="text/javascript" src="{% static "forums/summernote/summernote-bs4.min.js" %}"></script>
+<script type="text/javascript" src="{% static "forums/summernote/ResizeSensor.js" %}"></script>
+
+<h1>Congress Setup
+  {% if congress.name %}
+  - {{ congress.name }}
+  {% endif %}
+</h1>
+<br>
+
+<div class="steps-form">
+  <div class="steps-row setup-panel">
+    <div class="steps-step">
+      <span class="myHover" data-toggle="tooltip" title="Disabled. This congress has already been created." data-delay="100" data-placement="bottom">
+        <button class="btn {{ step_list.1 }} btn-circle">1</button>
+      </span>
+      <p>Create</p>
+    </div>
+    <div class="steps-step">
+      <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}" type="button" class="btn {{ step_list.2 }} btn-circle">2</a>
+      <p>General</p>
+    </div>
+    <div class="steps-step">
+      <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=3 %}" type="button" class="btn {{ step_list.3 }} btn-circle">3</a>
+      <p>&nbsp;Venue&nbsp;</p>
+    </div>
+    <div class="steps-step">
+      <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=4 %}" type="button" class="btn {{ step_list.4 }} btn-circle">4</a>
+      <p>Sponsors</p>
+    </div>
+    <div class="steps-step">
+      <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=5 %}" type="button" class="btn {{ step_list.5 }} btn-circle">5</a>
+      <p>Options</p>
+    </div>
+    <div class="steps-step">
+      <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=6 %}" type="button" class="btn {{ step_list.6 }} btn-circle">6</a>
+      <p>Events</p>
+    </div>
+    <div class="steps-step">
+      <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=7 %}" type="button" class="btn {{ step_list.7 }} btn-circle">7</a>
+      <p>Publish</p>
+    </div>
+  </div>
+</div>
+
+<div class="text-center">
+<button class="btn btn-info">Congress status: <b>{{ congress.status }}</b></button>
+</div>

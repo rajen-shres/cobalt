@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load cobalt_tags %}
+{% load humanize %}
+
+{% block content %}
+
+<div class="col-md-4 mx-auto my-auto">
+  <div class="card">
+    <div class="card-header card-header-warning text-center">
+      <h2>System Status</h2>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Activity</td>
+            <td><a href="{% url "utils:user_activity" %}" class="btn btn-sm
+              {% if users > 1 %}
+                 btn-success">Good
+              {% else %}
+                 btn-info">Unknown
+              {% endif %}
+            </a></td>
+          </tr>
+          <tr>
+            <td>Payments</td>
+            <td><a href="{% url "utils:user_activity" %}" class="btn btn-sm btn-success">Good</a></td>
+          </tr>
+          <tr>
+            <td>Events</td>
+            <td><a href="{% url "utils:user_activity" %}" class="btn btn-sm btn-success">Good</a></td>
+          </tr>
+          <tr>
+            <td>Forums</td>
+            <td><a href="{% url "utils:user_activity" %}" class="btn btn-sm btn-success">Good</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,682 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>notifications package &mdash; Cobalt 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="organisations package" href="organisations.html" />
+    <link rel="prev" title="masterpoints package" href="masterpoints.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Cobalt
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Cobalt Modules</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">cobalt</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="accounts.html">accounts package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calendar_app.html">calendar_app package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cobalt.html">cobalt package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dashboard.html">dashboard package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html">events package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="forums.html">forums package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logs.html">logs package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="manage.html">manage module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="masterpoints.html">masterpoints package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">notifications package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-notifications.admin">notifications.admin module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-notifications.apps">notifications.apps module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-notifications.models">notifications.models module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-notifications.tests">notifications.tests module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-notifications.views">notifications.views module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-notifications">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="organisations.html">organisations package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="payments.html">payments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbac.html">rbac package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="results.html">results package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="support.html">support package</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Cobalt</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">cobalt</a> &raquo;</li>
+        
+      <li>notifications package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/notifications.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="notifications-package">
+<h1>notifications package<a class="headerlink" href="#notifications-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-notifications.admin">
+<span id="notifications-admin-module"></span><h2>notifications.admin module<a class="headerlink" href="#module-notifications.admin" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="notifications.admin.InAppNotificationAdmin">
+<em class="property">class </em><code class="sig-prename descclassname">notifications.admin.</code><code class="sig-name descname">InAppNotificationAdmin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">admin_site</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/admin.html#InAppNotificationAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.admin.InAppNotificationAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="py method">
+<dt id="notifications.admin.InAppNotificationAdmin.media">
+<em class="property">property </em><code class="sig-name descname">media</code><a class="headerlink" href="#notifications.admin.InAppNotificationAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.admin.InAppNotificationAdmin.search_fields">
+<code class="sig-name descname">search_fields</code><em class="property"> = ('member',)</em><a class="headerlink" href="#notifications.admin.InAppNotificationAdmin.search_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notifications.admin.NotificationMappingAdmin">
+<em class="property">class </em><code class="sig-prename descclassname">notifications.admin.</code><code class="sig-name descname">NotificationMappingAdmin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">admin_site</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/admin.html#NotificationMappingAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.admin.NotificationMappingAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="py method">
+<dt id="notifications.admin.NotificationMappingAdmin.media">
+<em class="property">property </em><code class="sig-name descname">media</code><a class="headerlink" href="#notifications.admin.NotificationMappingAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.admin.NotificationMappingAdmin.search_fields">
+<code class="sig-name descname">search_fields</code><em class="property"> = ('member',)</em><a class="headerlink" href="#notifications.admin.NotificationMappingAdmin.search_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-notifications.apps">
+<span id="notifications-apps-module"></span><h2>notifications.apps module<a class="headerlink" href="#module-notifications.apps" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="notifications.apps.NotificationsConfig">
+<em class="property">class </em><code class="sig-prename descclassname">notifications.apps.</code><code class="sig-name descname">NotificationsConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app_name</span></em>, <em class="sig-param"><span class="n">app_module</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/apps.html#NotificationsConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.apps.NotificationsConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.apps.config.AppConfig</span></code></p>
+<dl class="py attribute">
+<dt id="notifications.apps.NotificationsConfig.name">
+<code class="sig-name descname">name</code><em class="property"> = 'notifications'</em><a class="headerlink" href="#notifications.apps.NotificationsConfig.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-notifications.models">
+<span id="notifications-models-module"></span><h2>notifications.models module<a class="headerlink" href="#module-notifications.models" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="notifications.models.InAppNotification">
+<em class="property">class </em><code class="sig-prename descclassname">notifications.models.</code><code class="sig-name descname">InAppNotification</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/models.html#InAppNotification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.models.InAppNotification" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Temporary storage for notification messages.</p>
+<p>Stores any event that a Cobalt module wants to notify a user about.</p>
+<dl class="py exception">
+<dt id="notifications.models.InAppNotification.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#notifications.models.InAppNotification.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="notifications.models.InAppNotification.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#notifications.models.InAppNotification.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.InAppNotification.acknowledged">
+<code class="sig-name descname">acknowledged</code><a class="headerlink" href="#notifications.models.InAppNotification.acknowledged" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.InAppNotification.created_date">
+<code class="sig-name descname">created_date</code><a class="headerlink" href="#notifications.models.InAppNotification.created_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notifications.models.InAppNotification.get_next_by_created_date">
+<code class="sig-name descname">get_next_by_created_date</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">field=&lt;django.db.models.fields.DateTimeField: created_date&gt;</em>, <em class="sig-param">is_next=True</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#notifications.models.InAppNotification.get_next_by_created_date" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="notifications.models.InAppNotification.get_previous_by_created_date">
+<code class="sig-name descname">get_previous_by_created_date</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">field=&lt;django.db.models.fields.DateTimeField: created_date&gt;</em>, <em class="sig-param">is_next=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#notifications.models.InAppNotification.get_previous_by_created_date" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.InAppNotification.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#notifications.models.InAppNotification.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.InAppNotification.link">
+<code class="sig-name descname">link</code><a class="headerlink" href="#notifications.models.InAppNotification.link" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.InAppNotification.member">
+<code class="sig-name descname">member</code><a class="headerlink" href="#notifications.models.InAppNotification.member" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related object on the forward side of a many-to-one or
+one-to-one (via ForwardOneToOneDescriptor subclass) relation.</p>
+<p>In the example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Child.parent</span></code> is a <code class="docutils literal notranslate"><span class="pre">ForwardManyToOneDescriptor</span></code> instance.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.InAppNotification.member_id">
+<code class="sig-name descname">member_id</code><a class="headerlink" href="#notifications.models.InAppNotification.member_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.InAppNotification.message">
+<code class="sig-name descname">message</code><a class="headerlink" href="#notifications.models.InAppNotification.message" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.InAppNotification.objects">
+<code class="sig-name descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#notifications.models.InAppNotification.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notifications.models.NotificationMapping">
+<em class="property">class </em><code class="sig-prename descclassname">notifications.models.</code><code class="sig-name descname">NotificationMapping</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/models.html#NotificationMapping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.models.NotificationMapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Stores mappings of users to events and actions</p>
+<dl class="py attribute">
+<dt id="notifications.models.NotificationMapping.APPLICATION_NAMES">
+<code class="sig-name descname">APPLICATION_NAMES</code><em class="property"> = [('Forums', 'Forums'), ('Payments', 'Payments')]</em><a class="headerlink" href="#notifications.models.NotificationMapping.APPLICATION_NAMES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt id="notifications.models.NotificationMapping.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#notifications.models.NotificationMapping.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="notifications.models.NotificationMapping.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#notifications.models.NotificationMapping.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.NotificationMapping.NOTIFICATION_TYPES">
+<code class="sig-name descname">NOTIFICATION_TYPES</code><em class="property"> = [('SMS', 'SMS Message'), ('Email', 'Email Message')]</em><a class="headerlink" href="#notifications.models.NotificationMapping.NOTIFICATION_TYPES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.NotificationMapping.application">
+<code class="sig-name descname">application</code><a class="headerlink" href="#notifications.models.NotificationMapping.application" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cobalt application name</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.NotificationMapping.event_type">
+<code class="sig-name descname">event_type</code><a class="headerlink" href="#notifications.models.NotificationMapping.event_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Event type as set by the application. eg. forum.post.new</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notifications.models.NotificationMapping.get_application_display">
+<code class="sig-name descname">get_application_display</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">field=&lt;django.db.models.fields.CharField: application&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notifications.models.NotificationMapping.get_application_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="notifications.models.NotificationMapping.get_notification_type_display">
+<code class="sig-name descname">get_notification_type_display</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">field=&lt;django.db.models.fields.CharField: notification_type&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notifications.models.NotificationMapping.get_notification_type_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.NotificationMapping.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#notifications.models.NotificationMapping.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.NotificationMapping.member">
+<code class="sig-name descname">member</code><a class="headerlink" href="#notifications.models.NotificationMapping.member" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related object on the forward side of a many-to-one or
+one-to-one (via ForwardOneToOneDescriptor subclass) relation.</p>
+<p>In the example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Child.parent</span></code> is a <code class="docutils literal notranslate"><span class="pre">ForwardManyToOneDescriptor</span></code> instance.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.NotificationMapping.member_id">
+<code class="sig-name descname">member_id</code><a class="headerlink" href="#notifications.models.NotificationMapping.member_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.NotificationMapping.notification_type">
+<code class="sig-name descname">notification_type</code><a class="headerlink" href="#notifications.models.NotificationMapping.notification_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>How to notify the member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.NotificationMapping.objects">
+<code class="sig-name descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#notifications.models.NotificationMapping.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.NotificationMapping.subtopic">
+<code class="sig-name descname">subtopic</code><a class="headerlink" href="#notifications.models.NotificationMapping.subtopic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Level 2 event in application</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notifications.models.NotificationMapping.topic">
+<code class="sig-name descname">topic</code><a class="headerlink" href="#notifications.models.NotificationMapping.topic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Level 1 event in application</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-notifications.tests">
+<span id="notifications-tests-module"></span><h2>notifications.tests module<a class="headerlink" href="#module-notifications.tests" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-notifications.views">
+<span id="notifications-views-module"></span><h2>notifications.views module<a class="headerlink" href="#module-notifications.views" title="Permalink to this headline">¶</a></h2>
+<p>Notifications handles messages that Cobalt applications wish to pass to users.</p>
+<blockquote>
+<div><p>See <a class="reference external" href="./notifications_overview.html">Notifications Overview</a> for more details.</p>
+</div></blockquote>
+<dl class="py function">
+<dt id="notifications.views.acknowledge_in_app_notification">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">acknowledge_in_app_notification</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#acknowledge_in_app_notification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.acknowledge_in_app_notification" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.add_in_app_notification">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">add_in_app_notification</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">member</span></em>, <em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="n">link</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#add_in_app_notification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.add_in_app_notification" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.add_listener">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">add_listener</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">member</span></em>, <em class="sig-param"><span class="n">application</span></em>, <em class="sig-param"><span class="n">event_type</span></em>, <em class="sig-param"><span class="n">topic</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">subtopic</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">notification_type</span><span class="o">=</span><span class="default_value">'Email'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#add_listener"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.add_listener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a user to be notified of an event</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.check_listener">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">check_listener</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">member</span></em>, <em class="sig-param"><span class="n">application</span></em>, <em class="sig-param"><span class="n">event_type</span></em>, <em class="sig-param"><span class="n">topic</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">subtopic</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#check_listener"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.check_listener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a user is being notified of an event</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.contact_member">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">contact_member</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">member</span></em>, <em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="n">contact_type</span></em>, <em class="sig-param"><span class="n">link</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">html_msg</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">subject</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#contact_member"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.contact_member" title="Permalink to this definition">¶</a></dt>
+<dd><p>Contact member using their preferred method</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.create_user_notification">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">create_user_notification</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">member</span></em>, <em class="sig-param"><span class="n">application_name</span></em>, <em class="sig-param"><span class="n">event_type</span></em>, <em class="sig-param"><span class="n">topic</span></em>, <em class="sig-param"><span class="n">subtopic</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">notification_type</span><span class="o">=</span><span class="default_value">'Email'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#create_user_notification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.create_user_notification" title="Permalink to this definition">¶</a></dt>
+<dd><p>create a notification record for a user</p>
+<p>Used to programatically create a notification record. For example Forums
+will call this to register a notification for comments on a users post.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>member</strong> (<a class="reference internal" href="accounts.html#accounts.models.User" title="accounts.models.User"><em>User</em></a>) – standard User object</p></li>
+<li><p><strong>application_name</strong> (<em>str</em>) – name of the Cobalt application to follow</p></li>
+<li><p><strong>event_type</strong> (<em>str</em>) – event e.g. forums.post.create</p></li>
+<li><p><strong>topic</strong> (<em>str</em>) – specific to the application. e.g. 5 to follow forum with pk=5</p></li>
+<li><p><strong>subtopic</strong> (<em>str</em>) – application specific (optional)</p></li>
+<li><p><strong>notification_type</strong> (<em>str</em>) – email or SMS</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Nothing</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.delete">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">delete</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request</span></em>, <em class="sig-param"><span class="n">id</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>when a user clicks on delete we come here. returns the homepage</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.delete_all_in_app_notifications">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">delete_all_in_app_notifications</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">member</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#delete_all_in_app_notifications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.delete_all_in_app_notifications" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.delete_in_app_notification">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">delete_in_app_notification</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#delete_in_app_notification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.delete_in_app_notification" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.deleteall">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">deleteall</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#deleteall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.deleteall" title="Permalink to this definition">¶</a></dt>
+<dd><p>when a user clicks on delete all we come here. returns the homepage</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.get_notifications_for_user">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">get_notifications_for_user</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">user</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#get_notifications_for_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.get_notifications_for_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of all unacklowledged notifications for a user</p>
+<p>Returns a list of notifications for the user where the status is
+unacknowledged.</p>
+<p>If the list is over 10 then the last item is a link to the notifications
+page to view them all.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>user</strong> (<a class="reference internal" href="accounts.html#accounts.models.User" title="accounts.models.User"><em>User</em></a>) – standard User object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Count of notifications and List of notifications which themselves are tuples</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.homepage">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">homepage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#homepage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.homepage" title="Permalink to this definition">¶</a></dt>
+<dd><p>homepage for notifications listings</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.notifications_in_english">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">notifications_in_english</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">member</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#notifications_in_english"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.notifications_in_english" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a list of notifications in a simple English format.
+This is hand coded and needs to be updated when new notifications are
+defined. Used by Accounts:Settings but can be used more generally.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.notify_happening">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">notify_happening</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">application_name</span></em>, <em class="sig-param"><span class="n">event_type</span></em>, <em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="n">topic</span></em>, <em class="sig-param"><span class="n">subtopic</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">link</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">html_msg</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">email_subject</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">user</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#notify_happening"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.notify_happening" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by Cobalt applications to tell notify they have done something.</p>
+<p>Main entry point for general notifications of events within the system.
+Applications publish an event through this call and Notifications tells
+any member who has registered an interest in this event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>application_name</strong> (<em>str</em>) – name of the calling app</p></li>
+<li><p><strong>event_type</strong> (<em>str</em>) – </p></li>
+<li><p><strong>topic</strong> (<em>str</em>) – specific to the application, high level event</p></li>
+<li><p><strong>subtopic</strong> (<em>str</em>) – specific to the application, next level event</p></li>
+<li><p><strong>msg</strong> (<em>str</em>) – a brief description of the event</p></li>
+<li><p><strong>link</strong> (<em>str</em>) – an HTML relative link to the event (Optional)</p></li>
+<li><p><strong>html_msg</strong> (<em>str</em>) – a long description of the event (Optional)</p></li>
+<li><p><strong>email_subject</strong> (<em>str</em>) – subject line for email (Optional)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Nothing</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.notify_happening_forums">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">notify_happening_forums</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">application_name</span></em>, <em class="sig-param"><span class="n">event_type</span></em>, <em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="n">topic</span></em>, <em class="sig-param"><span class="n">subtopic</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">link</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">html_msg</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">email_subject</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">user</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#notify_happening_forums"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.notify_happening_forums" title="Permalink to this definition">¶</a></dt>
+<dd><p>sub function for notify_happening() - handles Forum events
+Might be able to make this generic</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.passthrough">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">passthrough</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request</span></em>, <em class="sig-param"><span class="n">id</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#passthrough"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.passthrough" title="Permalink to this definition">¶</a></dt>
+<dd><p>passthrough function to acknowledge a message has been clicked on</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.remove_listener">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">remove_listener</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">member</span></em>, <em class="sig-param"><span class="n">application</span></em>, <em class="sig-param"><span class="n">event_type</span></em>, <em class="sig-param"><span class="n">topic</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">subtopic</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#remove_listener"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.remove_listener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a user from being notified of an event</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.send_cobalt_email">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">send_cobalt_email</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">to_address</span></em>, <em class="sig-param"><span class="n">subject</span></em>, <em class="sig-param"><span class="n">msg</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#send_cobalt_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.send_cobalt_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send single email</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>to_address</strong> (<em>str</em>) – who to send to</p></li>
+<li><p><strong>subject</strong> (<em>str</em>) – subject line for email</p></li>
+<li><p><strong>msg</strong> (<em>str</em>) – message to send in HTML or plain format</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Nothing</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notifications.views.send_cobalt_sms">
+<code class="sig-prename descclassname">notifications.views.</code><code class="sig-name descname">send_cobalt_sms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">phone_number</span></em>, <em class="sig-param"><span class="n">msg</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/notifications/views.html#send_cobalt_sms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notifications.views.send_cobalt_sms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send single SMS</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phone_number</strong> (<em>str</em>) – who to send to</p></li>
+<li><p><strong>msg</strong> (<em>str</em>) – message to send</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Nothing</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-notifications">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-notifications" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="organisations.html" class="btn btn-neutral float-right" title="organisations package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="masterpoints.html" class="btn btn-neutral float-left" title="masterpoints package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, ABF
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load cobalt_tags %}
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "payments:statement_admin_summary" %}">Payments Admin</a></li>
+    <li class="breadcrumb-item"><a href="{% url "payments:admin_payments_static" %}">Payments Static</a></li>
+    <li class="breadcrumb-item active" aria-current="page">History</li>
+  </ol>
+</nav>
+
+<div class="container">
+  <div class="card">
+    <div class="card-header card-header-primary">
+      <h1>{{ BRIDGE_CREDITS }}</h1>
+      <h2>System Wide Static Data - History</h2>
+    </div>
+
+    <div class="card-body table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>
+              Status
+            </th>
+            <th>
+              Date
+            </th>
+            <th>
+              Modified by
+            </th>
+            <th>
+              default org fee percent
+            </th>
+            <th>
+              stripe cost per transaction
+            </th>
+            <th>
+              stripe percentage charge
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for payment_static in payment_statics %}
+          <tr>
+            <td>
+              {% if payment_static.active %}
+              <b>Active</b>
+              {% else %}
+              <i>Inactive</i>
+              {% endif %}
+            </td>
+            <td>
+              {{ payment_static.created_date|cobalt_nice_datetime }}
+            </td>
+            <td>
+              {{ payment_static.modified_by }}
+            </td>
+            <td>
+              {{ payment_static.default_org_fee_percent }}
+            </td>
+            <td>
+              {{ payment_static.stripe_cost_per_transaction }}
+            </td>
+            <td>
+              {{ payment_static.stripe_percentage_charge }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

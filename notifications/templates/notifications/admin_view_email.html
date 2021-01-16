@@ -1,0 +1,18 @@
+
+{% load cobalt_tags %}
+{% block content %}
+      <h1>{{ email.subject }}</h1>
+      <h2><center>To:
+        {% if email.member %}
+          {{ email.member.full_name }}
+        {% else %}
+          {{ email.recipient }}
+        {% endif %}
+      </center></h2>
+      {% if email.status != "Sent" %}
+      <h1>STATUS: {{ email.status }}</h1>
+      {% endif %}
+      <center>Date Created: <i>{{ email.created_date|cobalt_nice_datetime }}</i></center>
+<hr>
+{{ email.message|safe}}
+{% endblock %}

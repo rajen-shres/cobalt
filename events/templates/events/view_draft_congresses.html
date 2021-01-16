@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-header card-header-primary">
+    <h2>
+    <div class="d-flex justify-content-between">
+    <div>
+       Draft Congresses
+    </div>
+    <div>
+       <i class="material-icons" style="font-size:50px">book_online</i>
+    </div>
+  </h2>
+  </div>
+  <div class="card-body">
+
+    {% for congress in congress_list %}
+
+    <div class="card text-center col-md-6">
+      <div class="card-body">
+        <a class="btn btn-sm btn-danger" href="{% url "events:view_congress" congress_id=congress.id %}">{{ congress }}
+        by {{ congress.congress_master.org }}
+        </a>
+        <p>{{ congress.date_string }}</p>
+        <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}" class="btn btn-sm btn-success">Edit</a>
+        <a class="btn btn-sm btn-info" href="{% url "events:admin_summary" congress_id=congress.id %}">Manage</a>
+      </div>
+    </div>
+
+    {% empty %}
+    <h3>You have no draft congresses</h3>
+    {% endfor %}
+
+  </div>
+</div>
+
+{% endblock %}

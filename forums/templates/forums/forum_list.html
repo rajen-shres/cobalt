@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block header %}
+<script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <div class="card">
+    <div class="card-header card-header-info">
+      <h1>
+      <div class="d-flex justify-content-between">
+      <div>
+         All Forums
+      </div>
+      <div>
+         <i class="material-icons" style="font-size:50px">chat</i>
+      </div>
+    </h1>
+
+
+      <h4 class="font-italic">If you follow a forum then any new posts will appear on the feed in your dashboard.</h4>
+      <h4 class="font-italic">If you do not follow any forums then all forum posts will be included.</h4>
+    </div>
+    <div class="card-body">
+
+<img src="{% static "assets/img/forum.jpg "%}" alt="forum" width="130px">
+
+      {% for forum in forums %}
+      <div class="row">
+        <div class="col-md-8 align-self-center">
+          <div class="card card-block m-1">
+            <div class="card-body">
+              <h4 class="card-title"><a href="{% url "forums:post_list_single_forum" forum_id=forum.id %}">{{ forum.title }} ({{ forum.count }} post{{ forum.count|pluralize}})</a></h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 my-auto">
+          <!-- <a href="{% url "forums:post_list_single_forum" forum_id=forum.id %}" class="btn btn-sm btn-primary" style="width: 90px;">View</a> -->
+
+          {% if forum.forum_type == "Discussion" %}
+          {% if forum.follows %}
+          <button class="btn btn-sm btn-info cobalt-follow" id="button-{{ forum.id }}" style="width: 90px; border:0px; margin:0px">Un-follow</button>
+          {% else %}
+          <button class="btn btn-sm btn-success cobalt-follow" id="button-{{ forum.id }}" style="width: 90px;">follow</button>
+          {% endif %}
+          {% else %}
+          <button class="btn btn-sm btn-default" disabled style="width: 90px;">Fixed</button>
+          {% endif %}
+          {% if is_admin %}
+          <button class="btn btn-sm btn-warning" onclick="location.href = '{% url "forums:forum_edit" forum_id=forum.id %}';" style="width: 90px; border:0px; margin:0px">Edit</button>
+          <button class="btn btn-sm btn-danger cobalt-delete" id="delete-{{ forum.id }}" style="width: 90px; border:0px; margin:0px">Delete</button>
+          {% endif %}
+
+        </div>
+      </div>
+      {% endfor %}
+      {% if is_admin %}
+      <br>
+      <a href="{% url "forums:forum_create" %}" class="btn btn-warning">Create New Forum</a>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block footer %}
+
+<script>
+  $(document).ready(function() {
+
+    // Toggle following or not following a forum
+    // set this initially by class
+    $(".cobalt-follow").click(function() {
+      forum = this.id.split('-')[1];
+      status = this.innerText;
+      if (status == "FOLLOW") {
+        var url = "/forums/forum/follow/" + forum + "/";
+        $("#button-" + forum).html("Un-Follow");
+        $("#button-" + forum).toggleClass('btn-success btn-info');
+      } else {
+        var url = "/forums/forum/unfollow/" + forum + "/";
+        $("#button-" + forum).html("Follow");
+        $("#button-" + forum).toggleClass('btn-info btn-success');
+
+      }
+      $.ajax({
+        url: url,
+        context: document.body,
+        success: function(txt) {}
+      });
+    });
+
+    // handle delete
+    $(".cobalt-delete").click(function() {
+      forum = this.id.split('-')[1];
+      var url = "forum/delete/" + forum;
+
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.value) {
+
+          $.ajax({
+            url: url,
+            context: document.body,
+            success: function(txt) {
+              Swal.fire(
+                'Deleted!',
+                txt,
+                'success'
+              );
+              location.reload();
+            }
+          });
+
+
+        }
+      })
+
+    });
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,60 @@
+  // Code for org search dialog
+
+      const org_search_results = $('#org-search-results')
+      const org_search_panel = $('#cobalt-search')
+      const org_display = $('#cobalt-org')
+      const org_search = '{% url "organisations:org_search_ajax" %}'
+      const org_detail = '{% url "organisations:org_detail_ajax" %}'
+
+      var group_id;
+
+  jQuery(document).ready(function() {
+
+// fill in single person hide other fields
+    function showSingleOrg(id) {
+      $.getJSON(org_detail + "?org_id=" + id)
+        .done(response => {
+        //  search_panel.hide();
+          org_search_results.html("");
+          // show the member
+          org_display.html(response['data']);
+          // set org_id
+          org_id = id;
+          org_name = response['org'];
+        })
+     }
+
+// dynamic search
+    $(".dynamic-search-org").on('keyup', function(event){
+
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      var org = $("#id_orgname").val();
+
+      org_search_results.html("");
+
+      if (org.length > 3) {
+        $.getJSON(org_search + "?orgname=" + org)
+            .done(response => {
+              // update screen with results
+                org_search_results.html(response['data']);
+              // watch for user selecting member and change screen again
+                $(".cobalt-orgs").change(function(event){
+                  var id=$(this).val();
+                  showSingleOrg(id);
+                });
+            })
+      }
+    });
+  });
+
+// Clear and hide generic member search popup
+  function clearModalOrg(){
+    $('.dynamic_search-org').each(function(i, obj) {
+      obj.val("");
+    })
+    org_search_results.html("");
+    org_display.html("");
+    $('#cobalt_general_org_search').modal('hide');
+  }

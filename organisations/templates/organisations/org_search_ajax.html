@@ -1,0 +1,19 @@
+{{ msg }}
+{% if orgs %}
+
+<h5>Found:</h5>
+
+{% for org in orgs %}
+
+<div class="form-check form-check-radio">
+  <label class="form-check-label">
+    <input class="form-check-input cobalt-orgs" type="radio" name="transfer_to" id="id_transfer_to_{{ org.pk }}" value="{{ org.pk }}">
+    <b>{{ org.name }}</b>
+    <br>
+    <span class="check"></span>
+
+  </label>
+</div>
+
+{% endfor %}
+{% endif %}

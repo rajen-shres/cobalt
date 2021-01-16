@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+<style>
+.accordion {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 12px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+}
+
+.accordion:hover {
+  background-color: #ccc;
+}
+
+.accordion:after {
+  content: '\002B';
+  color: #777;
+  font-weight: bold;
+  float: right;
+  margin-left: 5px;
+}
+
+.active:after {
+  content: "\2212";
+}
+
+.panel {
+  padding: 0 18px;
+  background-color: white;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{% url "support:contact" %}" class="btn btn-info">Contact Support&nbsp;<i class="material-icons">email</i></a>
+
+<div class="card">
+  <div class="card-header card-header-danger">
+    <h1>
+      <div class="d-flex justify-content-between">
+        <div>
+          Frequently Asked Questions - Administrators
+        </div>
+        <div>
+          <i class="material-icons" style="font-size:60px">support_agent</i>
+        </div>
+    </h1>
+  </div>
+  <div class="card-body">
+    <div class="container justify-content-center">
+
+      <a href="{% url "support:support" %}">User FAQ</a><br>
+      <img src="{% static "assets/img/faq2.jpg" %}" alt="FAQ" width="200px" class="mx-auto">
+
+
+
+
+
+      <!-- Forum moderator -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-success">
+          <h2>Forum moderator</h2>
+        </div>
+        <div class="card-body">
+
+          <button class="accordion">How do I moderate a forum post?</button>
+          <div class="panel"><br>
+
+            <p>A user with moderator rights for a forum will see red Moderate and Block User buttons against posts and all subsequent comments (except those made by themselves).
+            </p>
+            <p>Click Moderate. This allows you to edit the post.
+            </p>
+            <p>Once a post has been moderated the footer of the post will indicate who made the edit, and when.
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I block a user from a forum?</button>
+          <div class="panel"><br>
+
+            <p>A user with these rights will see red Moderate and Block User buttons against posts and all subsequent comments (except those made by themselves).
+            </p>
+            <p>Click Block User. This will prevent that user from posting in this forum (they can still post in other forums and they can still browse posts).
+            </p>
+          </div>
+          <button class="accordion">How do I unblock a user from a forum?</button>
+          <div class="panel"><br>
+
+            <p>A forum administrator needs to do this.
+            </p>
+            <p>
+            </p>
+
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+      <!-- Forum administrator -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-warning">
+          <h2>Forum administrator</h2>
+        </div>
+        <div class="card-body">
+
+
+          <button class="accordion">How do I create a new forum?</button>
+          <div class="panel"><br>
+
+            <p>Open the Forums main menu item. A user with these rights will see a “Create New Forum” button at the bottom and “Edit” and “Delete” buttons against each forum.
+            </p>
+            <p>Click Create New Forum.
+            </p>
+            <p>Complete the details for the new forum – short title, description, type, foreground and background colour.
+            </p>
+            <p>Click Save to create the new forum and make it available for users.
+            </p>
+          </div>
+          <button class="accordion">How do I edit a forum?</button>
+          <div class="panel"><br>
+
+            <p>Open the Forums main menu item. A user with these rights will see a “Create New Forum” button at the bottom and “Edit” and “Delete” buttons against each forum.
+            </p>
+            <p>Click Edit for the forum you wish to edit.
+            </p>
+            <p>Amend the details for the forum – short title, description, type, foreground and background colour.
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I delete a forum?</button>
+          <div class="panel"><br>
+
+            <p>Open the Forums main menu item. A user with these rights will see a “Create New Forum” button at the bottom and “Edit” and “Delete” buttons against each forum.
+            </p>
+            <p>Click Delete for the forum you wish to delete.
+            </p>
+            <p>Click Confirm to delete (note this action cannot be reversed and will remove all posts, replies and comments within the forum).
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I unblock a user from a forum?</button>
+          <div class="panel"><br>
+
+            <p>Open the Forums main menu item. A user with these rights will see a “Create New Forum” button at the bottom and “Edit” and “Delete” buttons against each forum.
+            </p>
+            <p>Click Edit for the forum in which you wish to unblock a user.
+            </p>
+            <p>Browse down below the Edit Forum window to the list of blocked users.
+            </p>
+            <p>Click Unblock against the relevant user.
+            </p>
+            <p>
+            </p>
+
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+      <!-- ABF global payments administrator -->
+
+      <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-info">
+          <h2>ABF global payments administrator</h2>
+        </div>
+        <div class="card-body">
+
+
+          <button class="accordion">How can I view player information?</button>
+          <div class="panel"><br>
+
+            <p>Click the Admin main menu item and select ABF payments (found under the Global Payments heading).
+            </p>
+            <p>To find an individual member statement, click “Lookup Member Statement”, search for the member.
+            </p>
+            <p>To see a list of all members with non-zero Bridge Credit balances, click “Members with balances”. From this list you can directly open a member statement.
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How can I view organisation information?</button>
+          <div class="panel"><br>
+
+            <p>Click the Admin main menu item and select ABF payments (found under the Global Payments heading).
+            </p>
+            <p>To find an individual organisation statement, click “Lookup Org Statement”, search for the organisation.
+            </p>
+            <p>To see a list of all organisations with non-zero Bridge Credit balances, click “Orgs with balances”. From this list you can directly open an organisation statement.
+            </p>
+          </div>
+          <button class="accordion">How do I make a manual adjustment to an account?</button>
+          <div class="panel"><br>
+
+            <p>Click the Admin main menu item and select ABF payments (found under the Global Payments heading).
+            </p>
+            <p>Click “Manual adjustment” in the Members or Organisations section of the page depending on where you want to make an adjustment.
+            </p>
+            <p>Search for the member or organisation.
+            </p>
+            <p>Input the amount (a positive number increases the account balance) and a description.
+            </p>
+            <p>The adjustment and description will be included in the relevant statement (your name will appear as the Counterparty).
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I make settlements to organisations?</button>
+          <div class="panel"><br>
+
+            <p>Click the Admin main menu item and select ABF payments (found under the Global Payments heading).
+            </p>
+            <p>Click Settlement under the Organisations section.
+            </p>
+            <p>It is expected that, in almost all cases, the entire balance for an Organisation will be settled. If there are special situations where this is not the case a manual adjustment should be processed
+            </p>
+            <p>At this stage, the process to actually make the payments through the bank system is manual.
+            </p>
+            <p>The expected procedure is therefore:
+            </p>
+            </ul>
+
+            <li> View the list of Organisation balances
+
+            <li> Establish settlements to be made
+
+            <li> For an account not being settled in full – either manually adjust the balance and include in this listing, or exclude from this listing and process a separate transaction outside the system later
+
+            <li> Export this listing to csv
+
+            <li> Use this listing to create a file for processing through the bank
+
+            <li> Process the actual payments
+
+            <li> If any of the transactions fail (e.g. the Organisation has provided invalid bank account details) return to this screen and adjust the listing to match what has actually gone through the bank
+
+            <li> Click Confirm Payment to put the transactions into the Organisation accounts.
+
+              </ul>
+
+              <p>This will provide a confirmation of the transactions generated.
+              </p>
+              <p>The transaction can be seen in the relevant Organisation account described as “Settlement from the ABF”
+              </p>
+              <p>
+              </p>
+          </div>
+          <button class="accordion">How do I view all manual adjustments?</button>
+          <div class="panel"><br>
+
+            <p>Click the Admin main menu item and select ABF payments (found under the Global Payments heading).
+            </p>
+            <p>Under the Other heading, click View Manual Adjustments
+            </p>
+            <p>Select a Start date and an End date, then click Show to reveal the transactions in that period. The data is split into two sections – Members and Organisations.
+            </p>
+            <p>Click CSV download to download this data if required.
+            </p>
+            <p>To view a different date range, change the date settings and then click Show again.
+            </p>
+            <p>
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I view Stripe transactions?</button>
+          <div class="panel"><br>
+
+            <p>Click the Admin main menu item and select ABF payments (found under the Global Payments heading).
+            </p>
+            <p>At the bottom under the Stripe heading, click View Stripe transactions
+            </p>
+            <p>Select a Start date and an End date, then click Show to reveal the transactions in that period. Due amount represents the dollar value that will be transferred to the ABF from Stripe (i.e. after transaction fees).
+            </p>
+            <p>Click CSV download to download this data if required.
+            </p>
+            <p>To view a different date range, change the date settings and then click Show again.
+            </p>
+            <p>
+            </p>
+          </div>
+          <button class="accordion">How do I view the Stripe status?</button>
+          <div class="panel"><br>
+
+            <p>
+            </p>
+            <p>Click the Admin main menu item and select Stripe Transactions (found under the Global Payments heading).
+            </p>
+            <p>This section opens up the Stripe Status report.
+            </p>
+            <p>
+            </p>
+            <p>There are three sections that are reported on. The Manual and Auto checkout pending sections highlight items that need investigating. Manual checkout intent is merely a list of places where a user has gone to a payment page but has
+              cancelled
+              before completing the transaction. It might be useful in a scenario where a user believes they have paid for an entry but in fact have not done so.
+            </p>
+            <p>
+            </p>
+            <p>View Stripe Transactions button allows you to see all the Stripe transactions – here [Link to 14.6].
+            </p>
+            <p>
+            </p>
+            <p>
+            </p>
+
+          </div>
+        </div>
+      </div>
+      <br>
+
+
+
+
+      <!-- END -->
+
+
+
+
+
+{% endblock %}
+
+{% block footer %}
+<script>
+
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.nextElementSibling;
+    if (panel.style.maxHeight) {
+      panel.style.maxHeight = null;
+    } else {
+      panel.style.maxHeight = panel.scrollHeight + "px";
+    }
+  });
+}
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,816 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>payments.migrations package &mdash; Cobalt 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Cobalt
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Cobalt Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">cobalt</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Cobalt</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>payments.migrations package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/payments.migrations.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="payments-migrations-package">
+<h1>payments.migrations package<a class="headerlink" href="#payments-migrations-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-payments.migrations.0001_initial">
+<span id="payments-migrations-0001-initial-module"></span><h2>payments.migrations.0001_initial module<a class="headerlink" href="#module-payments.migrations.0001_initial" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0001_initial.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0001_initial.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0001_initial.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0001_initial.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0001_initial.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('accounts', '__first__')]</em><a class="headerlink" href="#payments.migrations.0001_initial.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0001_initial.Migration.initial">
+<code class="sig-name descname">initial</code><em class="property"> = True</em><a class="headerlink" href="#payments.migrations.0001_initial.Migration.initial" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0001_initial.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;CreateModel  name='Balance', fields=[('id', &lt;django.db.models.fields.AutoField&gt;), ('system_number', &lt;django.db.models.fields.IntegerField&gt;), ('balance', &lt;django.db.models.fields.DecimalField&gt;), ('last_top_up_date', &lt;django.db.models.fields.DateTimeField&gt;), ('last_top_up_amount', &lt;django.db.models.fields.DecimalField&gt;)]&gt;, &lt;CreateModel  name='Transaction', fields=[('id', &lt;django.db.models.fields.AutoField&gt;), ('description', &lt;django.db.models.fields.CharField&gt;), ('comment', &lt;django.db.models.fields.CharField&gt;), ('amount', &lt;django.db.models.fields.DecimalField&gt;), ('status', &lt;django.db.models.fields.CharField&gt;), ('created_date', &lt;django.db.models.fields.DateTimeField&gt;), ('last_change_date', &lt;django.db.models.fields.DateTimeField&gt;), ('member', &lt;django.db.models.fields.related.ForeignKey&gt;)]&gt;]</em><a class="headerlink" href="#payments.migrations.0001_initial.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0002_auto_20200323_1606">
+<span id="payments-migrations-0002-auto-20200323-1606-module"></span><h2>payments.migrations.0002_auto_20200323_1606 module<a class="headerlink" href="#module-payments.migrations.0002_auto_20200323_1606" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0002_auto_20200323_1606.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0002_auto_20200323_1606.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0002_auto_20200323_1606.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0002_auto_20200323_1606.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0002_auto_20200323_1606.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0001_initial')]</em><a class="headerlink" href="#payments.migrations.0002_auto_20200323_1606.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0002_auto_20200323_1606.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AlterField  model_name='transaction', name='status', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0002_auto_20200323_1606.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0003_auto_20200324_0631">
+<span id="payments-migrations-0003-auto-20200324-0631-module"></span><h2>payments.migrations.0003_auto_20200324_0631 module<a class="headerlink" href="#module-payments.migrations.0003_auto_20200324_0631" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0003_auto_20200324_0631.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0003_auto_20200324_0631.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0003_auto_20200324_0631.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0003_auto_20200324_0631.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0003_auto_20200324_0631.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0002_auto_20200323_1606')]</em><a class="headerlink" href="#payments.migrations.0003_auto_20200324_0631.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0003_auto_20200324_0631.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;RemoveField  model_name='transaction', name='comment'&gt;, &lt;AddField  model_name='transaction', name='stripe_brand', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AddField  model_name='transaction', name='stripe_country', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AddField  model_name='transaction', name='stripe_currency', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AddField  model_name='transaction', name='stripe_exp_month', field=&lt;django.db.models.fields.IntegerField&gt;&gt;, &lt;AddField  model_name='transaction', name='stripe_exp_year', field=&lt;django.db.models.fields.IntegerField&gt;&gt;, &lt;AddField  model_name='transaction', name='stripe_last4', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AddField  model_name='transaction', name='stripe_method', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AddField  model_name='transaction', name='stripe_receipt_url', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AddField  model_name='transaction', name='stripe_reference', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='transaction', name='member', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AlterField  model_name='transaction', name='status', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0003_auto_20200324_0631.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0004_auto_20200325_1209">
+<span id="payments-migrations-0004-auto-20200325-1209-module"></span><h2>payments.migrations.0004_auto_20200325_1209 module<a class="headerlink" href="#module-payments.migrations.0004_auto_20200325_1209" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0004_auto_20200325_1209.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0004_auto_20200325_1209.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0004_auto_20200325_1209.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0004_auto_20200325_1209.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0004_auto_20200325_1209.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0003_auto_20200324_0631')]</em><a class="headerlink" href="#payments.migrations.0004_auto_20200325_1209.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0004_auto_20200325_1209.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AddField  model_name='transaction', name='route_code', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AddField  model_name='transaction', name='route_payload', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0004_auto_20200325_1209.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0005_auto_20200325_1359">
+<span id="payments-migrations-0005-auto-20200325-1359-module"></span><h2>payments.migrations.0005_auto_20200325_1359 module<a class="headerlink" href="#module-payments.migrations.0005_auto_20200325_1359" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0005_auto_20200325_1359.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0005_auto_20200325_1359.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0005_auto_20200325_1359.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0005_auto_20200325_1359.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0005_auto_20200325_1359.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('accounts', '__first__'), ('payments', '0004_auto_20200325_1209')]</em><a class="headerlink" href="#payments.migrations.0005_auto_20200325_1359.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0005_auto_20200325_1359.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;CreateModel  name='Account', fields=[('id', &lt;django.db.models.fields.AutoField&gt;), ('created_date', &lt;django.db.models.fields.DateTimeField&gt;), ('amount', &lt;django.db.models.fields.DecimalField&gt;), ('balance', &lt;django.db.models.fields.DecimalField&gt;), ('description', &lt;django.db.models.fields.CharField&gt;), ('counterparty', &lt;django.db.models.fields.CharField&gt;), ('member', &lt;django.db.models.fields.related.ForeignKey&gt;)]&gt;, &lt;AlterField  model_name='transaction', name='amount', field=&lt;django.db.models.fields.DecimalField&gt;&gt;, &lt;AlterField  model_name='transaction', name='created_date', field=&lt;django.db.models.fields.DateTimeField&gt;&gt;, &lt;AlterField  model_name='transaction', name='description', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='transaction', name='last_change_date', field=&lt;django.db.models.fields.DateTimeField&gt;&gt;, &lt;AlterField  model_name='transaction', name='status', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AddField  model_name='account', name='transaction', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0005_auto_20200325_1359.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0006_auto_20200326_1132">
+<span id="payments-migrations-0006-auto-20200326-1132-module"></span><h2>payments.migrations.0006_auto_20200326_1132 module<a class="headerlink" href="#module-payments.migrations.0006_auto_20200326_1132" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0006_auto_20200326_1132.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0006_auto_20200326_1132.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0006_auto_20200326_1132.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0006_auto_20200326_1132.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0006_auto_20200326_1132.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('accounts', '__first__'), ('payments', '0005_auto_20200325_1359')]</em><a class="headerlink" href="#payments.migrations.0006_auto_20200326_1132.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0006_auto_20200326_1132.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;RemoveField  model_name='balance', name='system_number'&gt;, &lt;AddField  model_name='balance', name='member', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0006_auto_20200326_1132.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0007_account_reference_no">
+<span id="payments-migrations-0007-account-reference-no-module"></span><h2>payments.migrations.0007_account_reference_no module<a class="headerlink" href="#module-payments.migrations.0007_account_reference_no" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0007_account_reference_no.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0007_account_reference_no.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0007_account_reference_no.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0007_account_reference_no.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0007_account_reference_no.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0006_auto_20200326_1132')]</em><a class="headerlink" href="#payments.migrations.0007_account_reference_no.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0007_account_reference_no.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AddField  model_name='account', name='reference_no', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0007_account_reference_no.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0008_auto_20200416_1203">
+<span id="payments-migrations-0008-auto-20200416-1203-module"></span><h2>payments.migrations.0008_auto_20200416_1203 module<a class="headerlink" href="#module-payments.migrations.0008_auto_20200416_1203" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0008_auto_20200416_1203.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0008_auto_20200416_1203.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0008_auto_20200416_1203.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0008_auto_20200416_1203.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0008_auto_20200416_1203.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0007_account_reference_no')]</em><a class="headerlink" href="#payments.migrations.0008_auto_20200416_1203.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0008_auto_20200416_1203.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AlterField  model_name='account', name='reference_no', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0008_auto_20200416_1203.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0009_auto_20200417_2202">
+<span id="payments-migrations-0009-auto-20200417-2202-module"></span><h2>payments.migrations.0009_auto_20200417_2202 module<a class="headerlink" href="#module-payments.migrations.0009_auto_20200417_2202" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0009_auto_20200417_2202.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0009_auto_20200417_2202.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0009_auto_20200417_2202.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0009_auto_20200417_2202.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0009_auto_20200417_2202.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('accounts', '__first__'), ('payments', '0008_auto_20200416_1203')]</em><a class="headerlink" href="#payments.migrations.0009_auto_20200417_2202.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0009_auto_20200417_2202.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;CreateModel  name='AutoTopUp', fields=[('id', &lt;django.db.models.fields.AutoField&gt;), ('auto_amount', &lt;django.db.models.fields.IntegerField&gt;), ('stripe_customer_id', &lt;django.db.models.fields.CharField&gt;), ('member', &lt;django.db.models.fields.related.ForeignKey&gt;)]&gt;, &lt;AlterField  model_name='account', name='reference_no', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0009_auto_20200417_2202.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0010_auto_20200417_2205">
+<span id="payments-migrations-0010-auto-20200417-2205-module"></span><h2>payments.migrations.0010_auto_20200417_2205 module<a class="headerlink" href="#module-payments.migrations.0010_auto_20200417_2205" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0010_auto_20200417_2205.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0010_auto_20200417_2205.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0010_auto_20200417_2205.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0010_auto_20200417_2205.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0010_auto_20200417_2205.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0009_auto_20200417_2202')]</em><a class="headerlink" href="#payments.migrations.0010_auto_20200417_2205.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0010_auto_20200417_2205.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AlterField  model_name='autotopup', name='auto_amount', field=&lt;django.db.models.fields.IntegerField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0010_auto_20200417_2205.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0011_auto_20200425_1519">
+<span id="payments-migrations-0011-auto-20200425-1519-module"></span><h2>payments.migrations.0011_auto_20200425_1519 module<a class="headerlink" href="#module-payments.migrations.0011_auto_20200425_1519" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0011_auto_20200425_1519.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0011_auto_20200425_1519.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0011_auto_20200425_1519.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0011_auto_20200425_1519.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0011_auto_20200425_1519.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0010_auto_20200417_2205')]</em><a class="headerlink" href="#payments.migrations.0011_auto_20200425_1519.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0011_auto_20200425_1519.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AddField  model_name='account', name='type', field=&lt;django.db.models.fields.CharField&gt;, preserve_default=False&gt;, &lt;AlterField  model_name='account', name='balance', field=&lt;django.db.models.fields.DecimalField&gt;&gt;, &lt;AlterField  model_name='account', name='description', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0011_auto_20200425_1519.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0012_auto_20200426_0855">
+<span id="payments-migrations-0012-auto-20200426-0855-module"></span><h2>payments.migrations.0012_auto_20200426_0855 module<a class="headerlink" href="#module-payments.migrations.0012_auto_20200426_0855" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0012_auto_20200426_0855.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0012_auto_20200426_0855.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0012_auto_20200426_0855.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0012_auto_20200426_0855.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0012_auto_20200426_0855.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('accounts', '__first__'), ('payments', '0011_auto_20200425_1519')]</em><a class="headerlink" href="#payments.migrations.0012_auto_20200426_0855.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0012_auto_20200426_0855.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;RenameModel  old_name='AutoTopUp', new_name='AutoTopUpConfig'&gt;]</em><a class="headerlink" href="#payments.migrations.0012_auto_20200426_0855.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0013_auto_20200426_1049">
+<span id="payments-migrations-0013-auto-20200426-1049-module"></span><h2>payments.migrations.0013_auto_20200426_1049 module<a class="headerlink" href="#module-payments.migrations.0013_auto_20200426_1049" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0013_auto_20200426_1049.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0013_auto_20200426_1049.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0013_auto_20200426_1049.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0013_auto_20200426_1049.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0013_auto_20200426_1049.Migration.atomic">
+<code class="sig-name descname">atomic</code><em class="property"> = False</em><a class="headerlink" href="#payments.migrations.0013_auto_20200426_1049.Migration.atomic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0013_auto_20200426_1049.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('accounts', '__first__'), ('payments', '0012_auto_20200426_0855')]</em><a class="headerlink" href="#payments.migrations.0013_auto_20200426_1049.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0013_auto_20200426_1049.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;RenameModel  old_name='Transaction', new_name='StripeTransaction'&gt;, &lt;RenameField  model_name='account', old_name='transaction', new_name='stripe_transaction'&gt;]</em><a class="headerlink" href="#payments.migrations.0013_auto_20200426_1049.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0014_auto_20200426_1104">
+<span id="payments-migrations-0014-auto-20200426-1104-module"></span><h2>payments.migrations.0014_auto_20200426_1104 module<a class="headerlink" href="#module-payments.migrations.0014_auto_20200426_1104" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0014_auto_20200426_1104.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0014_auto_20200426_1104.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0014_auto_20200426_1104.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0014_auto_20200426_1104.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0014_auto_20200426_1104.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('accounts', '__first__'), ('payments', '0013_auto_20200426_1049')]</em><a class="headerlink" href="#payments.migrations.0014_auto_20200426_1104.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0014_auto_20200426_1104.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;RenameModel  old_name='Account', new_name='InternalTransaction'&gt;]</em><a class="headerlink" href="#payments.migrations.0014_auto_20200426_1104.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0015_auto_20200426_1426">
+<span id="payments-migrations-0015-auto-20200426-1426-module"></span><h2>payments.migrations.0015_auto_20200426_1426 module<a class="headerlink" href="#module-payments.migrations.0015_auto_20200426_1426" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0015_auto_20200426_1426.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0015_auto_20200426_1426.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0015_auto_20200426_1426.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0015_auto_20200426_1426.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0015_auto_20200426_1426.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0014_auto_20200426_1104')]</em><a class="headerlink" href="#payments.migrations.0015_auto_20200426_1426.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0015_auto_20200426_1426.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AlterField  model_name='autotopupconfig', name='member', field=&lt;django.db.models.fields.related.OneToOneField&gt;, preserve_default=False&gt;, &lt;AlterField  model_name='balance', name='member', field=&lt;django.db.models.fields.related.OneToOneField&gt;, preserve_default=False&gt;]</em><a class="headerlink" href="#payments.migrations.0015_auto_20200426_1426.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0016_auto_20200429_1050">
+<span id="payments-migrations-0016-auto-20200429-1050-module"></span><h2>payments.migrations.0016_auto_20200429_1050 module<a class="headerlink" href="#module-payments.migrations.0016_auto_20200429_1050" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0016_auto_20200429_1050.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0016_auto_20200429_1050.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0016_auto_20200429_1050.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0016_auto_20200429_1050.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0016_auto_20200429_1050.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('accounts', '__first__'), ('payments', '0015_auto_20200426_1426')]</em><a class="headerlink" href="#payments.migrations.0016_auto_20200429_1050.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0016_auto_20200429_1050.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;RenameModel  old_name='InternalTransaction', new_name='MemberTransaction'&gt;]</em><a class="headerlink" href="#payments.migrations.0016_auto_20200429_1050.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0017_auto_20200429_1103">
+<span id="payments-migrations-0017-auto-20200429-1103-module"></span><h2>payments.migrations.0017_auto_20200429_1103 module<a class="headerlink" href="#module-payments.migrations.0017_auto_20200429_1103" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0017_auto_20200429_1103.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0017_auto_20200429_1103.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0017_auto_20200429_1103.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0017_auto_20200429_1103.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0017_auto_20200429_1103.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('organisations', '0004_auto_20200428_1116'), ('accounts', '__first__'), ('payments', '0016_auto_20200429_1050')]</em><a class="headerlink" href="#payments.migrations.0017_auto_20200429_1103.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0017_auto_20200429_1103.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AddField  model_name='membertransaction', name='organisation', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AddField  model_name='membertransaction', name='other_member', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AlterField  model_name='membertransaction', name='member', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0017_auto_20200429_1103.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0018_organisationtransaction">
+<span id="payments-migrations-0018-organisationtransaction-module"></span><h2>payments.migrations.0018_organisationtransaction module<a class="headerlink" href="#module-payments.migrations.0018_organisationtransaction" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0018_organisationtransaction.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0018_organisationtransaction.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0018_organisationtransaction.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0018_organisationtransaction.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0018_organisationtransaction.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('organisations', '0004_auto_20200428_1116'), ('accounts', '__first__'), ('payments', '0017_auto_20200429_1103')]</em><a class="headerlink" href="#payments.migrations.0018_organisationtransaction.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0018_organisationtransaction.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;CreateModel  name='OrganisationTransaction', fields=[('id', &lt;django.db.models.fields.AutoField&gt;), ('created_date', &lt;django.db.models.fields.DateTimeField&gt;), ('amount', &lt;django.db.models.fields.DecimalField&gt;), ('balance', &lt;django.db.models.fields.DecimalField&gt;), ('description', &lt;django.db.models.fields.CharField&gt;), ('counterparty', &lt;django.db.models.fields.CharField&gt;), ('reference_no', &lt;django.db.models.fields.CharField&gt;), ('type', &lt;django.db.models.fields.CharField&gt;), ('member', &lt;django.db.models.fields.related.ForeignKey&gt;), ('organisation', &lt;django.db.models.fields.related.ForeignKey&gt;), ('other_organisation', &lt;django.db.models.fields.related.ForeignKey&gt;), ('stripe_transaction', &lt;django.db.models.fields.related.ForeignKey&gt;)], options={'abstract': False}&gt;]</em><a class="headerlink" href="#payments.migrations.0018_organisationtransaction.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0019_auto_20200429_1346">
+<span id="payments-migrations-0019-auto-20200429-1346-module"></span><h2>payments.migrations.0019_auto_20200429_1346 module<a class="headerlink" href="#module-payments.migrations.0019_auto_20200429_1346" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0019_auto_20200429_1346.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0019_auto_20200429_1346.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0019_auto_20200429_1346.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0019_auto_20200429_1346.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0019_auto_20200429_1346.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0018_organisationtransaction')]</em><a class="headerlink" href="#payments.migrations.0019_auto_20200429_1346.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0019_auto_20200429_1346.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;RemoveField  model_name='membertransaction', name='counterparty'&gt;, &lt;RemoveField  model_name='organisationtransaction', name='counterparty'&gt;]</em><a class="headerlink" href="#payments.migrations.0019_auto_20200429_1346.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0020_auto_20200429_1414">
+<span id="payments-migrations-0020-auto-20200429-1414-module"></span><h2>payments.migrations.0020_auto_20200429_1414 module<a class="headerlink" href="#module-payments.migrations.0020_auto_20200429_1414" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0020_auto_20200429_1414.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0020_auto_20200429_1414.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0020_auto_20200429_1414.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0020_auto_20200429_1414.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0020_auto_20200429_1414.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0019_auto_20200429_1346')]</em><a class="headerlink" href="#payments.migrations.0020_auto_20200429_1414.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0020_auto_20200429_1414.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AddField  model_name='autotopupconfig', name='stripe_exp_month', field=&lt;django.db.models.fields.IntegerField&gt;&gt;, &lt;AddField  model_name='autotopupconfig', name='stripe_exp_year', field=&lt;django.db.models.fields.IntegerField&gt;&gt;, &lt;AddField  model_name='autotopupconfig', name='stripe_last4', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0020_auto_20200429_1414.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0021_auto_20200429_1451">
+<span id="payments-migrations-0021-auto-20200429-1451-module"></span><h2>payments.migrations.0021_auto_20200429_1451 module<a class="headerlink" href="#module-payments.migrations.0021_auto_20200429_1451" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0021_auto_20200429_1451.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0021_auto_20200429_1451.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0021_auto_20200429_1451.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0021_auto_20200429_1451.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0021_auto_20200429_1451.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0020_auto_20200429_1414')]</em><a class="headerlink" href="#payments.migrations.0021_auto_20200429_1451.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0021_auto_20200429_1451.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;RemoveField  model_name='autotopupconfig', name='stripe_exp_month'&gt;, &lt;RemoveField  model_name='autotopupconfig', name='stripe_exp_year'&gt;, &lt;RemoveField  model_name='autotopupconfig', name='stripe_last4'&gt;, &lt;AddField  model_name='organisationtransaction', name='payment_date', field=&lt;django.db.models.fields.DateTimeField&gt;&gt;, &lt;AddField  model_name='organisationtransaction', name='payment_reference', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AddField  model_name='organisationtransaction', name='payment_status', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0021_auto_20200429_1451.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0022_auto_20200502_1048">
+<span id="payments-migrations-0022-auto-20200502-1048-module"></span><h2>payments.migrations.0022_auto_20200502_1048 module<a class="headerlink" href="#module-payments.migrations.0022_auto_20200502_1048" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0022_auto_20200502_1048.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0022_auto_20200502_1048.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0022_auto_20200502_1048.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0022_auto_20200502_1048.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0022_auto_20200502_1048.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0021_auto_20200429_1451')]</em><a class="headerlink" href="#payments.migrations.0022_auto_20200502_1048.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0022_auto_20200502_1048.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AlterField  model_name='autotopupconfig', name='auto_amount', field=&lt;django.db.models.fields.IntegerField&gt;&gt;, &lt;AlterField  model_name='autotopupconfig', name='stripe_customer_id', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='membertransaction', name='description', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='membertransaction', name='organisation', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AlterField  model_name='membertransaction', name='other_member', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AlterField  model_name='membertransaction', name='stripe_transaction', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AlterField  model_name='organisationtransaction', name='description', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='organisationtransaction', name='member', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AlterField  model_name='organisationtransaction', name='organisation', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AlterField  model_name='organisationtransaction', name='other_organisation', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AlterField  model_name='organisationtransaction', name='payment_date', field=&lt;django.db.models.fields.DateTimeField&gt;&gt;, &lt;AlterField  model_name='organisationtransaction', name='payment_reference', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='organisationtransaction', name='stripe_transaction', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='member', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='route_code', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='route_payload', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='stripe_brand', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='stripe_country', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='stripe_currency', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='stripe_exp_month', field=&lt;django.db.models.fields.IntegerField&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='stripe_exp_year', field=&lt;django.db.models.fields.IntegerField&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='stripe_last4', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='stripe_method', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='stripe_receipt_url', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='stripe_reference', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0022_auto_20200502_1048.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0023_auto_20200505_1307">
+<span id="payments-migrations-0023-auto-20200505-1307-module"></span><h2>payments.migrations.0023_auto_20200505_1307 module<a class="headerlink" href="#module-payments.migrations.0023_auto_20200505_1307" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0023_auto_20200505_1307.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0023_auto_20200505_1307.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0023_auto_20200505_1307.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0023_auto_20200505_1307.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0023_auto_20200505_1307.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0022_auto_20200502_1048')]</em><a class="headerlink" href="#payments.migrations.0023_auto_20200505_1307.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0023_auto_20200505_1307.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;RemoveField  model_name='balance', name='member'&gt;, &lt;DeleteModel  name='Balance'&gt;]</em><a class="headerlink" href="#payments.migrations.0023_auto_20200505_1307.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0024_auto_20200506_1226">
+<span id="payments-migrations-0024-auto-20200506-1226-module"></span><h2>payments.migrations.0024_auto_20200506_1226 module<a class="headerlink" href="#module-payments.migrations.0024_auto_20200506_1226" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0024_auto_20200506_1226.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0024_auto_20200506_1226.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0024_auto_20200506_1226.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0024_auto_20200506_1226.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0024_auto_20200506_1226.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('organisations', '0005_auto_20200502_1048'), ('payments', '0023_auto_20200505_1307')]</em><a class="headerlink" href="#payments.migrations.0024_auto_20200506_1226.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0024_auto_20200506_1226.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AddField  model_name='stripetransaction', name='linked_amount', field=&lt;django.db.models.fields.DecimalField&gt;&gt;, &lt;AddField  model_name='stripetransaction', name='linked_organisation', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AddField  model_name='stripetransaction', name='linked_transaction_type', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='membertransaction', name='reference_no', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='organisationtransaction', name='reference_no', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0024_auto_20200506_1226.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0025_auto_20200506_1448">
+<span id="payments-migrations-0025-auto-20200506-1448-module"></span><h2>payments.migrations.0025_auto_20200506_1448 module<a class="headerlink" href="#module-payments.migrations.0025_auto_20200506_1448" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0025_auto_20200506_1448.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0025_auto_20200506_1448.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0025_auto_20200506_1448.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0025_auto_20200506_1448.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0025_auto_20200506_1448.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0024_auto_20200506_1226')]</em><a class="headerlink" href="#payments.migrations.0025_auto_20200506_1448.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0025_auto_20200506_1448.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AlterField  model_name='autotopupconfig', name='auto_amount', field=&lt;django.db.models.fields.PositiveIntegerField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0025_auto_20200506_1448.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0026_auto_20200506_1524">
+<span id="payments-migrations-0026-auto-20200506-1524-module"></span><h2>payments.migrations.0026_auto_20200506_1524 module<a class="headerlink" href="#module-payments.migrations.0026_auto_20200506_1524" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0026_auto_20200506_1524.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0026_auto_20200506_1524.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0026_auto_20200506_1524.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0026_auto_20200506_1524.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0026_auto_20200506_1524.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0025_auto_20200506_1448')]</em><a class="headerlink" href="#payments.migrations.0026_auto_20200506_1524.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0026_auto_20200506_1524.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;RemoveField  model_name='organisationtransaction', name='payment_date'&gt;, &lt;RemoveField  model_name='organisationtransaction', name='payment_reference'&gt;, &lt;RemoveField  model_name='organisationtransaction', name='payment_status'&gt;]</em><a class="headerlink" href="#payments.migrations.0026_auto_20200506_1524.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0027_auto_20200510_1402">
+<span id="payments-migrations-0027-auto-20200510-1402-module"></span><h2>payments.migrations.0027_auto_20200510_1402 module<a class="headerlink" href="#module-payments.migrations.0027_auto_20200510_1402" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0027_auto_20200510_1402.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0027_auto_20200510_1402.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0027_auto_20200510_1402.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0027_auto_20200510_1402.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0027_auto_20200510_1402.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0026_auto_20200506_1524')]</em><a class="headerlink" href="#payments.migrations.0027_auto_20200510_1402.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0027_auto_20200510_1402.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;RemoveField  model_name='autotopupconfig', name='member'&gt;, &lt;DeleteModel  name='AutoTopUpConfig'&gt;]</em><a class="headerlink" href="#payments.migrations.0027_auto_20200510_1402.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0028_auto_20200521_1346">
+<span id="payments-migrations-0028-auto-20200521-1346-module"></span><h2>payments.migrations.0028_auto_20200521_1346 module<a class="headerlink" href="#module-payments.migrations.0028_auto_20200521_1346" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0028_auto_20200521_1346.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0028_auto_20200521_1346.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0028_auto_20200521_1346.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0028_auto_20200521_1346.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0028_auto_20200521_1346.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0027_auto_20200510_1402')]</em><a class="headerlink" href="#payments.migrations.0028_auto_20200521_1346.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0028_auto_20200521_1346.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AlterField  model_name='membertransaction', name='type', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='organisationtransaction', name='type', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0028_auto_20200521_1346.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0029_auto_20200524_1641">
+<span id="payments-migrations-0029-auto-20200524-1641-module"></span><h2>payments.migrations.0029_auto_20200524_1641 module<a class="headerlink" href="#module-payments.migrations.0029_auto_20200524_1641" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0029_auto_20200524_1641.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0029_auto_20200524_1641.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0029_auto_20200524_1641.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0029_auto_20200524_1641.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0029_auto_20200524_1641.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('accounts', '__first__'), ('payments', '0028_auto_20200521_1346')]</em><a class="headerlink" href="#payments.migrations.0029_auto_20200524_1641.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0029_auto_20200524_1641.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AddField  model_name='stripetransaction', name='linked_member', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='member', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0029_auto_20200524_1641.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0030_auto_20200524_2227">
+<span id="payments-migrations-0030-auto-20200524-2227-module"></span><h2>payments.migrations.0030_auto_20200524_2227 module<a class="headerlink" href="#module-payments.migrations.0030_auto_20200524_2227" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0030_auto_20200524_2227.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0030_auto_20200524_2227.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0030_auto_20200524_2227.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0030_auto_20200524_2227.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0030_auto_20200524_2227.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0029_auto_20200524_1641')]</em><a class="headerlink" href="#payments.migrations.0030_auto_20200524_2227.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0030_auto_20200524_2227.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AlterField  model_name='membertransaction', name='type', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='organisationtransaction', name='type', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0030_auto_20200524_2227.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0031_auto_20200526_1214">
+<span id="payments-migrations-0031-auto-20200526-1214-module"></span><h2>payments.migrations.0031_auto_20200526_1214 module<a class="headerlink" href="#module-payments.migrations.0031_auto_20200526_1214" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0031_auto_20200526_1214.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0031_auto_20200526_1214.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0031_auto_20200526_1214.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0031_auto_20200526_1214.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0031_auto_20200526_1214.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0030_auto_20200524_2227')]</em><a class="headerlink" href="#payments.migrations.0031_auto_20200526_1214.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0031_auto_20200526_1214.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AlterField  model_name='membertransaction', name='type', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='organisationtransaction', name='type', field=&lt;django.db.models.fields.CharField&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='member', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0031_auto_20200526_1214.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations.0032_auto_20200526_1439">
+<span id="payments-migrations-0032-auto-20200526-1439-module"></span><h2>payments.migrations.0032_auto_20200526_1439 module<a class="headerlink" href="#module-payments.migrations.0032_auto_20200526_1439" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="payments.migrations.0032_auto_20200526_1439.Migration">
+<em class="property">class </em><code class="sig-prename descclassname">payments.migrations.0032_auto_20200526_1439.</code><code class="sig-name descname">Migration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">app_label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/payments/migrations/0032_auto_20200526_1439.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#payments.migrations.0032_auto_20200526_1439.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="py attribute">
+<dt id="payments.migrations.0032_auto_20200526_1439.Migration.dependencies">
+<code class="sig-name descname">dependencies</code><em class="property"> = [('payments', '0031_auto_20200526_1214')]</em><a class="headerlink" href="#payments.migrations.0032_auto_20200526_1439.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payments.migrations.0032_auto_20200526_1439.Migration.operations">
+<code class="sig-name descname">operations</code><em class="property"> = [&lt;AlterField  model_name='stripetransaction', name='member', field=&lt;django.db.models.fields.related.ForeignKey&gt;&gt;, &lt;AlterField  model_name='stripetransaction', name='status', field=&lt;django.db.models.fields.CharField&gt;&gt;]</em><a class="headerlink" href="#payments.migrations.0032_auto_20200526_1439.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-payments.migrations">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-payments.migrations" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, ABF
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

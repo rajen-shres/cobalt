@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event.congress.id %}">{{ event.congress.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Club PP System</li>
+  </ol>
+</nav>
+
+<div class="container justify-content-center">
+  <div class="row h-100 d-flex justify-content-center">
+    <div class="card">
+      <div class="card-header card-header-warning">
+        <h2>Congress Admin View</h2>
+        <h3>{{ event.congress }}</h3>
+      </div>
+      <div class="card-body">
+
+        <div class="card">
+          <div class="card-header card-header-info">
+            <h2>{{ event.event_name }} - Club Pre-Paid System</h2>
+            <p>This handles using an existing pre-paid system rather than using Bridge Credits.</p>
+            <a href="{% url "events:admin_event_offsystem_pp_batch" event_id=event.id %}" class="btn btn-round btn-secondary">Batch Update</a>
+          </div>
+
+          <div class="card-body table-responsive">
+
+            {% if players %}
+
+            <table class="table table-hover">
+              <thead class="text-info">
+                <th>Player</th>
+                <th class="text-right">Entry Fee</th>
+                <th class="text-right">Received</th>
+                <th>Payment Method</th>
+                <th class="text-right">Status</th>
+                <th class="text-right">Action</th>
+              </thead>
+              <tbody>
+                {% for event_entry_player in players %}
+
+                  <tr>
+                    <td>
+                      {{ event_entry_player.player|cobalt_user_link }}
+                      {% if event_entry_player.player.id == TBA_PLAYER %}
+                       - by {{ event_entry_player.event_entry.primary_entrant|cobalt_user_link }}
+                      {% endif %}
+                    </td>
+                    <td class="text-right">{{ event_entry_player.entry_fee }}</td>
+                    <td class="text-right">{{ event_entry_player.payment_received }}</td>
+                    <td class="text-left">{{ event_entry_player.get_payment_type_display }}</td>
+                    <td class="text-right">{{ event_entry_player.payment_status }}</td>
+                    {% if event_entry_player.payment_status == "Paid" %}
+                    <td class="text-right"><button class="btn btn-sm btn-danger button_unpay" id="button_unpay_{{ event_entry_player.id }}">Revert to Unpaid</button>
+                    {% else %}
+                    <td class="text-right"><button class="btn btn-sm btn-success button_pay" id="button_pay_{{ event_entry_player.id }}">Mark as Paid</button>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+
+              </tbody>
+            </table>
+
+            {% else %}
+            <h4>There are no entries using the club pre-paid system for this event</h4>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+
+<script>
+  $(document).ready(function(){
+
+    // pay button
+    $(".button_pay").click(function(){
+
+      // which row
+      var id = this.id.split("_")[2]
+
+      var serializedData = {
+        "event_entry_player_id": id,
+      };
+
+      $.ajax({
+        url: '{% url "events:admin_offsystem_pay_pp_ajax" %}',
+        method: "POST",
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        data: serializedData,
+        dataType: "json"
+      }).done(function(response) {
+        location.reload();
+      });
+    });
+
+    // unpay button
+    $(".button_unpay").click(function(){
+
+      // which row
+      var id = this.id.split("_")[2]
+
+      var serializedData = {
+        "event_entry_player_id": id,
+      };
+
+      $.ajax({
+        url: '{% url "events:admin_offsystem_unpay_pp_ajax" %}',
+        method: "POST",
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        data: serializedData,
+        dataType: "json"
+      }).done(function(response) {
+        location.reload();
+      });
+    });
+
+  });
+</script>
+
+{% endblock %}

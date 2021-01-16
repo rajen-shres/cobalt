@@ -1,0 +1,29 @@
+#!/bin/sh
+
+if [ $# -ne 2 ]
+  then
+    echo ""
+    echo ""
+    echo "Usage $0 release_no bugfix_name"
+    echo ""
+    echo "e.g. $0 1.2.1 jira-254"
+    echo "or   $0 2.1.5 cancel_buttons"
+    echo ""
+    echo "You can use any meaningful name for the bugfix branch provided it doesn't clash. It is only a temporary label."
+    echo "We will prepend the release number to the branch so we can automate later steps."
+    echo ""
+    echo ""
+    exit 1
+fi
+
+git pull origin release/$1
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+git checkout release/$1
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+git checkout -b $1=$2

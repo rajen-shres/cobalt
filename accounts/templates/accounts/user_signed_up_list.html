@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load cobalt_tags %}
+{% block content %}
+<div class="jumbotron">
+  <div class="card">
+    <div class="card-header card-header-primary">
+      <h2>User Sign Ups (Total: {{ total_users }})</h2>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>{{ GLOBAL_ORG }} Number</th>
+            <th>Account Creation Date</th>
+          </tr>
+        </thead>
+        <tbody>
+      {% for thing in things %}
+
+        <tr>
+          <td>{{ thing|cobalt_user_link_short }}
+          <td>{{ thing.system_number }}
+          <td>{{ thing.date_joined|cobalt_nice_datetime }}
+        </tr>
+      {% endfor %}
+      </tbody>
+      </table>
+    </div>
+  </div>
+    {% include 'utils/pagination_footer.html' %}
+</div>
+{% endblock %}

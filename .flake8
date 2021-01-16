@@ -1,0 +1,5 @@
+[flake8]
+ignore =
+    E501,  # line too long
+    W503,  # line break before binary operator (conflict with Black)
+    F401,  # imported but not used

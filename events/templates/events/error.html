@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="jumbotron">
+  <div class="d-flex justify-content-between">
+    <div class="card col-lg-9">
+      <div class="card-header card-header-danger">
+        <h2>Error</h2>
+        <h3>{{ title }}</h3>
+      </div>
+      <div class="card-body">
+        <img src="{% static "assets/img/stop.jpg" %}" width="200px">
+        {{ error }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h2>View Posts - {{ msg }}</h2>
+<div class="col-md-12 d-flex">
+  <div>
+    <div class="form-check form-check-radio form-check-inline">
+      <label class="form-check-label">
+        <input class="form-check-input cobalt-checkbox" type="checkbox" name="preview" id="id_preview" value="" checked> Show Preview
+        <span class="form-check-sign">
+          <span class="check"></span>
+        </span>
+      </label>
+    </div>
+    <div class="form-check form-check-radio form-check-inline">
+      <label class="form-check-label">
+        <input class="form-check-input cobalt-checkbox" type="checkbox" name="all_forums" id="id_all_forums" value="" {% if all_forums %} checked {% endif %}> All Forums
+        <span class="form-check-sign">
+          <span class="check"></span>
+        </span>
+      </label>
+    </div>
+    <a href="{% url "forums:forum_list" %}" class="btn btn-danger btn-sm">Browse Forums</a>
+    <a href="{% url "forums:post_search" %}" class="btn btn-primary btn-sm"><i class="material-icons">search</i> Search</a>
+  </div>
+  <div class="ml-auto">
+    <button class="btn btn-success btn-sm" onclick="location.reload();location.href='{% url "forums:post_new" %}'">Create New Post</button>
+  </div>
+</div>
+<br>
+{% for thing in things %}
+<div class="card card-nav-tabs">
+  <div class="card-header card-header-warning">
+    <a href="{% url 'accounts:public_profile' pk=thing.author.pk %}">
+      <img width="50px" class="cobalt-rounded float-left" src="/media/{{ thing.author.pic }}" style="margin-right: 5px;" />
+      <h5 style="color:black">{{ thing.author.full_name }}</h5>
+    </a>
+    <a href="{% url 'forums:post_detail' pk=thing.pk %}">
+      <h3 style="color: white; border: 0px; margin: 0px;">{{ thing.title }}</h3>
+    </a>
+
+  </div>
+  <div class="card-body">
+    {{ thing.text|safe }}
+    <span class="float-right">
+      {{ thing.post_comments }} comment{{ thing.post_comments|pluralize}}
+    </span>
+    <div class="card-title d-flex justify-content-between">
+      <div>
+        {{ thing.created_date }}
+      </div>
+    </div>
+  </div>
+</div>
+<br>
+{% empty %}
+<br>
+<h2>Hmmm... There doesn't appear to be anything here.</h2>
+
+{% endfor %}
+
+{% include 'utils/pagination_footer.html' %}
+
+{% endblock %}
+
+{% block footer %}
+{% include 'forums/view_footer.html' %}
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="jumbotron">
+  <div class="d-flex justify-content-between">
+    <div class="card col-lg-9">
+      <div class="card-header card-header-danger">
+        <h2>Role Based Access Controls</h2>
+        <h3>You do not have permission</h3>
+      </div>
+      <div class="card-body">
+        <img src="{% static "assets/img/stop.jpg" %}" width="200px">
+        Sorry! You do not have the right permissions for this action.
+        <br>
+        <div class="container">
+          <div class="row">
+            <div class="col text-center">
+              <button class="btn btn-info" id="details">Details</button>
+            </div>
+          </div>
+        </div>
+        <div id="detailsinfo" style="display: none;">
+          <div class="card">
+            <div class="card-header card-header-success">
+              <h3>Explanation</h3>
+            </div>
+            <div class="card-body">
+              You are {{ request.user}}.
+              <br>
+              You tried to access <code>{{ request.META.PATH_INFO }}</code>
+              <br>
+              This requires the role: <kbd>{{ role }} Allow</kbd> which you do not have.
+              This could be because you are not in a group that provides this access,
+              or it could be that you are in a group that blocks this access.
+              <br>
+              The following groups refer to this access:
+              <ul>
+                {% for group in groups %}
+                <li><a href="{% url "rbac:group_view" group_id=group.group.id %}">{{ group.group.name_qualifier }}.{{ group.group.name_item }}</a>
+                  {% empty %}
+                  No matches found
+                  {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+{% endblock %}
+
+{% block footer %}
+<script>
+  $(document).ready(
+    function() {
+      $("#details").click(function() {
+        $("#detailsinfo").toggle();
+        if ($("#details").text() == "Details") {
+          $("#details").text("Hide Details");
+        } else {
+          $("#details").text("Details");
+        }
+      });
+    });
+</script>
+{% endblock %}

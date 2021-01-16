@@ -1,0 +1,10 @@
+{% extends 'signedout.html' %}
+
+{% block content %}
+
+<h1>{{ GLOBAL_ORG }} Tech - Static Page</h1>
+You are not logged in.
+<a href=" {% url 'accounts:register' %}">Sign Up</a>
+<a href="{% url 'dashboard:dashboard' %}">Sign In</a>
+
+{% endblock %}

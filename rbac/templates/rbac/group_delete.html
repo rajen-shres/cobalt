@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "rbac:main_admin_screen" %}">Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Delete RBAC Group</li>
+  </ol>
+</nav>
+
+<div class="jumbotron">
+
+  <h1>Role Based Access Controls</h1>
+
+  <div class="card col-lg-9">
+    <div class="card-header card-header-danger">
+      <h3 class="card-title">Delete Group - Are You Sure?</h3>
+    </div>
+    <div class="card-body" style="text-align: center">
+      <div class="container">
+
+        <form method="POST">
+          {% csrf_token %}
+          <h3>{{ group.name }}</h3>
+          <h3>{{ group.description }}</h3>
+
+          <div class="d-flex">
+            <div>
+              <button type="submit" class="btn btn-primary center-text cobalt-save">Delete</button>
+            </div>
+            <div class="ml-auto">
+              <a href="{% url "rbac:main_admin_screen" %}" class="btn btn-info center-text">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

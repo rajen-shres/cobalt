@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+
+<div class="">
+  <div class="card col-md-8">
+    <div class="card-header card-header-primary">
+      <h2>Edit: {{ form.name.value }}</h2>
+    </div>
+
+    <div class="card-body">
+      <form method="POST">
+        {% csrf_token %}
+
+
+        {{ form|crispy }}
+
+        <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
+        <button class="btn btn-info" onclick="window.location.href='/'; return false;">Cancel</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block footer %}
+<script src="{% static "assets/js/cobalt-unsaved.js" %}"></script>
+<script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+<script>
+  function help(title, html) {
+    swal.fire({
+      title: title,
+      html: html,
+      icon: "info"
+    })
+    return false;
+  }
+</script>
+{% endblock %}

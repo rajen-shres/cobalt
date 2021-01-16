@@ -1,0 +1,72 @@
+  // Code for user search dialog
+
+      const search_results = $('#search-results')
+      const search_panel = $('#cobalt-search')
+      const member_display = $('#cobalt-member')
+      const member_search = '{% url "accounts:member_search_ajax" %}'
+      const member_detail = '{% url "accounts:member_details_ajax" %}'
+
+      var member_id = 0;
+      var group_id;
+
+  jQuery(document).ready(function() {
+
+// fill in single person hide other fields
+    function showSingleMember(id) {
+      $.getJSON(member_detail + "?member_id=" + id)
+        .done(response => {
+        //  search_panel.hide();
+          search_results.html("");
+          // show the member
+          member_display.html(response['data']);
+          // set member_id and name
+          member_id = id;
+          member_name = response['member'];
+        })
+     }
+
+// dynamic search
+    $(".dynamic-search").on('keyup', function(event){
+
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+// get which field triggered this and set field names
+      var me = event.target.id;
+      var parts = me.split("_");
+
+      var lastname = $("#" + parts[0] + "_" + parts[1] + "_lastname")
+      var firstname = $("#" + parts[0] + "_" + parts[1] + "_firstname")
+
+      var ln = lastname.val();
+      var fn = firstname.val();
+
+      search_results.html("");
+
+      if (ln.length + fn.length > 3) {
+        $.getJSON(member_search + "?lastname=" + ln + "&firstname=" + fn)
+            .done(response => {
+              // update screen with results
+                search_results.html(response['data']);
+              // watch for user selecting member and change screen again
+                $(".cobalt-names").change(function(event){
+                  var id=$(this).val();
+                  lastname.val('');
+                  firstname.val('');
+                  showSingleMember(id);
+                });
+            })
+      }
+    });
+  });
+
+// Clear and hide generic member search popup
+  function clearModal(){
+    $('.dynamic_search').each(function(i, obj) {
+      obj.val("");
+    })
+    search_results.html("");
+    member_display.html("");
+    $(':focus').blur()
+    $('#cobalt_general_member_search').modal('hide');
+  }

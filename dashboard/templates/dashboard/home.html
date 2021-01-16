@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% load cobalt_tags %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <div class="row">
+
+    <div class="col-lg-4 col-md-6 col-sm-6">
+      <div class="card card-stats">
+        <a href=' {% url "payments:payments" %}'>
+        <div class="card-header card-header-success card-header-icon">
+          <div class="card-icon">
+            <i class="material-icons">account_balance</i>
+          </div>
+          <p class="card-category">{{ BRIDGE_CREDITS }}</p>
+
+            <h3 class="card-title"><span class="text-nowrap" id="balance">{{ payments.balance|intcomma }}</span></h3>
+        </div>
+        <div class="card-footer">
+          <div class="stats">
+            <i class="material-icons">date_range</i>
+            {% if payments.last_top_up %}
+            Last event:
+            {% endif %}
+            {{ payments.last_top_up|cobalt_nice_datetime|default_if_none:"No History" }}
+          </div>
+        </div>
+        </a>
+      </div>
+    </div>
+
+
+    <div class="col-lg-4 col-md-6 col-sm-6">
+      <div class="card card-stats">
+        <a href='{% url "events:view_events" %}'>
+        <div class="card-header card-header-warning card-header-icon">
+          <div class="card-icon">
+            <i class="material-icons">list_alt</i>
+          </div>
+          <p class="card-category">Booked Events</p>
+          <h3 class="card-title">{{ events|length }}</h3>
+        </div>
+        <div class="card-footer">
+          <div class="stats">
+            <i class="material-icons">local_offer</i>
+            Events
+          </div>
+        </div>
+        </a>
+      </div>
+    </div>
+
+
+    <div class="col-lg-4 col-md-6 col-sm-6">
+      <div class="card card-stats">
+          <a href="/masterpoints/view/{{ request.user.system_number }}">
+        <div class="card-header card-header-info card-header-icon">
+          <div class="card-icon">
+            <i class="material-icons">call_made</i>
+          </div>
+          <p class="card-category">Masterpoints</p>
+
+            <h3 class="card-title"><span id="masterpoints" class="text-nowrap text-dark">{{ mp.points|floatformat:2|intcomma }}</span> </h3>
+
+        </div>
+        <div class="card-footer">
+          <div class="stats">
+            <i class="material-icons">stars</i> {{ mp.rank }}
+          </div>
+        </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="row">
+    <div class="col-lg-6 col-md-12">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">Your Recent Results</h4>
+        </div>
+        <div class="card-body table-responsive">
+          Coming Soon!
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 col-md-12">
+      <div class="card">
+        <div class="card-header card-header-warning">
+          <h4 class="card-title">Your Upcoming Events</h4>
+        </div>
+
+
+        <div class="card-body table-responsive">
+          {% if unpaid == True %}
+          You have unpaid entries <a class="btn btn-sm btn-danger" href='{% url "events:view_events" %}'>Pay Now</a><br>
+          {% endif %}
+          {% for event in events %}
+            {{ event.event_entry.event.start_date }}:
+            <a class="card-link" href="{% url "events:view_congress" congress_id=event.event_entry.event.congress.id %}">
+             {{ event.event_entry.event.congress }}</a> -
+            <a href="{% url "events:edit_event_entry" congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
+             {{ event.event_entry.event.event_name }}</a>
+             {% if event.in_cart %}
+              (in cart)
+             {% endif %}
+             {% if event.in_other_cart %}
+              (in {{ event.in_other_cart.full_name }}'s cart)
+             {% endif %}
+              {% if event.payment_status == "Pending Manual" and event.payment_type == "bank-transfer" %}
+                (transfer pending)
+             {% endif %}
+              {% if event.payment_status == "Pending Manual" and event.payment_type == "cheque" %}
+                (cheque pending)
+             {% endif %}
+
+             <br>
+          {% empty %}
+            <span class="card-link">Nothing booked</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forum posts -->
+
+  <div class="row">
+
+    <div class="col-lg-6 col-md-12">
+      <div class="card">
+        <div class="card-header card-header-danger">
+          <h2 class="text-center"><i class="material-icons align-center" style="font-size:27px;">campaign</i>&nbsp;
+            <!-- Show on large screens, not small -->
+            <span class="d-none d-md-block d-lg-block">
+              Announcements
+            </span>
+            <!-- Show on small screens, not large -->
+            <span class="d-md-none d-lg-none d-xl-none d-xs-block d-sm-block">
+              Announce
+            </span>
+          </h2>
+        </div>
+        <div class="card-body">
+          <div class="infinite-container2">
+            {% for post in posts2 %}
+
+            <div class="infinite-item2">
+
+              <div class="container mt-2 bg-light">
+                <div class="row">
+                  <div class="col-12">
+                    <h3 class="p-0 m-0"><a href="{% url 'forums:post_detail' pk=post.pk %}">{{ post.title }}</a></h3>
+                    <div class="container">
+                      <div class="row">
+                        <div class="col-auto p-1 m-0">
+                          <a href="{% url "accounts:public_profile" pk=post.author.id %}">
+                          <img id="cobalt-pic" class="cobalt-rounded" src="/media/{{ post.author.pic }}" />
+                          </a>
+                        </div>
+                        <div class="col-8 p-0 m-0 justify-content-center align-self-center">
+                          <h4 class="p-0 m-0"><a href=" {% url "accounts:public_profile" pk=post.author.id %}" class="text-dark">{{ post.author.full_name }}</a></h4>
+                          <p>Posted in <a href="{% url "forums:post_list_single_forum" forum_id=post.forum.id %}">{{ post.forum.title }}</a></p>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <p class="p-0 m-0 font-italic"><small>{{ post.created_date|naturaltime }}.</small></p>&nbsp;
+                        <p class="p-0 m-0"><small>{{ post.created_date|cobalt_nice_datetime }}</small></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-10">
+                    {{ post.text|truncatewords_html:50|safe }}
+                  </div>
+                </div>
+                <a href="{% url 'forums:post_detail' pk=post.pk %}">Read more</a>
+
+              </div> <!-- end container bg-light -->
+            </div>    <!-- end infinite-item -->
+
+            {% endfor %}
+          </div>
+        </div>
+        {% if posts2.has_next %}
+        <a class="infinite-more-link2" href="/dashboard/scroll2?page={{ posts2.next_page_number }}">More</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="col-lg-6 col-md-12">
+      <div class="card">
+        <div class="card-header card-header-success">
+          <h2 class="text-center"><i class="material-icons align-center" style="font-size:27px;">people_alt</i>&nbsp;
+            <!-- Show on large screens, not small -->
+            <span class="d-none d-md-block d-lg-block">
+              Discussions
+            </span>
+            <!-- Show on small screens, not large -->
+            <span class="d-md-none d-lg-none d-xl-none d-xs-block d-sm-block">
+              Discuss
+            </span>
+          </h2>
+        </div>
+        <div class="card-body">
+          <div class="infinite-container">
+            {% for post in posts %}
+            <div class="infinite-item">
+              <div class="container mt-2 bg-light">
+
+
+                <div class="row">
+                  <div class="col-12">
+                    <h4 class="p-0 m-0"><a href="{% url 'forums:post_detail' pk=post.pk %}">{{ post.title }}</a></h4>
+                    <div class="container">
+                      <div class="row">
+                        <div class="col-auto p-1 m-0">
+                          <a href="{% url "accounts:public_profile" pk=post.author.id %}">
+                          <img id="cobalt-pic" class="cobalt-rounded" src="/media/{{ post.author.pic }}" />
+                          </a>
+                        </div>
+                      </div>
+                      <div class="row d-flex justify-content-between">
+                        <div class="col-lg-7 p-0 m-0 justify-content-center align-self-center">
+                          <h4 class="p-0 m-0"><a href=" {% url "accounts:public_profile" pk=post.author.id %}" class="text-dark">{{ post.author.full_name }}</a></h4>
+                          Posted in <a href="{% url "forums:post_list_single_forum" forum_id=post.forum.id %}">{{ post.forum.title }}</a>
+                          <br>
+                          <p class="p-0 m-0 font-italic" ><small>{{ post.created_date|naturaltime }}.</small></p>
+                          <p class="p-0 m-0" style="line-height: 3px !important;"><small>{{ post.created_date|cobalt_nice_datetime }}</small></p>
+                          <br>
+                        </div>
+                        <div class="col-auto p-0 m-0 text-right justify-content-center align-self-center">
+                          <div class="text-center display-3">
+                            {{ post.comment_count }}
+                          </div>
+                          <div class="text-center" style="font-size:12px">
+                            comment{{ post.comment_count|pluralize}}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+
+
+               </div> <!-- End bg-light -->
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% if posts.has_next %}
+        <a class="infinite-more-link" href="/dashboard/scroll1?page={{ posts.next_page_number }}">More</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+
+
+<script src="{% static "assets/js/waypoints/jquery.waypoints.min.js" %}"></script>
+<script src="{% static "assets/js/waypoints/shortcuts/infinite.min.js" %}"></script>
+<script src="{% static "assets/js/countUp.2.0.7/countUp.umd.js" %}"></script>
+
+<script>
+$(document).ready(function() {
+  // Infinite Scroll
+  var infinite = new Waypoint.Infinite({
+    element: $('.infinite-container')[0],
+    items: '.infinite-item',
+    onBeforePageLoad: function() {
+      $('.loading').show();
+    },
+    onAfterPageLoad: function($items) {
+      $('.loading').hide();
+    }
+  });
+
+  var infinite2 = new Waypoint.Infinite({
+    element: $('.infinite-container2')[0],
+    items: '.infinite-item2',
+    more: '.infinite-more-link2',
+    onBeforePageLoad: function() {
+      $('.loading').show();
+    },
+    onAfterPageLoad: function($items) {
+      $('.loading').hide();
+    }
+  });
+
+// countup settings
+const options = {
+  decimalPlaces: 2,
+  duration: 1.5
+};
+// ABF$
+{% if payments.balance_num %}
+
+  let counter = new countUp.CountUp('balance', {{ payments.balance_num }}, options);
+  if (!counter.error) {
+    counter.start();
+  } else {
+    console.error(counter.error);
+  }
+{% endif %}
+
+// Masterpoints
+
+{% if  mp.points != "Not found" %}
+  let counter3 = new countUp.CountUp('masterpoints', {{ mp.points }}, options);
+  if (!counter3.error) {
+    counter3.start();
+  } else {
+    console.error(counter3.error);
+  }
+{% endif %}
+
+
+});
+</script>
+{% endblock %}

@@ -1,0 +1,288 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Test Data Overview &mdash; Cobalt 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Cobalt
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Cobalt Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">cobalt</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Cobalt</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Test Data Overview</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/test_data_overview.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <a class="reference internal image-reference" href="_images/cobalt.jpg" id="forums-overview"><img alt="Cobalt Chemical Symbol" id="forums-overview" src="_images/cobalt.jpg" style="width: 300px;" /></a>
+<div class="section" id="test-data-overview">
+<h1>Test Data Overview<a class="headerlink" href="#test-data-overview" title="Permalink to this headline">¶</a></h1>
+<p>Cobalt has scripts to generate test data. This page describes how to use them.</p>
+<div class="section" id="general-approach">
+<h2>General Approach<a class="headerlink" href="#general-approach" title="Permalink to this headline">¶</a></h2>
+<p>The script <code class="docutils literal notranslate"><span class="pre">utils/management/commands/add_test_data.py</span></code> loads test data from
+the directory <code class="docutils literal notranslate"><span class="pre">utils/testdata</span></code>. The test data is in CSV format and is safe to
+edit with Excel. The test data is run in alphabetical order so it can
+handle dependencies between the files. Each file
+matches a model within Cobalt.</p>
+<p>The script assumes an empty but initialised database. It requires the default
+Users and Org to be present as well as the RBAC static data. The standard
+configuration scripts take care of this.</p>
+</div>
+<div class="section" id="csv-format">
+<h2>CSV Format<a class="headerlink" href="#csv-format" title="Permalink to this headline">¶</a></h2>
+<p>The files are CSV, so commas cannot be used within text fields or the script
+will fail. If you need to use a comma you can substitute it for a carat(^)
+and the script will insert a comma instead.
+It will ignore blank lines or lines that <strong>start</strong> with #. Using
+a # as a comment anywhere but the first column will not work.</p>
+<p>The first row specifies the application and model. e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">accounts</span><span class="p">,</span><span class="n">User</span>
+</pre></div>
+</div>
+<p>This is case sensitive. An optional third parameter can be provided to
+specify that duplicate entries are allowed (for example, if you want to
+generate multiple identical payments.):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">accounts</span><span class="p">,</span><span class="n">User</span><span class="p">,</span><span class="n">duplicates</span>
+</pre></div>
+</div>
+<p>The second row contains the field definitions. This labels each column with the
+model field that it represents. e.g. “description” or “payment_type”. These
+are also case sensitive. There are some specific column names which are used
+as well. If the name has a dotted format such as d.created_date then the
+script will use this information to understand the field type. The second part
+of the name matches the model field name as described above. The following
+types are used:</p>
+<ul class="simple">
+<li><ol class="loweralpha simple" start="4">
+<li><ul>
+<li><p>date</p></li>
+</ul>
+</li>
+</ol>
+</li>
+<li><ol class="loweralpha simple" start="13">
+<li><ul>
+<li><p>time</p></li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p>t - relative date (deducts the value from today)</p></li>
+</ul>
+<p>Additionally the special identifier <code class="docutils literal notranslate"><span class="pre">id</span></code> is used to denote an instance of
+this model that another file may refer to. See the next section on Foreign Keys
+for more details.</p>
+</div>
+<div class="section" id="foreign-keys">
+<h2>Foreign Keys<a class="headerlink" href="#foreign-keys" title="Permalink to this headline">¶</a></h2>
+<p>Many of the files require links to entries in other files. If a file has an <code class="docutils literal notranslate"><span class="pre">id</span></code>
+in the first data column then this can be used by other files to refer to this
+instance of that model. e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">users</span><span class="o">.</span><span class="n">csv</span>
+
+<span class="nb">id</span><span class="p">,</span> <span class="n">system_number</span><span class="p">,</span> <span class="n">first_name</span><span class="p">,</span> <span class="n">last_name</span>
+<span class="n">jj</span><span class="p">,</span> <span class="mi">109</span><span class="p">,</span>           <span class="n">Janet</span><span class="p">,</span>      <span class="n">Jumper</span>
+<span class="n">kk</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span>           <span class="n">Keith</span><span class="p">,</span>      <span class="n">Kenneth</span>
+
+<span class="n">member_orgs</span><span class="o">.</span><span class="n">csv</span>
+
+<span class="nb">id</span><span class="o">.</span><span class="n">member</span><span class="o">.</span><span class="n">accounts</span><span class="o">.</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="o">.</span><span class="n">org</span><span class="o">.</span><span class="n">organisations</span><span class="o">.</span><span class="n">Organisation</span>
+<span class="n">jj</span><span class="p">,</span>                      <span class="n">fbc</span>
+<span class="n">jj</span><span class="p">,</span>                      <span class="n">rbc</span>
+</pre></div>
+</div>
+<p>If an id is required but you don’t need to refer to this field elsewhere then
+you can use anything as long as it doesn’t clash with something you do want to
+refer to elsewhere (e.g. Dummy).</p>
+<p>The column naming convention is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">id</span><span class="o">.</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="p">[</span><span class="n">application</span><span class="p">]</span><span class="o">.</span><span class="p">[</span><span class="n">model</span><span class="p">]</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>id - fixed identifier</p></li>
+<li><p>field - the name of this field in this model</p></li>
+<li><p>application - the name of the other (foreign) application</p></li>
+<li><p>model - the name of the other (foreign) model</p></li>
+</ul>
+</div>
+<div class="section" id="payments">
+<h2>Payments<a class="headerlink" href="#payments" title="Permalink to this headline">¶</a></h2>
+<p>Cobalt takes care of booking both sides of a transaction (user to org and org
+to user for example). Here that does not happen so you will need to book two
+transactions yourself.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, ABF
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

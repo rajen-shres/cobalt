@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load cobalt_tags %}
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "payments:statement_admin_summary" %}">Payments Admin</a></li>
+    <li class="breadcrumb-item"><a href="{% url "payments:admin_view_stripe_transactions" %}">Stripe Transactions</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Details</li>
+  </ol>
+</nav>
+
+<div class="container">
+  <div class="card">
+    <div class="card-header card-header-primary">
+      <h1>{{ BRIDGE_CREDITS }}</h1>
+      <h2>Stripe Transactions Details</h2>
+    </div>
+
+    <div class="card-body table-responsive">
+
+      <table class="table">
+        <tr><td><b>Member</b></td><td>{{ stripe_item.member }}</td></tr>
+        <tr><td><b>Stripe Reference</b></td><td>{{ stripe_item.stripe_reference }}</td></tr>
+        <tr><td><b>Description</b></td><td>{{ stripe_item.description }}</td></tr>
+        <tr><td><b>Stripe Created Date</b></td><td>{{ stripe_item.stripe_created_date|cobalt_nice_datetime }}</td></tr>
+        <tr><td><b>Our Created Date</b></td><td>{{ stripe_item.created_date|cobalt_nice_datetime }}</td></tr>
+        <tr><td><b>Stripe Available On</b></td><td>{{ stripe_item.stripe_available_on|cobalt_nice_datetime }}</td></tr>
+        <tr><td><b>Member Paid</b></td><td>{{ GLOBAL_CURRENCY_SYMBOL}}{{ stripe_item.amount|floatformat:2 }}</td></tr>
+        <tr><td><b>Stripe Fees</b></td><td>{{ GLOBAL_CURRENCY_SYMBOL}}{{ stripe_item.stripe_fees|floatformat:2 }} <b>( = {{stripe_item.stripe_percentage_charge|floatformat:2 }}% )</b> <br>Our estimate ({{ GLOBAL_CURRENCY_SYMBOL }}{{ stripe_item.our_estimate_fee }} {{ stripe_item.our_estimate_fee_percent }}%)<br><b>Need to confirm exactly how Stripe calculate this with examples</b></td></tr>
+        {% for fees in stripe_item.stripe_fee_details %}
+          <tr><td>&nbsp;&nbsp; - {{ fees.description }} ({{ fees.type }})</td><td>&nbsp;&nbsp; = {{ GLOBAL_CURRENCY_SYMBOL}}{{ fees.amount|floatformat:2 }}</td></tr>
+        {% endfor %}
+        <tr><td><b>Stripe Settlement</b></td><td><b>{{ GLOBAL_CURRENCY_SYMBOL}}{{ stripe_item.stripe_settlement|floatformat:2 }} on {{ stripe_item.stripe_available_on|cobalt_nice_datetime }}</b></td></tr>
+      </table>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

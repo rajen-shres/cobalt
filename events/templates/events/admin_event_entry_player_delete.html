@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event_entry_player.event_entry.event.congress.id %}">{{ event_entry_player.event_entry.event.congress.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event_entry_player.event_entry.event.id %}">{{ event_entry_player.event_entry.event.event_name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url "events:admin_evententry" evententry_id=event_entry_player.event_entry.id %}">Entry: {{ event_entry_player.event_entry.id }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Delete Player: {{ event_entry_player.id }}</li>
+  </ol>
+</nav>
+
+<div class="container justify-content-center">
+  <div class="row h-100 d-flex justify-content-center">
+    <div class="card">
+      <div class="card-header card-header-warning">
+        <h2>Congress Admin View</h2>
+        <h3>{{ event_entry_player.event_entry.event.congress }}</h3>
+      </div>
+      <div class="card-body">
+
+        <div class="card">
+          <div class="card-header card-header-info">
+            <h2>{{ event_entry_player.event_entry.event.event_name }} - Delete Player</h2>
+            {% if event_entry_player.payment_received > 0 %}
+              <h3>This entry has been paid for, automatic refunds are not triggered if you delete this</h3>
+            {% endif %}
+          </div>
+
+          <div class="card-body table-responsive">
+            <table class="table">
+              <tr>
+                <td><b>Player</b></td>
+                <td>{{ event_entry_player.player }}</td>
+              </tr>
+              <tr>
+                <td><b>Payment Type</b></td>
+                <td>{{ event_entry_player.get_payment_type_display }}</td>
+              </tr>
+              <tr>
+                <td><b>Payment Status</b></td>
+                <td>{{ event_entry_player.payment_status }}</td>
+              </tr>
+              <tr>
+                <td><b>Entry Fee Reason</b></td>
+                <td>{{ event_entry_player.reason }}</td>
+              </tr>
+              <tr>
+                <td><b>Entry Fee</b></td>
+                <td>{{ event_entry_player.entry_fee }}</td>
+              </tr>
+              <tr>
+                <td><b>Payment Received</b></td>
+                <td>{{ event_entry_player.payment_received }}</td>
+              </tr>
+            </table>
+
+            <form method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger cobalt-save">Delete</button>
+              <a class="btn btn-info" href="{% url "events:admin_evententry" evententry_id=event_entry_player.event_entry.id %}">Cancel</a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

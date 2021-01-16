@@ -1,0 +1,6 @@
+[MASTER]
+ignore=migrations
+[MESSAGES CONTROL]
+disable=no-else-return,no-member,too-many-arguments,bad-continuation,line-too-long
+[DESIGN]
+max-attributes=30

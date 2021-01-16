@@ -1,0 +1,9 @@
+ [{
+   "Field": "path-pattern",
+   "PathPatternConfig": {
+     "Values": [
+       "/health",
+       "/health/"
+     ]
+   }
+ }]

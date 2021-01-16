@@ -1,0 +1,10 @@
+{% block content %}
+
+{% for role in roles %}
+<option value="{{ role.id }}">
+  {{ role.role }} [{{ role.rule_type }}]
+</option>
+
+{% endfor %}
+
+{% endblock %}

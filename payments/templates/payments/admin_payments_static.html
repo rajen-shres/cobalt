@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load cobalt_tags %}
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "payments:statement_admin_summary" %}">Payments Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Payments Static</li>
+  </ol>
+</nav>
+
+<div class="container">
+  <div class="card">
+    <div class="card-header card-header-primary">
+      <h1>{{ BRIDGE_CREDITS }}</h1>
+      <h2>System Wide Static Data</h2>
+      <h4>Last Changed by: {{ payment_static_old.modified_by.full_name }}</h4>
+      <h4>Last Changed on: {{ payment_static_old.created_date|cobalt_nice_datetime }}</h4>
+      <a href="{% url "payments:admin_payments_static_history" %}" class="btn btn-sm btn-secondary">History</a>
+      <a href="{% url "payments:admin_payments_static_org_override" %}" class="btn btn-sm btn-secondary">Organisation overrides</a>
+    </div>
+
+    <div class="card-body table-responsive">
+      <form method="post">
+        {% csrf_token %}
+        <table class="table">
+          {{ form.as_table }}
+        </table>
+        <p>Note: Stripe also charge for security checks. Although the charges are small, we cannot predict
+        which transactions will require which checks. As a result we can never exactly reconcile the Stripe
+        transaction fees with what we expect. This static data is used to estimate only.</p>
+        <button type="submit" class="btn btn-success cobalt-save">Save</button>
+        <a href="{% url "payments:statement_admin_summary" %}" class="btn btn-info">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

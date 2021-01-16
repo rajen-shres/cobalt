@@ -1,0 +1,15 @@
+
+.elasticbeanstalk/*
+*.log
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3*
+/media
+.DS_Store
+.coverage
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

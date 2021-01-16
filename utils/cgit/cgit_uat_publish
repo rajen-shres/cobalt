@@ -1,0 +1,95 @@
+#!/bin/bash
+
+echo ""
+echo ""
+echo "Ready to Deploy to UAT."
+echo ""
+echo "First we will give this release a new version number."
+echo "Then we will create a release branch and deploy it to UAT."
+echo ""
+
+OLDRELEASE=`grep VER cobalt/version.py | awk '{print $3}' | tr -d "\""`
+
+echo "Last release was $OLDRELEASE"
+echo ""
+echo -n "Release Number: "
+read RELEASE
+echo "$RELEASE"
+
+echo ""
+echo "Switching to develop branch..."
+echo ""
+git pull origin develop
+if [ $? -ne 0 ];then
+   exit 1
+fi
+
+echo ""
+echo "Checking out develop branch..."
+echo ""
+
+git checkout develop
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+echo ""
+echo "Updating release version in Cobalt code..."
+echo ""
+
+echo "COBALT_VERSION = \"$RELEASE\"" > cobalt/version.py
+
+echo ""
+echo "Saving code to develop..."
+echo ""
+
+git add -A
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+# Unless something stupid is put in for a release number this wont fail the pre-commits
+git commit -a -m "Updating release version to $RELEASE"
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+git push origin develop
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+echo ""
+echo "Creating release branch..."
+echo ""
+
+git checkout -b release/$RELEASE
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+echo ""
+echo "Pushing release branch to github..."
+echo ""
+
+git push origin release/$RELEASE
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+echo ""
+echo "Deploying to UAT server..."
+echo ""
+
+UATENV=`eb list | grep cobalt-uat` 
+UATNUM=`eb list | grep cobalt-uat | wc | awk '{print $1}'`
+
+if [ "$UATNUM" = "1" ]
+then
+   echo "Deploying code to $UATENV..."
+   eb deploy $UATENV
+else
+   echo "Cannot deploy to UAT, found more than one UAT environment."
+   echo $UATENV
+fi
+

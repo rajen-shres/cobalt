@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="col-md-12">
+  <div class="card">
+    <div class="card-header card-header-warning">
+      <h4 class="card-title">Batch Jobs</h4>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-hover">
+        <thead class="text-info">
+          <tr>
+            <th>Date</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Duration</th>
+            <th>Name</th>
+            <th>Node</th>
+            <th>Job Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for thing in things %}
+            <tr>
+              <td>{{ thing.run_date|date:"d-m-Y" }}</td>
+              <td>{{ thing.start_time|date:"H:i:s" }} ({{ thing.start_time|timesince }} ago)</td>
+              <td>{{ thing.end_time|date:"H:i:s" }} ({{ thing.end_time|timesince }} ago)</td>
+              <td>{{ thing.end_time|timesince:thing.start_time }}</td>
+              <td>{{ thing.name }}
+                {% if thing.instance %}
+                  [{{ thing.instance }}]
+                {% endif %}
+              </td>
+              <td>{{ thing.node }}</td>
+              <td>{{ thing.job_status }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% include 'utils/pagination_footer.html' %}
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% block headerjs %}
+{% include "events/congress_wizard_include_header.html" %}
+{% endblock %}
+{% block content %}
+
+<div class="steps-form">
+  <div class="steps-row setup-panel">
+    <div class="steps-step">
+      <button class="btn {{ step_list.1 }} btn-circle">1</button>
+      <p>Create</p>
+    </div>
+    <div class="steps-step">
+      <span class="myHover" data-toggle="tooltip" title="Disabled. You need to create a congress first." data-delay="100" data-placement="bottom">
+        <a href="javascript:void(0)" type="button" class="btn {{ step_list.2 }} btn-circle">2</a>
+      </span>
+      <p>General</p>
+    </div>
+    <div class="steps-step">
+      <span class="myHover" data-toggle="tooltip" title="Disabled. You need to create a congress first." data-delay="100" data-placement="bottom">
+        <a href="javascript:void(0)" congress_id=congress.id step=3 %}" title="not yet" type="button" class="btn {{ step_list.3 }} btn-circle">3</a>
+      </span>
+      <p>&nbsp;Venue&nbsp;</p>
+    </div>
+    <div class="steps-step">
+      <span class="myHover" data-toggle="tooltip" title="Disabled. You need to create a congress first." data-delay="100" data-placement="bottom">
+        <a href="javascript:void(0)" congress_id=congress.id step=4 %}" type="button" class="btn {{ step_list.4 }} btn-circle">4</a>
+      </span>
+      <p>Sponsors</p>
+    </div>
+    <div class="steps-step">
+      <span class="myHover" data-toggle="tooltip" title="Disabled. You need to create a congress first." data-delay="100" data-placement="bottom">
+        <a href="javascript:void(0)" congress_id=congress.id step=5 %}" type="button" class="btn {{ step_list.5 }} btn-circle">5</a>
+      </span>
+      <p>Options</p>
+    </div>
+    <div class="steps-step">
+      <span class="myHover" data-toggle="tooltip" title="Disabled. You need to create a congress first." data-delay="100" data-placement="bottom">
+        <a href="javascript:void(0)" congress_id=congress.id step=6 %}" type="button" class="btn {{ step_list.6 }} btn-circle">6</a>
+      </span>
+      <p>Events</p>
+    </div>
+    <div class="steps-step">
+      <span class="myHover" data-toggle="tooltip" title="Disabled. You need to create a congress first." data-delay="100" data-placement="bottom">
+        <a href="javascript:void(0)" congress_id=congress.id step=7 %}" type="button" class="btn {{ step_list.7 }} btn-circle">7</a>
+      </span>
+      <p>Publish</p>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="card">
+      <div class="card-header card-header-primary">
+        <h2>Create New Congress</h2>
+      </div>
+      <div class="card-body">
+
+        <h3><span id="main_title">First, choose an organisation</span></h3>
+        <span id="subtitle">All congresses belong to an organisation, please choose which organisation
+          you want to create this congress for.</span>
+
+        <div class="col-7">
+          <div id="div_id_org" class="form-group">
+            <label class="bmd-label-floating">Organisation</label>
+            {% render_field form.org class+="form-control" %}
+          </div>
+        </div>
+
+        <div class="col-7" id="id_cm_div" style="display:none">
+          <div class="form-group" id="div_congress_master" style="display:none">
+            <label class="bmd-label-floating">Series</label>
+            <select name="congress_master_form" id="id_congress_master_form" class="form-control">
+            </select>
+          </div>
+        </div>
+        <div class="col-7">
+          <div class="form-group" id="div_congress" style="display:none">
+            <label class="bmd-label-floating">Congress to Copy</label>
+            <select name="congress_form" id="id_congress_form" class="form-control">
+            </select>
+          </div>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="congress_master" id="id_congress_master" value="">
+          <input type="hidden" name="congress" id="id_congress" value="">
+          <button id="id_copy" name="copy" class="btn btn-info btn-sm cobalt-save" style="display:none">Copy</button>
+          <button id="id_scratch" name="scratch" class="btn btn-success btn-sm cobalt-save" style="display:none">Or Create From Scratch</button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block footer %}
+<script>
+  $(document).ready(function() {
+
+    $(".myHover").tooltip();
+
+    // org selected - get congress master
+    $("#id_org").change(function() {
+      $("#id_cm_div").show();
+      var id = $("#id_org").val();
+      $.ajax({
+        url: "/events/congress-builder/create/get-congress-master/" + id,
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
+        },
+        type: "get",
+        success: function(response) {
+          $("#id_congress_master_form").html(response.data);
+          $("#div_congress_master").show();
+        }
+      });
+      $("#main_title").text("Next, choose which congress series to create an instance of.")
+      $("#subtitle").text("Select from the list below. If the list is empty then you don\'t have any access.")
+    });
+
+    // congress masters picked - get congress
+    $("#id_congress_master_form").change(function(event) {
+      $("#id_scratch").show();
+      var id = $("#id_congress_master_form").val();
+      $("#id_congress_master").val(id);
+      $.ajax({
+        url: "/events/congress-builder/create/get-congress/" + id,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        type: "get",
+        success: function(response) {
+          $("#id_congress_form").html(response.data);
+          $("#div_congress").show();
+          $("#main_title").text("Finally, select the year to copy.")
+          $("#subtitle").text("If the list is empty then you need to create from scratch.")
+        }
+
+      });
+    });
+
+    // congress picked. Enable submit.
+    $("#id_congress_form").change(function(event) {
+      $("#id_copy").show()
+      $("#id_congress").val($("#id_congress_form").val())
+    });
+
+
+  }); // doc ready
+</script>
+{% endblock %}

@@ -1,0 +1,13 @@
+<div class="card card-profile px-5">
+  <div class="card-body">
+    <img class="cobalt-rounded" src="/media/{{ member.pic }}" />
+    <h3>{{ member.full_name }}</h3>
+    <h4>{{ global_org }} Number: {{ member.system_number }}</h4>
+    {% for club in clubs %}
+    <h4>{{ club.organisation }}</h4>
+    {% endfor %}
+    <div class="row justify-content-center">
+      <button id="id_cobalt_search_ok{{ search_id}}" class="btn btn-sm btn-success cobalt-search-ok{{ search_id }}">Ok</button>
+      <button id="id_cobalt_search_cancel{{ search_id }}" class="btn btn-sm btn-secondary cobalt-search-cancel{{ search_id }}">Cancel</button>
+    </div>
+  </div>
