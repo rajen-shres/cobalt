@@ -41,7 +41,7 @@ Here are the basic steps to get started::
 Get code from github and set up::
 
     $ git init
-    $ git remote add origin https://github.com/mguthrieabf/cobalt.git
+    $ git remote add origin https://github.com/abftech/cobalt.git
     $ git pull origin master
 
 Install requirements::
@@ -81,7 +81,7 @@ Before running manage.py you will need to set some environment variables::
     # Masterpoints server - not essential
     export GLOBAL_MPSERVER=http://localhost:8081
 
-    # Email
+    # Email - you can use the email server settings from AWS if you want
     export EMAIL_HOST=smtp.something.com
     export EMAIL_HOST_USER=userid
     export EMAIL_HOST_PASSWORD=password
@@ -104,7 +104,7 @@ In your development environment you will need to run some management
 commands to set up static data. In the ABF system these get run automatically
 as part of the deployment to AWS. The easiest way to identify what needs to be
 run is to look at the commands that are run in AWS. Look in the root project
-directly at .ebextensions/python.config.
+directly at .platform/hooks/postdeploy/02_django.sh.
 
 Coding Standards
 ================
@@ -134,3 +134,7 @@ If you found this then you presumably know where the documentation lives. If not
 look at https://cobalt-bridge.readthedocs.io.
 
 To update the documentation look in the cobalt sub-directory docs.
+
+This page covers common things required to set up Cobalt, there are extra steps
+for the ABF version to connect to the MasterPoints server and Stripe payment gateway.
+For more information go to https://abftech.atlassian.net/wiki/spaces/COBALT/pages/6225921/Setting+Up+the+Development+Environment 
