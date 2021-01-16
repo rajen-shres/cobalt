@@ -23,6 +23,16 @@ Before you get started make sure you have the following installed:
 Development Environment Set Up
 ==============================
 
+Overview
+--------
+
+There are a few steps to follow:
+
+- Set up development tools
+- Set up database
+- Set environment variables
+- Set up static data
+
 Code
 ----
 
@@ -64,6 +74,10 @@ There are a number of problems with using SQLite3 especially on a Mac. It is
 strongly recommended that even for development, you set up a local Postgresql
 database.
 
+You will need to create a user. Start psql::
+
+    postgres=# create user cobalt with encrypted password 'password';
+
 Environment Variables
 ---------------------
 
@@ -95,6 +109,9 @@ Before running manage.py you will need to set some environment variables::
     export AWS_ACCESS_KEY_ID=SOMETHING
     export AWS_SECRET_ACCESS_KEY=KEY
 
+It is easiest to put this in a batch file, or even run it automatically when
+you start your shell.
+
 .. highlight:: default
 
 Management Commands
@@ -105,6 +122,55 @@ commands to set up static data. In the ABF system these get run automatically
 as part of the deployment to AWS. The easiest way to identify what needs to be
 run is to look at the commands that are run in AWS. Look in the root project
 directly at .platform/hooks/postdeploy/02_django.sh.
+
+You might want to run these manually the first time and then automate it.
+
+Test Data
+---------
+
+There are Django management commands within Cobalt that create test data.
+They run from spreadsheets which you can obtain from the project team.
+
+Combining it all
+----------------
+
+As a developer you will find yourself rebuilding the database quite often.
+You can use a script to automate this for you.
+
+For example::
+
+    #!/bin/sh
+
+    # copy test data from dropbox
+    mkdir /tmp/test-data
+    cp ~/Dropbox/Technology/Testing/test_data/upload/* /tmp/test-data
+
+    # reset database
+    psql -f ~/Dropbox/bin/rebuild_dev_db.sql
+
+    # migrate
+    ./manage.py migrate
+
+    # static data
+    ./manage.py createsu
+    ./manage.py create_abf
+    ./manage.py add_rbac_static_forums
+    ./manage.py add_rbac_static_payments
+    ./manage.py add_rbac_static_orgs
+    ./manage.py add_rbac_static_events
+    ./manage.py add_rbac_static_notifications
+    ./manage.py create_states
+
+    # Test data
+    ./manage.py add_test_data
+    #./manage.py createdummyusers
+    #./manage.py importclubs
+
+rebuild_dev_db.sql::
+
+    \c postgres
+    drop database ebdb;
+    create database ebdb with owner cobalt;
 
 Coding Standards
 ================
@@ -127,6 +193,17 @@ before allowing it to be committed would be too much. However, pylint will find 
 lot of things that Flake8 won't. Run pylint but take its findings as recommendations
 not hard requirements.
 
+Github Branching
+================
+
+The documentation for this is in Confluence.
+
+https://abftech.atlassian.net/wiki/spaces/COBALT/pages/6586408/Git+Process+for+Working+on+Jira+Tasks
+
+There are also some support tools to assist with this.
+
+https://abftech.atlassian.net/wiki/spaces/COBALT/pages/576651366/CGIT
+
 Documentation
 =============
 
@@ -137,4 +214,4 @@ To update the documentation look in the cobalt sub-directory docs.
 
 This page covers common things required to set up Cobalt, there are extra steps
 for the ABF version to connect to the MasterPoints server and Stripe payment gateway.
-For more information go to https://abftech.atlassian.net/wiki/spaces/COBALT/pages/6225921/Setting+Up+the+Development+Environment 
+For more information go to https://abftech.atlassian.net/wiki/spaces/COBALT/pages/6225921/Setting+Up+the+Development+Environment
