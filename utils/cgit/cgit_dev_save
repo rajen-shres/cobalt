@@ -33,11 +33,8 @@ echo "Trying to commit changes to $BRANCH..."
 echo ""
 
 mycmd=(git commit -m "$1")
-
-# run the command
 "${mycmd[@]}"
 
-#git commit -m \"$1\"
 if [ $? -ne 0 ];then
 
   echo ""
@@ -53,7 +50,9 @@ if [ $? -ne 0 ];then
   echo "Trying to commit changes to $BRANCH for a second time..."
   echo ""
 
-  git commit -m '"'$1'"'
+  mycmd=(git commit -m "$1")
+  "${mycmd[@]}"
+  
   if [ $? -ne 0 ];then
     echo "Failed to save changes, do this manually."
     echo ""
