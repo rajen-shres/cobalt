@@ -91,59 +91,6 @@ from django.utils.timezone import make_aware
 
 TZ = pytz.timezone(TIME_ZONE)
 
-
-# @login_required()
-# #################################
-# # test_payment                  #
-# #################################
-# def test_payment(request):
-#     """This is a temporary view that can be used to test making a payment against
-#     a members account. This simulates them entering an event or paying a subscription."""
-#
-#     if request.method == "POST":
-#         form = TestTransaction(request.POST)
-#         if form.is_valid():
-#             description = form.cleaned_data["description"]
-#             amount = form.cleaned_data["amount"]
-#             member = request.user
-#             organisation = form.cleaned_data["organisation"]
-#             url = form.cleaned_data["url"]
-#             payment_type = form.cleaned_data["type"]
-#
-#             return payment_api(
-#                 request=request,
-#                 description=description,
-#                 amount=amount,
-#                 member=member,
-#                 route_code="MAN",
-#                 route_payload=None,
-#                 organisation=organisation,
-#                 log_msg=None,
-#                 payment_type=payment_type,
-#                 url=url,
-#             )
-#     else:
-#         form = TestTransaction()
-#
-#     if request.user.auto_amount:
-#         auto_amount = request.user.auto_amount
-#     else:
-#         auto_amount = None
-#
-#     balance = get_balance(request.user)
-#
-#     return render(
-#         request,
-#         "payments/test_payment.html",
-#         {
-#             "form": form,
-#             "auto_amount": auto_amount,
-#             "balance": balance,
-#             "lowbalance": AUTO_TOP_UP_LOW_LIMIT,
-#         },
-#     )
-
-
 ####################
 # statement_common #
 ####################
@@ -959,7 +906,7 @@ def statement_admin_summary(request):
     # Stripe Summary
     today = timezone.now()
     ref_date = today - datetime.timedelta(days=30)
-    stripe = StripeTransaction.objects.filter(created_date__gte=ref_date).aggregate(
+    stripe = StripeTransaction.objects.filter(created_date__gte=ref_date).exclude(stripe_method=None).aggregate(
         Sum("amount")
     )
 

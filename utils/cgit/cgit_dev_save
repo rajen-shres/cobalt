@@ -1,5 +1,17 @@
 #!/bin/sh
 
+if [ $# -ne 1 ]
+  then
+    echo ""
+    echo ""
+    echo "Usage $0 'Git comment'"
+    echo ""
+    echo "e.g. $0 'added support for mobile devices'"
+    echo ""
+    echo ""
+    exit 1
+fi
+
 BRANCH=`git branch --show-current`
 
 echo ""
@@ -20,7 +32,12 @@ echo ""
 echo "Trying to commit changes to $BRANCH..."
 echo ""
 
-git commit -m "$BRANCH"
+mycmd=(git commit -m "$1")
+
+# run the command
+"${mycmd[@]}"
+
+#git commit -m \"$1\"
 if [ $? -ne 0 ];then
 
   echo ""
@@ -36,7 +53,7 @@ if [ $? -ne 0 ];then
   echo "Trying to commit changes to $BRANCH for a second time..."
   echo ""
 
-  git commit -m "$BRANCH"
+  git commit -m '"'$1'"'
   if [ $? -ne 0 ];then
     echo "Failed to save changes, do this manually."
     echo ""

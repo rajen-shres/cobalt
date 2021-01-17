@@ -5,6 +5,7 @@ from decimal import Decimal
 import uuid
 import pytz
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseNotFound
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -123,7 +124,11 @@ def home(request):
 
     # check if user has any admin rights to show link to create congress
     if request.user.is_authenticated:
-        admin = rbac_user_allowed_for_model(request.user, "events", "org", "edit")[1]
+        (all_access, some_access) = rbac_user_allowed_for_model(request.user, "events", "org", "edit")
+        if all_access or some_access:
+            admin = True
+        else:
+            admin = False
     else:
         admin = False
 
@@ -153,6 +158,8 @@ def view_congress(request, congress_id, fullscreen=False):
         page(HTTPResponse): page with details about the event
     """
 
+    congress = get_object_or_404(Congress, pk=congress_id)
+
     # Which template to use
     if fullscreen:
         master_template = "empty.html"
@@ -160,11 +167,17 @@ def view_congress(request, congress_id, fullscreen=False):
     elif request.user.is_authenticated:
         master_template = "base.html"
         template = "events/congress.html"
+
+        # check if published or user has rights
+        if congress.status != "Published":
+            role = "events.org.%s.edit" % congress.congress_master.org.id
+            if not rbac_user_has_role(request.user, role):
+                return rbac_forbidden(request, role)
     else:
         template = "events/congress_logged_out.html"
         master_template = "empty.html"
-
-    congress = get_object_or_404(Congress, pk=congress_id)
+        if congress.status != "Published":
+            return HttpResponseNotFound("Not published")
 
     if request.method == "GET" and "msg" in request.GET:
         msg = request.GET["msg"]
@@ -184,6 +197,9 @@ def view_congress(request, congress_id, fullscreen=False):
 
     # get all events for this congress so we can build the program table
     events = congress.event_set.all()
+
+    if not events:
+        return HttpResponseNotFound("No Events set up for this congress. Please notify the convener.")
 
     # add start date and sort by start date
     events_list = {}
