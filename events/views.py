@@ -124,7 +124,9 @@ def home(request):
 
     # check if user has any admin rights to show link to create congress
     if request.user.is_authenticated:
-        (all_access, some_access) = rbac_user_allowed_for_model(request.user, "events", "org", "edit")
+        (all_access, some_access) = rbac_user_allowed_for_model(
+            request.user, "events", "org", "edit"
+        )
         if all_access or some_access:
             admin = True
         else:
@@ -199,7 +201,9 @@ def view_congress(request, congress_id, fullscreen=False):
     events = congress.event_set.all()
 
     if not events:
-        return HttpResponseNotFound("No Events set up for this congress. Please notify the convener.")
+        return HttpResponseNotFound(
+            "No Events set up for this congress. Please notify the convener."
+        )
 
     # add start date and sort by start date
     events_list = {}
@@ -568,6 +572,12 @@ def view_event_entries(request, congress_id, event_id):
     entries = EventEntry.objects.filter(event=event).exclude(entry_status="Cancelled")
     categories = Category.objects.filter(event=event).exists()
     date_string = event.print_dates()
+    user_entered = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .filter(player=request.user)
+        .exclude(event_entry__entry_status="Cancelled")
+        .exists()
+    )
 
     return render(
         request,
@@ -578,6 +588,7 @@ def view_event_entries(request, congress_id, event_id):
             "entries": entries,
             "categories": categories,
             "date_string": date_string,
+            "user_entered": user_entered,
         },
     )
 
