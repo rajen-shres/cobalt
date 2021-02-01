@@ -506,10 +506,6 @@ def admin_event_csv_scoring(request, event_id):
     response["Content-Disposition"] = f"attachment; filename={event} - Scoring.csv"
 
     writer = csv.writer(response)
-    writer.writerow(
-        [event.event_name, "Downloaded by %s" % request.user.full_name, today]
-    )
-
     if event.player_format == "Pairs":
         title = "Pair No"
     else:
