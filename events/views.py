@@ -495,8 +495,10 @@ def view_events(request):
 
     # check for pending payments
     pending_payments = (
-        EventEntryPlayer.objects.exclude(payment_status="Paid")
+        EventEntryPlayer.objects
+        .exclude(payment_status="Paid")
         .exclude(payment_status="Free")
+        .exclude(payment_type="off-system-pp")
         .filter(player=request.user)
         .exclude(event_entry__entry_status="Cancelled")
     )
