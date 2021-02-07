@@ -571,6 +571,7 @@ def admin_event_offsystem(request, event_id):
                 "my-system-dollars",
                 "their-system-dollars",
                 "other-system-dollars",
+                "off-system-pp"
             ]
         )
         .exclude(event_entry__entry_status="Cancelled")

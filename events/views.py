@@ -352,6 +352,17 @@ def checkout(request):
             .filter(payment_type="my-system-dollars")
             .distinct()
         )
+        # players that are using club pp to pay are pending payments not unpaid
+        # unpaid would prompt the player to pay for event which is not desired here
+        event_entry_player_club_pp = (
+            EventEntryPlayer.objects.filter(event_entry__in=event_entries)
+            .filter(payment_type="off-system-pp")
+            .distinct()
+
+        )
+        for event_entry in event_entry_player_club_pp:
+            event_entry.payment_status = "Pending Manual"
+            event_entry.save()
 
         unique_id = str(uuid.uuid4())
 
