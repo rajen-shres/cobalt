@@ -768,7 +768,7 @@ def delete_event_entry(request, event_entry_id):
     #    print(datetime.now().date())
     if (
         event_entry.event.congress.automatic_refund_cutoff
-        and event_entry.event.congress.automatic_refund_cutoff <= datetime.now().date()
+        and event_entry.event.congress.automatic_refund_cutoff < datetime.now().date()
     ):
         error = "You need to contact the convener directly to make any changes to this entry."
         title = "This Event is too soon"
