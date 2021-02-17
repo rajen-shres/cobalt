@@ -770,8 +770,8 @@ def delete_event_entry(request, event_entry_id):
         event_entry.event.congress.automatic_refund_cutoff
         and event_entry.event.congress.automatic_refund_cutoff < datetime.now().date()
     ):
-        error = "You need to contact the convener directly to make any changes to this entry."
-        title = "This Event is too soon"
+        error = "You need to contact the tournament organiser directly to make any changes to this entry."
+        title = "It is too near to the start of this event"
         return render(request, "events/error.html", {"title": title, "error": error})
 
     event_entry_players = EventEntryPlayer.objects.filter(event_entry=event_entry)
