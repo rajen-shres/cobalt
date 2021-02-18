@@ -1332,6 +1332,8 @@ def enter_event_form(event, congress, request):
     # categories
     categories = Category.objects.filter(event=event)
 
+    # comment helptext 
+    comment = "Comment/Additional request?"
     return render(
         request,
         "events/enter_event.html",
@@ -1347,6 +1349,7 @@ def enter_event_form(event, congress, request):
             "discount": discount,
             "description": description,
             "min_entries": min_entries,
+            "comment": comment,
         },
     )
 
@@ -1391,6 +1394,7 @@ def enter_event(request, congress_id, event_id):
         event_entry = EventEntry()
         event_entry.event = event
         event_entry.primary_entrant = request.user
+        event_entry.comment = request.POST.get("comment", None)
 
         # see if we got a category
         category = request.POST.get("category", None)
