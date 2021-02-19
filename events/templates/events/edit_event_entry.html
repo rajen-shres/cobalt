@@ -331,6 +331,26 @@
           </div>
 
           </div>
+          <!-- comments-->
+          <form action ="{% url "events:save_comment_for_event_entry" event_entry_id=event_entry.id %}"> 
+           {% csrf_token %}
+          <div class="row">
+            <label class="col-sm-2 col-form-label">Comments</label>
+              <div class="col-sm-8">
+                  <div class="form-group has-success">
+                    <label for="comment" class="bmd-label-floating">{{event_entry.comment}}</label>
+                    <input type="text" class="form-control" id="id_comment" autocomplete="off" name="comment" style="cursor: auto;">
+                    <span class="bmd-help">Edit comment and press Save after done to change.</span>
+                    <span class="form-control-feedback">
+                      <i class="material-icons">done</i>
+                    </span>
+                  </div>
+              </div>
+            <button type="submit" class="btn btn-success" formmethod="post" >Save</button>
+          </div>
+          </form>
+    </div>
+  </div>
         <div class="text-center">
           <a href="{% url "events:delete_event_entry" event_entry_id=event_entry.id %}" class="btn btn-danger cobalt-save">Withdraw From Event</a>
           <a href="{% url "events:events" %}" class="btn btn-success">Exit</a>

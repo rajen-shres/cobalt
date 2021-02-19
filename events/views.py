@@ -743,6 +743,17 @@ def edit_event_entry(request, congress_id, event_id, edit_flag=None, pay_status=
         },
     )
 
+@login_required()
+def edit_comment_event_entry(request, event_entry_id):
+    """ Edit comment on an event entry """
+    if request.method == "POST":
+        event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
+        new_comment = request.POST.get("comment")
+        event_entry.comment = new_comment
+        event_entry.save()
+        return redirect("events:view_events")
+
+
 
 @login_required()
 @transaction.atomic
