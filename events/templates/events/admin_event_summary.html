@@ -111,7 +111,10 @@
                     {% endif %}
 
                     <td class="text-right">{{ event_entry.entry_status }}</td>
-                    <td class="text-right">{{ event_entry.comment }}</td>
+                    <td class="text-center">
+                      <a href="javascript:void(0)" onclick='help("Comment", "{{ event_entry.comment }}");'>
+                        <i class="material-icons">comment</i></a>
+                    </td>
 
                     <td class="text-right">
 

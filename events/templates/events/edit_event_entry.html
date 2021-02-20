@@ -332,23 +332,9 @@
 
           </div>
           <!-- comments-->
-          <form action ="{% url "events:save_comment_for_event_entry" event_entry_id=event_entry.id %}"> 
-           {% csrf_token %}
-          <div class="row">
-            <label class="col-sm-2 col-form-label">Comments</label>
-              <div class="col-sm-8">
-                  <div class="form-group has-success">
-                    <label for="comment" class="bmd-label-floating">{{event_entry.comment}}</label>
-                    <input type="text" class="form-control" id="id_comment" autocomplete="off" name="comment" style="cursor: auto;">
-                    <span class="bmd-help">Edit comment and press Save after done to change.</span>
-                    <span class="form-control-feedback">
-                      <i class="material-icons">done</i>
-                    </span>
-                  </div>
-              </div>
-            <button type="submit" class="btn btn-success" formmethod="post" >Save</button>
-          </div>
-          </form>
+          <label> Click to view or edit comment</lable>
+          <a href="javascript:void(0)" onclick='editComment({{event_entry.id}}, "{{event_entry.comment}}");'>
+          <i class="material-icons" id="id_comment">comment</i></a>
     </div>
   </div>
         <div class="text-center">
@@ -362,6 +348,7 @@
 {% endblock %}
 
 {% block footer %}
+<script src="{% static "assets/js/core/jquery.cookie.min.js" %}"></script>
 <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
 <script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
 <script>
@@ -581,6 +568,51 @@ $("#title").html("Edit");
 $("#icon").show();
 {% endif %}
 });
+// edit comment and show it as well
+function editComment(id, old_comment) {
 
+
+  Swal.fire({
+    title: 'Comments',
+    input: 'text',
+    inputValue: old_comment,
+    inputPlaceholder: 'Comments...',
+    inputAttributes: {
+      'aria-label': 'Comments'
+    },
+    showCancelButton: true
+  }).then(function(result) {
+    if (result.value) {
+      var url = "{% url "events:save_comment_for_event_entry_ajax" %}";
+      var serializedData = {
+        "id": id,
+        "comment": result.value
+      };
+
+      $.ajax({
+        url: url,
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
+        },
+        type: "post",
+        data: JSON.stringify(serializedData),
+        dataType: "json",
+        success: function(response) {
+          swal.fire({
+            title: "Comment updated",
+            html: response.message,
+            icon: "success",
+          }).then(function() {
+            location.reload();
+          });
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(textStatus, errorThrown);
+        }
+      });
+    }
+  })
+}
 </script>
 {% endblock %}

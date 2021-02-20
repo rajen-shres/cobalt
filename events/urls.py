@@ -178,9 +178,9 @@ urlpatterns = [
         name="change_payment_method_on_existing_entry_ajax",
     ),
     path(
-        "congress/event/edit-comment-for-entry/<int:event_entry_id>",
-        views.edit_comment_event_entry,
-        name="save_comment_for_event_entry",
+        "congress/event/edit-comment-for-entry",
+        ajax.edit_comment_event_entry_ajax,
+        name="save_comment_for_event_entry_ajax",
     ),
     ########################################################################
     # Congress Builder screens for conveners to create and edit congresses #
