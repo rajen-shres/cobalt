@@ -582,7 +582,6 @@ function editComment(id, old_comment) {
     },
     showCancelButton: true
   }).then(function(result) {
-    if (result.value) {
       var url = "{% url "events:save_comment_for_event_entry_ajax" %}";
       var serializedData = {
         "id": id,
@@ -611,7 +610,6 @@ function editComment(id, old_comment) {
           console.log(textStatus, errorThrown);
         }
       });
-    }
   })
 }
 </script>
