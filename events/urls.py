@@ -177,6 +177,11 @@ urlpatterns = [
         ajax.change_payment_method_on_existing_entry_ajax,
         name="change_payment_method_on_existing_entry_ajax",
     ),
+    path(
+        "congress/event/edit-comment-for-entry",
+        ajax.edit_comment_event_entry_ajax,
+        name="save_comment_for_event_entry_ajax",
+    ),
     ########################################################################
     # Congress Builder screens for conveners to create and edit congresses #
     ########################################################################

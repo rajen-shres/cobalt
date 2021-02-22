@@ -506,6 +506,7 @@ class EventEntry(models.Model):
         "Free Format Answer", max_length=60, null=True, blank=True
     )
     notes = models.TextField("Notes", null=True, blank=True)
+    comment = models.TextField("Comments", null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "Event entries"
