@@ -1068,3 +1068,21 @@ def admin_event_entry_notes_ajax(request):
         return JsonResponse({"message": "Success"})
 
     return JsonResponse({"message": "Invalid call"})
+
+
+@login_required()
+def edit_comment_event_entry_ajax(request):
+    """ Edit comment on an event entry """
+    try:
+        if request.method == "POST":
+            data = json.loads(request.body.decode("utf-8"))
+            event_entry_id = int(data["id"])
+            event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
+            new_comment = data["comment"]
+            event_entry.comment = new_comment
+            event_entry.save()
+            return JsonResponse({"message": "Success"})
+        return JsonResponse({"message": "Invalid call"})
+    except Exception as e:
+        return JsonResponse({"message": "Excpetion occured while trying to save!! contact dev!!"})
+

@@ -156,7 +156,7 @@ class Congress(models.Model):
     youth_payment_discount_date = models.DateField(
         "Date for age check", null=True, blank=True
     )
-    youth_payment_discount_age = models.IntegerField("Cut off age", default=30)
+    youth_payment_discount_age = models.IntegerField("Cut off age", default=26)
     senior_date = models.DateField("Date for age check", null=True, blank=True)
     senior_age = models.IntegerField("Cut off age", default=60)
     # Open and close dates can be overriden at the event level
@@ -506,6 +506,7 @@ class EventEntry(models.Model):
         "Free Format Answer", max_length=60, null=True, blank=True
     )
     notes = models.TextField("Notes", null=True, blank=True)
+    comment = models.TextField("Comments", null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "Event entries"

@@ -117,7 +117,7 @@
                     <div class="form-group">
                       <span class="cobalt-form-error" id="id_youth_payment_discount_age_errors">{{ form.youth_payment_discount_age.errors|striptags }}</span>
                       <label class="bmd-label-float" style="font-size:11px">Youth age at cut off date</label>
-                      {% render_field form.youth_payment_discount_age class+="form-control" %}
+                      {% render_field form.youth_payment_discount_age class+="form-control" value='{{form.youth_payment_discount_age.value|default_if_none}}' %}
                     </div>
                   </div>
                 </div>

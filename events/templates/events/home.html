@@ -39,10 +39,10 @@
     <img src="{% static "assets/img/congress.jpg "%}" alt="congress" width="200px">
     <h2>{{ month }}</h2>
     {% for congress in congresses %}
-    <div class="card col-md-6 mx-auto">
+    <div class="card col-md-6 mx-auto" style="overflow: hidden;">
       <div class="card-body">
         <a class="btn btn-sm btn-danger" href="{% url "events:view_congress" congress_id=congress.id %}">
-          <span style="font-size: 22px">
+          <span style="font-size: 22px; word-wrap: break-word; white-space: normal;">
           {{ congress }}
           </span>
         <br><span class="cobalt-text-transform-off " style="font-size: 14px">by</span><br>

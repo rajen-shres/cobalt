@@ -5,6 +5,7 @@ from decimal import Decimal
 import uuid
 import pytz
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseNotFound
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -123,7 +124,13 @@ def home(request):
 
     # check if user has any admin rights to show link to create congress
     if request.user.is_authenticated:
-        admin = rbac_user_allowed_for_model(request.user, "events", "org", "edit")[1]
+        (all_access, some_access) = rbac_user_allowed_for_model(
+            request.user, "events", "org", "edit"
+        )
+        if all_access or some_access:
+            admin = True
+        else:
+            admin = False
     else:
         admin = False
 
@@ -153,6 +160,8 @@ def view_congress(request, congress_id, fullscreen=False):
         page(HTTPResponse): page with details about the event
     """
 
+    congress = get_object_or_404(Congress, pk=congress_id)
+
     # Which template to use
     if fullscreen:
         master_template = "empty.html"
@@ -160,11 +169,17 @@ def view_congress(request, congress_id, fullscreen=False):
     elif request.user.is_authenticated:
         master_template = "base.html"
         template = "events/congress.html"
+
+        # check if published or user has rights
+        if congress.status != "Published":
+            role = "events.org.%s.edit" % congress.congress_master.org.id
+            if not rbac_user_has_role(request.user, role):
+                return rbac_forbidden(request, role)
     else:
         template = "events/congress_logged_out.html"
         master_template = "empty.html"
-
-    congress = get_object_or_404(Congress, pk=congress_id)
+        if congress.status != "Published":
+            return HttpResponseNotFound("Not published")
 
     if request.method == "GET" and "msg" in request.GET:
         msg = request.GET["msg"]
@@ -184,6 +199,11 @@ def view_congress(request, congress_id, fullscreen=False):
 
     # get all events for this congress so we can build the program table
     events = congress.event_set.all()
+
+    if not events:
+        return HttpResponseNotFound(
+            "No Events set up for this congress. Please notify the convener."
+        )
 
     # add start date and sort by start date
     events_list = {}
@@ -332,6 +352,17 @@ def checkout(request):
             .filter(payment_type="my-system-dollars")
             .distinct()
         )
+        # players that are using club pp to pay are pending payments not unpaid
+        # unpaid would prompt the player to pay for event which is not desired here
+        event_entry_player_club_pp = (
+            EventEntryPlayer.objects.filter(event_entry__in=event_entries)
+            .filter(payment_type="off-system-pp")
+            .distinct()
+
+        )
+        for event_entry in event_entry_player_club_pp:
+            event_entry.payment_status = "Pending Manual"
+            event_entry.save()
 
         unique_id = str(uuid.uuid4())
 
@@ -475,8 +506,10 @@ def view_events(request):
 
     # check for pending payments
     pending_payments = (
-        EventEntryPlayer.objects.exclude(payment_status="Paid")
+        EventEntryPlayer.objects
+        .exclude(payment_status="Paid")
         .exclude(payment_status="Free")
+        .exclude(payment_type="off-system-pp")
         .filter(player=request.user)
         .exclude(event_entry__entry_status="Cancelled")
     )
@@ -552,6 +585,12 @@ def view_event_entries(request, congress_id, event_id):
     entries = EventEntry.objects.filter(event=event).exclude(entry_status="Cancelled")
     categories = Category.objects.filter(event=event).exists()
     date_string = event.print_dates()
+    user_entered = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .filter(player=request.user)
+        .exclude(event_entry__entry_status="Cancelled")
+        .exists()
+    )
 
     return render(
         request,
@@ -562,6 +601,7 @@ def view_event_entries(request, congress_id, event_id):
             "entries": entries,
             "categories": categories,
             "date_string": date_string,
+            "user_entered": user_entered,
         },
     )
 
@@ -728,10 +768,10 @@ def delete_event_entry(request, event_entry_id):
     #    print(datetime.now().date())
     if (
         event_entry.event.congress.automatic_refund_cutoff
-        and event_entry.event.congress.automatic_refund_cutoff <= datetime.now().date()
+        and event_entry.event.congress.automatic_refund_cutoff < datetime.now().date()
     ):
-        error = "You need to contact the convener directly to make any changes to this entry."
-        title = "This Event is too soon"
+        error = "You need to contact the tournament organiser directly to make any changes to this entry."
+        title = "It is too near to the start of this event"
         return render(request, "events/error.html", {"title": title, "error": error})
 
     event_entry_players = EventEntryPlayer.objects.filter(event_entry=event_entry)
@@ -1292,6 +1332,8 @@ def enter_event_form(event, congress, request):
     # categories
     categories = Category.objects.filter(event=event)
 
+    # comment helptext 
+    comment = "Comment/Additional request?"
     return render(
         request,
         "events/enter_event.html",
@@ -1307,6 +1349,7 @@ def enter_event_form(event, congress, request):
             "discount": discount,
             "description": description,
             "min_entries": min_entries,
+            "comment": comment,
         },
     )
 
@@ -1351,6 +1394,7 @@ def enter_event(request, congress_id, event_id):
         event_entry = EventEntry()
         event_entry.event = event
         event_entry.primary_entrant = request.user
+        event_entry.comment = request.POST.get("comment", None)
 
         # see if we got a category
         category = request.POST.get("category", None)

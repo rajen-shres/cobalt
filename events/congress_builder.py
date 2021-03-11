@@ -351,6 +351,9 @@ def create_congress_wizard_5(request, step_list, congress):
             congress.allow_youth_payment_discount = form.cleaned_data[
                 "allow_youth_payment_discount"
             ]
+            congress.youth_payment_discount_age = form.cleaned_data[
+                "youth_payment_discount_age"
+            ]
             congress.youth_payment_discount_date = form.cleaned_data[
                 "youth_payment_discount_date"
             ]
