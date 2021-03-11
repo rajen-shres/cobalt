@@ -20,6 +20,21 @@ from cobalt.settings import GLOBAL_MPSERVER
 #
 ######
 
+def process_transactions(details, month, year):
+    """
+    Separate process and provisional details
+    add formatting to the matchpoint numbers
+    """
+    provisional_details = []
+    fixed_details = []
+    month = int(month)
+    year = int(year)
+    for d in details:
+        if d["PostingMonth"] >= month and d["PostingYear"] == year:
+            provisional_details.append(d)
+        else:
+            fixed_details.append(d)
+    return fixed_details, provisional_details
 
 @login_required()
 def masterpoints_detail(request, system_number=None, years=1, retry=False):
@@ -121,6 +136,9 @@ def masterpoints_detail(request, system_number=None, years=1, retry=False):
         chart_red["%s-%s" % (year, month)] = 0.0
         chart_green["%s-%s" % (year, month)] = 0.0
 
+    details,futureTrans = process_transactions(details, month, year)
+    #todo: Tanmay to first extract details into two--> one current month next -- "future"
+    # deatils will just have till current month future will go in provisional variable
     # loop through the details and augment the data to pass to the template
     # we are just adding running total data for the table of details
     for d in details:

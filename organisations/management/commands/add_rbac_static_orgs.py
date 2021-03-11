@@ -22,7 +22,8 @@ from accounts.models import User
 class Command(BaseCommand):
     def handle(self, *args, **options):
         print("Running add_rbac_static_orgs")
-        user = User.objects.filter(username="Mark").first()
+        #user = User.objects.filter(username="Mark").first()
+        user = User.objects.filter(username="518891").first()
         orgs = Organisation.objects.all()
         for org in orgs:
             if org.type == "Club":

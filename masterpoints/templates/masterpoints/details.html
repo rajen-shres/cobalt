@@ -181,15 +181,15 @@
             <td>{{ row.EventDescription }}
             <td class="text-right" style="color: orange;">
               {% if row.MPColour == "Y" %}
-              {{ row.mps }}
+              {{ row.mps |floatformat:2}}
               {% endif %}
             <td class="text-right" style="color: red;">
               {% if row.MPColour == "R" %}
-              {{ row.mps }}
+              {{ row.mps|floatformat:2 }}
               {% endif %}
             <td class="text-right" style="color: green;">
               {% if row.MPColour == "G" %}
-              {{ row.mps }}
+              {{ row.mps|floatformat:2 }}
               {% endif %}
             <td class="text-right">{{ row.running_total|floatformat:2|intcomma }}
           </tr>

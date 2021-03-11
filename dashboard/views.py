@@ -56,7 +56,11 @@ def logged_out(request):
     posts = get_announcements_logged_out()
     return render(request, "dashboard/logged_out.html", {"posts": posts})
 
-
+def help(request):
+    """
+    help page for new bridge users
+    """
+    return render(request, "dashboard/help.html")
 @login_required()
 def scroll1(request):
     """Cutdown homepage to be called by infinite scroll.
