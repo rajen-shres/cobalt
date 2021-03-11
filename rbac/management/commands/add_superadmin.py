@@ -18,7 +18,7 @@ from accounts.models import User
 class Command(BaseCommand):
     def handle(self, *args, **options):
         print("Running add_superadmin")
-        userList = [User.objects.filter(username=name).first() for name in ["tanmay", "518891"]]
+        userList = [User.objects.filter(username=name).first() for name in ["518891"]]
         super_group = create_RBAC_admin_group(self, "admin", "", "Super admin group")
         create_RBAC_admin_tree(self, super_group, "rbac")
         for user in userList:
