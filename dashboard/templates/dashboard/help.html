@@ -1,0 +1,153 @@
+{% extends 'base_logged_out.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block header%}
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
+  <link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
+  <script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
+  <script src="{% static "assets/js/core/popper.min.js" %}"></script>
+  <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
+{% endblock %}
+    {% block content %}
+
+<div class="col-md-12">
+  <div class="card">
+    <div class="card-header card-header-danger">
+     <h4 class="card-title"> MY ABF – THE BASICS </h4>
+    </div>
+
+    <div class="card">
+      <div class="card-header ">
+      <h4 class="card-title"> What does MY ABF do?</h4>
+      </div>
+      <div class="card-body">
+        <div id="accordion" role="tablist">
+                    <div class="card-collapse">
+                      <div class="card-header" role="tab" id="headingOne">
+                        <h5 class="mb-0">
+                          <a data-toggle="collapse" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne" class="">
+                              For Players
+                              <i class="material-icons">keyboard_arrow_down</i>
+                          </a>
+                        </h5>
+                      </div>
+                      <div id="collapseOne" class="collapse hide" role="tabpanel" aria-labelledby="headingOne" data-parent="#accordion" style="">
+                        <div class="card-body">
+                          It gives you a personal ABF account you can login to. Over time this will grow to be your main online interaction for all your bridge activities:
+                          <ul>
+                          <li>Manage your personal details</li>
+                          <li>View your masterpoints </li>
+                          <li>View, enter, and pay for bridge events </li>
+                          <li>See announcements from the ABF, your State and your Club. </li>
+                          <li>Participate in bridge discussion forums </li>
+                          <li>Run a “Bridge Credits” account with the ABF which you can put money into to pay for your bridge entries</li>
+                          <li>View your results </li>
+                          </ul>
+                        </div>
+                      </div>
+                      <div class="card-header" role="tab" id="headingOne">
+                        <h5 class="mb-0">
+                          <a data-toggle="collapse" href="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo" class="">
+                              For Clubs, State bodies & Tournament Organisers
+                              <i class="material-icons">keyboard_arrow_down</i>
+                          </a>
+                        </h5>
+                      </div>
+
+                        <div class="card-body collapse hide" id="collapseTwo" role="tabpanel" aria-labelledby"headingTwo">
+                          Manage a bridge event and accept online entries and payments:
+                          <ul>
+                          <li>Generate a webpage listing for your event</li>
+                          <li> Manage online entries from players</li>
+                          <li>Manage payments (online and offline) from players.</li>
+                          <li> Online payments are made via the ABF “Bridge credits” system which removes the need to set up your own facility to accept online payments.  Entry fees are credited to the club’s own “Bridge Credits” account which are then reimbursed to the club from the ABF (less a charge for transaction fees)</li>
+                          </ul>
+                        </div>
+
+                      <div class="card-header" role="tab" id="headingOne">
+                        <h5 class="mb-0">
+                          <a data-toggle="collapse" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree" class="">
+                                Why should I sign up today?
+                              <i class="material-icons">keyboard_arrow_down</i>
+                          </a>
+                        </h5>
+                      </div>
+                      <div class = "card-body collapse hide" id="collapseThree">
+                            <ul>
+                            <li>To maintain an account with your own details. This will make entering bridge events much easier than it is today.</li>
+                            <li>To run a “Bridge Credits” account with the ABF which you can use to pay for your bridge. </li>
+                            <li>To see announcements from the ABF. </li>
+                            <li>To participate in Australian bridge discussion forums.</li>
+                            <li>To be an early adopter of a new system that will become the norm for all Australian bridge players.</li>
+                      </div>
+
+                      <div class="card-header" role="tab" id="headingOne">
+                        <h5 class="mb-0">
+                          <a data-toggle="collapse" href="#collapse4" aria-expanded="true" aria-controls="collapse4" class="">
+                                What is still to come?
+                              <i class="material-icons">keyboard_arrow_down</i>
+                          </a>
+                        </h5>
+                      </div>
+                        <div class="card-body collapse hide" id="collapse4">
+                          <h5>Players</h5>
+                          <div>Ability to use your Bridge Credits account to pay for regular club sessions and other common items you normally pay to your club (e.g. membership).
+                          
+                          Enhanced ability to manage things you get notified about.
+                          </div><br>
+                          <h5> Directors</h5> 
+                          Scoring module allowing you to run bridge sessions and score them:
+                          <li>For club duplicate sessions</li>
+                          <li>For congress events
+                          <br><br>
+                          <h5>Clubs / State bodies</h5> 
+                          <div>Manage your membership lists
+                          
+                          Accept online payment for memberships, club session and other sundry bridge items through the ABF Bridge credits account - allowing you to run bridge without handling any cash from players if you want.
+                          </div>
+                        </div>
+
+                      <div class="card-header" role="tab" id="headingOne">
+                        <h5 class="mb-0">
+                          <a data-toggle="collapse" href="#collapse5" aria-expanded="true" aria-controls="collapse5" class="">
+                                Where can I get more information?
+                              <i class="material-icons">keyboard_arrow_down</i>
+                          </a>
+                        </h5>
+                      </div>
+                      <div class="card-body collapse hide" id="collapse5">
+                         
+                         There are assorted videos on:
+                         <a href="https://www.youtube.com/channel/UCZPuvivkdbzl4kg-cwxQuNQ" target="_blank">this YouTube channel</a>
+                         <br>
+                         These currently cover:
+                         <li>signing up</li>
+                         <li>an overview of the system</li>
+                         <li>functions for players when entering and paying for congresses</li>
+                         <li>functions for tournament organisers</li>
+                         
+                         <div>
+                         The ABF technology strategy can be found here:
+                         <br>
+                         <a href="https://www.abf.com.au/about-abf/abf-technology-strategy/" target="_blank"> abf technology strategy</a>
+                         
+                         <br>
+
+                         A background information pack is available here:
+
+                         
+                         <br>
+                         <br>
+                         <a href="https://www.abf.com.au/abf-technology-june-2020/" target="_blank"> abf technology june</a>
+                         </div>
+                      </div>
+
+                      </div>
+                    </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    {% endblock %}
