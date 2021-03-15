@@ -91,6 +91,7 @@ def update_entries(route_payload, payment_user):
     other members if we have access."""
 
     # Update EntryEventPlayer objects
+    import pdb; pdb.set_trace()
     event_entry_players = EventEntryPlayer.objects.filter(batch_id=route_payload)
     for event_entry_player in event_entry_players:
         # this could be a partial payment
@@ -394,11 +395,13 @@ def get_events(user):
             )
             if in_other_cart:
                 event_entry_player.in_other_cart = in_other_cart.player
+                # we do not want to show other player's cart item as unpaid item, in fact we do not want to show them to the player at all
+                continue
 
-            upcoming[event_entry_player] = start_date
             # check if unpaid
             if event_entry_player.payment_status == "Unpaid":
                 unpaid = True
+            upcoming[event_entry_player] = start_date
 
     upcoming_sorted = {
         key: value for key, value in sorted(upcoming.items(), key=lambda item: item[1])
