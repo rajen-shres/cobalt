@@ -91,7 +91,6 @@ def update_entries(route_payload, payment_user):
     other members if we have access."""
 
     # Update EntryEventPlayer objects
-    import pdb; pdb.set_trace()
     event_entry_players = EventEntryPlayer.objects.filter(batch_id=route_payload)
     for event_entry_player in event_entry_players:
         # this could be a partial payment

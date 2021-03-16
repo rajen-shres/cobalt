@@ -573,6 +573,7 @@ def pay_outstanding(request):
         route_payload=unique_id,
         url=reverse("events:enter_event_success"),
         payment_type="Entry to an event",
+        book_internals=False
     )
 
 
