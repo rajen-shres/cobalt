@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event.congress.id %}">{{ event.congress.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Off System Payments</li>
+  </ol>
+</nav>
+
+<div class="container justify-content-center">
+  <div class="row h-100 d-flex justify-content-center">
+    <div class="card">
+      <div class="card-header card-header-warning">
+        <h2>Congress Admin View</h2>
+        <h3>{{ event.congress }}</h3>
+      </div>
+      <div class="card-body">
+
+        <div class="card">
+          <div class="card-header card-header-info">
+            <h2>{{ event.event_name }} - Players Report</h2>
+          </div>
+
+          <div class="card-body table-responsive">
+
+            {% if players %}
+
+            <table class="table table-hover">
+              <thead class="text-info">
+                <th>Player</th>
+                <th class="text-right">Status</th>
+                <th class="text-right">MasterPoints</th>
+                <th class="text-right">Action</th>
+              </thead>
+              <tbody>
+                {% for event_entry_player in players %}
+
+                  <tr>
+                    <td>
+                      {{ event_entry_player.player|cobalt_user_link }}
+                      {% if event_entry_player.player.id == TBA_PLAYER %}
+                       - by {{ event_entry_player.event_entry.primary_entrant|cobalt_user_link }}
+                      {% endif %}
+                    </td>
+                    <td class="text-right">{{ event_entry_player.status }}</td>
+                    <td class="text-right">{{ event_entry_player.masterpoint }}</td>
+                    <td class="text-right"><a href="{% url "events:admin_evententryplayer" evententryplayer_id=event_entry_player.id %}" button class="btn btn-sm btn-danger view-unpaid" id="button_unpaid_{{ event_entry_player.id }}">View</button>
+                  </tr>
+                {% endfor %}
+
+              </tbody>
+            </table>
+
+            {% else %}
+
+              <h4>There are no unpaid entries in this event</h4>
+
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

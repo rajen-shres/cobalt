@@ -28,6 +28,7 @@ from .models import (
     Bulletin,
 )
 from accounts.models import User, TeamMate
+import requests
 from .forms import (
     CongressForm,
     NewCongressForm,
@@ -66,6 +67,7 @@ from utils.utils import cobalt_paginator
 from django.utils.timezone import make_aware, now, utc
 import pytz
 from decimal import Decimal
+from cobalt.settings import GLOBAL_MPSERVER
 
 TZ = pytz.timezone(TIME_ZONE)
 
@@ -185,6 +187,8 @@ def admin_event_summary(request, event_id):
         event_entry.outstanding = Decimal(0.0)
         event_entry.entry_fee = Decimal(0.0)
         event_entry.players = []
+        event_entry.status = "Deceased, Alive"
+        event_entry.masterpoints = "100,45"
 
         for event_entry_player in event_entry_players:
 
@@ -367,7 +371,7 @@ def admin_event_csv(request, event_id):
         return rbac_forbidden(request, role)
 
     # get details
-    entries = event.evententry_set.exclude(entry_status="Cancelled")
+    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by("entry_complete_date")
 
     local_dt = timezone.localtime(timezone.now(), TZ)
     today = dateformat.format(local_dt, "Y-m-d H:i:s")
@@ -448,7 +452,11 @@ def admin_event_csv(request, event_id):
             "Player",
             "Player - First Name",
             "Player - Last Name",
+            "Player - Email",
+            "Player - contact",
             "Player - Number",
+            "Player - Status",
+            "Player - masterpoints",
             "Payment Type",
             "Entry Fee",
             "Received",
@@ -464,13 +472,18 @@ def admin_event_csv(request, event_id):
                 outstanding = row.entry_fee - row.payment_received
             else:
                 outstanding = row.entry_fee
+            status, masterpoints = get_player_mp_stats(row.player)
             writer.writerow(
                 [
                     entry.primary_entrant,
                     row.player,
                     row.player.first_name,
                     row.player.last_name,
+                    row.player.email,
+                    row.player.mobile_number,
                     row.player.system_number,
+                    status,
+                    masterpoints,
                     row.payment_type,
                     row.entry_fee,
                     row.payment_received,
@@ -500,7 +513,7 @@ def admin_event_csv_scoring(request, event_id):
     today = dateformat.format(local_dt, "Y-m-d H:i:s")
 
     # get details
-    entries = event.evententry_set.exclude(entry_status="Cancelled")
+    entries = event.evententry_set.exclude(entry_status="Cancelled".order_by("entry_complete_date"))
 
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = f"attachment; filename={event} - Scoring.csv"
@@ -517,6 +530,8 @@ def admin_event_csv_scoring(request, event_id):
         "Name",
         "ABF Number",
         "Team Name",
+        "Email",
+        "Contact number"
     ]
 
     writer.writerow(header)
@@ -532,6 +547,8 @@ def admin_event_csv_scoring(request, event_id):
                     row.player.full_name.upper(),
                     row.player.system_number,
                     row.event_entry.primary_entrant.last_name.upper(),
+                    row.player.email,
+                    row.player.mobile_number
                 ]
             )
             entry_line += 1
@@ -636,7 +653,49 @@ def admin_event_unpaid(request, event_id):
         {"event": event, "players": players},
     )
 
+@login_required()
+def admin_players_report(request, event_id):
+    """ Unpaid Report """
 
+    event = get_object_or_404(Event, pk=event_id)
+
+    # check access
+    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    # get players with unpaid entries
+    players = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .exclude(event_entry__entry_status="Cancelled")
+    )
+    for player in players:
+        player.masterpoint, player.status = get_player_mp_stats(player)
+
+    return render(
+        request,
+        "events/admin_players_report.html",
+        {"event": event, "players": players},
+    )
+
+def get_player_mp_stats(player):
+    """
+     Get summary data
+    """
+    qry = "%s/mps/%s" % (GLOBAL_MPSERVER,player.system_number) # player.player.system_number)
+    try:
+        r = requests.get(qry).json()
+    except (
+        IndexError,
+        requests.exceptions.InvalidSchema,
+        requests.exceptions.MissingSchema,
+        ConnectionError,
+    ):
+        r = []
+
+    if len(r) == 0:
+        return "not found","not found"
+    return r[0]["TotalMPs"], r[0]["IsActive"]
 @login_required()
 def admin_event_log(request, event_id):
     """ Show logs for an event """

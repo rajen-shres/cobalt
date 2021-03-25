@@ -577,21 +577,23 @@ def pay_outstanding(request):
     )
 
 
-@login_required()
 def view_event_entries(request, congress_id, event_id):
     """ Screen to show entries to an event """
 
     congress = get_object_or_404(Congress, pk=congress_id)
     event = get_object_or_404(Event, pk=event_id)
-    entries = EventEntry.objects.filter(event=event).exclude(entry_status="Cancelled")
+    entries = EventEntry.objects.filter(event=event).exclude(entry_status="Cancelled").order_by("entry_complete_date")
     categories = Category.objects.filter(event=event).exists()
     date_string = event.print_dates()
-    user_entered = (
-        EventEntryPlayer.objects.filter(event_entry__event=event)
-        .filter(player=request.user)
-        .exclude(event_entry__entry_status="Cancelled")
-        .exists()
-    )
+    try:
+        user_entered = (
+            EventEntryPlayer.objects.filter(event_entry__event=event)
+            .filter(player=request.user)
+            .exclude(event_entry__entry_status="Cancelled")
+            .exists()
+        )
+    except: # may be  anonymous
+        user_entered = False
 
     return render(
         request,
