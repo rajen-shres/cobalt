@@ -548,7 +548,7 @@ def admin_event_csv_scoring(request, event_id):
                     row.player.system_number,
                     row.event_entry.primary_entrant.last_name.upper(),
                     row.player.email,
-                    row.player.mobile_number
+                    row.player.mobile
                 ]
             )
             entry_line += 1
