@@ -117,7 +117,11 @@ def contact(request):
 
         return redirect("support:support")
 
-    return render(request, "support/contact.html", {"form": form})
+    try:
+        email = request.user.email
+    except:
+        email="please input a value email for us to contact you"
+    return render(request, "support/contact.html", {"form": form, "email":email})
 
 
 @login_required
