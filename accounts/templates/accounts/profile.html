@@ -33,7 +33,7 @@
               <div class="col-md-6">
                 <div class="form-group">
                   <label class="bmd-label-floating">Mobile Number</label>
-                  <input type="text" name="mobile" id="id_mobile" class="form-control" value="{{ form.mobile.value|default_if_none:""}}">
+                  <input type="text" pattern = "(+|0)[0-9]{*}"  title="Invalid mobile number (eg. 04xx9rr3uu)" name="mobile" id="id_mobile" class="form-control" value="{{ form.mobile.value|default_if_none:""}}">
                 </div>
               </div>
             </div>

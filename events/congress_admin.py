@@ -480,7 +480,7 @@ def admin_event_csv(request, event_id):
                     row.player.first_name,
                     row.player.last_name,
                     row.player.email,
-                    row.player.mobile_number,
+                    row.player.mobile,
                     row.player.system_number,
                     status,
                     masterpoints,
@@ -513,7 +513,7 @@ def admin_event_csv_scoring(request, event_id):
     today = dateformat.format(local_dt, "Y-m-d H:i:s")
 
     # get details
-    entries = event.evententry_set.exclude(entry_status="Cancelled".order_by("entry_complete_date"))
+    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by("entry_complete_date")
 
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = f"attachment; filename={event} - Scoring.csv"
@@ -670,7 +670,7 @@ def admin_players_report(request, event_id):
         .exclude(event_entry__entry_status="Cancelled")
     )
     for player in players:
-        player.masterpoint, player.status = get_player_mp_stats(player)
+        player.masterpoint, player.status = get_player_mp_stats(player.player)
 
     return render(
         request,

@@ -79,7 +79,7 @@
                       <tr>
                         <td class="col text-center">
                           <div id="div_id_player0" class="form-group">
-                            <select class="cobalt-playerN form-control input-sm" title="Select" id="id_player0" name="player0">
+                            <select class="cobalt-playerN form-control input-sm selectpicker" data-style="btn btn-link" title="Select" id="id_player0" name="player0">
                               <option value="{{ player0.id }}" selected>{{ player0.name }}</option>
                               {% for val,item in player0.name_choices %}
 
@@ -91,7 +91,7 @@
                         </td>
                         <td>
                           <div class="form-group">
-                          <select id="id_player0_payment" name="player0_payment" class="form-control input-sm payment-method">
+                          <select id="id_player0_payment" name="player0_payment" data-style="btn btn-link" class="form-control selectpicker input-sm payment-method">
                             {% for val,item in player0.payment_choices %}
                             <option value="{{ val }}">{{ item }}</option>
                             {% endfor %}
