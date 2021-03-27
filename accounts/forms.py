@@ -1,6 +1,7 @@
 """ Forms for Accounts App """
 
 from PIL import Image
+import re
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from masterpoints.views import system_number_available
@@ -59,6 +60,18 @@ class UserUpdateForm(forms.ModelForm):
             "pic",
             "bbo_name",
         ]
+
+    def clean_mobile(self):
+        """
+        if you add spaces between number then they are replaced here
+        """
+        mobile_raw = self.cleaned_data["mobile"]
+        mobile = mobile_raw.replace(" ", "")
+        mobile_regex = r'^(\+,0)?1?\d{9,15}$'
+        if re.match(mobile_regex, mobile):
+            return mobile
+        else:
+            raise ValidationError("Mobile number should be either starting with + or - and should be between 9-15 digits long")
 
     def clean_email(self):
         """ check the email is not already used """
