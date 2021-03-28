@@ -66,12 +66,14 @@ class UserUpdateForm(forms.ModelForm):
         if you add spaces between number then they are replaced here
         """
         mobile_raw = self.cleaned_data["mobile"]
+        if mobile_raw==None:
+            return None
         mobile = mobile_raw.replace(" ", "")
-        mobile_regex = r'^(\+,0)?1?\d{9,15}$'
+        mobile_regex = r'^[\+0]?1?\d{9,15}$'
         if re.match(mobile_regex, mobile):
             return mobile
         else:
-            raise ValidationError("Mobile number should be either starting with + or - and should be between 9-15 digits long")
+            raise ValidationError("Mobile number should be either starting with + or 0 and should be between 9-15 digits long")
 
     def clean_email(self):
         """ check the email is not already used """

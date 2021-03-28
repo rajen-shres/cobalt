@@ -234,7 +234,8 @@ def view_congress(request, congress_id, fullscreen=False):
         sessions = event.session_set.all()
         days = sessions.distinct("session_date")
         rows = days.count()
-
+        total_entries = EventEntry.objects.filter(event=event).exclude(entry_status="Cancelled").count()#program["total_entries"] = event
+        program["entries_total"] = f"<td rowspan='{rows}'><span class='title'>{total_entries}</td>"
         # day td
         first_row_for_event = True
         for day in days:

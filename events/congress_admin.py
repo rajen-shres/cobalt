@@ -472,7 +472,7 @@ def admin_event_csv(request, event_id):
                 outstanding = row.entry_fee - row.payment_received
             else:
                 outstanding = row.entry_fee
-            status, masterpoints = get_player_mp_stats(row.player)
+            masterpoints,status = get_player_mp_stats(row.player)
             writer.writerow(
                 [
                     entry.primary_entrant,
@@ -694,8 +694,13 @@ def get_player_mp_stats(player):
         r = []
 
     if len(r) == 0:
-        return "not found","not found"
-    return r[0]["TotalMPs"], r[0]["IsActive"]
+        return "Unknown ABF no","Unknown ABF no"
+    is_active = r[0]["IsActive"]
+    if is_active=="Y":
+        is_active="Active"
+    else:
+        is_active="Inactive"
+    return r[0]["TotalMPs"], is_active
 @login_required()
 def admin_event_log(request, event_id):
     """ Show logs for an event """

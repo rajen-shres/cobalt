@@ -188,6 +188,7 @@
                   <th>Entry Fee</th>
                   <th>Day</th>
                   <th>Time</th>
+                  <th>Entries</th>
                   <th>Action</th>
                 </thead>
                 <tbody>
@@ -196,6 +197,7 @@
                     {{ program.event|safe }}
                     {{ program.day|safe }}
                     {{ program.time|safe }}
+                    {{ program.entries_total|safe }}
                     {{ program.links|safe }}
                   </tr>
                   {% endfor %}

@@ -492,7 +492,7 @@ def admin_group_edit(request, group_id):
         form.fields["name_item"].initial = group.name_item
         form.fields["description"].initial = group.description
 
-    roles = RBACAdminGroupRole.objects.filter(group=group)
+    roles = RBACAdminGroupRole.objects.filter(group=group).distinct()
     trees = RBACAdminTree.objects.filter(group=group)
     admin_roles = rbac_admin_all_rights(request.user)
     return render(

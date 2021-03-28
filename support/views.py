@@ -120,7 +120,7 @@ def contact(request):
     try:
         email = request.user.email
     except:
-        email="please input a value email for us to contact you"
+        email=None
     return render(request, "support/contact.html", {"form": form, "email":email})
 
 

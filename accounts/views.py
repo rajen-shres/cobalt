@@ -506,8 +506,8 @@ def profile(request):
         else:
             errors = ""
             for k in form.errors:
-                errors += f"key ==> {k}, message = {form.errors[k][0]}"
-            messages.error(request, f"No update becaue of {errors}")
+                errors += f"k has error {form.errors[k][0]}"
+            messages.error(request, f"Profile is not updated. {errors}")
     else:
         # Fix DOB format for browser - expects DD/MM/YYYY
         if request.user.dob:
