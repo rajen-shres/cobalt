@@ -52,7 +52,7 @@ DEBUG = set_value("DEBUG", False)
 
 # Set up ADMINS list from string
 ADMINS = [
-    ("Mark Guthrie", "m@rkguthrie.com"),
+    ("Tanmay Dutta", "tanmay.datta86@gmail.com"),
     ("Julian Foster", "julianrfoster@gmail.com"),
 ]
 
