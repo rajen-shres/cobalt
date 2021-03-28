@@ -23,3 +23,6 @@ class Command(BaseCommand):
         create_RBAC_admin_tree(self, super_group, "rbac")
         for user in userList:
             rbac_add_user_to_admin_group(super_group, user)
+            # add to global payment manage
+            rbac_add_role_to_admin_group(
+                super_group, app="payments", model="manage")

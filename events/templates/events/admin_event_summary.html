@@ -42,6 +42,7 @@
                   <a class="dropdown-item" href="{% url 'events:admin_event_log' event_id=event.id %}">View Logs</a>
                   <a class="dropdown-item" href="{% url 'events:admin_event_player_discount' event_id=event.id %}">Manage Player Discounts</a>
                   <a class="dropdown-item" href="{% url 'events:admin_event_email' event_id=event.id %}">Email Event Entrants</a>
+                  <a class="dropdown-item" href="{% url 'events:admin_players_report' event_id=event.id %}">Players Report</a>
                   {% if event.congress.allow_partnership_desk %}
                   <a class="dropdown-item" href="{% url 'events:view_event_partnership_desk' congress_id=event.congress.id event_id=event.id %}">Partnership Desk</a>
                   {% endif %}
@@ -119,7 +120,6 @@
                       {% else %}
                     <td class="text-center"></td>
                     {% endif %}
-
                     <td class="text-right">
 
                     <div class="float-right">
