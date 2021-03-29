@@ -572,7 +572,7 @@ def admin_event_csv_scoring(request, event_id):
         if event.player_format == "Teams":
             for extra_lines in range(7 - entry_line):
                 writer.writerow(
-                    [count, "", "", entry.primary_entrant.last_name.upper()]
+                    [count, "", "", "","", entry.primary_entrant.last_name.upper()]
                 )
 
         count += 1
