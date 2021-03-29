@@ -84,11 +84,12 @@ def contact(request):
         message = request.POST["message"].replace("\n", "<br>")
         email = request.POST["email"].replace("\n", "<br>")
         username = request.POST["UserName"].replace("\n", "<br>")
+        next_page ="support:support" 
         try:
             email = request.user.email
             username = request.user
         except:
-            pass
+            next_page ="view" 
         msg = f"""
                   {username} - {email}<br><br>
                   <b>{title}</b>
@@ -116,8 +117,8 @@ def contact(request):
             "Message sent successfully",
             extra_tags="cobalt-message-success",
         )
-
         return redirect("support:support")
+        #return redirect(next_page)
 
     try:
         email = request.user.email
