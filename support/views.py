@@ -83,12 +83,14 @@ def contact(request):
         title = request.POST["title"]
         message = request.POST["message"].replace("\n", "<br>")
         email = request.POST["email"].replace("\n", "<br>")
+        username = request.POST["email"].replace("\n", "<br>")
         try:
             email = request.user.email
+            username = request.user
         except:
             pass
         msg = f"""
-                  {request.user} - {email}<br><br>
+                  {username} - {email}<br><br>
                   <b>{title}</b>
                   <br><br>
                   {message}
@@ -119,9 +121,11 @@ def contact(request):
 
     try:
         email = request.user.email
+        username = request.user
     except:
         email=None
-    return render(request, "support/contact.html", {"form": form, "email":email})
+        username=None
+    return render(request, "support/contact.html", {"form": form, "email":email, "username":username})
 
 
 @login_required

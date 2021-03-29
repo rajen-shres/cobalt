@@ -66,7 +66,7 @@ class UserUpdateForm(forms.ModelForm):
         if you add spaces between number then they are replaced here
         """
         mobile_raw = self.cleaned_data["mobile"]
-        if mobile_raw==None:
+        if mobile_raw is None:
             return None
         mobile = mobile_raw.replace(" ", "")
         mobile_regex = r'^[\+0]?1?\d{9,15}$'
