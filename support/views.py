@@ -83,7 +83,7 @@ def contact(request):
         title = request.POST["title"]
         message = request.POST["message"].replace("\n", "<br>")
         email = request.POST["email"].replace("\n", "<br>")
-        username = request.POST["username"].replace("\n", "<br>")
+        username = request.POST["UserName"].replace("\n", "<br>")
         try:
             email = request.user.email
             username = request.user
