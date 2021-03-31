@@ -551,6 +551,7 @@ def pay_outstanding(request):
     # apply identifier to each record
     for event_entry_player in event_entry_players:
         event_entry_player.batch_id = unique_id
+        event_entry_player.payment_type = "my-system-dollars"
         event_entry_player.save()
 
     # Log it
@@ -1035,7 +1036,7 @@ def third_party_checkout_player(request, event_entry_player_id):
         PlayerBatchId(player=request.user, batch_id=unique_id).save()
 
         event_entry_player.batch_id = unique_id
-        event_entry_player.payment_type = "their-system-dollars"
+        event_entry_player.payment_type = "my-system-dollars"
         event_entry_player.save()
 
         # make payment
