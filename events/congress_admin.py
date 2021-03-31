@@ -173,7 +173,7 @@ def admin_event_summary(request, event_id):
     event_entries = (
         EventEntry.objects.filter(event=event)
         .exclude(entry_status="Cancelled")
-        .order_by("pk")
+        .order_by("first_created_date")
     )
 
     # build summary
@@ -371,7 +371,7 @@ def admin_event_csv(request, event_id):
         return rbac_forbidden(request, role)
 
     # get details
-    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by("entry_complete_date")
+    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by("first_created_date")
 
     local_dt = timezone.localtime(timezone.now(), TZ)
     today = dateformat.format(local_dt, "Y-m-d H:i:s")
@@ -514,7 +514,7 @@ def admin_event_csv_scoring(request, event_id):
     today = dateformat.format(local_dt, "Y-m-d H:i:s")
 
     # get details
-    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by("entry_complete_date")
+    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by("first_created_date")
 
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = f"attachment; filename={event} - Scoring.csv"
