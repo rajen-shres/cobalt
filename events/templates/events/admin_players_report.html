@@ -21,7 +21,7 @@
         <h3>{{ event.congress }}</h3>
       </div>
       <button class="btn btn-sm mx-auto btn-success" id="show_hide_active">
-      Hide/Show Active
+      Hide Active
       </button>
       <div class="card-body">
 
@@ -61,10 +61,7 @@
                           </button>
                           <div class="dropdown-menu">
                             <a href="{% url "events:admin_evententryplayer" evententryplayer_id=event_entry_player.id %}" class="dropdown-item">Edit</a>
-                          <a href="{% url "notifications:email_contact" member_id=event_entry_player.player.id %}" class="dropdown-item">Email</a>
-                          {% if event.player_format == "Teams" %}
-                          <a href="{% url "events:admin_event_entry_player_delete" event_entry_player_id=event_entry_player.id %}" class="dropdown-item">Delete Player</a>
-                          {% endif %}
+                            <a href="{% url "notifications:email_contact" member_id=event_entry_player.player.id %}" class="dropdown-item">Email</a>
                           </div>
                         </div>
                       </td>
@@ -92,8 +89,13 @@
   $(document).ready(function() {
     var rows = $('table.table-hover tr');
     var active = rows.filter("#Active")
+    var inactive = rows.filter("#Inactive")
+    inactive.css("color", "red")
     $("#show_hide_active").click(function() {
       active.toggle();
+      $(this).text(function(i, text){
+          return text === 'Show Active' ? 'Hide Active' : 'Show Active' ;
+      });
     });
   });
 </script>

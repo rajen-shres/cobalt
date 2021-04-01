@@ -83,12 +83,15 @@ def contact(request):
         title = request.POST["title"]
         message = request.POST["message"].replace("\n", "<br>")
         email = request.POST["email"].replace("\n", "<br>")
+        username = request.POST["UserName"].replace("\n", "<br>")
+        next_page ="support:support" 
         try:
             email = request.user.email
+            username = request.user
         except:
-            pass
+            next_page ="view" 
         msg = f"""
-                  {request.user} - {email}<br><br>
+                  {username} - {email}<br><br>
                   <b>{title}</b>
                   <br><br>
                   {message}
@@ -114,14 +117,16 @@ def contact(request):
             "Message sent successfully",
             extra_tags="cobalt-message-success",
         )
-
         return redirect("support:support")
+        #return redirect(next_page)
 
     try:
         email = request.user.email
+        username = request.user
     except:
         email=None
-    return render(request, "support/contact.html", {"form": form, "email":email})
+        username=None
+    return render(request, "support/contact.html", {"form": form, "email":email, "username":username})
 
 
 @login_required

@@ -173,7 +173,7 @@ def admin_event_summary(request, event_id):
     event_entries = (
         EventEntry.objects.filter(event=event)
         .exclude(entry_status="Cancelled")
-        .order_by("pk")
+        .order_by("first_created_date")
     )
 
     # build summary
@@ -371,7 +371,7 @@ def admin_event_csv(request, event_id):
         return rbac_forbidden(request, role)
 
     # get details
-    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by("entry_complete_date")
+    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by("first_created_date")
 
     local_dt = timezone.localtime(timezone.now(), TZ)
     today = dateformat.format(local_dt, "Y-m-d H:i:s")
@@ -393,7 +393,6 @@ def admin_event_csv(request, event_id):
         "Status",
         "First Created Date",
         "Entry Complete Date",
-        "Notes",
     ]
 
     categories = Category.objects.filter(event=event).exists()
@@ -404,6 +403,8 @@ def admin_event_csv(request, event_id):
     if event.free_format_question:
         header.append(f"{event.free_format_question}")
 
+    header.append("Player comment")
+    header.append("Organiser Notes")
     writer.writerow(header)
 
     for row in entries:
@@ -432,15 +433,15 @@ def admin_event_csv(request, event_id):
             row.entry_status,
             dateformat.format(local_dt, "Y-m-d H:i:s"),
             dateformat.format(local_dt2, "Y-m-d H:i:s"),
-            row.notes,
         ]
 
         if categories:
             this_row.append(row.category)
-
         if event.free_format_question:
             this_row.append(row.free_format_answer)
 
+        this_row.append(row.comment)
+        this_row.append(row.notes)
         writer.writerow(this_row)
 
     # Event Entry Player details
@@ -513,7 +514,7 @@ def admin_event_csv_scoring(request, event_id):
     today = dateformat.format(local_dt, "Y-m-d H:i:s")
 
     # get details
-    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by("entry_complete_date")
+    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by("first_created_date")
 
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = f"attachment; filename={event} - Scoring.csv"
@@ -529,9 +530,13 @@ def admin_event_csv_scoring(request, event_id):
         title,
         "Name",
         "ABF Number",
+        "Player phone",
+        "Player Email",
         "Team Name",
-        "Email",
-        "Contact number"
+        "Category",
+        "question",
+        "Player comment",
+        "Organiser notes"
     ]
 
     writer.writerow(header)
@@ -541,22 +546,33 @@ def admin_event_csv_scoring(request, event_id):
     for entry in entries:
         entry_line = 1
         for row in entry.evententryplayer_set.all():
-            writer.writerow(
-                [
+            data_row = [
                     count,
                     row.player.full_name.upper(),
                     row.player.system_number,
-                    row.event_entry.primary_entrant.last_name.upper(),
+                    row.player.mobile,
                     row.player.email,
-                    row.player.mobile
+                    row.event_entry.primary_entrant.last_name.upper(),
                 ]
+            if(entry_line==1):
+                data_row.append(entry.category)
+                data_row.append(entry.free_format_answer)
+                data_row.append(entry.comment)
+                data_row.append(entry.notes)
+            else:
+                data_row.append("")
+                data_row.append("")
+                data_row.append("")
+                data_row.append("")
+            writer.writerow(
+                data_row
             )
             entry_line += 1
         # add extra blank rows for teams if needed
         if event.player_format == "Teams":
             for extra_lines in range(7 - entry_line):
                 writer.writerow(
-                    [count, "", "", entry.primary_entrant.last_name.upper()]
+                    [count, "", "", "","", entry.primary_entrant.last_name.upper()]
                 )
 
         count += 1
