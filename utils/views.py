@@ -65,11 +65,14 @@ def user_activity(request):
 def geo_location(request, location):
     """ return lat and long for a text address """
 
-    geolocator = Nominatim(user_agent="cobalt")
-    loc = geolocator.geocode(location)
-    html = {"lat": loc.latitude, "lon": loc.longitude}
-    data_dict = {"data": html}
-    return JsonResponse(data=data_dict, safe=False)
+    try:
+        geolocator = Nominatim(user_agent="cobalt")
+        loc = geolocator.geocode(location)
+        html = {"lat": loc.latitude, "lon": loc.longitude}
+        data_dict = {"data": html}
+        return JsonResponse(data=data_dict, safe=False)
+    except:
+        return JsonResponse({"data":{"lat":None, "lon":None}}, safe=False)
 
 
 class CobaltBatch:

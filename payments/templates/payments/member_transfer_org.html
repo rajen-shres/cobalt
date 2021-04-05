@@ -4,7 +4,7 @@
 {% load humanize %}
 
 {% block content %}
-<div class="container">
+<div id="top_content" class="container">
   <div class="row justify-content-center">
     <div class="card col-11 col-md-6">
       <div class="card-header card-header-primary">
@@ -215,6 +215,13 @@
     //
 
       $("#system_number_search_button{{search_id}}").click(function(event){
+        if(system_number{{ search_id }}.val() == ""){
+          $("#top_content").prepend("\
+            <div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\"> \
+            You need to provide <stong> System number </strong> for using search facility !!\
+            <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"> \
+            <span aria-hidden=\"true\">&times;</span> </button> </div> ")
+        }
 
         $.getJSON(system_number_search{{ search_id }} + "?system_number=" + system_number{{ search_id }}.val() + "&search_id={{ search_id }}")
           .done(response => {
