@@ -221,6 +221,7 @@
             You need to provide <stong> System number </strong> for using search facility !!\
             <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"> \
             <span aria-hidden=\"true\">&times;</span> </button> </div> ")
+          return;
         }
 
         $.getJSON(system_number_search{{ search_id }} + "?system_number=" + system_number{{ search_id }}.val() + "&search_id={{ search_id }}")
