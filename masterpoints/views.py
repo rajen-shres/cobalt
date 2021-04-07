@@ -321,6 +321,8 @@ def system_number_available(system_number):
             ]
         except IndexError:
             return False
+    else:
+        return False
 
     if match:
         member = User.objects.filter(system_number=system_number)
