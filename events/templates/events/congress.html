@@ -14,6 +14,7 @@
       <h3>{{ congress.congress_master.org }}</h3>
       <h3>{{ congress.date_string }}</h3>
     </div>
+    <a href="#program" class="btn btn-sm btn-success col-md-2 col-lg-2"> Click here to enter </a>
     <div class="card-body table-responsive">
 
       {% if congress.sponsors %}
@@ -177,6 +178,7 @@
         <div class="card">
           <div class="card-header card-header-success">
             <h4 class="card-title">Program</h4>
+            <a name="Program"></a>
           </div>
           <div class="card-body table-responsive">
             <div class="table-responsive">
@@ -186,6 +188,7 @@
                   <th>Entry Fee</th>
                   <th>Day</th>
                   <th>Time</th>
+                  <th>Entries</th>
                   <th>Action</th>
                 </thead>
                 <tbody>
@@ -194,6 +197,7 @@
                     {{ program.event|safe }}
                     {{ program.day|safe }}
                     {{ program.time|safe }}
+                    {{ program.entries_total|safe }}
                     {{ program.links|safe }}
                   </tr>
                   {% endfor %}

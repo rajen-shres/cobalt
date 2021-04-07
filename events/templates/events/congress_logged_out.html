@@ -36,6 +36,7 @@
 {% endblock %}
 
 {% block content %}
+<button><a href="#program enter" class="btn btn-sm btn-success col-md-2 col-lg-2"> Click here to enter </a></button>
 {% if congress.raw_html %}
 {{ congress.raw_html|safe }}
 {% else %}
@@ -172,6 +173,7 @@
 
 
 						<div href="program" class="flex-container">
+            <a name="program enter"></a>
 								<div style="width: 80%">
 												<h2> PROGRAM </h2>
 												<br>
@@ -182,6 +184,7 @@
 														    <th>Entry Fee</th>
 														    <th>Day</th>
 																<th>Time</th>
+																<th>Total Entries</th>
 																<th>Action</th>
 														  </tr>
                               {% for program in program_list %}
@@ -189,6 +192,7 @@
                                 {{ program.event|safe }}
                                 {{ program.day|safe }}
                                 {{ program.time|safe }}
+                                {{ program.entries_total|safe }}
                                 {{ program.links|safe }}
                               </tr>
                               {% endfor %}

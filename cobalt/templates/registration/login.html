@@ -25,6 +25,7 @@
 </style>
 </head>
 <body>
+{% include 'messages.html' %}
 <div class="bg" id="bg">
   <div class="wrapper d-flex align-items-center min-vh-100">
      <div class="container d-flex justify-content-center">
@@ -83,7 +84,7 @@
         <nav class="float-left">
           <ul>
             <li>
-              <a href="{{ GLOBAL_CONTACT }}">
+                <a href= {% url "support:contact" %}>
                 Contact Us
               </a>
             </li>

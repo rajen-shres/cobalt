@@ -234,7 +234,8 @@ def view_congress(request, congress_id, fullscreen=False):
         sessions = event.session_set.all()
         days = sessions.distinct("session_date")
         rows = days.count()
-
+        total_entries = EventEntry.objects.filter(event=event).exclude(entry_status="Cancelled").count()#program["total_entries"] = event
+        program["entries_total"] = f"<td rowspan='{rows}'><span class='title'>{total_entries}</td>"
         # day td
         first_row_for_event = True
         for day in days:
@@ -550,6 +551,7 @@ def pay_outstanding(request):
     # apply identifier to each record
     for event_entry_player in event_entry_players:
         event_entry_player.batch_id = unique_id
+        event_entry_player.payment_type = "my-system-dollars"
         event_entry_player.save()
 
     # Log it
@@ -577,21 +579,23 @@ def pay_outstanding(request):
     )
 
 
-@login_required()
 def view_event_entries(request, congress_id, event_id):
     """ Screen to show entries to an event """
 
     congress = get_object_or_404(Congress, pk=congress_id)
     event = get_object_or_404(Event, pk=event_id)
-    entries = EventEntry.objects.filter(event=event).exclude(entry_status="Cancelled")
+    entries = EventEntry.objects.filter(event=event).exclude(entry_status="Cancelled").order_by("entry_complete_date")
     categories = Category.objects.filter(event=event).exists()
     date_string = event.print_dates()
-    user_entered = (
-        EventEntryPlayer.objects.filter(event_entry__event=event)
-        .filter(player=request.user)
-        .exclude(event_entry__entry_status="Cancelled")
-        .exists()
-    )
+    try:
+        user_entered = (
+            EventEntryPlayer.objects.filter(event_entry__event=event)
+            .filter(player=request.user)
+            .exclude(event_entry__entry_status="Cancelled")
+            .exists()
+        )
+    except: # may be  anonymous
+        user_entered = False
 
     return render(
         request,
@@ -1032,6 +1036,7 @@ def third_party_checkout_player(request, event_entry_player_id):
         PlayerBatchId(player=request.user, batch_id=unique_id).save()
 
         event_entry_player.batch_id = unique_id
+        event_entry_player.payment_type = "my-system-dollars"
         event_entry_player.save()
 
         # make payment
@@ -1105,6 +1110,8 @@ def third_party_checkout_entry(request, event_entry_id):
         PlayerBatchId(player=request.user, batch_id=unique_id).save()
 
         for event_entry_player in event_entry_players:
+            if(event_entry_player.payment_received-event_entry_player.entry_fee ==0): # player had already paid don't do anything
+                continue
             event_entry_player.batch_id = unique_id
             event_entry_player.payment_type = "my-system-dollars"
             event_entry_player.save()

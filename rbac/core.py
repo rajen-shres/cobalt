@@ -553,9 +553,9 @@ def rbac_admin_all_rights(user):
         list:   list of App, model, model_id
     """
 
-    groups = RBACAdminUserGroup.objects.filter(member=user).values_list("group")
+    groups = RBACAdminUserGroup.objects.filter(member=user).values_list("group").distinct()
 
-    matches = RBACAdminGroupRole.objects.filter(group__in=groups)
+    matches = RBACAdminGroupRole.objects.filter(group__in=groups).distinct()
 
     ret = []
     for m in matches:
@@ -563,7 +563,8 @@ def rbac_admin_all_rights(user):
             ret_str = "%s.%s.%s" % (m.app, m.model, m.model_id)
         else:
             ret_str = "%s.%s" % (m.app, m.model)
-        ret.append(ret_str)
+        if not ret_str in ret:
+            ret.append(ret_str)
     return ret
 
 

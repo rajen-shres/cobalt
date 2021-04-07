@@ -325,6 +325,11 @@ urlpatterns = [
         name="admin_event_unpaid",
     ),
     path(
+        "congress-admin/event-players_report/<int:event_id>",
+        congress_admin.admin_players_report,
+        name="admin_players_report",
+    ),
+    path(
         "congress-admin/event-offsystem/<int:event_id>",
         congress_admin.admin_event_offsystem,
         name="admin_event_offsystem",
