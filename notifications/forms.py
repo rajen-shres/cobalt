@@ -6,3 +6,4 @@ class EmailContactForm(forms.Form):
 
     title = forms.CharField(label="Title", max_length=80)
     message = forms.CharField(label="Message")
+    redirect_to = forms.CharField(label="Redirect_To")

@@ -68,8 +68,10 @@ class UserUpdateForm(forms.ModelForm):
         This code will only work for 80 more years or so 
         """
         birthdate = self.cleaned_data['dob']
+        if birthdate is None:
+            return None
         if birthdate > datetime.datetime.today().date():
-            raise ValidationError(f"Date of birth can not be earlier than today pleaes check input")
+            raise ValidationError(f"Date of birth MUST be earlier than today.")
         return birthdate
 
     def clean_mobile(self):

@@ -17,6 +17,7 @@ from accounts.models import User
 from django.core.mail import EmailMultiAlternatives
 from django.utils.html import strip_tags
 from django.utils import timezone
+from django.http import HttpResponseRedirect
 from cobalt.settings import (
     DEFAULT_FROM_EMAIL,
     GLOBAL_TITLE,
@@ -496,7 +497,7 @@ def email_contact(request, member_id):
     if request.method == "POST":
         title = request.POST["title"]
         message = request.POST["message"].replace("\n", "<br>")
-
+        redirect_to="dashboard:dashboard"
         msg = f"""
                   Email from: {request.user} ({request.user.email})<br><br>
                   <b>{title}</b>
@@ -527,7 +528,11 @@ def email_contact(request, member_id):
             extra_tags="cobalt-message-success",
         )
 
-        return redirect("dashboard:dashboard")
+        try:
+            redirect_to = request.POST["redirect_to"]
+        except:
+            pass
+        return redirect(redirect_to)
 
     return render(
         request, "notifications/email_form.html", {"form": form, "member": member}
