@@ -2,6 +2,7 @@
 
 from PIL import Image
 import re
+import datetime
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from masterpoints.views import system_number_available
@@ -60,6 +61,16 @@ class UserUpdateForm(forms.ModelForm):
             "pic",
             "bbo_name",
         ]
+
+    def clean_dob(self):
+        """
+        Most of the users are born in 19xx so we default any 2 digit year to 1900
+        This code will only work for 80 more years or so 
+        """
+        birthdate = self.cleaned_data['dob']
+        if birthdate > datetime.datetime.today().date():
+            raise ValidationError(f"Date of birth can not be earlier than today pleaes check input")
+        return birthdate
 
     def clean_mobile(self):
         """

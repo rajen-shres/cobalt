@@ -4,9 +4,15 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, RegexValidator
 from cobalt.settings import AUTO_TOP_UP_MAX_AMT, GLOBAL_ORG, TBA_PLAYER, RBAC_EVERYONE
+from datetime import date
 from PIL import Image
+from django.core.exceptions import ValidationError
 
 
+def no_future(value):
+    today = date.today()
+    if value > today:
+        raise ValidationError('Purchase_Date cannot be in the future.')
 class User(AbstractUser):
     """
     User class based upon AbstractUser.
@@ -33,7 +39,7 @@ class User(AbstractUser):
     pic = models.ImageField(
         upload_to="pic_folder/", default="pic_folder/default-avatar.png"
     )
-    dob = models.DateField(blank="True", null=True)
+    dob = models.DateField(blank="True", null=True, validators=[no_future])
     bbo_name = models.CharField("BBO Username", blank=True, null=True, max_length=20)
     auto_amount = models.PositiveIntegerField(
         "Auto Top Up Amount",
