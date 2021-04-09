@@ -14,6 +14,7 @@ from cobalt.settings import (
 from utils.utils import cobalt_round
 import datetime
 import pytz
+from decimal import Decimal
 from rbac.core import rbac_user_has_role
 
 PAYMENT_STATUSES = [
@@ -227,8 +228,7 @@ class Event(models.Model):
     entry_close_date = models.DateField(null=True, blank=True)
     entry_fee = models.DecimalField("Entry Fee", max_digits=12, decimal_places=2)
     entry_early_payment_discount = models.DecimalField(
-        "Early Payment Discount", max_digits=12, decimal_places=2, null=True, blank=True
-    )
+        "Early Payment Discount", max_digits=12, decimal_places=2, default=Decimal(0.0))
     entry_youth_payment_discount = models.IntegerField(
         "Youth Discount Percentage", null=True, blank=True
     )
