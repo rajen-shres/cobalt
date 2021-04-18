@@ -57,6 +57,8 @@ from .core import events_payments_callback, notify_conveners
 TZ = pytz.timezone(TIME_ZONE)
 
 
+def home_new(request):
+    return render(request, "events/home_new.html")
 def home(request):
     """main screen to show congresses
 
