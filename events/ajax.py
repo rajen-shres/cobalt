@@ -64,15 +64,18 @@ def get_all_congress_ajax(request) :
     )
     congressList = []
     for congress in congresses:
-        data_entry = dict()
-        data_entry["congress"] = congress.name 
-        data_entry["club"] = congress.congress_master.org.name
-        data_entry["date_start"] = congress.entry_open_date.strftime("%y/%m/%d")
-        data_entry["actions"] = {"id":congress.id,
-        "edit":congress.user_is_convener(request.user),
-        "manage":congress.user_is_convener(request.user)}
-        data_entry["date_end"] = congress.entry_close_date.strftime("%y/%m/%d")
-        congressList.append(data_entry)
+        try:
+            data_entry = dict()
+            data_entry["congress"] = congress.name 
+            data_entry["club"] = congress.congress_master.org.name
+            data_entry["date_start"] = congress.entry_open_date.strftime("%y/%m/%d")
+            data_entry["date_end"] = congress.entry_close_date.strftime("%y/%m/%d")
+            data_entry["actions"] = {"id":congress.id,
+            "edit":congress.user_is_convener(request.user),
+            "manage":congress.user_is_convener(request.user)}
+            congressList.append(data_entry)
+        except:
+            continue
 
     resp = {"data":congressList}
     return JsonResponse(data=resp, safe=False)
