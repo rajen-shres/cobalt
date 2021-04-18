@@ -1,0 +1,136 @@
+{% extends request.user.is_authenticated|yesno:"base.html,base_logged_out.html" %}
+{% load static %}
+
+{% block animate %}
+{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div class="card-header card-header-primary">
+    <h1>
+    <div class="d-flex justify-content-between">
+    <div>
+       Congresses list
+    </div>
+    <div>
+       <i class="material-icons" style="font-size:50px">book_online</i>
+    </div>
+  </h1>
+  </div>
+  <div class="table-responsive" style="margin:12px">
+          <div id="reportrange" class="btn btn-success btn-lg">
+    <span></span> <b class="caret"></b>
+  </div>
+  <div class="card-body text-center">
+
+    <div class="d-flex justify-content-between">
+          <div>
+            {% if draft_congress_flag %}
+              <a class="text-left" href="{% url "events:view_draft_congresses" %}">View Draft Congresses</a>
+            {% endif %}
+            </div>
+
+          <div class="pb-5">
+            {% if admin %}
+              <a class="text-right" href="{% url "events:create_congress_wizard" %}">Create New Congress</a>
+            {% endif %}
+          </div>
+
+     </div>
+        <table id="example" class="display table table-shopping" style="width:100%">
+        <thead>
+            <tr>
+                <th>Congress</th>
+                <th>Club</th>
+                <th>Date From</th>
+                <th>Date Till</th>
+                <th></th>
+            </tr>
+        </thead>
+    </table>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block footer %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.24/af-2.3.5/b-1.7.0/b-html5-1.7.0/date-1.0.3/fh-3.1.8/r-2.2.7/sc-2.0.3/sp-1.2.2/datatables.min.css"/>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.24/af-2.3.5/b-1.7.0/b-html5-1.7.0/date-1.0.3/fh-3.1.8/r-2.2.7/sc-2.0.3/sp-1.2.2/datatables.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<script>
+$(document).ready(function() {
+
+    var start = moment("2020-01-01 12:34:16");
+    var end = moment("2021-03-03 10:08:07");
+    function cb(start, end) {
+      $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+    }
+
+    $('#reportrange').daterangepicker({
+      startDate: start,
+      endDate: end,
+      ranges: {
+        'Today': [moment(), moment()],
+        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+        'This Month': [moment().startOf('month'), moment().endOf('month')],
+        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+      }
+    }, cb);
+    cb(start, end);
+    $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
+   var start = picker.startDate;
+   var end = picker.endDate;
+
+
+  $.fn.dataTable.ext.search.push(
+    function(settings, data, dataIndex) {
+      var min = start;
+      var max = end;
+      var startDate = moment(data[2], "YYYY/MM/DD").toDate();
+      console.log("start ==> " + min + "end ==> " + max + "mydate ==> " + startDate + "raw " + data[2])
+      if (min == null && max == null) {
+        return true;
+      }
+      if (min == null && startDate <= max) {
+        return true;
+      }
+      if (max == null && startDate >= min) {
+        return true;
+      }
+      if (startDate <= max && startDate >= min) {
+        return true;
+      }
+      return false;
+    }
+  );
+  table.draw();
+  $.fn.dataTable.ext.search.pop();
+});
+// Custom filtering function which will search data in column four between two values
+   var table =  $('#example').DataTable( {
+        "ajax": '{% url "events:test_tanmay_ajax" %}',
+        "columns": [
+            { "data": "congress" },
+            { "data": "club" },
+            { "data": "date_start" },
+            { "data": "date_end" },
+            { "data": "actions", "name":"Actions", "render": function(data, type, row){
+              var html_buttons =  '<a class="btn btn-sm btn-danger" href="{% url "events:view_congress" congress_id=12345%}">Enter</a>'.replace(/12345/, data.id)
+              if(data.edit){
+              html_buttons += '<a href="{% url "events:create_congress_wizard" congress_id=12345 step=2 %}" class="btn btn-sm btn-success">Edit</a>'.replace(/12345/, data.id)
+              }
+              if(data.manage){
+              html_buttons +='<a class="btn btn-sm btn-info" href="{% url "events:admin_summary" congress_id=123456 %}">Manage</a>'.replace(/12345/, data.id)
+              }
+        
+              return html_buttons;
+            }}
+        ]
+    } );
+} );
+</script>
+{% endblock %}
