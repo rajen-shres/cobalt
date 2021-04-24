@@ -500,7 +500,7 @@ class EventEntry(models.Model):
     )
     primary_entrant = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, null=True, blank=True
+        Category, on_delete=models.SET_NULL, null=True, blank=True
     )
     free_format_answer = models.CharField(
         "Free Format Answer", max_length=60, null=True, blank=True
