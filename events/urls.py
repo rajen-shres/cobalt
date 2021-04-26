@@ -14,6 +14,7 @@ urlpatterns = [
         views.view_congress,
         name="view_congress",
     ),
+    path("new_home", views.home_new, name="events_new"),
     path(
         "congress/event/enter/<int:congress_id>/<int:event_id>",
         views.enter_event,
@@ -75,6 +76,11 @@ urlpatterns = [
         "congress/event/change-category",
         ajax.change_category_on_existing_entry_ajax,
         name="change_category_on_existing_entry_ajax",
+    ),
+    path(
+        "congress/get_all_congresses",
+        ajax.get_all_congress_ajax,
+        name="test_tanmay_ajax",
     ),
     path(
         "congress/event/delete-entry/<int:event_entry_id>",
