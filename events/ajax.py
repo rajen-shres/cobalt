@@ -41,12 +41,44 @@ from payments.core import (
     get_balance,
 )
 from organisations.models import Organisation
-from django.contrib import messages
-import uuid
 from .core import notify_conveners
 from cobalt.settings import TBA_PLAYER, COBALT_HOSTNAME, BRIDGE_CREDITS
 import json
+from datetime import datetime
 
+@login_required()
+def get_all_congress_ajax(request) :
+    #     {
+    #   "id": "1",
+    #   "name": "Tiger Nixon",
+    #   "position": "System Architect",
+    #   "salary": "$320,800",
+    #   "start_date": "2011/04/25",
+    #   "office": "Edinburgh",
+    #   "extn": "5421"
+    # },
+    congresses = (
+        Congress.objects.order_by("start_date")
+        .filter(start_date__gte=datetime.now())
+        .filter(status="Published")
+    )
+    congressList = []
+    for congress in congresses:
+        try:
+            data_entry = dict()
+            data_entry["congress"] = congress.name 
+            data_entry["club"] = congress.congress_master.org.name
+            data_entry["date_start"] = congress.entry_open_date.strftime("%y/%m/%d")
+            data_entry["date_end"] = congress.entry_close_date.strftime("%y/%m/%d")
+            data_entry["actions"] = {"id":congress.id,
+            "edit":congress.user_is_convener(request.user),
+            "manage":congress.user_is_convener(request.user)}
+            congressList.append(data_entry)
+        except:
+            continue
+
+    resp = {"data":congressList}
+    return JsonResponse(data=resp, safe=False)
 
 @login_required()
 def get_conveners_ajax(request, org_id):

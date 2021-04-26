@@ -31,6 +31,7 @@ textarea {
             <div class="row py-2 mx-auto">
               <textarea rows="4"  name="message" placeholder="Enter your message" required></textarea>
             </div>
+            <input type="hidden" name="redirect_to" value={{ request.META.HTTP_REFERER }} /> 
             <div class="row">
               <button class="btn btn-success btn-sm mx-auto">Submit</button>
 

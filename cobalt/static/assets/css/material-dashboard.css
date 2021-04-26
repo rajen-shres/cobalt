@@ -12984,8 +12984,8 @@ label {
 
 select,
 select.form-control {
-  -moz-appearance: none;
-  -webkit-appearance: none;
+  -moz-appearance: auto;
+  -webkit-appearance: auto;
 }
 
 @media (min-width: 576px) {
