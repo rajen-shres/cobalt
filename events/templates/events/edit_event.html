@@ -403,7 +403,7 @@
 
   function deleteCategory() {
     category_id = $('#categories_list').val();
-    $.get("{% url "events:delete_category_ajax" %}?category_id=" + category_id)
+    $.get("{% url "events:delete_category_ajax" %}?category_id=" + category_id + "&event_id=" + {{event.id}})
       .done(response => {
         msg = response['data']['message'];
         if (msg == 'Success') {

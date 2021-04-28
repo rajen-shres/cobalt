@@ -157,9 +157,10 @@ def delete_category_ajax(request):
 
     if request.method == "GET":
         category_id = request.GET["category_id"]
+        event_id = request.GET["event_id"]
 
     category = get_object_or_404(Category, pk=category_id)
-
+    event = get_object_or_404(Event, pk=event_id)
     # check access
     role = "events.org.%s.edit" % category.event.congress.congress_master.org.id
     if not rbac_user_has_role(request.user, role):
@@ -167,6 +168,12 @@ def delete_category_ajax(request):
 
     category.delete()
 
+    # Log it
+    EventLog(
+        event=event,
+        actor=request.user,
+        action=f"deleted category {category.description}",
+    ).save()
     response_data = {}
     response_data["message"] = "Success"
     return JsonResponse({"data": response_data})
