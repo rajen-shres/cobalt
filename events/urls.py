@@ -258,6 +258,11 @@ urlpatterns = [
         name="delete_category_ajax",
     ),
     path(
+        "congress-builder/create/edit-category",
+        ajax.edit_category_ajax,
+        name="edit_category_ajax",
+    ),
+    path(
         "congress-builder/create/delete-session",
         ajax.delete_session_ajax,
         name="delete_session_ajax",

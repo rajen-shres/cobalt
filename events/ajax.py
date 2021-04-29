@@ -178,7 +178,36 @@ def delete_category_ajax(request):
     response_data["message"] = "Success"
     return JsonResponse({"data": response_data})
 
+@login_required()
+def edit_category_ajax(request):
+    """ Ajax call to edit a category in an event """
 
+    if request.method == "POST":
+        category_id = request.POST["category_id"]
+        event_id = request.POST["event_id"]
+        description = request.POST["description"]
+
+
+    category = get_object_or_404(Category, pk=category_id)
+    event = get_object_or_404(Event, pk=event_id)
+    # check access
+    role = "events.org.%s.edit" % category.event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    old_description = category.description
+    category.description = description
+    category.save()
+
+    # Log it
+    EventLog(
+        event=event,
+        actor=request.user,
+        action=f"edited category from {old_description} {category.description}",
+    ).save()
+    response_data = {}
+    response_data["message"] = "Success"
+    return JsonResponse({"data": response_data})
 @login_required()
 def delete_session_ajax(request):
     """ Ajax call to delete a session from a congress """

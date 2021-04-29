@@ -259,6 +259,7 @@
               <div class="d-flex">
                 <div>
                   <button id="add_category_button" class="btn btn-success btn-sm" onclick="addCategory();return false">Add</button>
+                  <button id="edit_category_button" class="btn btn-primary btn-sm cobalt-save" disabled>Edit</button>
                 </div>
                 <div class="ml-auto">
                   <button class="btn btn-danger btn-sm cobalt-save" id="delete_category_button" onclick="deleteCategory();return false">Delete</button>
@@ -425,6 +426,9 @@
       $("#delete_button").prop('disabled', false);
     });
 
+    $("#categories_list").change(function(){
+      $("#edit_category_button").prop('disabled', false);
+    })
     $("#override_dates_toggle").click(function(event) {
         event.preventDefault();
         $("#override_dates").show();
@@ -436,6 +440,39 @@
       var session_id = $("#session_list").val();
       window.location = "/events/congress/create/edit-session/{{event.id}}/" + session_id;
       return false;
+    });
+
+
+    $("#edit_category_button").click(function() {
+
+ Swal.fire({
+  title: "Edit Category",
+        text: "New category description:",
+        input: 'text',
+        showCancelButton: true
+    }).then((result)=>{
+
+        if (result.value) {
+
+            var category_id = $("#categories_list").val();
+            var serializedData = {
+              "event_id": {{ event.id }},
+              "description": result.value,
+              "category_id": category_id
+            };
+
+            $.ajax({
+              url: '{% url "events:edit_category_ajax" %}',
+              method: "POST",
+              headers: {'X-CSRFToken': '{{ csrf_token }}'},
+              data: serializedData,
+              dataType: "json"
+            }).done(function(response) {
+              location.reload();
+            });
+          }
+      return false;
+    });
     });
 
     $('#id_entry_open_date').datetimepicker({
