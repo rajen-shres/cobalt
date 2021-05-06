@@ -449,18 +449,21 @@
   title: "Edit Category",
         text: "New category description:",
         input: 'text',
+        inputValue: $("#categories_list option:selected").text().trim(),
         showCancelButton: true
-    }).then((result)=>{
-
+    }
+    ).then((result)=>{
         if (result.value) {
-
+            if(result.value.length>30){
+                     Swal.fire("Category description is capped to 30 characters!! please input smaller description");
+                     return false;
+            }
             var category_id = $("#categories_list").val();
             var serializedData = {
               "event_id": {{ event.id }},
               "description": result.value,
               "category_id": category_id
             };
-
             $.ajax({
               url: '{% url "events:edit_category_ajax" %}',
               method: "POST",
