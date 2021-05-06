@@ -219,6 +219,7 @@ def create_congress_wizard_2(request, step_list, congress):
         form = CongressForm(request.POST)
         if form.is_valid():
             congress.year = form.cleaned_data["year"]
+            congress.congress_type = form.cleaned_data["congress_type"]
             congress.name = form.cleaned_data["name"]
             congress.date_string = form.cleaned_data["date_string"]
             congress.start_date = form.cleaned_data["start_date"]

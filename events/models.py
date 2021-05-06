@@ -79,6 +79,15 @@ EVENT_PLAYER_FORMAT_SIZE = {
     "Teams": 6,
 }
 
+CONGRESS_TYPES = [
+("national_gold", "National gold point event"),
+("state_championship", "State championship event"),
+("state_congress", "State congress event"),
+("club", "Club event"),
+("club_congress", "Club congress"),
+("other", "Other event"),
+]
+
 PEOPLE_DEFAULT = """<table class="table"><tbody><tr><td><span style="font-weight: normal;">
 Organiser:</span></td><td><span style="font-weight: normal;">Jane Doe</span></td>
 </tr><tr><td><span style="font-weight: normal;">Phone:</span></td><td>
@@ -179,6 +188,13 @@ class Congress(models.Model):
     last_updated = models.DateTimeField(default=timezone.now)
     status = models.CharField(
         "Congress Status", max_length=10, choices=CONGRESS_STATUSES, default="Draft"
+    )
+    congress_type = models.CharField(
+        "Congress Type",
+        max_length=30,
+        choices=CONGRESS_TYPES,
+        blank=True,
+        null=True
     )
 
     class Meta:

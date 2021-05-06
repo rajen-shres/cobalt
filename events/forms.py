@@ -61,6 +61,7 @@ class CongressForm(forms.ModelForm):
         self.fields["bank_transfer_details"].label = False
         self.fields["cheque_details"].label = False
         self.fields["automatic_refund_cutoff"].label = False
+        self.fields["congress_type"].label = False
 
         # mark fields as optional
         self.fields["name"].required = False
@@ -232,6 +233,7 @@ class CongressForm(forms.ModelForm):
             "bank_transfer_details",
             "cheque_details",
             "automatic_refund_cutoff",
+            "congress_type",
         )
 
 

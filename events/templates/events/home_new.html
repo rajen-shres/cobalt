@@ -37,13 +37,28 @@
           </div>
 
      </div>
-        <table id="example" class="display table table-shopping" style="width:100%">
+        <table id="congress_table" class="display table table-shopping" style="width:100%">
         <thead>
             <tr>
-                <th>Congress</th>
-                <th>Club</th>
-                <th>Date From</th>
-                <th>Date Till</th>
+                <th>Month</th>
+                <th>Congress Start</th>
+                <th>Congress End</th>
+                <th>Congress Name</th>
+                <th>Run By</th>
+                <th>State</th>
+                <th>Event Type</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+            <tr>
+                <th>Month</th>
+                <th>Congress Start</th>
+                <th>Congress End</th>
+                <th>Congress Name</th>
+                <th>Run By</th>
+                <th>State</th>
+                <th>Event Type</th>
+                <th>Status</th>
                 <th></th>
             </tr>
         </thead>
@@ -54,8 +69,8 @@
 {% endblock %}
 
 {% block footer %}
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.24/af-2.3.5/b-1.7.0/b-html5-1.7.0/date-1.0.3/fh-3.1.8/r-2.2.7/sc-2.0.3/sp-1.2.2/datatables.min.css"/>
-<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.24/af-2.3.5/b-1.7.0/b-html5-1.7.0/date-1.0.3/fh-3.1.8/r-2.2.7/sc-2.0.3/sp-1.2.2/datatables.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.24/af-2.3.6/b-1.7.0/date-1.0.3/fc-3.3.2/fh-3.1.8/kt-2.6.1/r-2.2.7/rg-1.1.2/rr-1.2.7/sc-2.0.3/sb-1.0.1/sl-1.3.3/datatables.min.css"/>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.24/af-2.3.6/b-1.7.0/date-1.0.3/fc-3.3.2/fh-3.1.8/kt-2.6.1/r-2.2.7/rg-1.1.2/rr-1.2.7/sc-2.0.3/sb-1.0.1/sl-1.3.3/datatables.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
@@ -75,7 +90,10 @@ $(document).ready(function() {
         'Today': [moment(), moment()],
         'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
         'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+        'Next 6 months': [moment().startOf(), moment()],
+        'Next 12 months': [moment().startOf(), moment()],
+        'Next 18 months': [moment().startOf(), moment()],
+        'Next 24 months': [moment().startOf(), moment()],
         'This Month': [moment().startOf('month'), moment().endOf('month')],
         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
       }
@@ -110,14 +128,26 @@ $(document).ready(function() {
   table.draw();
   $.fn.dataTable.ext.search.pop();
 });
+// individual search 
+   /* $('#congress_table thead tr:eq(0) th').each( function () {
+        var title = $(this).text();
+        $(this).html( '<input type="search" placeholder="Search '+title+'" style="background-image:none" class="form-control form-control-sm column_search" />' );
+    });
+    $('#congress_table thead tr:eq(0) th:last').html('');
+    */
 // Custom filtering function which will search data in column four between two values
-   var table =  $('#example').DataTable( {
+   var table =  $('#congress_table').DataTable( {
         "ajax": '{% url "events:test_tanmay_ajax" %}',
+        //"dom": 'i<"top"fl><"abf_table" rt><"bottom"p><"clear">',
         "columns": [
-            { "data": "congress" },
-            { "data": "club" },
-            { "data": "date_start" },
-            { "data": "date_end" },
+            { "data": "month" },
+            { "data": "congress_start" },
+            { "data": "congress_end" },
+            { "data": "congress_name" },
+            { "data": "run_by" },
+            { "data": "state" },
+            { "data": "event_type" },
+            { "data": "status" },
             { "data": "actions", "name":"Actions", "render": function(data, type, row){
               var html_buttons =  '<a class="btn btn-sm btn-danger" href="{% url "events:view_congress" congress_id=12345%}">Enter</a>'.replace(/12345/, data.id)
               if(data.edit){
@@ -129,8 +159,46 @@ $(document).ready(function() {
         
               return html_buttons;
             }}
-        ]
+        ],
+       'columnDefs': [{
+        'targets': [1,3], // column index (start from 0)
+        'orderable': false, // set orderable false for selected columns
+        }],
+        rowGroup: {
+            dataSrc: 'month'
+        },
+        "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+          $('td', nRow).css('background-color', 'White');
+          $('td:nth-child(8)', nRow).css('background-color', 'White');
+        },
+        "initComplete": function () {
+            this.api().columns().every( function () {
+                var column = this;
+                var select = $('<select><option value=""></option></select>')
+                    .appendTo( $(column.header()).empty() )
+                    .on( 'change', function () {
+                        var val = $.fn.dataTable.util.escapeRegex(
+                            $(this).val()
+                        );
+                        column
+                            .search( val ? '^'+val+'$' : '', true, false )
+                            .draw();
+                    } );
+                column.data().unique().sort().each( function ( d, j ) {
+                    select.append( '<option value="'+d+'">'+d+'</option>' )
+                });
+            });
+        },
     } );
+    // Apply the search
+    $( '#congress_table thead'  ).on( 'keyup', ".column_search",function () {
+   
+        table
+            .column( $(this).parent().parent().index() )
+            .search( this.value )
+            .draw();
+    } );
+$('#congress_table_length').css("text-align", "left")
 } );
 </script>
 {% endblock %}

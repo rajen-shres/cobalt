@@ -66,10 +66,14 @@ def get_all_congress_ajax(request) :
     for congress in congresses:
         try:
             data_entry = dict()
-            data_entry["congress"] = congress.name 
-            data_entry["club"] = congress.congress_master.org.name
-            data_entry["date_start"] = congress.entry_open_date.strftime("%y/%m/%d")
-            data_entry["date_end"] = congress.entry_close_date.strftime("%y/%m/%d")
+            data_entry["congress_name"] = congress.name 
+            data_entry["month"] = congress.start_date.strftime("%B %Y")
+            data_entry["run_by"] = congress.congress_master.org.name
+            data_entry["congress_start"] = congress.entry_open_date.strftime("%y/%m/%d")
+            data_entry["congress_end"] = congress.entry_close_date.strftime("%y/%m/%d")
+            data_entry["state"] = congress.congress_master.org.state
+            data_entry["status"] = congress.status
+            data_entry["event_type"] = congress.congress_type
             data_entry["actions"] = {"id":congress.id,
             "edit":congress.user_is_convener(request.user),
             "manage":congress.user_is_convener(request.user)}
