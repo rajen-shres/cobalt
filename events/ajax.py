@@ -60,7 +60,6 @@ def get_all_congress_ajax(request) :
     congresses = (
         Congress.objects.order_by("start_date")
         .filter(start_date__gte=datetime.now())
-        .filter(status="Published")
     )
     congressList = []
     for congress in congresses:

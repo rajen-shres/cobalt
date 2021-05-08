@@ -50,17 +50,6 @@
                 <th>Status</th>
                 <th></th>
             </tr>
-            <tr>
-                <th>Month</th>
-                <th>Congress Start</th>
-                <th>Congress End</th>
-                <th>Congress Name</th>
-                <th>Run By</th>
-                <th>State</th>
-                <th>Event Type</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
         </thead>
     </table>
   </div>
@@ -77,8 +66,8 @@
 <script>
 $(document).ready(function() {
 
-    var start = moment("2020-01-01 12:34:16");
-    var end = moment("2021-03-03 10:08:07");
+    var start = moment();
+    var end = moment().add(6,"month");
     function cb(start, end) {
       $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
     }
@@ -88,12 +77,9 @@ $(document).ready(function() {
       endDate: end,
       ranges: {
         'Today': [moment(), moment()],
-        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-        'Next 6 months': [moment().startOf(), moment()],
-        'Next 12 months': [moment().startOf(), moment()],
-        'Next 18 months': [moment().startOf(), moment()],
-        'Next 24 months': [moment().startOf(), moment()],
+        'Next 6 months': [moment(), moment().subtract(6, 'month')],
+        'Next 12 months': [moment(), moment().subtract(12, 'month')],
+        'Next 12 months': [moment().startOf(), moment().add(12,'month')],
         'This Month': [moment().startOf('month'), moment().endOf('month')],
         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
       }
@@ -138,7 +124,11 @@ $(document).ready(function() {
 // Custom filtering function which will search data in column four between two values
    var table =  $('#congress_table').DataTable( {
         "ajax": '{% url "events:test_tanmay_ajax" %}',
-        //"dom": 'i<"top"fl><"abf_table" rt><"bottom"p><"clear">',
+        //"dom": '<"toolbar">lifrtpr',
+        "dom":"<'row'<'col-sm-12 col-md-2'l><'col-sm-12 col-md-2 run_by'> <'col-sm-12 col-md-2 state'> <'col-sm-12 col-md-2 event_type'> <'col-sm-12 col-md-2 status'> <'col-sm-12 col-md-2'f>>" +
+              "<'row'<'col-sm-12'tr>>" +
+              "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        "ordering": false,
         "columns": [
             { "data": "month" },
             { "data": "congress_start" },
@@ -161,21 +151,56 @@ $(document).ready(function() {
             }}
         ],
        'columnDefs': [{
-        'targets': [1,3], // column index (start from 0)
+        //'targets': [1,3], // column index (start from 0)
         'orderable': false, // set orderable false for selected columns
         }],
         rowGroup: {
             dataSrc: 'month'
         },
         "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-          $('td', nRow).css('background-color', 'White');
-          $('td:nth-child(8)', nRow).css('background-color', 'White');
+          var event_type = aData["event_type"];
+          var color = "White"
+          if(event_type=="national_gold"){
+            aData["event_type"] = "National Gold Event"
+            color = 'rgb(212, 53, 118)'
+          }
+          if(event_type=="state_championship")
+          {
+            color = 'Red'
+          }
+          if(event_type=="state_congress")
+          {
+
+            color = 'Red'
+          }
+          if(event_type=="club")
+          {
+
+            color = 'Blue'
+          }
+          if(event_type=="club_congress")
+          {
+
+            color = 'Blue'
+          }
+          if(event_type=="other")
+          {
+
+            color = 'Magenta'
+          }
+          $('td:nth-child(4)', nRow).css('background-color', color);
+          $('td:nth-child(5)', nRow).css('background-color', color);
         },
         "initComplete": function () {
-            this.api().columns().every( function () {
+          this.api().columns().every(function(){
+            $(this.header()).css("font-weight", 500 );
+          });
+            this.api().columns([4,5,6,7]).every( function () {
                 var column = this;
-                var select = $('<select><option value=""></option></select>')
-                    .appendTo( $(column.header()).empty() )
+                var column_class = "." + column.dataSrc();
+                var column_text = column.header().textContent;
+                var select = $('<select class="form-control"><option value="">'+column_text + '</option></select>')
+                    .appendTo( $(column_class) )
                     .on( 'change', function () {
                         var val = $.fn.dataTable.util.escapeRegex(
                             $(this).val()
