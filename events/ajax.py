@@ -68,8 +68,8 @@ def get_all_congress_ajax(request) :
             data_entry["congress_name"] = congress.name 
             data_entry["month"] = congress.start_date.strftime("%B %Y")
             data_entry["run_by"] = congress.congress_master.org.name
-            data_entry["congress_start"] = congress.entry_open_date.strftime("%y/%m/%d")
-            data_entry["congress_end"] = congress.entry_close_date.strftime("%y/%m/%d")
+            data_entry["congress_start"] = congress.entry_open_date.strftime("%d/%m/%y")
+            data_entry["congress_end"] = congress.entry_close_date.strftime("%d/%m/%y")
             data_entry["state"] = congress.congress_master.org.state
             data_entry["status"] = congress.status
             data_entry["event_type"] = congress.congress_type
