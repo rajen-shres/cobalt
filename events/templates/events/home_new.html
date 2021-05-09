@@ -39,14 +39,25 @@
      </div>
         <table id="congress_table" class="display table table-shopping" style="width:100%">
         <thead>
-            <tr>
+            <tr style="text-align:left">
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th class="run_by"></th>
+                <th class="state"></th>
+                <th class="event_type"></th>
+                <th class="status"></th>
+                <th></th>
+            </tr>
+            <tr style="text-align:left">
                 <th>Month</th>
                 <th>Congress Start</th>
                 <th>Congress End</th>
                 <th>Congress Name</th>
                 <th>Run By</th>
                 <th>State</th>
-                <th>Event Type</th>
+                <th>Congress Type</th>
                 <th>Status</th>
                 <th></th>
             </tr>
@@ -77,8 +88,9 @@ $(document).ready(function() {
       endDate: end,
       ranges: {
         'Today': [moment(), moment()],
-        'Next 6 months': [moment(), moment().subtract(6, 'month')],
-        'Next 12 months': [moment(), moment().subtract(12, 'month')],
+        'Next 6 months': [moment(), moment().add(6, 'month')],
+        'Last 6 months': [moment(), moment().subtract(6, 'month')],
+        'Next 12 months': [moment(), moment().add(12, 'month')],
         'Next 12 months': [moment().startOf(), moment().add(12,'month')],
         'This Month': [moment().startOf('month'), moment().endOf('month')],
         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
@@ -94,8 +106,8 @@ $(document).ready(function() {
     function(settings, data, dataIndex) {
       var min = start;
       var max = end;
-      var startDate = moment(data[2], "YYYY/MM/DD").toDate();
-      console.log("start ==> " + min + "end ==> " + max + "mydate ==> " + startDate + "raw " + data[2])
+      var startDate = moment(data[1], "DD/MM/YY").toDate();
+      var endDate = moment(data[2], "DD/MM/YY").toDate();
       if (min == null && max == null) {
         return true;
       }
@@ -125,12 +137,12 @@ $(document).ready(function() {
    var table =  $('#congress_table').DataTable( {
         "ajax": '{% url "events:test_tanmay_ajax" %}',
         //"dom": '<"toolbar">lifrtpr',
-        "dom":"<'row'<'col-sm-12 col-md-2'l><'col-sm-12 col-md-2 run_by'> <'col-sm-12 col-md-2 state'> <'col-sm-12 col-md-2 event_type'> <'col-sm-12 col-md-2 status'> <'col-sm-12 col-md-2'f>>" +
+        "dom":"<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
               "<'row'<'col-sm-12'tr>>" +
               "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         "ordering": false,
         "columns": [
-            { "data": "month" },
+            { "defaultContent": ""},
             { "data": "congress_start" },
             { "data": "congress_end" },
             { "data": "congress_name" },
@@ -139,12 +151,18 @@ $(document).ready(function() {
             { "data": "event_type" },
             { "data": "status" },
             { "data": "actions", "name":"Actions", "render": function(data, type, row){
-              var html_buttons =  '<a class="btn btn-sm btn-danger" href="{% url "events:view_congress" congress_id=12345%}">Enter</a>'.replace(/12345/, data.id)
+              var html_buttons =  '<a class="btn btn-sm btn-danger" href="{% url "events:view_congress" congress_id=12345%}">View</a>'.replace(/12345/, data.id)
               if(data.edit){
               html_buttons += '<a href="{% url "events:create_congress_wizard" congress_id=12345 step=2 %}" class="btn btn-sm btn-success">Edit</a>'.replace(/12345/, data.id)
               }
+              else{
+              html_buttons += '<a href=""" class="btn btn-sm btn-success" style="visibility:hidden">Edit</a>'.replace(/12345/, data.id)
+              }
               if(data.manage){
               html_buttons +='<a class="btn btn-sm btn-info" href="{% url "events:admin_summary" congress_id=123456 %}">Manage</a>'.replace(/12345/, data.id)
+              }
+              else{
+              html_buttons += '<a href=""" class="btn btn-sm btn-info" style="visibility:hidden">Manage</a>'.replace(/12345/, data.id)
               }
         
               return html_buttons;
@@ -155,13 +173,17 @@ $(document).ready(function() {
         'orderable': false, // set orderable false for selected columns
         }],
         rowGroup: {
-            dataSrc: 'month'
+            dataSrc: 'month',
+                            startRender: function (rows, group) {
+                  return $('<tr/>')
+                    .append( '<td class="td-left" colspan=12 style="text-align:left">'+group+'</td>' );
+                
+                }
         },
         "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
           var event_type = aData["event_type"];
           var color = "White"
           if(event_type=="national_gold"){
-            aData["event_type"] = "National Gold Event"
             color = 'rgb(212, 53, 118)'
           }
           if(event_type=="state_championship")
@@ -188,18 +210,19 @@ $(document).ready(function() {
 
             color = 'Magenta'
           }
-          $('td:nth-child(4)', nRow).css('background-color', color);
-          $('td:nth-child(5)', nRow).css('background-color', color);
+          $('td:nth-child(4)', nRow).css('background-color', color).css("color", "white").css("font-weight", "bold");
+          $('td:nth-child(5)', nRow).css('background-color', color).css("color", "white").css("font-weight", "bold");
         },
         "initComplete": function () {
           this.api().columns().every(function(){
             $(this.header()).css("font-weight", 500 );
+            $(this).css("text-align", "left")
           });
             this.api().columns([4,5,6,7]).every( function () {
                 var column = this;
                 var column_class = "." + column.dataSrc();
                 var column_text = column.header().textContent;
-                var select = $('<select class="form-control"><option value="">'+column_text + '</option></select>')
+                var select = $('<select class="form-control"><option value="">filter</option></select>')
                     .appendTo( $(column_class) )
                     .on( 'change', function () {
                         var val = $.fn.dataTable.util.escapeRegex(

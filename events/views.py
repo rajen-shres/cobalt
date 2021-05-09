@@ -837,7 +837,7 @@ def delete_event_entry(request, event_entry_id):
         player_string = f"<table><tr><td><b>Name</b><td><b>{GLOBAL_ORG} No.</b><td><b>Payment Method</b><td><b>Status</b></tr>"
         for event_entry_player in event_entry_players:
             PAYMENT_TYPES_DICT = dict(PAYMENT_TYPES)
-            payment_type_str = PAYMENT_TYPES_DICT[event_entry_player.payment_type]
+            payment_type_str = PAYMENT_TYPES_DICT.get(event_entry_player.payment_type, event_entry_player.payment_type)
             player_string += f"<tr><td>{event_entry_player.player.full_name}<td>{event_entry_player.player.system_number}<td>{payment_type_str}<td>{event_entry_player.payment_status}</tr>"
         player_string += "</table>"
         message = "Entry cancelled.<br><br> %s" % player_string

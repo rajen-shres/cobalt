@@ -319,7 +319,7 @@ class Event(models.Model):
         entry_fee = cobalt_round(self.entry_fee / players_per_entry)
 
         # date
-        if self.congress.allow_early_payment_discount:
+        if self.congress.allow_early_payment_discount and self.congress.early_payment_discount_date:
             if self.congress.early_payment_discount_date >= check_date:
                 entry_fee = (
                     self.entry_fee - self.entry_early_payment_discount
