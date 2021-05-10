@@ -183,6 +183,10 @@ $(document).ready(function() {
         "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
           var event_type = aData["event_type"];
           var color = "White"
+          var font_color = "White"
+          if(event_type==null){
+            font_color = "Black"
+          }
           if(event_type=="national_gold"){
             color = 'rgb(212, 53, 118)'
           }
@@ -210,8 +214,8 @@ $(document).ready(function() {
 
             color = 'Magenta'
           }
-          $('td:nth-child(4)', nRow).css('background-color', color).css("color", "white").css("font-weight", "bold");
-          $('td:nth-child(5)', nRow).css('background-color', color).css("color", "white").css("font-weight", "bold");
+          $('td:nth-child(4)', nRow).css('background-color', color).css("color", font_color).css("font-weight", "bold");
+          $('td:nth-child(5)', nRow).css('background-color', color).css("color", font_color).css("font-weight", "bold");
         },
         "initComplete": function () {
           this.api().columns().every(function(){
