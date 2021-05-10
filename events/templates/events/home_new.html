@@ -87,12 +87,11 @@ $(document).ready(function() {
       startDate: start,
       endDate: end,
       ranges: {
-        'Today': [moment(), moment()],
         'Next 6 months': [moment(), moment().add(6, 'month')],
-        'Last 6 months': [moment(), moment().subtract(6, 'month')],
         'Next 12 months': [moment(), moment().add(12, 'month')],
         'Next 12 months': [moment().startOf(), moment().add(12,'month')],
         'This Month': [moment().startOf('month'), moment().endOf('month')],
+        'Last 6 months': [moment(), moment().subtract(6, 'month')],
         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
       }
     }, cb);
@@ -173,13 +172,11 @@ $(document).ready(function() {
         'orderable': false, // set orderable false for selected columns
         }],
         rowGroup: {
-            dataSrc: 'month',
-                            startRender: function (rows, group) {
-                  return $('<tr/>')
-                    .append( '<td class="td-left" colspan=12 style="text-align:left">'+group+'</td>' );
-                
-                }
-        },
+          dataSrc: 'month',
+          startRender: function (rows, group) {
+            return $('<tr/>').append( '<td class="td-left" colspan=12 style="text-align:left">'+group+'</td>' );
+                                              }
+                  },
         "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
           var event_type = aData["event_type"];
           var color = "White"
@@ -214,12 +211,13 @@ $(document).ready(function() {
 
             color = 'Magenta'
           }
-          $('td:nth-child(4)', nRow).css('background-color', color).css("color", font_color).css("font-weight", "bold");
-          $('td:nth-child(5)', nRow).css('background-color', color).css("color", font_color).css("font-weight", "bold");
+          $('td', nRow).css("text-align", "left").css("font-weight", "bold");
+          $('td:nth-child(4)', nRow).css('background-color', color).css("color", font_color);
+          $('td:nth-child(5)', nRow).css('background-color', color).css("color", font_color);
         },
         "initComplete": function () {
           this.api().columns().every(function(){
-            $(this.header()).css("font-weight", 500 );
+            $(this.header()).css("font-weight", 500).css("font-size", "larger").css("background-color", "rgb(82, 104, 213)").css("color", "white");
             $(this).css("text-align", "left")
           });
             this.api().columns([4,5,6,7]).every( function () {
