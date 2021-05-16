@@ -7,6 +7,7 @@ from django.template.loader import render_to_string
 from django.db.models import Sum, Q
 from .models import (
     Congress,
+    CONGRESS_TYPES,
     Category,
     CongressMaster,
     Event,
@@ -42,26 +43,23 @@ from payments.core import (
 )
 from organisations.models import Organisation
 from .core import notify_conveners
+from rbac.core import rbac_user_role_list
 from cobalt.settings import TBA_PLAYER, COBALT_HOSTNAME, BRIDGE_CREDITS
 import json
 from datetime import datetime
 
-@login_required()
 def get_all_congress_ajax(request) :
-    #     {
-    #   "id": "1",
-    #   "name": "Tiger Nixon",
-    #   "position": "System Architect",
-    #   "salary": "$320,800",
-    #   "start_date": "2011/04/25",
-    #   "office": "Edinburgh",
-    #   "extn": "5421"
-    # },
     congresses = (
         Congress.objects.order_by("start_date")
-        .filter(start_date__gte=datetime.now())
+        #.filter(start_date__gte=datetime.now())
     )
     congressList = []
+    admin = False
+    if request.user.is_authenticated:
+        role_list = rbac_user_role_list(request.user, "events", "org")
+        if len(role_list) > 0:
+            admin=True
+    congress_type_dict = dict(CONGRESS_TYPES)
     for congress in congresses:
         try:
             data_entry = dict()
@@ -71,15 +69,16 @@ def get_all_congress_ajax(request) :
             data_entry["congress_start"] = congress.start_date.strftime("%d/%m/%y")
             data_entry["congress_end"] = congress.end_date.strftime("%d/%m/%y")
             data_entry["state"] = congress.congress_master.org.state
-            data_entry["status"] = congress.status
-            data_entry["event_type"] = congress.congress_type
+            data_entry["status"] = congress.status if admin else "hide" #congress.status
+            data_entry["event_type"] = congress_type_dict.get(congress.congress_type,"Not found")
             data_entry["actions"] = {"id":congress.id,
-            "edit":congress.user_is_convener(request.user),
-            "manage":congress.user_is_convener(request.user)}
+            "edit":congress.user_is_convener(request.user) if admin else False,
+            "manage":congress.user_is_convener(request.user) if admin else False}
             congressList.append(data_entry)
-        except Exception as e:
-            print(f"{e} exception!!!")
+        except :
+            #"some logging here laterh"
             continue
+
 
     resp = {"data":congressList}
     return JsonResponse(data=resp, safe=False)
