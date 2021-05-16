@@ -198,6 +198,33 @@ $(document).ready(function() {
           if(table.data()[0].status == "hide"){
             table.columns([7]).visible(false);
           }
+          this.api().columns().every(function(){
+            $(this.header()).css("font-weight", 500).css("font-size", "larger").css("background-color", "rgb(82, 104, 213)").css("color", "white");
+            $(this).css("text-align", "left")
+          });
+            this.api().columns([4,5,6,7]).every( function () {
+                var column = this;
+                var column_class = "." + column.dataSrc();
+                var column_text = column.header().textContent;
+                var select = $('<select class="form-control"><option value="">filter</option></select>')
+                    .appendTo( $(column_class) )
+                    .on( 'change', function () {
+                        var val = $.fn.dataTable.util.escapeRegex(
+                            $(this).val()
+                        );
+                        column
+                            .search( val ? '^'+val+'$' : '', true, false )
+                            .draw();
+                    } );
+                column.data().unique().sort().each( function ( d, j ) {
+                    select.append( '<option value="'+d+'">'+d+'</option>' )
+                });
+            });
+            $('.dataTable').on('click', 'tbody tr', function() {
+              congress_id = table.row(this).data()["actions"].id
+            var href="{% url "events:view_congress" congress_id=12345%}".replace(/12345/, congress_id)
+            window.open(href, "_self")
+              })
           // 
           $.fn.dataTable.ext.search.push(
               function(settings, data, dataIndex) {
@@ -225,35 +252,8 @@ $(document).ready(function() {
               }
             );
             table.draw();
-            $('.dataTable').on('click', 'tbody tr', function() {
-              congress_id = table.row(this).data()["actions"].id
-            var href="{% url "events:view_congress" congress_id=12345%}".replace(/12345/, congress_id)
-            window.open(href, "_self")
-              })
-  $.fn.dataTable.ext.search.pop();
+            $.fn.dataTable.ext.search.pop();
           // 
-          this.api().columns().every(function(){
-            $(this.header()).css("font-weight", 500).css("font-size", "larger").css("background-color", "rgb(82, 104, 213)").css("color", "white");
-            $(this).css("text-align", "left")
-          });
-            this.api().columns([4,5,6,7]).every( function () {
-                var column = this;
-                var column_class = "." + column.dataSrc();
-                var column_text = column.header().textContent;
-                var select = $('<select class="form-control"><option value="">filter</option></select>')
-                    .appendTo( $(column_class) )
-                    .on( 'change', function () {
-                        var val = $.fn.dataTable.util.escapeRegex(
-                            $(this).val()
-                        );
-                        column
-                            .search( val ? '^'+val+'$' : '', true, false )
-                            .draw();
-                    } );
-                column.data().unique().sort().each( function ( d, j ) {
-                    select.append( '<option value="'+d+'">'+d+'</option>' )
-                });
-            });
         },
     } );
     // Apply the search

@@ -62,7 +62,6 @@ def get_all_congress_ajax(request) :
     if not admin:
         congresses = congresses.filter(status="Published")
     
-    congresses = congresses.filter(status="Published")
     congress_type_dict = dict(CONGRESS_TYPES)
     for congress in congresses:
         try:
