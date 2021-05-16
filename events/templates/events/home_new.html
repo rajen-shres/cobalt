@@ -18,18 +18,12 @@
   </h1>
   </div>
   <div class="table-responsive" style="margin:12px">
-          <div id="reportrange" class="btn btn-success btn-lg">
-    <span></span> <b class="caret"></b>
-  </div>
   <div class="card-body text-center">
+    <div class="justify-content-between d-flex">
 
-    <div class="d-flex justify-content-between">
-          <div>
-            {% if draft_congress_flag %}
-              <a class="text-left" href="{% url "events:view_draft_congresses" %}">View Draft Congresses</a>
-            {% endif %}
-            </div>
-
+          <div id="reportrange" class="btn btn-success btn-lg text-left">
+              <span></span> <b class="caret"></b>
+           </div>
           <div class="pb-5">
             {% if admin %}
               <a class="text-right" href="{% url "events:create_congress_wizard" %}">Create New Congress</a>
@@ -52,8 +46,8 @@
             </tr>
             <tr style="text-align:left">
                 <th>Month</th>
-                <th>Congress Start</th>
-                <th>Congress End</th>
+                <th>Start</th>
+                <th>End</th>
                 <th>Congress Name</th>
                 <th>Run By</th>
                 <th>State</th>
@@ -140,6 +134,7 @@ $(document).ready(function() {
               "<'row'<'col-sm-12'tr>>" +
               "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         "ordering": false,
+        "pageLength": 25,
         hideEmptyCols: true,
         "columns": [
             { "defaultContent": ""},
@@ -194,7 +189,7 @@ $(document).ready(function() {
           if(event_type=="Not found"){
             font_color = "Black"
           }
-          $('td', nRow).css("text-align", "left").css("font-weight", "bold");
+          $('td', nRow).css("text-align", "left").css("font-weight", "bold").css('cursor', 'pointer');
           $('td:nth-child(4)', nRow).css('background-color', color).css("color", font_color);
           $('td:nth-child(5)', nRow).css('background-color', color).css("color", font_color);
         },
@@ -210,6 +205,10 @@ $(document).ready(function() {
                 var max = moment().add(6, 'month');
                 var startDate = moment(data[1], "DD/MM/YY").toDate();
                 var endDate = moment(data[2], "DD/MM/YY").toDate();
+                var status = data[7]
+                if(status != "Published"){
+                  return false;
+                }
                 if (min == null && max == null) {
                   return true;
                 }
@@ -230,7 +229,7 @@ $(document).ready(function() {
               congress_id = table.row(this).data()["actions"].id
             var href="{% url "events:view_congress" congress_id=12345%}".replace(/12345/, congress_id)
             window.open(href, "_self")
-})
+              })
   $.fn.dataTable.ext.search.pop();
           // 
           this.api().columns().every(function(){

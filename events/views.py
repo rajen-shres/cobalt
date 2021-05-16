@@ -58,7 +58,18 @@ TZ = pytz.timezone(TIME_ZONE)
 
 
 def home_new(request):
-    return render(request, "events/home_new.html")
+        # check if user has any admin rights to show link to create congress
+    if request.user.is_authenticated:
+        (all_access, some_access) = rbac_user_allowed_for_model(
+            request.user, "events", "org", "edit"
+        )
+        if all_access or some_access:
+            admin = True
+        else:
+            admin = False
+    else:
+        admin = False
+    return render(request, "events/home_new.html", {"admin": admin})
 def home(request):
     """main screen to show congresses
 

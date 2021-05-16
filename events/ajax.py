@@ -59,6 +59,10 @@ def get_all_congress_ajax(request) :
         role_list = rbac_user_role_list(request.user, "events", "org")
         if len(role_list) > 0:
             admin=True
+    if not admin:
+        congresses = congresses.filter(status="Published")
+    
+    congresses = congresses.filter(status="Published")
     congress_type_dict = dict(CONGRESS_TYPES)
     for congress in congresses:
         try:
