@@ -154,7 +154,7 @@ $(document).ready(function() {
               html_buttons += '<a href=""" class="btn btn-sm btn-success" style="visibility:hidden">Edit</a>'.replace(/12345/, data.id)
               }
               if(data.manage){
-              html_buttons +='<a class="btn btn-sm btn-info" href="{% url "events:admin_summary" congress_id=123456 %}">Manage</a>'.replace(/12345/, data.id)
+              html_buttons +='<a class="btn btn-sm btn-info" href="{% url "events:admin_summary" congress_id=12345 %}">Manage</a>'.replace(/12345/, data.id)
               }
               else{
               html_buttons += '<a href=""" class="btn btn-sm btn-info" style="visibility:hidden">Manage</a>'.replace(/12345/, data.id)
