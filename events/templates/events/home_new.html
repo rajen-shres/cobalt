@@ -90,15 +90,21 @@ $(document).ready(function() {
       }
     }, cb);
     cb(start, end);
-    $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
-   var start = picker.startDate;
-   var end = picker.endDate;
+    // initial function 
+          var draft_filter_function = 
+              function(settings, data, dataIndex) {
+                var status = data[7]
+                if(status != "Published"){
+                  return false;
+                }
+                return true;
+              }
+    // 
+  // date function 
 
-
-  $.fn.dataTable.ext.search.push(
-    function(settings, data, dataIndex) {
-      var min = start;
-      var max = end;
+    var date_function = function(settings, data, dataIndex) {
+      var min = $('#reportrange').data('daterangepicker').startDate;;
+      var max = $('#reportrange').data('daterangepicker').endDate;
       var startDate = moment(data[1], "DD/MM/YY").toDate();
       var endDate = moment(data[2], "DD/MM/YY").toDate();
       if (min == null && max == null) {
@@ -115,9 +121,15 @@ $(document).ready(function() {
       }
       return false;
     }
-  );
+  // end date function
+    $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
+  var idx = $.fn.dataTable.ext.search.indexOf(date_function);
+  if (idx>=0)
+  {
+      $.fn.dataTable.ext.search.splice(idx,1);
+  }
+  $.fn.dataTable.ext.search.push(date_function);
   table.draw();
-  $.fn.dataTable.ext.search.pop();
 });
 // individual search 
    /* $('#congress_table thead tr:eq(0) th').each( function () {
@@ -209,9 +221,18 @@ $(document).ready(function() {
                 var select = $('<select class="form-control"><option value="">filter</option></select>')
                     .appendTo( $(column_class) )
                     .on( 'change', function () {
+                        if(column_text.toUpperCase()=="STATUS")
+                        {
+                          var idx = $.fn.dataTable.ext.search.indexOf(draft_filter_function)
+                          if (idx>=0)
+                          {
+                              $.fn.dataTable.ext.search.splice(idx,1);
+                          }
+                        }
                         var val = $.fn.dataTable.util.escapeRegex(
                             $(this).val()
                         );
+
                         column
                             .search( val ? '^'+val+'$' : '', true, false )
                             .draw();
@@ -226,33 +247,9 @@ $(document).ready(function() {
             window.open(href, "_self")
               })
           // 
-          $.fn.dataTable.ext.search.push(
-              function(settings, data, dataIndex) {
-                var min = moment();
-                var max = moment().add(6, 'month');
-                var startDate = moment(data[1], "DD/MM/YY").toDate();
-                var endDate = moment(data[2], "DD/MM/YY").toDate();
-                var status = data[7]
-                if(status != "Published"){
-                  return false;
-                }
-                if (min == null && max == null) {
-                  return true;
-                }
-                if (min == null && startDate <= max) {
-                  return true;
-                }
-                if (max == null && startDate >= min) {
-                  return true;
-                }
-                if (startDate <= max && startDate >= min) {
-                  return true;
-                }
-                return false;
-              }
-            );
+            $.fn.dataTable.ext.search.push(draft_filter_function);
+            $.fn.dataTable.ext.search.push(date_function);
             table.draw();
-            $.fn.dataTable.ext.search.pop();
           // 
         },
     } );
