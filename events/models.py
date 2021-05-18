@@ -80,12 +80,12 @@ EVENT_PLAYER_FORMAT_SIZE = {
 }
 
 CONGRESS_TYPES = [
-("national_gold", "National gold point event"),
-("state_championship", "State championship event"),
-("state_congress", "State congress event"),
+("national_gold", "National gold point"),
+("state_championship", "State championship"),
+("state_congress", "State congress"),
 ("club", "Club event"),
 ("club_congress", "Club congress"),
-("other", "Other event"),
+("other", "Other"),
 ]
 
 PEOPLE_DEFAULT = """<table class="table"><tbody><tr><td><span style="font-weight: normal;">

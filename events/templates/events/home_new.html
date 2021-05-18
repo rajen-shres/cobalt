@@ -32,6 +32,11 @@
 
      </div>
         <table id="congress_table" class="display table table-shopping" style="width:100%">
+        <style>
+         tr:hover {
+          background-color: #ffff99;
+          }
+        </style>
         <thead>
             <tr style="text-align:left">
                 <th></th>
@@ -188,12 +193,12 @@ $(document).ready(function() {
         "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
           var event_type = aData["event_type"];
           var event_dict = {
-                  "National gold point event":"White",
-                  "State championship event":"White",
-                  "State congress event":"White",
+                  "National gold point":"White",
+                  "State championship":"White",
+                  "State congress":"White",
                   "Club event":"White",
                   "Club congress":"White",
-                  "Other event":"white",
+                  "Other":"white",
                   "Not found":"white"
           }
           var color = event_dict[event_type]||"White"
@@ -202,8 +207,9 @@ $(document).ready(function() {
             font_color = "Black"
           }
           $('td', nRow).css("text-align", "left").css("font-weight", "bold").css('cursor', 'pointer');
-          $('td:nth-child(4)', nRow).css('background-color', color).css("color", font_color);
+       /*   $('td:nth-child(4)', nRow).css('background-color', color).css("color", font_color);
           $('td:nth-child(5)', nRow).css('background-color', color).css("color", font_color);
+          */
         },
         "initComplete": function () {
           // carefull about changing the order otherwise this will break
@@ -218,7 +224,7 @@ $(document).ready(function() {
                 var column = this;
                 var column_class = "." + column.dataSrc();
                 var column_text = column.header().textContent;
-                var select = $('<select class="form-control"><option value="">filter</option></select>')
+                var select = $('<select class="form-control select_' + column_text + '"><option value="">filter</option></select>')
                     .appendTo( $(column_class) )
                     .on( 'change', function () {
                         if(column_text.toUpperCase()=="STATUS")
@@ -236,18 +242,23 @@ $(document).ready(function() {
                         column
                             .search( val ? '^'+val+'$' : '', true, false )
                             .draw();
-                    } );
+                    });
                 column.data().unique().sort().each( function ( d, j ) {
                     select.append( '<option value="'+d+'">'+d+'</option>' )
                 });
             });
+            $(".select_Status").val("Published");
             $('.dataTable').on('click', 'tbody tr', function() {
               congress_id = table.row(this).data()["actions"].id
             var href="{% url "events:view_congress" congress_id=12345%}".replace(/12345/, congress_id)
             window.open(href, "_self")
               })
           // 
+          if("{{admin}}"=="True")
+          {
             $.fn.dataTable.ext.search.push(draft_filter_function);
+
+          }
             $.fn.dataTable.ext.search.push(date_function);
             table.draw();
           // 
