@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from .models import (
     Congress,
     Event,
@@ -53,7 +54,7 @@ class CongressForm(forms.ModelForm):
         self.fields["allow_partnership_desk"].label = False
         self.fields["allow_early_payment_discount"].label = False
         self.fields["early_payment_discount_date"].label = False
-        self.fields["allow_youth_payment_discount"].label = False
+        self.fields["allow_youth_payment_discount"].label = True
         self.fields["youth_payment_discount_date"].label = False
         self.fields["youth_payment_discount_age"].label = False
         self.fields["senior_date"].label = False
@@ -89,7 +90,7 @@ class CongressForm(forms.ModelForm):
         self.fields["allow_partnership_desk"].required = False
         self.fields["allow_early_payment_discount"].required = False
         self.fields["early_payment_discount_date"].required = False
-        self.fields["allow_youth_payment_discount"].required = False
+        self.fields["allow_youth_payment_discount"].required = True
         self.fields["youth_payment_discount_date"].required = False
         self.fields["youth_payment_discount_age"].required = False
         self.fields["senior_date"].required = False
@@ -194,7 +195,17 @@ class CongressForm(forms.ModelForm):
             }
         )
     )
-
+    def clean_allow_youth_payment_discount(self):
+        if self.cleaned_data["allow_youth_payment_discount"] and (self.cleaned_data["youth_payment_discount_date"]  is None):
+            raise ValidationError("If allowed youth payment checkbox is checked then you must enter the date")
+        else:
+            return self.cleaned_data["youth_payment_discount_date"]
+ 
+    def clean_youth_payment_discount_date(self):
+        if "allow_youth_payment_discount" in self.cleaned_data.keys() and (self.cleaned_data["youth_payment_discount_date"]  is None):
+            raise ValidationError("If allowed youth payment checkbox is checked then you must enter the date")
+        else:
+            return self.cleaned_data["youth_payment_discount_date"]
     class Meta:
         model = Congress
         fields = (
