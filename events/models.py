@@ -244,7 +244,7 @@ class Event(models.Model):
     entry_close_date = models.DateField(null=True, blank=True)
     entry_fee = models.DecimalField("Entry Fee", max_digits=12, decimal_places=2)
     entry_early_payment_discount = models.DecimalField(
-        "Early Payment Discount", max_digits=12, decimal_places=2, default=Decimal(0.0))
+        "Early Payment Discount", max_digits=12, decimal_places=2, null=True, blank=True, default=Decimal(0.0))
     entry_youth_payment_discount = models.IntegerField(
         "Youth Discount Percentage", null=True, blank=True
     )

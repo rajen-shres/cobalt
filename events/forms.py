@@ -272,6 +272,12 @@ class EventForm(forms.ModelForm):
             "free_format_question",
         )
 
+    def clean_entry_early_payment_discount(self):
+        data = self.cleaned_data["entry_early_payment_discount"]
+        if data is None:
+            return 0.0
+        return data
+
 
 class SessionForm(forms.ModelForm):
     class Meta:

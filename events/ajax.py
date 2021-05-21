@@ -56,9 +56,15 @@ def get_all_congress_ajax(request) :
     congressList = []
     admin = False
     if request.user.is_authenticated:
-        role_list = rbac_user_role_list(request.user, "events", "org")
-        if len(role_list) > 0:
-            admin=True
+        (all_access, some_access) = rbac_user_allowed_for_model(
+            request.user, "events", "org", "edit"
+        )
+        if all_access or some_access:
+            admin = True
+        else:
+            admin = False
+    else:
+        admin = False
     if not admin:
         congresses = congresses.filter(status="Published")
     

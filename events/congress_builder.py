@@ -455,14 +455,20 @@ def create_congress_wizard_7(request, step_list, congress):
 
     if request.method == "POST":
         if "Publish" in request.POST:
-            congress.status = "Published"
-            congress.save()
-            messages.success(
-                request,
-                "Congress published",
-                extra_tags="cobalt-message-success",
-            )
-            return redirect("events:view_congress", congress_id=congress.id)
+            events = Event.objects.filter(congress=congress)
+            if events.count() == 0:
+                messages.error(request,
+                "Congress can not be published until you add at least one event in it",
+                extra_tags="cobal-message-error")
+            else:
+                congress.status = "Published"
+                congress.save()
+                messages.success(
+                    request,
+                    "Congress published",
+                    extra_tags="cobalt-message-success",
+                )
+                return redirect("events:view_congress", congress_id=congress.id)
 
         if "Unpublish" in request.POST:
             congress.status = "Draft"
@@ -589,7 +595,7 @@ def create_event(request, congress_id):
 
     if request.method == "POST":
 
-        form = EventForm(request.POST)
+        form = EventForm(request.POST, initial={"entry_early_payment_discount":0.0})
 
         if form.is_valid():
             event = Event()

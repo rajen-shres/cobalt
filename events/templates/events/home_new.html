@@ -153,16 +153,18 @@ $(document).ready(function() {
         "ordering": false,
         "pageLength": 25,
         hideEmptyCols: true,
+        autoWidth: false,
         "columns": [
-            { "defaultContent": ""},
-            { "data": "congress_start" },
-            { "data": "congress_end" },
-            { "data": "congress_name" },
-            { "data": "run_by" },
-            { "data": "state" },
-            { "data": "event_type" },
-            { "data": "status" },
-            { "data": "actions", "name":"Actions", "render": function(data, type, row){
+            { "defaultContent": "" , "width": '10px'},
+            { "data": "congress_start" , "width": '10px'},
+            { "data": "congress_end" , "width": '10px'},
+            { "data": "congress_name" , "width": '200px'},
+            { "data": "run_by" , "width": '10px'},
+            { "data": "state" , "width": '10px'},
+            { "data": "event_type" , "width": '10px'},
+            { "data": "status" , "width": '10px'},
+            { "data": "actions", "name":"Actions", "width": '10px',
+            "render": function(data, type, row){
               var html_buttons =  ''
               if(data.edit){
               html_buttons += '<a href="{% url "events:create_congress_wizard" congress_id=12345 step=2 %}" class="btn btn-sm btn-success">Edit</a>'.replace(/12345/, data.id)
