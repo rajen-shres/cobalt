@@ -199,7 +199,7 @@ class CongressForm(forms.ModelForm):
         if self.cleaned_data["allow_youth_payment_discount"] and (self.cleaned_data["youth_payment_discount_date"]  is None):
             raise ValidationError("If allowed youth payment checkbox is checked then you must enter the date")
         else:
-            return self.cleaned_data["youth_payment_discount_date"]
+            return self.cleaned_data["allow_youth_payment_discount"]
  
     def clean_youth_payment_discount_date(self):
         if "allow_youth_payment_discount" in self.cleaned_data.keys() and (self.cleaned_data["youth_payment_discount_date"]  is None):
