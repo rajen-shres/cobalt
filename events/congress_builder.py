@@ -368,7 +368,8 @@ def create_congress_wizard_5(request, step_list, congress):
                 "events:create_congress_wizard", step=6, congress_id=congress.id
             )
         else:
-            messages.error(request, form.errors)
+            for er in form.errors:
+                messages.error(request, form.errors[er])
             return render( request,
             "events/congress_wizard_5.html",
             {"form": form, "step_list": step_list, "congress": congress},)

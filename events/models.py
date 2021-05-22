@@ -162,7 +162,7 @@ class Congress(models.Model):
     early_payment_discount_date = models.DateField(
         "Last day for early discount", null=True, blank=True
     )
-    allow_youth_payment_discount = models.BooleanField(default=False, null=True, blank=True)
+    allow_youth_payment_discount = models.BooleanField(default=False)
     youth_payment_discount_date = models.DateField(
         "Date for age check", null=True, blank=True
     )

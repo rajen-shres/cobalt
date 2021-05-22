@@ -54,7 +54,7 @@ class CongressForm(forms.ModelForm):
         self.fields["allow_partnership_desk"].label = False
         self.fields["allow_early_payment_discount"].label = False
         self.fields["early_payment_discount_date"].label = False
-        self.fields["allow_youth_payment_discount"].label = True
+        self.fields["allow_youth_payment_discount"].label = False
         self.fields["youth_payment_discount_date"].label = False
         self.fields["youth_payment_discount_age"].label = False
         self.fields["senior_date"].label = False
@@ -90,7 +90,7 @@ class CongressForm(forms.ModelForm):
         self.fields["allow_partnership_desk"].required = False
         self.fields["allow_early_payment_discount"].required = False
         self.fields["early_payment_discount_date"].required = False
-        self.fields["allow_youth_payment_discount"].required = True
+        self.fields["allow_youth_payment_discount"].required = False
         self.fields["youth_payment_discount_date"].required = False
         self.fields["youth_payment_discount_age"].required = False
         self.fields["senior_date"].required = False
@@ -196,16 +196,16 @@ class CongressForm(forms.ModelForm):
         )
     )
     def clean_allow_youth_payment_discount(self):
-        if self.cleaned_data["allow_youth_payment_discount"] and (self.cleaned_data["youth_payment_discount_date"]  is None):
-            raise ValidationError("If allowed youth payment checkbox is checked then you must enter the date")
-        else:
-            return self.cleaned_data["allow_youth_payment_discount"]
- 
-    def clean_youth_payment_discount_date(self):
-        if "allow_youth_payment_discount" in self.cleaned_data.keys() and (self.cleaned_data["youth_payment_discount_date"]  is None):
-            raise ValidationError("If allowed youth payment checkbox is checked then you must enter the date")
-        else:
-            return self.cleaned_data["youth_payment_discount_date"]
+        if self.cleaned_data["allow_youth_payment_discount"] and (self.cleaned_data.get("youth_payment_discount_date",None) is None):
+            raise ValidationError('If "Give Youth Entry Discount" is checked then you must enter the youth cutoff date')
+        return self.cleaned_data["allow_youth_payment_discount"]
+
+    def clean_allow_early_payment_discount(self):
+        early_payment_discount = self.cleaned_data["allow_early_payment_discount"]
+        if early_payment_discount and (self.cleaned_data.get("early_payment_discount_date",None) is None):
+            raise ValidationError('If "Give Early Entry Discount" is checked, then you must enter last date for discount')
+        return early_payment_discount
+
     class Meta:
         model = Congress
         fields = (
@@ -234,13 +234,13 @@ class CongressForm(forms.ModelForm):
             "entry_open_date",
             "entry_close_date",
             "allow_partnership_desk",
-            "allow_early_payment_discount",
             "senior_date",
             "senior_age",
             "youth_payment_discount_date",
             "youth_payment_discount_age",
-            "allow_youth_payment_discount",
             "early_payment_discount_date",
+            "allow_youth_payment_discount",
+            "allow_early_payment_discount",
             "bank_transfer_details",
             "cheque_details",
             "automatic_refund_cutoff",
