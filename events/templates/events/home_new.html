@@ -155,16 +155,19 @@ $(document).ready(function() {
         hideEmptyCols: true,
         autoWidth: false,
         "columns": [
-            { "defaultContent": "" , "width": '4%'},
-            { "data": "congress_start" , "width": '4%'},
-            { "data": "congress_end" , "width": '4%'},
-            { "data": "congress_name" , "width": '24%'},
-            { "data": "run_by" , "width": '18%'},
-            { "data": "state" , "width": '4%'},
-            { "data": "event_type" , "width": '15%'},
-            { "data": "status" , "width": '5%'},
-            { "data": "actions", "name":"Actions", "width": '14%',
+            { "defaultContent": "" , "width": '{{config.defaultContent_width}}'},
+            { "data": "congress_start" , "width": '{{config.congress_start}}'},
+            { "data": "congress_end" , "width": '{{config.congress_end_width}}'},
+            { "data": "congress_name" , "width": '{{config.congress_name_width}}'},
+            { "data": "run_by" , "width": '{{config.run_by_width}}'},
+            { "data": "state" , "width": '{{config.state_width}}'},
+            { "data": "event_type" , "width": '{{config.event_type_width}}'},
+            { "data": "status" , "width": '{{config.status_width}}'},
+            { "data": "actions", "name":"Actions", "width": '{{config.actions_width}}',
             "render": function(data, type, row){
+            if("{{admin}}"=="True")
+              {
+
               var html_buttons =  ''
               if(data.edit){
               html_buttons += '<a href="{% url "events:create_congress_wizard" congress_id=12345 step=2 %}" class="btn btn-sm btn-success">Edit</a>'.replace(/12345/, data.id)
@@ -180,6 +183,8 @@ $(document).ready(function() {
               }
         
               return html_buttons;
+              }
+              return null;
             }}
         ],
        'columnDefs': [{

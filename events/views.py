@@ -59,6 +59,17 @@ TZ = pytz.timezone(TIME_ZONE)
 
 def home_new(request):
         # check if user has any admin rights to show link to create congress
+    width_dict = {
+        "defaultContent_width" : '4%',
+        "congress_start_width" : '4%',
+        "congress_end_width" : '4%',
+        "congress_name_width" : '24%',
+        "run_by_width" : '18%',
+        "state_width" : '4%',
+        "event_type_width" : '15%',
+        "status_width" : '5%',
+        "actions_width": '14%',
+    }
     if request.user.is_authenticated:
         (all_access, some_access) = rbac_user_allowed_for_model(
             request.user, "events", "org", "edit"
@@ -67,9 +78,31 @@ def home_new(request):
             admin = True
         else:
             admin = False
+            width_dict = {
+             "defaultContent_width" : '4%',
+             "congress_start_width" : '4%',
+             "congress_end_width" : '4%',
+             "congress_name_width" : '30%',
+             "run_by_width" : '24%',
+             "state_width" : '4%',
+             "event_type_width" : '16%',
+             "status_width" : '5%',
+             "actions_width": '0%',
+            }
     else:
         admin = False
-    return render(request, "events/home_new.html", {"admin": admin})
+        width_dict = {
+            "defaultContent_width" : '4%',
+            "congress_start_width" : '4%',
+            "congress_end_width" : '4%',
+            "congress_name_width" : '30%',
+            "run_by_width" : '24%',
+            "state_width" : '4%',
+            "event_type_width" : '16%',
+            "status_width" : '5%',
+            "actions_width": '0%',
+        }
+    return render(request, "events/home_new.html", {"admin": admin, "config": width_dict})
 def home(request):
     """main screen to show congresses
 

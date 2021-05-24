@@ -88,7 +88,6 @@ def get_all_congress_ajax(request) :
             #"some logging here laterh"
             continue
 
-
     resp = {"data":congressList}
     return JsonResponse(data=resp, safe=False)
 
