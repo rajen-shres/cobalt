@@ -66,8 +66,8 @@ def home_new(request):
         "congress_name_width" : '24%',
         "run_by_width" : '18%',
         "state_width" : '4%',
-        "event_type_width" : '15%',
-        "status_width" : '5%',
+        "event_type_width" : '14%',
+        "status_width" : '6%',
         "actions_width": '14%',
     }
     if request.user.is_authenticated:
@@ -82,11 +82,11 @@ def home_new(request):
              "defaultContent_width" : '4%',
              "congress_start_width" : '4%',
              "congress_end_width" : '4%',
-             "congress_name_width" : '30%',
+             "congress_name_width" : '29%',
              "run_by_width" : '24%',
              "state_width" : '4%',
              "event_type_width" : '16%',
-             "status_width" : '5%',
+             "status_width" : '6%',
              "actions_width": '0%',
             }
     else:
@@ -99,7 +99,7 @@ def home_new(request):
             "run_by_width" : '24%',
             "state_width" : '4%',
             "event_type_width" : '16%',
-            "status_width" : '5%',
+            "status_width" : '6%',
             "actions_width": '0%',
         }
     return render(request, "events/home_new.html", {"admin": admin, "config": width_dict})

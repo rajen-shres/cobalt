@@ -10,7 +10,7 @@
     <h1>
     <div class="d-flex justify-content-between">
     <div>
-       Congresses list
+       Congresses
     </div>
     <div>
        <i class="material-icons" style="font-size:50px">book_online</i>
@@ -231,7 +231,7 @@ $(document).ready(function() {
                 var column = this;
                 var column_class = "." + column.dataSrc();
                 var column_text = column.header().textContent;
-                var select = $('<select class="form-control select_' + column_text + '"><option value="">filter</option></select>')
+                var select = $('<select class="form-control select_' + column_text + '"><option value="">ALL</option></select>')
                     .appendTo( $(column_class) )
                     .on( 'change', function () {
                         if(column_text.toUpperCase()=="STATUS")

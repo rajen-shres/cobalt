@@ -282,6 +282,11 @@ class EventForm(forms.ModelForm):
             "entry_youth_payment_discount",
             "free_format_question",
         )
+    def clean_entry_youth_payment_discount(self):
+        data = self.cleaned_data["entry_youth_payment_discount"]
+        if data is None:
+            return 0.0
+        return data
 
     def clean_entry_early_payment_discount(self):
         data = self.cleaned_data["entry_early_payment_discount"]

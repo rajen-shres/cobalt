@@ -582,6 +582,8 @@ def _update_event(request, form, event, congress, msg):
     event.entry_youth_payment_discount = form.cleaned_data[
         "entry_youth_payment_discount"
     ]
+    if(event.entry_youth_payment_discount<=0):
+        messages.warning(request, "Youth discount field has been defaulted to 0")
     event.save()
     messages.success(request, msg, extra_tags="cobalt-message-success")
 
@@ -608,7 +610,8 @@ def create_event(request, congress_id):
                 "events:edit_event", event_id=event.id, congress_id=congress_id
             )
         else:
-            print(form.errors)
+            for er in form.errors:
+                messages.error(request, form.errors[er])
 
     else:
         # default youth discount to 50% if used
@@ -648,7 +651,8 @@ def edit_event(request, congress_id, event_id):
         if form.is_valid():
             _update_event(request, form, event, congress, "Event updated")
         else:
-            print(form.errors)
+            for er in form.errors:
+                messages.error(request, form.errors[er])
 
     else:
         # datepicker is very fussy about format
