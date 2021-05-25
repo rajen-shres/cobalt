@@ -582,8 +582,9 @@ def _update_event(request, form, event, congress, msg):
     event.entry_youth_payment_discount = form.cleaned_data[
         "entry_youth_payment_discount"
     ]
-    if(event.entry_youth_payment_discount<=0):
-        messages.warning(request, "Youth discount field has been defaulted to 0")
+    if(event.entry_youth_payment_discount is None and congress.allow_youth_payment_discount):
+        messages.warning(request,
+        "Youth discount field has no value, you will get errors for this event !! please correct either the discount offered for the saved event or uncheck youth discount on step 5.")
     event.save()
     messages.success(request, msg, extra_tags="cobalt-message-success")
 
