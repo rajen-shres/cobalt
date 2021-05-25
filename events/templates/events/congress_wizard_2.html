@@ -28,6 +28,21 @@
 
             <div class="row">
               <div class="col-2 justify-content-center align-self-center">
+                Congress Type
+              </div>
+              <div class="col-8">
+                <div id="div_id_congress_types" class="form-group">
+                  <span class="cobalt-form-error" id="id_year_errors">{{ form.congress_types.errors|striptags }}</span>
+                  {% render_field form.congress_type class+="form-control" %}
+                </div>
+              </div>
+              <div class="col-2 justify-content-center align-self-center">
+                <a href="javascript:void(0)" onclick='help("Congress Year", "The year that this event will take place.");'>help</a>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-2 justify-content-center align-self-center">
                 Year
               </div>
               <div class="col-8">
@@ -233,6 +248,7 @@
 
   $(document).ready(function() {
 
+    $("#id_congress_type").css("position", "revert");
     $('#id_start_date').datetimepicker({
       format: 'DD/MM/YYYY'
     });

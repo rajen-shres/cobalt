@@ -219,6 +219,7 @@ def create_congress_wizard_2(request, step_list, congress):
         form = CongressForm(request.POST)
         if form.is_valid():
             congress.year = form.cleaned_data["year"]
+            congress.congress_type = form.cleaned_data["congress_type"]
             congress.name = form.cleaned_data["name"]
             congress.date_string = form.cleaned_data["date_string"]
             congress.start_date = form.cleaned_data["start_date"]
@@ -367,7 +368,11 @@ def create_congress_wizard_5(request, step_list, congress):
                 "events:create_congress_wizard", step=6, congress_id=congress.id
             )
         else:
-            print(form.errors)
+            for er in form.errors:
+                messages.error(request, form.errors[er])
+            return render( request,
+            "events/congress_wizard_5.html",
+            {"form": form, "step_list": step_list, "congress": congress},)
 
     else:
         # sort out dates
@@ -454,14 +459,20 @@ def create_congress_wizard_7(request, step_list, congress):
 
     if request.method == "POST":
         if "Publish" in request.POST:
-            congress.status = "Published"
-            congress.save()
-            messages.success(
-                request,
-                "Congress published",
-                extra_tags="cobalt-message-success",
-            )
-            return redirect("events:view_congress", congress_id=congress.id)
+            events = Event.objects.filter(congress=congress)
+            if events.count() == 0:
+                messages.error(request,
+                "Congress can not be published until you add at least one event in it",
+                extra_tags="cobal-message-error")
+            else:
+                congress.status = "Published"
+                congress.save()
+                messages.success(
+                    request,
+                    "Congress published",
+                    extra_tags="cobalt-message-success",
+                )
+                return redirect("events:view_congress", congress_id=congress.id)
 
         if "Unpublish" in request.POST:
             congress.status = "Draft"
@@ -571,6 +582,9 @@ def _update_event(request, form, event, congress, msg):
     event.entry_youth_payment_discount = form.cleaned_data[
         "entry_youth_payment_discount"
     ]
+    if(event.entry_youth_payment_discount is None and congress.allow_youth_payment_discount):
+        messages.warning(request,
+        "Youth discount field has no value, you will get errors for this event !! please correct either the discount offered for the saved event or uncheck youth discount on step 5.")
     event.save()
     messages.success(request, msg, extra_tags="cobalt-message-success")
 
@@ -588,7 +602,7 @@ def create_event(request, congress_id):
 
     if request.method == "POST":
 
-        form = EventForm(request.POST)
+        form = EventForm(request.POST, initial={"entry_early_payment_discount":0.0})
 
         if form.is_valid():
             event = Event()
@@ -597,7 +611,8 @@ def create_event(request, congress_id):
                 "events:edit_event", event_id=event.id, congress_id=congress_id
             )
         else:
-            print(form.errors)
+            for er in form.errors:
+                messages.error(request, form.errors[er])
 
     else:
         # default youth discount to 50% if used
@@ -637,7 +652,8 @@ def edit_event(request, congress_id, event_id):
         if form.is_valid():
             _update_event(request, form, event, congress, "Event updated")
         else:
-            print(form.errors)
+            for er in form.errors:
+                messages.error(request, form.errors[er])
 
     else:
         # datepicker is very fussy about format

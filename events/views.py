@@ -58,7 +58,51 @@ TZ = pytz.timezone(TIME_ZONE)
 
 
 def home_new(request):
-    return render(request, "events/home_new.html")
+        # check if user has any admin rights to show link to create congress
+    width_dict = {
+        "defaultContent_width" : '4%',
+        "congress_start_width" : '4%',
+        "congress_end_width" : '4%',
+        "congress_name_width" : '24%',
+        "run_by_width" : '18%',
+        "state_width" : '4%',
+        "event_type_width" : '14%',
+        "status_width" : '6%',
+        "actions_width": '14%',
+    }
+    if request.user.is_authenticated:
+        (all_access, some_access) = rbac_user_allowed_for_model(
+            request.user, "events", "org", "edit"
+        )
+        if all_access or some_access:
+            admin = True
+        else:
+            admin = False
+            width_dict = {
+             "defaultContent_width" : '4%',
+             "congress_start_width" : '4%',
+             "congress_end_width" : '4%',
+             "congress_name_width" : '29%',
+             "run_by_width" : '24%',
+             "state_width" : '4%',
+             "event_type_width" : '16%',
+             "status_width" : '6%',
+             "actions_width": '0%',
+            }
+    else:
+        admin = False
+        width_dict = {
+            "defaultContent_width" : '4%',
+            "congress_start_width" : '4%',
+            "congress_end_width" : '4%',
+            "congress_name_width" : '30%',
+            "run_by_width" : '24%',
+            "state_width" : '4%',
+            "event_type_width" : '16%',
+            "status_width" : '6%',
+            "actions_width": '0%',
+        }
+    return render(request, "events/home_new.html", {"admin": admin, "config": width_dict})
 def home(request):
     """main screen to show congresses
 
@@ -837,7 +881,7 @@ def delete_event_entry(request, event_entry_id):
         player_string = f"<table><tr><td><b>Name</b><td><b>{GLOBAL_ORG} No.</b><td><b>Payment Method</b><td><b>Status</b></tr>"
         for event_entry_player in event_entry_players:
             PAYMENT_TYPES_DICT = dict(PAYMENT_TYPES)
-            payment_type_str = PAYMENT_TYPES_DICT[event_entry_player.payment_type]
+            payment_type_str = PAYMENT_TYPES_DICT.get(event_entry_player.payment_type, event_entry_player.payment_type)
             player_string += f"<tr><td>{event_entry_player.player.full_name}<td>{event_entry_player.player.system_number}<td>{payment_type_str}<td>{event_entry_player.payment_status}</tr>"
         player_string += "</table>"
         message = "Entry cancelled.<br><br> %s" % player_string

@@ -7,14 +7,13 @@ urlpatterns = [
     #################################
     # Screens for normal players    #
     #################################
-    path("", views.home, name="events"),
+    path("", views.home_new, name="events"),
     path("congress/view/<int:congress_id>", views.view_congress, name="view_congress"),
     path(
         "congress/view/<int:congress_id>/<int:fullscreen>",
         views.view_congress,
         name="view_congress",
     ),
-    path("new_home", views.home_new, name="events_new"),
     path(
         "congress/event/enter/<int:congress_id>/<int:event_id>",
         views.enter_event,
@@ -256,6 +255,11 @@ urlpatterns = [
         "congress-builder/create/delete-category",
         ajax.delete_category_ajax,
         name="delete_category_ajax",
+    ),
+    path(
+        "congress-builder/create/edit-category",
+        ajax.edit_category_ajax,
+        name="edit_category_ajax",
     ),
     path(
         "congress-builder/create/delete-session",

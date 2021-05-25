@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from .models import (
     Congress,
     Event,
@@ -61,6 +62,7 @@ class CongressForm(forms.ModelForm):
         self.fields["bank_transfer_details"].label = False
         self.fields["cheque_details"].label = False
         self.fields["automatic_refund_cutoff"].label = False
+        self.fields["congress_type"].label = False
 
         # mark fields as optional
         self.fields["name"].required = False
@@ -193,6 +195,16 @@ class CongressForm(forms.ModelForm):
             }
         )
     )
+    def clean_allow_youth_payment_discount(self):
+        if self.cleaned_data["allow_youth_payment_discount"] and (self.cleaned_data.get("youth_payment_discount_date",None) is None):
+            raise ValidationError('If "Give Youth Entry Discount" is checked then you must enter the youth cutoff date')
+        return self.cleaned_data["allow_youth_payment_discount"]
+
+    def clean_allow_early_payment_discount(self):
+        early_payment_discount = self.cleaned_data["allow_early_payment_discount"]
+        if early_payment_discount and (self.cleaned_data.get("early_payment_discount_date",None) is None):
+            raise ValidationError('If "Give Early Entry Discount" is checked, then you must enter last date for discount')
+        return early_payment_discount
 
     class Meta:
         model = Congress
@@ -222,16 +234,17 @@ class CongressForm(forms.ModelForm):
             "entry_open_date",
             "entry_close_date",
             "allow_partnership_desk",
-            "allow_early_payment_discount",
             "senior_date",
             "senior_age",
             "youth_payment_discount_date",
             "youth_payment_discount_age",
-            "allow_youth_payment_discount",
             "early_payment_discount_date",
+            "allow_youth_payment_discount",
+            "allow_early_payment_discount",
             "bank_transfer_details",
             "cheque_details",
             "automatic_refund_cutoff",
+            "congress_type",
         )
 
 
@@ -269,6 +282,11 @@ class EventForm(forms.ModelForm):
             "entry_youth_payment_discount",
             "free_format_question",
         )
+    def clean_entry_early_payment_discount(self):
+        data = self.cleaned_data["entry_early_payment_discount"]
+        if data is None:
+            return 0.0
+        return data
 
 
 class SessionForm(forms.ModelForm):
