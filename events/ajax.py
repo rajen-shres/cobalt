@@ -7,6 +7,7 @@ from django.template.loader import render_to_string
 from django.db.models import Sum, Q
 from .models import (
     Congress,
+    CONGRESS_TYPES,
     Category,
     CongressMaster,
     Event,
@@ -42,39 +43,49 @@ from payments.core import (
 )
 from organisations.models import Organisation
 from .core import notify_conveners
+from rbac.core import rbac_user_role_list
 from cobalt.settings import TBA_PLAYER, COBALT_HOSTNAME, BRIDGE_CREDITS
 import json
 from datetime import datetime
 
-@login_required()
 def get_all_congress_ajax(request) :
-    #     {
-    #   "id": "1",
-    #   "name": "Tiger Nixon",
-    #   "position": "System Architect",
-    #   "salary": "$320,800",
-    #   "start_date": "2011/04/25",
-    #   "office": "Edinburgh",
-    #   "extn": "5421"
-    # },
     congresses = (
         Congress.objects.order_by("start_date")
-        .filter(start_date__gte=datetime.now())
-        .filter(status="Published")
+        #.filter(start_date__gte=datetime.now())
     )
     congressList = []
+    admin = False
+    if request.user.is_authenticated:
+        (all_access, some_access) = rbac_user_allowed_for_model(
+            request.user, "events", "org", "edit"
+        )
+        if all_access or some_access:
+            admin = True
+        else:
+            admin = False
+    else:
+        admin = False
+    if not admin:
+        congresses = congresses.filter(status="Published")
+    
+    congress_type_dict = dict(CONGRESS_TYPES)
     for congress in congresses:
         try:
             data_entry = dict()
-            data_entry["congress"] = congress.name 
-            data_entry["club"] = congress.congress_master.org.name
-            data_entry["date_start"] = congress.entry_open_date.strftime("%y/%m/%d")
-            data_entry["date_end"] = congress.entry_close_date.strftime("%y/%m/%d")
+            data_entry["congress_name"] = congress.name 
+            data_entry["month"] = congress.start_date.strftime("%B %Y")
+            data_entry["run_by"] = congress.congress_master.org.name
+            data_entry["congress_start"] = congress.start_date.strftime("%d/%m/%y")
+            data_entry["congress_end"] = congress.end_date.strftime("%d/%m/%y")
+            data_entry["state"] = congress.congress_master.org.state
+            data_entry["status"] = congress.status if admin else "hide" #congress.status
+            data_entry["event_type"] = congress_type_dict.get(congress.congress_type,"Not found")
             data_entry["actions"] = {"id":congress.id,
-            "edit":congress.user_is_convener(request.user),
-            "manage":congress.user_is_convener(request.user)}
+            "edit":congress.user_is_convener(request.user) if admin else False,
+            "manage":congress.user_is_convener(request.user) if admin else False}
             congressList.append(data_entry)
-        except:
+        except :
+            #"some logging here laterh"
             continue
 
     resp = {"data":congressList}
@@ -157,9 +168,10 @@ def delete_category_ajax(request):
 
     if request.method == "GET":
         category_id = request.GET["category_id"]
+        event_id = request.GET["event_id"]
 
     category = get_object_or_404(Category, pk=category_id)
-
+    event = get_object_or_404(Event, pk=event_id)
     # check access
     role = "events.org.%s.edit" % category.event.congress.congress_master.org.id
     if not rbac_user_has_role(request.user, role):
@@ -167,11 +179,46 @@ def delete_category_ajax(request):
 
     category.delete()
 
+    # Log it
+    EventLog(
+        event=event,
+        actor=request.user,
+        action=f"deleted category {category.description}",
+    ).save()
     response_data = {}
     response_data["message"] = "Success"
     return JsonResponse({"data": response_data})
 
+@login_required()
+def edit_category_ajax(request):
+    """ Ajax call to edit a category in an event """
 
+    if request.method == "POST":
+        category_id = request.POST["category_id"]
+        event_id = request.POST["event_id"]
+        description = request.POST["description"]
+
+
+    category = get_object_or_404(Category, pk=category_id)
+    event = get_object_or_404(Event, pk=event_id)
+    # check access
+    role = "events.org.%s.edit" % category.event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    old_description = category.description
+    category.description = description
+    category.save()
+
+    # Log it
+    EventLog(
+        event=event,
+        actor=request.user,
+        action=f"edited category from {old_description} {category.description}",
+    ).save()
+    response_data = {}
+    response_data["message"] = "Success"
+    return JsonResponse({"data": response_data})
 @login_required()
 def delete_session_ajax(request):
     """ Ajax call to delete a session from a congress """

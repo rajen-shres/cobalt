@@ -79,6 +79,15 @@ EVENT_PLAYER_FORMAT_SIZE = {
     "Teams": 6,
 }
 
+CONGRESS_TYPES = [
+("national_gold", "National gold point"),
+("state_championship", "State championship"),
+("state_congress", "State congress"),
+("club", "Club event"),
+("club_congress", "Club congress"),
+("other", "Other"),
+]
+
 PEOPLE_DEFAULT = """<table class="table"><tbody><tr><td><span style="font-weight: normal;">
 Organiser:</span></td><td><span style="font-weight: normal;">Jane Doe</span></td>
 </tr><tr><td><span style="font-weight: normal;">Phone:</span></td><td>
@@ -180,6 +189,13 @@ class Congress(models.Model):
     status = models.CharField(
         "Congress Status", max_length=10, choices=CONGRESS_STATUSES, default="Draft"
     )
+    congress_type = models.CharField(
+        "Congress Type",
+        max_length=30,
+        choices=CONGRESS_TYPES,
+        blank=True,
+        null=True
+    )
 
     class Meta:
         verbose_name_plural = "Congresses"
@@ -228,7 +244,7 @@ class Event(models.Model):
     entry_close_date = models.DateField(null=True, blank=True)
     entry_fee = models.DecimalField("Entry Fee", max_digits=12, decimal_places=2)
     entry_early_payment_discount = models.DecimalField(
-        "Early Payment Discount", max_digits=12, decimal_places=2, default=Decimal(0.0))
+        "Early Payment Discount", max_digits=12, decimal_places=2, null=True, blank=True, default=Decimal(0.0))
     entry_youth_payment_discount = models.IntegerField(
         "Youth Discount Percentage", null=True, blank=True
     )
@@ -303,7 +319,7 @@ class Event(models.Model):
         entry_fee = cobalt_round(self.entry_fee / players_per_entry)
 
         # date
-        if self.congress.allow_early_payment_discount:
+        if self.congress.allow_early_payment_discount and self.congress.early_payment_discount_date:
             if self.congress.early_payment_discount_date >= check_date:
                 entry_fee = (
                     self.entry_fee - self.entry_early_payment_discount
