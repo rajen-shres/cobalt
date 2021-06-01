@@ -7,7 +7,7 @@
 
 """
 import boto3
-from cobalt.settings import AWS_SECRET_ACCESS_KEY, AWS_REGION_NAME, AWS_ACCESS_KEY_ID
+from cobalt.settings import ADMINS, AWS_SECRET_ACCESS_KEY, AWS_REGION_NAME, AWS_ACCESS_KEY_ID
 from .models import InAppNotification, NotificationMapping, Email
 from .forms import EmailContactForm
 from forums.models import Forum, Post
@@ -564,7 +564,7 @@ def resend_email_to_contact(request, email_id):
         email.subject,
         plain_message,
         to=[email.recipient],
-        from_email=DEFAULT_FROM_EMAIL,
+        from_email=ADMINS,
         reply_to=[email.reply_to],
     )
 
@@ -602,7 +602,7 @@ def resend_all_queued_emails(request):
             email.subject,
             plain_message,
             to=[email.recipient],
-            from_email=DEFAULT_FROM_EMAIL,
+            from_email=ADMINS,
             reply_to=[email.reply_to],
         )
 
