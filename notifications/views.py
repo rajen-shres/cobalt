@@ -550,10 +550,30 @@ def resend_email_to_contact(request, email_id):
 
     email = get_object_or_404(Email, pk=email_id)
 
-    # start thread
-    thread = Thread(target=send_cobalt_email_thread, args=[email.id])
-    thread.setDaemon(True)
-    thread.start()
+    plain_message = strip_tags(email.message)
+
+    # send_mail(
+    #     email.subject,
+    #     plain_message,
+    #     DEFAULT_FROM_EMAIL,
+    #     [email.recipient],
+    #     html_message=email.message,
+    # )
+
+    message = EmailMultiAlternatives(
+        email.subject,
+        plain_message,
+        to=[email.recipient],
+        from_email=DEFAULT_FROM_EMAIL,
+        reply_to=[email.reply_to],
+    )
+
+    message.attach_alternative(email.message, "text/html")
+
+    message.send()
+
+    email.status = "Sent"
+    email.save()
     messages.success(request,"Email scheduled to resent")
     return redirect("notifications:admin_view_all")
 
@@ -568,10 +588,30 @@ def resend_all_queued_emails(request):
     queued_emails = Email.objects.filter(status="Queued")
     message = ""
     for email in queued_emails:
-        # start thread
-        thread = Thread(target=send_cobalt_email_thread, args=[email.id])
-        thread.setDaemon(True)
-        thread.start()
+        plain_message = strip_tags(email.message)
+
+        # send_mail(
+        #     email.subject,
+        #     plain_message,
+        #     DEFAULT_FROM_EMAIL,
+        #     [email.recipient],
+        #     html_message=email.message,
+        # )
+
+        message = EmailMultiAlternatives(
+            email.subject,
+            plain_message,
+            to=[email.recipient],
+            from_email=DEFAULT_FROM_EMAIL,
+            reply_to=[email.reply_to],
+        )
+
+        message.attach_alternative(email.message, "text/html")
+
+        message.send()
+
+        email.status = "Sent"
+        email.save()
         message += f"Resending email to {email.recipient} <br/>"
     messages.success(request,mark_safe(message))
     return redirect("notifications:admin_view_all")
