@@ -555,9 +555,7 @@ def resend_email_to_contact(request, email_id):
     thread.setDaemon(True)
     thread.start()
     messages.success(request,"Email scheduled to resent")
-    emails = Email.objects.all().order_by("-pk")
-    things = cobalt_paginator(request, emails)
-    return redirect("notifications:admin_view_all", {"things":things})
+    return redirect("notifications:admin_view_all")
 
 @login_required()
 def resend_all_queued_emails(request):
@@ -576,6 +574,4 @@ def resend_all_queued_emails(request):
         thread.start()
         message += f"Resending email to {email.recipient} <br/>"
     messages.success(request,mark_safe(message))
-    emails = Email.objects.all().order_by("-pk")
-    things = cobalt_paginator(request, emails)
-    return redirect("notifications:admin_view_all", {"things":things})
+    return redirect("notifications:admin_view_all")
