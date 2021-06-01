@@ -564,7 +564,7 @@ def resend_email_to_contact(request, email_id):
         email.subject,
         plain_message,
         to=[email.recipient],
-        from_email=ADMINS,
+        from_email=("ABF Support", "support@myabf.com"):w,
         reply_to=[email.reply_to],
     )
 
@@ -602,7 +602,7 @@ def resend_all_queued_emails(request):
             email.subject,
             plain_message,
             to=[email.recipient],
-            from_email=ADMINS,
+            from_email=("ABF Support", "support@myabf.com"),
             reply_to=[email.reply_to],
         )
 
