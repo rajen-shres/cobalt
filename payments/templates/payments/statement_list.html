@@ -77,6 +77,9 @@
                 ">
 
           ending {{ thing.stripe_transaction.stripe_last4 }}
+            {% if thing.stripe_transaction.refund_status != "Not Refunded" %}
+                [Refunded]
+            {% endif %}
         </a>
         {% else %}
         {{ thing.description }}
@@ -113,7 +116,7 @@
     totally secure and not saved on our servers). Once <b>AUTO TOP UP</b> is in place you never need to
     worry again. The system will take care of payments for you provided your card
     is accepted.</p>
-    <p>You can also top up your account any time using the manual top up botton above.</p>
+    <p>You can also top up your account any time using the manual top up button above.</p>
   </div>
 </div>
 

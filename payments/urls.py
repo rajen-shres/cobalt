@@ -136,4 +136,9 @@ urlpatterns = [
         views.member_transfer_org,
         name="member_transfer_org",
     ),
+    path(
+        "admin-player-payments/<int:member_id>",
+        views.admin_player_payments,
+        name="admin_player_payments",
+    ),
 ]

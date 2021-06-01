@@ -39,6 +39,8 @@ from django.http import HttpResponse
 from django.db.models import Sum
 from django.db import transaction
 from django.contrib import messages
+
+from masterpoints.views import user_summary
 from notifications.views import contact_member
 from logs.views import log_event
 from cobalt.settings import (
@@ -1764,7 +1766,7 @@ def admin_view_stripe_transaction_detail(request, stripe_transaction_id):
 ##########################################
 # admin_refund_stripe_transaction        #
 ##########################################
-@rbac_check_role("payments.global.view")
+@rbac_check_role("payments.global.edit")
 def admin_refund_stripe_transaction(request, stripe_transaction_id):
     """Allows an Admin to refund a Stripe transaction
 
@@ -1777,18 +1779,22 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
 
     stripe_item = get_object_or_404(StripeTransaction, pk=stripe_transaction_id)
 
-    # CAlculate how much refund is left
+    # Calculate how much refund is left
     stripe_item.refund_left = stripe_item.amount - stripe_item.refund_amount
 
     if request.method == "POST":
         form = StripeRefund(request.POST, payment_amount=stripe_item.refund_left)
         if form.is_valid():
+
             amount = form.cleaned_data["amount"]
+
+            # Stripe uses cents not dollars
+            stripe_amount = int(amount * 100)
 
             stripe.api_key = STRIPE_SECRET_KEY
             rc = stripe.Refund.create(
                 charge=stripe_item.stripe_reference,
-                amount=amount,
+                amount=stripe_amount,
             )
             print("refund")
             print(rc)
@@ -1828,10 +1834,11 @@ def admin_refund_stripe_transaction_sub(stripe_item, amount):
 
     act = MemberTransaction()
     act.member = stripe_item.member
-    act.amount = amount
-    act.stripe_transaction = stripe_item
+    act.amount = -amount
+    # Linking to the stripe transaction messes up the statements
+    # act.stripe_transaction = stripe_item
     act.balance = balance
-    act.description = f"Refund to Card ending {stripe_item.stripe_last4}"
+    act.description = f"Credit Card Refund"
     act.type = "Refund"
 
     act.save()
@@ -1939,7 +1946,7 @@ def member_transfer_org(request, org_id):
     )
 
 
-@login_required()
+@rbac_check_role("payments.global.edit")
 def admin_payments_static(request):
     """Manage static data for payments
 
@@ -1949,9 +1956,6 @@ def admin_payments_static(request):
     Returns:
         HTTPResponse
     """
-
-    if not rbac_user_has_role(request.user, "payments.global.edit"):
-        return rbac_forbidden(request, "payments.global.edit")
 
     payment_static = PaymentStatic.objects.filter(active=True).last()
 
@@ -2067,7 +2071,7 @@ def admin_payments_static_org_override_add(request):
     )
 
 
-@login_required()
+@rbac_check_role("payments.global.edit")
 def admin_payments_static_org_override_delete(request, item_id):
     """Manage static data for individual orgs (override default values)
     This screen deletes an override
@@ -2079,12 +2083,35 @@ def admin_payments_static_org_override_delete(request, item_id):
         HTTPResponse
     """
 
-    if not rbac_user_has_role(request.user, "payments.global.edit"):
-        return rbac_forbidden(request, "payments.global.edit")
-
     item = get_object_or_404(OrganisationSettlementFees, pk=item_id)
 
     item.delete()
 
     messages.success(request, "Entry deleted", extra_tags="cobalt-message-success")
     return redirect("payments:admin_payments_static_org_override")
+
+
+@rbac_check_role("payments.global.edit")
+def admin_player_payments(request, member_id):
+    """Manage a players payments as an admin. E.g. make a refund to a credit card.
+
+    Args:
+        request (HTTPRequest): standard request object
+
+    Returns:
+        HTTPResponse
+    """
+
+    member = get_object_or_404(User, pk=member_id)
+    summary = user_summary(member.system_number)
+    balance = get_balance(member)
+
+    stripes = StripeTransaction.objects.filter(member=member).order_by("-created_date")[
+        :10
+    ]
+
+    return render(
+        request,
+        "payments/admin_player_payments.html",
+        {"profile": member, "summary": summary, "balance": balance, "stripes": stripes},
+    )
