@@ -1796,8 +1796,10 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
                 charge=stripe_item.stripe_reference,
                 amount=stripe_amount,
             )
-            print("refund")
-            print(rc)
+
+            if rc['status'] != "succeeded":
+                return render(request, "payments/payments_refund_error.html", {'rc': rc, 'stripe_item': stripe_item})
+
             # Call atomic database update
             admin_refund_stripe_transaction_sub(stripe_item, amount)
 
@@ -1833,10 +1835,12 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
         form = StripeRefund(payment_amount=stripe_item.refund_left)
         form.fields["amount"].initial = stripe_item.refund_left
 
+    member_balance = get_balance(stripe_item.member)
+
     return render(
         request,
         "payments/admin_refund_stripe_transaction.html",
-        {"stripe_item": stripe_item, "form": form},
+        {"stripe_item": stripe_item, "form": form, 'member_balance': member_balance},
     )
 
 
