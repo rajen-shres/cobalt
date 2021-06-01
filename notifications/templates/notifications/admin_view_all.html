@@ -16,6 +16,9 @@
       </h1>
 
     </div>
+    <div class = "card-body">
+    <button class="btn btn-success btn-sm mx-auto" onClick=window.location.href='{% url "notifications:admin_resend_all_emails" %}'>Send all queued emails</button>
+    </div>
     <div class="card-body table-responsive">
 
 
@@ -43,7 +46,13 @@
                 <td class="text-left">{{ thing.member.full_name|default_if_none:"-" }}</td>
                 <td class="text-left">{{ thing.subject }}</td>
                 <td><a onClick='showEmail({{ thing.id }})'
-                  class="btn btn-sm btn-info">View</a></td>
+                  class="btn btn-sm btn-info">View</a>
+                </td>
+                {% if thing.status == "Queued" %}
+                <td><a onClick=window.location.href='{% url "notifications:admin_resend_email" thing.id %}'
+                  class="btn btn-sm btn-info">Resend Email</a>
+                </td>
+                {% endif %}
               </tr>
             {% endfor %}
 

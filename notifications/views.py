@@ -36,6 +36,7 @@ from rbac.views import rbac_forbidden
 from rbac.core import rbac_user_has_role
 from datetime import datetime, timedelta
 from django.contrib import messages
+from django.utils.safestring import mark_safe
 import time
 
 
@@ -537,3 +538,44 @@ def email_contact(request, member_id):
     return render(
         request, "notifications/email_form.html", {"form": form, "member": member}
     )
+
+@login_required()
+def resend_email_to_contact(request, email_id):
+    """ Re-send single email that is in queued status """
+
+    # check access
+    role = "notifications.admin.view"
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    email = get_object_or_404(Email, pk=email_id)
+
+    # start thread
+    thread = Thread(target=send_cobalt_email_thread, args=[email.id])
+    thread.setDaemon(True)
+    thread.start()
+    messages.success(request,"Email scheduled to resent")
+    emails = Email.objects.all().order_by("-pk")
+    things = cobalt_paginator(request, emails)
+    return redirect("notifications:admin_view_all", {"things":things})
+
+@login_required()
+def resend_all_queued_emails(request):
+    """ Send all emails that are in "Queued" status """
+    # check access
+    role = "notifications.admin.view"
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    queued_emails = Email.objects.filter(status="Queued")
+    message = ""
+    for email in queued_emails:
+        # start thread
+        thread = Thread(target=send_cobalt_email_thread, args=[email.id])
+        thread.setDaemon(True)
+        thread.start()
+        message += f"Resending email to {email.recipient} <br/>"
+    messages.success(request,mark_safe(message))
+    emails = Email.objects.all().order_by("-pk")
+    things = cobalt_paginator(request, emails)
+    return redirect("notifications:admin_view_all", {"things":things})

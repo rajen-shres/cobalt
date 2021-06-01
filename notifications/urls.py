@@ -16,5 +16,8 @@ urlpatterns = [
         name="admin_view_email",
     ),
     path("admin/view-email", views.admin_view_email, name="admin_view_email"),
+    path("admin/resend-email/<int:email_id>", views.resend_email_to_contact, name="admin_resend_email"),
+    path("admin/resend-all-email", views.resend_all_queued_emails, name="admin_resend_all_emails"),
     path("email/send-email/<int:member_id>", views.email_contact, name="email_contact"),
+
 ]
