@@ -1,0 +1,17 @@
+accounts, TeamMate,
+id.user.accounts.User, id.team_mate.accounts.User, make_payments
+aa, mark,0
+bb, mark,0
+cc, mark,0
+dd, mark,0
+ee, mark,1
+julian, mark,1
+mark, aa,1
+mark, dd,1
+mark,ii,1
+mark, ff,1
+mark, gg,1
+mark, hh,1
+mark,julian,0
+julian,aa,0
+julian,bb,0

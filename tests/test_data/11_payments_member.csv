@@ -1,0 +1,89 @@
+payments, MemberTransaction,,,,,,,,
+id, id.member.accounts.User, amount,id.organisation.organisations.Organisation,id.other_member.accounts.User,id.stripe_transaction.payments.StripeTransaction,description,type,t.created_date,balance
+tr1,bb,45,,,stripe1,Payment from card **** **** ***** 4242 Exp 4/24,CC Payment,1,45
+tr2,bb,-45,fbc,,,Entry into Popup Tournament,Congress Entry,1,0
+tr3,ff,200.25,,,stripe2,Payment from card **** **** ***** 4242 Exp 4/24,Manual Top Up,395,200.25
+tr4,ff,-35,nsw,,,State event entry fee,Congress Entry,395,165.25
+tr5,ff,-35,rbc,,,Rival Congress,Congress Entry,395,130.25
+tr6,ff,-35,fbc,,,Fantasy Congress,Congress Entry,395,95.25
+tr7,ff,14.33,,dd,,ABF administrator adjustment,Manual Adjustment,395,109.58
+tr8,ff,600,,,stripe3,Payment from card **** **** ***** 4242 Exp 4/24,Manual Top Up,395,709.58
+tr9,ff,-35,nsw,,,State event entry fee,Congress Entry,395,674.58
+tr10,ff,-35,rbc,,,Rival Congress,Congress Entry,395,639.58
+tr11,ff,-35,fbc,,,Fantasy Congress,Congress Entry,395,604.58
+tr12,ff,80,,ee,,From other user,Member Transfer,395,684.58
+tr13,ff,-100,,aa,,Pay other user,Member Transfer,395,584.58
+tr14,ff,-101.11,,bb,,Pay other user,Member Transfer,395,483.47
+tr15,ff,-102.22,,cc,,Pay other user,Member Transfer,395,381.25
+tr16,ff,-103.33,,dd,,Pay other user,Member Transfer,395,277.92
+tr17,ff,-104.44,,ee,,Pay other user,Member Transfer,395,173.48
+tr18,ff,200.25,,,stripe4,Payment from card **** **** ***** 4242 Exp 4/24,Manual Top Up,180,373.73
+tr19,ff,-45,nsw,,,State event entry fee,Congress Entry,180,328.73
+tr20,ff,-45,rbc,,,Rival Congress,Congress Entry,180,283.73
+tr21,ff,-45,fbc,,,Fantasy Congress,Congress Entry,180,238.73
+tr22,ff,15.33,,dd,,ABF administrator adjustment,Manual Adjustment,180,254.06
+tr23,ff,600,,,stripe5,Payment from card **** **** ***** 4242 Exp 4/24,Manual Top Up,180,854.06
+tr24,ff,-45,nsw,,,State event entry fee,Congress Entry,180,809.06
+tr25,ff,-45,rbc,,,Rival Congress,Congress Entry,180,764.06
+tr26,ff,-45,fbc,,,Fantasy Congress,Congress Entry,180,719.06
+tr27,ff,80,,ee,,From other user,Member Transfer,180,799.06
+tr28,ff,-100,,aa,,Pay other user,Member Transfer,180,699.06
+tr29,ff,-101.11,,bb,,Pay other user,Member Transfer,180,597.95
+tr30,ff,-102.22,,cc,,Pay other user,Member Transfer,180,495.73
+tr31,ff,-103.33,,dd,,Pay other user,Member Transfer,180,392.4
+tr32,ff,-104.44,,ee,,Pay other user,Member Transfer,180,287.96
+tr33,ff,200.25,,,stripe6,Payment from card **** **** ***** 4242 Exp 4/24,Manual Top Up,60,488.21
+tr34,ff,-55,nsw,,,State event entry fee,Congress Entry,60,433.21
+tr35,ff,-55,rbc,,,Rival Congress,Congress Entry,60,378.21
+tr36,ff,-55,fbc,,,Fantasy Congress,Congress Entry,60,323.21
+tr37,ff,16.33,,dd,,ABF administrator adjustment,Manual Adjustment,60,339.54
+tr38,ff,600,,,stripe7,Payment from card **** **** ***** 4242 Exp 4/24,Manual Top Up,60,939.54
+tr39,ff,-55,nsw,,,State event entry fee,Congress Entry,60,884.54
+tr40,ff,-55,rbc,,,Rival Congress,Congress Entry,60,829.54
+tr41,ff,-55,fbc,,,Fantasy Congress,Congress Entry,60,774.54
+tr42,ff,80,,ee,,From other user,Member Transfer,60,854.54
+tr43,ff,-100,,aa,,Pay other user,Member Transfer,60,754.54
+tr44,ff,-101.11,,bb,,Pay other user,Member Transfer,60,653.43
+tr45,ff,-102.22,,cc,,Pay other user,Member Transfer,60,551.21
+tr46,ff,-103.33,,dd,,Pay other user,Member Transfer,60,447.88
+tr47,ff,-104.44,,ee,,Pay other user,Member Transfer,60,343.44
+tr48,ff,200.25,,,stripe8,Payment from card **** **** ***** 4242 Exp 4/24,Manual Top Up,20,543.69
+tr49,ff,-65,nsw,,,State event entry fee,Congress Entry,20,478.69
+tr50,ff,-65,rbc,,,Rival Congress,Congress Entry,20,413.69
+tr51,ff,-65,fbc,,,Fantasy Congress,Congress Entry,20,348.69
+tr52,ff,-17.33,,dd,,ABF administrator adjustment,Manual Adjustment,20,331.36
+tr53,ff,600,,,stripe9,Payment from card **** **** ***** 4242 Exp 4/24,Manual Top Up,20,931.36
+tr54,ff,-65,nsw,,,State event entry fee,Congress Entry,20,866.36
+tr55,ff,-65,rbc,,,Rival Congress,Congress Entry,20,801.36
+tr56,ff,-65,fbc,,,Fantasy Congress,Congress Entry,20,736.36
+tr57,ff,80,,ee,,From other user,Member Transfer,20,816.36
+tr58,ff,-100,,aa,,Pay other user,Member Transfer,20,716.36
+tr59,ff,-101.11,,bb,,Pay other user,Member Transfer,20,615.25
+tr60,ff,-102.22,,cc,,Pay other user,Member Transfer,20,513.03
+tr61,ff,-103.33,,dd,,Pay other user,Member Transfer,20,409.7
+tr62,ff,-104.44,,ee,,Pay other user,Member Transfer,20,305.26
+tr63,aa,100,,ff,,Pay other user,Member Transfer,395,100
+tr64,aa,100,,ff,,Pay other user,Member Transfer,180,200
+tr65,aa,100,,ff,,Pay other user,Member Transfer,60,300
+tr66,aa,100,,ff,,Pay other user,Member Transfer,20,400
+tr67,bb,101.11,,ff,,Pay other user,Member Transfer,395,101.11
+tr68,bb,101.11,,ff,,Pay other user,Member Transfer,180,202.22
+tr69,bb,101.11,,ff,,Pay other user,Member Transfer,60,303.33
+tr70,bb,101.11,,ff,,Pay other user,Member Transfer,20,404.44
+tr71,cc,102.22,,ff,,Pay other user,Member Transfer,395,102.22
+tr72,cc,102.22,,ff,,Pay other user,Member Transfer,180,204.44
+tr73,cc,102.22,,ff,,Pay other user,Member Transfer,60,306.66
+tr74,cc,102.22,,ff,,Pay other user,Member Transfer,20,408.88
+tr75,dd,103.33,,ff,,Pay other user,Member Transfer,395,103.33
+tr76,dd,103.33,,ff,,Pay other user,Member Transfer,180,206.66
+tr77,dd,103.33,,ff,,Pay other user,Member Transfer,60,309.99
+tr78,dd,103.33,,ff,,Pay other user,Member Transfer,20,413.32
+tr79,ee,104.44,,ff,,Pay other user,Member Transfer,395,104.44
+tr80,ee,-80,,ff,,Pay other user,Member Transfer,395,24.44
+tr81,ee,104.44,,ff,,Pay other user,Member Transfer,180,128.88
+tr82,ee,-80,,ff,,Pay other user,Member Transfer,180,48.88
+tr83,ee,104.44,,ff,,Pay other user,Member Transfer,60,153.32
+tr84,ee,-80,,ff,,Pay other user,Member Transfer,60,73.32
+tr85,ee,104.44,,ff,,Pay other user,Member Transfer,20,177.76
+tr86,ee,-80,,ff,,Pay other user,Member Transfer,20,97.76
+tr87,mark,-80,,ff,,Pay other user,Member Transfer,20,100

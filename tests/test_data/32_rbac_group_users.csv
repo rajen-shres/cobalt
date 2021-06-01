@@ -1,0 +1,32 @@
+rbac, RBACUserGroup
+ id.group.rbac.RBACGroup,id.member.accounts.User
+fbc_staff, ee
+fbc_staff, ff
+fbc_staff, gg
+fbc_pay, ee
+fbc_pay, ff
+forum_admin, bb
+public_mods, ii
+public_mods, hh
+block_all, EVERYONE
+allow_specific, aa
+allow_specific, bb
+allow_specific, cc
+allow_specific,jj
+secret_mods, jj
+global_mods, kk
+abfp, dd
+abfp, ii
+abfpv, julian
+fbc_congress, cc
+fbc_congress, ee
+fbc_congress, ff
+fbc_congress, gg
+fbc_congress, mark
+rbc_congress, bb
+rbc_congress, dd
+rbc_congress, hh
+rbc_congress, mark
+abfp,mark
+abfe,mark
+abfe,ff
