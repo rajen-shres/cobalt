@@ -190,9 +190,17 @@ def stripe_manual_payment_intent(request):
             return JsonResponse({"error": "Invalid payload"})
 
         stripe.api_key = STRIPE_SECRET_KEY
+
+        # Create a customer so we get the email and name on the Stripe side
+        stripe_customer = stripe.Customer.create(
+            name=request.user,
+            email=request.user.email,
+        )
+
         intent = stripe.PaymentIntent.create(
             amount=payload_cents,
             currency="aud",
+            customer=stripe_customer,
             metadata={
                 "cobalt_pay_id": payload_cobalt_pay_id,
                 "cobalt_tran_type": "Manual",

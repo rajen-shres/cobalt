@@ -1,5 +1,3 @@
-
-.elasticbeanstalk/*
 *.log
 *.pot
 *.pyc
@@ -8,7 +6,8 @@ db.sqlite3*
 /media
 .DS_Store
 .coverage
-
+.idea
+.pytest_cache
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml

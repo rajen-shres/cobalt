@@ -53,6 +53,11 @@ urlpatterns = [
         views.admin_view_stripe_transaction_detail,
         name="admin_view_stripe_transaction_detail",
     ),
+    path(
+        "admin-refund-stripe-transaction/<int:stripe_transaction_id>",
+        views.admin_refund_stripe_transaction,
+        name="admin_refund_stripe_transaction",
+    ),
     path("statement", views.statement, name="statement"),
     path("settlement", views.settlement, name="settlement"),
     path(

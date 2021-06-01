@@ -54,6 +54,12 @@ class StripeTransaction(models.Model):
         ("Failed", "Failed - payment failed"),
     ]
 
+    REFUND_STATUS = [
+        ("Not Refunded", "Not refunded"),
+        ("Partial", "Partial refund paid"),
+        ("Full", "Fully refunded"),
+    ]
+
     member = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         help_text="User object associated with this transaction",
@@ -153,6 +159,16 @@ class StripeTransaction(models.Model):
         "Linked Amount", blank=True, null=True, max_digits=12, decimal_places=2
     )
     """linked amount can be different to amount if the member had some money in their account already"""
+
+    refund_status = models.CharField(
+        "Refund Status", max_length=12, choices=REFUND_STATUS, default="Not Refunded"
+    )
+    """ Shows whether this transaction has been refunded """
+
+    refund_amount = models.DecimalField(
+        "Refund Amount", default=0.0, max_digits=12, decimal_places=2
+    )
+    """How much has been refunded"""
 
     def __str__(self):
         return "%s(%s %s) - %s" % (
