@@ -1800,6 +1800,31 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
             print(rc)
             # Call atomic database update
             admin_refund_stripe_transaction_sub(stripe_item, amount)
+
+            # Notify member
+            email_body = f"<b>{request.user.full_name}</b> has refunded {GLOBAL_CURRENCY_SYMBOL}{amount:.2f} into your {BRIDGE_CREDITS} account.<br><br>It can take up to two weeks for the money to reach your bank.<br><br>"
+            context = {
+                "name": stripe_item.member.first_name,
+                "title": "Credit Card Refund",
+                "email_body": email_body,
+                "host": COBALT_HOSTNAME,
+                "link": "/payments",
+                "link_text": "View Statement",
+            }
+
+            html_msg = render_to_string("notifications/email_with_button.html", context)
+
+            # send
+            contact_member(
+                member=stripe_item.member,
+                msg="Credit Card Refund - %s%s"
+                % (GLOBAL_CURRENCY_SYMBOL, amount),
+                contact_type="Email",
+                html_msg=html_msg,
+                link="/payments",
+                subject="Credit Card Refund",
+            )
+
             msg = f"Refund Successful. Paid {GLOBAL_CURRENCY_SYMBOL}{amount} to {stripe_item.member}"
             messages.success(request, msg, extra_tags="cobalt-message-success")
             return redirect("payments:admin_view_stripe_transactions")
