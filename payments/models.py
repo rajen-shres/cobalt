@@ -50,7 +50,7 @@ class StripeTransaction(models.Model):
         ("Pending", "Pending - transaction approved by Stripe - awaiting confirmation"),
         # This means it worked and we have their cash
         ("Complete", "Success - payment completed successfully"),
-        # This means we didn't get their cash
+        # This means we didn't get their cash - although currently nothing gets set to failed
         ("Failed", "Failed - payment failed"),
     ]
 
