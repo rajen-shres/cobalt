@@ -1090,6 +1090,77 @@ def admin_event_email(request, event_id):
     )
 
 
+def _admin_email_function(request, event_id):
+    """ Email all entrants to an event """
+
+    event = get_object_or_404(Event, pk=event_id)
+
+    # check access
+    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    form = EmailForm(request.POST or None)
+
+    # who will receive this
+    recipients_qs = EventEntryPlayer.objects.filter(event_entry__event=event).exclude(
+        event_entry__entry_status="Cancelled"
+    )
+
+    if request.method == "POST":
+        if form.is_valid():
+            subject = form.cleaned_data["subject"]
+            body = form.cleaned_data["body"]
+
+            if "test" in request.POST:
+                recipients = [request.user]
+            else:
+                recipients = []
+                for recipient in recipients_qs:
+                    recipients.append(recipient.player)
+            for recipient in recipients:
+                context = {
+                    "name": recipient.first_name,
+                    "title": subject,
+                    "email_body": body,
+                    "host": COBALT_HOSTNAME,
+                    "link": "/events/view",
+                    "link_text": "View Entry",
+                }
+
+                html_msg = render_to_string(
+                    "notifications/email_with_button.html", context
+                )
+
+                # send
+                contact_member(
+                    member=recipient,
+                    msg=f"Email about {event}",
+                    contact_type="Email",
+                    html_msg=html_msg,
+                    link="/events/view",
+                    subject=subject,
+                )
+
+            if "test" in request.POST:
+                msg = "Test message sent"
+            else:
+                msg = "%s message(s) sent" % (len(recipients))
+
+            messages.success(request, msg, extra_tags="cobalt-message-success")
+
+    return render(
+        request,
+        "events/admin_email.html",
+        {
+            "form": form,
+            "event": event,
+            "count": recipients_qs.count(),
+            "recipients": recipients_qs,
+        },
+    )
+
+
 @login_required()
 def admin_bulletins(request, congress_id):
     """ Manage bulletins """

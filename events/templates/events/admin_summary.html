@@ -16,6 +16,7 @@
         <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}" class="btn btn-sm btn-secondary">Edit Congress</a>
         <a href="{% url "events:admin_bulletins" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Bulletins</a>
         <a href="{% url "events:admin_latest_news" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Latest News</a>
+        <a href="{% url "events:admin_latest_news" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Email Congress</a>
       </div>
       <div class="card-body">
 
