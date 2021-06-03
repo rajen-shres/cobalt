@@ -2,7 +2,6 @@
 {% load static %}
 {% load humanize %}
 {% load cobalt_tags %}
-{% load crispy_forms_tags %}
 {% block content %}
 
 <nav aria-label="breadcrumb" role="navigation">
@@ -17,7 +16,7 @@
   <div class="card">
     <div class="card-header card-header-primary">
       <h1>{{ BRIDGE_CREDITS }}</h1>
-      <h2>Stripe Transactions Details</h2>
+      <h2>Stripe Refund</h2>
     </div>
 
     <div class="card-body table-responsive">
@@ -30,7 +29,7 @@
         <tr><td><b>Created Date</b></td><td>{{ stripe_item.created_date|cobalt_nice_datetime }}</td></tr>
         <tr><td><b>Member Paid</b></td><td>{{ GLOBAL_CURRENCY_SYMBOL}}{{ stripe_item.amount|floatformat:2 }}</td></tr>
         <tr>
-          <td><b>Member Balance</b></td>
+          <td><b>Member Balance (before refund)</b></td>
           <td>
             {{ GLOBAL_CURRENCY_SYMBOL}}{{ member_balance|floatformat:2 }}
             <a href="{% url "payments:statement_admin_view" member_id=stripe_item.member.id %}" class="btn btn-sm btn-info">View Statement</a>
@@ -46,7 +45,8 @@
         <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-            <button type="submit" class="btn btn-success cobalt-save">Submit</button>
+            <button type="submit" name="first-submit" class="btn btn-success cobalt-save">Submit</button>
+            <a href="/" class="btn btn-info">Cancel</a>
       </form>
 
     </div>

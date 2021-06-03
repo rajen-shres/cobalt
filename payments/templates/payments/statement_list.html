@@ -81,6 +81,12 @@
                 [Refunded]
             {% endif %}
         </a>
+            {% if refund_administrator %}
+                {% if thing.stripe_transaction.refund_status != "Full" %}
+                    <a href="{% url "payments:admin_refund_stripe_transaction" stripe_transaction_id=thing.stripe_transaction.id %}" class="btn btn-sm btn-danger">Refund</a>
+                {% endif %}
+            {% endif %}
+
         {% else %}
         {{ thing.description }}
         {% endif %}

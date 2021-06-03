@@ -182,7 +182,7 @@ def statement(request):
 ################################
 # statement_admin_view         #
 ################################
-@login_required()
+@rbac_check_role("payments.global.view")
 def statement_admin_view(request, member_id):
     """Member statement view for administrators.
 
@@ -197,15 +197,13 @@ def statement_admin_view(request, member_id):
 
     """
 
-    # check access
-    role = "payments.global.view"
-    if not rbac_user_has_role(request.user, role):
-        return rbac_forbidden(request, role)
-
     user = get_object_or_404(User, pk=member_id)
     (summary, club, balance, auto_button, events_list) = statement_common(user)
 
-    things = cobalt_paginator(request, events_list, 30)
+    things = cobalt_paginator(request, events_list)
+
+    # See if this admin can process refunds
+    refund_administrator = rbac_user_has_role(request.user, "payments.global.edit")
 
     return render(
         request,
@@ -218,6 +216,7 @@ def statement_admin_view(request, member_id):
             "balance": balance,
             "auto_button": auto_button,
             "auto_amount": user.auto_amount,
+            "refund_administrator": refund_administrator,
             "admin_view": True,
         },
     )
@@ -1782,65 +1781,93 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
     # Calculate how much refund is left
     stripe_item.refund_left = stripe_item.amount - stripe_item.refund_amount
 
+    member_balance = get_balance(stripe_item.member)
+
     if request.method == "POST":
         form = StripeRefund(request.POST, payment_amount=stripe_item.refund_left)
         if form.is_valid():
 
-            amount = form.cleaned_data["amount"]
+            # Check if this the first entry screen or the confirmation screen
+            if "first-submit" in request.POST:
+                # First screen so show user the confirm
+                after_balance = float(member_balance) - float(
+                    form.cleaned_data["amount"]
+                )
+                return render(
+                    request,
+                    "payments/admin_refund_stripe_transaction_confirm.html",
+                    {
+                        "stripe_item": stripe_item,
+                        "form": form,
+                        "after_balance": after_balance,
+                    },
+                )
 
-            # Stripe uses cents not dollars
-            stripe_amount = int(amount * 100)
+            elif "confirm-submit" in request.POST:
+                # Confirm screen so make refund
 
-            stripe.api_key = STRIPE_SECRET_KEY
-            rc = stripe.Refund.create(
-                charge=stripe_item.stripe_reference,
-                amount=stripe_amount,
-            )
+                amount = form.cleaned_data["amount"]
 
-            if rc['status'] != "succeeded":
-                return render(request, "payments/payments_refund_error.html", {'rc': rc, 'stripe_item': stripe_item})
+                # Stripe uses cents not dollars
+                stripe_amount = int(amount * 100)
 
-            # Call atomic database update
-            admin_refund_stripe_transaction_sub(stripe_item, amount)
+                stripe.api_key = STRIPE_SECRET_KEY
+                rc = stripe.Refund.create(
+                    charge=stripe_item.stripe_reference,
+                    amount=stripe_amount,
+                )
 
-            # Notify member
-            email_body = f"<b>{request.user.full_name}</b> has refunded {GLOBAL_CURRENCY_SYMBOL}{amount:.2f} into your {BRIDGE_CREDITS} account.<br><br>It can take up to two weeks for the money to reach your bank.<br><br>"
-            context = {
-                "name": stripe_item.member.first_name,
-                "title": "Credit Card Refund",
-                "email_body": email_body,
-                "host": COBALT_HOSTNAME,
-                "link": "/payments",
-                "link_text": "View Statement",
-            }
+                if rc["status"] != "succeeded":
+                    return render(
+                        request,
+                        "payments/payments_refund_error.html",
+                        {"rc": rc, "stripe_item": stripe_item},
+                    )
 
-            html_msg = render_to_string("notifications/email_with_button.html", context)
+                # Call atomic database update
+                admin_refund_stripe_transaction_sub(stripe_item, amount)
 
-            # send
-            contact_member(
-                member=stripe_item.member,
-                msg="Credit Card Refund - %s%s"
-                % (GLOBAL_CURRENCY_SYMBOL, amount),
-                contact_type="Email",
-                html_msg=html_msg,
-                link="/payments",
-                subject="Credit Card Refund",
-            )
+                # Notify member
+                email_body = f"""<b>{request.user.full_name}</b> has refunded {GLOBAL_CURRENCY_SYMBOL}{amount:.2f}
+                 to your card.<br><br>
+                 Please note that It can take up to two weeks for the money to appear in your card statement.<br><br>
+                 Your {BRIDGE_CREDITS} account balance has been reduced to reflect this refund.<br><br>
+                 """
+                context = {
+                    "name": stripe_item.member.first_name,
+                    "title": "Card Refund",
+                    "email_body": email_body,
+                    "host": COBALT_HOSTNAME,
+                    "link": "/payments",
+                    "link_text": "View Statement",
+                }
 
-            msg = f"Refund Successful. Paid {GLOBAL_CURRENCY_SYMBOL}{amount} to {stripe_item.member}"
-            messages.success(request, msg, extra_tags="cobalt-message-success")
-            return redirect("payments:admin_view_stripe_transactions")
+                html_msg = render_to_string(
+                    "notifications/email_with_button.html", context
+                )
+
+                # send
+                contact_member(
+                    member=stripe_item.member,
+                    msg="Card Refund - %s%s" % (GLOBAL_CURRENCY_SYMBOL, amount),
+                    contact_type="Email",
+                    html_msg=html_msg,
+                    link="/payments",
+                    subject="Card Refund",
+                )
+
+                msg = f"Refund Successful. Paid {GLOBAL_CURRENCY_SYMBOL}{amount} to {stripe_item.member}"
+                messages.success(request, msg, extra_tags="cobalt-message-success")
+                return redirect("payments:admin_view_stripe_transactions")
 
     else:
         form = StripeRefund(payment_amount=stripe_item.refund_left)
         form.fields["amount"].initial = stripe_item.refund_left
 
-    member_balance = get_balance(stripe_item.member)
-
     return render(
         request,
         "payments/admin_refund_stripe_transaction.html",
-        {"stripe_item": stripe_item, "form": form, 'member_balance': member_balance},
+        {"stripe_item": stripe_item, "form": form, "member_balance": member_balance},
     )
 
 

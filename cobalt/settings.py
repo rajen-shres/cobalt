@@ -343,6 +343,10 @@ TBA_PLAYER = 2
 # Org id for the system account
 GLOBAL_ORG_ID = 1
 
+# Logout users every 100 years
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 52560000
+
 # LOGGING = {
 #     'version': 1,
 #     'disable_existing_loggers': False,
