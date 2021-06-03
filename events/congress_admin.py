@@ -1072,9 +1072,12 @@ def admin_event_email(request, event_id):
                 )
 
             if "test" in request.POST:
-                msg = "Test message sent"
+                msg = "Test message queued"
             else:
-                msg = "%s message(s) sent" % (len(recipients))
+                if len(recipients) == 1:
+                    msg = "Message queued"
+                else:
+                    msg = "%s messages queued" % (len(recipients))
 
             messages.success(request, msg, extra_tags="cobalt-message-success")
 
