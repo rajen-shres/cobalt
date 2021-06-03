@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone, dateformat
 from django.db.models import Sum, Q
-from notifications.views import contact_member
+from notifications.views import contact_member, send_cobalt_bulk_email
 from logs.views import log_event
 from django.db import transaction
 from .models import (
@@ -1042,34 +1042,32 @@ def admin_event_email(request, event_id):
             body = form.cleaned_data["body"]
 
             if "test" in request.POST:
-                recipients = [request.user]
+                recipients = [request.user.email]
             else:
                 recipients = []
                 for recipient in recipients_qs:
-                    recipients.append(recipient.player)
-            for recipient in recipients:
-                context = {
-                    "name": recipient.first_name,
-                    "title": subject,
-                    "email_body": body,
-                    "host": COBALT_HOSTNAME,
-                    "link": "/events/view",
-                    "link_text": "View Entry",
-                }
+                    recipients.append(recipient.player.email)
 
-                html_msg = render_to_string(
-                    "notifications/email_with_button.html", context
-                )
+            context = {
+                "title1": f"Message from {request.user.full_name} Organiser of {event.congress}",
+                "title2": subject,
+                "email_body": body,
+                "host": COBALT_HOSTNAME,
+                "link": "/events/view",
+                "link_text": "View Entry",
+            }
 
-                # send
-                contact_member(
-                    member=recipient,
-                    msg=f"Email about {event}",
-                    contact_type="Email",
-                    html_msg=html_msg,
-                    link="/events/view",
-                    subject=subject,
-                )
+            html_msg = render_to_string(
+                "notifications/email_with_button_no_salutation.html", context
+            )
+
+            # send
+            send_cobalt_bulk_email(
+                bcc_addresses=recipients,
+                subject=subject,
+                message=html_msg,
+                reply_to=request.user.email,
+            )
 
             if "test" in request.POST:
                 msg = "Test message queued"
@@ -1078,77 +1076,6 @@ def admin_event_email(request, event_id):
                     msg = "Message queued"
                 else:
                     msg = "%s messages queued" % (len(recipients))
-
-            messages.success(request, msg, extra_tags="cobalt-message-success")
-
-    return render(
-        request,
-        "events/admin_email.html",
-        {
-            "form": form,
-            "event": event,
-            "count": recipients_qs.count(),
-            "recipients": recipients_qs,
-        },
-    )
-
-
-def _admin_email_function(request, event_id):
-    """ Email all entrants to an event """
-
-    event = get_object_or_404(Event, pk=event_id)
-
-    # check access
-    role = "events.org.%s.edit" % event.congress.congress_master.org.id
-    if not rbac_user_has_role(request.user, role):
-        return rbac_forbidden(request, role)
-
-    form = EmailForm(request.POST or None)
-
-    # who will receive this
-    recipients_qs = EventEntryPlayer.objects.filter(event_entry__event=event).exclude(
-        event_entry__entry_status="Cancelled"
-    )
-
-    if request.method == "POST":
-        if form.is_valid():
-            subject = form.cleaned_data["subject"]
-            body = form.cleaned_data["body"]
-
-            if "test" in request.POST:
-                recipients = [request.user]
-            else:
-                recipients = []
-                for recipient in recipients_qs:
-                    recipients.append(recipient.player)
-            for recipient in recipients:
-                context = {
-                    "name": recipient.first_name,
-                    "title": subject,
-                    "email_body": body,
-                    "host": COBALT_HOSTNAME,
-                    "link": "/events/view",
-                    "link_text": "View Entry",
-                }
-
-                html_msg = render_to_string(
-                    "notifications/email_with_button.html", context
-                )
-
-                # send
-                contact_member(
-                    member=recipient,
-                    msg=f"Email about {event}",
-                    contact_type="Email",
-                    html_msg=html_msg,
-                    link="/events/view",
-                    subject=subject,
-                )
-
-            if "test" in request.POST:
-                msg = "Test message sent"
-            else:
-                msg = "%s message(s) sent" % (len(recipients))
 
             messages.success(request, msg, extra_tags="cobalt-message-success")
 
