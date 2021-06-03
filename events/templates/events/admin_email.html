@@ -33,10 +33,8 @@
       </div>
       <div class="card-body mx-auto">
 
-
             <form method="post">
               {% csrf_token %}
-
               <div class="row">
                 <div class="col-12">
                   <div class="form-group">
@@ -52,17 +50,43 @@
                 </div>
               </div>
               <hr>
-
+            <div>
+                <a href="javascript:void(0)" id="show-recipients">Show Recipients</a>
+                <div id="recipients" class="mt-2" style="display: none;">
+                <ul>
+                {% for recipient in recipients %}
+                <li>{{ recipient.player|cobalt_user_link_short }}
+                {% endfor %}
+                </ul>
+                </div>
+              </div>
               <div class="text-center">
-              <button class="btn btn-info cobalt-save" name="test">Test</button>
-              <button class="btn btn-success cobalt-save" name="send">Send ({{ count }})</button>
+              <button class="btn btn-info btn-sm cobalt-save" name="test">Test</button>
+              <button class="btn btn-success btn-sm cobalt-save" name="send">Send ({{ count }})</button>
               </div>
             </form>
           </div>
         </div>
-
       </div>
     </div>
-  </div>
-</div>
+{% endblock %}
+
+{% block footer %}
+<script>
+$(document).ready(function(){
+
+// handle click on show recipients
+  $("#show-recipients").click(function(){
+      if ($("#show-recipients").text()==="Show Recipients"){
+        $("#show-recipients").text("Hide Recipients");
+        $("#recipients").show();
+      } else {
+        $("#show-recipients").text("Show Recipients");
+        $("#recipients").hide();
+
+      }
+  });
+});
+
+</script>
 {% endblock %}
