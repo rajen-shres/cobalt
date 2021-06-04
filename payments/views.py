@@ -1895,7 +1895,7 @@ def admin_refund_stripe_transaction_sub(stripe_item, amount):
     # act.stripe_transaction = stripe_item
     act.balance = balance
     act.description = f"Credit Card Refund"
-    act.type = "Refund"
+    act.type = "Card Refund"
 
     act.save()
 

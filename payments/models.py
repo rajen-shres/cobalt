@@ -31,6 +31,7 @@ TRANSACTION_TYPE = [
     ("Settlement", "Settlement payment"),
     ("Manual Adjustment", "Manual adjustment"),
     ("Refund", "Refund"),
+    ("Card Refund", "Refund to a card"),
 ]
 
 
