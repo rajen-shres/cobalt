@@ -30,7 +30,9 @@ TRANSACTION_TYPE = [
     ("Miscellaneous", "Miscellaneous payment"),
     ("Settlement", "Settlement payment"),
     ("Manual Adjustment", "Manual adjustment"),
+    # Refund is Org to Player +ve for player
     ("Refund", "Refund"),
+    # Card Refund is ABF to Players Credit Card -ve for player
     ("Card Refund", "Refund to a card"),
 ]
 
