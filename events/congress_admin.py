@@ -1029,64 +1029,93 @@ def admin_event_email(request, event_id):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
-    form = EmailForm(request.POST or None)
-
     # who will receive this
     recipients_qs = EventEntryPlayer.objects.filter(event_entry__event=event).exclude(
         event_entry__entry_status="Cancelled"
     )
 
-    if request.method == "POST":
-        if form.is_valid():
-            subject = form.cleaned_data["subject"]
-            body = form.cleaned_data["body"]
+    return _admin_email_common(request, recipients_qs, event.congress, event)
 
-            if "test" in request.POST:
-                recipients = [request.user.email]
-            else:
-                recipients = []
-                for recipient in recipients_qs:
-                    recipients.append(recipient.player.email)
 
-            context = {
-                "title1": f"Message from {request.user.full_name} Organiser of {event.congress}",
-                "title2": subject,
-                "email_body": body,
-                "host": COBALT_HOSTNAME,
-                "link": "/events/view",
-                "link_text": "View Entry",
-            }
+@login_required()
+def admin_congress_email(request, congress_id):
+    """ Email all entrants to an entire congress """
 
-            html_msg = render_to_string(
-                "notifications/email_with_button_no_salutation.html", context
+    congress = get_object_or_404(Congress, pk=congress_id)
+
+    # check access
+    role = "events.org.%s.edit" % congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    # who will receive this
+    recipients_qs = EventEntryPlayer.objects.filter(
+        event_entry__event__congress=congress
+    ).exclude(event_entry__entry_status="Cancelled")
+
+    return _admin_email_common(request, recipients_qs, congress, event=None)
+
+
+def _admin_email_common(request, recipients_qs, congress, event=None):
+    """ Common function for sending emails to entrants """
+
+    form = EmailForm(request.POST or None)
+
+    all_recipients = []
+    for recipient in recipients_qs:
+        if recipient not in all_recipients:
+            all_recipients.append(recipient)
+
+    if request.method == "POST" and form.is_valid():
+        subject = form.cleaned_data["subject"]
+        body = form.cleaned_data["body"]
+
+        recipients = [request.user] if "test" in request.POST else all_recipients
+        context = {
+            "title1": f"Message from {request.user.full_name} Organiser of {congress}",
+            "title2": subject,
+            "email_body": body,
+            "host": COBALT_HOSTNAME,
+        }
+
+        html_msg = render_to_string(
+            "notifications/email_no_button_no_salutation.html", context
+        )
+
+        # send
+        recipients_email = [recipient.player.email for recipient in recipients]
+        send_cobalt_bulk_email(
+            bcc_addresses=recipients_email,
+            subject=subject,
+            message=html_msg,
+            reply_to=request.user.email,
+        )
+
+        if "test" in request.POST:
+            messages.success(
+                request, "Test message queued", extra_tags="cobalt-message-success"
             )
-
-            # send
-            send_cobalt_bulk_email(
-                bcc_addresses=recipients,
-                subject=subject,
-                message=html_msg,
-                reply_to=request.user.email,
-            )
-
-            if "test" in request.POST:
-                msg = "Test message queued"
+        else:  # Send for real
+            if len(recipients) == 1:
+                msg = "Message queued"
             else:
-                if len(recipients) == 1:
-                    msg = "Message queued"
-                else:
-                    msg = "%s messages queued" % (len(recipients))
-
+                msg = "%s messages queued" % (len(recipients))
             messages.success(request, msg, extra_tags="cobalt-message-success")
+
+            if event:
+                return redirect("events:admin_event_summary", event_id=event.id)
+            else:
+                return redirect("events:admin_summary", congress_id=congress.id)
 
     return render(
         request,
         "events/admin_email.html",
         {
             "form": form,
+            "congress": congress,
             "event": event,
-            "count": recipients_qs.count(),
-            "recipients": recipients_qs,
+            "count": len(all_recipients),
+            "recipients": all_recipients,
         },
     )
 

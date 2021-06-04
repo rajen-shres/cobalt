@@ -18,9 +18,11 @@
 
 <nav aria-label="breadcrumb" role="navigation">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event.congress.id %}">{{ event.congress.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=congress.id %}">{{ congress.name }}</a></li>
+      {% if event %}
     <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Email Event</li>
+      {% endif %}
+    <li class="breadcrumb-item active" aria-current="page">Email</li>
   </ol>
 </nav>
 
@@ -29,7 +31,11 @@
     <div class="card">
       <div class="card-header card-header-warning">
         <h2>Email</h2>
-        <h3>{{ event.event_name }} in {{ event.congress }}</h3>
+          {% if event %}
+        <h3>{{ event.event_name }} in {{ congress }}</h3>
+          {% else %}
+              <h3>Email Whole Congress: {{ congress }}</h3>
+          {% endif %}
       </div>
       <div class="card-body mx-auto">
 
