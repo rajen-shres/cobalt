@@ -1070,7 +1070,12 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
         subject = form.cleaned_data["subject"]
         body = form.cleaned_data["body"]
 
-        recipients = [request.user] if "test" in request.POST else all_recipients
+        if "test" in request.POST:
+            recipients = [request.user]
+            recipients_email = [request.user.email]
+        else:
+            recipients = all_recipients
+            recipients_email = [recipient.player.email for recipient in recipients]
         context = {
             "title1": f"Message from {request.user.full_name} Organiser of {congress}",
             "title2": subject,
@@ -1083,7 +1088,6 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
         )
 
         # send
-        recipients_email = [recipient.player.email for recipient in recipients]
         send_cobalt_bulk_email(
             bcc_addresses=recipients_email,
             subject=subject,
@@ -1093,7 +1097,9 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
 
         if "test" in request.POST:
             messages.success(
-                request, "Test message queued", extra_tags="cobalt-message-success"
+                request,
+                f"Test message queued to be sent to {request.user.email}",
+                extra_tags="cobalt-message-success",
             )
         else:  # Send for real
             if len(recipients) == 1:
