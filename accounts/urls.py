@@ -33,9 +33,3 @@ urlpatterns = [
     path("user-signed-up-list", views.user_signed_up_list, name="user_signed_up_list"),
     path("delete-photo", views.delete_photo, name="delete_photo"),
 ]
-
-# def not_found_handler(request, exception=None):
-#     return HttpResponse("Error handler content", status=403)
-#
-#
-# handler404 = not_found_handler

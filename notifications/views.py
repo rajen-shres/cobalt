@@ -602,7 +602,7 @@ def email_contact(request, member_id):
             extra_tags="cobalt-message-success",
         )
 
-        redirect_to = request.POST["redirect_to", "dashboard:dashboard"]
+        redirect_to = request.POST.get("redirect_to", "dashboard:dashboard")
         return redirect(redirect_to)
 
     return render(
