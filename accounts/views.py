@@ -23,6 +23,7 @@ import ipinfo
 from notifications.views import send_cobalt_email, notifications_in_english
 from logs.views import get_client_ip, log_event
 from organisations.models import MemberOrganisation
+from rbac.core import rbac_user_has_role
 from .models import User, TeamMate
 from .tokens import account_activation_token
 from .forms import (
@@ -594,8 +595,6 @@ def public_profile(request, pk):
         HttpResponse
     """
 
-    PAGE_SIZE = 30
-
     pub_profile = get_object_or_404(User, pk=pk)
 
     post_list = Post.objects.filter(author=pub_profile).order_by("-created_date")
@@ -620,23 +619,27 @@ def public_profile(request, pk):
 
     if not tab or tab == "posts":
         posts_active = "active"
-        posts = cobalt_paginator(request, post_list, PAGE_SIZE)
-        comment1s = cobalt_paginator(request, comment1_list, PAGE_SIZE, 1)
-        comment2s = cobalt_paginator(request, comment2_list, PAGE_SIZE, 1)
+        posts = cobalt_paginator(request, post_list)
+        comment1s = cobalt_paginator(request, comment1_list, page_no=1)
+        comment2s = cobalt_paginator(request, comment2_list, page_no=1)
     elif tab == "comment1s":
         comment1s_active = "active"
-        posts = cobalt_paginator(request, post_list, PAGE_SIZE, 1)
-        comment1s = cobalt_paginator(request, comment1_list, PAGE_SIZE)
-        comment2s = cobalt_paginator(request, comment2_list, PAGE_SIZE, 1)
+        posts = cobalt_paginator(request, post_list, page_no=1)
+        comment1s = cobalt_paginator(request, comment1_list)
+        comment2s = cobalt_paginator(request, comment2_list, page_no=1)
     elif tab == "comment2s":
         comment2s_active = "active"
-        posts = cobalt_paginator(request, post_list, PAGE_SIZE, 1)
-        comment1s = cobalt_paginator(request, comment1_list, PAGE_SIZE, 1)
-        comment2s = cobalt_paginator(request, comment2_list, PAGE_SIZE)
+        posts = cobalt_paginator(request, post_list, page_no=1)
+        comment1s = cobalt_paginator(request, comment1_list, page_no=1)
+        comment2s = cobalt_paginator(request, comment2_list)
 
     summary = user_summary(pub_profile.system_number)
 
-    print(summary)
+    # Admins get more
+    if rbac_user_has_role(request.user, "payments.global.edit"):
+        payments_admin = True
+    else:
+        payments_admin = False
 
     return render(
         request,
@@ -650,6 +653,7 @@ def public_profile(request, pk):
             "comment1s_active": comment1s_active,
             "comment2s_active": comment2s_active,
             "summary": summary,
+            "payments_admin": payments_admin,
         },
     )
 
@@ -810,7 +814,9 @@ def delete_photo(request):
     request.user.pic = "pic_folder/default-avatar.png"
     request.user.save()
     messages.success(
-        request, "Your photo has been reset", extra_tags="cobalt-message-success",
+        request,
+        "Your photo has been reset",
+        extra_tags="cobalt-message-success",
     )
 
     return redirect("accounts:user_profile")

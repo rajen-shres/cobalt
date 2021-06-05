@@ -52,7 +52,7 @@ DEBUG = set_value("DEBUG", False)
 
 # Set up ADMINS list from string
 ADMINS = [
-    ("Tanmay Dutta", "tanmay.datta86@gmail.com"),
+    ("Mark Guthrie", "m@rkguthrie.com"),
     ("Julian Foster", "julianrfoster@gmail.com"),
 ]
 
@@ -342,6 +342,10 @@ TBA_PLAYER = 2
 
 # Org id for the system account
 GLOBAL_ORG_ID = 1
+
+# Logout users every 100 years
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 52560000
 
 # LOGGING = {
 #     'version': 1,

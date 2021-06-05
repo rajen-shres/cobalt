@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone, dateformat
 from django.db.models import Sum, Q
-from notifications.views import contact_member
+from notifications.views import contact_member, send_cobalt_bulk_email
 from logs.views import log_event
 from django.db import transaction
 from .models import (
@@ -371,7 +371,9 @@ def admin_event_csv(request, event_id):
         return rbac_forbidden(request, role)
 
     # get details
-    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by("first_created_date")
+    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by(
+        "first_created_date"
+    )
 
     local_dt = timezone.localtime(timezone.now(), TZ)
     today = dateformat.format(local_dt, "Y-m-d H:i:s")
@@ -473,7 +475,7 @@ def admin_event_csv(request, event_id):
                 outstanding = row.entry_fee - row.payment_received
             else:
                 outstanding = row.entry_fee
-            masterpoints,status = get_player_mp_stats(row.player)
+            masterpoints, status = get_player_mp_stats(row.player)
             writer.writerow(
                 [
                     entry.primary_entrant,
@@ -510,11 +512,13 @@ def admin_event_csv_scoring(request, event_id):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
-    local_dt = timezone.localtime(timezone.now(), TZ)
-    today = dateformat.format(local_dt, "Y-m-d H:i:s")
+    # local_dt = timezone.localtime(timezone.now(), TZ)
+    #   today = dateformat.format(local_dt, "Y-m-d H:i:s")
 
     # get details
-    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by("first_created_date")
+    entries = event.evententry_set.exclude(entry_status="Cancelled").order_by(
+        "first_created_date"
+    )
 
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = f"attachment; filename={event} - Scoring.csv"
@@ -536,7 +540,7 @@ def admin_event_csv_scoring(request, event_id):
         "Category",
         "question",
         "Player comment",
-        "Organiser notes"
+        "Organiser notes",
     ]
 
     writer.writerow(header)
@@ -547,14 +551,14 @@ def admin_event_csv_scoring(request, event_id):
         entry_line = 1
         for row in entry.evententryplayer_set.all():
             data_row = [
-                    count,
-                    row.player.full_name.upper(),
-                    row.player.system_number,
-                    row.player.mobile,
-                    row.player.email,
-                    row.event_entry.primary_entrant.last_name.upper(),
-                ]
-            if(entry_line==1):
+                count,
+                row.player.full_name.upper(),
+                row.player.system_number,
+                row.player.mobile,
+                row.player.email,
+                row.event_entry.primary_entrant.last_name.upper(),
+            ]
+            if entry_line == 1:
                 data_row.append(entry.category)
                 data_row.append(entry.free_format_answer)
                 data_row.append(entry.comment)
@@ -564,15 +568,13 @@ def admin_event_csv_scoring(request, event_id):
                 data_row.append("")
                 data_row.append("")
                 data_row.append("")
-            writer.writerow(
-                data_row
-            )
+            writer.writerow(data_row)
             entry_line += 1
         # add extra blank rows for teams if needed
         if event.player_format == "Teams":
             for extra_lines in range(7 - entry_line):
                 writer.writerow(
-                    [count, "", "", "","", entry.primary_entrant.last_name.upper()]
+                    [count, "", "", "", "", entry.primary_entrant.last_name.upper()]
                 )
 
         count += 1
@@ -604,7 +606,7 @@ def admin_event_offsystem(request, event_id):
                 "my-system-dollars",
                 "their-system-dollars",
                 "other-system-dollars",
-                "off-system-pp"
+                "off-system-pp",
             ]
         )
         .exclude(event_entry__entry_status="Cancelled")
@@ -631,9 +633,7 @@ def admin_event_offsystem_pp(request, event_id):
     # get players with pps
     players = (
         EventEntryPlayer.objects.filter(event_entry__event=event)
-        .filter(
-            payment_type="off-system-pp"
-        )
+        .filter(payment_type="off-system-pp")
         .exclude(event_entry__entry_status="Cancelled")
     )
 
@@ -669,6 +669,7 @@ def admin_event_unpaid(request, event_id):
         {"event": event, "players": players},
     )
 
+
 @login_required()
 def admin_players_report(request, event_id):
     """ Unpaid Report """
@@ -681,9 +682,8 @@ def admin_players_report(request, event_id):
         return rbac_forbidden(request, role)
 
     # get players with unpaid entries
-    players = (
-        EventEntryPlayer.objects.filter(event_entry__event=event)
-        .exclude(event_entry__entry_status="Cancelled")
+    players = EventEntryPlayer.objects.filter(event_entry__event=event).exclude(
+        event_entry__entry_status="Cancelled"
     )
     for player in players:
         player.masterpoint, player.status = get_player_mp_stats(player.player)
@@ -694,11 +694,15 @@ def admin_players_report(request, event_id):
         {"event": event, "players": players},
     )
 
+
 def get_player_mp_stats(player):
     """
-     Get summary data
+    Get summary data
     """
-    qry = "%s/mps/%s" % (GLOBAL_MPSERVER,player.system_number) # player.player.system_number)
+    qry = "%s/mps/%s" % (
+        GLOBAL_MPSERVER,
+        player.system_number,
+    )  # player.player.system_number)
     try:
         r = requests.get(qry).json()
     except (
@@ -710,13 +714,15 @@ def get_player_mp_stats(player):
         r = []
 
     if len(r) == 0:
-        return "Unknown ABF no","Unknown ABF no"
+        return "Unknown ABF no", "Unknown ABF no"
     is_active = r[0]["IsActive"]
-    if is_active=="Y":
-        is_active="Active"
+    if is_active == "Y":
+        is_active = "Active"
     else:
-        is_active="Inactive"
+        is_active = "Inactive"
     return r[0]["TotalMPs"], is_active
+
+
 @login_required()
 def admin_event_log(request, event_id):
     """ Show logs for an event """
@@ -1023,59 +1029,100 @@ def admin_event_email(request, event_id):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
-    form = EmailForm(request.POST or None)
-
     # who will receive this
     recipients_qs = EventEntryPlayer.objects.filter(event_entry__event=event).exclude(
         event_entry__entry_status="Cancelled"
     )
 
-    if request.method == "POST":
-        if form.is_valid():
-            subject = form.cleaned_data["subject"]
-            body = form.cleaned_data["body"]
+    return _admin_email_common(request, recipients_qs, event.congress, event)
 
-            if "test" in request.POST:
-                recipients = [request.user]
+
+@login_required()
+def admin_congress_email(request, congress_id):
+    """ Email all entrants to an entire congress """
+
+    congress = get_object_or_404(Congress, pk=congress_id)
+
+    # check access
+    role = "events.org.%s.edit" % congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    # who will receive this
+    recipients_qs = EventEntryPlayer.objects.filter(
+        event_entry__event__congress=congress
+    ).exclude(event_entry__entry_status="Cancelled")
+
+    return _admin_email_common(request, recipients_qs, congress, event=None)
+
+
+def _admin_email_common(request, recipients_qs, congress, event=None):
+    """ Common function for sending emails to entrants """
+
+    form = EmailForm(request.POST or None)
+
+    all_recipients = []
+    for recipient in recipients_qs:
+        if recipient not in all_recipients:
+            all_recipients.append(recipient)
+
+    if request.method == "POST" and form.is_valid():
+        subject = form.cleaned_data["subject"]
+        body = form.cleaned_data["body"]
+
+        if "test" in request.POST:
+            recipients = [request.user]
+            recipients_email = [request.user.email]
+        else:
+            recipients = all_recipients
+            recipients_email = [recipient.player.email for recipient in recipients]
+        context = {
+            "title1": f"Message from {request.user.full_name} Organiser of {congress}",
+            "title2": subject,
+            "email_body": body,
+            "host": COBALT_HOSTNAME,
+        }
+
+        html_msg = render_to_string(
+            "notifications/email_no_button_no_salutation.html", context
+        )
+
+        # send
+        send_cobalt_bulk_email(
+            bcc_addresses=recipients_email,
+            subject=subject,
+            message=html_msg,
+            reply_to=request.user.email,
+        )
+
+        if "test" in request.POST:
+            messages.success(
+                request,
+                f"Test message queued to be sent to {request.user.email}",
+                extra_tags="cobalt-message-success",
+            )
+        else:  # Send for real
+            if len(recipients) == 1:
+                msg = "Message queued"
             else:
-                recipients = []
-                for recipient in recipients_qs:
-                    recipients.append(recipient.player)
-            for recipient in recipients:
-                context = {
-                    "name": recipient.first_name,
-                    "title": subject,
-                    "email_body": body,
-                    "host": COBALT_HOSTNAME,
-                    "link": "/events/view",
-                    "link_text": "View Entry",
-                }
-
-                html_msg = render_to_string(
-                    "notifications/email_with_button.html", context
-                )
-
-                # send
-                contact_member(
-                    member=recipient,
-                    msg=f"Email about {event}",
-                    contact_type="Email",
-                    html_msg=html_msg,
-                    link="/events/view",
-                    subject=subject,
-                )
-
-            if "test" in request.POST:
-                msg = "Test message sent"
-            else:
-                msg = "%s message(s) sent" % (len(recipients))
-
+                msg = "%s messages queued" % (len(recipients))
             messages.success(request, msg, extra_tags="cobalt-message-success")
+
+            if event:
+                return redirect("events:admin_event_summary", event_id=event.id)
+            else:
+                return redirect("events:admin_summary", congress_id=congress.id)
 
     return render(
         request,
         "events/admin_email.html",
-        {"form": form, "event": event, "count": recipients_qs.count()},
+        {
+            "form": form,
+            "congress": congress,
+            "event": event,
+            "count": len(all_recipients),
+            "recipients": all_recipients,
+        },
     )
 
 
@@ -1232,7 +1279,6 @@ def admin_move_entry(request, event_entry_id):
 @login_required()
 @transaction.atomic
 def admin_event_entry_add(request, event_id):
-
     event = get_object_or_404(Event, pk=event_id)
 
     # check access
@@ -1408,7 +1454,6 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
         return redirect("events:admin_evententry", evententry_id=event_entry.id)
 
     if request.method == "POST":
-
         # Log it
         EventLog(
             event=event_entry.event,
@@ -1433,9 +1478,9 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
 @login_required()
 @transaction.atomic
 def admin_event_offsystem_pp_batch(request, event_id):
-    """ Handle Club PP system to allow clubs to use their existing PP system
-        as a payment method. This handles batch work so upload a spreadsheet
-        to the external PP system """
+    """Handle Club PP system to allow clubs to use their existing PP system
+    as a payment method. This handles batch work so upload a spreadsheet
+    to the external PP system"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -1447,25 +1492,28 @@ def admin_event_offsystem_pp_batch(request, event_id):
     # get players with pps
     event_entry_players = (
         EventEntryPlayer.objects.filter(event_entry__event=event)
-        .filter(
-            payment_type="off-system-pp"
-        )
+        .filter(payment_type="off-system-pp")
         .exclude(event_entry__entry_status="Cancelled")
         .exclude(payment_status="Paid")
     )
 
     # calculate outstanding
     for event_entry_player in event_entry_players:
-        event_entry_player.outstanding = event_entry_player.entry_fee - event_entry_player.payment_received
+        event_entry_player.outstanding = (
+            event_entry_player.entry_fee - event_entry_player.payment_received
+        )
 
     event_entry_players_list = []
     for event_entry_player in event_entry_players:
-        event_entry_players_list.append((event_entry_player.id, event_entry_player.player.full_name))
-
+        event_entry_players_list.append(
+            (event_entry_player.id, event_entry_player.player.full_name)
+        )
 
     if request.method == "POST":
 
-        form = OffSystemPPForm(request.POST, event_entry_players=event_entry_players_list)
+        form = OffSystemPPForm(
+            request.POST, event_entry_players=event_entry_players_list
+        )
         if form.is_valid():
 
             # event_entry_players_list is the full list, event-entry_players_ids is
@@ -1473,7 +1521,9 @@ def admin_event_offsystem_pp_batch(request, event_id):
 
             event_entry_player_ids = form.cleaned_data["event_entry_players_list"]
 
-            event_entry_players = EventEntryPlayer.objects.filter(id__in=event_entry_player_ids)
+            event_entry_players = EventEntryPlayer.objects.filter(
+                id__in=event_entry_player_ids
+            )
 
             if "export" in request.POST:  # CSV download
 
@@ -1506,7 +1556,8 @@ def admin_event_offsystem_pp_batch(request, event_id):
                         [
                             event_entry_player.player.system_number,
                             event_entry_player.player.full_name,
-                            event_entry_player.entry_fee - event_entry_player.payment_received,
+                            event_entry_player.entry_fee
+                            - event_entry_player.payment_received,
                         ]
                     )
 
@@ -1515,7 +1566,10 @@ def admin_event_offsystem_pp_batch(request, event_id):
             else:  # confirm payments
 
                 for event_entry_player in event_entry_players:
-                    outstanding = event_entry_player.entry_fee - event_entry_player.payment_received
+                    outstanding = (
+                        event_entry_player.entry_fee
+                        - event_entry_player.payment_received
+                    )
                     event_entry_player.payment_status = "Paid"
                     event_entry_player.payment_received = event_entry_player.entry_fee
                     event_entry_player.save()
@@ -1545,5 +1599,7 @@ def admin_event_offsystem_pp_batch(request, event_id):
         form = OffSystemPPForm(event_entry_players=event_entry_players_list)
 
     return render(
-        request, "events/admin_event_offsystem_pp_batch.html", {"event_entry_players": event_entry_players, "form": form, "event": event}
+        request,
+        "events/admin_event_offsystem_pp_batch.html",
+        {"event_entry_players": event_entry_players, "form": form, "event": event},
     )

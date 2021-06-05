@@ -1,0 +1,39 @@
+rbac, RBACGroup,,
+id, name_qualifier, name_item, description
+dummy, rbac.orgs.clubs.act.pretent_club, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.nsw.pretent_club, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.vic.pretent_club, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.tas.pretent_club, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.wa.pretent_club, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.sa.pretent_club, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.nt.pretent_club, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.act.made_up_rsl, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.nsw.made_up_rsl, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.vic.made_up_rsl, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.tas.made_up_rsl, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.wa.made_up_rsl, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.sa.made_up_rsl, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.clubs.nt.made_up_rsl, staff, Staff at Dummy Bridge Club
+dummy, rbac.orgs.states.nsw.admin, staff, Staff at NSW State Org
+dummy, rbac.orgs.states.nt.admin, staff, Staff at NT State Org
+dummy, rbac.orgs.states.vic.admin, staff, Staff at VIC State Org
+dummy, rbac.orgs.states.sa.admin, staff, Staff at SA State Org
+dummy, rbac.orgs.states.wa.admin, staff, Staff at WA State Org
+dummy, rbac.orgs.states.tas.admin, staff, Staff at TAS State Org
+dummy, rbac.orgs.states.act.admin, staff, Staff at ACT State Org
+dummy, rbac.modules.payments, dummy, Payments stuff
+dummy, rbac.modules.scoring, dummy, Scoring stuff
+dummy, rbac.modules.scoring, dummy, Scoring stuff
+fbc_staff, rbac.orgs.clubs.act.fantasy_bridge_club, staff, Staff at Fantasy Bridge Club
+fbc_pay, rbac.orgs.clubs.act.fantasy_bridge_club, payments, Payments for Fantasy Bridge Club
+forum_admin, rbac.modules.forums.admin, forum_admins, Global admins for forums
+public_mods, rbac.modules.forums.admin, public_moderators, Moderators for Public Forums
+block_all, rbac.modules.forums.private.committeenote, block_everyone, Block public access to Committee Notes
+allow_specific, rbac.modules.forums.private.committeenote, allow_specific, Allow specific access to Committee Notes
+secret_mods, rbac.modules.forums.admin, secret_moderators, Moderators for Hidden Forum 6
+global_mods, rbac.modules.forums.admin, global_moderators, Moderators for all forums (even hidden).
+abfp, rbac.orgs.abf.abf_roles, payments_officers2, Group to manage payments for the ABF
+abfpv, rbac.orgs.abf.abf_roles, payments_view, Read only access to payments for the ABF
+fbc_congress, rbac.orgs.clubs.act.fantasy_bridge_club, congresses, Congress Conveners at Fantasy Bridge Club
+rbc_congress, rbac.orgs.clubs.act.rival_bridge_club, congresses, Congress Conveners at Rival Bridge Club
+abfe, rbac.orgs.abf.abf_roles,events,Global events management

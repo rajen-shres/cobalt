@@ -30,33 +30,32 @@ import datetime
 import requests
 import stripe
 import pytz
-import json
+from django.db.transaction import atomic
 from django.utils import timezone, dateformat
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from django.db.models import Sum
 from django.db import transaction
 from django.contrib import messages
+
+from masterpoints.views import user_summary
 from notifications.views import contact_member
 from logs.views import log_event
 from cobalt.settings import (
     STRIPE_SECRET_KEY,
     GLOBAL_MPSERVER,
-    AUTO_TOP_UP_LOW_LIMIT,
     AUTO_TOP_UP_MAX_AMT,
     AUTO_TOP_UP_DEFAULT_AMT,
     GLOBAL_ORG,
     GLOBAL_ORG_ID,
     GLOBAL_CURRENCY_SYMBOL,
-    GLOBAL_CURRENCY_NAME,
     BRIDGE_CREDITS,
     TIME_ZONE,
     COBALT_HOSTNAME,
 )
 from .forms import (
-    TestTransaction,
     MemberTransfer,
     MemberTransferOrg,
     ManualTopup,
@@ -66,6 +65,7 @@ from .forms import (
     DateForm,
     PaymentStaticForm,
     OrgStaticOverrideForm,
+    StripeRefund,
 )
 from .core import (
     payment_api,
@@ -87,9 +87,11 @@ from utils.utils import cobalt_paginator
 from organisations.models import Organisation
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
+from rbac.decorators import rbac_check_role
 from django.utils.timezone import make_aware
 
 TZ = pytz.timezone(TIME_ZONE)
+
 
 ####################
 # statement_common #
@@ -118,15 +120,10 @@ def statement_common(user):
         summary = requests.get(qry).json()[0]
     except IndexError:  # server down or some error
         # raise Http404
-        summary = {}
-        summary["IsActive"] = False
-        summary["HomeClubID"] = 0
+        summary = {"IsActive": False, "HomeClubID": 0}
 
     # Set active to a boolean
-    if summary["IsActive"] == "Y":
-        summary["IsActive"] = True
-    else:
-        summary["IsActive"] = False
+    summary["IsActive"] = summary["IsActive"] == "Y"
 
     # Get home club name
     qry = "%s/club/%s" % (GLOBAL_MPSERVER, summary["HomeClubID"])
@@ -137,22 +134,14 @@ def statement_common(user):
 
     # get balance
     last_tran = MemberTransaction.objects.filter(member=user).last()
-    if last_tran:
-        balance = last_tran.balance
-    else:
-        balance = "Nil"
-
+    balance = last_tran.balance if last_tran else "Nil"
     # get auto top up
-    if user.stripe_auto_confirmed == "On":
-        auto_button = True
-    else:
-        auto_button = False
-
+    auto_button = user.stripe_auto_confirmed == "On"
     events_list = MemberTransaction.objects.filter(member=user).order_by(
         "-created_date"
     )
 
-    return (summary, club, balance, auto_button, events_list)
+    return summary, club, balance, auto_button, events_list
 
 
 #####################
@@ -193,7 +182,7 @@ def statement(request):
 ################################
 # statement_admin_view         #
 ################################
-@login_required()
+@rbac_check_role("payments.global.view")
 def statement_admin_view(request, member_id):
     """Member statement view for administrators.
 
@@ -208,15 +197,13 @@ def statement_admin_view(request, member_id):
 
     """
 
-    # check access
-    role = "payments.global.view"
-    if not rbac_user_has_role(request.user, role):
-        return rbac_forbidden(request, role)
-
     user = get_object_or_404(User, pk=member_id)
     (summary, club, balance, auto_button, events_list) = statement_common(user)
 
-    things = cobalt_paginator(request, events_list, 30)
+    things = cobalt_paginator(request, events_list)
+
+    # See if this admin can process refunds
+    refund_administrator = rbac_user_has_role(request.user, "payments.global.edit")
 
     return render(
         request,
@@ -229,6 +216,7 @@ def statement_admin_view(request, member_id):
             "balance": balance,
             "auto_button": auto_button,
             "auto_amount": user.auto_amount,
+            "refund_administrator": refund_administrator,
             "admin_view": True,
         },
     )
@@ -254,9 +242,10 @@ def statement_org(request, org_id):
 
     organisation = get_object_or_404(Organisation, pk=org_id)
 
-    if not rbac_user_has_role(request.user, "payments.manage.%s.view" % org_id):
-        if not rbac_user_has_role(request.user, "payments.global.view"):
-            return rbac_forbidden(request, "payments.manage.%s.view" % org_id)
+    if not rbac_user_has_role(
+        request.user, "payments.manage.%s.view" % org_id
+    ) and not rbac_user_has_role(request.user, "payments.global.view"):
+        return rbac_forbidden(request, "payments.manage.%s.view" % org_id)
 
     # get balance
     balance = org_balance(organisation, True)
@@ -275,7 +264,7 @@ def statement_org(request, org_id):
 
     total = 0.0
     for item in summary:
-        total = total + float(item["total"])
+        total += float(item["total"])
 
     # get details
     events_list = OrganisationTransaction.objects.filter(
@@ -906,8 +895,10 @@ def statement_admin_summary(request):
     # Stripe Summary
     today = timezone.now()
     ref_date = today - datetime.timedelta(days=30)
-    stripe = StripeTransaction.objects.filter(created_date__gte=ref_date).exclude(stripe_method=None).aggregate(
-        Sum("amount")
+    stripe = (
+        StripeTransaction.objects.filter(created_date__gte=ref_date)
+        .exclude(stripe_method=None)
+        .aggregate(Sum("amount"))
     )
 
     return render(
@@ -1590,7 +1581,7 @@ def admin_view_manual_adjustments(request):
 ###################################
 # admin_view_stripe_transactions  #
 ###################################
-@login_required()
+@rbac_check_role("payments.global.view")
 def admin_view_stripe_transactions(request):
     """Shows stripe transactions for an admin
 
@@ -1601,137 +1592,124 @@ def admin_view_stripe_transactions(request):
         HTTPResponse (can be CSV)
     """
 
-    if not rbac_user_has_role(request.user, "payments.global.view"):
-        return rbac_forbidden(request, "payments.global.view")
+    form = DateForm(request.POST) if request.method == "POST" else DateForm()
+    if form.is_valid():
 
-    if request.method == "POST":
-        form = DateForm(request.POST)
-        if form.is_valid():
+        # Need to make the dates TZ aware
+        to_date_form = form.cleaned_data["to_date"]
+        from_date_form = form.cleaned_data["from_date"]
+        # date -> datetime
+        to_date = datetime.datetime.combine(to_date_form, datetime.time(23, 59))
+        from_date = datetime.datetime.combine(from_date_form, datetime.time(0, 0))
+        # make aware
+        to_date = make_aware(to_date, TZ)
+        from_date = make_aware(from_date, TZ)
 
-            # Need to make the dates TZ aware
-            to_date_form = form.cleaned_data["to_date"]
-            from_date_form = form.cleaned_data["from_date"]
-            # date -> datetime
-            to_date = datetime.datetime.combine(to_date_form, datetime.time(23, 59))
-            from_date = datetime.datetime.combine(from_date_form, datetime.time(0, 0))
-            # make aware
-            to_date = make_aware(to_date, TZ)
-            from_date = make_aware(from_date, TZ)
-
-            stripes = (
-                StripeTransaction.objects.filter(
-                    created_date__range=(from_date, to_date)
-                )
-                .exclude(stripe_method=None)
-                .order_by("-created_date")
-            )
-
-            for stripe_item in stripes:
-                stripe_item.amount_settle = (float(stripe_item.amount) - 0.3) * 0.9825
-                stripe.api_key = STRIPE_SECRET_KEY
-                if stripe_item.stripe_balance_transaction:
-
-                    balance_tran = stripe.BalanceTransaction.retrieve(
-                        stripe_item.stripe_balance_transaction
-                    )
-                    stripe_item.stripe_fees = balance_tran.fee / 100.0
-                    stripe_item.stripe_fee_details = balance_tran.fee_details
-                    for row in stripe_item.stripe_fee_details:
-                        row.amount = row.amount / 100.0
-                    stripe_item.stripe_settlement = balance_tran.net / 100.0
-                    stripe_item.stripe_created_date = datetime.datetime.fromtimestamp(
-                        balance_tran.created
-                    )
-                    stripe_item.stripe_available_on = datetime.datetime.fromtimestamp(
-                        balance_tran.available_on
-                    )
-
-            if "export" in request.POST:
-
-                local_dt = timezone.localtime(timezone.now(), TZ)
-                today = dateformat.format(local_dt, "Y-m-d H:i:s")
-
-                response = HttpResponse(content_type="text/csv")
-                response[
-                    "Content-Disposition"
-                ] = 'attachment; filename="stripe-transactions.csv"'
-
-                writer = csv.writer(response)
-                writer.writerow(
-                    [
-                        "Stripe Transactions",
-                        "Downloaded by %s" % request.user.full_name,
-                        today,
-                    ]
-                )
-
-                writer.writerow(
-                    [
-                        "Date",
-                        "Status",
-                        "member",
-                        "Amount",
-                        "Expected Settlement Amount",
-                        "Description",
-                        "stripe_reference",
-                        "stripe_exp_month",
-                        "stripe_exp_year",
-                        "stripe_last4",
-                        "linked_organisation",
-                        "linked_member",
-                        "linked_transaction_type",
-                        "linked_amount",
-                        "stripe_receipt_url",
-                    ]
-                )
-
-                for stripe_item in stripes:
-                    local_dt = timezone.localtime(stripe_item.created_date, TZ)
-
-                    writer.writerow(
-                        [
-                            dateformat.format(local_dt, "Y-m-d H:i:s"),
-                            stripe_item.status,
-                            stripe_item.member,
-                            stripe_item.amount,
-                            stripe_item.amount_settle,
-                            stripe_item.description,
-                            stripe_item.stripe_reference,
-                            stripe_item.stripe_exp_month,
-                            stripe_item.stripe_exp_year,
-                            stripe_item.stripe_last4,
-                            stripe_item.linked_organisation,
-                            stripe_item.linked_member,
-                            stripe_item.linked_transaction_type,
-                            stripe_item.linked_amount,
-                            stripe_item.stripe_receipt_url,
-                        ]
-                    )
-                return response
-
-            else:
-                things = cobalt_paginator(request, stripes)
-                return render(
-                    request,
-                    "payments/admin_view_stripe_transactions.html",
-                    {"form": form, "things": things},
-                )
-
-        else:
-            print(form.errors)
+        stripes = (
+            StripeTransaction.objects.filter(created_date__range=(from_date, to_date))
+            .exclude(stripe_method=None)
+            .order_by("-created_date")
+        )
 
     else:
-        form = DateForm()
 
-    return render(
-        request, "payments/admin_view_stripe_transactions.html", {"form": form}
-    )
+        stripes = StripeTransaction.objects.exclude(stripe_method=None).order_by(
+            "-created_date"
+        )[:30]
+
+    # Get payment static
+    pay_static = PaymentStatic.objects.filter(active=True).last()
+    stripe.api_key = STRIPE_SECRET_KEY
+
+    for stripe_item in stripes:
+        stripe_item.amount_settle = (
+            float(stripe_item.amount) - float(pay_static.stripe_cost_per_transaction)
+        ) * (1.0 - float(pay_static.stripe_percentage_charge) / 100.0)
+
+        # We used to go to Stripe to get the details but it times out even if the list is quite small.
+
+    if "export" in request.POST:
+
+        local_dt = timezone.localtime(timezone.now(), TZ)
+        today = dateformat.format(local_dt, "Y-m-d H:i:s")
+
+        response = HttpResponse(content_type="text/csv")
+        response[
+            "Content-Disposition"
+        ] = 'attachment; filename="stripe-transactions.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(
+            [
+                "Stripe Transactions",
+                "Downloaded by %s" % request.user.full_name,
+                today,
+            ]
+        )
+
+        writer.writerow(
+            [
+                "Date",
+                "Status",
+                "member",
+                "Amount",
+                "Refund Status",
+                "Refund Amount",
+                "Expected Settlement Amount",
+                "Description",
+                "stripe_reference",
+                "stripe_exp_month",
+                "stripe_exp_year",
+                "stripe_last4",
+                "linked_organisation",
+                "linked_member",
+                "linked_transaction_type",
+                "linked_amount",
+                "stripe_receipt_url",
+            ]
+        )
+
+        for stripe_item in stripes:
+            local_dt = timezone.localtime(stripe_item.created_date, TZ)
+
+            writer.writerow(
+                [
+                    dateformat.format(local_dt, "Y-m-d H:i:s"),
+                    stripe_item.status,
+                    stripe_item.member,
+                    stripe_item.amount,
+                    stripe_item.refund_status,
+                    stripe_item.refund_amount,
+                    stripe_item.amount_settle,
+                    stripe_item.description,
+                    stripe_item.stripe_reference,
+                    stripe_item.stripe_exp_month,
+                    stripe_item.stripe_exp_year,
+                    stripe_item.stripe_last4,
+                    stripe_item.linked_organisation,
+                    stripe_item.linked_member,
+                    stripe_item.linked_transaction_type,
+                    stripe_item.linked_amount,
+                    stripe_item.stripe_receipt_url,
+                ]
+            )
+        return response
+
+    else:
+        things = cobalt_paginator(request, stripes)
+        return render(
+            request,
+            "payments/admin_view_stripe_transactions.html",
+            {"form": form, "things": things},
+        )
 
 
 ##########################################
 # admin_view_stripe_transaction_details  #
 ##########################################
-@login_required()
+
+
+@rbac_check_role("payments.global.view")
 def admin_view_stripe_transaction_detail(request, stripe_transaction_id):
     """Shows stripe transaction details for an admin
 
@@ -1741,9 +1719,6 @@ def admin_view_stripe_transaction_detail(request, stripe_transaction_id):
     Returns:
         HTTPResponse
     """
-
-    if not rbac_user_has_role(request.user, "payments.global.view"):
-        return rbac_forbidden(request, "payments.global.view")
 
     stripe_item = get_object_or_404(StripeTransaction, pk=stripe_transaction_id)
 
@@ -1787,6 +1762,152 @@ def admin_view_stripe_transaction_detail(request, stripe_transaction_id):
     )
 
 
+##########################################
+# admin_refund_stripe_transaction        #
+##########################################
+@rbac_check_role("payments.global.edit")
+def admin_refund_stripe_transaction(request, stripe_transaction_id):
+    """Allows an Admin to refund a Stripe transaction
+
+    Args:
+        request (HTTPRequest): standard request object
+
+    Returns:
+        HTTPResponse
+    """
+
+    stripe_item = get_object_or_404(StripeTransaction, pk=stripe_transaction_id)
+
+    # Calculate how much refund is left
+    stripe_item.refund_left = stripe_item.amount - stripe_item.refund_amount
+
+    member_balance = get_balance(stripe_item.member)
+
+    if request.method == "POST":
+        form = StripeRefund(request.POST, payment_amount=stripe_item.refund_left)
+        if form.is_valid():
+
+            # Check if this the first entry screen or the confirmation screen
+            if "first-submit" in request.POST:
+                # First screen so show user the confirm
+                after_balance = float(member_balance) - float(
+                    form.cleaned_data["amount"]
+                )
+                return render(
+                    request,
+                    "payments/admin_refund_stripe_transaction_confirm.html",
+                    {
+                        "stripe_item": stripe_item,
+                        "form": form,
+                        "after_balance": after_balance,
+                    },
+                )
+
+            elif "confirm-submit" in request.POST:
+                # Confirm screen so make refund
+
+                amount = form.cleaned_data["amount"]
+
+                # Stripe uses cents not dollars
+                stripe_amount = int(amount * 100)
+
+                stripe.api_key = STRIPE_SECRET_KEY
+                rc = stripe.Refund.create(
+                    charge=stripe_item.stripe_reference,
+                    amount=stripe_amount,
+                )
+
+                if rc["status"] != "succeeded":
+                    return render(
+                        request,
+                        "payments/payments_refund_error.html",
+                        {"rc": rc, "stripe_item": stripe_item},
+                    )
+
+                # Call atomic database update
+                admin_refund_stripe_transaction_sub(stripe_item, amount)
+
+                # Notify member
+                email_body = f"""<b>{request.user.full_name}</b> has refunded {GLOBAL_CURRENCY_SYMBOL}{amount:.2f}
+                 to your card.<br><br>
+                 Please note that It can take up to two weeks for the money to appear in your card statement.<br><br>
+                 Your {BRIDGE_CREDITS} account balance has been reduced to reflect this refund.<br><br>
+                 """
+                context = {
+                    "name": stripe_item.member.first_name,
+                    "title": "Card Refund",
+                    "email_body": email_body,
+                    "host": COBALT_HOSTNAME,
+                    "link": "/payments",
+                    "link_text": "View Statement",
+                }
+
+                html_msg = render_to_string(
+                    "notifications/email_with_button.html", context
+                )
+
+                # send
+                contact_member(
+                    member=stripe_item.member,
+                    msg="Card Refund - %s%s" % (GLOBAL_CURRENCY_SYMBOL, amount),
+                    contact_type="Email",
+                    html_msg=html_msg,
+                    link="/payments",
+                    subject="Card Refund",
+                )
+
+                msg = f"Refund Successful. Paid {GLOBAL_CURRENCY_SYMBOL}{amount} to {stripe_item.member}"
+                messages.success(request, msg, extra_tags="cobalt-message-success")
+                return redirect("payments:admin_view_stripe_transactions")
+
+    else:
+        form = StripeRefund(payment_amount=stripe_item.refund_left)
+        form.fields["amount"].initial = stripe_item.refund_left
+
+    return render(
+        request,
+        "payments/admin_refund_stripe_transaction.html",
+        {"stripe_item": stripe_item, "form": form, "member_balance": member_balance},
+    )
+
+
+@atomic
+def admin_refund_stripe_transaction_sub(stripe_item, amount):
+    """ Atomic transaction update for refunds """
+
+    # Update the Stripe transaction
+    if amount + stripe_item.refund_amount >= stripe_item.amount:
+        stripe_item.refund_status = "Full"
+    else:
+        stripe_item.refund_status = "Partial"
+
+    stripe_item.refund_amount += amount
+
+    stripe_item.save()
+
+    # Create a new transaction for the user
+    balance = get_balance(stripe_item.member) - float(amount)
+
+    act = MemberTransaction()
+    act.member = stripe_item.member
+    act.amount = -amount
+    # Linking to the stripe transaction messes up the statements
+    # act.stripe_transaction = stripe_item
+    act.balance = balance
+    act.description = f"Credit Card Refund"
+    act.type = "Card Refund"
+
+    act.save()
+
+    log_event(
+        user=stripe_item.member.full_name,
+        severity="INFO",
+        source="payments",
+        sub_source="Refund",
+        message="Updated MemberTransaction table",
+    )
+
+
 @login_required()
 def member_transfer_org(request, org_id):
     """Allows an organisation to transfer money to a member
@@ -1801,9 +1922,10 @@ def member_transfer_org(request, org_id):
 
     organisation = get_object_or_404(Organisation, pk=org_id)
 
-    if not rbac_user_has_role(request.user, "payments.manage.%s.view" % org_id):
-        if not rbac_user_has_role(request.user, "payments.global.view"):
-            return rbac_forbidden(request, "payments.manage.%s.view" % org_id)
+    if not rbac_user_has_role(
+        request.user, "payments.manage.%s.view" % org_id
+    ) and not rbac_user_has_role(request.user, "payments.global.view"):
+        return rbac_forbidden(request, "payments.manage.%s.view" % org_id)
 
     balance = org_balance(organisation)
 
@@ -1880,7 +2002,7 @@ def member_transfer_org(request, org_id):
     )
 
 
-@login_required()
+@rbac_check_role("payments.global.edit")
 def admin_payments_static(request):
     """Manage static data for payments
 
@@ -1890,9 +2012,6 @@ def admin_payments_static(request):
     Returns:
         HTTPResponse
     """
-
-    if not rbac_user_has_role(request.user, "payments.global.edit"):
-        return rbac_forbidden(request, "payments.global.edit")
 
     payment_static = PaymentStatic.objects.filter(active=True).last()
 
@@ -2008,7 +2127,7 @@ def admin_payments_static_org_override_add(request):
     )
 
 
-@login_required()
+@rbac_check_role("payments.global.edit")
 def admin_payments_static_org_override_delete(request, item_id):
     """Manage static data for individual orgs (override default values)
     This screen deletes an override
@@ -2020,12 +2139,35 @@ def admin_payments_static_org_override_delete(request, item_id):
         HTTPResponse
     """
 
-    if not rbac_user_has_role(request.user, "payments.global.edit"):
-        return rbac_forbidden(request, "payments.global.edit")
-
     item = get_object_or_404(OrganisationSettlementFees, pk=item_id)
 
     item.delete()
 
     messages.success(request, "Entry deleted", extra_tags="cobalt-message-success")
     return redirect("payments:admin_payments_static_org_override")
+
+
+@rbac_check_role("payments.global.edit")
+def admin_player_payments(request, member_id):
+    """Manage a players payments as an admin. E.g. make a refund to a credit card.
+
+    Args:
+        request (HTTPRequest): standard request object
+
+    Returns:
+        HTTPResponse
+    """
+
+    member = get_object_or_404(User, pk=member_id)
+    summary = user_summary(member.system_number)
+    balance = get_balance(member)
+
+    stripes = StripeTransaction.objects.filter(member=member).order_by("-created_date")[
+        :10
+    ]
+
+    return render(
+        request,
+        "payments/admin_player_payments.html",
+        {"profile": member, "summary": summary, "balance": balance, "stripes": stripes},
+    )

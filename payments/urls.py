@@ -53,6 +53,11 @@ urlpatterns = [
         views.admin_view_stripe_transaction_detail,
         name="admin_view_stripe_transaction_detail",
     ),
+    path(
+        "admin-refund-stripe-transaction/<int:stripe_transaction_id>",
+        views.admin_refund_stripe_transaction,
+        name="admin_refund_stripe_transaction",
+    ),
     path("statement", views.statement, name="statement"),
     path("settlement", views.settlement, name="settlement"),
     path(
@@ -130,5 +135,10 @@ urlpatterns = [
         "member-transfer-org/<int:org_id>",
         views.member_transfer_org,
         name="member_transfer_org",
+    ),
+    path(
+        "admin-player-payments/<int:member_id>",
+        views.admin_player_payments,
+        name="admin_player_payments",
     ),
 ]

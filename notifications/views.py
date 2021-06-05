@@ -6,18 +6,10 @@
    ./notifications_overview.html
 
 """
+from threading import Thread
 import boto3
-from cobalt.settings import ADMINS, AWS_SECRET_ACCESS_KEY, AWS_REGION_NAME, AWS_ACCESS_KEY_ID
-from .models import InAppNotification, NotificationMapping, Email
-from .forms import EmailContactForm
-from forums.models import Forum, Post
 from accounts.models import User
-
-# from django.core.mail import send_mail
-from django.core.mail import EmailMultiAlternatives
-from django.utils.html import strip_tags
-from django.utils import timezone
-from django.http import HttpResponseRedirect
+from cobalt.settings import ADMINS, AWS_SECRET_ACCESS_KEY, AWS_REGION_NAME, AWS_ACCESS_KEY_ID
 from cobalt.settings import (
     DEFAULT_FROM_EMAIL,
     GLOBAL_TITLE,
@@ -25,30 +17,41 @@ from cobalt.settings import (
     RBAC_EVERYONE,
     COBALT_HOSTNAME,
 )
+from django.contrib.auth.decorators import login_required
+from django.core.mail import EmailMultiAlternatives
+from django.db import connection
+from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from utils.utils import cobalt_paginator
-from threading import Thread
-from django.db import connection
-from rbac.views import rbac_forbidden
+from django.utils.html import strip_tags
+from forums.models import Forum, Post
 from rbac.core import rbac_user_has_role
+
 from datetime import datetime, timedelta
 from django.contrib import messages
 from django.utils.safestring import mark_safe
 import time
 
+from rbac.views import rbac_forbidden
+from utils.utils import cobalt_paginator
+
+from .forms import EmailContactForm
+from .models import InAppNotification, NotificationMapping, Email
+
+# MAx no of emails to send in a batch
+MAX_EMAILS = 2
 
 def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
     """Send single email. This sets off an async task to actually send the
-        email to avoid delays for the user.
+        email to avoid delays for the user. This should only be used for small
+        numbers of emails, one being a good example.
 
     Args:
         to_address (str): who to send to
         subject (str): subject line for email
-        msg (str): message to send in HTML or plain format
+        message (str): message to send in HTML or plain format
         member (User): who this is being sent to (optional)
+        reply_to (str): who to send replies to
 
     Returns:
         Nothing
@@ -88,14 +91,6 @@ def send_cobalt_email_thread(email_id):
 
     plain_message = strip_tags(email.message)
 
-    # send_mail(
-    #     email.subject,
-    #     plain_message,
-    #     DEFAULT_FROM_EMAIL,
-    #     [email.recipient],
-    #     html_message=email.message,
-    # )
-
     message = EmailMultiAlternatives(
         email.subject,
         plain_message,
@@ -114,6 +109,71 @@ def send_cobalt_email_thread(email_id):
     # Django creates a new database connection for this thread so close it
     connection.close()
 
+
+def send_cobalt_bulk_email(bcc_addresses, subject, message, reply_to=""):
+    """Sends the same message to multiple people.
+
+    Args:
+        bcc_addresses (list): who to send to, list of strings
+        subject (str): subject line for email
+        message (str): message to send in HTML or plain format
+        reply_to (str): who to send replies to
+
+    Returns:
+        Nothing
+    """
+
+    # start thread
+    thread = Thread(target=send_cobalt_bulk_email_thread, args=[bcc_addresses, subject, message, reply_to])
+    thread.setDaemon(True)
+    thread.start()
+
+
+def send_cobalt_bulk_email_thread(bcc_addresses, subject, message, reply_to):
+    """Send bulk emails. Asynchronous thread
+
+    Args:
+        bcc_addresses (list): who to send to, list of strings
+        subject (str): subject line for email
+        message (str): message to send in HTML or plain format
+        reply_to (str): who to send replies to
+
+    Returns:
+        Nothing
+    """
+
+    plain_message = strip_tags(message)
+
+    # split emails into chunks using an ugly list comprehension stolen from the internet
+    # turn [a,b,c,d] into [[a,b],[c,d]]
+    emails_as_list = [bcc_addresses[i * MAX_EMAILS:(i + 1) * MAX_EMAILS] for i in range((len(bcc_addresses) + MAX_EMAILS - 1) // MAX_EMAILS )]
+
+    for emails in emails_as_list:
+
+        msg = EmailMultiAlternatives(
+            subject,
+            plain_message,
+            to=[],
+            bcc=emails,
+            from_email=DEFAULT_FROM_EMAIL,
+            reply_to=[reply_to],
+        )
+
+        msg.attach_alternative(message, "text/html")
+
+        msg.send()
+
+        for email in emails:
+
+            Email(
+                subject=subject,
+                message=message,
+                recipient=email,
+                status = "Sent",
+            ).save()
+
+    # Django creates a new database connection for this thread so close it
+    connection.close()
 
 def send_cobalt_sms(phone_number, msg):
     """Send single SMS

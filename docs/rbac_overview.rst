@@ -407,6 +407,30 @@ For a default of *Block* you can use the following code snippet:
   # Now use the list like this
   posts_list = Post.objects.filter(forum__in=allowed)
 
+Decorator
+=========
+
+There is a decorator provided if you only want to check one or two
+simple roles for a user:
+
+.. code-block:: python
+
+    from rbac.decorators import rbac_check_role
+
+    @rbac_check_role("some_app.some_role")
+    def my_func(request):
+
+    # Your code
+
+    OR
+
+    @rbac_check_role("some_app.some_role", "some_role.some_other_role")
+    def my_func(request):
+
+    # your code
+The decorator also checks if the user is logged in so you don't need
+to use @login_required.
+
 List of Functions
 =================
 

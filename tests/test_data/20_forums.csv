@@ -1,0 +1,9 @@
+forums, Forum,,,,
+id, title, description, forum_type, bg_colour, fg_colour
+f1, System Announcements, Announcements relating to this system, Announcement,white,black
+f2, General Discussions, General fake discussions, Discussion,white,black
+f3, Technical Discussions, Technical fake discussions, Discussion,white,black
+f4, Fantasy Bridge Club, Club site, Club,white,black
+f5,Rival Bridge Club, Club site, Club,white,black
+f6, Secret Committee Notes, Fake secret stuff, Discussion,white,black
+f7,Yet Another Forum,More stuff,Discussion,white,black

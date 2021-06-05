@@ -18,9 +18,11 @@
 
 <nav aria-label="breadcrumb" role="navigation">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event.congress.id %}">{{ event.congress.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=congress.id %}">{{ congress.name }}</a></li>
+      {% if event %}
     <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Email Event</li>
+      {% endif %}
+    <li class="breadcrumb-item active" aria-current="page">Email</li>
   </ol>
 </nav>
 
@@ -29,14 +31,16 @@
     <div class="card">
       <div class="card-header card-header-warning">
         <h2>Email</h2>
-        <h3>{{ event.event_name }} in {{ event.congress }}</h3>
+          {% if event %}
+        <h3>{{ event.event_name }} in {{ congress }}</h3>
+          {% else %}
+              <h3>Email Whole Congress: {{ congress }}</h3>
+          {% endif %}
       </div>
       <div class="card-body mx-auto">
 
-
             <form method="post">
               {% csrf_token %}
-
               <div class="row">
                 <div class="col-12">
                   <div class="form-group">
@@ -52,17 +56,43 @@
                 </div>
               </div>
               <hr>
-
+            <div>
+                <a href="javascript:void(0)" id="show-recipients">Show Recipients</a>
+                <div id="recipients" class="mt-2" style="display: none;">
+                <ul>
+                {% for recipient in recipients %}
+                <li>{{ recipient.player|cobalt_user_link_short }}
+                {% endfor %}
+                </ul>
+                </div>
+              </div>
               <div class="text-center">
-              <button class="btn btn-info cobalt-save" name="test">Test</button>
-              <button class="btn btn-success cobalt-save" name="send">Send ({{ count }})</button>
+              <button class="btn btn-info btn-sm cobalt-save" name="test">Test</button>
+              <button class="btn btn-success btn-sm cobalt-save" name="send">Send ({{ count }})</button>
               </div>
             </form>
           </div>
         </div>
-
       </div>
     </div>
-  </div>
-</div>
+{% endblock %}
+
+{% block footer %}
+<script>
+$(document).ready(function(){
+
+// handle click on show recipients
+  $("#show-recipients").click(function(){
+      if ($("#show-recipients").text()==="Show Recipients"){
+        $("#show-recipients").text("Hide Recipients");
+        $("#recipients").show();
+      } else {
+        $("#show-recipients").text("Show Recipients");
+        $("#recipients").hide();
+
+      }
+  });
+});
+
+</script>
 {% endblock %}

@@ -18,14 +18,14 @@ from .models import (
 from django.core.exceptions import ValidationError
 
 
-class TestTransaction(forms.Form):
-    """ Temporary - will be removed """
-
-    amount = forms.DecimalField(label="Amount", max_digits=8, decimal_places=2)
-    description = forms.CharField(label="Description", max_length=100)
-    organisation = forms.ModelChoiceField(queryset=Organisation.objects.all())
-    type = forms.ChoiceField(label="Transaction Type", choices=TRANSACTION_TYPE)
-    url = forms.CharField(label="URL", max_length=100, required=False)
+# class TestTransaction(forms.Form):
+#     """ Temporary - will be removed """
+#
+#     amount = forms.DecimalField(label="Amount", max_digits=8, decimal_places=2)
+#     description = forms.CharField(label="Description", max_length=100)
+#     organisation = forms.ModelChoiceField(queryset=Organisation.objects.all())
+#     type = forms.ChoiceField(label="Transaction Type", choices=TRANSACTION_TYPE)
+#     url = forms.CharField(label="URL", max_length=100, required=False)
 
 
 class MemberTransfer(forms.Form):
@@ -116,7 +116,8 @@ class SettlementForm(forms.Form):
 
     # Handle checkboxes
     settle_list = forms.MultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple, choices=CARD_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        choices=CARD_CHOICES,
     )
 
     def __init__(self, *args, **kwargs):
@@ -177,3 +178,27 @@ class OrgStaticOverrideForm(forms.ModelForm):
     class Meta:
         model = OrganisationSettlementFees
         fields = ("organisation", "org_fee_percent")
+
+
+class StripeRefund(forms.Form):
+    """ Allow admins to make Stripe refunds """
+
+    amount = forms.DecimalField(label="Refund", max_digits=8, decimal_places=2)
+
+    def __init__(self, *args, **kwargs):
+        self.payment_amount = kwargs.pop("payment_amount", 0.0)
+        super(StripeRefund, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        """ validation for the amount field """
+        cleaned_data = super(StripeRefund, self).clean()
+        if cleaned_data.get("amount"):
+            amount = self.cleaned_data["amount"]
+            if amount < 0.0:
+                raise forms.ValidationError("Amount cannot be negative")
+            if amount > self.payment_amount:
+                raise forms.ValidationError("Too large. Refund is more than was paid.")
+        else:
+            self._errors["amount"] = "Please enter a value"
+
+        return self.cleaned_data

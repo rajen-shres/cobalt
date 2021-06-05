@@ -30,7 +30,10 @@ TRANSACTION_TYPE = [
     ("Miscellaneous", "Miscellaneous payment"),
     ("Settlement", "Settlement payment"),
     ("Manual Adjustment", "Manual adjustment"),
+    # Refund is Org to Player +ve for player
     ("Refund", "Refund"),
+    # Card Refund is ABF to Players Credit Card -ve for player
+    ("Card Refund", "Refund to a card"),
 ]
 
 
@@ -50,8 +53,14 @@ class StripeTransaction(models.Model):
         ("Pending", "Pending - transaction approved by Stripe - awaiting confirmation"),
         # This means it worked and we have their cash
         ("Complete", "Success - payment completed successfully"),
-        # This means we didn't get their cash
+        # This means we didn't get their cash - although currently nothing gets set to failed
         ("Failed", "Failed - payment failed"),
+    ]
+
+    REFUND_STATUS = [
+        ("Not Refunded", "Not refunded"),
+        ("Partial", "Partial refund paid"),
+        ("Full", "Fully refunded"),
     ]
 
     member = models.ForeignKey(
@@ -153,6 +162,16 @@ class StripeTransaction(models.Model):
         "Linked Amount", blank=True, null=True, max_digits=12, decimal_places=2
     )
     """linked amount can be different to amount if the member had some money in their account already"""
+
+    refund_status = models.CharField(
+        "Refund Status", max_length=12, choices=REFUND_STATUS, default="Not Refunded"
+    )
+    """ Shows whether this transaction has been refunded """
+
+    refund_amount = models.DecimalField(
+        "Refund Amount", default=0.0, max_digits=12, decimal_places=2
+    )
+    """How much has been refunded"""
 
     def __str__(self):
         return "%s(%s %s) - %s" % (
