@@ -15,14 +15,16 @@ from accounts.models import User
 
 """
 
+
 class Command(BaseCommand):
     def handle(self, *args, **options):
         print("Running add_superadmin")
-        userList = [User.objects.filter(username=name).first() for name in ["518891", "Tanmay"]]
+        userList = [
+            User.objects.filter(username=name).first() for name in ["518891", "Mark"]
+        ]
         super_group = create_RBAC_admin_group(self, "admin", "", "Super admin group")
         create_RBAC_admin_tree(self, super_group, "rbac")
         for user in userList:
             rbac_add_user_to_admin_group(super_group, user)
             # add to global payment manage
-            rbac_add_role_to_admin_group(
-                super_group, app="payments", model="manage")
+            rbac_add_role_to_admin_group(super_group, app="payments", model="manage")

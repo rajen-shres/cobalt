@@ -17,11 +17,6 @@ def not_found_404(request, exception):
     return render(request, "errors/404.html", {"error": error})
 
 
-# def server_error_500(request):
-#     print("500")
-#     return render(request, "errors/500.html")
-
-
 def server_error_500(request):
     response = render(request, "errors/500.html")
     response.status_code = 500

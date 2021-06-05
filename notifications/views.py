@@ -9,7 +9,12 @@
 from threading import Thread
 import boto3
 from accounts.models import User
-from cobalt.settings import ADMINS, AWS_SECRET_ACCESS_KEY, AWS_REGION_NAME, AWS_ACCESS_KEY_ID
+from cobalt.settings import (
+    ADMINS,
+    AWS_SECRET_ACCESS_KEY,
+    AWS_REGION_NAME,
+    AWS_ACCESS_KEY_ID,
+)
 from cobalt.settings import (
     DEFAULT_FROM_EMAIL,
     GLOBAL_TITLE,
@@ -40,6 +45,7 @@ from .models import InAppNotification, NotificationMapping, Email
 
 # MAx no of emails to send in a batch
 MAX_EMAILS = 2
+
 
 def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
     """Send single email. This sets off an async task to actually send the
@@ -124,7 +130,10 @@ def send_cobalt_bulk_email(bcc_addresses, subject, message, reply_to=""):
     """
 
     # start thread
-    thread = Thread(target=send_cobalt_bulk_email_thread, args=[bcc_addresses, subject, message, reply_to])
+    thread = Thread(
+        target=send_cobalt_bulk_email_thread,
+        args=[bcc_addresses, subject, message, reply_to],
+    )
     thread.setDaemon(True)
     thread.start()
 
@@ -146,8 +155,12 @@ def send_cobalt_bulk_email_thread(bcc_addresses, subject, message, reply_to):
 
     # split emails into chunks using an ugly list comprehension stolen from the internet
     # turn [a,b,c,d] into [[a,b],[c,d]]
-    emails_as_list = [bcc_addresses[i * MAX_EMAILS:(i + 1) * MAX_EMAILS] for i in range((len(bcc_addresses) + MAX_EMAILS - 1) // MAX_EMAILS )]
-
+    # fmt: off
+    emails_as_list = [
+        bcc_addresses[i * MAX_EMAILS: (i + 1) * MAX_EMAILS]
+        for i in range((len(bcc_addresses) + MAX_EMAILS - 1) // MAX_EMAILS)
+    ]
+    # fmt: on
     for emails in emails_as_list:
 
         msg = EmailMultiAlternatives(
@@ -169,11 +182,12 @@ def send_cobalt_bulk_email_thread(bcc_addresses, subject, message, reply_to):
                 subject=subject,
                 message=message,
                 recipient=email,
-                status = "Sent",
+                status="Sent",
             ).save()
 
     # Django creates a new database connection for this thread so close it
     connection.close()
+
 
 def send_cobalt_sms(phone_number, msg):
     """Send single SMS
@@ -558,7 +572,6 @@ def email_contact(request, member_id):
     if request.method == "POST":
         title = request.POST["title"]
         message = request.POST["message"].replace("\n", "<br>")
-        redirect_to="dashboard:dashboard"
         msg = f"""
                   Email from: {request.user} ({request.user.email})<br><br>
                   <b>{title}</b>
@@ -589,15 +602,13 @@ def email_contact(request, member_id):
             extra_tags="cobalt-message-success",
         )
 
-        try:
-            redirect_to = request.POST["redirect_to"]
-        except:
-            pass
+        redirect_to = request.POST["redirect_to", "dashboard:dashboard"]
         return redirect(redirect_to)
 
     return render(
         request, "notifications/email_form.html", {"form": form, "member": member}
     )
+
 
 @login_required()
 def resend_email_to_contact(request, email_id):
@@ -633,8 +644,9 @@ def resend_email_to_contact(request, email_id):
 
     email.status = "Sent"
     email.save()
-    messages.success(request,"Email scheduled to resent")
+    messages.success(request, "Email scheduled to resent")
     return redirect("notifications:admin_view_all")
+
 
 @login_required()
 def resend_all_queued_emails(request):
@@ -671,5 +683,5 @@ def resend_all_queued_emails(request):
         email.status = "Sent"
         email.save()
         message += f"Resending email to {email.recipient} <br/>"
-    messages.success(request,mark_safe(message))
+    messages.success(request, mark_safe(message))
     return redirect("notifications:admin_view_all")
