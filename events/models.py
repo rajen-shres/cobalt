@@ -330,7 +330,7 @@ class Event(models.Model):
                 description = "Early discount " + cobalt_credits(discount)
 
         # youth discounts apply after early entry discounts
-        if self.congress.allow_youth_payment_discount:
+        if self.congress.allow_youth_payment_discount and self.congress.early_payment_discount_date:
             if user.dob:  # skip if no date of birth set
                 dob = datetime.datetime.combine(user.dob, datetime.time(0, 0))
                 dob = timezone.make_aware(dob, pytz.timezone(TIME_ZONE))
