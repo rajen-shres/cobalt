@@ -15,6 +15,8 @@ This is a combination of static and dynamically generated documentation that
 comes from the Cobalt source code.  To update this either modify the doctrings
 in the cobalt source code or edit the RST documents in the docs directory.
 
+Some ABF specific things are also stored in Confluence.
+
 User Guides
 ===========
 
