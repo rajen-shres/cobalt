@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import InAppNotification, NotificationMapping, Email, EmailArchive
+from .models import (
+    InAppNotification,
+    NotificationMapping,
+    Email,
+    EmailArchive,
+    EmailThread,
+)
 
 
 class InAppNotificationAdmin(admin.ModelAdmin):
@@ -15,3 +21,4 @@ admin.site.register(NotificationMapping, NotificationMappingAdmin)
 
 admin.site.register(Email)
 admin.site.register(EmailArchive)
+admin.site.register(EmailThread)

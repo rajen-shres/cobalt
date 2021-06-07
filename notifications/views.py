@@ -7,6 +7,7 @@
 
 """
 from threading import Thread
+from django.utils import timezone
 import boto3
 from accounts.models import User
 from cobalt.settings import (
@@ -22,14 +23,16 @@ from cobalt.settings import (
     RBAC_EVERYONE,
     COBALT_HOSTNAME,
 )
+
 from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMultiAlternatives
-from django.db import connection
+from django.db import connection, transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.html import strip_tags
 from forums.models import Forum, Post
+from logs.views import log_event
 from rbac.core import rbac_user_has_role
 
 from datetime import datetime, timedelta
@@ -41,10 +44,135 @@ from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
 
 from .forms import EmailContactForm
-from .models import InAppNotification, NotificationMapping, Email
+from .models import InAppNotification, NotificationMapping, Email, EmailThread
+import random
+import string
 
-# MAx no of emails to send in a batch
+# Max no of emails to send in a batch
 MAX_EMAILS = 2
+
+# Max number of threads
+MAX_EMAIL_THREADS = 1
+
+
+class CobaltEmail:
+    """ Class to handle sending emails. See the notifications_overview in the docs for an explanation """
+
+    def __init__(self):
+        """ initiate instance"""
+
+        # Batch id is associated with this instance of CobaltEmail. All outgoing emails will get this batch_id
+        self.batch_id = "%s-%s-%s" % (
+            "".join(random.choices(string.ascii_uppercase + string.digits, k=4)),
+            "".join(random.choices(string.ascii_uppercase + string.digits, k=4)),
+            "".join(random.choices(string.ascii_uppercase + string.digits, k=4)),
+        )
+
+    def queue_email(self, to_address, subject, message, member=None, reply_to=""):
+        """Adds email to the queue ready to send. Why no bcc_address? No need to bcc when sending to only one person.
+
+        Args:
+            to_address (str): who to send to
+            subject (str): subject line for email
+            message (str): message to send in HTML or plain format
+            member (User): who this is being sent to (optional)
+            reply_to (str): who to send replies to
+
+        Returns:
+            Nothing
+        """
+        Email(
+            subject=subject,
+            message=message,
+            batch_id=self.batch_id,
+            recipient=to_address,
+            member=member,
+            reply_to=reply_to,
+        ).save()
+
+    def empty_queue(self):
+        """ Empty the queue if required. Must be done in real time or the batch process will send anyway. """
+
+        Email.objects.filter(batch_id=self.batch_id).delete()
+
+    def _post_commit(self):
+        """ Called after the database commit has completed """
+
+        # Create an email thread record to show we are running
+        self.email_thread = EmailThread()
+        self.email_thread.save()
+
+        # start thread
+        thread = Thread(target=self._send_queued_emails_thread)
+        thread.setDaemon(True)
+        thread.start()
+
+    def send(self):
+        """send queued emails if threading limit not reached yet
+        We could avoid the database call and add the email objects
+        to memory but we might run out of memory for a large email campaign
+        """
+
+        active_threads = EmailThread.objects.all().count()
+
+        print("active threads %s" % active_threads)
+
+        if active_threads >= MAX_EMAIL_THREADS:
+            # Overloaded. Will need to wait for the cron job to run and pick this up
+            log_event(
+                user=None,
+                severity="CRITICAL",
+                source="Notifications",
+                sub_source="Email",
+                message="Cannot start email thread, too many already running: %s"
+                % active_threads,
+            )
+            print(
+                "Cannot start email thread, too many already running: %s"
+                % active_threads
+            )
+            return
+
+        # We need to wait for the database commit before we can start the thread
+        transaction.on_commit(self._post_commit)
+
+    def _send_queued_emails_thread(self):
+        """ Send out queued emails. This thread does the actual work."""
+
+        try:
+
+            emails = Email.objects.filter(status="Queued").filter(
+                batch_id=self.batch_id
+            )
+
+            for email in emails:
+                plain_message = strip_tags(email.message)
+
+                msg = EmailMultiAlternatives(
+                    email.subject,
+                    plain_message,
+                    to=[email.recipient],
+                    from_email=DEFAULT_FROM_EMAIL,
+                    reply_to=[email.reply_to],
+                )
+
+                msg.attach_alternative(email.message, "text/html")
+
+                msg.send()
+
+                email.status = "Sent"
+                email.sent_date = timezone.now()
+                email.save()
+
+                print(f"Send email to {email.recipient}")
+
+        finally:
+
+            # Remove our thread from the list
+            self.email_thread.delete()
+
+            # Django creates a new database connection for this thread so close it
+            connection.close()
 
 
 def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
@@ -161,6 +289,7 @@ def send_cobalt_bulk_email_thread(bcc_addresses, subject, message, reply_to):
         for i in range((len(bcc_addresses) + MAX_EMAILS - 1) // MAX_EMAILS)
     ]
     # fmt: on
+
     for emails in emails_as_list:
 
         msg = EmailMultiAlternatives(
@@ -177,7 +306,6 @@ def send_cobalt_bulk_email_thread(bcc_addresses, subject, message, reply_to):
         msg.send()
 
         for email in emails:
-
             Email(
                 subject=subject,
                 message=message,

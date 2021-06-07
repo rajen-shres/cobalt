@@ -65,13 +65,18 @@ class AbstractEmail(models.Model):
         choices=[("Queued", "Queued to Send"), ("Sent", "Sent")],
         default="Queued",
     )
+    """ We only use two states. If a message has been queued but not sent then it will get picked up later
+        and sent, even if the code that queued it crashes before it can issue the send() request.
+    """
+
+    batch_id = models.CharField("Batch Id", max_length=14, blank=True, null=True)
     recipient = models.CharField("Recipients", max_length=100)
     reply_to = models.CharField(
         "Reply To", max_length=100, blank=True, null=True, default=""
     )
     member = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         blank=True,
         null=True,
         related_name="member",
@@ -88,3 +93,9 @@ class Email(AbstractEmail):
 class EmailArchive(AbstractEmail):
     def __str__(self):
         return self.subject
+
+
+class EmailThread(models.Model):
+    """ Used to keep track of running threads """
+
+    created_date = models.DateTimeField("Create Date", default=timezone.now)
