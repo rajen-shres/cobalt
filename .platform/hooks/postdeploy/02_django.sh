@@ -6,7 +6,7 @@
 . /var/app/venv/staging-LQM1lest/bin/activate
 
 cp /var/app/current/cobalt/static/copy-to-media/pic_folder/* /cobalt-media/pic_folder/
-chmod 777 /var/app/current/db.sqlite3
+#chmod 777 /var/app/current/db.sqlite3
 ./manage.py migrate
 ./manage.py collectstatic --noinput
 ./manage.py createsu
@@ -23,5 +23,4 @@ chmod 777 /var/app/current/db.sqlite3
 #./manage.py importclubs
 
 # Replace cron
-
 crontab utils/cron/crontab.txt
