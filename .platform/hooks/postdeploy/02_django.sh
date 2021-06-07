@@ -21,3 +21,7 @@ chmod 777 /var/app/current/db.sqlite3
 #./manage.py add_test_data
 #./manage.py createdummyusers
 #./manage.py importclubs
+
+# Replace cron
+
+crontab utils/cron/crontab.txt

@@ -1,0 +1,3 @@
+# Crontab file for all AWS environments
+# Run the email check cron every 2 minutes
+*/2 * * * * . /var/app/venv/staging-LQM1lest/bin/activate; cd /var/app/current/cobalt; ./manage.py email_sender_cron

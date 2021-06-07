@@ -164,7 +164,7 @@ class CobaltEmail:
                 email.sent_date = timezone.now()
                 email.save()
 
-                print(f"Send email to {email.recipient}")
+                print(f"Sent email to {email.recipient}")
 
         finally:
 

@@ -17,5 +17,4 @@ class NotificationsConfig(AppConfig):
         # Can't import at top of file - Django won't be ready yet
         from .models import EmailThread
 
-        print("Clearing any stale EmailThreads from database")
         EmailThread.objects.all().delete()
