@@ -148,7 +148,6 @@ class CobaltEmail:
             for email in emails:
                 plain_message = strip_tags(email.message)
 
-                # check for none
                 if email.reply_to is None:
                     email.reply_to = ""
 
