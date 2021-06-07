@@ -22,9 +22,11 @@ class Command(BaseCommand):
         ref_date = timezone.now() - timedelta(minutes=1)
         emails = Email.objects.filter(status="Queued").filter(created_date__lt=ref_date)
 
-        print(emails)
-
         for email in emails:
+
+            if email.reply_to is None:
+                email.reply_to = ""
+
             plain_message = strip_tags(email.message)
 
             msg = EmailMultiAlternatives(
@@ -37,20 +39,20 @@ class Command(BaseCommand):
 
             msg.attach_alternative(email.message, "text/html")
 
-            print(msg)
-
             msg.send()
 
             email.status = "Sent"
             email.sent_date = timezone.now()
             email.save()
 
+            print(f"Cron sent email to {email.recipient}")
+
+        if emails:
+
             log_event(
                 user=None,
                 severity="CRITICAL",
                 source="Notifications",
                 sub_source="Email",
-                message="Cron picked up a stuck email",
+                message="Cron picked up stuck email",
             )
-
-            print(f"Cron sent email to {email.recipient}")

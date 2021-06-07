@@ -47,7 +47,6 @@ tmpfile=\$(mktemp /tmp/env.XXXXXX)
 cat /opt/elasticbeanstalk/deployment/env | grep "'" | sed 's/.*/export &/' > \$tmpfile
 . \$tmpfile
 
-
 # change to app directory
 cd /var/app/current
 

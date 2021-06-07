@@ -148,6 +148,9 @@ class CobaltEmail:
             for email in emails:
                 plain_message = strip_tags(email.message)
 
+                if email.reply_to is None:
+                    email.reply_to = ""
+
                 msg = EmailMultiAlternatives(
                     email.subject,
                     plain_message,
