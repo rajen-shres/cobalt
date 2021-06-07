@@ -1,3 +1,4 @@
+import psycopg2
 from django.apps import AppConfig
 
 
@@ -15,6 +16,11 @@ class NotificationsConfig(AppConfig):
         """
 
         # Can't import at top of file - Django won't be ready yet
-        from .models import EmailThread
+        # Also if this is a clean install migrate won't have been run so catch an error and ignore
 
-        EmailThread.objects.all().delete()
+        try:
+            from .models import EmailThread
+
+            EmailThread.objects.all().delete()
+        except Exception as e:
+            print(e)
