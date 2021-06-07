@@ -44,7 +44,7 @@ alias x='exit'
 # Quotes are a problem so explicitly do something for those
 # Should be able to do this as one line, but I'm tired
 tmpfile=$(mktemp /tmp/env.XXXXXX)
-cat /opt/elasticbeanstalk/deployment/env | grep "'" | sed 's/.*/export &/' > $tmpfile
+cat /opt/elasticbeanstalk/deployment/env | grep "'" | sed 's/.*/export &/' \> $tmpfile
 . $tmpfile
 
 
