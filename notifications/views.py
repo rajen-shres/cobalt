@@ -49,7 +49,7 @@ import random
 import string
 
 # Max no of emails to send in a batch
-MAX_EMAILS = 2
+MAX_EMAILS = 45
 
 # Max number of threads
 MAX_EMAIL_THREADS = 1
