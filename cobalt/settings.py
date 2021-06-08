@@ -127,13 +127,12 @@ DUMMY_DATA_COUNT = int(set_value("DUMMY_DATA_COUNT", 20))
 # Dynamic settings.                     #
 #########################################
 ALLOWED_HOSTS = [
-    ".abftech.com.au",
     "myabf.com.au",
     ".myabf.com.au",
     "127.0.0.1",
     "bs-local.com",
     "localhost",
-    ".eba-4ngvp62w.ap-southeast-2.elasticbeanstalk.com",
+    "testserver",
 ]
 
 # For AWS we also need to add the local IP address as this is used by the health checks
