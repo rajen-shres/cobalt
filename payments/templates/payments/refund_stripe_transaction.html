@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load cobalt_tags %}
+{% block content %}
+
+<div class="container">
+  <div class="card">
+    <div class="card-header card-header-primary">
+      <h1>{{ BRIDGE_CREDITS }}</h1>
+      <h2>Stripe Refund</h2>
+    </div>
+
+    <div class="card-body table-responsive">
+
+    <h2>Are You Sure?</h2>
+        <h3>This will take {{ GLOBAL_CURRENCY_SYMBOL }}{{ bridge_credit_charge|floatformat:2 }} from your {{  BRIDGE_CREDITS }} account</h3>
+        <h3>You will receive {{ GLOBAL_CURRENCY_SYMBOL }}{{ member_card_refund|floatformat:2 }} on your card within about 2 weeks</h3>
+        <p>We recommend leaving money in your {{ BRIDGE_CREDITS }} account where it is safe and can be used for future
+        activities.</p>
+        <p>Refunds to cards are charged a refund fee of {{ payment_static.stripe_refund_percentage_charge|floatformat:2 }}% in line with
+        the costs that we incur from the card companies. We are sorry about that, but there is nothing we can do as these are
+        external costs. If you feel there are extenuating circumstances that mean the {{  GLOBAL_ORG }} and therefore other members, should
+        bear this cost rather than you, then please go to the Support area to get in touch with someone who can help.</p>
+        <p>This will remove <span class="font-weight-bold">
+            {{ GLOBAL_CURRENCY_SYMBOL }}{{ bridge_credit_charge|floatformat:2 }}</span> from your
+            {{  BRIDGE_CREDITS }} account. You will receive
+            <span class="font-weight-bold">{{ GLOBAL_CURRENCY_SYMBOL }}{{ member_card_refund|floatformat:2 }}</span>
+            credited back to your card. It can take up to two weeks for this to appear on your statement.
+        </p>
+        <p>Your {{ BRIDGE_CREDITS }} balance after the refund will be <span class="font-weight-bold">
+            {{ GLOBAL_CURRENCY_SYMBOL}}{{ balance_after|floatformat:2 }}</span></p>
+        <form method="post">
+        {% csrf_token %}
+            <button type="submit" name="confirm-submit" class="btn btn-danger cobalt-save">Confirm</button>
+            <a href="{% url "payments:statement" %}" class="btn btn-info">Cancel</a>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

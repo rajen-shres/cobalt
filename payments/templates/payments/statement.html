@@ -15,7 +15,7 @@
   }
 
   .cobalt-table {
-    margin: 0px auto;
+    margin: 0 auto;
   }
 </style>
 {% endblock %}
@@ -26,13 +26,14 @@
   <div class="card">
     <div class="card-header card-header-primary">
       <h1>
-        <div class="d-flex justify-content-between">
-          <div>
+        <span class="d-flex justify-content-between">
+          <span>
             {{ BRIDGE_CREDITS }} - {{ user.full_name }}
-          </div>
-          <div>
+          </span>
+          <span>
             <i class="material-icons" style="font-size:60px">account_balance</i>
-          </div>
+          </span>
+        </span>
       </h1>
 
       <h3>{% if summary.IsActive %}{{club}}{% else %}Inactive - Used to play at {{club}}{% endif %}</h3>
@@ -42,7 +43,7 @@
 
         <b>Auto Top Up</b>
         {% if auto_button %} ({{GLOBAL_CURRENCY_SYMBOL}}{{ auto_amount }}) {% endif %}
-        <input id="auto-button" class="cobalt-save another" type="checkbox" data-toggle="toggle" data-onstyle="success" data-size="sm" {% if auto_button %} checked {% endif %}>
+          <label for="auto-button"></label><input id="auto-button" class="cobalt-save another" type="checkbox" data-toggle="toggle" data-onstyle="success" data-size="sm" {% if auto_button %} checked {% endif %}>
         {% if auto_button %}
         &nbsp;<a class="btn btn-sm btn-secondary" href="{% url "payments:setup_autotopup" %}">Update</a>
         {% endif %}
@@ -53,7 +54,7 @@
     <div class="card-body table-responsive">
       {% if admin_view %}
       <div class="col-6 col-md-6 col-lg-4 text-center">
-        <a href="{% url 'payments:statement_csv' member_id=user.id %}" <button class="text-center btn btn-primary btn-round" style="width: 170px">
+        <a href="{% url 'payments:statement_csv' member_id=user.id %}"> <button class="text-center btn btn-primary btn-round" style="width: 170px">
           <i class="material-icons">arrow_downward</i>&nbsp;Download as CSV
           </button>
         </a>
@@ -62,19 +63,19 @@
       <div class="container">
         <div class="row">
           <div class="col-6 col-md-6 col-lg-4 text-center">
-            <a href="{% url 'payments:manual_topup' %}" <button class="text-center btn btn-success btn-round" style="width: 170px">
+            <a href="{% url 'payments:manual_topup' %}"> <button class="text-center btn btn-success btn-round" style="width: 170px">
               <i class="material-icons">attach_money</i>&nbsp;Top Up Balance
               </button>
             </a>
           </div>
           <div class="col-6 col-md-6 col-lg-4 text-center">
-            <a href="{% url 'payments:member_transfer' %}" <button class="text-center btn btn-dark btn-round" style="width: 170px">
+            <a href="{% url 'payments:member_transfer' %}"> <button class="text-center btn btn-dark btn-round" style="width: 170px">
               <i class="material-icons">people_alt</i>&nbsp;Transfer
               </button>
             </a>
           </div>
           <div class="col-6 col-md-6 col-lg-4 text-center">
-            <a href="{% url 'payments:statement_csv' %}" <button class="text-center btn btn-primary btn-round" style="width: 170px">
+            <a href="{% url 'payments:statement_csv' %}"> <button class="text-center btn btn-primary btn-round" style="width: 170px">
               <i class="material-icons">arrow_downward</i>&nbsp;Download as CSV
               </button>
             </a>
@@ -106,6 +107,9 @@
       // refresh to make sure auto top up status is correct
       location.reload();
     }
+
+// initialise tooltips
+    $('[data-toggle="tooltip"]').tooltip()
 
 {% if balance != "Nil" %}
       const options = {

@@ -337,6 +337,15 @@ class PaymentStatic(models.Model):
     stripe_percentage_charge = models.DecimalField(
         "Stripe Fee Percentage (per transaction)", max_digits=8, decimal_places=4
     )
+    stripe_refund_percentage_charge = models.DecimalField(
+        "Percentage to charge members for refunds",
+        max_digits=8,
+        decimal_places=4,
+        default=3.0,
+    )
+    stripe_refund_weeks = models.IntegerField(
+        "Number of weeks ago to allow refund", default=12
+    )
 
     def __str__(self):
         return f"{self.active} - {self.created_date}"

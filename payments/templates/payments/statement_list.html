@@ -66,7 +66,7 @@
         {% if thing.stripe_transaction.stripe_receipt_url %}
         <a href="{{ thing.stripe_transaction.stripe_receipt_url }}">
 
-          Payment from <img height="16px;" src="
+          Payment from <img alt="credit card image" height="16px;" src="
                 {% if thing.stripe_transaction.stripe_brand == "visa" %}
                   {% static 'assets/img/cards/visa-dark.png' %}
                 {% elif thing.stripe_transaction.stripe_brand == "mastercard" %}
@@ -85,6 +85,13 @@
                 {% if thing.stripe_transaction.refund_status != "Full" %}
                     <a href="{% url "payments:admin_refund_stripe_transaction" stripe_transaction_id=thing.stripe_transaction.id %}" class="btn btn-sm btn-danger">Refund</a>
                 {% endif %}
+            {% endif %}
+
+            {% if thing.show_refund %}
+                <a href="{% url "payments:refund_stripe_transaction" stripe_transaction_id=thing.stripe_transaction.id %}"
+                   class="text-warning">
+                    <i class="material-icons" data-toggle="tooltip" title="Refund to Card">clear</i>
+                </a>
             {% endif %}
 
         {% else %}

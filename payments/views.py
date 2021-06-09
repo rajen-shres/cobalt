@@ -39,6 +39,7 @@ from django.http import HttpResponse
 from django.db.models import Sum
 from django.db import transaction
 from django.contrib import messages
+from datetime import timedelta
 
 from masterpoints.views import user_summary
 from notifications.views import contact_member
@@ -163,6 +164,20 @@ def statement(request):
     (summary, club, balance, auto_button, events_list) = statement_common(request.user)
 
     things = cobalt_paginator(request, events_list)
+
+    # Check for refund eligible items
+    payment_static = PaymentStatic.objects.filter(active=True).last()
+    ref_date = timezone.now() - timedelta(weeks=payment_static.stripe_refund_weeks)
+
+    for thing in things:
+        if (
+            thing.stripe_transaction
+            and thing.stripe_transaction.stripe_receipt_url
+            and thing.stripe_transaction.refund_status != "Full"
+            and balance - thing.amount >= 0.0
+            and thing.created_date > ref_date
+        ):
+            thing.show_refund = True
 
     return render(
         request,
@@ -1762,6 +1777,142 @@ def admin_view_stripe_transaction_detail(request, stripe_transaction_id):
     )
 
 
+####################################
+# refund_stripe_transaction        #
+####################################
+@login_required()
+def refund_stripe_transaction(request, stripe_transaction_id):
+    """Allows auser to refund a Stripe transaction
+
+    Args:
+        request (HTTPRequest): standard request object
+
+    Returns:
+        HTTPResponse
+    """
+
+    stripe_item = get_object_or_404(StripeTransaction, pk=stripe_transaction_id)
+
+    # Calculate how much refund is left in case already partly refunded
+    stripe_item.refund_left = stripe_item.amount - stripe_item.refund_amount
+
+    member_balance = get_balance(stripe_item.member)
+    payment_static = PaymentStatic.objects.filter(active=True).last()
+    balance_after = float(member_balance) - float(stripe_item.refund_left)
+    bridge_credit_charge = float(stripe_item.refund_left)
+    member_card_refund = (
+        bridge_credit_charge
+        * (100.0 - float(payment_static.stripe_refund_percentage_charge))
+        / 100.0
+    )
+
+    # Is this allowed?
+
+    if stripe_item.member != request.user:
+        messages.error(
+            request,
+            "Action Prohibited - transaction is not yours",
+            extra_tags="cobalt-message-error",
+        )
+        return redirect("payments:statement")
+
+    if not stripe_item.stripe_receipt_url:
+        messages.error(
+            request,
+            "Invalid transaction for a refund",
+            extra_tags="cobalt-message-error",
+        )
+        return redirect("payments:statement")
+
+    if stripe_item.refund_status == "Full":
+        messages.error(
+            request, "Transaction already refunded", extra_tags="cobalt-message-error"
+        )
+        return redirect("payments:statement")
+
+    if not balance_after >= 0.0:
+        messages.error(
+            request,
+            "Cannot refund. Balance will be negative",
+            extra_tags="cobalt-message-error",
+        )
+        return redirect("payments:statement")
+
+    ref_date = timezone.now() - timedelta(weeks=payment_static.stripe_refund_weeks)
+    if stripe_item.created_date <= ref_date:
+        messages.error(
+            request,
+            "Cannot refund. Transaction is too old.",
+            extra_tags="cobalt-message-error",
+        )
+        return redirect("payments:statement")
+
+    if request.method == "POST":
+
+        stripe_amount = int(member_card_refund * 100)
+
+        stripe.api_key = STRIPE_SECRET_KEY
+        rc = stripe.Refund.create(
+            charge=stripe_item.stripe_reference,
+            amount=stripe_amount,
+        )
+
+        if rc["status"] != "succeeded":
+            return render(
+                request,
+                "payments/payments_refund_error.html",
+                {"rc": rc, "stripe_item": stripe_item},
+            )
+
+        # Call atomic database update
+        admin_refund_stripe_transaction_sub(stripe_item, stripe_item.refund_left)
+
+        # Notify member
+        email_body = f"""You have requested to refund {GLOBAL_CURRENCY_SYMBOL}{stripe_item.refund_left:.2f}
+         to your card.<br><br>
+         Please note that It can take up to two weeks for the money to appear in your card statement.<br><br>
+         Your {BRIDGE_CREDITS} account balance has been reduced to reflect this refund.<br><br>
+         """
+        context = {
+            "name": stripe_item.member.first_name,
+            "title": "Card Refund",
+            "email_body": email_body,
+            "host": COBALT_HOSTNAME,
+            "link": "/payments",
+            "link_text": "View Statement",
+        }
+
+        html_msg = render_to_string("notifications/email_with_button.html", context)
+
+        # send
+        contact_member(
+            member=stripe_item.member,
+            msg="Card Refund - %s%s" % (GLOBAL_CURRENCY_SYMBOL, member_card_refund),
+            contact_type="Email",
+            html_msg=html_msg,
+            link="/payments",
+            subject="Card Refund",
+        )
+
+        messages.success(
+            request, "Refund Request Submitted", extra_tags="cobalt-message-success"
+        )
+        return redirect("payments:statement")
+
+    return render(
+        request,
+        "payments/refund_stripe_transaction.html",
+        {
+            "stripe_item": stripe_item,
+            "payment_static": payment_static,
+            "member_balance": member_balance,
+            "balance_after": balance_after,
+            "bridge_credit_charge": bridge_credit_charge,
+            "member_card_refund": member_card_refund,
+        },
+    )
+
+
 ##########################################
 # admin_refund_stripe_transaction        #
 ##########################################
@@ -1989,7 +2140,7 @@ def member_transfer_org(request, org_id):
                 member,
             )
             messages.success(request, msg, extra_tags="cobalt-message-success")
-            return redirect("payments:statement_org", org_id=organisation.id)
+            return
         else:
             print(form.errors)
     else:

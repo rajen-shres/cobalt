@@ -169,6 +169,8 @@ class PaymentStaticForm(forms.ModelForm):
             "default_org_fee_percent",
             "stripe_cost_per_transaction",
             "stripe_percentage_charge",
+            "stripe_refund_percentage_charge",
+            "stripe_refund_weeks",
         )
 
 

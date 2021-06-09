@@ -48,7 +48,7 @@
             {% if next_url %}
               <h3>Taking you <a href="{{ next_url }}" style="color: blue;">back to {{ next_url_name }}</a> in <span id="time"></span></h3>
             {% else %}
-              <a href="{% url "dashboard:dashboard" %}" class="btn btn-info mx-auto">To Dashboard</a>
+              <a href="{% url "payments:statement" %}" class="btn btn-info mx-auto">To Statement</a>
             {% endif %}
           </div>
         </div>

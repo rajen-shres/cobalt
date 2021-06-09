@@ -1,14 +1,16 @@
 """ Cron job to pick up any lost emails and send them """
+from datetime import timedelta
+from random import randint
+from time import sleep
+
 from django.core.mail import EmailMultiAlternatives
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.utils.html import strip_tags
+
 from cobalt.settings import DEFAULT_FROM_EMAIL
 from logs.views import log_event
 from notifications.models import Email
-from datetime import datetime, timedelta
-from random import randint
-from time import sleep
 
 
 class Command(BaseCommand):
