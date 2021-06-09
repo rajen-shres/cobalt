@@ -1868,10 +1868,11 @@ def refund_stripe_transaction(request, stripe_transaction_id):
         admin_refund_stripe_transaction_sub(stripe_item, stripe_item.refund_left)
 
         # Notify member
-        email_body = f"""You have requested to refund {GLOBAL_CURRENCY_SYMBOL}{stripe_item.refund_left:.2f}
-         to your card.<br><br>
+        email_body = f"""You have requested to refund a card transaction. You will receive a refund of
+        {GLOBAL_CURRENCY_SYMBOL}{member_card_refund:.2f} to your card.<br><br>
          Please note that It can take up to two weeks for the money to appear in your card statement.<br><br>
-         Your {BRIDGE_CREDITS} account balance has been reduced to reflect this refund.<br><br>
+         Your {BRIDGE_CREDITS} account balance has been reduced to reflect this refund. You can check your new balance
+         using the link below.<br><br>
          """
         context = {
             "name": stripe_item.member.first_name,
