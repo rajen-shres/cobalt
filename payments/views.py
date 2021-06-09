@@ -1971,6 +1971,7 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
                 # Confirm screen so make refund
 
                 amount = form.cleaned_data["amount"]
+                description = form.cleaned_data["description"]
 
                 # Stripe uses cents not dollars
                 stripe_amount = int(amount * 100)
@@ -1989,13 +1990,15 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
                     )
 
                 # Call atomic database update
-                admin_refund_stripe_transaction_sub(stripe_item, amount)
+                admin_refund_stripe_transaction_sub(stripe_item, amount, description)
 
                 # Notify member
                 email_body = f"""<b>{request.user.full_name}</b> has refunded {GLOBAL_CURRENCY_SYMBOL}{amount:.2f}
                  to your card.<br><br>
+                 The description was: {description}<br><br>
                  Please note that It can take up to two weeks for the money to appear in your card statement.<br><br>
                  Your {BRIDGE_CREDITS} account balance has been reduced to reflect this refund.<br><br>
+                 You can view your statement by clicking on the link below<br><br>
                  """
                 context = {
                     "name": stripe_item.member.first_name,
@@ -2027,6 +2030,7 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
     else:
         form = StripeRefund(payment_amount=stripe_item.refund_left)
         form.fields["amount"].initial = stripe_item.refund_left
+        form.fields["description"].initial = "Card Refund"
 
     return render(
         request,
@@ -2036,7 +2040,7 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
 
 
 @atomic
-def admin_refund_stripe_transaction_sub(stripe_item, amount):
+def admin_refund_stripe_transaction_sub(stripe_item, amount, description):
     """ Atomic transaction update for refunds """
 
     # Update the Stripe transaction
@@ -2058,7 +2062,7 @@ def admin_refund_stripe_transaction_sub(stripe_item, amount):
     # Linking to the stripe transaction messes up the statements
     # act.stripe_transaction = stripe_item
     act.balance = balance
-    act.description = f"Credit Card Refund"
+    act.description = description
     act.type = "Card Refund"
 
     act.save()

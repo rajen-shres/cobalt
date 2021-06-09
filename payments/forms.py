@@ -186,6 +186,7 @@ class StripeRefund(forms.Form):
     """ Allow admins to make Stripe refunds """
 
     amount = forms.DecimalField(label="Refund", max_digits=8, decimal_places=2)
+    description = forms.CharField(max_length=80)
 
     def __init__(self, *args, **kwargs):
         self.payment_amount = kwargs.pop("payment_amount", 0.0)

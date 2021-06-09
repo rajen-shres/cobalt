@@ -201,6 +201,7 @@ def stripe_manual_payment_intent(request):
             amount=payload_cents,
             currency="aud",
             customer=stripe_customer,
+            description=f"Manual Payment by {request.user}",
             metadata={
                 "cobalt_pay_id": payload_cobalt_pay_id,
                 "cobalt_tran_type": "Manual",
@@ -271,6 +272,7 @@ def stripe_auto_payment_intent(request):
         stripe.api_key = STRIPE_SECRET_KEY
         intent = stripe.SetupIntent.create(
             customer=request.user.stripe_customer_id,
+            description=f"Intent to set up auto pay by {request.user}",
             metadata={"cobalt_member_id": request.user.id, "cobalt_tran_type": "Auto"},
         )
 
@@ -1346,6 +1348,7 @@ def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
             currency="aud",
             customer=member.stripe_customer_id,
             payment_method=pay_method_id,
+            description=f"Auto Top Up for {member}",
             off_session=True,
             confirm=True,
             metadata={"cobalt_tran_type": "Auto"},
