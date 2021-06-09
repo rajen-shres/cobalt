@@ -22,6 +22,16 @@
 
 {% block content %}
 
+{% if admin_view %}
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "payments:statement_admin_summary" %}">Payments Admin</a></li>
+    <li class="breadcrumb-item"><a href="{% url "payments:admin_members_with_balance" %}">Members with Balances</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Member Statement</li>
+  </ol>
+</nav>
+{% endif %}
+
 <div class="">
   <div class="card">
     <div class="card-header card-header-primary">

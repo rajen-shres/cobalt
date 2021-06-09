@@ -201,6 +201,6 @@ class StripeRefund(forms.Form):
             if amount > self.payment_amount:
                 raise forms.ValidationError("Too large. Refund is more than was paid.")
         else:
-            self._errors["amount"] = "Please enter a value"
+            raise forms.ValidationError("Please enter a value")
 
         return self.cleaned_data

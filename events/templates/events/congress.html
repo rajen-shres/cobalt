@@ -14,9 +14,9 @@
       <h3>{{ congress.congress_master.org }}</h3>
       <h3>{{ congress.date_string }}</h3>
     </div>
-    <a href="#program" class="btn btn-sm btn-success col-md-2 col-lg-2"> Click here to enter </a>
-    <div class="card-body table-responsive">
 
+    <div class="card-body table-responsive">
+    <a href="#program" style="text-transform: none;" class="btn btn-success"><span style="font-size: 150%;">Click here to jump to program...</span></a>
       {% if congress.sponsors %}
       <div class="row">
         <div class="card col-lg-10 mx-auto">

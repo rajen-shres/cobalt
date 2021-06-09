@@ -1355,9 +1355,7 @@ def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
         payload = stripe_return.charges.data[0]
 
         stripe_tran = StripeTransaction()
-        stripe_tran.description = (
-            f"Auto top up for {member.full_name} ({member.system_number})"
-        )
+        stripe_tran.description = "Auto Top Up"
         stripe_tran.amount = amount
         stripe_tran.member = member
         stripe_tran.route_code = None

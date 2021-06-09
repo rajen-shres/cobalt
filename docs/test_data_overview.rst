@@ -86,9 +86,19 @@ The column naming convention is::
   id.[field].[application].[model]
 
 * id - fixed identifier
-* field - the name of this field in this model
+* field - the name of this field in **this** model
 * application - the name of the other (foreign) application
 * model - the name of the other (foreign) model
+
+So, to include a user in a field called modified_by, in the header
+you would put::
+
+    id.modified_by.accounts.User
+
+* id - this is an id field - do something special with it
+* modified_by - this is the name of the field in our model
+* accounts - this is the application that has our foreign key
+* User - this is the model in application we want to use
 
 Payments
 --------
@@ -96,3 +106,8 @@ Payments
 Cobalt takes care of booking both sides of a transaction (user to org and org
 to user for example). Here that does not happen so you will need to book two
 transactions yourself.
+
+model_def
+---------
+
+Use ./manage.py model_def to generate the header for you.

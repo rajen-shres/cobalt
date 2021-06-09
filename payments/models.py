@@ -321,7 +321,7 @@ class PaymentStatic(models.Model):
     created_date = models.DateTimeField("Create Date", default=timezone.now)
     modified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
     )
     # default fee to charge orgs when making a settlement
     default_org_fee_percent = models.DecimalField(

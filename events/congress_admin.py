@@ -1063,8 +1063,10 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
 
     all_recipients = []
     for recipient in recipients_qs:
-        if recipient not in all_recipients:
-            all_recipients.append(recipient)
+        if recipient.player not in all_recipients:
+            print(recipient)
+            print(all_recipients)
+            all_recipients.append(recipient.player)
 
     if request.method == "POST" and form.is_valid():
         subject = form.cleaned_data["subject"]
@@ -1077,7 +1079,7 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
             recipients = all_recipients
             recipients_email = [recipient.player.email for recipient in recipients]
         context = {
-            "title1": f"Message from {request.user.full_name} Organiser of {congress}",
+            "title1": f"Message from {request.user.full_name} on behalf of {congress}",
             "title2": subject,
             "email_body": body,
             "host": COBALT_HOSTNAME,

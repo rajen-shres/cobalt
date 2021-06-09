@@ -257,9 +257,12 @@ def statement_org(request, org_id):
 
     organisation = get_object_or_404(Organisation, pk=org_id)
 
-    if not rbac_user_has_role(
-        request.user, "payments.manage.%s.view" % org_id
-    ) and not rbac_user_has_role(request.user, "payments.global.view"):
+    admin_view = rbac_user_has_role(request.user, "payments.global.view")
+
+    if (
+        not rbac_user_has_role(request.user, "payments.manage.%s.view" % org_id)
+        and not admin_view
+    ):
         return rbac_forbidden(request, "payments.manage.%s.view" % org_id)
 
     # get balance
@@ -307,6 +310,7 @@ def statement_org(request, org_id):
             "summary": summary,
             "total": total,
             "page_balance": page_balance,
+            "admin_view": admin_view,
         },
     )
 
@@ -1929,6 +1933,14 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
     """
 
     stripe_item = get_object_or_404(StripeTransaction, pk=stripe_transaction_id)
+
+    if stripe_item.member == request.user:
+        messages.error(
+            request,
+            "You cannot refund your own transactions. Do it through Stripe, their security isn't as good as ours.",
+            extra_tags="cobalt-message-error",
+        )
+        return redirect("payments:admin_view_stripe_transactions")
 
     # Calculate how much refund is left
     stripe_item.refund_left = stripe_item.amount - stripe_item.refund_amount

@@ -235,6 +235,7 @@ class Command(BaseCommand):
                             print(block, key2, val2)
                     print("\nStatement was:")
                     print(exec_cmd)
+                    print(exc)
                     sys.exit()
                 instance = local_array["instance"]
 
