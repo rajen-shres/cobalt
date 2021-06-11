@@ -120,10 +120,10 @@
               {% endif %}
 
               {% if thing.severity == "WARN" %}
-                  <td class="bg-info">
+                  <td class="bg-warning">
                     <div class="row">
                         <div class="col float-left">
-                          <span class="material-icons text-primary">dangerous</span>
+                          <span class="material-icons text-primary">sentiment_dissatisfied</span>
                         </div>
                         <div class="col">
                           {{ thing.severity }}
@@ -133,11 +133,10 @@
               {% endif %}
 
               {% if thing.severity == "ERROR" %}
-                  <td class="bg-warning">{{ thing.severity }}</td>
-                  <td class="bg-info">
+                  <td class="bg-primary">
                     <div class="row">
                         <div class="col float-left">
-                          <span class="material-icons text-primary">notification_important</span>
+                          <span class="material-icons text-white">help</span>
                         </div>
                         <div class="col">
                           {{ thing.severity }}
@@ -150,7 +149,7 @@
                   <td class="bg-danger">
                     <div class="row">
                         <div class="col float-left">
-                          <span class="material-icons text-primary">warning</span>
+                          <span class="material-icons text-white">warning</span>
                         </div>
                         <div class="col">
                           {{ thing.severity }}
