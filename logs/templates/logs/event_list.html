@@ -100,17 +100,79 @@
           {% for thing in things %}
           <tr>
             <td title="{{ thing.event_date|timesince }} ago" data-toggle="tooltip">{{ thing.event_date|date:'d/m/Y H:i:s' }}</td>
-            <td><a href="https://www.infosniper.net/index.php?ip_address={{ thing.ip }}">{{ thing.ip }}</a></td>
-            <td class="
+            <td><a target="_blank" href="https://www.infosniper.net/index.php?ip_address={{ thing.ip }}">{{ thing.ip }}</a></td>
 
-              {% if thing.severity == "DEBUG" %}bg-white{% endif %}
-              {% if thing.severity == "INFO" %}bg-light{% endif %}
-              {% if thing.severity == "WARN" %}bg-info{% endif %}
-              {% if thing.severity == "ERROR" %}bg-warning{% endif %}
-              {% if thing.severity == "HIGH" %}bg-danger text-blue{% endif %}
-              {% if thing.severity == "CRITICAL" %}bg-dark text-white font-weight-bold{% endif %}
+              {% if thing.severity == "DEBUG" %}
+                  <td class="bg-white">{{ thing.severity }}</td>
+              {% endif %}
 
-              ">{{ thing.severity }}</td>
+              {% if thing.severity == "INFO" %}
+                  <td class="bg-light">
+                    <div class="row">
+                        <div class="col float-left">
+                          <span class="material-icons text-success">info</span>
+                        </div>
+                        <div class="col float-left">
+                          {{ thing.severity }}
+                        </div>
+                    </div>
+                  </td>
+              {% endif %}
+
+              {% if thing.severity == "WARN" %}
+                  <td class="bg-info">
+                    <div class="row">
+                        <div class="col float-left">
+                          <span class="material-icons text-primary">dangerous</span>
+                        </div>
+                        <div class="col">
+                          {{ thing.severity }}
+                        </div>
+                    </div>
+                  </td>
+              {% endif %}
+
+              {% if thing.severity == "ERROR" %}
+                  <td class="bg-warning">{{ thing.severity }}</td>
+                  <td class="bg-info">
+                    <div class="row">
+                        <div class="col float-left">
+                          <span class="material-icons text-primary">notification_important</span>
+                        </div>
+                        <div class="col">
+                          {{ thing.severity }}
+                        </div>
+                    </div>
+                  </td>
+              {% endif %}
+
+              {% if thing.severity == "HIGH" %}
+                  <td class="bg-danger">
+                    <div class="row">
+                        <div class="col float-left">
+                          <span class="material-icons text-primary">warning</span>
+                        </div>
+                        <div class="col">
+                          {{ thing.severity }}
+                        </div>
+                    </div>
+                  </td>
+              {% endif %}
+
+              {% if thing.severity == "CRITICAL" %}
+                  <td class="bg-dark text-white font-weight-bold">
+                    <div class="row">
+                        <div class="col float-left">
+                          <span class="material-icons">priority_high</span>
+                        </div>
+                        <div class="col">
+                          {{ thing.severity }}
+                        </div>
+                    </div>
+                  </td>
+              {% endif %}
+
+
             <td>{{ thing.user }}</td>
             <td>{{ thing.source }}</td>
             <td>{{ thing.sub_source }}</td>
