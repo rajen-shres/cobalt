@@ -80,15 +80,29 @@ def home(request):
 
     if form_source not in ["All", None]:
         events_list = events_list.filter(source=form_source)
-        sub_sources = events_list.values('sub_source').distinct()
+        sub_sources = events_list.values("sub_source").distinct()
 
         if form_sub_source not in ["All", None]:
             events_list = events_list.filter(sub_source=form_sub_source)
 
     # lists should be based upon other filters
-    severities = events_list.values('severity').distinct()
-    sources = events_list.values('source').distinct()
-    users = events_list.values('user').distinct()
+    severities = events_list.values("severity").distinct()
+    sources = events_list.values("source").distinct()
+    users = events_list.exclude(user=None).values("user").distinct()
 
-
-    return render(request, "logs/event_list.html", {"things": events_list, "severities": severities, "days": days, "form_severity": form_severity, "sources": sources, "form_source": form_source, "form_sub_source": form_sub_source, "sub_sources": sub_sources, "form_user": form_user, "users": users})
+    return render(
+        request,
+        "logs/event_list.html",
+        {
+            "things": events_list,
+            "severities": severities,
+            "days": days,
+            "form_severity": form_severity,
+            "sources": sources,
+            "form_source": form_source,
+            "form_sub_source": form_sub_source,
+            "sub_sources": sub_sources,
+            "form_user": form_user,
+            "users": users,
+        },
+    )
