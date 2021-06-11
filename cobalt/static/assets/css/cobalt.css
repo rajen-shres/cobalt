@@ -82,3 +82,8 @@ img.cobalt-rounded {
   pointer-events:none;
   opacity:0.25
 }
+
+/* Avoid Tooltip flicker */
+.tooltip {
+    pointer-events: none;
+}
