@@ -97,9 +97,9 @@ changes). Do this using the class cobalt-save::
 
 As this is loaded by default you need a way to tell it to ignore your page.
 
-You can do this by adding any element with the id ignore-cobalt-save. e.g.::
+You can do this by adding any element with the id ignore_cobalt_save. e.g.::
 
-    <div id="ignore-cobalt-save"></div>
+    <div id="ignore_cobalt_save"></div>
 
 Template Filters
 ----------------

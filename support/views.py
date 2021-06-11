@@ -1,22 +1,23 @@
-from django.shortcuts import render, redirect
+import json
+from itertools import chain
+
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import SuspiciousOperation
+from django.db.models import Q
 from django.http import HttpResponse
-from cobalt.settings import ADMINS, COBALT_HOSTNAME
-from accounts.models import User
-from notifications.views import send_cobalt_email, contact_member
+from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
-from forums.models import Post, Forum
+from django.views.decorators.csrf import csrf_exempt
+
+from accounts.models import User
+from cobalt.settings import ADMINS, COBALT_HOSTNAME
 from events.models import Congress
-from forums.filters import PostFilter
+from forums.models import Post, Forum
+from notifications.views import send_cobalt_email
 from payments.models import MemberTransaction
 from utils.utils import cobalt_paginator
-from django.db.models import Q
-from django.core.exceptions import SuspiciousOperation
-from itertools import chain
-from django.contrib import messages
 from .forms import ContactForm
-import json
 
 
 @login_required
