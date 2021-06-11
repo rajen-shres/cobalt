@@ -99,7 +99,7 @@
           {% for thing in things %}
           <tr>
             <td title="{{ thing.event_date|timesince }} ago" data-toggle="tooltip">{{ thing.event_date|cobalt_nice_datetime }}</td>
-            <td>{{ thing.ip }}</td>
+            <td><a href="https://www.infosniper.net/index.php?ip_address={{ thing.ip }}">{{ thing.ip }}</a></td>
             <td class="
 
               {% if thing.severity == "DEBUG" %}bg-white{% endif %}
