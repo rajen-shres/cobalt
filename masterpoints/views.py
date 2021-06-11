@@ -1,14 +1,18 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, Http404
-from datetime import datetime, date
-from dateutil.relativedelta import relativedelta
-from django.contrib import messages
-from accounts.models import User
-import requests
 import calendar
 import html
+from datetime import datetime, date
+from json import JSONDecodeError
+
+import requests
+from dateutil.relativedelta import relativedelta
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.shortcuts import render, redirect
+
+from accounts.models import User
 from cobalt.settings import GLOBAL_MPSERVER
+
 
 #####
 #
@@ -19,6 +23,7 @@ from cobalt.settings import GLOBAL_MPSERVER
 # to a SQL Server database. Confluence can tell you more
 #
 ######
+
 
 def process_transactions(details, month, year):
     """
@@ -35,6 +40,7 @@ def process_transactions(details, month, year):
         else:
             fixed_details.append(d)
     return fixed_details, provisional_details
+
 
 @login_required()
 def masterpoints_detail(request, system_number=None, years=1, retry=False):
@@ -136,8 +142,8 @@ def masterpoints_detail(request, system_number=None, years=1, retry=False):
         chart_red["%s-%s" % (year, month)] = 0.0
         chart_green["%s-%s" % (year, month)] = 0.0
 
-    details,futureTrans = process_transactions(details, month, year)
-    #todo: Tanmay to first extract details into two--> one current month next -- "future"
+    details, futureTrans = process_transactions(details, month, year)
+    # todo: Tanmay to first extract details into two--> one current month next -- "future"
     # deatils will just have till current month future will go in provisional variable
     # loop through the details and augment the data to pass to the template
     # we are just adding running total data for the table of details
@@ -345,6 +351,7 @@ def get_masterpoints(system_number):
         requests.exceptions.InvalidSchema,
         requests.exceptions.MissingSchema,
         ConnectionError,
+        JSONDecodeError,
     ):
         points = "Not found"
         rank = "Not found"
@@ -353,8 +360,8 @@ def get_masterpoints(system_number):
 
 
 def user_summary(system_number):
-    """ This is only here until we move masterpoints into Cobalt.
-        It gets basic things such as home club and masterpoints.
+    """This is only here until we move masterpoints into Cobalt.
+    It gets basic things such as home club and masterpoints.
     """
 
     # Get summary data

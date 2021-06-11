@@ -1869,7 +1869,9 @@ def refund_stripe_transaction(request, stripe_transaction_id):
             )
 
         # Call atomic database update
-        admin_refund_stripe_transaction_sub(stripe_item, stripe_item.refund_left)
+        admin_refund_stripe_transaction_sub(
+            stripe_item, stripe_item.refund_left, "Card refund"
+        )
 
         # Notify member
         email_body = f"""You have requested to refund a card transaction. You will receive a refund of
