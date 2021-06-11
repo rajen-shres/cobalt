@@ -98,7 +98,7 @@
         <tbody>
           {% for thing in things %}
           <tr>
-            <td title="{{ thing.event_date|timesince }} ago" data-toggle="tooltip">{{ thing.event_date|cobalt_nice_datetime }}</td>
+            <td title="{{ thing.event_date|timesince }} ago" data-toggle="tooltip">{{ thing.event_date|date:'d/m/Y H:i:s' }}</td>
             <td><a href="https://www.infosniper.net/index.php?ip_address={{ thing.ip }}">{{ thing.ip }}</a></td>
             <td class="
 
@@ -127,14 +127,16 @@
 {% endblock %}
 {% block footer %}
 <script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
+<script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
 <script>
 $(document).ready( function () {
 
-    // Initialise datatable - only show pagination if more than one page
+    // Initialise datatable - only show pagination if more than one page, sort in reverse date order, column 0
     $('#log_table').DataTable({
+        "order": [[0, "desc"]],
         drawCallback: function(settings) {
-        var pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
-        pagination.toggle(this.api().page.info().pages > 1);
+            const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+            pagination.toggle(this.api().page.info().pages > 1);
         }
     });
 
