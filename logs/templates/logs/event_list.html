@@ -83,7 +83,7 @@
 
         <a href="{% url 'logs:logs' %}" class="float-right btn btn-default">Clear</a>
 
-      <table id="log_table" class="table table-hover table-condensed">
+      <table id="log_table" class="table table-hover table-condensed" style="display: none;">
         <thead class="text-info">
           <tr>
             <th>Time</th>
@@ -139,6 +139,9 @@ $(document).ready( function () {
             pagination.toggle(this.api().page.info().pages > 1);
         }
     });
+
+    // Unhide table now. This avoids the flicker
+    $('#log_table').show();
 
     // initialise tooltips
     $('[data-toggle="tooltip"]').tooltip()
