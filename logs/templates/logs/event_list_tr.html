@@ -1,0 +1,18 @@
+<tr>
+    <td title="{{ thing.event_date|timesince }} ago" data-toggle="tooltip">{{ thing.event_date|date:'d/m/Y H:i:s' }}</td>
+    <td><a target="_blank" href="https://www.infosniper.net/index.php?ip_address={{ thing.ip }}">{{ thing.ip }}</a></td>
+    <td class="{{ td_class }}">
+        <div class="row">
+            <div class="col float-left">
+              <span class="material-icons {{ icon_colour }}">{{ icon }}</span>
+            </div>
+            <div class="col">
+              {{ thing.severity }}
+            </div>
+        </div>
+      </td>
+      <td>{{ thing.user }}</td>
+      <td>{{ thing.source }}</td>
+      <td>{{ thing.sub_source }}</td>
+      <td class="text-left">{{ thing.message }}</td>
+</tr>
