@@ -218,6 +218,9 @@ def stripe_manual_payment_intent(request):
             % payload_cobalt_pay_id,
         )
 
+        print("Stripe manual intent successful")
+        print(intent)
+
         # Update Status
         our_trans.status = "Intent"
         our_trans.save()
@@ -284,6 +287,9 @@ def stripe_auto_payment_intent(request):
             sub_source="stripe_auto_payment_intent",
             message="Intent created for: %s" % request.user,
         )
+
+        print("Stripe auto intent successful")
+        print(intent)
 
         return JsonResponse(
             {
@@ -1066,6 +1072,11 @@ def stripe_webhook(request):
     # Log message
     stripe_log = StripeLog(event=event)
     stripe_log.save()
+
+    print("Received Stripe webhook")
+    print("###################################")
+    print(event)
+    print("###################################")
 
     try:
         tran_type = event.data.object.metadata.cobalt_tran_type

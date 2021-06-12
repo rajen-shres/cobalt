@@ -1856,10 +1856,27 @@ def refund_stripe_transaction(request, stripe_transaction_id):
         stripe_amount = int(member_card_refund * 100)
 
         stripe.api_key = STRIPE_SECRET_KEY
-        rc = stripe.Refund.create(
-            charge=stripe_item.stripe_reference,
-            amount=stripe_amount,
-        )
+
+        try:
+            rc = stripe.Refund.create(
+                charge=stripe_item.stripe_reference,
+                amount=stripe_amount,
+            )
+
+        except stripe.error.InvalidRequestError as e:
+            log_event(
+                user=request.user.full_name,
+                severity="HIGH",
+                source="Payments",
+                sub_source="User initiated refund",
+                message=str(e),
+            )
+
+            return render(
+                request,
+                "payments/payments_refund_error.html",
+                {"rc": e, "stripe_item": stripe_item},
+            )
 
         if rc["status"] != "succeeded":
             return render(
@@ -1869,7 +1886,7 @@ def refund_stripe_transaction(request, stripe_transaction_id):
             )
 
         # Call atomic database update
-        admin_refund_stripe_transaction_sub(
+        _refund_stripe_transaction_sub(
             stripe_item, stripe_item.refund_left, "Card refund"
         )
 
@@ -1978,11 +1995,26 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
                 # Stripe uses cents not dollars
                 stripe_amount = int(amount * 100)
 
-                stripe.api_key = STRIPE_SECRET_KEY
-                rc = stripe.Refund.create(
-                    charge=stripe_item.stripe_reference,
-                    amount=stripe_amount,
-                )
+                try:
+                    rc = stripe.Refund.create(
+                        charge=stripe_item.stripe_reference,
+                        amount=stripe_amount,
+                    )
+
+                except stripe.error.InvalidRequestError as e:
+                    log_event(
+                        user=request.user.full_name,
+                        severity="HIGH",
+                        source="Payments",
+                        sub_source="Admin refund",
+                        message=str(e),
+                    )
+
+                    return render(
+                        request,
+                        "payments/payments_refund_error.html",
+                        {"rc": e, "stripe_item": stripe_item},
+                    )
 
                 if rc["status"] != "succeeded":
                     return render(
@@ -1992,7 +2024,7 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
                     )
 
                 # Call atomic database update
-                admin_refund_stripe_transaction_sub(stripe_item, amount, description)
+                _refund_stripe_transaction_sub(stripe_item, amount, description)
 
                 # Notify member
                 email_body = f"""<b>{request.user.full_name}</b> has refunded {GLOBAL_CURRENCY_SYMBOL}{amount:.2f}
@@ -2042,7 +2074,7 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
 
 
 @atomic
-def admin_refund_stripe_transaction_sub(stripe_item, amount, description):
+def _refund_stripe_transaction_sub(stripe_item, amount, description):
     """ Atomic transaction update for refunds """
 
     # Update the Stripe transaction
@@ -2072,9 +2104,9 @@ def admin_refund_stripe_transaction_sub(stripe_item, amount, description):
     log_event(
         user=stripe_item.member.full_name,
         severity="INFO",
-        source="payments",
+        source="Payments",
         sub_source="Refund",
-        message="Updated MemberTransaction table",
+        message=description,
     )
 
 

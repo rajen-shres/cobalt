@@ -2,18 +2,13 @@
 {% load static %}
 {% load cobalt_tags %}
 {% block header %}
-{#    <link rel="stylesheet" type="text/css" href="{% static "assets/js/datatables.1.10.25/DataTables-1.10.25/css/dataTables.bootstrap4.css" %}"/>#}
-{#    <link rel="stylesheet" type="text/css" href="{% static "assets/js/datatables.1.10.25/DataTables-1.10.25/re" %}"/>#}
-{#    <script type="text/javascript" src="{% static "assets/js/datatables.1.10.25/DataTables-1.10.25/js/dataTables.bootstrap.min.js" %}"></script>#}
+<link rel="stylesheet" type="text/css" href="{% static "assets/packages/datatables.1.10.25/dataTables.bootstrap4.min.css" %}"/>
+<link rel="stylesheet" type="text/css" href="{% static "assets/packages/datatables.1.10.25/responsive.bootstrap4.min.css" %}"/>
 
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap4.min.css"/>
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css"/>
-
-<script type="text/javascript" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/responsive/2.2.9/js/responsive.bootstrap4.min.js"></script>
-
+<script type="text/javascript" src="{% static "assets/packages/datatables.1.10.25/jquery.dataTables.min.js" %}"></script>
+<script type="text/javascript" src="{% static "assets/packages/datatables.1.10.25/dataTables.bootstrap4.min.js" %}"></script>
+<script type="text/javascript" src="{% static "assets/packages/datatables.1.10.25/dataTables.responsive.min.js" %}"></script>
+<script type="text/javascript" src="{% static "assets/packages/datatables.1.10.25/responsive.bootstrap4.min.js" %}"></script>
 
 {% endblock %}
 {% load log %}
@@ -30,6 +25,7 @@
           <div>
             <i class="material-icons" style="font-size:50px">build</i>
           </div>
+        </div>
       </h1>
     </div>
     <div class="card-body table-responsive">
