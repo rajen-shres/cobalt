@@ -1,4 +1,5 @@
 import inspect
+from pprint import pprint
 
 from django.test import Client
 from django.test.utils import setup_test_environment
@@ -72,6 +73,7 @@ class ClientTest:
         self.run_dashboard()
         self.run_dashboard_details()
         self.run_forums()
+        self.run_forums_details()
         return not self.failure
 
     def run_dashboard(self):
@@ -79,7 +81,7 @@ class ClientTest:
         self.results(response.status_code, "Load Dashboard")
 
     def run_dashboard_details(self):
-        """ Go to the dashboard and check basic details are present """
+        """ Go to the dashboard and check basic details are present. Currently on balance can be checked """
         response = self.client.get('/dashboard/')
         details = []
         passing = True
@@ -94,7 +96,20 @@ class ClientTest:
         self.results(passing, "Load Dashboard and check details", details)
 
     def run_forums(self):
-        response = self.client.get('/events/')
+        response = self.client.get('/forums/')
         self.results(response.status_code, "View main forum page")
 
+    def run_forums_details(self):
+        """ Go to Forums and check basic details are present. """
+        response = self.client.get('/forums/')
+        details = []
+        passing = True
 
+        if response.context['forums'][0]['title'] == 'System Announcements':
+            detail = {'status': True, 'msg': 'Forum 1 correct'}
+        else:
+            detail = {'status': False, 'msg': f"Forum 1 wrong title. Expected 'System Announcements', got {response.context['forums'][0]['title']}"}
+            passing = False
+        details.append(detail)
+
+        self.results(passing, "Load Dashboard and check details", details)
