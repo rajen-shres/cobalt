@@ -67,25 +67,26 @@ class ClientTest:
         print(f"Failed {count_failure}/{count_total}")
         for item in self.failure:
             print(f"Failed {item['function']} - {item['msg']}")
-            for error in item['details']:
-                print(f"  {error['status']}: {error['msg']}")
+            if item['details']:
+                for error in item['details']:
+                    print(f"  {error['status']}: {error['msg']}")
 
     def report_html(self):
         """ return report as html """
 
         if self.failure:
-
             count_success = len(self.success)
             count_failure = len(self.failure)
             count_total = count_success + count_failure
-            html = f"Failed {count_failure}/{count_total}"
+            html = f"<h2>Failed {count_failure}/{count_total}</h2>\n"
             for item in self.failure:
-                html += f"Failed {item['function']} - {item['msg']}"
-                for error in item['details']:
-                    html += f"  {error['status']}: {error['msg']}"
-
+                html += f"Failed {item['function']} - {item['msg']}\n"
+                if item['details']:
+                    for error in item['details']:
+                        html += f"  {error['status']}: {error['msg']}\n"
         else:
             html = "<h1>Success</h1>"
+        return html
 
     def run(self):
         self.run_dashboard()
@@ -115,7 +116,7 @@ class ClientTest:
         self.results(passing, "Load Dashboard and check details", details)
 
     def run_forums(self):
-        response = self.client.get('/forums/')
+        response = self.client.get('/forumst/')
         self.results(response.status_code, "View main forum page")
 
     def run_forums_details(self):

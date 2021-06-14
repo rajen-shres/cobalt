@@ -1,3 +1,5 @@
+import sys
+
 from django.core.exceptions import SuspiciousOperation
 from django.core.management.base import BaseCommand
 
@@ -15,5 +17,6 @@ class Command(BaseCommand):
 
         c=ClientTest()
         if not c.run():
-            c.report()
             html = c.report_html()
+            print(html)
+            sys.exit(1)
