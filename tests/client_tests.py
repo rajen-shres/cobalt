@@ -116,7 +116,7 @@ class ClientTest:
         self.results(passing, "Load Dashboard and check details", details)
 
     def run_forums(self):
-        response = self.client.get('/forumst/')
+        response = self.client.get('/forumstv/')
         self.results(response.status_code, "View main forum page")
 
     def run_forums_details(self):
