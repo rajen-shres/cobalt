@@ -8,6 +8,7 @@ from accounts.models import User
 
 setup_test_environment()
 
+
 class ClientTest:
     """
     These tests access the app from within Django and through the Client object.
@@ -69,6 +70,23 @@ class ClientTest:
             for error in item['details']:
                 print(f"  {error['status']}: {error['msg']}")
 
+    def report_html(self):
+        """ return report as html """
+
+        if self.failure:
+
+            count_success = len(self.success)
+            count_failure = len(self.failure)
+            count_total = count_success + count_failure
+            html = f"Failed {count_failure}/{count_total}"
+            for item in self.failure:
+                html += f"Failed {item['function']} - {item['msg']}"
+                for error in item['details']:
+                    html += f"  {error['status']}: {error['msg']}"
+
+        else:
+            html = "<h1>Success</h1>"
+
     def run(self):
         self.run_dashboard()
         self.run_dashboard_details()
@@ -89,7 +107,8 @@ class ClientTest:
         if response.context['payments']['balance'] == 100:
             detail = {'status': True, 'msg': 'Bridge Credit balance is correct'}
         else:
-            detail = {'status': False, 'msg': f"Incorrect Bridge Credit amount - expected 100, got {response.context['payments']['balance']}"}
+            detail = {'status': False,
+                      'msg': f"Incorrect Bridge Credit amount - expected 100, got {response.context['payments']['balance']}"}
             passing = False
         details.append(detail)
 
@@ -108,7 +127,8 @@ class ClientTest:
         if response.context['forums'][0]['title'] == 'System Announcements':
             detail = {'status': True, 'msg': 'Forum 1 correct'}
         else:
-            detail = {'status': False, 'msg': f"Forum 1 wrong title. Expected 'System Announcements', got {response.context['forums'][0]['title']}"}
+            detail = {'status': False,
+                      'msg': f"Forum 1 wrong title. Expected 'System Announcements', got {response.context['forums'][0]['title']}"}
             passing = False
         details.append(detail)
 

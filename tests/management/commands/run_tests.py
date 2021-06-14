@@ -16,3 +16,4 @@ class Command(BaseCommand):
         c=ClientTest()
         if not c.run():
             c.report()
+            html = c.report_html()
