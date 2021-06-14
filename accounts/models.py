@@ -1,12 +1,12 @@
 """ Models for our definitions of a user within the system. """
 
-from django.db import models
-from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator, RegexValidator
-from cobalt.settings import AUTO_TOP_UP_MAX_AMT, GLOBAL_ORG, TBA_PLAYER, RBAC_EVERYONE
 from datetime import date
-from PIL import Image
+
+from cobalt.settings import AUTO_TOP_UP_MAX_AMT, GLOBAL_ORG, TBA_PLAYER, RBAC_EVERYONE
+from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, RegexValidator
+from django.db import models
 
 
 def no_future(value):

@@ -163,6 +163,7 @@ INSTALLED_APPS = [
     "rbac",
     "cobalt",
     "utils",
+    "tests",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
