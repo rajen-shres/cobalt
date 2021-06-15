@@ -2,6 +2,7 @@
 {% load static %}
 {% load humanize %}
 {% block content %}
+    <div id="ignore_cobalt_save"></div>
 
     <nav aria-label="breadcrumb" role="navigation">
         <ol class="breadcrumb">
@@ -42,8 +43,8 @@
 
                     <div class="row">
                         <div class="col">
-                            <button type="submit" class="btn btn-primary cobalt-save" name="show">Show</button>
-                            <button type="submit" class="btn btn-success cobalt-save" name="export">CSV Download
+                            <button type="submit" class="btn btn-primary" name="show">Show</button>
+                            <button type="submit" class="btn btn-success" name="export">CSV Download
                             </button>
                         </div>
                         {% if things %}

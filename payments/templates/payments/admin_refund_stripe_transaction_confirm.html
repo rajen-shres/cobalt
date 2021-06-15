@@ -30,7 +30,7 @@
         {{ form.amount.as_hidden }}
         {{ form.description.as_hidden }}
             <button type="submit" name="confirm-submit" class="btn btn-danger cobalt-save">Confirm</button>
-            <a href="/" class="btn btn-info">Cancel</a>
+            <a href="{% url "payments:admin_view_stripe_transactions" %}" class="btn btn-info">Cancel</a>
       </form>
 
     </div>

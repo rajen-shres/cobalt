@@ -46,7 +46,7 @@
         {% csrf_token %}
         {{ form.as_p }}
             <button type="submit" name="first-submit" class="btn btn-success cobalt-save">Submit</button>
-            <a href="/" class="btn btn-info">Cancel</a>
+            <a href="{% url "payments:admin_view_stripe_transactions" %}" class="btn btn-info">Cancel</a>
       </form>
 
     </div>

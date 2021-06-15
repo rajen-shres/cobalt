@@ -55,12 +55,6 @@ function disable_submit_button() {
   });
 };
 
-// function reset_cobalt_unsaved() {
-//   // allow page to force us to ignore unsaved changes
-//   console.log("called reset");
-//   unsaved = false;
-// }
-
 //----------------------------------//
 //  Document Ready Activities       //
 //----------------------------------//

@@ -1077,7 +1077,7 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
             recipients_email = [request.user.email]
         else:
             recipients = all_recipients
-            recipients_email = [recipient.player.email for recipient in recipients]
+            recipients_email = [recipient.email for recipient in recipients]
         context = {
             "title1": f"Message from {request.user.full_name} on behalf of {congress}",
             "title2": subject,

@@ -1611,6 +1611,8 @@ def admin_view_stripe_transactions(request):
         HTTPResponse (can be CSV)
     """
 
+    page_no = None
+
     form = DateForm(request.POST) if request.method == "POST" else DateForm()
     if form.is_valid():
 
@@ -1629,6 +1631,9 @@ def admin_view_stripe_transactions(request):
             .exclude(stripe_method=None)
             .order_by("-created_date")
         )
+
+        # Go to the first page if this is a new search
+        page_no = 1
 
     else:
 
@@ -1715,7 +1720,7 @@ def admin_view_stripe_transactions(request):
         return response
 
     else:
-        things = cobalt_paginator(request, stripes)
+        things = cobalt_paginator(request, stripes, page_no=page_no)
         return render(
             request,
             "payments/admin_view_stripe_transactions.html",
@@ -2024,7 +2029,9 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
                     )
 
                 # Call atomic database update
-                _refund_stripe_transaction_sub(stripe_item, amount, description)
+                _refund_stripe_transaction_sub(
+                    stripe_item, amount, description, counterparty=request.user
+                )
 
                 # Notify member
                 email_body = f"""<b>{request.user.full_name}</b> has refunded {GLOBAL_CURRENCY_SYMBOL}{amount:.2f}
@@ -2074,7 +2081,7 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
 
 
 @atomic
-def _refund_stripe_transaction_sub(stripe_item, amount, description):
+def _refund_stripe_transaction_sub(stripe_item, amount, description, counterparty=None):
     """ Atomic transaction update for refunds """
 
     # Update the Stripe transaction
@@ -2090,6 +2097,8 @@ def _refund_stripe_transaction_sub(stripe_item, amount, description):
     # Create a new transaction for the user
     balance = get_balance(stripe_item.member) - float(amount)
 
+    abf = get_object_or_404(Organisation, pk=GLOBAL_ORG_ID)
+
     act = MemberTransaction()
     act.member = stripe_item.member
     act.amount = -amount
@@ -2097,6 +2106,9 @@ def _refund_stripe_transaction_sub(stripe_item, amount, description):
     # act.stripe_transaction = stripe_item
     act.balance = balance
     act.description = description
+    # Put counterparty as the admin who processed the refund (if done by an admin)
+    # act.other_member = counterparty
+    act.organisation = abf
     act.type = "Card Refund"
 
     act.save()
