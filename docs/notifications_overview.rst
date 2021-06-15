@@ -136,6 +136,38 @@ understanding, not just to see why this soultion was required but
 also in case the situation changes or someone else has a better idea
 of how to address this.
 
+Usage
+-----
+
+The rest of this section explains why and how things work. If you
+just want to send emails you can do the following::
+
+    # Send single email
+    from notifications.views import send_cobalt_email
+
+    send_cobalt_email("a@b.com", "Subject", "Body")
+    # Or
+    send_cobalt_email("a@b.com, "Subject", "Body", member=user, reply_to="b@c.com")
+
+
+    # Send a bunch of different messages
+    from notifications.views import CobaltEmail
+
+    email_sender = CobaltEmail()
+    email_sender.queue_email("a@b.com", "Subject", "<h1>Hello</h1>")
+    email_sender.queue_email("b@c.com", "Welcome", "<h1>Hi</h1>")
+    email_sender.send()
+
+
+    # Send one message to a bunch of people
+    from notifications.views import send_cobalt_bulk_email
+    send_cobalt_bulk_email(
+        bcc_addresses=['a@b.com', 'b@c.com'],
+        subject="Subject",
+        message="<h1>Hello</h1>",
+        reply_to="me@d.com",
+    )
+
 Requirements
 ------------
 

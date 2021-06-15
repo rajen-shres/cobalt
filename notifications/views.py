@@ -6,12 +6,25 @@
    ./notifications_overview.html
 
 """
+import random
+import string
+from datetime import datetime, timedelta
 from threading import Thread
-from django.utils import timezone
+
 import boto3
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.mail import EmailMultiAlternatives
+from django.db import connection, transaction
+from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.html import strip_tags
+from django.utils.safestring import mark_safe
+
 from accounts.models import User
 from cobalt.settings import (
-    ADMINS,
     AWS_SECRET_ACCESS_KEY,
     AWS_REGION_NAME,
     AWS_ACCESS_KEY_ID,
@@ -23,36 +36,19 @@ from cobalt.settings import (
     RBAC_EVERYONE,
     COBALT_HOSTNAME,
 )
-
-from django.contrib.auth.decorators import login_required
-from django.core.mail import EmailMultiAlternatives
-from django.db import connection, transaction
-from django.shortcuts import render, redirect, get_object_or_404
-from django.template.loader import render_to_string
-from django.urls import reverse
-from django.utils.html import strip_tags
 from forums.models import Forum, Post
 from logs.views import log_event
 from rbac.core import rbac_user_has_role
-
-from datetime import datetime, timedelta
-from django.contrib import messages
-from django.utils.safestring import mark_safe
-import time
-
 from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
-
 from .forms import EmailContactForm
 from .models import InAppNotification, NotificationMapping, Email, EmailThread
-import random
-import string
 
 # Max no of emails to send in a batch
 MAX_EMAILS = 45
 
 # Max number of threads
-MAX_EMAIL_THREADS = 1
+MAX_EMAIL_THREADS = 5
 
 
 class CobaltEmail:
@@ -179,9 +175,7 @@ class CobaltEmail:
 
 
 def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
-    """Send single email. This sets off an async task to actually send the
-        email to avoid delays for the user. This should only be used for small
-        numbers of emails, one being a good example.
+    """Function in single statement to send email.
 
     Args:
         to_address (str): who to send to
@@ -194,57 +188,15 @@ def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
         Nothing
     """
 
-    # Add to queue
-    email = Email(
+    email = CobaltEmail()
+    email.queue_email(
+        to_address=to_address,
         subject=subject,
         message=message,
-        recipient=to_address,
         member=member,
         reply_to=reply_to,
     )
-    email.save()
-
-    # start thread
-    thread = Thread(target=send_cobalt_email_thread, args=[email.id])
-    thread.setDaemon(True)
-    thread.start()
-
-
-def send_cobalt_email_thread(email_id):
-    """Send single email. Asynchronous thread
-
-    Args:
-        email_id (int): pk for email to send
-
-    Returns:
-        Nothing
-    """
-
-    # It is possible for this thread to start before the email has been
-    # saved to the database. Not ideal, but a pause solves this
-    time.sleep(2)
-
-    email = Email.objects.get(pk=email_id)
-
-    plain_message = strip_tags(email.message)
-
-    message = EmailMultiAlternatives(
-        email.subject,
-        plain_message,
-        to=[email.recipient],
-        from_email=DEFAULT_FROM_EMAIL,
-        reply_to=[email.reply_to],
-    )
-
-    message.attach_alternative(email.message, "text/html")
-
-    message.send()
-
-    email.status = "Sent"
-    email.save()
-
-    # Django creates a new database connection for this thread so close it
-    connection.close()
+    email.send()
 
 
 def send_cobalt_bulk_email(bcc_addresses, subject, message, reply_to=""):
@@ -416,7 +368,7 @@ def create_user_notification(
 ):
     """create a notification record for a user
 
-    Used to programatically create a notification record. For example Forums
+    Used to programmatically create a notification record. For example Forums
     will call this to register a notification for comments on a users post.
 
     Args:
@@ -462,18 +414,26 @@ def notify_happening_forums(
         subtopic=subtopic,
     )
 
+    print(
+        "[notify_happening_forums] Notifying %s people about '%s' by %s"
+        % (listeners.count(), email_subject, user)
+    )
+
+    email_sender = CobaltEmail()
+
     for listener in listeners:
         if user != listener.member:
             # Add first name
-            html_msg = html_msg.replace("[NAME]", listener.member.first_name)
-            contact_member(
-                listener.member,
-                msg,
-                listener.notification_type,
-                link,
-                html_msg,
+            html_msg_with_name = html_msg.replace("[NAME]", listener.member.first_name)
+            email_sender.queue_email(
+                listener.member.email,
                 email_subject,
+                html_msg_with_name,
+                listener.member,
             )
+            add_in_app_notification(listener.member, msg, link)
+
+    email_sender.send()
 
 
 def notify_happening(
