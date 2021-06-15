@@ -37,10 +37,7 @@
     <div class="sidebar" data-color="orange" data-background-color="white" data-image="{% static "assets/img/slider.jpg" %}">
       <div class="logo text-center">
         <a href="/" class="simple-text logo-normal">
-          {% if request.META.HTTP_HOST != GLOBAL_PRODUCTION %}
-          {{ request.META.HTTP_HOST }}
-          {% endif %}
-          <br>
+   
           <img src="{% static "assets/img/abftechlogo.png" %}" style="width:250px">
         </a>
       </div>

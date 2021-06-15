@@ -2063,6 +2063,14 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
                     subject="Card Refund",
                 )
 
+                log_event(
+                    user=stripe_item.member,
+                    severity="INFO",
+                    source="Payments",
+                    sub_source="Admin refund",
+                    message=f"{request.user} refunded {GLOBAL_CURRENCY_SYMBOL}{amount} to {stripe_item.member.full_name}",
+                )
+
                 msg = f"Refund Successful. Paid {GLOBAL_CURRENCY_SYMBOL}{amount} to {stripe_item.member}"
                 messages.success(request, msg, extra_tags="cobalt-message-success")
                 return redirect("payments:admin_view_stripe_transactions")
