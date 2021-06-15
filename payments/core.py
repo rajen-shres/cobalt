@@ -805,7 +805,7 @@ def stripe_webhook_manual(event):
         tran.stripe_last4 = charge.payment_method_details.card.last4
         tran.stripe_balance_transaction = event.data.object.balance_transaction
         tran.last_change_date = timezone.now()
-        tran.status = "Complete"
+        tran.status = "Success"
 
         already = StripeTransaction.objects.filter(
             stripe_method=charge.payment_method
@@ -848,11 +848,7 @@ def stripe_webhook_manual(event):
     # Set the payment type - this could be for a linked transaction or a manual
     # payment.
 
-    if tran.linked_transaction_type:  # payment for a linked transaction
-        paytype = "CC Payment"
-    else:  # manual top up
-        paytype = "Manual Top Up"
-
+    paytype = "CC Payment" if tran.linked_transaction_type else "Manual Top Up"
     update_account(
         member=tran.member,
         amount=tran.amount,
@@ -1385,7 +1381,7 @@ def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
         stripe_tran.stripe_last4 = payload.payment_method_details.card.last4
         stripe_tran.stripe_balance_transaction = payload.balance_transaction
         stripe_tran.last_change_date = timezone.now()
-        stripe_tran.status = "Complete"
+        stripe_tran.status = "Success"
         stripe_tran.save()
 
         # Update members account
@@ -1529,7 +1525,7 @@ def payments_status_summary():
     """
 
     try:
-        stripe_latest = StripeTransaction.objects.filter(status="Complete").latest(
+        stripe_latest = StripeTransaction.objects.filter(status="Success").latest(
             "created_date"
         )
         stripe_manual_pending = StripeTransaction.objects.filter(status="Pending")

@@ -16,7 +16,6 @@ from django.utils import timezone
 from organisations.models import Organisation
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, GLOBAL_ORG
 
-
 TRANSACTION_TYPE = [
     ("Transfer Out", "Money transferred out of account"),
     ("Transfer In", "Money transferred in to account"),
@@ -46,21 +45,20 @@ class StripeTransaction(models.Model):
     """
 
     TRANSACTION_STATUS = [
+        # This is the default status
+        ("Initiated", "Initiated - Stripe Transaction object created"),
         # This means we have hit the checkout page and Stripe is waiting
         ("Intent", "Intent - received customer intent to pay from Stripe"),
         # This means they have been confirmed with strip, but we haven't been notified yet
         # Note - this is notified by client side code and cannot be trusted
         ("Pending", "Pending - transaction approved by Stripe - awaiting confirmation"),
         # This means it worked and we have their cash
-        ("Complete", "Success - payment completed successfully"),
+        ("Succeeded", "Succeeded - payment completed successfully"),
         # This means we didn't get their cash - although currently nothing gets set to failed
         ("Failed", "Failed - payment failed"),
-    ]
-
-    REFUND_STATUS = [
-        ("Not Refunded", "Not refunded"),
-        ("Partial", "Partial refund paid"),
-        ("Full", "Fully refunded"),
+        # Refund statuses - matches Stripe
+        ("Partial refund", "Partial refund - some money returned"),
+        ("Refunded", "Refunded - Fully refunded"),
     ]
 
     member = models.ForeignKey(
@@ -81,7 +79,7 @@ class StripeTransaction(models.Model):
     Be careful as Stripe stores the amount in cents, not dollars."""
 
     status = models.CharField(
-        "Status", max_length=9, choices=TRANSACTION_STATUS, default="Initiated"
+        "Status", max_length=20, choices=TRANSACTION_STATUS, default="Initiated"
     )
     """ Status of the transaction. See TRANSACTION_STATUS for options."""
 
@@ -162,11 +160,6 @@ class StripeTransaction(models.Model):
         "Linked Amount", blank=True, null=True, max_digits=12, decimal_places=2
     )
     """linked amount can be different to amount if the member had some money in their account already"""
-
-    refund_status = models.CharField(
-        "Refund Status", max_length=12, choices=REFUND_STATUS, default="Not Refunded"
-    )
-    """ Shows whether this transaction has been refunded """
 
     refund_amount = models.DecimalField(
         "Refund Amount", default=0.0, max_digits=12, decimal_places=2

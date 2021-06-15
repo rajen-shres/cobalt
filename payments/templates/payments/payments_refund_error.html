@@ -35,8 +35,8 @@
         <tr><td><b>Created Date</b></td><td>{{ stripe_item.created_date|cobalt_nice_datetime }}</td></tr>
         <tr><td><b>Member Paid</b></td><td>{{ GLOBAL_CURRENCY_SYMBOL}}{{ stripe_item.amount|floatformat:2 }}</td></tr>
 
-        <tr><td><b>Refund Status</b></td><td>{{ stripe_item.refund_status }}</td></tr>
-          {% if stripe_item.refund_status != "Not Refunded" %}
+        <tr><td><b>Status</b></td><td>{{ stripe_item.status }}</td></tr>
+          {% if stripe_item.status in "Refunded,Partial refund" %}
         <tr><td><b>Refund Amount</b></td><td>{{ GLOBAL_CURRENCY_SYMBOL}}{{ stripe_item.refund_amount|floatformat:2 }}</td></tr>
         <tr><td><b>Refund Left</b></td><td>{{ GLOBAL_CURRENCY_SYMBOL}}{{ stripe_item.refund_left|floatformat:2 }}</td></tr>
           {% endif %}

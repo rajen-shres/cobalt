@@ -173,7 +173,7 @@ def statement(request):
         if (
             thing.stripe_transaction
             and thing.stripe_transaction.stripe_receipt_url
-            and thing.stripe_transaction.refund_status != "Full"
+            and thing.stripe_transaction.status != "Refunded"
             and balance - thing.amount >= 0.0
             and thing.created_date > ref_date
         ):
@@ -1215,7 +1215,7 @@ def stripe_autotopup_confirm(request):
     no transaction so we record this on the User object.
 
     Args:
-        request(HTTPRequest): stasndard request object
+        request(HTTPRequest): standard request object
 
     Returns:
         Nothing.
@@ -1274,7 +1274,7 @@ def stripe_pending(request):
         return rbac_forbidden(request, "payments.global.view")
 
     try:
-        stripe_latest = StripeTransaction.objects.filter(status="Complete").latest(
+        stripe_latest = StripeTransaction.objects.filter(status="Success").latest(
             "created_date"
         )
         stripe_manual_pending = StripeTransaction.objects.filter(status="Pending")
@@ -1677,7 +1677,6 @@ def admin_view_stripe_transactions(request):
                 "Status",
                 "member",
                 "Amount",
-                "Refund Status",
                 "Refund Amount",
                 "Expected Settlement Amount",
                 "Description",
@@ -1702,7 +1701,6 @@ def admin_view_stripe_transactions(request):
                     stripe_item.status,
                     stripe_item.member,
                     stripe_item.amount,
-                    stripe_item.refund_status,
                     stripe_item.refund_amount,
                     stripe_item.amount_settle,
                     stripe_item.description,
@@ -1833,7 +1831,7 @@ def refund_stripe_transaction(request, stripe_transaction_id):
         )
         return redirect("payments:statement")
 
-    if stripe_item.refund_status == "Full":
+    if stripe_item.status == "Refunded":
         messages.error(
             request, "Transaction already refunded", extra_tags="cobalt-message-error"
         )
@@ -1972,6 +1970,7 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
     member_balance = get_balance(stripe_item.member)
 
     if request.method == "POST":
+        print(stripe_item.refund_left)
         form = StripeRefund(request.POST, payment_amount=stripe_item.refund_left)
         if form.is_valid():
 
@@ -2086,9 +2085,9 @@ def _refund_stripe_transaction_sub(stripe_item, amount, description, counterpart
 
     # Update the Stripe transaction
     if amount + stripe_item.refund_amount >= stripe_item.amount:
-        stripe_item.refund_status = "Full"
+        stripe_item.status = "Refunded"
     else:
-        stripe_item.refund_status = "Partial"
+        stripe_item.status = "Partial refund"
 
     stripe_item.refund_amount += amount
 

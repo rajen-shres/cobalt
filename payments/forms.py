@@ -197,6 +197,8 @@ class StripeRefund(forms.Form):
         cleaned_data = super(StripeRefund, self).clean()
         if cleaned_data.get("amount"):
             amount = self.cleaned_data["amount"]
+            print(amount)
+            print(self.payment_amount)
             if amount < 0.0:
                 raise forms.ValidationError("Amount cannot be negative")
             if amount > self.payment_amount:

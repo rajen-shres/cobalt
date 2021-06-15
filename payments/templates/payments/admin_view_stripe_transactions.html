@@ -62,7 +62,7 @@
                                             <th>Member</th>
                                             <th>Description</th>
                                             <th>Amount({{ GLOBAL_CURRENCY_SYMBOL }})</th>
-                                            <th>Refund Status</th>
+                                            <th>Status</th>
                                             <th class="text-right">Action</th>
                                         </tr>
                                         </thead>
@@ -73,11 +73,11 @@
                                                 <td>{{ thing.member }}</td>
                                                 <td>{{ thing.description }}</td>
                                                 <td class="text-right">{{ thing.amount|intcomma }}</td>
-                                                <td>{{  thing.refund_status }}</td>
+                                                <td>{{  thing.status }}</td>
                                                 <td>
                                                     <a href="{% url "payments:admin_view_stripe_transaction_detail" stripe_transaction_id=thing.id %}"
                                                        class="btn btn-sm btn-info">View</a>
-                                                    {% if thing.refund_status != "Full" %}
+                                                    {% if thing.status != "Refunded" %}
                                                     <a href="{% url "payments:admin_refund_stripe_transaction" stripe_transaction_id=thing.id %}"
                                                        class="btn btn-sm btn-info">Refund</a></td>
                                                     {% endif %}

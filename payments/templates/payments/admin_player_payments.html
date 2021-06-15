@@ -55,7 +55,7 @@
             <tr>
                 <th>Date</th>
                 <th>Amount</th>
-                <th>Refund Status</th>
+                <th>Status</th>
                 <th>Organisation</th>
                 <th>Action</th>
             </tr>
@@ -64,9 +64,9 @@
                 <tr>
                     <td>{{ stripe.created_date|cobalt_nice_date }}</td>
                     <td>{{ GLOBAL_CURRENCY_SYMBOL }}{{ stripe.amount }}</td>
-                    <td>{{  stripe.refund_status }}</td>
+                    <td>{{  stripe.status }}</td>
                     <td>{{ stripe.linked_organisation|default_if_none:"" }}</td>
-                    {% if stripe.refund_status != "Full" %}
+                    {% if stripe.status in "Refunded,Partial refund" %}
                         <td><a href="{% url "payments:admin_refund_stripe_transaction" stripe_transaction_id=stripe.id %}" class="btn btn-sm btn-danger">Refund</a></td>
                     {% else %}
                         <td></td>
