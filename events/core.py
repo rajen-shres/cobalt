@@ -115,7 +115,7 @@ def _update_entries(route_payload, payment_user):
             amount=amount,
             description=f"{event_entry_player.event_entry.event.event_name} - {event_entry_player.player}",
             source="Events",
-            log_msg=event_entry_player.event_entry.event.event_name.href,
+            log_msg=event_entry_player.event_entry.event.href,
             sub_source="events_callback",
             payment_type="Entry to an event",
             member=payment_user,
@@ -250,8 +250,10 @@ def _send_notifications(route_payload, payment_user):
 
         for event in email_dic[congress].keys():
 
-            sub_msg = f"<tr><td style='text-align: left' class='receipt-figure'>{event.event_name}<td style='text" \
-                      f"-align: left' class='receipt-figure'> "
+            sub_msg = (
+                f"<tr><td style='text-align: left' class='receipt-figure'>{event.event_name}<td style='text"
+                f"-align: left' class='receipt-figure'> "
+            )
 
             for player in email_dic[congress][event]:
                 sub_msg += f"{player.player.full_name}<br>"
@@ -306,16 +308,16 @@ def _send_notifications(route_payload, payment_user):
                         "you.</p><br><br> "
                     )
 
-                player_email[
-                    player
-                ] += "You have outstanding payments to make to complete this entry. Click on the button below to view " \
-                     "your payments. Note that entries are not complete until all payments have been received.<br><br> "
+                player_email[player] += (
+                    "You have outstanding payments to make to complete this entry. Click on the button below to view "
+                    "your payments. Note that entries are not complete until all payments have been received.<br><br> "
+                )
             else:
-                player_email[
-                    player
-                ] += "Your entries are all paid for however other players in the entry may still need to pay. You can " \
-                     "see overall entry status above. You have nothing more to do. If you need to view the entry or " \
-                     "change anything you can use the link below.<br><br> "
+                player_email[player] += (
+                    "Your entries are all paid for however other players in the entry may still need to pay. You can "
+                    "see overall entry status above. You have nothing more to do. If you need to view the entry or "
+                    "change anything you can use the link below.<br><br> "
+                )
 
             # build email
             context = {
@@ -342,8 +344,10 @@ def _send_notifications(route_payload, payment_user):
     # Notify conveners
     for congress in email_dic.keys():
         for event in email_dic[congress].keys():
-            player_string = f"<table><tr><td><b>Name</b><td><b>{GLOBAL_ORG} No.</b><td><b>Payment " \
-                            f"Method</b><td><b>Status</b></tr> "
+            player_string = (
+                f"<table><tr><td><b>Name</b><td><b>{GLOBAL_ORG} No.</b><td><b>Payment "
+                f"Method</b><td><b>Status</b></tr> "
+            )
             for player in email_dic[congress][event]:
                 PAYMENT_TYPES_DICT = dict(PAYMENT_TYPES)
                 payment_type_str = PAYMENT_TYPES_DICT[player.payment_type]
@@ -352,7 +356,10 @@ def _send_notifications(route_payload, payment_user):
             message = "New entry received.<br><br> %s" % player_string
 
             notify_conveners(
-                congress, event, f"New Entry to {event.event_name} in {event.congress}", message
+                congress,
+                event,
+                f"New Entry to {event.event_name} in {event.congress}",
+                message,
             )
 
     email_sender.send()
@@ -423,9 +430,11 @@ def get_conveners_for_congress(congress):
     return rbac_get_users_with_role(role)
 
 
-def notify_conveners(congress, event, subject, email_msg, notify_msg=None, email_obj=None):
-    """ Let conveners know about things that change. This can be called with an optional CobaltEmail object
-        in which case it will queue the messages to that. If not provided then it will create its own.
+def notify_conveners(
+    congress, event, subject, email_msg, notify_msg=None, email_obj=None
+):
+    """Let conveners know about things that change. This can be called with an optional CobaltEmail object
+    in which case it will queue the messages to that. If not provided then it will create its own.
     """
 
     if not notify_msg:

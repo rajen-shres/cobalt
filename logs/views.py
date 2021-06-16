@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core.mail import send_mail
 from django.shortcuts import render
 from django.utils import timezone
+from django.utils.html import strip_tags
 
 from cobalt.settings import DEFAULT_FROM_EMAIL, SUPPORT_EMAIL
 from utils.utils import cobalt_paginator
@@ -31,7 +32,7 @@ def log_event(user, severity, source, sub_source, message, request=None):
     logevent.severity = severity
     logevent.source = source[:30]
     logevent.sub_source = sub_source[:50]
-    logevent.message = message[:199]
+    logevent.message = message
     logevent.save()
 
     if severity == "CRITICAL":
@@ -60,10 +61,7 @@ def home(request):
     form_days = request.GET.get("days")
     form_user = request.GET.get("user")
 
-    if form_days:
-        days = int(form_days)
-    else:
-        days = 7
+    days = int(form_days) if form_days else 7
 
     ref_date = timezone.now() - timedelta(days=days)
 
