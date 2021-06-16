@@ -48,7 +48,7 @@ from .models import InAppNotification, NotificationMapping, Email, EmailThread
 MAX_EMAILS = 45
 
 # Max number of threads
-MAX_EMAIL_THREADS = 5
+MAX_EMAIL_THREADS = 20
 
 
 class CobaltEmail:

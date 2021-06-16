@@ -42,7 +42,7 @@ from .models import (
 )
 
 
-def get_all_congress_ajax(request) :
+def get_all_congress_ajax(request):
     congresses = (
         Congress.objects.order_by("start_date")
     )
@@ -149,7 +149,7 @@ def delete_event_ajax(request):
         return rbac_forbidden(request, role)
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_admin",
@@ -187,7 +187,7 @@ def delete_category_ajax(request):
     ).save()
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_admin",
@@ -226,7 +226,7 @@ def edit_category_ajax(request):
     ).save()
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_admin",
@@ -254,7 +254,7 @@ def delete_session_ajax(request):
     session.delete()
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_admin",
@@ -381,7 +381,7 @@ def add_category_ajax(request):
     category.save()
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_admin",
@@ -425,7 +425,7 @@ def admin_offsystem_pay_ajax(request):
     ).save()
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_admin",
@@ -470,7 +470,7 @@ def admin_offsystem_unpay_ajax(request):
     ).save()
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_admin",
@@ -518,7 +518,7 @@ def admin_offsystem_pay_pp_ajax(request):
     ).save()
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_admin",
@@ -563,7 +563,7 @@ def admin_offsystem_unpay_pp_ajax(request):
     ).save()
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_admin",
@@ -591,7 +591,7 @@ def delete_basket_item_ajax(request):
         basket_item.delete()
 
         log_event(
-            user=request.user,
+            user=request.user.href,
             severity="INFO",
             source="Events",
             sub_source="events_delete_basket_item",
@@ -627,7 +627,7 @@ def admin_player_discount_delete_ajax(request):
         ).save()
 
         log_event(
-            user=request.user,
+            user=request.user.href,
             severity="INFO",
             source="Events",
             sub_source="events_entries_admin",
@@ -709,7 +709,7 @@ def change_player_entry_ajax(request):
         ).save()
 
         log_event(
-            user=request.user,
+            user=request.user.href,
             severity="INFO",
             source="Events",
             sub_source="events_change_entry",
@@ -839,7 +839,7 @@ def change_player_entry_ajax(request):
             ).save()
 
             log_event(
-                user=request.user,
+                user=request.user.href,
                 severity="INFO",
                 source="Events",
                 sub_source="events_entries_admin",
@@ -944,7 +944,7 @@ def add_player_to_existing_entry_ajax(request):
         ).save()
 
         log_event(
-            user=request.user,
+            user=request.user.href,
             severity="INFO",
             source="Events",
             sub_source="events_change_entry",
@@ -987,7 +987,7 @@ def delete_player_from_entry_ajax(request):
         ).save()
 
         log_event(
-            user=request.user,
+            user=request.user.href,
             severity="INFO",
             source="Events",
             sub_source="events_change_entry",
@@ -1057,7 +1057,7 @@ def change_category_on_existing_entry_ajax(request, event_entry_id, category_id)
     ).save()
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_change_entry",
@@ -1088,7 +1088,7 @@ def change_answer_on_existing_entry_ajax(request, event_entry_id, answer):
     ).save()
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_change_entry",
@@ -1116,7 +1116,7 @@ def admin_delete_bulletin_ajax(request):
         return rbac_forbidden(request, role)
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_admin",
@@ -1144,7 +1144,7 @@ def admin_delete_download_ajax(request):
         return rbac_forbidden(request, role)
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="event_admin",
@@ -1176,7 +1176,7 @@ def delete_me_from_partnership_desk(request, event_id):
         ).save()
 
         log_event(
-            user=request.user,
+            user=request.user.href,
             severity="INFO",
             source="Events",
             sub_source="partnership_desk",
@@ -1207,7 +1207,7 @@ def contact_partnership_desk_person_ajax(request):
         ).save()
 
         log_event(
-            user=request.user,
+            user=request.user.href,
             severity="INFO",
             source="Events",
             sub_source="partnership_desk",
@@ -1278,7 +1278,7 @@ def change_payment_method_on_existing_entry_ajax(request):
         ).save()
 
         log_event(
-            user=request.user,
+            user=request.user.href,
             severity="INFO",
             source="Events",
             sub_source="change_event_entry",
@@ -1310,11 +1310,11 @@ def admin_event_entry_notes_ajax(request):
         event_entry.save()
 
         log_event(
-            user=request.user,
+            user=request.user.href,
             severity="INFO",
             source="Events",
             sub_source="events_entries_admin",
-            message=f"Added notes '{notes}' to {event_entry} in {event_entry.event.href}",
+            message=f"Added notes '{notes}' to {event_entry.href} in {event_entry.event.href}",
         )
 
         return JsonResponse({"message": "Success"})
@@ -1344,11 +1344,11 @@ def edit_comment_event_entry_ajax(request):
     ).save()
 
     log_event(
-        user=request.user,
+        user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="change_event_entry",
-        message=f"Changed comment to '{new_comment}' on {event_entry}",
+        message=f"Changed comment to '{new_comment}' on {event_entry.href}",
     )
 
     return JsonResponse({"message": "Success"})

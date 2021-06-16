@@ -27,38 +27,37 @@ Key Points:
 
 """
 import json
+
 import stripe
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
-from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from django.http import HttpResponse
-from django.utils import timezone
-from django.http import JsonResponse
-from django.core.exceptions import ObjectDoesNotExist
-from django.urls import reverse
-from logs.views import log_event
+
 from accounts.models import User
 from cobalt.settings import (
     STRIPE_SECRET_KEY,
     STRIPE_PUBLISHABLE_KEY,
     AUTO_TOP_UP_LOW_LIMIT,
-    GLOBAL_CURRENCY_NAME,
     COBALT_HOSTNAME,
-    GLOBAL_ORG,
     BRIDGE_CREDITS,
     GLOBAL_CURRENCY_SYMBOL,
 )
+from events.core import events_payments_callback, events_payments_secondary_callback
+from logs.views import log_event
+from notifications.views import contact_member
 from .models import (
     StripeTransaction,
     MemberTransaction,
     OrganisationTransaction,
     StripeLog,
 )
-from notifications.views import contact_member
-from events.core import events_payments_callback, events_payments_secondary_callback
 
 
 #######################
@@ -77,7 +76,6 @@ def get_balance_detail(member):
 
     last_tran = MemberTransaction.objects.filter(member=member).last()
     if last_tran:
-        #        balance = "{:,}".format(last_tran.balance)
         return {
             "balance": last_tran.balance,
             "balance_num": last_tran.balance,
@@ -372,7 +370,7 @@ def payment_api(
         amount - how much
         member - User object related to the payment
         route_code - code to map to a callback
-        route_payload - value to retirn on completion
+        route_payload - value to return on completion
         organisation - linked organisation
         other_member - User object
         log_msg - message for the log

@@ -573,6 +573,13 @@ class EventEntry(models.Model):
 
         return allowed
 
+    @property
+    def href(self):
+        """Returns an HTML link tag that can be used to go to the event entry view"""
+
+        tag = reverse("events:admin_evententry", kwargs={'evententry_id': self.id})
+        return f"<a href='{tag}' target='_blank'>{self.event.congress} - {self.event.event_name}</a>"
+
 
 class EventEntryPlayer(models.Model):
     """ A player who is entering an event """

@@ -102,11 +102,11 @@ def _update_entries(route_payload, payment_user):
         ).save()
 
         log_event(
-            user=event_entry_player.paid_by,
+            user=event_entry_player.paid_by.href,
             severity="INFO",
             source="Events",
             sub_source="events_entry",
-            message=f"{event_entry_player.event_entry.event.href} by {event_entry_player.paid_by.href}",
+            message=f"{event_entry_player.paid_by.href} paid for {event_entry_player.player.href} to enter {event_entry_player.event_entry.event.href}",
         )
 
         # create payments in org account

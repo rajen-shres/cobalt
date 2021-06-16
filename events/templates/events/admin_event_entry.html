@@ -53,13 +53,13 @@
 
                   <tr>
                     <td>
-                      {{ event_entry_player.player|cobalt_user_link }}
+                      {{ event_entry_player.player.href|safe }}
                     </td>
                     <td class="text-right">{{ event_entry_player.payment_received }}</td>
                     <td class="text-right">{{ event_entry_player.entry_fee }}</td>
                     <td class="text-right">{{ event_entry_player.payment_status }}</td>
                     <td class="text-right">{{ event_entry_player.get_payment_type_display }}</td>
-                    <td class="text-right">{{ event_entry_player.paid_by.full_name }}</td>
+                    <td class="text-right">{{ event_entry_player.paid_by.href|safe }}</td>
                     <td class="text-right">{{ event_entry_player.reason|default_if_none:"" }}</td>
                     <td class="text-right">{{ event_entry_player.entry_complete_date|cobalt_nice_datetime|default_if_none:"-" }}</td>
                     <td class="text-right">
@@ -84,6 +84,14 @@
 
               </tbody>
             </table>
+            {% if event_entry.notes %}
+                <h3>Notes</h3>
+                {{ event_entry.notes }}
+            {% endif %}
+            {% if event_entry.comment %}
+                <h3>Comment by Player</h3>
+                    {{ event_entry.comment }}
+            {% endif %}
             {% if event.free_format_question %}
               <h3>Question: {{ event.free_format_question }}</h3>
               <p><b>Answer: </b>{{ event_entry.free_format_answer|default_if_none:"No answer provided" }}</p>
