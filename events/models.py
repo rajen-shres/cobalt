@@ -95,7 +95,7 @@ Organiser:</span></td><td><span style="font-weight: normal;">Jane Doe</span></td
 <span style="font-weight: normal;">Email:</span></td><td><span style="font-weight: normal;">
 me@club.com</span></td></tr><tr><td><span style="font-weight: normal;">
 Chief Tournament Director:</span></td><td><span style="font-weight: normal;">
-Alan Partidge</span></td></tr></tbody></table><p><br></p>"""
+Alan Partridge</span></td></tr></tbody></table><p><br></p>"""
 
 
 class CongressMaster(models.Model):
