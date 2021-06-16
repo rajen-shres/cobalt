@@ -2113,9 +2113,6 @@ def _refund_stripe_transaction_sub(stripe_item, amount, description, counterpart
     # act.stripe_transaction = stripe_item
     act.balance = balance
     act.description = description
-    # TODO: Decide if we are using ABF or Member as the counterparty
-    # Put counterparty as the admin who processed the refund (if done by an admin)
-    # act.other_member = counterparty
     act.organisation = abf
     act.type = "Card Refund"
 
@@ -2125,7 +2122,7 @@ def _refund_stripe_transaction_sub(stripe_item, amount, description, counterpart
         user=stripe_item.member.full_name,
         severity="INFO",
         source="Payments",
-        sub_source="Refund",
+        sub_source="Card Refund",
         message=description,
     )
 

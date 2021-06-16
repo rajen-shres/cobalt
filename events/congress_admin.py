@@ -779,7 +779,7 @@ def admin_evententry_delete(request, evententry_id):
                         amount=-amount,
                         description=f"Refund to {player} for {event_entry.event.event_name}",
                         source="Events",
-                        log_msg=f"Refund to {player} for {event_entry.event.event_name}",
+                        log_msg=f"Refund to {player.href} for {event_entry.event.event_name.href}",
                         sub_source="refund",
                         payment_type="Refund",
                         member=player,

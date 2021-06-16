@@ -56,5 +56,5 @@ class Command(BaseCommand):
                 severity="CRITICAL",
                 source="Notifications",
                 sub_source="Email",
-                message="Cron picked up stuck email",
+                message=f"Cron picked up {emails.count()} stuck email(s)",
             )

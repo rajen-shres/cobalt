@@ -1,10 +1,28 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
-from django.urls import reverse
+import json
+
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
+from django.db.models import Sum
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
-from django.db.models import Sum, Q
+
+from accounts.models import User, TeamMate
+from cobalt.settings import TBA_PLAYER, COBALT_HOSTNAME, BRIDGE_CREDITS
+from logs.views import log_event
+from notifications.views import contact_member
+from organisations.models import Organisation
+from payments.core import (
+    update_account,
+    update_organisation,
+    get_balance,
+)
+# from .core import basket_amt_total, basket_amt_paid, basket_amt_this_user_only, basket_amt_owing_this_user_only
+from rbac.core import (
+    rbac_user_allowed_for_model,
+    rbac_get_users_with_role,
+)
+from rbac.views import rbac_user_has_role, rbac_forbidden
+from .core import notify_conveners
 from .models import (
     Congress,
     CONGRESS_TYPES,
@@ -14,7 +32,6 @@ from .models import (
     Session,
     EventEntry,
     EventEntryPlayer,
-    PAYMENT_TYPES,
     BasketItem,
     EventLog,
     EventPlayerDiscount,
@@ -23,35 +40,11 @@ from .models import (
     PartnershipDesk,
     CongressDownload,
 )
-from accounts.models import User, TeamMate
-from notifications.views import contact_member
 
-# from .core import basket_amt_total, basket_amt_paid, basket_amt_this_user_only, basket_amt_owing_this_user_only
-from .forms import CongressForm, NewCongressForm, EventForm, SessionForm
-from rbac.core import (
-    rbac_user_allowed_for_model,
-    rbac_get_users_with_role,
-)
-from rbac.views import rbac_user_has_role, rbac_forbidden
-
-from payments.core import (
-    payment_api,
-    org_balance,
-    update_account,
-    update_organisation,
-    get_balance,
-)
-from organisations.models import Organisation
-from .core import notify_conveners
-from rbac.core import rbac_user_role_list
-from cobalt.settings import TBA_PLAYER, COBALT_HOSTNAME, BRIDGE_CREDITS
-import json
-from datetime import datetime
 
 def get_all_congress_ajax(request) :
     congresses = (
         Congress.objects.order_by("start_date")
-        #.filter(start_date__gte=datetime.now())
     )
     congressList = []
     admin = False
@@ -155,10 +148,17 @@ def delete_event_ajax(request):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="events_admin",
+        message=f"Deleted event {event.href}",
+    )
+
     event.delete()
 
-    response_data = {}
-    response_data["message"] = "Success"
+    response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
 
 
@@ -185,8 +185,16 @@ def delete_category_ajax(request):
         actor=request.user,
         action=f"deleted category {category.description}",
     ).save()
-    response_data = {}
-    response_data["message"] = "Success"
+
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="events_admin",
+        message=f"Deleted category {category} from {event.href}",
+    )
+
+    response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
 
 @login_required()
@@ -214,11 +222,21 @@ def edit_category_ajax(request):
     EventLog(
         event=event,
         actor=request.user,
-        action=f"edited category from {old_description} {category.description}",
+        action=f"Edited category from '{old_description}' to '{category.description}'",
     ).save()
-    response_data = {}
-    response_data["message"] = "Success"
+
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="events_admin",
+        message=f"Edited category from '{old_description}' to '{category.description}' in {event.href}",
+    )
+
+    response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
+
+
 @login_required()
 def delete_session_ajax(request):
     """ Ajax call to delete a session from a congress """
@@ -235,8 +253,15 @@ def delete_session_ajax(request):
 
     session.delete()
 
-    response_data = {}
-    response_data["message"] = "Success"
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="events_admin",
+        message=f"Deleted session '{session} from {session.event.href}'",
+    )
+
+    response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
 
 
@@ -253,13 +278,8 @@ def fee_for_user_ajax(request):
 
     entry_fee, discount, reason, description = event.entry_fee_for(user)
 
-    response_data = {
-        "entry_fee": entry_fee,
-        "description": description,
-        "discount": discount,
-    }
+    response_data = {"entry_fee": entry_fee, "description": description, "discount": discount, "message": "Success"}
 
-    response_data["message"] = "Success"
     return JsonResponse({"data": response_data})
 
 
@@ -360,8 +380,15 @@ def add_category_ajax(request):
     category = Category(event=event, description=text)
     category.save()
 
-    response_data = {}
-    response_data["message"] = "Success"
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="events_admin",
+        message=f"Added category '{text}' to '{category}' in {category.event.href}",
+    )
+
+    response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
 
 
@@ -397,11 +424,18 @@ def admin_offsystem_pay_ajax(request):
         event_entry=event_entry_player.event_entry,
     ).save()
 
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="events_admin",
+        message=f"Marked {event_entry_player.player.href} as paid in {event_entry_player.event_entry.event.href}",
+    )
+
     # Check if parent complete
     event_entry_player.event_entry.check_if_paid()
 
-    response_data = {}
-    response_data["message"] = "Success"
+    response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
 
 
@@ -434,6 +468,14 @@ def admin_offsystem_unpay_ajax(request):
         action=f"Marked {event_entry_player.player} as unpaid",
         event_entry=event_entry_player.event_entry,
     ).save()
+
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="events_admin",
+        message=f"Marked {event_entry_player.player.href} as unpaid in {event_entry_player.event_entry.event.href}",
+    )
 
     # Check if parent complete
     event_entry_player.event_entry.check_if_paid()
@@ -475,11 +517,18 @@ def admin_offsystem_pay_pp_ajax(request):
         event_entry=event_entry_player.event_entry,
     ).save()
 
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="events_admin",
+        message=f"Marked {event_entry_player.player.href} as paid (pp) in {event_entry_player.event_entry.event.href}",
+    )
+
     # Check if parent complete
     event_entry_player.event_entry.check_if_paid()
 
-    response_data = {}
-    response_data["message"] = "Success"
+    response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
 
 
@@ -513,11 +562,18 @@ def admin_offsystem_unpay_pp_ajax(request):
         event_entry=event_entry_player.event_entry,
     ).save()
 
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="events_admin",
+        message=f"Marked {event_entry_player.player.href} as unpaid (pp) in {event_entry_player.event_entry.event.href}",
+    )
+
     # Check if parent complete
     event_entry_player.event_entry.check_if_paid()
 
-    response_data = {}
-    response_data["message"] = "Success"
+    response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
 
 
@@ -533,6 +589,14 @@ def delete_basket_item_ajax(request):
     if basket_item.player == request.user:
         basket_item.event_entry.delete()
         basket_item.delete()
+
+        log_event(
+            user=request.user,
+            severity="INFO",
+            source="Events",
+            sub_source="events_delete_basket_item",
+            message=f"Deleted basket item for {basket_item.event_entry.event.href}",
+        )
 
         response_data = {"message": "Success"}
         return JsonResponse({"data": response_data})
@@ -561,6 +625,14 @@ def admin_player_discount_delete_ajax(request):
             actor=request.user,
             action=f"Deleted Event Player Discount for {event_player_discount.player}",
         ).save()
+
+        log_event(
+            user=request.user,
+            severity="INFO",
+            source="Events",
+            sub_source="events_entries_admin",
+            message=f"Deleted Event Player Discount for {event_player_discount.player.href}",
+        )
 
         # Delete it
         event_player_discount.delete()
@@ -635,6 +707,14 @@ def change_player_entry_ajax(request):
             event_entry=event_entry,
             action=f"Swapped {member} in for {old_player}",
         ).save()
+
+        log_event(
+            user=request.user,
+            severity="INFO",
+            source="Events",
+            sub_source="events_change_entry",
+            message=f"Changed {old_player.href} to {member.href} in {event.href}",
+        )
 
         # notify both members
         context = {
@@ -726,7 +806,7 @@ def change_player_entry_ajax(request):
                 amount=-difference,
                 description=f"{event_entry_player.event_entry.event.event_name} - {event_entry_player.paid_by} partial refund",
                 source="Events",
-                log_msg=event_entry_player.event_entry.event.event_name,
+                log_msg=event_entry_player.event_entry.event.href,
                 sub_source="events_callback",
                 payment_type="Refund",
                 member=event_entry_player.paid_by,
@@ -740,7 +820,7 @@ def change_player_entry_ajax(request):
                 source="Events",
                 sub_source="events_callback",
                 payment_type="Refund",
-                log_msg=event_entry_player.event_entry.event.event_name,
+                log_msg=event_entry_player.event_entry.event.href,
                 organisation=event_entry_player.event_entry.event.congress.congress_master.org,
             )
 
@@ -757,6 +837,14 @@ def change_player_entry_ajax(request):
                 event_entry=event_entry,
                 action=f"Triggered refund for {member} - {difference} credits",
             ).save()
+
+            log_event(
+                user=request.user,
+                severity="INFO",
+                source="Events",
+                sub_source="events_entries_admin",
+                message=f"Triggered refund for {member.href} - {difference} credits in {event.href}",
+            )
 
             # notify member of refund
             context = {
@@ -855,6 +943,14 @@ def add_player_to_existing_entry_ajax(request):
             event_entry=event_entry,
         ).save()
 
+        log_event(
+            user=request.user,
+            severity="INFO",
+            source="Events",
+            sub_source="events_change_entry",
+            message=f"Added 5/6 player to {event_entry_player.event_entry.event.href}",
+        )
+
         return JsonResponse({"message": "Success"})
 
 
@@ -889,6 +985,14 @@ def delete_player_from_entry_ajax(request):
             action=f"Deleted {event_entry_player.player} from team",
             event_entry=event_entry_player.event_entry,
         ).save()
+
+        log_event(
+            user=request.user,
+            severity="INFO",
+            source="Events",
+            sub_source="events_change_entry",
+            message=f"Deleted {event_entry_player.player.href} from {event_entry_player.event_entry.event.href}",
+        )
 
         # if we got here everything is okay
         event_entry_player.delete()
@@ -952,6 +1056,14 @@ def change_category_on_existing_entry_ajax(request, event_entry_id, category_id)
         event_entry=event_entry,
     ).save()
 
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="events_change_entry",
+        message=f"Changed category to {category} from {event_entry.category} in {event_entry.event.href}",
+    )
+
     event_entry.category = category
     event_entry.save()
 
@@ -975,6 +1087,14 @@ def change_answer_on_existing_entry_ajax(request, event_entry_id, answer):
         event_entry=event_entry,
     ).save()
 
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="events_change_entry",
+        message=f"Changed answer to {answer} from {event_entry.free_format_answer} in {event_entry.event.href}",
+    )
+
     event_entry.free_format_answer = answer
     event_entry.save()
 
@@ -995,10 +1115,17 @@ def admin_delete_bulletin_ajax(request):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="events_admin",
+        message=f"Deleted {bulletin} from {bulletin.congress.href}",
+    )
+
     bulletin.delete()
 
-    response_data = {}
-    response_data["message"] = "Success"
+    response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
 
 
@@ -1016,10 +1143,17 @@ def admin_delete_download_ajax(request):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="event_admin",
+        message=f"Deleted {download} from {download.congress.href}",
+    )
+
     download.delete()
 
-    response_data = {}
-    response_data["message"] = "Success"
+    response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
 
 
@@ -1040,6 +1174,15 @@ def delete_me_from_partnership_desk(request, event_id):
             actor=request.user,
             action="Deleted partnership desk listing",
         ).save()
+
+        log_event(
+            user=request.user,
+            severity="INFO",
+            source="Events",
+            sub_source="partnership_desk",
+            message=f"Deleted partnership desk listing from {event.href}",
+        )
+
         partnership.delete()
 
     response_data = {}
@@ -1062,6 +1205,14 @@ def contact_partnership_desk_person_ajax(request):
             actor=request.user,
             action=f"Shared partnership desk details with {partnership_desk.player}",
         ).save()
+
+        log_event(
+            user=request.user,
+            severity="INFO",
+            source="Events",
+            sub_source="partnership_desk",
+            message=f"Shared partnership desk details with {partnership_desk.player.href}",
+        )
 
         email_body = f"""{request.user} has responded to your partnership desk search.<br><br>
                         <h3>Message</h3>
@@ -1093,8 +1244,7 @@ def contact_partnership_desk_person_ajax(request):
             subject="Partnership Message",
         )
 
-    response_data = {}
-    response_data["message"] = "Success"
+    response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
 
 
@@ -1120,6 +1270,21 @@ def change_payment_method_on_existing_entry_ajax(request):
 
         player_entry.save()
 
+        # Log it
+        EventLog(
+            event=player_entry.event_entry.event,
+            actor=request.user,
+            action=f"Changed payment method to {payment_method}",
+        ).save()
+
+        log_event(
+            user=request.user,
+            severity="INFO",
+            source="Events",
+            sub_source="change_event_entry",
+            message=f"Changed payment method to {payment_method} for {player_entry.event_entry.event.href}",
+        )
+
         return JsonResponse({"message": "Success"})
 
     return JsonResponse({"message": "Invalid call"})
@@ -1144,6 +1309,14 @@ def admin_event_entry_notes_ajax(request):
         event_entry.notes = notes
         event_entry.save()
 
+        log_event(
+            user=request.user,
+            severity="INFO",
+            source="Events",
+            sub_source="events_entries_admin",
+            message=f"Added notes '{notes}' to {event_entry} in {event_entry.event.href}",
+        )
+
         return JsonResponse({"message": "Success"})
 
     return JsonResponse({"message": "Invalid call"})
@@ -1152,16 +1325,31 @@ def admin_event_entry_notes_ajax(request):
 @login_required()
 def edit_comment_event_entry_ajax(request):
     """ Edit comment on an event entry """
-    try:
-        if request.method == "POST":
-            data = json.loads(request.body.decode("utf-8"))
-            event_entry_id = int(data["id"])
-            event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
-            new_comment = data["comment"]
-            event_entry.comment = new_comment
-            event_entry.save()
-            return JsonResponse({"message": "Success"})
+
+    if request.method != "POST":
         return JsonResponse({"message": "Invalid call"})
-    except Exception as e:
-        return JsonResponse({"message": "Excpetion occured while trying to save!! contact dev!!"})
+
+    data = json.loads(request.body.decode("utf-8"))
+    event_entry_id = int(data["id"])
+    event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
+    new_comment = data["comment"]
+    event_entry.comment = new_comment
+    event_entry.save()
+
+    # Log it
+    EventLog(
+        event=event_entry.event,
+        actor=request.user,
+        action=f"Changed comment to '{new_comment}' on {event_entry}",
+    ).save()
+
+    log_event(
+        user=request.user,
+        severity="INFO",
+        source="Events",
+        sub_source="change_event_entry",
+        message=f"Changed comment to '{new_comment}' on {event_entry}",
+    )
+
+    return JsonResponse({"message": "Success"})
 

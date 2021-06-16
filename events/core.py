@@ -1,3 +1,14 @@
+from datetime import datetime, timedelta
+
+from django.template.loader import render_to_string
+from django.urls import reverse
+
+import payments.core as payments_core  # circular dependency
+from cobalt.settings import COBALT_HOSTNAME, BRIDGE_CREDITS, GLOBAL_ORG
+from events.models import PAYMENT_TYPES
+from logs.views import log_event
+from notifications.views import CobaltEmail, contact_member_and_queue_email
+from rbac.core import rbac_get_users_with_role
 from .models import (
     BasketItem,
     EventEntry,
@@ -6,17 +17,6 @@ from .models import (
     EventLog,
     Congress,
 )
-from django.db.models import Q
-from django.utils import timezone
-import payments.core as payments_core  # circular dependency
-from notifications.views import contact_member
-from logs.views import log_event
-from cobalt.settings import COBALT_HOSTNAME, BRIDGE_CREDITS, GLOBAL_ORG
-from django.template.loader import render_to_string
-from datetime import datetime, timedelta
-from rbac.core import rbac_get_users_with_role
-from django.urls import reverse
-from events.models import PAYMENT_TYPES
 
 
 def events_payments_secondary_callback(status, route_payload, tran):
@@ -44,7 +44,7 @@ def events_payments_secondary_callback(status, route_payload, tran):
             .first()
             .event_entry.primary_entrant
         )
-    update_entries(route_payload, primary_entrant)
+    _update_entries(route_payload, primary_entrant)
 
 
 def events_payments_callback(status, route_payload, tran):
@@ -55,14 +55,6 @@ def events_payments_callback(status, route_payload, tran):
 
     This gets called when the primary user who is entering the congress
     has made a payment."""
-
-    log_event(
-        user="Unknown",
-        severity="INFO",
-        source="Events",
-        sub_source="events_payments_callback",
-        message=f"Primary Callback - Status: {status} route_payload: {route_payload}",
-    )
 
     if status == "Success":
         # Find who is making this payment
@@ -82,11 +74,11 @@ def events_payments_callback(status, route_payload, tran):
         payment_user = pbi.player
         pbi.delete()
 
-        update_entries(route_payload, payment_user)
-        send_notifications(route_payload, payment_user)
+        _update_entries(route_payload, payment_user)
+        _send_notifications(route_payload, payment_user)
 
 
-def update_entries(route_payload, payment_user):
+def _update_entries(route_payload, payment_user):
     """Update the database to reflect changes and make payments for
     other members if we have access."""
 
@@ -109,13 +101,21 @@ def update_entries(route_payload, payment_user):
             event_entry=event_entry_player.event_entry,
         ).save()
 
+        log_event(
+            user=event_entry_player.paid_by,
+            severity="INFO",
+            source="Events",
+            sub_source="events_entry",
+            message=f"{event_entry_player.event_entry.event.href} by {event_entry_player.paid_by.href}",
+        )
+
         # create payments in org account
         payments_core.update_organisation(
             organisation=event_entry_player.event_entry.event.congress.congress_master.org,
             amount=amount,
             description=f"{event_entry_player.event_entry.event.event_name} - {event_entry_player.player}",
             source="Events",
-            log_msg=event_entry_player.event_entry.event.event_name,
+            log_msg=event_entry_player.event_entry.event.event_name.href,
             sub_source="events_callback",
             payment_type="Entry to an event",
             member=payment_user,
@@ -129,7 +129,7 @@ def update_entries(route_payload, payment_user):
             source="Events",
             sub_source="events_callback",
             payment_type="Entry to an event",
-            log_msg=event_entry_player.event_entry.event.event_name,
+            log_msg=event_entry_player.event_entry.event.href,
             organisation=event_entry_player.event_entry.event.congress.congress_master.org,
         )
 
@@ -186,8 +186,10 @@ def update_entries(route_payload, payment_user):
 #    ).delete()
 
 
-def send_notifications(route_payload, payment_user):
+def _send_notifications(route_payload, payment_user):
     """ Send the notification emails """
+
+    email_sender = CobaltEmail()
 
     # Go through the basket and notify people
     # We send one email per congress
@@ -195,9 +197,6 @@ def send_notifications(route_payload, payment_user):
     email_dic = {}
 
     basket_items = BasketItem.objects.filter(player=payment_user)
-
-    print("basket items")
-    print(basket_items)
 
     for basket_item in basket_items:
         # Get players in event
@@ -251,7 +250,8 @@ def send_notifications(route_payload, payment_user):
 
         for event in email_dic[congress].keys():
 
-            sub_msg = f"<tr><td style='text-align: left' class='receipt-figure'>{event.event_name}<td style='text-align: left' class='receipt-figure'>"
+            sub_msg = f"<tr><td style='text-align: left' class='receipt-figure'>{event.event_name}<td style='text" \
+                      f"-align: left' class='receipt-figure'> "
 
             for player in email_dic[congress][event]:
                 sub_msg += f"{player.player.full_name}<br>"
@@ -302,16 +302,20 @@ def send_notifications(route_payload, payment_user):
 
                 if event_entry_players.filter(payment_type="off-system-pp").exists():
                     player_email[player] += (
-                        "<p>We are expecting payment from another pre-paid system. The convener will handle this for you.</p><br><br>"
+                        "<p>We are expecting payment from another pre-paid system. The convener will handle this for "
+                        "you.</p><br><br> "
                     )
 
                 player_email[
                     player
-                ] += "You have outstanding payments to make to complete this entry. Click on the button below to view your payments. Note that entries are not complete until all payments have been received.<br><br>"
+                ] += "You have outstanding payments to make to complete this entry. Click on the button below to view " \
+                     "your payments. Note that entries are not complete until all payments have been received.<br><br> "
             else:
                 player_email[
                     player
-                ] += "Your entries are all paid for however other players in the entry may still need to pay. You can see overall entry status above. You have nothing more to do. If you need to view the entry or change anything you can use the link below.<br><br>"
+                ] += "Your entries are all paid for however other players in the entry may still need to pay. You can " \
+                     "see overall entry status above. You have nothing more to do. If you need to view the entry or " \
+                     "change anything you can use the link below.<br><br> "
 
             # build email
             context = {
@@ -325,11 +329,11 @@ def send_notifications(route_payload, payment_user):
 
             html_msg = render_to_string("notifications/email_with_button.html", context)
 
-            # send
-            contact_member(
+            # Queue email and notify user
+            contact_member_and_queue_email(
                 member=player,
+                email_object=email_sender,
                 msg="Entry to %s" % congress,
-                contact_type="Email",
                 html_msg=html_msg,
                 link="/events/view",
                 subject="Event Entry - %s" % congress,
@@ -338,17 +342,20 @@ def send_notifications(route_payload, payment_user):
     # Notify conveners
     for congress in email_dic.keys():
         for event in email_dic[congress].keys():
-            player_string = f"<table><tr><td><b>Name</b><td><b>{GLOBAL_ORG} No.</b><td><b>Payment Method</b><td><b>Status</b></tr>"
+            player_string = f"<table><tr><td><b>Name</b><td><b>{GLOBAL_ORG} No.</b><td><b>Payment " \
+                            f"Method</b><td><b>Status</b></tr> "
             for player in email_dic[congress][event]:
                 PAYMENT_TYPES_DICT = dict(PAYMENT_TYPES)
                 payment_type_str = PAYMENT_TYPES_DICT[player.payment_type]
-                player_string += f"<tr><td>{player.player.full_name}<td>{player.player.system_number}<td>{payment_type_str}<td>{player.payment_status}</tr>"
+                player_string += f"<tr><td>{player.player.full_name}<td>{player.player.system_number}<td>{payment_type_str}<td>{player.payment_status}</tr> "
             player_string += "</table>"
             message = "New entry received.<br><br> %s" % player_string
-            print("Notify conveners")
+
             notify_conveners(
-                congress, event, f"New Entry to {event.event_name}", message
+                congress, event, f"New Entry to {event.event_name} in {event.congress}", message
             )
+
+    email_sender.send()
 
     # empty basket - if user added things after they went to the
     # checkout screen then they will be lost
@@ -416,11 +423,18 @@ def get_conveners_for_congress(congress):
     return rbac_get_users_with_role(role)
 
 
-def notify_conveners(congress, event, subject, email_msg, notify_msg=None):
-    """ Let conveners know about things that change """
+def notify_conveners(congress, event, subject, email_msg, notify_msg=None, email_obj=None):
+    """ Let conveners know about things that change. This can be called with an optional CobaltEmail object
+        in which case it will queue the messages to that. If not provided then it will create its own.
+    """
 
     if not notify_msg:
         notify_msg = subject
+
+    send_it = False
+    if not email_obj:
+        email_obj = CobaltEmail()
+        send_it = True
 
     conveners = get_conveners_for_congress(congress)
     link = reverse("events:admin_event_summary", kwargs={"event_id": event.id})
@@ -439,14 +453,17 @@ def notify_conveners(congress, event, subject, email_msg, notify_msg=None):
         html_msg = render_to_string("notifications/email_with_button.html", context)
 
         # send
-        contact_member(
+        contact_member_and_queue_email(
             member=convener,
+            email_object=email_obj,
             msg=notify_msg,
-            contact_type="Email",
             html_msg=html_msg,
             link=link,
             subject=subject,
         )
+
+    if send_it:
+        email_obj.send()
 
 
 def events_status_summary():

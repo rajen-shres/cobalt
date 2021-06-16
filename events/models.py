@@ -1,21 +1,22 @@
-from django.db import models
-from django.utils import timezone
-from django.contrib.postgres.fields import ArrayField
+import datetime
+from decimal import Decimal
+
+import pytz
 from django.contrib.humanize.templatetags.humanize import ordinal
-from utils.templatetags.cobalt_tags import cobalt_credits
-from organisations.models import Organisation
+from django.db import models
+from django.urls import reverse
+from django.utils import timezone
+
 from accounts.models import User
-from payments.models import MemberTransaction
 from cobalt.settings import (
-    GLOBAL_ORG,
     TIME_ZONE,
     BRIDGE_CREDITS,
 )
-from utils.utils import cobalt_round
-import datetime
-import pytz
-from decimal import Decimal
+from organisations.models import Organisation
+from payments.models import MemberTransaction
 from rbac.core import rbac_user_has_role
+from utils.templatetags.cobalt_tags import cobalt_credits
+from utils.utils import cobalt_round
 
 PAYMENT_STATUSES = [
     ("Paid", "Entry Paid"),
@@ -228,6 +229,13 @@ class Congress(models.Model):
 
         return pay_methods
 
+    @property
+    def href(self):
+        """Returns an HTML link tag that can be used to go to the congress admin screen"""
+
+        tag = reverse("events:admin_summary", kwargs={'congress_id': self.id})
+        return f"<a href='{tag}' target='_blank'>{self.name}</a>"
+
 
 class Event(models.Model):
     """ An event within a congress """
@@ -239,7 +247,7 @@ class Event(models.Model):
     event_type = models.CharField(
         "Event Type", max_length=14, choices=EVENT_TYPES, null=True, blank=True
     )
-    # Open and close dates can be overriden at the event level
+    # Open and close dates can be overridden at the event level
     entry_open_date = models.DateField(null=True, blank=True)
     entry_close_date = models.DateField(null=True, blank=True)
     entry_fee = models.DecimalField("Entry Fee", max_digits=12, decimal_places=2)
@@ -472,6 +480,12 @@ class Event(models.Model):
         else:
             return False
 
+    @property
+    def href(self):
+        """Returns an HTML link tag that can be used to go to the event log"""
+
+        tag = reverse("events:admin_event_log", kwargs={'event_id': self.id})
+        return f"<a href='{tag}' target='_blank'>{self.congress} - {self.event_name}</a>"
 
 class Category(models.Model):
     """ Event Categories such as <100 MPs or club members etc. Free format."""
@@ -493,18 +507,6 @@ class Session(models.Model):
     session_date = models.DateField()
     session_start = models.TimeField()
     session_end = models.TimeField(null=True, blank=True)
-
-
-#
-# class EventEntryType(models.Model):
-#     """ A type of event entry - e.g. full, junior, senior """
-#
-#     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-#     event_entry_type = models.CharField("Event Entry Type", max_length=20)
-#     entry_fee = models.DecimalField("Full Entry Fee", decimal_places=2, max_digits=10)
-#
-#     def __str__(self):
-#         return "%s - %s" % (self.event, self.event_entry_type)
 
 
 class EventEntry(models.Model):

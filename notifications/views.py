@@ -14,7 +14,7 @@ from threading import Thread
 import boto3
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, get_connection
 from django.db import connection, transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
@@ -121,7 +121,7 @@ class CobaltEmail:
                 source="Notifications",
                 sub_source="Email",
                 message="Cannot start email thread, too many already running: %s"
-                % active_threads,
+                        % active_threads,
             )
             print(
                 "Cannot start email thread, too many already running: %s"
@@ -141,6 +141,9 @@ class CobaltEmail:
                 batch_id=self.batch_id
             )
 
+            email_connection = get_connection()
+            email_connection.open()
+
             for email in emails:
                 plain_message = strip_tags(email.message)
 
@@ -153,6 +156,7 @@ class CobaltEmail:
                     to=[email.recipient],
                     from_email=DEFAULT_FROM_EMAIL,
                     reply_to=[email.reply_to],
+                    connection=email_connection,
                 )
 
                 msg.attach_alternative(email.message, "text/html")
@@ -166,6 +170,8 @@ class CobaltEmail:
                 print(f"Sent email to {email.recipient}")
 
         finally:
+
+            connection.close()
 
             # Remove our thread from the list
             self.email_thread.delete()
@@ -358,13 +364,41 @@ def contact_member(member, msg, contact_type, link=None, html_msg=None, subject=
         send_cobalt_sms(member.mobile, msg)
 
 
+def contact_member_and_queue_email(member, email_object, msg, link=None, html_msg=None, subject=None):
+    """ Contact member using email.
+
+    Args:
+        member: User Member to notify
+        email_object: CobaltEmail
+        msg: Short message for notification on screen
+        link: link to follow
+        html_msg: HTML content to send as email
+        subject: Subject of email
+    """
+
+    # Ignore system accounts
+    if member.id in (RBAC_EVERYONE, TBA_PLAYER):
+        return
+
+    if not subject:
+        subject = "Notification from My ABF"
+
+    if not html_msg:
+        html_msg = msg
+
+    # Always create an in app notification
+    add_in_app_notification(member, msg, link)
+
+    email_object.queue_email(to_address=member.email, subject=subject, message=html_msg, member=member)
+
+
 def create_user_notification(
-    member,
-    application_name,
-    event_type,
-    topic,
-    subtopic=None,
-    notification_type="Email",
+        member,
+        application_name,
+        event_type,
+        topic,
+        subtopic=None,
+        notification_type="Email",
 ):
     """create a notification record for a user
 
@@ -394,15 +428,15 @@ def create_user_notification(
 
 
 def notify_happening_forums(
-    application_name,
-    event_type,
-    msg,
-    topic,
-    subtopic=None,
-    link=None,
-    html_msg=None,
-    email_subject=None,
-    user=None,
+        application_name,
+        event_type,
+        msg,
+        topic,
+        subtopic=None,
+        link=None,
+        html_msg=None,
+        email_subject=None,
+        user=None,
 ):
     """sub function for notify_happening() - handles Forum events
     Might be able to make this generic
@@ -437,15 +471,15 @@ def notify_happening_forums(
 
 
 def notify_happening(
-    application_name,
-    event_type,
-    msg,
-    topic,
-    subtopic=None,
-    link=None,
-    html_msg=None,
-    email_subject=None,
-    user=None,
+        application_name,
+        event_type,
+        msg,
+        topic,
+        subtopic=None,
+        link=None,
+        html_msg=None,
+        email_subject=None,
+        user=None,
 ):
     """Called by Cobalt applications to tell notify they have done something.
 
@@ -538,12 +572,12 @@ def passthrough(request, id):
 
 
 def add_listener(
-    member,
-    application,
-    event_type,
-    topic=None,
-    subtopic=None,
-    notification_type="Email",
+        member,
+        application,
+        event_type,
+        topic=None,
+        subtopic=None,
+        notification_type="Email",
 ):
     """ Add a user to be notified of an event """
 

@@ -1052,11 +1052,6 @@ def stripe_webhook(request):
     stripe_log = StripeLog(event=event)
     stripe_log.save()
 
-    print("Received Stripe webhook")
-    print("###################################")
-    print(event)
-    print("###################################")
-
     try:
         tran_type = event.data.object.metadata.cobalt_tran_type
     except AttributeError:
@@ -1097,8 +1092,6 @@ def stripe_webhook(request):
         print("Unexpected event found - " + event.type)
         # TODO - change to 400
         return HttpResponse(status=200)
-
-    return HttpResponse(status=200)
 
 
 #########################
@@ -1228,13 +1221,13 @@ def update_organisation(
 
     act.save()
 
-    user = member.full_name if member else "Unknown"
+    user = member.href if member else "Unknown"
     log_event(
         user=user,
         severity="INFO",
         source=source,
         sub_source=sub_source,
-        message=log_msg + " Updated OrganisationTransaction table",
+        message=f"{log_msg} Entry - Payment of {GLOBAL_CURRENCY_SYMBOL}{amount} to {organisation}",
     )
 
     return act
@@ -1390,7 +1383,6 @@ def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
 
     except stripe.error.CardError as error:
         err = error.error
-        print("@@@@@@@@@@@@@@@@")
         print(err.message)
         # Error code will be authentication_required if authentication is needed
         log_event(

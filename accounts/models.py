@@ -2,6 +2,8 @@
 
 from datetime import date
 
+from django.urls import reverse
+
 from cobalt.settings import AUTO_TOP_UP_MAX_AMT, GLOBAL_ORG, TBA_PLAYER, RBAC_EVERYONE
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
@@ -92,8 +94,15 @@ class User(AbstractUser):
 
     @property
     def full_name(self):
-        "Returns the person's full name."
+        """Returns the person's full name."""
         return "%s %s" % (self.first_name, self.last_name)
+
+    @property
+    def href(self):
+        """Returns an HTML link tag that can be used to go to the users public profile"""
+
+        tag = reverse("accounts:public_profile", kwargs={'pk': self.id})
+        return f"<a href='{tag}' target='_blank'>{self.full_name}</a>"
 
 
 class TeamMate(models.Model):

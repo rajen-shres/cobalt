@@ -11,8 +11,8 @@
             </div>
         </div>
       </td>
-      <td>{{ thing.user }}</td>
+      <td>{{ thing.user|safe }}</td>
       <td>{{ thing.source }}</td>
       <td>{{ thing.sub_source }}</td>
-      <td class="text-left">{{ thing.message }}</td>
+      <td class="text-left">{{ thing.message|safe }}</td>
 </tr>

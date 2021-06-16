@@ -12,6 +12,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
 from django.db import transaction
+
+from logs.views import log_event
 from utils.templatetags.cobalt_tags import cobalt_credits
 from notifications.views import contact_member
 from accounts.models import User, TeamMate
@@ -53,21 +55,20 @@ from .forms import (
 )
 from .core import events_payments_callback, notify_conveners
 
-
 TZ = pytz.timezone(TIME_ZONE)
 
 
 def home_new(request):
-        # check if user has any admin rights to show link to create congress
+    # check if user has any admin rights to show link to create congress
     width_dict = {
-        "defaultContent_width" : '4%',
-        "congress_start_width" : '4%',
-        "congress_end_width" : '4%',
-        "congress_name_width" : '24%',
-        "run_by_width" : '18%',
-        "state_width" : '4%',
-        "event_type_width" : '14%',
-        "status_width" : '6%',
+        "defaultContent_width": '4%',
+        "congress_start_width": '4%',
+        "congress_end_width": '4%',
+        "congress_name_width": '24%',
+        "run_by_width": '18%',
+        "state_width": '4%',
+        "event_type_width": '14%',
+        "status_width": '6%',
         "actions_width": '14%',
     }
     if request.user.is_authenticated:
@@ -79,30 +80,32 @@ def home_new(request):
         else:
             admin = False
             width_dict = {
-             "defaultContent_width" : '4%',
-             "congress_start_width" : '4%',
-             "congress_end_width" : '4%',
-             "congress_name_width" : '29%',
-             "run_by_width" : '24%',
-             "state_width" : '4%',
-             "event_type_width" : '16%',
-             "status_width" : '6%',
-             "actions_width": '0%',
+                "defaultContent_width": '4%',
+                "congress_start_width": '4%',
+                "congress_end_width": '4%',
+                "congress_name_width": '29%',
+                "run_by_width": '24%',
+                "state_width": '4%',
+                "event_type_width": '16%',
+                "status_width": '6%',
+                "actions_width": '0%',
             }
     else:
         admin = False
         width_dict = {
-            "defaultContent_width" : '4%',
-            "congress_start_width" : '4%',
-            "congress_end_width" : '4%',
-            "congress_name_width" : '30%',
-            "run_by_width" : '24%',
-            "state_width" : '4%',
-            "event_type_width" : '16%',
-            "status_width" : '6%',
+            "defaultContent_width": '4%',
+            "congress_start_width": '4%',
+            "congress_end_width": '4%',
+            "congress_name_width": '30%',
+            "run_by_width": '24%',
+            "state_width": '4%',
+            "event_type_width": '16%',
+            "status_width": '6%',
             "actions_width": '0%',
         }
     return render(request, "events/home_new.html", {"admin": admin, "config": width_dict})
+
+
 def home(request):
     """main screen to show congresses
 
@@ -111,8 +114,8 @@ def home(request):
 
     congresses = (
         Congress.objects.order_by("start_date")
-        .filter(start_date__gte=datetime.now())
-        .filter(status="Published")
+            .filter(start_date__gte=datetime.now())
+            .filter(status="Published")
     )
 
     if request.user.is_authenticated:
@@ -138,22 +141,22 @@ def home(request):
 
         # Comment field
         if (
-            congress.entry_open_date
-            and congress.entry_open_date > datetime.now().date()
+                congress.entry_open_date
+                and congress.entry_open_date > datetime.now().date()
         ):
             congress.msg = "Entries open on " + congress.entry_open_date.strftime(
                 "%d %b %Y"
             )
         elif (
-            congress.entry_close_date
-            and congress.entry_close_date > datetime.now().date()
+                congress.entry_close_date
+                and congress.entry_close_date > datetime.now().date()
         ):
             congress.msg = "Entries close on " + congress.entry_close_date.strftime(
                 "%d %b %Y"
             )
         elif (
-            congress.entry_close_date
-            and congress.entry_close_date <= datetime.now().date()
+                congress.entry_close_date
+                and congress.entry_close_date <= datetime.now().date()
         ):
             congress.msg = "Congress entries are closed"
 
@@ -280,7 +283,8 @@ def view_congress(request, congress_id, fullscreen=False):
         sessions = event.session_set.all()
         days = sessions.distinct("session_date")
         rows = days.count()
-        total_entries = EventEntry.objects.filter(event=event).exclude(entry_status="Cancelled").count()#program["total_entries"] = event
+        total_entries = EventEntry.objects.filter(event=event).exclude(
+            entry_status="Cancelled").count()  # program["total_entries"] = event
         program["entries_total"] = f"<td rowspan='{rows}'><span class='title'>{total_entries}</td>"
         # day td
         first_row_for_event = True
@@ -393,18 +397,18 @@ def checkout(request):
         )
         event_entry_players = (
             EventEntryPlayer.objects.filter(event_entry__in=event_entries)
-            .exclude(payment_status="Paid")
-            .exclude(payment_status="Free")
-            #        .filter(Q(player=request.user) | Q(payment_type="my-system-dollars"))
-            .filter(payment_type="my-system-dollars")
-            .distinct()
+                .exclude(payment_status="Paid")
+                .exclude(payment_status="Free")
+                #        .filter(Q(player=request.user) | Q(payment_type="my-system-dollars"))
+                .filter(payment_type="my-system-dollars")
+                .distinct()
         )
         # players that are using club pp to pay are pending payments not unpaid
         # unpaid would prompt the player to pay for event which is not desired here
         event_entry_player_club_pp = (
             EventEntryPlayer.objects.filter(event_entry__in=event_entries)
-            .filter(payment_type="off-system-pp")
-            .distinct()
+                .filter(payment_type="off-system-pp")
+                .distinct()
 
         )
         for event_entry in event_entry_player_club_pp:
@@ -554,11 +558,11 @@ def view_events(request):
     # check for pending payments
     pending_payments = (
         EventEntryPlayer.objects
-        .exclude(payment_status="Paid")
-        .exclude(payment_status="Free")
-        .exclude(payment_type="off-system-pp")
-        .filter(player=request.user)
-        .exclude(event_entry__entry_status="Cancelled")
+            .exclude(payment_status="Paid")
+            .exclude(payment_status="Free")
+            .exclude(payment_type="off-system-pp")
+            .filter(player=request.user)
+            .exclude(event_entry__entry_status="Cancelled")
     )
 
     return render(
@@ -576,9 +580,9 @@ def pay_outstanding(request):
     # Get outstanding payments for this user
     event_entry_players = (
         EventEntryPlayer.objects.exclude(payment_status="Paid")
-        .exclude(payment_status="Free")
-        .filter(player=request.user)
-        .exclude(event_entry__entry_status="Cancelled")
+            .exclude(payment_status="Free")
+            .filter(player=request.user)
+            .exclude(event_entry__entry_status="Cancelled")
     )
 
     # redirect if nothing owing
@@ -636,11 +640,11 @@ def view_event_entries(request, congress_id, event_id):
     try:
         user_entered = (
             EventEntryPlayer.objects.filter(event_entry__event=event)
-            .filter(player=request.user)
-            .exclude(event_entry__entry_status="Cancelled")
-            .exists()
+                .filter(player=request.user)
+                .exclude(event_entry__entry_status="Cancelled")
+                .exists()
         )
-    except: # may be  anonymous
+    except:  # may be  anonymous
         user_entered = False
 
     return render(
@@ -711,9 +715,9 @@ def edit_event_entry(request, congress_id, event_id, edit_flag=None, pay_status=
     # find matching event entries
     event_entry_player = (
         EventEntryPlayer.objects.filter(player=request.user)
-        .filter(event_entry__event=event)
-        .exclude(event_entry__entry_status="Cancelled")
-        .first()
+            .filter(event_entry__event=event)
+            .exclude(event_entry__entry_status="Cancelled")
+            .first()
     )
     if event_entry_player:
         event_entry = event_entry_player.event_entry
@@ -721,9 +725,9 @@ def edit_event_entry(request, congress_id, event_id, edit_flag=None, pay_status=
         # see if primary_entrant
         event_entry = (
             EventEntry.objects.filter(primary_entrant=request.user)
-            .exclude(entry_status="Cancelled")
-            .filter(event=event)
-            .first()
+                .exclude(entry_status="Cancelled")
+                .filter(event=event)
+                .first()
         )
         if not event_entry:
             # not entered so redirect
@@ -815,11 +819,9 @@ def delete_event_entry(request, event_entry_id):
         return render(request, "events/error.html", {"title": title, "error": error})
 
     # check if passed the automatic refund date
-    #    print(event_entry.event.congress.automatic_refund_cutoff)
-    #    print(datetime.now().date())
     if (
-        event_entry.event.congress.automatic_refund_cutoff
-        and event_entry.event.congress.automatic_refund_cutoff < datetime.now().date()
+            event_entry.event.congress.automatic_refund_cutoff
+            and event_entry.event.congress.automatic_refund_cutoff < datetime.now().date()
     ):
         error = "You need to contact the tournament organiser directly to make any changes to this entry."
         title = "It is too near to the start of this event"
@@ -859,6 +861,15 @@ def delete_event_entry(request, event_entry_id):
             )
             basket_item.delete()
             event_entry.delete()
+
+            log_event(
+                user=request.user,
+                severity="INFO",
+                source="Events",
+                sub_source="events_delete_from_basket",
+                message=f"Entry into {event_entry.event} by {request.user.href} deleted from basket",
+            )
+
             return redirect("events:view_events")
 
         event_entry.entry_status = "Cancelled"
@@ -870,6 +881,14 @@ def delete_event_entry(request, event_entry_id):
             action=f"Event entry {event_entry.id} cancelled",
             event_entry=event_entry,
         ).save()
+
+        log_event(
+            user=request.user.full_name,
+            severity="INFO",
+            source="Events",
+            sub_source="events_delete_entry",
+            message=f"Entry into {event_entry.event.href} by {request.user.href} deleted",
+        )
 
         messages.success(
             request,
@@ -923,7 +942,7 @@ def delete_event_entry(request, event_entry_id):
                     amount=-amount,
                     description=f"Refund to {event_entry_player.paid_by} for {event_entry.event.event_name}",
                     source="Events",
-                    log_msg=f"Refund to {event_entry_player.paid_by} for {event_entry.event.event_name}",
+                    log_msg=f"Refund to {event_entry_player.paid_by.href} for {event_entry.event.href}",
                     sub_source="refund",
                     payment_type="Refund",
                     member=event_entry_player.paid_by,
@@ -948,6 +967,15 @@ def delete_event_entry(request, event_entry_id):
                     action=f"Refund of {amount_str} to {event_entry_player.paid_by}",
                     event_entry=event_entry,
                 ).save()
+
+                log_event(
+                    user=request.user,
+                    severity="INFO",
+                    source="Events",
+                    sub_source="events_refund",
+                    message=f"Refund of {amount_str} to {event_entry_player.player.href} for {event_entry_player.event_entry.event.href}",
+                )
+
                 messages.success(
                     request,
                     f"Refund of {amount_str} to {event_entry_player.paid_by} successful",
@@ -1062,8 +1090,8 @@ def third_party_checkout_player(request, event_entry_player_id):
     ).filter(player=request.user)
 
     if (
-        not event_entry_players_me
-        and event_entry_player.event_entry.primary_entrant != request.user
+            not event_entry_players_me
+            and event_entry_player.event_entry.primary_entrant != request.user
     ):
         error = """You are not the person who made this entry or one of the players.
                    You cannot change this entry."""
@@ -1075,7 +1103,6 @@ def third_party_checkout_player(request, event_entry_player_id):
     amount = float(event_entry_player.entry_fee - event_entry_player.payment_received)
 
     if amount > 0:
-
         unique_id = str(uuid.uuid4())
 
         # map this user (who is paying) to the batch id
@@ -1156,7 +1183,8 @@ def third_party_checkout_entry(request, event_entry_id):
         PlayerBatchId(player=request.user, batch_id=unique_id).save()
 
         for event_entry_player in event_entry_players:
-            if(event_entry_player.payment_received-event_entry_player.entry_fee ==0): # player had already paid don't do anything
+            if (
+                    event_entry_player.payment_received - event_entry_player.entry_fee == 0):  # player had already paid don't do anything
                 continue
             event_entry_player.batch_id = unique_id
             event_entry_player.payment_type = "my-system-dollars"
@@ -1282,9 +1310,9 @@ def enter_event_form(event, congress, request):
     team_mates_list = all_team_mates.values_list("team_mate")
     entered_team_mates = (
         EventEntryPlayer.objects.filter(event_entry__event=event)
-        .exclude(event_entry__entry_status="Cancelled")
-        .filter(player__in=team_mates_list)
-        .values_list("player")
+            .exclude(event_entry__entry_status="Cancelled")
+            .filter(player__in=team_mates_list)
+            .values_list("player")
     )
     team_mates = all_team_mates.exclude(team_mate__in=entered_team_mates)
 
@@ -1496,7 +1524,7 @@ def enter_event(request, congress_id, event_id):
 
         # validate
         if (event.player_format == "Pairs" and len(players) != 2) or (
-            event.player_format == "Teams" and len(players) < 4
+                event.player_format == "Teams" and len(players) < 4
         ):
             print("invalid number of entries")
             return
