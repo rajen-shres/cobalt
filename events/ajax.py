@@ -63,23 +63,23 @@ def get_all_congress_ajax(request):
     congress_type_dict = dict(CONGRESS_TYPES)
     for congress in congresses:
 
-        data_entry = dict()
-        data_entry["congress_name"] = congress.name
-        data_entry["month"] = congress.start_date.strftime("%B %Y")
-        data_entry["run_by"] = congress.congress_master.org.name
-        data_entry["congress_start"] = congress.start_date.strftime("%d/%m/%y")
-        data_entry["congress_end"] = congress.end_date.strftime("%d/%m/%y")
-        data_entry["state"] = congress.congress_master.org.state
-        data_entry["status"] = congress.status if admin else "hide"  # congress.status
-        data_entry["event_type"] = congress_type_dict.get(
-            congress.congress_type, "Not found"
-        )
-        data_entry["actions"] = {
-            "id": congress.id,
-            "edit": congress.user_is_convener(request.user) if admin else False,
-            "manage": congress.user_is_convener(request.user) if admin else False,
-        }
-        congressList.append(data_entry)
+        try:
+            data_entry = dict()
+            data_entry["congress_name"] = congress.name
+            data_entry["month"] = congress.start_date.strftime("%B %Y")
+            data_entry["run_by"] = congress.congress_master.org.name
+            data_entry["congress_start"] = congress.start_date.strftime("%d/%m/%y")
+            data_entry["congress_end"] = congress.end_date.strftime("%d/%m/%y")
+            data_entry["state"] = congress.congress_master.org.state
+            data_entry["status"] = congress.status if admin else "hide" #congress.status
+            data_entry["event_type"] = congress_type_dict.get(congress.congress_type,"Not found")
+            data_entry["actions"] = {"id":congress.id,
+            "edit":congress.user_is_convener(request.user) if admin else False,
+            "manage":congress.user_is_convener(request.user) if admin else False}
+            congressList.append(data_entry)
+        except :
+            #"some logging here laterh"
+            continue
 
     resp = {"data": congressList}
     return JsonResponse(data=resp, safe=False)
