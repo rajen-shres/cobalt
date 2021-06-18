@@ -23,7 +23,12 @@ admin.site.register(Bulletin)
 admin.site.register(Congress)
 admin.site.register(PlayerBatchId)
 admin.site.register(Category)
-admin.site.register(Event)
+
+class EventModelAdmin(admin.ModelAdmin):
+    list_display = ('event_name', 'congress', 'description',)
+    search_fields = ('event_name', 'congress__name', 'description')
+
+admin.site.register(Event, EventModelAdmin)
 admin.site.register(Session)
 admin.site.register(EventEntry)
 admin.site.register(EventEntryPlayer)
