@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone, dateformat
 from django.db.models import Sum, Q
-from notifications.views import contact_member, send_cobalt_bulk_email
+from notifications.views import contact_member, send_cobalt_bulk_email, CobaltEmail
 from logs.views import log_event
 from django.db import transaction
 from .models import (
@@ -286,10 +286,12 @@ def admin_evententryplayer(request, evententryplayer_id):
                 old_value = getattr(old_entry, changed)
                 new_value = getattr(event_entry_player, changed)
                 action = f"Convener Action: Changed {changed} from {old_value} to {new_value} on Entry:{old_entry.id} - {event_entry_player.event_entry}"
+                log_action = f"Convener Action: Changed {changed} from {old_value} to {new_value} on Entry:{event_entry_player.event_entry.href}"
 
                 # Don't understand this so hardcoding - other fields work but player doesnt
                 if changed == "player":
                     action = f"Convener Action: Changed {changed} from {old_user} to {new_user} on Entry:{old_entry.id} - {event_entry_player.event_entry}"
+                    action = f"Convener Action: Changed {changed} from {old_user} to {new_user} on Entry:{event_entry_player.event_entry.href}"
 
                 EventLog(
                     event=event,
@@ -297,6 +299,14 @@ def admin_evententryplayer(request, evententryplayer_id):
                     actor=request.user,
                     action=action,
                 ).save()
+
+                log_event(
+                    user=request.user.href,
+                    severity="INFO",
+                    source="Events",
+                    sub_source="events_admin",
+                    message=log_action,
+                )
 
             if new_user != old_user:
 
@@ -779,7 +789,7 @@ def admin_evententry_delete(request, evententry_id):
                         amount=-amount,
                         description=f"Refund to {player} for {event_entry.event.event_name}",
                         source="Events",
-                        log_msg=f"Refund to {player.href} for {event_entry.event.event_name.href}",
+                        log_msg=f"Refund to {player} for {event_entry.event.event_name}",
                         sub_source="refund",
                         payment_type="Refund",
                         member=player,
@@ -984,6 +994,20 @@ def admin_event_player_discount(request, event_id):
                 event_player_discount.entry_fee = entry_fee
                 event_player_discount.save()
 
+                # Log it
+                EventLog(
+                    event=event,
+                    actor=request.user,
+                    action=f"Added discount of {entry_fee} for {player} in {event}",
+                ).save()
+
+                log_event(
+                    user=request.user.href,
+                    severity="INFO",
+                    source="Events",
+                    sub_source="events_admin",
+                    message=f"Added discount of {entry_fee} for {player.href} in {event.href}",
+                )
                 messages.success(
                     request, "Entry added", extra_tags="cobalt-message-success"
                 )
@@ -1072,30 +1096,33 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
         subject = form.cleaned_data["subject"]
         body = form.cleaned_data["body"]
 
-        if "test" in request.POST:
-            recipients = [request.user]
-            recipients_email = [request.user.email]
-        else:
-            recipients = all_recipients
-            recipients_email = [recipient.email for recipient in recipients]
-        context = {
-            "title1": f"Message from {request.user.full_name} on behalf of {congress}",
-            "title2": subject,
-            "email_body": body,
-            "host": COBALT_HOSTNAME,
-        }
+        recipients = [request.user] if "test" in request.POST else all_recipients
+        email_sender = CobaltEmail()
 
-        html_msg = render_to_string(
-            "notifications/email_no_button_no_salutation.html", context
-        )
+        for recipient in recipients:
+
+            context = {
+                "name": recipient.first_name,
+                "title1": f"Message from {request.user.full_name} on behalf of {congress}",
+                "title2": subject,
+                "email_body": body,
+                "host": COBALT_HOSTNAME,
+            }
+
+            html_msg = render_to_string(
+                "notifications/email_with_2_headings.html", context
+            )
+
+            email_sender.queue_email(
+                recipient.email,
+                subject,
+                html_msg,
+                recipient,
+                reply_to=request.user.email,
+            )
 
         # send
-        send_cobalt_bulk_email(
-            bcc_addresses=recipients_email,
-            subject=subject,
-            message=html_msg,
-            reply_to=request.user.email,
-        )
+        email_sender.send()
 
         if "test" in request.POST:
             messages.success(
@@ -1111,8 +1138,29 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
             messages.success(request, msg, extra_tags="cobalt-message-success")
 
             if event:
+                EventLog(
+                    event=event,
+                    actor=request.user,
+                    action=f"Sent email to all event entrants",
+                ).save()
+
+                log_event(
+                    user=request.user.href,
+                    severity="INFO",
+                    source="Events",
+                    sub_source="events_admin",
+                    message=f"Sent email to all entrants in {event.href}",
+                )
                 return redirect("events:admin_event_summary", event_id=event.id)
             else:
+
+                log_event(
+                    user=request.user.href,
+                    severity="INFO",
+                    source="Events",
+                    sub_source="events_admin",
+                    message=f"Sent email to whole congress {congress.href}",
+                )
                 return redirect("events:admin_summary", congress_id=congress.id)
 
     return render(
@@ -1145,11 +1193,17 @@ def admin_bulletins(request, congress_id):
         if form.is_valid():
             form.save()
 
+            log_event(
+                user=request.user.href,
+                severity="INFO",
+                source="Events",
+                sub_source="events_admin",
+                message=f"Added bulletin to {congress.href}",
+            )
+
             messages.success(
                 request, "Bulletin uploaded", extra_tags="cobalt-message-success"
             )
-
-            return redirect("events:view_congress", congress_id=congress.id)
 
     else:
         form = BulletinForm()
@@ -1183,6 +1237,14 @@ def admin_latest_news(request, congress_id):
             congress.save()
             messages.success(
                 request, "Latest News Updated", extra_tags="cobalt-message-success"
+            )
+
+            log_event(
+                user=request.user.href,
+                severity="INFO",
+                source="Events",
+                sub_source="events_admin",
+                message=f"Updated latest news for {congress.href}",
             )
 
             return redirect("events:view_congress", congress_id=congress.id)

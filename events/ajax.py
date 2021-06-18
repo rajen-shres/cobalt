@@ -16,6 +16,7 @@ from payments.core import (
     update_organisation,
     get_balance,
 )
+
 # from .core import basket_amt_total, basket_amt_paid, basket_amt_this_user_only, basket_amt_owing_this_user_only
 from rbac.core import (
     rbac_user_allowed_for_model,
@@ -43,9 +44,7 @@ from .models import (
 
 
 def get_all_congress_ajax(request):
-    congresses = (
-        Congress.objects.order_by("start_date")
-    )
+    congresses = Congress.objects.order_by("start_date")
     congressList = []
     admin = False
     if request.user.is_authenticated:
@@ -60,29 +59,31 @@ def get_all_congress_ajax(request):
         admin = False
     if not admin:
         congresses = congresses.filter(status="Published")
-    
+
     congress_type_dict = dict(CONGRESS_TYPES)
     for congress in congresses:
-        try:
-            data_entry = dict()
-            data_entry["congress_name"] = congress.name 
-            data_entry["month"] = congress.start_date.strftime("%B %Y")
-            data_entry["run_by"] = congress.congress_master.org.name
-            data_entry["congress_start"] = congress.start_date.strftime("%d/%m/%y")
-            data_entry["congress_end"] = congress.end_date.strftime("%d/%m/%y")
-            data_entry["state"] = congress.congress_master.org.state
-            data_entry["status"] = congress.status if admin else "hide" #congress.status
-            data_entry["event_type"] = congress_type_dict.get(congress.congress_type,"Not found")
-            data_entry["actions"] = {"id":congress.id,
-            "edit":congress.user_is_convener(request.user) if admin else False,
-            "manage":congress.user_is_convener(request.user) if admin else False}
-            congressList.append(data_entry)
-        except :
-            #"some logging here laterh"
-            continue
 
-    resp = {"data":congressList}
+        data_entry = dict()
+        data_entry["congress_name"] = congress.name
+        data_entry["month"] = congress.start_date.strftime("%B %Y")
+        data_entry["run_by"] = congress.congress_master.org.name
+        data_entry["congress_start"] = congress.start_date.strftime("%d/%m/%y")
+        data_entry["congress_end"] = congress.end_date.strftime("%d/%m/%y")
+        data_entry["state"] = congress.congress_master.org.state
+        data_entry["status"] = congress.status if admin else "hide"  # congress.status
+        data_entry["event_type"] = congress_type_dict.get(
+            congress.congress_type, "Not found"
+        )
+        data_entry["actions"] = {
+            "id": congress.id,
+            "edit": congress.user_is_convener(request.user) if admin else False,
+            "manage": congress.user_is_convener(request.user) if admin else False,
+        }
+        congressList.append(data_entry)
+
+    resp = {"data": congressList}
     return JsonResponse(data=resp, safe=False)
+
 
 @login_required()
 def get_conveners_ajax(request, org_id):
@@ -183,7 +184,7 @@ def delete_category_ajax(request):
     EventLog(
         event=event,
         actor=request.user,
-        action=f"deleted category {category.description}",
+        action=f"deleted category '{category.description}'",
     ).save()
 
     log_event(
@@ -191,11 +192,12 @@ def delete_category_ajax(request):
         severity="INFO",
         source="Events",
         sub_source="events_admin",
-        message=f"Deleted category {category} from {event.href}",
+        message=f"Deleted category '{category}' from {event.href}",
     )
 
     response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
+
 
 @login_required()
 def edit_category_ajax(request):
@@ -205,7 +207,6 @@ def edit_category_ajax(request):
         category_id = request.POST["category_id"]
         event_id = request.POST["event_id"]
         description = request.POST["description"]
-
 
     category = get_object_or_404(Category, pk=category_id)
     event = get_object_or_404(Event, pk=event_id)
@@ -258,7 +259,7 @@ def delete_session_ajax(request):
         severity="INFO",
         source="Events",
         sub_source="events_admin",
-        message=f"Deleted session '{session} from {session.event.href}'",
+        message=f"Deleted session '{session.session_date} at {session.session_start}' from {session.event.href}'",
     )
 
     response_data = {"message": "Success"}
@@ -278,7 +279,12 @@ def fee_for_user_ajax(request):
 
     entry_fee, discount, reason, description = event.entry_fee_for(user)
 
-    response_data = {"entry_fee": entry_fee, "description": description, "discount": discount, "message": "Success"}
+    response_data = {
+        "entry_fee": entry_fee,
+        "description": description,
+        "discount": discount,
+        "message": "Success",
+    }
 
     return JsonResponse({"data": response_data})
 
@@ -385,7 +391,7 @@ def add_category_ajax(request):
         severity="INFO",
         source="Events",
         sub_source="events_admin",
-        message=f"Added category '{text}' to '{category}' in {category.event.href}",
+        message=f"Added category '{text}' to {category.event.href}",
     )
 
     response_data = {"message": "Success"}
@@ -1120,7 +1126,7 @@ def admin_delete_bulletin_ajax(request):
         severity="INFO",
         source="Events",
         sub_source="events_admin",
-        message=f"Deleted {bulletin} from {bulletin.congress.href}",
+        message=f"Deleted bulletin {bulletin} from {bulletin.congress.href}",
     )
 
     bulletin.delete()
@@ -1147,8 +1153,8 @@ def admin_delete_download_ajax(request):
         user=request.user.href,
         severity="INFO",
         source="Events",
-        sub_source="event_admin",
-        message=f"Deleted {download} from {download.congress.href}",
+        sub_source="events_admin",
+        message=f"Deleted a download document {download} from {download.congress.href}",
     )
 
     download.delete()
@@ -1352,4 +1358,3 @@ def edit_comment_event_entry_ajax(request):
     )
 
     return JsonResponse({"message": "Success"})
-

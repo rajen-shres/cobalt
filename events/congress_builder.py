@@ -1,67 +1,39 @@
 """ This file contains all of the code relating to an convener building
     a congress or editing a congress. """
 
-import csv
-from django.shortcuts import render, get_object_or_404, redirect
-from django.template.loader import render_to_string
-from django.forms import formset_factory
-from django.http import JsonResponse, HttpResponse
-from django.urls import reverse
+from datetime import date
+
+import pytz
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone, dateformat
-from django.db.models import Sum, Q
-from notifications.views import contact_member
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
+
+from cobalt.settings import (
+    TIME_ZONE,
+)
 from logs.views import log_event
+from organisations.models import Organisation
+from rbac.core import (
+    rbac_user_allowed_for_model,
+    rbac_user_has_role,
+)
+from rbac.views import rbac_forbidden
+from .forms import (
+    CongressForm,
+    NewCongressForm,
+    EventForm,
+    SessionForm,
+    CongressDownloadForm,
+)
 from .models import (
     Congress,
     Category,
     CongressMaster,
     Event,
     Session,
-    EventEntry,
-    EventEntryPlayer,
-    PAYMENT_TYPES,
-    EVENT_PLAYER_FORMAT_SIZE,
-    BasketItem,
-    PlayerBatchId,
-    EventLog,
     CongressDownload,
 )
-from accounts.models import User, TeamMate
-from .forms import (
-    CongressForm,
-    NewCongressForm,
-    EventForm,
-    SessionForm,
-    EventEntryPlayerForm,
-    RefundForm,
-    CongressDownloadForm,
-)
-from rbac.core import (
-    rbac_user_allowed_for_model,
-    rbac_get_users_with_role,
-    rbac_user_has_role,
-)
-from rbac.views import rbac_forbidden
-from .core import events_payments_callback
-from payments.core import payment_api, org_balance, update_account, update_organisation
-from organisations.models import Organisation
-from django.contrib import messages
-import uuid
-from cobalt.settings import (
-    GLOBAL_ORG,
-    GLOBAL_CURRENCY_NAME,
-    BRIDGE_CREDITS,
-    TIME_ZONE,
-    COBALT_HOSTNAME,
-    TBA_PLAYER,
-)
-from datetime import datetime, date
-import itertools
-from utils.utils import cobalt_paginator
-from django.utils.timezone import make_aware, now, utc
-import pytz
-from decimal import Decimal
 
 TZ = pytz.timezone(TIME_ZONE)
 
@@ -370,9 +342,11 @@ def create_congress_wizard_5(request, step_list, congress):
         else:
             for er in form.errors:
                 messages.error(request, form.errors[er])
-            return render( request,
-            "events/congress_wizard_5.html",
-            {"form": form, "step_list": step_list, "congress": congress},)
+            return render(
+                request,
+                "events/congress_wizard_5.html",
+                {"form": form, "step_list": step_list, "congress": congress},
+            )
 
     else:
         # sort out dates
@@ -461,9 +435,11 @@ def create_congress_wizard_7(request, step_list, congress):
         if "Publish" in request.POST:
             events = Event.objects.filter(congress=congress)
             if events.count() == 0:
-                messages.error(request,
-                "Congress can not be published until you add at least one event in it",
-                extra_tags="cobal-message-error")
+                messages.error(
+                    request,
+                    "Congress can not be published until you add at least one event in it",
+                    extra_tags="cobal-message-error",
+                )
             else:
                 congress.status = "Published"
                 congress.save()
@@ -582,9 +558,14 @@ def _update_event(request, form, event, congress, msg):
     event.entry_youth_payment_discount = form.cleaned_data[
         "entry_youth_payment_discount"
     ]
-    if(event.entry_youth_payment_discount is None and congress.allow_youth_payment_discount):
-        messages.warning(request,
-        "Youth discount field has no value, you will get errors for this event !! please correct either the discount offered for the saved event or uncheck youth discount on step 5.")
+    if (
+        event.entry_youth_payment_discount is None
+        and congress.allow_youth_payment_discount
+    ):
+        messages.warning(
+            request,
+            "Youth discount field has no value, you will get errors for this event !! please correct either the discount offered for the saved event or uncheck youth discount on step 5.",
+        )
     event.save()
     messages.success(request, msg, extra_tags="cobalt-message-success")
 
@@ -602,7 +583,7 @@ def create_event(request, congress_id):
 
     if request.method == "POST":
 
-        form = EventForm(request.POST, initial={"entry_early_payment_discount":0.0})
+        form = EventForm(request.POST, initial={"entry_early_payment_discount": 0.0})
 
         if form.is_valid():
             event = Event()
@@ -700,6 +681,14 @@ def create_session(request, event_id):
             session.session_start = form.cleaned_data["session_start"]
             session.session_end = form.cleaned_data["session_end"]
             session.save()
+
+            log_event(
+                user=request.user.href,
+                severity="INFO",
+                source="Events",
+                sub_source="events_admin",
+                message=f"Added session '{session.href}' to {event.href}",
+            )
 
             messages.success(
                 request, "Session Added", extra_tags="cobalt-message-success"
@@ -805,6 +794,14 @@ def manage_congress_download(request, congress_id):
 
             messages.success(
                 request, "Document uploaded", extra_tags="cobalt-message-success"
+            )
+
+            log_event(
+                user=request.user.href,
+                severity="INFO",
+                source="Events",
+                sub_source="events_admin",
+                message=f"Uploaded a download document to {congress.href}",
             )
 
     form = CongressDownloadForm()

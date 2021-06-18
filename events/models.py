@@ -81,12 +81,12 @@ EVENT_PLAYER_FORMAT_SIZE = {
 }
 
 CONGRESS_TYPES = [
-("national_gold", "National gold point"),
-("state_championship", "State championship"),
-("state_congress", "State congress"),
-("club", "Club event"),
-("club_congress", "Club congress"),
-("other", "Other"),
+    ("national_gold", "National gold point"),
+    ("state_championship", "State championship"),
+    ("state_congress", "State congress"),
+    ("club", "Club event"),
+    ("club_congress", "Club congress"),
+    ("other", "Other"),
 ]
 
 PEOPLE_DEFAULT = """<table class="table"><tbody><tr><td><span style="font-weight: normal;">
@@ -191,11 +191,7 @@ class Congress(models.Model):
         "Congress Status", max_length=10, choices=CONGRESS_STATUSES, default="Draft"
     )
     congress_type = models.CharField(
-        "Congress Type",
-        max_length=30,
-        choices=CONGRESS_TYPES,
-        blank=True,
-        null=True
+        "Congress Type", max_length=30, choices=CONGRESS_TYPES, blank=True, null=True
     )
 
     class Meta:
@@ -233,7 +229,7 @@ class Congress(models.Model):
     def href(self):
         """Returns an HTML link tag that can be used to go to the congress admin screen"""
 
-        tag = reverse("events:admin_summary", kwargs={'congress_id': self.id})
+        tag = reverse("events:admin_summary", kwargs={"congress_id": self.id})
         return f"<a href='{tag}' target='_blank'>{self.name}</a>"
 
 
@@ -252,7 +248,13 @@ class Event(models.Model):
     entry_close_date = models.DateField(null=True, blank=True)
     entry_fee = models.DecimalField("Entry Fee", max_digits=12, decimal_places=2)
     entry_early_payment_discount = models.DecimalField(
-        "Early Payment Discount", max_digits=12, decimal_places=2, null=True, blank=True, default=Decimal(0.0))
+        "Early Payment Discount",
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=Decimal(0.0),
+    )
     entry_youth_payment_discount = models.IntegerField(
         "Youth Discount Percentage", null=True, blank=True
     )
@@ -327,7 +329,10 @@ class Event(models.Model):
         entry_fee = cobalt_round(self.entry_fee / players_per_entry)
 
         # date
-        if self.congress.allow_early_payment_discount and self.congress.early_payment_discount_date:
+        if (
+            self.congress.allow_early_payment_discount
+            and self.congress.early_payment_discount_date
+        ):
             if self.congress.early_payment_discount_date >= check_date:
                 entry_fee = (
                     self.entry_fee - self.entry_early_payment_discount
@@ -338,7 +343,10 @@ class Event(models.Model):
                 description = "Early discount " + cobalt_credits(discount)
 
         # youth discounts apply after early entry discounts
-        if self.congress.allow_youth_payment_discount and self.congress.early_payment_discount_date:
+        if (
+            self.congress.allow_youth_payment_discount
+            and self.congress.early_payment_discount_date
+        ):
             if user.dob:  # skip if no date of birth set
                 dob = datetime.datetime.combine(user.dob, datetime.time(0, 0))
                 dob = timezone.make_aware(dob, pytz.timezone(TIME_ZONE))
@@ -484,8 +492,11 @@ class Event(models.Model):
     def href(self):
         """Returns an HTML link tag that can be used to go to the event log"""
 
-        tag = reverse("events:admin_event_log", kwargs={'event_id': self.id})
-        return f"<a href='{tag}' target='_blank'>{self.congress} - {self.event_name}</a>"
+        tag = reverse("events:admin_event_log", kwargs={"event_id": self.id})
+        return (
+            f"<a href='{tag}' target='_blank'>{self.congress} - {self.event_name}</a>"
+        )
+
 
 class Category(models.Model):
     """ Event Categories such as <100 MPs or club members etc. Free format."""
@@ -507,6 +518,16 @@ class Session(models.Model):
     session_date = models.DateField()
     session_start = models.TimeField()
     session_end = models.TimeField(null=True, blank=True)
+
+    @property
+    def href(self):
+        """Returns an HTML link tag that can be used to go to the session edit screen"""
+
+        tag = reverse(
+            "events:edit_session",
+            kwargs={"session_id": self.id, "event_id": self.event.id},
+        )
+        return f"<a href='{tag}' target='_blank'>{self.session_date} {self.session_start}</a>"
 
 
 class EventEntry(models.Model):
@@ -577,7 +598,7 @@ class EventEntry(models.Model):
     def href(self):
         """Returns an HTML link tag that can be used to go to the event entry view"""
 
-        tag = reverse("events:admin_evententry", kwargs={'evententry_id': self.id})
+        tag = reverse("events:admin_evententry", kwargs={"evententry_id": self.id})
         return f"<a href='{tag}' target='_blank'>{self.event.congress} - {self.event.event_name}</a>"
 
 
