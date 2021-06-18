@@ -1639,7 +1639,7 @@ def admin_view_stripe_transactions(request):
 
         stripes = StripeTransaction.objects.exclude(stripe_method=None).order_by(
             "-created_date"
-        )[:30]
+        )
 
     # Get payment static
     pay_static = PaymentStatic.objects.filter(active=True).last()
