@@ -4,6 +4,9 @@ from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.contrib import messages
+
+from events.models import CongressMaster
+from rbac.models import RBACGroupRole
 from .models import Organisation
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
@@ -13,7 +16,7 @@ from payments.models import OrganisationTransaction
 
 @login_required()
 def org_search_ajax(request):
-    """ Ajax org search function. Used by the generic org search.
+    """Ajax org search function. Used by the generic org search.
 
     Args:
         orgname - partial org name to search for.
@@ -52,7 +55,7 @@ def org_search_ajax(request):
 
 @login_required()
 def org_detail_ajax(request):
-    """ Returns basic info on an org for the generic org search.
+    """Returns basic info on an org for the generic org search.
 
     Ajax call to get basic info on an org. Will return an empty json array
     if the org number is invalid.
@@ -80,7 +83,7 @@ def org_detail_ajax(request):
 
 @login_required()
 def org_edit(request, org_id):
-    """ Edit details about an organisation
+    """Edit details about an organisation
 
     Args:
         org_id - organisation to edit
@@ -97,7 +100,6 @@ def org_edit(request, org_id):
 
         form = OrgForm(request.POST, instance=org)
         if form.is_valid():
-
             org = form.save(commit=False)
             org.last_updated_by = request.user
             org.last_updated = timezone.localtime()
@@ -113,17 +115,40 @@ def org_edit(request, org_id):
 
 
 def org_balance(org, text=None):
-    """ return organisation balance. If balance is zero return 0.0 unless
-        text is True, then return "Nil" """
+    """return organisation balance. If balance is zero return 0.0 unless
+    text is True, then return "Nil" """
 
     # get balance
     last_tran = OrganisationTransaction.objects.filter(organisation=org).last()
     if last_tran:
-        balance = last_tran.balance
+        return last_tran.balance
     else:
-        if text:
-            balance = "Nil"
-        else:
-            balance = 0.0
+        return "Nil" if text else 0.0
 
-    return balance
+
+@login_required()
+def org_portal(request, org_id):
+    """Edit details about an organisation
+
+    Args:
+        org_id - organisation to view
+
+    Returns:
+        HttpResponse - page to edit organisation
+    """
+    if not rbac_user_has_role(request.user, "orgs.org.%s.edit" % org_id):
+        return rbac_forbidden(request, "orgs.org.%s.edit" % org_id)
+
+    org = get_object_or_404(Organisation, pk=org_id)
+    congresses = CongressMaster.objects.filter(org=org)
+    rbac_groups = (
+        RBACGroupRole.objects.filter(app="events")
+        .filter(model="org")
+        .filter(model_id=org_id)
+    )
+
+    return render(
+        request,
+        "organisations/club_portal.html",
+        {"org": org, "congresses": congresses, "rbac_groups": rbac_groups},
+    )

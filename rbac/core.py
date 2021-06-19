@@ -536,10 +536,7 @@ def rbac_user_allowed_for_model(user, app, model, action):
     user_matches = [um[0] for um in user_matches]  # strip tuple noise
 
     # allow rules for this user override block rules for everyone
-    ret = []
-    for m in everyone_matches:
-        if m and m not in user_matches:  # can get none in the list
-            ret.append(m)
+    ret = [m for m in everyone_matches if m and m not in user_matches]
     return False, ret
 
 
@@ -553,7 +550,9 @@ def rbac_admin_all_rights(user):
         list:   list of App, model, model_id
     """
 
-    groups = RBACAdminUserGroup.objects.filter(member=user).values_list("group").distinct()
+    groups = (
+        RBACAdminUserGroup.objects.filter(member=user).values_list("group").distinct()
+    )
 
     matches = RBACAdminGroupRole.objects.filter(group__in=groups).distinct()
 
@@ -563,7 +562,7 @@ def rbac_admin_all_rights(user):
             ret_str = "%s.%s.%s" % (m.app, m.model, m.model_id)
         else:
             ret_str = "%s.%s" % (m.app, m.model)
-        if not ret_str in ret:
+        if ret_str not in ret:
             ret.append(ret_str)
     return ret
 
@@ -798,11 +797,9 @@ def rbac_get_groups_for_role(role):
 
     (app, model, model_instance, action) = role_to_parts(role)
 
-    groups = RBACGroupRole.objects.filter(
+    return RBACGroupRole.objects.filter(
         app=app, model=model, model_id=model_instance
     ).filter(Q(action=action) | Q(action="All"))
-
-    return groups
 
 
 def rbac_get_users_in_group(groupname):
@@ -817,7 +814,7 @@ def rbac_get_users_in_group(groupname):
 
 
 def rbac_get_users_with_role(role):
-    """returns a list of all users who have a role, either speicifically or
+    """returns a list of all users who have a role, either specifically or
     from having the equivalent generic role. E.g. forums.forum.5.view would
     also return users with forums.forum.view or forums.forum.all"""
 
@@ -844,9 +841,7 @@ def rbac_get_users_with_role(role):
         .values("member")
     )
 
-    users = User.objects.filter(id__in=user_ids).order_by("first_name")
-
-    return users
+    return User.objects.filter(id__in=user_ids).order_by("first_name")
 
 
 def rbac_admin_tree_access(user):
@@ -865,8 +860,7 @@ def rbac_admin_tree_access(user):
         .distinct("tree")
         .values_list("tree")
     )
-    ret = [item for match in matches for item in match]
-    return ret
+    return [item for match in matches for item in match]
 
 
 def rbac_group_id_from_name(name_qualifier, name_item):
