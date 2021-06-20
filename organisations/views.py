@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.contrib import messages
 
 from events.models import CongressMaster
+from rbac.decorators import rbac_check_role
 from rbac.models import RBACGroupRole
 from .models import Organisation
 from rbac.core import rbac_user_has_role
@@ -152,3 +153,17 @@ def org_portal(request, org_id):
         "organisations/club_portal.html",
         {"org": org, "congresses": congresses, "rbac_groups": rbac_groups},
     )
+
+
+@rbac_check_role("orgs.admin.edit")
+def admin_manage_club_rbac(request):
+    """Set up or change the basic RBAC structure for an organisation
+
+    Args:
+        request - standard HTTPRequest object
+
+    Returns:
+        HttpResponse - page to edit rbac for an org
+    """
+
+    return render(request, "organisations/admin_manage_club_rbac.html")
