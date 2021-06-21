@@ -813,6 +813,7 @@ def stripe_webhook_manual(event):
                 sub_source="stripe_webhook",
                 message=f"Duplicate transaction from Stripe. {charge.payment_method} already present",
             )
+            return HttpResponse(status=200)
 
     except ObjectDoesNotExist:
         log_event(
