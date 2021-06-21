@@ -368,19 +368,19 @@ def _send_notifications(route_payload, payment_user):
     # checkout screen then they will be lost
     basket_items.delete()
     #
-    EventLog(
-        event=event,
-        actor=payment_user,
-        action=f"Entered event",
-    ).save()
-
-    log_event(
-        user=payment_user,
-        severity="INFO",
-        source="Events",
-        sub_source="events_user",
-        message=f"Entered event {event.href}",
-    )
+    # EventLog(
+    #     event=event,
+    #     actor=payment_user,
+    #     action=f"Entered event",
+    # ).save()
+    #
+    # log_event(
+    #     user=payment_user,
+    #     severity="INFO",
+    #     source="Events",
+    #     sub_source="events_user",
+    #     message=f"Entered event {event.href}",
+    # )
 
 
 def get_basket_for_user(user):
