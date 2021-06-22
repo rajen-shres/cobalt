@@ -41,7 +41,7 @@
     {% if basket_items %}
     <a href="{% url "events:checkout" %}" class="btn btn-success">Checkout</a>
     {% else %}
-    <a href="{% url "events:pay_outstanding" %}" class="btn btn-success">Pay Now With Bridge Credits</a>
+    <button type='submit' id='paynow' class="btn btn-success cobalt-save">Pay Now With Bridge Credits</button>
     {% endif %}
   </div>
 </div>
@@ -94,3 +94,16 @@
 {% endif %}
 
 {% endblock %}
+
+{% block footer %}
+    <script>
+    $(document).ready(function() {
+        // We don't have a valid form so the cobalt-core.js function won't do this for us
+
+        $('#paynow').click(function() {
+           $('#paynow').prop('disabled', true);
+           window.location.href = "{% url "events:pay_outstanding" %}"
+        });
+    });
+    </script>
+{% endblock footer %}
