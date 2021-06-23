@@ -858,7 +858,7 @@ def cancel_auto_top_up(request):
 ###########################
 # statement_admin_summary #
 ###########################
-@login_required()
+@rbac_check_role("payments.global.view")
 def statement_admin_summary(request):
     """Main statement page for system administrators
 
@@ -868,9 +868,6 @@ def statement_admin_summary(request):
     Returns:
         HTTPResponse
     """
-
-    if not rbac_user_has_role(request.user, "payments.global.view"):
-        return rbac_forbidden(request, "payments.global.view")
 
     # Member summary
     total_members = User.objects.count()
@@ -2390,3 +2387,83 @@ def admin_player_payments(request, member_id):
         "payments/admin_player_payments.html",
         {"profile": member, "summary": summary, "balance": balance, "stripes": stripes},
     )
+
+
+@rbac_check_role("payments.global.view")
+def admin_stripe_rec(request):
+    """This will become the Stripe reconciliation. For now it just shows the balances to allow a manual reconciliation
+
+    Args:
+        request (HTTPRequest): standard request object
+
+    Returns:
+        HTTPResponse
+    """
+
+    # Default date is first day of this month
+    ref_date = datetime.datetime.now(tz=TZ).replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+
+    form_date = request.POST.get("ref_date")
+
+    if form_date:
+        ref_date = datetime.datetime.strptime(form_date, "%d/%m/%Y").replace(tzinfo=TZ)
+
+    # get latest transaction per member - can't do a Sum after a distinct - not yet supported
+    members = (
+        MemberTransaction.objects.filter(created_date__lt=ref_date)
+        .order_by("member", "-created_date")
+        .distinct("member")
+    )
+
+    members_balance = 0.0
+    last_tran_member = members[0]
+
+    for member in members:
+        members_balance += float(member.balance)
+        if member.created_date > last_tran_member.created_date:
+            last_tran_member = member
+
+    # get latest transaction per org - can't do a Sum after a distinct - not yet supported
+    orgs = (
+        OrganisationTransaction.objects.filter(created_date__lt=ref_date)
+        .order_by("organisation", "-created_date")
+        .distinct("organisation")
+    )
+
+    orgs_balance = 0.0
+    last_tran_org = orgs[0]
+
+    for org in orgs:
+        orgs_balance += float(org.balance)
+        if org.created_date > last_tran_org.created_date:
+            last_tran_org = org
+
+    return render(
+        request,
+        "payments/admin_stripe_rec.html",
+        {
+            "members_balance": members_balance,
+            "orgs_balance": orgs_balance,
+            "ref_date": ref_date,
+            "last_tran_member": last_tran_member,
+            "members_count": members.count(),
+            "last_tran_org": last_tran_org,
+            "orgs_count": orgs.count(),
+        },
+    )
+
+
+def _admin_stripe_rec_sub(things):
+    """ Common function for members and orgs """
+
+    balance = 0.0
+    last_tran = things[0]
+
+    for thing in things:
+        balance += float(thing.balance)
+        if thing.created_date > last_tran.created_date:
+            last_tran = thing
+
+    return balance, last_tran

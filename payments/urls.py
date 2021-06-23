@@ -146,4 +146,9 @@ urlpatterns = [
         views.admin_player_payments,
         name="admin_player_payments",
     ),
+    path(
+        "admin-stripe-rec",
+        views.admin_stripe_rec,
+        name="admin_stripe_rec",
+    ),
 ]

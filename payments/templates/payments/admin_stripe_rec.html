@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "payments:statement_admin_summary" %}">Payments Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Stripe Reconciliation</li>
+  </ol>
+</nav>
+
+<div class="">
+  <div class="card">
+    <div class="card-header card-header-primary">
+      <h1>Stripe Reconciliation (Coming Soon)</h1>
+    </div>
+    <div class="card-body table-responsive table-hover">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="bmd-label-static" style="font-size:11px">Reference Date</label>
+                        <input type="text" name="ref_date" id="id_ref_date" autocomplete="id_ref_date"
+                               class="form-control datepicker" style="overflow: visible;"
+                               value="{{ ref_date|default_if_none:'' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <button type="submit" class="btn btn-info">Change Reference Date</button>
+                </div>
+            </div>
+            <h3>Balance at {{ ref_date }}</h3>
+            <table class="responsive">
+                <tbody>
+                <tr>
+                    <td>Member Balance</td><td><b>{{ GLOBAL_CURRENCY_SYMBOL }}{{ members_balance|floatformat:2|intcomma }}</b>
+                    from <a href="{% url "payments:admin_members_with_balance" %}">{{ members_count }} members</a></td>
+                </tr>
+                <tr>
+                    <td>Organisations Balance</td><td><b>{{ GLOBAL_CURRENCY_SYMBOL }}{{ orgs_balance|floatformat:2|intcomma }}</b>
+                    from <a href="{% url "payments:admin_orgs_with_balance" %}">{{ orgs_count }} organisations</a></td>
+                </tr>
+                <tr>
+                    <td>Last Member Transaction</td>
+                    <td>{{ last_tran_member.member }}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>{{ GLOBAL_CURRENCY_SYMBOL }}{{ last_tran_member.amount|floatformat:2|intcomma  }}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>{{ last_tran_member.description }}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>{{ last_tran_member.created_date }}</td>
+                </tr>
+                <tr>
+                    <td>Last Organisation Transaction</td>
+                    <td>{{ last_tran_org.organisation }}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>{{ GLOBAL_CURRENCY_SYMBOL }}{{ last_tran_org.amount|floatformat:2|intcomma  }}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>{{ last_tran_org.description }}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>{{ last_tran_org.created_date }}</td>
+                </tr>
+                </tbody>
+            </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block footer %}
+    <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
+    <script src="{% static "assets/js/plugins/bootstrap-datetimepicker.min.js" %}"></script>
+    <script>
+        $(document).ready(function () {
+
+            $('#id_ref_date').datetimepicker({
+                format: 'DD/MM/YYYY'
+            });
+        });
+    </script>
+{% endblock %}

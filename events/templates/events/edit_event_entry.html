@@ -542,13 +542,15 @@ $("#id_change").click(function(){
 
 // handle single player payment
 $(".single_pay").click(function(){
+  $(this).prop('disabled', true);
   var pay_id = $(this).attr('id').split("_")[2];
   window.location.href = "{% url "events:third_party_checkout_player" %}/" + pay_id;
 });
 
 // handle pay all
 $("#pay_all").click(function(){
-  window.location.href = "{% url "events:third_party_checkout_entry" event_entry_id=event_entry.id %}";
+    $(this).prop('disabled', true);
+    window.location.href = "{% url "events:third_party_checkout_entry" event_entry_id=event_entry.id %}";
 });
 
 // handle question changing
