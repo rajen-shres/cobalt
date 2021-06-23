@@ -2415,6 +2415,7 @@ def admin_stripe_rec(request):
         MemberTransaction.objects.filter(created_date__lt=ref_date)
         .order_by("member", "-created_date")
         .distinct("member")
+        .exclude(balance=0.0)
     )
 
     members_balance = 0.0
@@ -2430,6 +2431,7 @@ def admin_stripe_rec(request):
         OrganisationTransaction.objects.filter(created_date__lt=ref_date)
         .order_by("organisation", "-created_date")
         .distinct("organisation")
+        .exclude(balance=0.0)
     )
 
     orgs_balance = 0.0
@@ -2453,17 +2455,3 @@ def admin_stripe_rec(request):
             "orgs_count": orgs.count(),
         },
     )
-
-
-def _admin_stripe_rec_sub(things):
-    """ Common function for members and orgs """
-
-    balance = 0.0
-    last_tran = things[0]
-
-    for thing in things:
-        balance += float(thing.balance)
-        if thing.created_date > last_tran.created_date:
-            last_tran = thing
-
-    return balance, last_tran

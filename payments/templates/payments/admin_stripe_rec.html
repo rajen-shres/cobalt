@@ -14,26 +14,27 @@
 <div class="">
   <div class="card">
     <div class="card-header card-header-primary">
-      <h1>Stripe Reconciliation (Coming Soon)</h1>
+      <h1>Stripe Reconciliation</h1>
+        <h3>This page will eventually become the Stripe reconciliation page. For now it only shows balances at a certain date</h3>
+        <h4>It will include all transactions prior to the date chosen and exclude everything fram that date onwards</h4>
     </div>
     <div class="card-body table-responsive table-hover">
         <form method="post">
             {% csrf_token %}
-
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="bmd-label-static" style="font-size:11px">Reference Date</label>
                         <input type="text" name="ref_date" id="id_ref_date" autocomplete="id_ref_date"
                                class="form-control datepicker" style="overflow: visible;"
-                               value="{{ ref_date|default_if_none:'' }}">
+                               value="{{ ref_date|date:'d/m/Y' }}">
                     </div>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col">
-                    <button type="submit" class="btn btn-info">Change Reference Date</button>
+                    <button type="submit" id="submit_button" class="btn btn-info">Change Reference Date</button>
                 </div>
             </div>
             <h3>Balance at {{ ref_date }}</h3>
@@ -96,6 +97,7 @@
             $('#id_ref_date').datetimepicker({
                 format: 'DD/MM/YYYY'
             });
+
         });
     </script>
 {% endblock %}
