@@ -57,7 +57,11 @@
                 {% if congress.status != "Published" %}
                   <button class="btn btn-success btn-sm" id="id_preview">Preview</button>
                   <button class="btn btn-success btn-sm" id="id_preview_full">Preview (Full screen)</button>
-                  <button class="btn btn-info btn-sm cobalt-save" name="Publish">Publish</button>
+                  <button class="btn btn-info btn-sm cobalt-save"
+                          {% if errors %}
+                          disabled
+                          {% endif %}
+                          name="Publish">Publish</button>
                 {% else %}
                   <button class="btn btn-info btn-sm cobalt-save" name="Unpublish">Unpublish</button>
                 {% endif %}

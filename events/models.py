@@ -66,6 +66,7 @@ EVENT_TYPES = [
     ("Veterans", "Veterans"),
     ("Womens", "Womens"),
     ("Intermediate", "Intermediate"),
+    ("Mixed", "Mixed"),
 ]
 EVENT_PLAYER_FORMAT = [
     #    ("Individual", "Individual"),

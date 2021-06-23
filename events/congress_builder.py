@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
+from django.utils.html import strip_tags
 
 from cobalt.settings import (
     TIME_ZONE,
@@ -143,6 +144,7 @@ def create_congress_wizard_1(request, step_list):
                 congress = get_object_or_404(Congress, pk=congress_id)
                 original_congress = get_object_or_404(Congress, pk=congress_id)
                 congress.pk = None
+                congress.status = "Draft"
                 congress.save()
 
                 # Also copy events and sessions
@@ -253,7 +255,7 @@ def create_congress_wizard_3(request, step_list, congress):
         form = CongressForm(instance=congress)
 
     form.fields["venue_name"].required = True
-    form.fields["venue_location"].required = True
+    #   form.fields["venue_location"].required = True
     form.fields["venue_transport"].required = True
     form.fields["venue_catering"].required = True
 
@@ -431,15 +433,17 @@ def create_congress_wizard_6(request, step_list, congress):
 def create_congress_wizard_7(request, step_list, congress):
     """ wizard step 7 - publish """
 
+    errors, warnings = _create_congress_wizard_errors(congress)
+
     if request.method == "POST":
         if "Publish" in request.POST:
-            events = Event.objects.filter(congress=congress)
-            if events.count() == 0:
-                messages.error(
-                    request,
-                    "Congress can not be published until you add at least one event in it",
-                    extra_tags="cobal-message-error",
-                )
+            if errors:
+                for error in errors:
+                    messages.error(
+                        request,
+                        f"Error. Cannot publish Congress. {strip_tags(error)}",
+                        extra_tags="cobalt-message-error",
+                    )
             else:
                 congress.status = "Published"
                 congress.save()
@@ -458,6 +462,21 @@ def create_congress_wizard_7(request, step_list, congress):
                 "Congress returned to Draft status",
                 extra_tags="cobalt-message-success",
             )
+
+    return render(
+        request,
+        "events/congress_wizard_7.html",
+        {
+            "step_list": step_list,
+            "congress": congress,
+            "errors": errors,
+            "warnings": warnings,
+        },
+    )
+
+
+def _create_congress_wizard_errors(congress):
+    """ check congress for errors """
 
     url = "%s/%s/" % (reverse("events:create_congress_wizard"), congress.id)
     errors = []
@@ -528,16 +547,7 @@ def create_congress_wizard_7(request, step_list, congress):
                 % (url, 6, f"{event.event_name} has no sessions defined")
             )
 
-    return render(
-        request,
-        "events/congress_wizard_7.html",
-        {
-            "step_list": step_list,
-            "congress": congress,
-            "errors": errors,
-            "warnings": warnings,
-        },
-    )
+    return errors, warnings
 
 
 def _update_event(request, form, event, congress, msg):

@@ -130,7 +130,9 @@
             <h4 class="card-title">Location - {{ congress.venue_name }}</h4>
           </div>
           <div class="card-body table-responsive">
+            {% if congress.venue_location %}
             <div id="regularMap" class="map"></div>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -226,6 +228,7 @@
 
 <script>
   $(document).ready(function() {
+      {% if congress.venue_location %}
     var myLatlng = new google.maps.LatLng({{ congress.venue_location }});
 
     var mapOptions = {
@@ -242,6 +245,7 @@
     });
 
     marker.setMap(map);
+      {% endif %}
 
     {% if msg %}
     $('html,body').animate({scrollTop: $("#program").offset().top},'slow');

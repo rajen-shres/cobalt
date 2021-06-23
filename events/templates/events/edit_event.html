@@ -214,7 +214,6 @@
                 <div class="row">
                   <div class="col text-center">
                     <button class="btn btn-success btn-sm cobalt-save">Save</button>
-                    <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=6 %}" class="btn btn-info btn-sm">Return to Congress</a>
                   </div>
                 </div>
               </form>
@@ -307,7 +306,7 @@
           </div>
         </div>
         <div class="row justify-content-center">
-          <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=6 %}" class="btn btn-info btn-sm">Return to Congress</a>
+          <button class="btn btn-info btn-sm btn-return cobalt-save">Return to Congress</button>
         </div>
 
         {% endif %}
@@ -420,6 +419,20 @@
     }
 
   $(document).ready(function() {
+
+  // check for sessions being set up
+    $(".btn-return").click(function(event){
+        {% if not sessions %}
+            Swal.fire({
+                icon: "error",
+                title: "No Sessions",
+                html: "There are no sessions defined for this event. That is a bad thing as it makes the event " +
+                    "invalid. Either add a session or return to the main screen and delete the event."
+            });
+        {% else %}
+            window.location.href = "{% url "events:create_congress_wizard" congress_id=congress.id step=6 %}";
+        {% endif %}
+    });
 
     $("#session_list").change(function() {
       $("#edit_button").prop('disabled', false);
