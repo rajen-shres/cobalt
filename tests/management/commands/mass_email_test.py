@@ -12,8 +12,8 @@ from tests.client_tests import ClientTest
 
 EMAIL_BASE = "test_"
 EMAIL_DOMAIN = "@gu3.com.au"
-TEST_SIZE = 10
-START_NUM = 71400
+TEST_SIZE = 10000
+START_NUM = 9000000
 CONTENT = "I am a big test email to mimic production. Most of my size comes from the template"
 
 class Command(BaseCommand):
