@@ -5,6 +5,7 @@
 {% load cobalt_tags %}
 
 {% block content %}
+<div id="ignore_cobalt_save"></div>
 
 <div class="container justify-content-center">
   <div class="row h-100 d-flex justify-content-center">
@@ -17,6 +18,7 @@
         <a href="{% url "events:admin_bulletins" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Bulletins</a>
         <a href="{% url "events:admin_latest_news" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Latest News</a>
         <a href="{% url "events:admin_congress_email" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Email Congress</a>
+        <a class="cobalt_generic_member btn btn-sm btn-secondary text-dark" data-toggle="modal" id="player_search" data-target="#cobalt_general_member_search1">Player Search</a>
       </div>
       <div class="card-body">
 
@@ -76,5 +78,17 @@
   </div>
 </div>
 
+{% include "utils/generic_user_search_body.html" with search_id=1 %}
 
 {% endblock %}
+
+{% block footer %}
+<script>
+{% include "utils/generic_user_search_footer.html" with search_id=1 %}
+
+function cobaltMemberSearchOk() {
+    window.location = "/events/congress-admin/player_events_list/" + member_id[1] + "/{{ congress.id }}"
+}
+
+</script>
+{% endblock footer %}

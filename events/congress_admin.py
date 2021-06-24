@@ -1667,3 +1667,52 @@ def admin_event_offsystem_pp_batch(request, event_id):
         "events/admin_event_offsystem_pp_batch.html",
         {"event_entry_players": event_entry_players, "form": form, "event": event},
     )
+
+
+@login_required()
+def player_events_list(request, member_id, congress_id):
+    """ List what events a player has entered """
+
+    congress = get_object_or_404(Congress, pk=congress_id)
+
+    # check access
+    role = "events.org.%s.edit" % congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    player = get_object_or_404(User, pk=member_id)
+
+    event_entry_players = EventEntryPlayer.objects.filter(
+        event_entry__event__congress=congress
+    ).filter(player=player)
+
+    # Add partners onto the list
+    for event_entry_player in event_entry_players:
+        partners = EventEntryPlayer.objects.filter(
+            event_entry=event_entry_player.event_entry
+        )
+
+        # Put the player first in the list
+        txt = f"{event_entry_player.player.full_name}, "
+
+        for partner in partners:
+            if partner != event_entry_player:
+                txt += f"{partner.player.full_name}, "
+
+        # remove trailing comma and space
+        event_entry_player.partners = txt[:-2]
+
+    # Get log events
+    events_entries_list = event_entry_players.values("event_entry")
+    event_logs = EventLog.objects.filter(event_entry__in=events_entries_list)
+
+    return render(
+        request,
+        "events/admin_player_events_list.html",
+        {
+            "player": player,
+            "congress": congress,
+            "event_entry_players": event_entry_players,
+            "event_logs": event_logs,
+        },
+    )

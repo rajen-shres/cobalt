@@ -310,6 +310,11 @@ urlpatterns = [
         name="admin_evententry",
     ),
     path(
+        "congress-admin/player_events_list/<int:member_id>/<int:congress_id>",
+        congress_admin.player_events_list,
+        name="admin_player_events_list",
+    ),
+    path(
         "congress-admin/detail/event-entry-delete/<int:evententry_id>",
         congress_admin.admin_evententry_delete,
         name="admin_evententry_delete",

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load cobalt_tags %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=congress.id %}">{{ congress.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Player Entries: {{ player|cobalt_user_link_short }}</li>
+  </ol>
+</nav>
+
+<div class="container justify-content-center">
+  <div class="row h-100 d-flex justify-content-center">
+    <div class="card">
+      <div class="card-header card-header-warning">
+        <h2>Congress Player Entries View - {{ congress }}</h2>
+          <h4>This shows the events that a particular user has entered in this congress.</h4>
+        <h3>{{ event.congress }}</h3>
+      </div>
+      <div class="card-body">
+
+      {% if not event_entry_players %}
+
+      <h3>{{ player }} is not entered in any events in this congress</h3>
+
+      {% else %}
+
+        <div class="card">
+          <div class="card-header card-header-info">
+            <h2>{{ player }}</h2>
+          </div>
+
+          <div class="card-body table-responsive">
+            <table class="table table-hover">
+              <thead class="text-info">
+                <th>Event</th>
+                <th>Entry</th>
+                <th>Status</th>
+                <th class="text-right">Payment Received</th>
+                <th class="text-right">Entry Fee</th>
+                <th class="text-right">Payment Status</th>
+                <th class="text-right">Payment Type</th>
+                <th class="text-right">Paid By</th>
+                <th class="text-right">Entry Fee Reason</th>
+                <th class="text-right">Date Complete</th>
+              </thead>
+              <tbody>
+                {% for event_entry_player in event_entry_players %}
+
+                  <tr>
+                  <td><a href="{% url "events:admin_event_summary" event_id=event_entry_player.event_entry.event.id %}">
+                      {{ event_entry_player.event_entry.event.event_name }}</a></td>
+                    <td>
+                        <a href="{% url "events:admin_evententry" evententry_id=event_entry_player.event_entry.id %}">
+                            {{ event_entry_player.partners }}
+                        </a>
+                    </td>
+                      <td class="text-right">{{ event_entry_player.event_entry.entry_status }}</td>
+                    <td class="text-right">{{ event_entry_player.payment_received }}</td>
+                    <td class="text-right">{{ event_entry_player.entry_fee }}</td>
+                    <td class="text-right">{{ event_entry_player.payment_status }}</td>
+                    <td class="text-right">{{ event_entry_player.get_payment_type_display }}</td>
+                    <td class="text-right">{{ event_entry_player.paid_by.href|safe }}</td>
+                    <td class="text-right">{{ event_entry_player.reason|default_if_none:"" }}</td>
+                    <td class="text-right">{{ event_entry_player.entry_complete_date|cobalt_nice_datetime|default_if_none:"-" }}</td>
+                  </tr>
+                {% endfor %}
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header card-header-success">
+        <h3>Log Events</h3>
+          <h4>May not be complete</h4>
+      </div>
+      <div class="card-body">
+        <table class="table table-responsive">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Actor</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event_log in event_logs %}
+              <tr>
+                <td>{{ event_log.action_date|cobalt_nice_datetime }}</td>
+                <td>{{ event_log.actor }}</td>
+                <td>{{ event_log.action }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

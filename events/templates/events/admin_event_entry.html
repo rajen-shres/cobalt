@@ -74,6 +74,7 @@
                           {% if event.player_format == "Teams" %}
                           <a href="{% url "events:admin_event_entry_player_delete" event_entry_player_id=event_entry_player.id %}" class="dropdown-item">Delete Player</a>
                           {% endif %}
+                          <a href="{% url "events:admin_player_events_list" member_id=event_entry_player.player.id congress_id=congress.id%}" class="dropdown-item">Show Events Entered</a>
                           </div>
                         </div>
                       </td>
