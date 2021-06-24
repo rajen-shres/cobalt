@@ -6,6 +6,7 @@ accounts, resetting passwords, searches. profiles etc.
 
 """
 from django.conf import settings
+from django.core.exceptions import SuspiciousOperation
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -20,7 +21,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 from django.contrib.auth.views import PasswordResetView
 import ipinfo
-from notifications.views import send_cobalt_email, notifications_in_english
+from notifications.views import send_cobalt_email, notifications_in_english, CobaltEmail
 from logs.views import get_client_ip, log_event
 from organisations.models import MemberOrganisation
 from rbac.core import rbac_user_has_role
@@ -820,3 +821,46 @@ def delete_photo(request):
     )
 
     return redirect("accounts:user_profile")
+
+
+def test_email_send(request):
+    """ Usually commented out! Used to test email """
+
+    if COBALT_HOSTNAME in ["myabf.com.au", "www.myabf.com.au"]:
+        raise SuspiciousOperation(
+            "Not for use in production. This cannot be used in a production system."
+        )
+
+    # Send emails
+    email_sender = CobaltEmail()
+    subject = "Bulk Email"
+    body = "I am a big test email to mimic production. Most of my size comes from the template"
+
+    user_list = User.objects.filter(last_name="TestUserEmailThing")
+
+    for recipient in user_list:
+        context = {
+            "name": recipient.first_name,
+            "title1": f"Message from Someone",
+            "title2": subject,
+            "email_body": body,
+            "host": COBALT_HOSTNAME,
+        }
+
+        html_msg = render_to_string(
+            "notifications/email_with_2_headings.html", context
+        )
+
+        email_sender.queue_email(
+            recipient.email,
+            subject + recipient.email,
+            html_msg,
+            recipient,
+        )
+
+        print(f"Queued email to {recipient}")
+
+        # send
+    email_sender.send()
+
+    return HttpResponse("Ok")

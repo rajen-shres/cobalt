@@ -32,4 +32,5 @@ urlpatterns = [
     path("toggle-team-mate", views.toggle_team_mate_ajax, name="toggle_team_mate_ajax"),
     path("user-signed-up-list", views.user_signed_up_list, name="user_signed_up_list"),
     path("delete-photo", views.delete_photo, name="delete_photo"),
+    path("test_email_send", views.test_email_send, name="test_email_send"),
 ]
