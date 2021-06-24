@@ -351,6 +351,11 @@ class Event(models.Model):
             if user.dob:  # skip if no date of birth set
                 dob = datetime.datetime.combine(user.dob, datetime.time(0, 0))
                 dob = timezone.make_aware(dob, pytz.timezone(TIME_ZONE))
+
+                # changing the year if date is 29th Feb can cause errors - change to 28th
+                if dob.month == 2 and dob.day == 29:
+                    dob = dob.replace(day=28)
+
                 ref_date = dob.replace(
                     year=dob.year + self.congress.youth_payment_discount_age
                 )
