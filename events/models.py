@@ -237,7 +237,7 @@ class Congress(models.Model):
 class Event(models.Model):
     """ An event within a congress """
 
-    congress = models.ForeignKey(Congress, on_delete=models.CASCADE)
+    congress = models.ForeignKey(Congress, on_delete=models.PROTECT)
     event_name = models.CharField("Event Name", max_length=100)
     description = models.CharField("Description", max_length=400, null=True, blank=True)
     max_entries = models.IntegerField("Maximum Entries", null=True, blank=True)
@@ -489,10 +489,7 @@ class Event(models.Model):
             .exclude(entry_status="Cancelled")
             .count()
         )
-        if entries >= self.max_entries:
-            return True
-        else:
-            return False
+        return entries >= self.max_entries
 
     @property
     def href(self):
@@ -539,11 +536,11 @@ class Session(models.Model):
 class EventEntry(models.Model):
     """ An entry to an event """
 
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.PROTECT)
     entry_status = models.CharField(
         "Entry Status", max_length=20, choices=ENTRY_STATUSES, default="Pending"
     )
-    primary_entrant = models.ForeignKey(User, on_delete=models.CASCADE)
+    primary_entrant = models.ForeignKey(User, on_delete=models.PROTECT)
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL, null=True, blank=True
     )

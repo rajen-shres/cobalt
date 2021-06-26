@@ -27,6 +27,9 @@
               <div class="col">
                 <h3>Errors</h3>
                 {% if errors %}
+                    {% if congress.status != "Published" %}
+                    <h4>You cannot publish until these are resolved</h4>
+                        {% endif %}
                 <ul>
                   {% for error in errors %}
                   <li> {{ error|safe }}

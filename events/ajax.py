@@ -1,7 +1,7 @@
 import json
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Sum, ProtectedError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -71,14 +71,21 @@ def get_all_congress_ajax(request):
             data_entry["congress_start"] = congress.start_date.strftime("%d/%m/%y")
             data_entry["congress_end"] = congress.end_date.strftime("%d/%m/%y")
             data_entry["state"] = congress.congress_master.org.state
-            data_entry["status"] = congress.status if admin else "hide" #congress.status
-            data_entry["event_type"] = congress_type_dict.get(congress.congress_type,"Not found")
-            data_entry["actions"] = {"id":congress.id,
-            "edit":congress.user_is_convener(request.user) if admin else False,
-            "manage":congress.user_is_convener(request.user) if admin else False}
+            data_entry["status"] = (
+                congress.status if admin else "hide"
+            )  # congress.status
+            data_entry["event_type"] = congress_type_dict.get(
+                congress.congress_type, "Not found"
+            )
+            data_entry["actions"] = {
+                "id": congress.id,
+                "edit": congress.user_is_convener(request.user) if admin else False,
+                "manage": congress.user_is_convener(request.user) if admin else False,
+            }
             congressList.append(data_entry)
-        except :
-            #"some logging here laterh"
+        # TODO: Fix this bare exception!
+        except:  # noqa: E722
+            # "some logging here laterh"
             continue
 
     resp = {"data": congressList}
@@ -149,15 +156,28 @@ def delete_event_ajax(request):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
+    open_entries = EventEntry.objects.exclude(entry_status="Cancelled").filter(
+        event=event
+    )
+
+    if open_entries:
+        response_data = {"message": "Error - Event has entries"}
+        return JsonResponse({"data": response_data})
+
+    # Delete any cancelled entries
+    EventEntry.objects.filter(entry_status="Cancelled").filter(event=event).delete()
+
+    event_name = event.event_name
+
+    event.delete()
+
     log_event(
         user=request.user.href,
         severity="INFO",
         source="Events",
         sub_source="events_admin",
-        message=f"Deleted event {event.href}",
+        message=f"Deleted event {event_name}",
     )
-
-    event.delete()
 
     response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})

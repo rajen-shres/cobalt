@@ -341,12 +341,15 @@
         title: "Add Category",
         text: "Category Description:",
         input: 'text',
+        inputAttributes: {
+            maxlength: 30
+        },
         showCancelButton: true
     }).then((result) => {
         if (result.value) {
 
             var serializedData = {
-              "event_id": {{ event.id }},
+              "event_id": {{ event.id|default_if_none:"dummy" }},
               "text": result.value
             };
 
@@ -403,7 +406,7 @@
 
   function deleteCategory() {
     category_id = $('#categories_list').val();
-    $.get("{% url "events:delete_category_ajax" %}?category_id=" + category_id + "&event_id=" + {{event.id}})
+    $.get("{% url "events:delete_category_ajax" %}?category_id=" + category_id + "&event_id={{ event.id|default_if_none:"dummy" }}")
       .done(response => {
         msg = response['data']['message'];
         if (msg == 'Success') {
@@ -451,7 +454,7 @@
 
     $("#edit_button").click(function() {
       var session_id = $("#session_list").val();
-      window.location = "/events/congress/create/edit-session/{{event.id}}/" + session_id;
+      window.location = "/events/congress/create/edit-session/{{event.id|default_if_none:"dummy"}}/" + session_id;
       return false;
     });
 
@@ -462,6 +465,9 @@
   title: "Edit Category",
         text: "New category description:",
         input: 'text',
+         inputAttributes: {
+            maxlength: 30
+        },
         inputValue: $("#categories_list option:selected").text().trim(),
         showCancelButton: true
     }
@@ -473,7 +479,7 @@
             }
             var category_id = $("#categories_list").val();
             var serializedData = {
-              "event_id": {{ event.id }},
+              "event_id": {{ event.id|default_if_none:"dummy" }},
               "description": result.value,
               "category_id": category_id
             };

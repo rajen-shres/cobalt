@@ -87,6 +87,7 @@
 {% include "utils/generic_user_search_footer.html" with search_id=1 %}
 
 function cobaltMemberSearchOk() {
+    // TODO: Find a good way to do this using url
     window.location = "/events/congress-admin/player_events_list/" + member_id[1] + "/{{ congress.id }}"
 }
 

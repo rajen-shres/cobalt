@@ -6,6 +6,7 @@ from datetime import date
 import pytz
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import ProtectedError
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.html import strip_tags
@@ -60,7 +61,15 @@ def delete_congress(request, congress_id):
 
     if request.method == "POST":
 
-        congress.delete()
+        try:
+            congress.delete()
+        except ProtectedError as e:
+            messages.error(request, "Deletion not allowed. Congress not empty.")
+            print(str(e))
+            return redirect(
+                "events:create_congress_wizard", congress_id=congress.id, step=7
+            )
+
         messages.success(
             request, "Congress deleted", extra_tags="cobalt-message-success"
         )
@@ -613,10 +622,14 @@ def create_event(request, congress_id):
 
         form = EventForm(initial=initial)
 
+    # create a dummy event so template doesn't generate errors - we share the template with the edit function
+    # which has an event
+    dummy_event = {"id": "dummy"}
+
     return render(
         request,
         "events/edit_event.html",
-        {"form": form, "congress": congress, "page_type": "add"},
+        {"form": form, "congress": congress, "page_type": "add", "event": dummy_event},
     )
 
 
