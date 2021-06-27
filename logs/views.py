@@ -14,18 +14,13 @@ from .models import Log
 def get_client_ip(request):
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
-        ip = x_forwarded_for.split(",")[0]
+        return x_forwarded_for.split(",")[0]
     else:
-        ip = request.META.get("REMOTE_ADDR")
-    return ip
+        return request.META.get("REMOTE_ADDR")
 
 
 def log_event(user, severity, source, sub_source, message, request=None):
-    if request:
-        ip = get_client_ip(request)
-    else:
-        ip = None
-
+    ip = get_client_ip(request) if request else None
     logevent = Log()
     logevent.user = user
     logevent.ip = ip
