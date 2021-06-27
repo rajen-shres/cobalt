@@ -74,7 +74,7 @@ def home(request):
         events_list = events_list.filter(severity=form_severity)
 
     if form_user not in ["All", None]:
-        events_list = events_list.filter(user=form_user)
+        events_list = events_list.filter(user__contains=form_user)
 
     if form_source not in ["All", None]:
         events_list = events_list.filter(source=form_source)
@@ -87,6 +87,14 @@ def home(request):
     severities = events_list.values("severity").distinct()
     sources = events_list.values("source").distinct()
     users = events_list.exclude(user=None).values("user").distinct()
+
+    unique_users = []
+    for user in users:
+        this_user = strip_tags(user["user"])
+        if this_user not in unique_users:
+            unique_users.append(this_user)
+
+    unique_users.sort()
 
     return render(
         request,
@@ -101,6 +109,6 @@ def home(request):
             "form_sub_source": form_sub_source,
             "sub_sources": sub_sources,
             "form_user": form_user,
-            "users": users,
+            "users": unique_users,
         },
     )

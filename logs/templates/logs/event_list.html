@@ -74,9 +74,9 @@
         <option value="All">Users - All</option>
         {% for user in users %}
             <option
-                    {% if form_user == user.user %}selected{% endif %}
-                    value="{{ user.user|striptags }}">
-                {{ user.user|striptags }}
+                    {% if form_user == user %}selected{% endif %}
+                    value="{{ user }}">
+                {{ user }}
             </option>
         {% endfor %}
     </select>
