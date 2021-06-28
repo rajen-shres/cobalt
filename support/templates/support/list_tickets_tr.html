@@ -1,0 +1,19 @@
+<tr>
+    <td class="{{ td_class }}">
+        <div class="row m-0 border-0">
+            <div class="col float-left">
+                <span class="float-left material-icons {{ icon_colour }}">{{ icon }}</span>
+            </div>
+            <div class="col float-right">
+                {{ thing.severity }}
+            </div>
+        </div>
+    </td>
+    <td title="{{ thing.created_date|timesince }} ago"
+        data-toggle="tooltip">{{ thing.created_date|date:'d/m/Y H:i:s' }}</td>
+    <td class="text-left">{{ thing.reported_by_user }}</td>
+    <td class="text-left">{{ thing.title }}</td>
+    <td class="text-left">{{ thing.status }}</td>
+    <td class="text-left">{{ thing.incident_type }}</td>
+    <td class="text-left">{{ thing.assigned_to.first_name }}</td>
+</tr>

@@ -16,6 +16,7 @@ from events.models import Congress
 from forums.models import Post, Forum
 from notifications.views import send_cobalt_email
 from payments.models import MemberTransaction
+from rbac.core import rbac_user_has_role
 from utils.utils import cobalt_paginator
 from .forms import ContactForm
 
@@ -23,7 +24,8 @@ from .forms import ContactForm
 @login_required
 def home(request):
 
-    return render(request, "support/home.html")
+    helpdesk = bool(rbac_user_has_role(request.user, "support.helpdesk.view"))
+    return render(request, "support/home.html", {"helpdesk": helpdesk})
 
 
 @login_required
@@ -85,12 +87,12 @@ def contact(request):
         message = request.POST["message"].replace("\n", "<br>")
         email = request.POST["email"].replace("\n", "<br>")
         username = request.POST["UserName"].replace("\n", "<br>")
-        next_page ="support:support" 
+        # next_page = "support:support"
         try:
             email = request.user.email
             username = request.user
-        except:
-            next_page ="view" 
+        except:  # noqa: E722
+            pass
         msg = f"""
                   {username} - {email}<br><br>
                   <b>{title}</b>
@@ -119,15 +121,19 @@ def contact(request):
             extra_tags="cobalt-message-success",
         )
         return redirect("support:support")
-        #return redirect(next_page)
+        # return redirect(next_page)
 
     try:
         email = request.user.email
         username = request.user
-    except:
-        email=None
-        username=None
-    return render(request, "support/contact.html", {"form": form, "email":email, "username":username})
+    except:  # noqa: E722
+        email = None
+        username = None
+    return render(
+        request,
+        "support/contact.html",
+        {"form": form, "email": email, "username": username},
+    )
 
 
 @login_required

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import (
     Incident,
+    IncidentLineItem,
 )
 
 
@@ -9,4 +10,10 @@ class IncidentAdmin(admin.ModelAdmin):
     search_fields = ("reported_by_user", "reported_by_email", "description")
 
 
+class IncidentLineItemAdmin(admin.ModelAdmin):
+    list_display = ("staff", "created_date", "incident")
+    search_fields = ("staff", "description", "incident")
+
+
 admin.site.register(Incident, IncidentAdmin)
+admin.site.register(IncidentLineItem, IncidentLineItemAdmin)

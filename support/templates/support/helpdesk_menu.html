@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row">
+            <div class="card col-12 mx-auto">
+                <div class="card-header card-header-info">
+                     <h1>
+                        <div class="d-flex justify-content-between">
+                          <div>
+                            Helpdesk
+                          </div>
+                          <div>
+                            <i class="material-icons" style="font-size:50px">contact_support</i>
+                          </div>
+                        </div>
+                      </h1>
+                    <h3>Open Tickets: {{ open_tickets }}</h3>
+                    <h3>Unassigned Tickets: {{ unassigned_tickets }}</h3>
+                </div>
+                <div class="card-body">
+                    <a href="{% url "support:create_ticket" %}" class="btn-primary btn">Create Ticket</a>
+                    <a href="{% url "support:helpdesk_list" %}" class="btn-primary btn">List Tickets</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}

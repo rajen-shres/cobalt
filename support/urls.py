@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, helpdesk
 
 app_name = "support"  # pylint: disable=invalid-name
 
@@ -17,4 +17,7 @@ urlpatterns = [
         views.non_production_email_changer,
         name="non_production_email_changer",
     ),
+    path("helpdesk-create", helpdesk.create_ticket, name="create_ticket"),
+    path("helpdesk-menu", helpdesk.helpdesk_menu, name="helpdesk_menu"),
+    path("helpdesk-list", helpdesk.helpdesk_list, name="helpdesk_list"),
 ]

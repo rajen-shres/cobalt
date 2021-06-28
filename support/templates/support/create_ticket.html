@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+    {% include "utils/generic_user_search_body.html" with search_id=1 %}
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "support:helpdesk_menu" %}">Helpdesk</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Create Ticket</li>
+        </ol>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="card mx-auto">
+                <div class="card-header card-header-info">
+                    <h1>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                Helpdesk - Create Ticket
+                            </div>
+                            <div>
+                                <i class="material-icons" style="font-size:50px">local_activity</i>
+                            </div>
+                        </div>
+                    </h1>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <form method="POST">
+                            {% csrf_token %}
+
+
+                            {# user #}
+                            <div class="row" id="impacted_user_fields">
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label class="bmd-label-floating">Impacted User</label>
+                                        <span class="cobalt-form-error"
+                                              id="id_reported_by_user_errors">{{ form.reported_by_user.errors|striptags }}</span>
+                                        <input type="text" name="reported_by_user_fake" class="form-control"
+                                               id="id_reported_by_user_fake" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-2">
+                                    <a class="cobalt_generic_member btn btn-sm btn-info" data-toggle="modal"
+
+                                       data-target="#cobalt_general_member_search1"><span
+                                            id="id_member_button">Add</span></a>
+                                </div>
+                            </div>
+                            <input type="hidden" id="id_reported_by_user" name="reported_by_user" value="">
+
+                            {# user email - hidden by default #}
+                            <a href="javascript:void(0)" id="show_email">User not registered? Click to use email
+                                instead</a>
+                            <div class="row" id="user_email" style="display: none;">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="bmd-label-floating">Impacted User Email (if not
+                                            registered)</label>
+                                        <span class="cobalt-form-error"
+                                              id="id_reported_by_email_errors">{{ form.reported_by_email.errors|striptags }}</span>
+                                        {% render_field form.reported_by_email class+="form-control" %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# title #}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <span class="cobalt-form-error"
+                                              id="id_title_errors">{{ form.title.errors|striptags }}</span>
+                                        <label for="id_title" class="bmd-label-floating">Title</label>
+                                        {% render_field form.title class+="form-control" %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# description #}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <span class="cobalt-form-error"
+                                              id="id_description_errors">{{ form.description.errors|striptags }}</span>
+                                        <label for="id_description" class="bmd-label-floating">Description</label>
+                                        {% render_field form.description class+="form-control" %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# severity #}
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="form-group bmd-form-group">
+                                        <span class="cobalt-form-error"
+                                              id="id_severity_errors">{{ form.severity.errors|striptags }}</span>
+                                        <label for="id_severity" class="bmd-label-static">Severity</label>
+                                        {% render_field form.severity class+="form-control" %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# assigned to #}
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="form-group bmd-form-group">
+                                        <span class="cobalt-form-error"
+                                              id="id_assigned_to_errors">{{ form.assigned_to.errors|striptags }}</span>
+                                        <label for="id_assigned_to" class="bmd-label-static">Assigned to</label>
+                                        {% render_field form.assigned_to class+="form-control" %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# status #}
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="form-group bmd-form-group">
+                                        <span class="cobalt-form-error"
+                                              id="id_status_errors">{{ form.status.errors|striptags }}</span>
+                                        <label for="id_status" class="bmd-label-static">Status</label>
+                                        {% render_field form.status class+="form-control" %}
+                                    </div>
+
+
+                                </div>
+                            </div>
+
+                            {# incident type #}
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="form-group bmd-form-group">
+                                        <span class="cobalt-form-error"
+                                              id="id_incident_type_errors">{{ form.incident_type.errors|striptags }}</span>
+                                        <label for="id_incident_type" class="bmd-label-static">Type</label>
+                                        {% render_field form.incident_type class+="form-control" %}
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <button class="btn btn-success mx-auto mt-4 cobalt-save">Save</button>
+                            <a href="{% url "support:helpdesk_menu" %}" class="btn btn-info mt-4">Cancel</a>
+                        </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+
+{% block footer %}
+    <script>
+        {% include "utils/generic_user_search_footer.html" with search_id=1 %}
+
+        function cobaltMemberSearchOk() {
+            $('#id_reported_by_user').val(member_id[1]);
+            $('#id_reported_by_user_fake').val(member_name[1]);
+            $('#id_member_button').text('Change');
+        }
+
+        $(document).ready(function () {
+            $('#show_email').click(function () {
+                $('#user_email').show();
+                $('#impacted_user_fields').hide();
+                $('#show_email').hide();
+            });
+        });
+
+    </script>
+{% endblock footer %}

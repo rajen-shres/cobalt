@@ -64,7 +64,11 @@ def delete_congress(request, congress_id):
         try:
             congress.delete()
         except ProtectedError as e:
-            messages.error(request, "Deletion not allowed. Congress not empty.")
+            messages.error(
+                request,
+                "Deletion not allowed. Congress not empty.",
+                extra_tags="cobalt-message-error",
+            )
             print(str(e))
             return redirect(
                 "events:create_congress_wizard", congress_id=congress.id, step=7
@@ -352,7 +356,11 @@ def create_congress_wizard_5(request, step_list, congress):
             )
         else:
             for er in form.errors:
-                messages.error(request, form.errors[er])
+                messages.error(
+                    request,
+                    form.errors[er],
+                    extra_tags="cobalt-message-error",
+                )
             return render(
                 request,
                 "events/congress_wizard_5.html",
@@ -584,6 +592,7 @@ def _update_event(request, form, event, congress, msg):
         messages.warning(
             request,
             "Youth discount field has no value, you will get errors for this event !! please correct either the discount offered for the saved event or uncheck youth discount on step 5.",
+            extra_tags="cobalt-message-warning",
         )
     event.save()
     messages.success(request, msg, extra_tags="cobalt-message-success")
@@ -612,7 +621,11 @@ def create_event(request, congress_id):
             )
         else:
             for er in form.errors:
-                messages.error(request, form.errors[er])
+                messages.error(
+                    request,
+                    form.errors[er],
+                    extra_tags="cobalt-message-error",
+                )
 
     else:
         # default youth discount to 50% if used
@@ -657,7 +670,11 @@ def edit_event(request, congress_id, event_id):
             _update_event(request, form, event, congress, "Event updated")
         else:
             for er in form.errors:
-                messages.error(request, form.errors[er])
+                messages.error(
+                    request,
+                    form.errors[er],
+                    extra_tags="cobalt-message-error",
+                )
 
     else:
         # datepicker is very fussy about format
