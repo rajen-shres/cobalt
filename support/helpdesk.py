@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
@@ -152,3 +153,24 @@ def edit_ticket(request, ticket_id):
             "incident_line_items": incident_line_items,
         },
     )
+
+
+@rbac_check_role("support.helpdesk.edit")
+def add_incident_line_item_ajax(request):
+    """ Ajax call to add a line item """
+
+    if request.method != "POST":
+        return
+    ticket_id = request.POST.get("ticket_id")
+    private_flag = request.POST.get("private_flag")
+    text = request.POST.get("text")
+
+    ticket = get_object_or_404(Incident, pk=ticket_id)
+
+    comment_type = "Private" if private_flag else "Default"
+    IncidentLineItem(
+        incident=ticket, description=text, staff=request.user, comment_type=comment_type
+    ).save()
+
+    response_data = {"message": "Success"}
+    return JsonResponse({"data": response_data})

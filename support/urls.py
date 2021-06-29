@@ -21,4 +21,9 @@ urlpatterns = [
     path("helpdesk-menu", helpdesk.helpdesk_menu, name="helpdesk_menu"),
     path("helpdesk-list", helpdesk.helpdesk_list, name="helpdesk_list"),
     path("helpdesk-list/<int:ticket_id>", helpdesk.edit_ticket, name="helpdesk_edit"),
+    path(
+        "helpdesk-ajax/comment",
+        helpdesk.add_incident_line_item_ajax,
+        name="helpdesk_add_incident_line_item_ajax",
+    ),
 ]
