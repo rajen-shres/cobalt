@@ -10,9 +10,17 @@ INCIDENT_STATUS_TYPES = [
     ("Closed", "Closed"),
 ]
 INCIDENT_NATURE_TYPES = [
-    ("Security", "Security Problem"),
-    ("Congress Entry", "Congress Entry Problem"),
+    ("Congress Admin", "Congress Admin"),
+    ("Congress Entry", "Congress Entry"),
+    ("Club Admin", "Club Admin"),
+    ("Forums", "Forums"),
+    ("Masterpoints", "Masterpoints"),
+    ("Notifications", "Notifications"),
     ("Other", "Other"),
+    ("Payments", "Payments"),
+    ("Profile/Settings", "Profile/Settings"),
+    ("Registration", "Registration"),
+    ("Security", "Security"),
 ]
 INCIDENT_COMMENT_TYPE = [
     ("Normal", "Normal - seen by all"),
@@ -50,6 +58,9 @@ class Incident(models.Model):
     """ Standard User object - who is working on it"""
 
     reported_by_email = models.CharField(max_length=100, blank=True, null=True)
+    """ for use when we do not have a user object """
+
+    reported_by_name = models.CharField(max_length=100, blank=True, null=True)
     """ for use when we do not have a user object """
 
     title = models.CharField(max_length=80)

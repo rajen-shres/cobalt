@@ -13,7 +13,7 @@ class ContactForm(forms.Form):
     email = forms.CharField(label="email(required if not logged in)")
 
 
-class CreateTicket(forms.ModelForm):
+class IncidentForm(forms.ModelForm):
     """ Create a new helpdesk ticket """
 
     class Meta:
@@ -26,12 +26,13 @@ class CreateTicket(forms.ModelForm):
             "status",
             "incident_type",
             "reported_by_user",
+            "reported_by_name",
             "severity",
         )
 
     def __init__(self, *args, **kwargs):
         """ override init so we can set the assigned_to field to be only support staff"""
-        super(CreateTicket, self).__init__(*args, **kwargs)
+        super(IncidentForm, self).__init__(*args, **kwargs)
 
         staff = [(None, "Unassigned")] + list(
             rbac_get_users_with_role("support.helpdesk.edit").values_list(
@@ -42,7 +43,7 @@ class CreateTicket(forms.ModelForm):
 
     def clean(self):
         """ custom validation """
-        cleaned_data = super(CreateTicket, self).clean()
+        cleaned_data = super(IncidentForm, self).clean()
 
         print(cleaned_data.get("reported_by_user"))
         print(cleaned_data.get("reported_by_email"))

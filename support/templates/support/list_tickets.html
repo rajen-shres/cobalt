@@ -71,23 +71,32 @@
         <option value="All">Users - All</option>
         {% for user in users %}
             <option
-                    {% if form_user == user %}selected{% endif %}
-                    value="{{ user }}">
-                {{ user }}
+                    {% if form_user == user.id %}selected{% endif %}
+                    value="{{ user.id }}">
+                {{ user.full_name }}
             </option>
         {% endfor %}
     </select>
-        <select class="selectpicker" data-style="btn btn-primary" id="id_user" name="user">
-        <option value="All">Users - All</option>
-        {% for user in users %}
-            <option
-                    {% if form_user == user %}selected{% endif %}
-                    value="{{ user }}">
-                {{ user }}
-            </option>
-        {% endfor %}
+    <select class="selectpicker" data-style="btn btn-dark" id="id_incident_type" name="incident_type">
+    <option value="All">Type - All</option>
+    {% for incident_type in incident_types %}
+        <option
+                {% if form_incident_type == incident_type.incident_type %}selected{% endif %}
+                value="{{ incident_type.incident_type }}">
+            {{ incident_type.incident_type }}
+        </option>
+    {% endfor %}
     </select>
-
+    <select class="selectpicker" data-style="btn btn-warning" id="id_assigned_to" name="assigned_to">
+    <option value="All">Assigned To - All</option>
+    {% for assigned_to in assigned_tos %}
+        <option
+                {% if form_assigned_to == assigned_to.id %}selected{% endif %}
+                value="{{ assigned_to.id }}">
+                {{ assigned_to.full_name }}
+        </option>
+    {% endfor %}
+    </select>
         <a href="{% url 'support:helpdesk_list' %}" class="float-right btn btn-default">Clear</a>
 
       <table id="ticket_table" class="table table-hover table-condensed" style="display: none;">
@@ -160,14 +169,24 @@ $(document).ready( function () {
         const severity = $('#id_severity').val();
         const status = $('#id_status').val();
         const user = $('#id_user').val();
-        const type = $('#id_type').val();
+        const incident_type = $('#id_incident_type').val();
         const assigned_to = $('#id_assigned_to').val();
-        let query = '?days=' + days + '&severity=' + severity + '&status=' + status + '&user=' + user + '&assigned_to=' + assigned_to + '&type=' + type;
+
+        let query = '?days=' + days + '&severity=' + severity + '&status=' + status + '&user=' + user + '&assigned_to=' + assigned_to + '&incident_type=' + incident_type;
         window.location.replace('{% url "support:helpdesk_list" %}' + query);
     }
 
+    // refresh if something gets selected
     $('.selectpicker').on('change', function() {
        reload_page();
+    });
+
+    // handle clicking on a row - assumes row has one <a> link in it which is applied to all cells
+    $('tr').click( function() {
+        const href = $(this).find('a').attr('href');
+        if (typeof href !== 'undefined') {
+            window.location = href;
+        }
     });
 });
 </script>
