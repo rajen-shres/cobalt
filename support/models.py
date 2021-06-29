@@ -117,10 +117,14 @@ class IncidentLineItem(models.Model):
     def __str__(self):
         return f"{self.incident} - {self.staff}"
 
-    # def save(self, *args, **kwargs):
-    #     """ handle an update """
-    #
-    #     super().save(*args, **kwargs)
-    #
-    #     # Notify folks
-    #     print("Busy")
+
+class Attachment(models.Model):
+    """ screenshots etc """
+
+    document = models.FileField(upload_to="helpdesk/%Y/%m/%d/")
+    create_date = models.DateTimeField(default=timezone.now)
+    incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
+    description = models.CharField("Description", max_length=200)
+
+    def __str__(self):
+        return f"{self.incident} - {self.description}"

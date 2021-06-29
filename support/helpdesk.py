@@ -7,8 +7,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
 from rbac.decorators import rbac_check_role
-from support.forms import IncidentForm
-from support.models import Incident, IncidentLineItem
+from support.forms import IncidentForm, AttachmentForm
+from support.models import Incident, IncidentLineItem, Attachment
 
 
 @rbac_check_role("support.helpdesk.edit")
@@ -17,13 +17,13 @@ def create_ticket(request):
 
     form = IncidentForm(request.POST or None)
     if form.is_valid():
-        form.save()
+        ticket = form.save()
         messages.success(
             request,
             "Ticket successfully added.",
             extra_tags="cobalt-message-success",
         )
-        return redirect("support:helpdesk_menu")
+        return redirect("support:helpdesk_edit", ticket_id=ticket.pk)
 
     return render(request, "support/create_ticket.html", {"form": form})
 
@@ -128,6 +128,32 @@ def edit_ticket(request, ticket_id):
     if request.method == "POST":
         form = IncidentForm(request.POST, instance=ticket)
         if form.is_valid():
+
+            # check for delete flag
+            delete = request.POST.get("delete")
+            if delete:
+                # client side validation says delete it
+                ticket.delete()
+                messages.success(
+                    request,
+                    "Ticket deleted. Your mistakes have been hidden and nobody knows.",
+                    extra_tags="cobalt-message-success",
+                )
+                return redirect("support:helpdesk_menu")
+
+            # check for resolve flag
+            resolve = request.POST.get("resolve")
+            if resolve:
+                # client side validation says close it
+                ticket.status = "Closed"
+                ticket.save()
+                messages.success(
+                    request,
+                    "Ticket closed and user notified.",
+                    extra_tags="cobalt-message-success",
+                )
+                return redirect("support:helpdesk_menu")
+
             form.save()
             messages.success(
                 request,
@@ -141,6 +167,12 @@ def edit_ticket(request, ticket_id):
 
     # get related items
     incident_line_items = IncidentLineItem.objects.filter(incident=ticket)
+    attachments = Attachment.objects.filter(incident=ticket).order_by("-pk")
+
+    if ticket.reported_by_user:
+        first_name = ticket.reported_by_user.first_name
+    else:
+        first_name = ticket.reported_by_name.split(" ")[0]
 
     return render(
         request,
@@ -150,6 +182,8 @@ def edit_ticket(request, ticket_id):
             "user": ticket.reported_by_user,
             "ticket": ticket,
             "incident_line_items": incident_line_items,
+            "first_name": first_name,
+            "attachments": attachments,
         },
     )
 
@@ -162,6 +196,7 @@ def add_incident_line_item_ajax(request):
         return
     ticket_id = request.POST.get("ticket_id")
     private_flag = request.POST.get("private_flag")
+    private_flag = private_flag == "1"
     text = request.POST.get("text")
 
     ticket = get_object_or_404(Incident, pk=ticket_id)
@@ -173,3 +208,46 @@ def add_incident_line_item_ajax(request):
 
     response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
+
+
+@rbac_check_role("support.helpdesk.edit")
+def helpdesk_attachments(request, ticket_id):
+    """ Manage attachments """
+
+    ticket = get_object_or_404(Incident, pk=ticket_id)
+
+    if request.method == "POST":
+        form = AttachmentForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Attachment added", extra_tags="cobalt-message-success")
+            return redirect("support:helpdesk_edit", ticket_id=ticket_id)
+
+    else:
+        form = AttachmentForm()
+
+    # Get attachments
+    attachments = Attachment.objects.filter(incident=ticket).order_by("-pk")
+
+    return render(
+        request,
+        "support/attachments.html",
+        {"form": form, "ticket": ticket, "attachments": attachments},
+    )
+
+
+@rbac_check_role("support.helpdesk.edit")
+def helpdesk_delete_attachment_ajax(request):
+    """ Ajax call to delete an attachment from an incident """
+
+    if request.method == "GET":
+        attachment_id = request.GET["attachment_id"]
+
+        attachment = get_object_or_404(Attachment, pk=attachment_id)
+
+        attachment.delete()
+
+        response_data = {"message": "Success"}
+        return JsonResponse({"data": response_data})
+

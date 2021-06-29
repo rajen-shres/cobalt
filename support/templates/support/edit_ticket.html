@@ -3,7 +3,6 @@
 {% load cobalt_tags %}
 {% load static %}
 
-
 {% block content %}
     {% include "utils/generic_user_search_body.html" with search_id=1 %}
     <nav aria-label="breadcrumb" role="navigation">
@@ -49,7 +48,6 @@
                             </div>
                             <div class="col-2">
                                 <a class="cobalt_generic_member btn btn-sm btn-info" data-toggle="modal"
-
                                    data-target="#cobalt_general_member_search1"><span
                                         id="id_member_button">Change User</span></a>
                             </div>
@@ -147,9 +145,20 @@
                                 <div class="form-group">
                                         <span class="cobalt-form-error"
                                               id="id_description_errors">{{ form.description.errors|striptags }}</span>
-                                    <label for="id_description" class="bmd-label-floating">Description</label>
-                                    {% render_field form.description class+="form-control" %}
+                                    <label for="id_description" class="bmd-label-fixed">Description</label>
+                                    {% render_field form.description class+="form-control pt-4" %}
                                 </div>
+                            </div>
+
+                            <div class="col-md-6">
+                            {% if attachments %}
+                                <h3>Attachments</h3>
+                                <ul>
+                                {% for attachment in attachments %}
+                                <li><a target="_blank" href="{{ attachment.document.url }}">{{ attachment.description }}</a></li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
                             </div>
                         </div>
 
@@ -157,10 +166,24 @@
                             <div class="row">
                                 <div class="col-12">
                                     <div class="card p-1">
-                                        {{ incident_line_item.staff.first_name }} {{ incident_line_item.created_date|cobalt_nice_datetime }}
-                                        {% if incident_line_item.comment_type == "Private" %}
-                                            <b>{{ incident_line_item.comment_type }}</b>
-                                        {% endif %}
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                {{ incident_line_item.staff.first_name }}:
+                                                <span data-toggle="tooltip"
+                                                      title="{{ ticket.created_date }}">
+                                                {{ incident_line_item.created_date|cobalt_nice_datetime }}</span>
+                                            </div>
+                                            <div>
+                                                {% if incident_line_item.comment_type == "Private" %}
+                                                    <span class="material-icons text-primary"
+                                                          data-toggle="tooltip"
+                                                          title="This update was not shared with {{ first_name }}">
+                                                        lock</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+
                                         <br>
                                         <pre>{{ incident_line_item.description }}</pre>
                                     </div>
@@ -170,8 +193,17 @@
 
                         <div>
                             <button class="btn btn-sm btn-primary" id="add_comment">Add Comment</button>
+                            <a href="{% url "support:helpdesk_attachments" ticket_id=ticket.id %}"
+                               class="btn btn-sm btn-info">
+                                {% if attachments %}
+                                    Manage attachments
+                                {% else %}
+                                Add attachment
+                                {% endif %}
+                            </a>
                         </div>
                         <button class="btn btn-success mx-auto mt-4 cobalt-save">Save</button>
+                        <button class="btn btn-primary mx-auto mt-4 cobalt-save" id="id_resolve">Resolve</button>
                         <a href="{% url "support:helpdesk_menu" %}" class="btn btn-info mt-4">Cancel</a>
                         <button class="btn btn-danger mx-auto mt-4 cobalt-save" id="id_delete">Delete</button>
                     </form>
@@ -179,8 +211,6 @@
             </div>
         </div>
     </div>
-
-
 
 {% endblock %}
 
@@ -242,60 +272,84 @@
                         // if they didn't cancel check if they want the user notified
                         if (result.value) {
                             Swal.fire({
-                                title: 'Share update with {{ user.first_name }} ?',
+                                title: 'Share update with {{ first_name }} ?',
                                 showCancelButton: true,
                                 confirmButtonText: 'Notify',
                                 cancelButtonText: 'Do Not Notify',
                             }).then((result2) => {
                                 // set the private flag
                                 let private_flag;
-                                if (result2) {
+                                if (result2.value) {
                                     private_flag = 0;
                                 } else {
                                     private_flag = 1;
+                                    // call django function
+                                    $.post("{% url "support:helpdesk_add_incident_line_item_ajax" %}",
+                                        {
+                                            ticket_id: {{ ticket.id }},
+                                            private_flag: private_flag,
+                                            text: result.value,
+                                            csrfmiddlewaretoken: '{{ csrf_token }}'
+                                        })
+                                        // check response
+                                        .done(response => {
+                                            var msg = response['data']['message'];
+                                            if (msg === 'Success') {
+                                                location.reload();
+                                            } else {
+                                                swal.fire({
+                                                    title: "Error",
+                                                    html: msg,
+                                                    icon: "error"
+                                                })
+                                            }
+                                        });
                                 }
-                                // call django function
-                                $.post("{% url "support:helpdesk_add_incident_line_item_ajax" %}",
-                                    {
-                                        ticket_id: {{ ticket.id }},
-                                        private_flag: private_flag,
-                                        text: result.value,
-                                        csrfmiddlewaretoken: '{{ csrf_token }}'
-                                    })
-                                    // check response
-                                    .done(response => {
-                                        var msg = response['data']['message'];
-                                        if (msg === 'Success') {
-                                            location.reload();
-                                        } else {
-                                            swal.fire({
-                                                title: "Error",
-                                                html: msg,
-                                                icon: "error"
-                                            })
-                                        }
-                                    });
                             });
                         }
                     });
             });
 
-            $("#id_delete").click(function(){
+            $("#id_delete").click(function (event) {
+                // don't be an enter button
+                event.preventDefault();
+
                 Swal.fire({
-  title: 'Do you want to save the changes?',
-  showDenyButton: true,
-  showCancelButton: true,
-  confirmButtonText: `Save`,
-  denyButtonText: `Don't save`,
-}).then((result) => {
-  /* Read more about isConfirmed, isDenied below */
-  if (result.isConfirmed) {
-    Swal.fire('Saved!', '', 'success')
-  } else if (result.isDenied) {
-    Swal.fire('Changes are not saved', '', 'info')
-  }
-})
+                    title: 'This cannot be undone. Are you sure?',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'Delete',
+                    denyButtonText: 'Cancel',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // add a delete to the form and submit it
+                        $form.append('<input type="hidden" name="delete" value="yes" />');
+                        $form.submit();
+                    }
+                });
             });
+
+            $("#id_resolve").click(function (event) {
+                // don't be an enter button
+                event.preventDefault();
+
+                Swal.fire({
+                    title: 'Close case and notify {{ first_name }}. Are you sure?',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'Resolve',
+                    denyButtonText: 'Cancel',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // add a resolve to the form and submit it
+                        $form.append('<input type="hidden" name="resolve" value="yes" />');
+                        $form.submit();
+                    }
+                });
+            });
+
+            // initialise tooltips
+            $('[data-toggle="tooltip"]').tooltip()
 
         }); // document ready
 

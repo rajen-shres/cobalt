@@ -1,7 +1,7 @@
 from django import forms
 
 from rbac.core import rbac_get_users_with_role
-from support.models import Incident
+from support.models import Incident, Attachment
 
 
 class ContactForm(forms.Form):
@@ -55,3 +55,9 @@ class IncidentForm(forms.ModelForm):
             self._errors["reported_by_user"] = txt
             raise forms.ValidationError(txt)
         return self.cleaned_data
+
+
+class AttachmentForm(forms.ModelForm):
+    class Meta:
+        model = Attachment
+        fields = ("document", "incident", "description")
