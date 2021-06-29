@@ -134,7 +134,6 @@ def edit_ticket(request, ticket_id):
                 "Ticket successfully updated.",
                 extra_tags="cobalt-message-success",
             )
-            return redirect("support:helpdesk_menu")
         else:
             print(form.errors)
 
