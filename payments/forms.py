@@ -58,7 +58,7 @@ class MemberTransferOrg(forms.Form):
 
         amount = self.cleaned_data["amount"]
         if amount > self.balance:
-            raise ValidationError("Insuficient funds")
+            raise ValidationError("Insufficient funds")
         return amount
 
 

@@ -2205,7 +2205,7 @@ def member_transfer_org(request, org_id):
                 member,
             )
             messages.success(request, msg, extra_tags="cobalt-message-success")
-            return
+            return redirect("payments:statement_org", org_id=organisation.id)
         else:
             print(form.errors)
     else:

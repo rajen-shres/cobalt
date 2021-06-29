@@ -66,7 +66,7 @@ def delete_congress(request, congress_id):
         except ProtectedError as e:
             messages.error(
                 request,
-                "Deletion not allowed. Congress not empty.",
+                "Deletion not allowed. Congress still has events.",
                 extra_tags="cobalt-message-error",
             )
             print(str(e))
