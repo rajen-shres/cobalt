@@ -283,28 +283,29 @@
                                     private_flag = 0;
                                 } else {
                                     private_flag = 1;
-                                    // call django function
-                                    $.post("{% url "support:helpdesk_add_incident_line_item_ajax" %}",
-                                        {
-                                            ticket_id: {{ ticket.id }},
-                                            private_flag: private_flag,
-                                            text: result.value,
-                                            csrfmiddlewaretoken: '{{ csrf_token }}'
-                                        })
-                                        // check response
-                                        .done(response => {
-                                            var msg = response['data']['message'];
-                                            if (msg === 'Success') {
-                                                location.reload();
-                                            } else {
-                                                swal.fire({
-                                                    title: "Error",
-                                                    html: msg,
-                                                    icon: "error"
-                                                })
-                                            }
-                                        });
                                 }
+                                // call django function
+                                $.post("{% url "support:helpdesk_add_incident_line_item_ajax" %}",
+                                    {
+                                        ticket_id: {{ ticket.id }},
+                                        private_flag: private_flag,
+                                        text: result.value,
+                                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                                    })
+                                    // check response
+                                    .done(response => {
+                                        var msg = response['data']['message'];
+                                        if (msg === 'Success') {
+                                            location.reload();
+                                        } else {
+                                            swal.fire({
+                                                title: "Error",
+                                                html: msg,
+                                                icon: "error"
+                                            })
+                                        }
+                                    });
+
                             });
                         }
                     });

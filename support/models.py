@@ -128,3 +128,26 @@ class Attachment(models.Model):
 
     def __str__(self):
         return f"{self.incident} - {self.description}"
+
+
+class NotifyUserByType(models.Model):
+    """Which users to tell about new tickets. We add an "All" option to the incident_type. Specifying all
+    means the user will receive all notifications.
+
+    Note that this is for notifications only. In order to be a support staff member you need to be in
+    the RBAC group "support.helpdesk.edit"
+
+    This allows people to be added to notifications without giving them access to the helpdesk module.
+    """
+
+    staff = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    """ Standard User object """
+
+    incident_type = models.CharField(
+        max_length=30, choices=INCIDENT_NATURE_TYPES + [("All", "All")], default="All"
+    )
+    """ type for this incident """
+
+    def __str__(self):
+
+        return f"{self.staff.full_name} - {self.incident_type}"
