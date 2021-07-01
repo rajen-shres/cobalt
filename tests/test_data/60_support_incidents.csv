@@ -1,3 +1,5 @@
 support, Incident
 id, id.reported_by_user.accounts.User, id.assigned_to.accounts.User, reported_by_email, reported_by_name, title, description, status, severity, incident_type, t.created_date, closed_date
-in1, aa, kk, , ,I cannot set up an event - getting error,Whenever I try to create an event., In Progress, Medium, Congress Admin,20,
+in1, aa, kk, , ,I cannot set up an event - getting error,Whenever I try to create an event., Closed, Medium, Congress Admin,20,
+in2, bb, kk, , ,Fatal error when deleting event, Closed, High, Congress Admin,19,
+in2, bb, kk, , ,Fatal error when deleting event, Closed, High, Congress Admin,19,

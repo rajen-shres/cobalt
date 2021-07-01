@@ -166,7 +166,7 @@ def activate(request, uidb64, token):
 
 
 def loggedout(request):
-    """ Should review if this is really needed. """
+    """Should review if this is really needed."""
     return render(request, "accounts/loggedout.html")
 
 
@@ -404,7 +404,11 @@ def member_search_ajax(request):
         else:
             search_first_name = None
 
-        exclude_list = [request.user.id, RBAC_EVERYONE, TBA_PLAYER]
+        # flag to include the user in the output
+        if "include_me" in request.GET:
+            exclude_list = [RBAC_EVERYONE, TBA_PLAYER]
+        else:
+            exclude_list = [request.user.id, RBAC_EVERYONE, TBA_PLAYER]
 
         if search_first_name and search_last_name:
             members = User.objects.filter(
@@ -506,9 +510,7 @@ def profile(request):
                 request, "Profile Updated", extra_tags="cobalt-message-success"
             )
         else:
-            errors = ""
-            for k in form.errors:
-                errors += f"{form.errors[k][0]}"
+            errors = "".join(f"{form.errors[k][0]}" for k in form.errors)
             messages.error(request, f"Profile is not updated. {errors}")
     else:
         # Fix DOB format for browser - expects DD/MM/YYYY
@@ -742,8 +744,7 @@ def delete_team_mate_ajax(request):
     else:
         msg = "Invalid request"
 
-    response_data = {}
-    response_data["message"] = msg
+    response_data = {"message": msg}
     return JsonResponse({"data": response_data})
 
 
@@ -824,7 +825,7 @@ def delete_photo(request):
 
 
 def test_email_send(request):
-    """ Usually commented out! Used to test email """
+    """Usually commented out! Used to test email"""
 
     if COBALT_HOSTNAME in ["myabf.com.au", "www.myabf.com.au"]:
         raise SuspiciousOperation(
@@ -841,15 +842,13 @@ def test_email_send(request):
     for recipient in user_list:
         context = {
             "name": recipient.first_name,
-            "title1": f"Message from Someone",
+            "title1": "Message from Someone",
             "title2": subject,
             "email_body": body,
             "host": COBALT_HOSTNAME,
         }
 
-        html_msg = render_to_string(
-            "notifications/email_with_2_headings.html", context
-        )
+        html_msg = render_to_string("notifications/email_with_2_headings.html", context)
 
         email_sender.queue_email(
             recipient.email,

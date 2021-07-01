@@ -30,6 +30,9 @@ Change 1 to whatever search_id was set to.
     <script>
     {% include "utils/generic_user_search_footer.html" with search_id=1 %}
 
+If you want to allow the user to include themselves in the
+search you can add include_me=True
+
 4. Below the block footer, set up a function to handle a user selecting another member from the list::
 
     function cobaltMemberSearchOk() {
@@ -45,6 +48,21 @@ Change 1 to whatever search_id was set to.
     function cobaltMemberSearchCancel(search_id) {
     // do something
     }
+
+Bringing it all together to make it easier to cut and paste::
+
+   {% include "utils/generic_user_search_body.html" with search_id=1 %}
+   <a class="cobalt_generic_member" data-toggle="modal" id="unique_id" data-target="#cobalt_general_member_search1">Add</a>
+   {% block footer %}
+    <script>
+    {% include "utils/generic_user_search_footer.html" with search_id=1 include_me=True%}
+    function cobaltMemberSearchOk() {
+
+    // Do whatever
+    alert(member_id[1]);
+
+    </script>
+    {% endblock %}
 
 Pagination Footer
 -----------------

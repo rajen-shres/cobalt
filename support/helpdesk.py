@@ -16,7 +16,7 @@ from support.models import Incident, IncidentLineItem, Attachment, NotifyUserByT
 
 
 def _get_user_details_from_ticket(ticket):
-    """ internal function to get basic user information from the ticket """
+    """internal function to get basic user information from the ticket"""
     if ticket.reported_by_user:  # registered
         first_name = ticket.reported_by_user.first_name
         email = ticket.reported_by_user.email
@@ -30,7 +30,7 @@ def _get_user_details_from_ticket(ticket):
 
 
 def _email_table(ticket, full_name):
-    """ format the details of the ticket for use in emails """
+    """format the details of the ticket for use in emails"""
 
     owner = ticket.assigned_to.full_name if ticket.assigned_to else "Unassigned"
 
@@ -48,6 +48,10 @@ def _email_table(ticket, full_name):
                         <td style='text-align: left'>{ticket.status}
                     </tr>
                     <tr>
+                        <td style='text-align: left'><b>Type</b>
+                        <td style='text-align: left'>{ticket.incident_type}
+                    </tr>
+                    <tr>
                         <td style='text-align: left'><b>Created Date</b>
                         <td style='text-align: left'>{ticket.created_date:%Y-%m-%d %H:%M}
                     </tr>
@@ -62,61 +66,57 @@ def _email_table(ticket, full_name):
             """
 
 
-def _notify_user_new_ticket(request, ticket):
-    """ Notify a user when a new ticket is raised """
+def _notify_user_common(
+    request, ticket, subject, email_ticket_msg, email_ticket_footer=""
+):
+    """Common parts of notifying a user"""
 
     first_name, email, full_name = _get_user_details_from_ticket(ticket)
-    subject = "Support Ticket Raised"
     email_table = _email_table(ticket, full_name)
-    email_body = f"""{request.user.full_name} has created a support ticket for you.
-                    {email_table}
-                    You will be notified via email when the status of this ticket changes.
-                    <br><br>"""
+    email_body = f"""{email_ticket_msg}{email_table}{email_ticket_footer}"""
+    link = reverse("support:helpdesk_user_edit", kwargs={"ticket_id": ticket.id})
 
     html_msg = render_to_string(
-        "notifications/email.html",
+        "notifications/email_with_button.html",
         {
             "name": first_name,
             "title": subject,
             "host": COBALT_HOSTNAME,
+            "link_text": "Open Ticket",
+            "link": link,
             "email_body": email_body,
         },
     )
 
     send_cobalt_email(email, subject, html_msg, member=ticket.reported_by_user)
+
+
+def _notify_user_new_ticket(request, ticket):
+    """Notify a user when a new ticket is raised"""
+
+    subject = f"Support Ticket Raised #{ticket.id}"
+    email_ticket_msg = f"{request.user.full_name} has created a support ticket for you."
+    email_ticket_footer = (
+        "You will be notified via email when the status of this ticket changes.<br><br>"
+    )
+
+    _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
 
 
 def _notify_user_updated_ticket(request, ticket, comment):
-    """ Notify a user when a ticket is updated """
+    """Notify a user when a ticket is updated"""
 
-    first_name, email, full_name = _get_user_details_from_ticket(ticket)
     subject = f"Support Ticket Updated #{ticket.id}"
-    email_table = _email_table(ticket, full_name)
-    email_body = f"""{request.user.full_name} has updated a support ticket for you.
-                    {email_table}
-                    <table class="receipt" border="1" cellpadding="0" cellspacing="0">
-                        <tr>
-                            <td style='text-align: left'><b>Latest Update</b>
-                            <td style='text-align: left'>{comment}
-                        </tr>
-                    </table>
-                    <br><br>"""
-
-    html_msg = render_to_string(
-        "notifications/email.html",
-        {
-            "name": first_name,
-            "title": subject,
-            "host": COBALT_HOSTNAME,
-            "email_body": email_body,
-        },
+    email_ticket_msg = f"{request.user.full_name} has updated a support ticket for you."
+    email_ticket_footer = (
+        "You will be notified via email when the status of this ticket changes.<br><br>"
     )
 
-    send_cobalt_email(email, subject, html_msg, member=ticket.reported_by_user)
+    _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
 
 
 def _notify_user_resolved_ticket(request, ticket):
-    """ Notify a user when a ticket is resolved """
+    """Notify a user when a ticket is resolved"""
 
     last_comment = (
         IncidentLineItem.objects.filter(incident=ticket)
@@ -129,12 +129,9 @@ def _notify_user_resolved_ticket(request, ticket):
     else:
         last_part = ""
 
-    first_name, email, full_name = _get_user_details_from_ticket(ticket)
-    email_table = _email_table(ticket, full_name)
     subject = "Support Ticket Resolved"
-    email_body = f"""{request.user.full_name} has closed a support ticket for you.
-                    {email_table}
-                    <table class="receipt" border="1" cellpadding="0" cellspacing="0">
+    email_ticket_msg = f"{request.user.full_name} has closed a support ticket for you."
+    email_ticket_footer = f"""<table class="receipt" border="1" cellpadding="0" cellspacing="0">
                         <tr>
                             <td style='text-align: left'><b>Latest Update</b>
                             <td style='text-align: left'>{last_part}
@@ -144,21 +141,11 @@ def _notify_user_resolved_ticket(request, ticket):
                     Please contact us again if you are still having issues.
                     <br><br>"""
 
-    html_msg = render_to_string(
-        "notifications/email.html",
-        {
-            "name": first_name,
-            "title": subject,
-            "host": COBALT_HOSTNAME,
-            "email_body": email_body,
-        },
-    )
-
-    send_cobalt_email(email, subject, html_msg, member=ticket.reported_by_user)
+    _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
 
 
 def _notify_group_common(request, ticket, subject, email_ticket_msg):
-    """ Common shared code for notifying the group """
+    """Common shared code for notifying the group"""
 
     first_name, email, full_name = _get_user_details_from_ticket(ticket)
     email_table = _email_table(ticket, full_name)
@@ -191,7 +178,7 @@ def _notify_group_common(request, ticket, subject, email_ticket_msg):
 
 
 def _notify_group_new_ticket(request, ticket):
-    """ Notify staff when a new ticket is raised """
+    """Notify staff when a new ticket is raised"""
 
     subject = f"Support Ticket Raised - Unassigned #{ticket.id}"
     email_ticket_msg = f"{request.user.full_name} has created a support ticket."
@@ -200,7 +187,7 @@ def _notify_group_new_ticket(request, ticket):
 
 
 def _notify_group_update_to_unassigned_ticket(request, ticket, reply):
-    """ Notify staff when a user updates an unassigned ticket """
+    """Notify staff when a user updates an unassigned ticket"""
 
     subject = f"Unassigned ticket updated by user #{ticket.id}"
     email_ticket_msg = f"{request.user.full_name} has updated an unassigned support ticket:<br><pre>{reply}</pre>"
@@ -209,7 +196,7 @@ def _notify_group_update_to_unassigned_ticket(request, ticket, reply):
 
 
 def _notify_group_user_closed_unassigned_ticket(request, ticket, reply):
-    """ Notify staff when a user closes an unassigned ticket """
+    """Notify staff when a user closes an unassigned ticket"""
 
     subject = f"Unassigned ticket closed by user #{ticket.id}"
     email_ticket_msg = f"{request.user.full_name} has closed an unassigned support ticket:<br><pre>{reply}</pre>"
@@ -218,7 +205,7 @@ def _notify_group_user_closed_unassigned_ticket(request, ticket, reply):
 
 
 def _notify_group_unassigned_ticket(request, ticket):
-    """ Notify staff when a ticket is unassigned (previously assigned) """
+    """Notify staff when a ticket is unassigned (previously assigned)"""
 
     subject = f"Support Ticket Unassigned #{ticket.id}"
     email_ticket_msg = f"{request.user.full_name} has unassigned a support ticket."
@@ -226,15 +213,14 @@ def _notify_group_unassigned_ticket(request, ticket):
     _notify_group_common(request, ticket, subject, email_ticket_msg)
 
 
-def _notify_staff_assigned_to_ticket(request, ticket):
-    """ Notify a staff member when a ticket is assigned to them """
+def _notify_staff_common(
+    request, ticket, subject, email_ticket_msg, email_ticket_footer=""
+):
+    """common parts for notifying staff"""
 
     first_name, email, full_name = _get_user_details_from_ticket(ticket)
     email_table = _email_table(ticket, full_name)
-    subject = f"Support Ticket Assigned to You - #{ticket.id}"
-    email_body = (
-        f"{request.user.full_name} has assigned a support ticket to you.{email_table}"
-    )
+    email_body = f"""{email_ticket_msg}{email_table}{email_ticket_footer}"""
     link = reverse("support:helpdesk_edit", kwargs={"ticket_id": ticket.id})
 
     html_msg = render_to_string(
@@ -250,59 +236,45 @@ def _notify_staff_assigned_to_ticket(request, ticket):
     )
 
     send_cobalt_email(email, subject, html_msg, member=ticket.assigned_to)
+
+
+def _notify_staff_assigned_to_ticket(request, ticket):
+    """Notify a staff member when a ticket is assigned to them"""
+
+    subject = f"Support Ticket Assigned to You - #{ticket.id}"
+    email_ticket_msg = f"{request.user.full_name} has assigned a support ticket to you."
+    _notify_staff_common(request, ticket, subject, email_ticket_msg)
 
 
 def _notify_staff_user_update_to_ticket(request, ticket, reply):
-    """ Notify a staff member when a ticket is updated by the user """
+    """Notify a staff member when a ticket is updated by the user"""
 
-    first_name, email, full_name = _get_user_details_from_ticket(ticket)
-    email_table = _email_table(ticket, full_name)
     subject = f"Support Ticket Updated by User - #{ticket.id}"
-    email_body = f"{request.user.full_name} has updated a support ticket assigned to you.{email_table}<pre>{reply}</pre><br><br>"
-    link = reverse("support:helpdesk_edit", kwargs={"ticket_id": ticket.id})
-
-    html_msg = render_to_string(
-        "notifications/email_with_button.html",
-        {
-            "name": ticket.assigned_to.first_name,
-            "title": subject,
-            "host": COBALT_HOSTNAME,
-            "link_text": "Open Ticket",
-            "link": link,
-            "email_body": email_body,
-        },
+    email_ticket_msg = (
+        f"{request.user.full_name} has updated a support ticket assigned to you."
     )
-
-    send_cobalt_email(email, subject, html_msg, member=ticket.assigned_to)
+    email_ticket_footer = f"<pre>{reply}</pre>"
+    _notify_staff_common(
+        request, ticket, subject, email_ticket_msg, email_ticket_footer
+    )
 
 
 def _notify_staff_user_closed_ticket(request, ticket, reply):
-    """ Notify a staff member when a ticket is closed by the user """
+    """Notify a staff member when a ticket is closed by the user"""
 
-    first_name, email, full_name = _get_user_details_from_ticket(ticket)
-    email_table = _email_table(ticket, full_name)
     subject = f"Support Ticket Closed by User - #{ticket.id}"
-    email_body = f"{request.user.full_name} has closed a support ticket assigned to you.{email_table}<pre>{reply}</pre><br><br>"
-    link = reverse("support:helpdesk_edit", kwargs={"ticket_id": ticket.id})
-
-    html_msg = render_to_string(
-        "notifications/email_with_button.html",
-        {
-            "name": ticket.assigned_to.first_name,
-            "title": subject,
-            "host": COBALT_HOSTNAME,
-            "link_text": "Open Ticket",
-            "link": link,
-            "email_body": email_body,
-        },
+    email_ticket_msg = (
+        f"{request.user.full_name} has closed a support ticket assigned to you."
     )
-
-    send_cobalt_email(email, subject, html_msg, member=ticket.assigned_to)
+    email_ticket_footer = f"<pre>{reply}</pre>"
+    _notify_staff_common(
+        request, ticket, subject, email_ticket_msg, email_ticket_footer
+    )
 
 
 @rbac_check_role("support.helpdesk.edit")
 def create_ticket(request):
-    """ View to create a new ticket """
+    """View to create a new ticket"""
 
     form = IncidentForm(request.POST or None)
     if form.is_valid():
@@ -337,7 +309,7 @@ def create_ticket(request):
 
 @rbac_check_role("support.helpdesk.edit")
 def helpdesk_menu(request):
-    """ Main Dashboard for the helpdesk """
+    """Main Dashboard for the helpdesk"""
 
     tickets = Incident.objects.exclude(status="Closed")
     open_tickets = tickets.count()
@@ -352,7 +324,7 @@ def helpdesk_menu(request):
 
 @rbac_check_role("support.helpdesk.edit")
 def helpdesk_list(request):
-    """ list tickets and search """
+    """list tickets and search"""
 
     form_severity = request.GET.get("severity")
     form_days = request.GET.get("days")
@@ -428,7 +400,7 @@ def helpdesk_list(request):
 
 @rbac_check_role("support.helpdesk.edit")
 def edit_ticket(request, ticket_id):
-    """ View to edit a ticket """
+    """View to edit a ticket"""
 
     ticket = get_object_or_404(Incident, pk=ticket_id)
 
@@ -524,7 +496,7 @@ def edit_ticket(request, ticket_id):
 
 @rbac_check_role("support.helpdesk.edit")
 def add_incident_line_item_ajax(request):
-    """ Ajax call to add a line item """
+    """Ajax call to add a line item"""
 
     if request.method != "POST":
         return
@@ -549,7 +521,7 @@ def add_incident_line_item_ajax(request):
 
 @rbac_check_role("support.helpdesk.edit")
 def helpdesk_attachments(request, ticket_id):
-    """ Manage attachments """
+    """Manage attachments"""
 
     ticket = get_object_or_404(Incident, pk=ticket_id)
 
@@ -578,7 +550,7 @@ def helpdesk_attachments(request, ticket_id):
 
 @rbac_check_role("support.helpdesk.edit")
 def helpdesk_delete_attachment_ajax(request):
-    """ Ajax call to delete an attachment from an incident """
+    """Ajax call to delete an attachment from an incident"""
 
     if request.method == "GET":
         attachment_id = request.GET["attachment_id"]
@@ -593,13 +565,13 @@ def helpdesk_delete_attachment_ajax(request):
 
 @login_required()
 def user_edit_ticket(request, ticket_id):
-    """ Page for a user to see their ticket """
+    """Page for a user to see their ticket"""
 
     ticket = get_object_or_404(Incident, pk=ticket_id)
 
     # check access
     if ticket.reported_by_user != request.user:
-        return HttpResponse(f"Access denied.")
+        return HttpResponse("Access denied.")
 
     if request.method == "POST":
         reply = request.POST.get(
@@ -662,14 +634,14 @@ def user_edit_ticket(request, ticket_id):
 
 
 def get_tickets(user):
-    """ get open tickets - called by the context_processors in cobalt """
+    """get open tickets - called by the context_processors in cobalt"""
 
     return Incident.objects.filter(reported_by_user=user).exists()
 
 
 @login_required()
 def user_list_tickets(request):
-    """ Allow a user to view their tickets """
+    """Allow a user to view their tickets"""
 
     open_tickets = (
         Incident.objects.exclude(status="Closed")

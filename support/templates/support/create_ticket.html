@@ -36,7 +36,7 @@
                             <div class="row" id="impacted_user_fields">
                                 <div class="col-4">
                                     <div class="form-group">
-                                        <label class="bmd-label-floating">Impacted User</label>
+                                        <label class="bmd-label-static">Impacted User</label>
                                         <span class="cobalt-form-error"
                                               id="id_reported_by_user_errors">{{ form.reported_by_user.errors|striptags }}</span>
                                         <input type="text" name="reported_by_user_fake" class="form-control"
@@ -165,7 +165,7 @@
 
 {% block footer %}
     <script>
-        {% include "utils/generic_user_search_footer.html" with search_id=1 %}
+        {% include "utils/generic_user_search_footer.html" with search_id=1 include_me=True %}
 
         function cobaltMemberSearchOk() {
             $('#id_reported_by_user').val(member_id[1]);

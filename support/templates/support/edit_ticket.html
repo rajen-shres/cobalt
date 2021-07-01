@@ -218,7 +218,7 @@
     <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
     <script>
 
-        {% include "utils/generic_user_search_footer.html" with search_id=1 %}
+        {% include "utils/generic_user_search_footer.html" with search_id=1 include_me=True %}
 
         function cobaltMemberSearchOk() {
             $('#id_reported_by_user').val(member_id[1]);

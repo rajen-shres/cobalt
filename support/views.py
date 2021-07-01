@@ -47,7 +47,7 @@ def acceptable_use(request):
 
 
 def non_production_email_changer(request):
-    """ Only for test systems - changes email address of all users """
+    """Only for test systems - changes email address of all users"""
 
     if not request.user.is_superuser:
         raise SuspiciousOperation("This is only avaiable for admin users.")
@@ -78,7 +78,7 @@ def non_production_email_changer(request):
 
 
 def contact(request):
-    """ Contact form """
+    """Contact form"""
 
     form = ContactForm(request.POST or None)
 
@@ -139,12 +139,32 @@ def contact(request):
 @login_required
 @csrf_exempt
 def browser_errors(request):
-    """ receive errors from browser code and notify support """
+    """receive errors from browser code and notify support"""
 
     if request.method == "POST":
         data = request.POST.get("data", None)
         if data:
             errors = json.loads(data)
+
+            # Ignore development
+            if COBALT_HOSTNAME == "127.0.0.1:8000":
+                print(
+                    f"Error from browser ignored: {errors['message']} User: {request.user}"
+                )
+                return HttpResponse("ok")
+
+            IGNORE_ERRORS = [
+                "TypeError: null is not an object",
+                "Uncaught ReferenceError: $sidebar is not defined",
+            ]
+
+            for ignore in IGNORE_ERRORS:
+                if errors["message"].find(ignore) >= 0:
+                    print(
+                        f"Error from browser ignored: {errors['message']} User: {request.user}"
+                    )
+                    return HttpResponse("ok")
+
             msg = f"""
                   <table>
                       <tr><td>Error<td>{errors['message']}</tr>
