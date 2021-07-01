@@ -120,9 +120,9 @@ def _notify_user_resolved_ticket(request, ticket):
 
     last_comment = (
         IncidentLineItem.objects.filter(incident=ticket)
-            .exclude(comment_type="Private")
-            .order_by("-created_date")
-            .first()
+        .exclude(comment_type="Private")
+        .order_by("-created_date")
+        .first()
     )
     if last_comment:
         last_part = f"<h2>Last Comment</h2><pre>{last_comment.description}</pre>"
@@ -258,9 +258,7 @@ def _notify_staff_user_update_to_ticket(request, ticket, reply):
     first_name, email, full_name = _get_user_details_from_ticket(ticket)
     email_table = _email_table(ticket, full_name)
     subject = f"Support Ticket Updated by User - #{ticket.id}"
-    email_body = (
-        f"{request.user.full_name} has updated a support ticket assigned to you.{email_table}<pre>{reply}</pre><br><br>"
-    )
+    email_body = f"{request.user.full_name} has updated a support ticket assigned to you.{email_table}<pre>{reply}</pre><br><br>"
     link = reverse("support:helpdesk_edit", kwargs={"ticket_id": ticket.id})
 
     html_msg = render_to_string(
@@ -284,9 +282,7 @@ def _notify_staff_user_closed_ticket(request, ticket, reply):
     first_name, email, full_name = _get_user_details_from_ticket(ticket)
     email_table = _email_table(ticket, full_name)
     subject = f"Support Ticket Closed by User - #{ticket.id}"
-    email_body = (
-        f"{request.user.full_name} has closed a support ticket assigned to you.{email_table}<pre>{reply}</pre><br><br>"
-    )
+    email_body = f"{request.user.full_name} has closed a support ticket assigned to you.{email_table}<pre>{reply}</pre><br><br>"
     link = reverse("support:helpdesk_edit", kwargs={"ticket_id": ticket.id})
 
     html_msg = render_to_string(
@@ -482,7 +478,7 @@ def edit_ticket(request, ticket_id):
             # Check for assignment
             if "assigned_to" in form.changed_data:
                 if (
-                        not ticket.assigned_to
+                    not ticket.assigned_to
                 ):  # It has been unassigned. Notify staff but not user.
                     _notify_group_unassigned_ticket(request, ticket)
                     IncidentLineItem(
@@ -606,12 +602,16 @@ def user_edit_ticket(request, ticket_id):
         return HttpResponse(f"Access denied.")
 
     if request.method == "POST":
-        reply = request.POST.get("reply", "") # let them post a blank reply if they like
+        reply = request.POST.get(
+            "reply", ""
+        )  # let them post a blank reply if they like
 
         # update to ticket by user
-        if 'reply_button' in request.POST:
+        if "reply_button" in request.POST:
 
-            IncidentLineItem(incident=ticket, description=reply, staff=request.user).save()
+            IncidentLineItem(
+                incident=ticket, description=reply, staff=request.user
+            ).save()
 
             if ticket.status == "Unassigned":
                 _notify_group_update_to_unassigned_ticket(request, ticket, reply)
@@ -629,14 +629,16 @@ def user_edit_ticket(request, ticket_id):
 
             reply = f"{request.user.full_name} closed this ticket\n\n{reply}"
 
-            IncidentLineItem(incident=ticket, description=reply, staff=request.user).save()
+            IncidentLineItem(
+                incident=ticket, description=reply, staff=request.user
+            ).save()
 
             if ticket.status == "Unassigned":
                 _notify_group_user_closed_unassigned_ticket(request, ticket, reply)
             else:
                 _notify_staff_user_closed_ticket(request, ticket, reply)
 
-            ticket.status="Closed"
+            ticket.status = "Closed"
             ticket.save()
 
             messages.success(
@@ -645,7 +647,9 @@ def user_edit_ticket(request, ticket_id):
                 extra_tags="cobalt-message-success",
             )
     # get related items
-    incident_line_items = IncidentLineItem.objects.filter(incident=ticket).exclude(comment_type="Private")
+    incident_line_items = IncidentLineItem.objects.filter(incident=ticket).exclude(
+        comment_type="Private"
+    )
 
     return render(
         request,
@@ -653,5 +657,36 @@ def user_edit_ticket(request, ticket_id):
         {
             "ticket": ticket,
             "incident_line_items": incident_line_items,
+        },
+    )
+
+
+def get_tickets(user):
+    """ get open tickets - called by the context_processors in cobalt """
+
+    return Incident.objects.filter(reported_by_user=user).exists()
+
+
+@login_required()
+def user_list_tickets(request):
+    """ Allow a user to view their tickets """
+
+    open_tickets = (
+        Incident.objects.exclude(status="Closed")
+        .filter(reported_by_user=request.user)
+        .order_by("-created_date")
+    )
+    closed_tickets = (
+        Incident.objects.filter(status="Closed")
+        .filter(reported_by_user=request.user)
+        .order_by("-created_date")
+    )
+
+    return render(
+        request,
+        "support/user_list_tickets.html",
+        {
+            "open_tickets": open_tickets,
+            "closed_tickets": closed_tickets,
         },
     )

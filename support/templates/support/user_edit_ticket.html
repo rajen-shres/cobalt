@@ -5,6 +5,13 @@
 
 {% block content %}
 
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "support:helpdesk_user_list" %}">Helpdesk Tickets</a></li>
+            <li class="breadcrumb-item active" aria-current="page">View/Edit Ticket</li>
+        </ol>
+    </nav>
+
     <div class="container">
         <div class="row">
             <div class="card mx-auto">
