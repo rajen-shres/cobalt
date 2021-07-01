@@ -8,12 +8,12 @@ from logs.views import log_event
 
 
 class CobaltBackend(ModelBackend):
-    """ Custom backend to control user logins. """
+    """Custom backend to control user logins."""
 
     def authenticate(
         self, request, username=None, password=None
     ):  # pylint: disable=arguments-differ
-        """ method to authenticate users """
+        """method to authenticate users"""
 
         user_model = get_user_model()  # get the user model from the system
 
@@ -21,7 +21,7 @@ class CobaltBackend(ModelBackend):
 
         con_type = None  # default is we don't know how they are connecting
 
-        user = user_model.objects.filter(email=username).first()
+        user = user_model.objects.filter(email=username).order_by(id).first()
         if user:
             con_type = "email"  # matched on email address
         else:
