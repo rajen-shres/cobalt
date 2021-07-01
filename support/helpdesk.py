@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -120,9 +120,9 @@ def _notify_user_resolved_ticket(request, ticket):
 
     last_comment = (
         IncidentLineItem.objects.filter(incident=ticket)
-        .exclude(comment_type="Private")
-        .order_by("-created_date")
-        .first()
+            .exclude(comment_type="Private")
+            .order_by("-created_date")
+            .first()
     )
     if last_comment:
         last_part = f"<h2>Last Comment</h2><pre>{last_comment.description}</pre>"
@@ -199,6 +199,24 @@ def _notify_group_new_ticket(request, ticket):
     _notify_group_common(request, ticket, subject, email_ticket_msg)
 
 
+def _notify_group_update_to_unassigned_ticket(request, ticket, reply):
+    """ Notify staff when a user updates an unassigned ticket """
+
+    subject = f"Unassigned ticket updated by user #{ticket.id}"
+    email_ticket_msg = f"{request.user.full_name} has updated an unassigned support ticket:<br><pre>{reply}</pre>"
+
+    _notify_group_common(request, ticket, subject, email_ticket_msg)
+
+
+def _notify_group_user_closed_unassigned_ticket(request, ticket, reply):
+    """ Notify staff when a user closes an unassigned ticket """
+
+    subject = f"Unassigned ticket closed by user #{ticket.id}"
+    email_ticket_msg = f"{request.user.full_name} has closed an unassigned support ticket:<br><pre>{reply}</pre>"
+
+    _notify_group_common(request, ticket, subject, email_ticket_msg)
+
+
 def _notify_group_unassigned_ticket(request, ticket):
     """ Notify staff when a ticket is unassigned (previously assigned) """
 
@@ -216,6 +234,58 @@ def _notify_staff_assigned_to_ticket(request, ticket):
     subject = f"Support Ticket Assigned to You - #{ticket.id}"
     email_body = (
         f"{request.user.full_name} has assigned a support ticket to you.{email_table}"
+    )
+    link = reverse("support:helpdesk_edit", kwargs={"ticket_id": ticket.id})
+
+    html_msg = render_to_string(
+        "notifications/email_with_button.html",
+        {
+            "name": ticket.assigned_to.first_name,
+            "title": subject,
+            "host": COBALT_HOSTNAME,
+            "link_text": "Open Ticket",
+            "link": link,
+            "email_body": email_body,
+        },
+    )
+
+    send_cobalt_email(email, subject, html_msg, member=ticket.assigned_to)
+
+
+def _notify_staff_user_update_to_ticket(request, ticket, reply):
+    """ Notify a staff member when a ticket is updated by the user """
+
+    first_name, email, full_name = _get_user_details_from_ticket(ticket)
+    email_table = _email_table(ticket, full_name)
+    subject = f"Support Ticket Updated by User - #{ticket.id}"
+    email_body = (
+        f"{request.user.full_name} has updated a support ticket assigned to you.{email_table}<pre>{reply}</pre><br><br>"
+    )
+    link = reverse("support:helpdesk_edit", kwargs={"ticket_id": ticket.id})
+
+    html_msg = render_to_string(
+        "notifications/email_with_button.html",
+        {
+            "name": ticket.assigned_to.first_name,
+            "title": subject,
+            "host": COBALT_HOSTNAME,
+            "link_text": "Open Ticket",
+            "link": link,
+            "email_body": email_body,
+        },
+    )
+
+    send_cobalt_email(email, subject, html_msg, member=ticket.assigned_to)
+
+
+def _notify_staff_user_closed_ticket(request, ticket, reply):
+    """ Notify a staff member when a ticket is closed by the user """
+
+    first_name, email, full_name = _get_user_details_from_ticket(ticket)
+    email_table = _email_table(ticket, full_name)
+    subject = f"Support Ticket Closed by User - #{ticket.id}"
+    email_body = (
+        f"{request.user.full_name} has closed a support ticket assigned to you.{email_table}<pre>{reply}</pre><br><br>"
     )
     link = reverse("support:helpdesk_edit", kwargs={"ticket_id": ticket.id})
 
@@ -412,7 +482,7 @@ def edit_ticket(request, ticket_id):
             # Check for assignment
             if "assigned_to" in form.changed_data:
                 if (
-                    not ticket.assigned_to
+                        not ticket.assigned_to
                 ):  # It has been unassigned. Notify staff but not user.
                     _notify_group_unassigned_ticket(request, ticket)
                     IncidentLineItem(
@@ -523,3 +593,65 @@ def helpdesk_delete_attachment_ajax(request):
 
         response_data = {"message": "Success"}
         return JsonResponse({"data": response_data})
+
+
+@login_required()
+def user_edit_ticket(request, ticket_id):
+    """ Page for a user to see their ticket """
+
+    ticket = get_object_or_404(Incident, pk=ticket_id)
+
+    # check access
+    if ticket.reported_by_user != request.user:
+        return HttpResponse(f"Access denied.")
+
+    if request.method == "POST":
+        reply = request.POST.get("reply", "") # let them post a blank reply if they like
+
+        # update to ticket by user
+        if 'reply_button' in request.POST:
+
+            IncidentLineItem(incident=ticket, description=reply, staff=request.user).save()
+
+            if ticket.status == "Unassigned":
+                _notify_group_update_to_unassigned_ticket(request, ticket, reply)
+            else:
+                _notify_staff_user_update_to_ticket(request, ticket, reply)
+
+            messages.success(
+                request,
+                "Ticket successfully updated and notifications sent.",
+                extra_tags="cobalt-message-success",
+            )
+
+        # Close button - No name comes through as the JS to confirm loses it
+        else:
+
+            reply = f"{request.user.full_name} closed this ticket\n\n{reply}"
+
+            IncidentLineItem(incident=ticket, description=reply, staff=request.user).save()
+
+            if ticket.status == "Unassigned":
+                _notify_group_user_closed_unassigned_ticket(request, ticket, reply)
+            else:
+                _notify_staff_user_closed_ticket(request, ticket, reply)
+
+            ticket.status="Closed"
+            ticket.save()
+
+            messages.success(
+                request,
+                "Ticket successfully closed and notifications sent.",
+                extra_tags="cobalt-message-success",
+            )
+    # get related items
+    incident_line_items = IncidentLineItem.objects.filter(incident=ticket).exclude(comment_type="Private")
+
+    return render(
+        request,
+        "support/user_edit_ticket.html",
+        {
+            "ticket": ticket,
+            "incident_line_items": incident_line_items,
+        },
+    )

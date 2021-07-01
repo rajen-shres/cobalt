@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% load cobalt_tags %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row">
+            <div class="card mx-auto">
+                <div class="card-header card-header-info">
+                    <h1>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                Helpdesk Ticket #{{ ticket.id }}
+                            </div>
+                            <div>
+                                <i class="material-icons" style="font-size:50px">local_activity</i>
+                            </div>
+                        </div>
+                    </h1>
+                    {% if ticket.status == "Closed" %}
+                    <h2>This ticket is closed</h2>
+                    {% endif %}
+                    <p>Ticket is {{ ticket.created_date|timesince }} old</p>
+                </div>
+                <div class="card-body">
+                    <table class="table-responsive table-hover table-bordered">
+                    <tr>
+                        <td>Title
+                        <td>{{ ticket.title }}
+                    </tr>
+                    <tr>
+
+{# Only logged in users can access this page - no need to cater for unregistered #}
+
+                        <td>Member
+                        <td>{{ ticket.reported_by_user.full_name }}
+                    </tr>
+                     <tr>
+                        <td>Contact Email
+                        <td>{{ ticket.reported_by_user.email }}
+                    </tr>
+                    <tr>
+                        <td>Ticket Status
+                        <td>{{ ticket.status }}
+                    </tr>
+                    <tr>
+                        <td>Ticket Created Date
+                        <td>{{ ticket.created_date|cobalt_nice_datetime }}
+                    </tr>
+                    <tr>
+                        <td>Assigned To
+                        <td>{{ ticket.assigned_to.full_name|default_if_none:"Unassigned" }}
+                    </tr>
+                </table>
+                <div class="card">
+                    <div class="card-header card-header-rose">
+                        <h3>Description</h3>
+                    </div>
+                    <div class="card-body">
+                        <pre>{{ ticket.description }}</pre>
+                    </div>
+                </div>
+                        {% for incident_line_item in incident_line_items %}
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card p-1">
+                                            <div>
+                                                {{ incident_line_item.staff.full_name }}:
+                                                <span data-toggle="tooltip"
+                                                      title="{{ incident_line_item.created_date|timesince }} ago">
+                                                {{ incident_line_item.created_date|cobalt_nice_datetime }}</span>
+                                            </div>
+                                        <br>
+                                        <pre>{{ incident_line_item.description }}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                    {% if ticket.status == "Closed" %}
+                    <h3>Ticket is closed</h3>
+                    {% else %}
+                    <form method="POST">
+                        {% csrf_token %}
+                          <div class="form-group">
+                            <label for="reply">Enter a reply below if you wish to provide more information or make a comment when closing this ticket</label>
+                            <textarea class="form-control" name="reply" id="reply" rows="8"></textarea>
+                          </div>
+                        <button type=""submit" name="reply_button" class="btn btn-success cobalt-save">Reply</button>
+                        <button type=""submit" id="id_close_button" name="close_button" class="btn btn-danger cobalt-save">Close Ticket</button>
+                        <a href="{%  url "dashboard:dashboard" %}" class="btn btn-info">Cancel</a>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block footer %}
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+    <script>
+
+        $(document).ready(function () {
+
+            // initialise tooltips
+            $('[data-toggle="tooltip"]').tooltip()
+
+            // confirm closing ticket
+            $('#id_close_button').on('click',function(e){
+                e.preventDefault();
+                const form = $(this).parents('form');
+                swal.fire({
+                    title: "Are you sure?",
+                    text: "This will close your ticket",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Close Ticket",
+                }).then((result) => {
+                    console.log(result);
+                    if (result.isConfirmed) form.submit();
+                    // re-enable button if cancelled
+                    $(".cobalt-save").prop('disabled', false);
+                });
+            });
+
+        }); // document ready
+
+    </script>
+{% endblock footer %}
