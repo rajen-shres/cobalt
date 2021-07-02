@@ -10,6 +10,8 @@ urlpatterns = [
     path("search", views.search, name="search"),
     path("cookies", views.cookies, name="cookies"),
     path("contact", views.contact, name="contact"),
+    path("contact-logged-in", views.contact_logged_in, name="contact_logged_in"),
+    path("contact-logged-out", views.contact_logged_out, name="contact_logged_out"),
     path("guidelines", views.guidelines, name="guidelines"),
     path("acceptable-use", views.acceptable_use, name="acceptable_use"),
     path(

@@ -1,0 +1,29 @@
+<table id="ticket_table{{ counter|default_if_none:""}}" class="table table-hover table-condensed" style="display: none;">
+    <thead class="text-info">
+    <tr>
+        <th>Severity</th>
+        <th>Created Time</th>
+        <th class="text-left">Impacted User</th>
+        <th class="text-left">Title</th>
+        <th class="text-left">Status</th>
+        <th class="text-left">Type</th>
+        <th class="text-left">Assigned to</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for thing in things %}
+        {% if thing.severity == "Low" %}
+            {% include "support/list_tickets_tr.html" with icon="bug_report" td_class="bg-white" icon_colour="text-primary" %}
+        {% endif %}
+        {% if thing.severity == "Medium" %}
+            {% include "support/list_tickets_tr.html" with icon="info" td_class="bg-light" icon_colour="text-info" %}
+        {% endif %}
+        {% if thing.severity == "High" %}
+            {% include "support/list_tickets_tr.html" with icon="warning" td_class="bg-danger text-white" icon_colour="text-white" %}
+        {% endif %}
+        {% if thing.severity == "Critical" %}
+            {% include "support/list_tickets_tr.html" with icon="priority_high" td_class="bg-dark text-white font-weight-bold" %}
+        {% endif %}
+    {% endfor %}
+    </tbody>
+</table>

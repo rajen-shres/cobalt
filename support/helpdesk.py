@@ -34,7 +34,7 @@ def _email_table(ticket, full_name):
 
     owner = ticket.assigned_to.full_name if ticket.assigned_to else "Unassigned"
 
-    return f"""<table class="receipt" border="1" cellpadding="0" cellspacing="0">
+    return f"""<br><br><table class="receipt" border="1" cellpadding="0" cellspacing="0">
                     <tr>
                         <td style='text-align: left'><b>Ticket #{ticket.id}</b>
                         <td style='text-align: left'>{ticket.title}
@@ -91,8 +91,20 @@ def _notify_user_common(
     send_cobalt_email(email, subject, html_msg, member=ticket.reported_by_user)
 
 
-def _notify_user_new_ticket(request, ticket):
-    """Notify a user when a new ticket is raised"""
+def notify_user_new_ticket_by_form(request, ticket):
+    """Notify a user when a new ticket is raised through the form - ie they did it themselves"""
+
+    subject = f"Support Ticket Raised #{ticket.id}"
+    email_ticket_msg = "We have created a support ticket for you."
+    email_ticket_footer = (
+        "You will be notified via email when the status of this ticket changes.<br><br>"
+    )
+
+    _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
+
+
+def _notify_user_new_ticket_by_staff(request, ticket):
+    """Notify a user when a new ticket is raised by staff"""
 
     subject = f"Support Ticket Raised #{ticket.id}"
     email_ticket_msg = f"{request.user.full_name} has created a support ticket for you."
@@ -108,9 +120,8 @@ def _notify_user_updated_ticket(request, ticket, comment):
 
     subject = f"Support Ticket Updated #{ticket.id}"
     email_ticket_msg = f"{request.user.full_name} has updated a support ticket for you."
-    email_ticket_footer = (
-        "You will be notified via email when the status of this ticket changes.<br><br>"
-    )
+    email_ticket_footer = f"""<h2>Last Comment</h2><pre>{comment}</pre><br><br>
+        You will be notified via email when the status of this ticket changes.<br><br>"""
 
     _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
 
@@ -177,11 +188,12 @@ def _notify_group_common(request, ticket, subject, email_ticket_msg):
     email_sender.send()
 
 
-def _notify_group_new_ticket(request, ticket):
+def notify_group_new_ticket(request, ticket):
     """Notify staff when a new ticket is raised"""
 
+    first_name, email, full_name = _get_user_details_from_ticket(ticket)
     subject = f"Support Ticket Raised - Unassigned #{ticket.id}"
-    email_ticket_msg = f"{request.user.full_name} has created a support ticket."
+    email_ticket_msg = f"{full_name} has created a support ticket."
 
     _notify_group_common(request, ticket, subject, email_ticket_msg)
 
@@ -281,11 +293,11 @@ def create_ticket(request):
         ticket = form.save()
 
         # Notify the user
-        _notify_user_new_ticket(request, ticket)
+        _notify_user_new_ticket_by_staff(request, ticket)
 
         # if unassigned, notify everyone
         if ticket.status == "Unassigned":
-            _notify_group_new_ticket(request, ticket)
+            notify_group_new_ticket(request, ticket)
 
         else:
             IncidentLineItem(
@@ -313,12 +325,17 @@ def helpdesk_menu(request):
 
     tickets = Incident.objects.exclude(status="Closed")
     open_tickets = tickets.count()
-    unassigned_tickets = tickets.filter(assigned_to=None).count()
+    unassigned_tickets = tickets.filter(assigned_to=None)
+    assigned_to_you = tickets.filter(assigned_to=request.user)
 
     return render(
         request,
         "support/helpdesk_menu.html",
-        {"open_tickets": open_tickets, "unassigned_tickets": unassigned_tickets},
+        {
+            "open_tickets": open_tickets,
+            "unassigned_tickets": unassigned_tickets,
+            "assigned_to_you": assigned_to_you,
+        },
     )
 
 
@@ -506,6 +523,12 @@ def add_incident_line_item_ajax(request):
     text = request.POST.get("text")
 
     ticket = get_object_or_404(Incident, pk=ticket_id)
+
+    # If this isn't assigned then assign it now
+    if not ticket.assigned_to:
+        ticket.assigned_to = request.user
+        ticket.status = "In Progress"
+        ticket.save()
 
     comment_type = "Private" if private_flag else "Default"
     IncidentLineItem(

@@ -18,7 +18,12 @@ from notifications.views import send_cobalt_email
 from payments.models import MemberTransaction
 from rbac.core import rbac_user_has_role
 from utils.utils import cobalt_paginator
-from .forms import ContactForm
+from .forms import (
+    ContactForm,
+    HelpdeskLoggedInContactForm,
+    HelpdeskLoggedOutContactForm,
+)
+from .helpdesk import notify_user_new_ticket_by_form, notify_group_new_ticket
 
 
 @login_required
@@ -74,6 +79,59 @@ def non_production_email_changer(request):
 
     return render(
         request, "support/non_production_email_changer.html", {"all_users": all_users}
+    )
+
+
+@login_required()
+def contact_logged_in(request):
+    """Contact form for logged in users"""
+
+    form = HelpdeskLoggedInContactForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        ticket = form.save()
+        notify_user_new_ticket_by_form(request, ticket)
+        notify_group_new_ticket(request, ticket)
+
+        messages.success(
+            request,
+            "Helpdesk ticket logged. You will be informed of progress via email.",
+            extra_tags="cobalt-message-success",
+        )
+
+        return redirect("support:support")
+
+    return render(
+        request,
+        "support/contact_logged_in.html",
+        {
+            "form": form,
+        },
+    )
+
+
+def contact_logged_out(request):
+    """Contact form for logged out users"""
+
+    form = HelpdeskLoggedOutContactForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        ticket = form.save()
+        notify_user_new_ticket_by_form(request, ticket)
+        notify_group_new_ticket(request, ticket)
+
+        messages.add_message(
+            request,
+            messages.INFO,
+            "Helpdesk ticket logged. You will be informed of progress via email.",
+        )
+
+        return redirect("/")
+
+    return render(
+        request,
+        "support/contact_logged_out.html",
+        {
+            "form": form,
+        },
     )
 
 

@@ -5,7 +5,7 @@ from support.models import Incident, Attachment
 
 
 class ContactForm(forms.Form):
-    """ Contact Support """
+    """Contact Support"""
 
     title = forms.CharField(label="Title", max_length=80)
     message = forms.CharField(label="Message")
@@ -13,8 +13,42 @@ class ContactForm(forms.Form):
     email = forms.CharField(label="email(required if not logged in)")
 
 
+class HelpdeskLoggedInContactForm(forms.ModelForm):
+    """Contact form for users who are logged in"""
+
+    class Meta:
+        model = Incident
+        fields = ("title", "description", "reported_by_user", "incident_type")
+
+
+class HelpdeskLoggedOutContactForm(forms.ModelForm):
+    """Contact form for users who are logged out"""
+
+    class Meta:
+        model = Incident
+        fields = (
+            "reported_by_name",
+            "reported_by_email",
+            "title",
+            "description",
+        )
+        labels = {
+            "title": "Subject",
+            "reported_by_email": "Your email address",
+            "reported_by_name": "Your name",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(HelpdeskLoggedOutContactForm, self).__init__(*args, **kwargs)
+        # require fields
+        self.fields["title"].required = True
+        self.fields["description"].required = True
+        self.fields["reported_by_email"].required = True
+        self.fields["reported_by_name"].required = True
+
+
 class IncidentForm(forms.ModelForm):
-    """ Create a new helpdesk ticket """
+    """Create a new helpdesk ticket"""
 
     class Meta:
         model = Incident
@@ -31,7 +65,7 @@ class IncidentForm(forms.ModelForm):
         )
 
     def __init__(self, *args, **kwargs):
-        """ override init so we can set the assigned_to field to be only support staff"""
+        """override init so we can set the assigned_to field to be only support staff"""
         super(IncidentForm, self).__init__(*args, **kwargs)
 
         staff = [(None, "Unassigned")] + list(
@@ -42,7 +76,7 @@ class IncidentForm(forms.ModelForm):
         self.fields["assigned_to"].choices = staff
 
     def clean(self):
-        """ custom validation """
+        """custom validation"""
         cleaned_data = super(IncidentForm, self).clean()
 
         print(cleaned_data.get("reported_by_user"))
