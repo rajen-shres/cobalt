@@ -63,7 +63,7 @@ class Incident(models.Model):
     reported_by_name = models.CharField(max_length=100, blank=True, null=True)
     """ for use when we do not have a user object """
 
-    title = models.CharField(max_length=80)
+    title = models.CharField("Subject", max_length=80)
     """ Short description """
 
     description = models.TextField()
@@ -95,7 +95,7 @@ class Incident(models.Model):
 
 
 class IncidentLineItem(models.Model):
-    """ a thing that happens to an Incident """
+    """a thing that happens to an Incident"""
 
     incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
     """ Parent incident """
@@ -119,7 +119,7 @@ class IncidentLineItem(models.Model):
 
 
 class Attachment(models.Model):
-    """ screenshots etc """
+    """screenshots etc"""
 
     document = models.FileField(upload_to="helpdesk/%Y/%m/%d/")
     create_date = models.DateTimeField(default=timezone.now)
