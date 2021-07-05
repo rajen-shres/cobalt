@@ -27,10 +27,10 @@ INCIDENT_COMMENT_TYPE = [
     ("Private", "Private - not shown to user"),
 ]
 INCIDENT_SEVERITY = [
-    ("Low", "Low"),
-    ("Medium", "Medium"),
-    ("High", "High"),
     ("Critical", "Critical"),
+    ("High", "High"),
+    ("Medium", "Medium"),
+    ("Low", "Low"),
 ]
 
 

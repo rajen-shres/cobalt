@@ -520,6 +520,8 @@ def add_incident_line_item_ajax(request):
     ticket_id = request.POST.get("ticket_id")
     private_flag = request.POST.get("private_flag")
     private_flag = private_flag == "1"
+    feedback_flag = request.POST.get("feedback_flag")
+    feedback_flag = feedback_flag == "1"
     text = request.POST.get("text")
 
     ticket = get_object_or_404(Incident, pk=ticket_id)
@@ -528,6 +530,11 @@ def add_incident_line_item_ajax(request):
     if not ticket.assigned_to:
         ticket.assigned_to = request.user
         ticket.status = "In Progress"
+        ticket.save()
+
+    # if feedback flag is set then change the status
+    if feedback_flag:
+        ticket.status = "Awaiting User Feedback"
         ticket.save()
 
     comment_type = "Private" if private_flag else "Default"
