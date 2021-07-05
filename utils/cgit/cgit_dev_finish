@@ -56,7 +56,8 @@ then
   echo "Deploying to test server..."
   echo ""
 
-  TESTENV=`eb list | grep cobalt-test` 
+# Remove * if this is default env for eb
+  TESTENV=`eb list | grep cobalt-test | tr \* " "`
   TESTNUM=`eb list | grep cobalt-test | wc | awk '{print $1}'`
 
   if [ "$TESTNUM" = "1" ]
