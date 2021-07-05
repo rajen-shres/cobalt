@@ -267,3 +267,30 @@ attack) by adding this to your .ssh/config::
   Host *
    StrictHostKeyChecking no
    UserKnownHostsFile=/dev/null
+
+CGIT
+====
+
+Cgit is a bunch of scripts to make working with Git and Elastic
+Beanstalk easier. They are not a required part of Cobalt, but they do
+live within the Cobalt source code inside utils (utils/cgit - you
+can add this to your path or copy the files to somewhere on your path,
+it is up to you).
+
+Cgit only really runs on a Mac.
+
+Installation
+------------
+
+Set up your path (or copy files) and you should be able to run::
+
+    cgit_help
+
+This should get you started. If you don't already have the EB CLI tool,
+the AWSCLI tool and git installed then you will have problems.
+
+Additionally you need to install gawk if you want to use the reporting::
+
+    brew install gnu-sed gawk
+
+
