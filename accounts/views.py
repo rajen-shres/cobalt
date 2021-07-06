@@ -83,6 +83,8 @@ def _check_duplicate_email(user):
             html_msg,
         )
 
+    return others_same_email.exists()
+
 
 def register(request):
     """User registration form
@@ -507,7 +509,13 @@ def profile(request):
         if form.is_valid():
             user = form.save()
             if "email" in form.changed_data:
-                _check_duplicate_email(user)
+                if _check_duplicate_email(user):
+                    messages.warning(
+                        request,
+                        "This email is also being used by another member. This is allowed, but please check the name on the email to see who it was intended for.",
+                        extra_tags="cobalt-message-warning",
+                    )
+
             # auto top up select list needs to be refreshed
             # Fix DOB format for browser - expects DD/MM/YYYY
             if request.user.dob:

@@ -10,6 +10,7 @@ INCIDENT_STATUS_TYPES = [
     ("Closed", "Closed"),
 ]
 INCIDENT_NATURE_TYPES = [
+    ("Bridge Credits", "Bridge Credits"),
     ("Congress Admin", "Congress Admin"),
     ("Congress Entry", "Congress Entry"),
     ("Club Admin", "Club Admin"),

@@ -84,7 +84,7 @@
                     {% endfor %}
                 </select>
                 <select class="selectpicker" data-style="btn btn-dark" id="id_incident_type" name="incident_type">
-                    <option value="All">Type - All</option>
+                    <option value="All">Product Area - All</option>
                     {% for incident_type in incident_types %}
                         <option
                                 {% if form_incident_type == incident_type.incident_type %}selected{% endif %}
@@ -137,7 +137,8 @@
                     {sWidth: '10%'},
                     {sWidth: '20%'},
                     {sWidth: '20%'},
-                    {sWidth: '20%'},
+                    {sWidth: '10%'},
+                    {sWidth: '10%'},
                     {sWidth: '10%'},
                     {sWidth: '10%'},
                     {sWidth: '10%'},

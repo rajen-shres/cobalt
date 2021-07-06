@@ -34,7 +34,7 @@
 
                             {# user #}
                             <div class="row" id="impacted_user_fields">
-                                <div class="col-4">
+                                <div id="id_user_field" class="col-4" style="display: none;">
                                     <div class="form-group">
                                         <label class="bmd-label-static">Impacted User</label>
                                         <span class="cobalt-form-error"
@@ -44,10 +44,10 @@
                                     </div>
                                 </div>
                                 <div class="col-2">
-                                    <a class="cobalt_generic_member btn btn-sm btn-info" data-toggle="modal"
+                                    <a class="cobalt_generic_member btn btn-sm btn-danger" data-toggle="modal"
 
                                        data-target="#cobalt_general_member_search1"><span
-                                            id="id_member_button">Add</span></a>
+                                            id="id_member_button">Search Impacted User</span></a>
                                 </div>
                             </div>
                             <input type="hidden" id="id_reported_by_user" name="reported_by_user" value="">
@@ -171,6 +171,7 @@
             $('#id_reported_by_user').val(member_id[1]);
             $('#id_reported_by_user_fake').val(member_name[1]);
             $('#id_member_button').text('Change');
+            $('#id_user_field').show();
         }
 
         $(document).ready(function () {

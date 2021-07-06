@@ -127,6 +127,10 @@ DUMMY_DATA_COUNT = int(set_value("DUMMY_DATA_COUNT", 20))
 # Set this to the string "ON" to put site into maintenance mode - only admins can login
 MAINTENANCE_MODE = set_value("MAINTENANCE_MODE", "OFF")
 
+# Recaptcha keys
+RECAPTCHA_SITE_KEY = set_value("RECAPTCHA_SITE_KEY")
+RECAPTCHA_SECRET_KEY = set_value("RECAPTCHA_SECRET_KEY")
+
 #########################################
 # Dynamic settings.                     #
 #########################################

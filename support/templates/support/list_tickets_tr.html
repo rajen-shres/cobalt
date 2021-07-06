@@ -5,7 +5,7 @@
             <div class="col float-left">
                 <span class="float-left material-icons {{ icon_colour }}">{{ icon }}</span>
             </div>
-            <div class="col float-right">
+            <div class="col float-right {{  td_class }}">
                 {{ thing.severity }}
             </div>
         </div>
@@ -22,4 +22,5 @@
     <td class="text-left">{{ thing.status }}</td>
     <td class="text-left">{{ thing.incident_type }}</td>
     <td class="text-left">{{ thing.assigned_to.first_name }}</td>
+    <td class="text-left">{{ thing.id }}</td>
 </tr>

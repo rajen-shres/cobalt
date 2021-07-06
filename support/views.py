@@ -11,7 +11,7 @@ from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 
 from accounts.models import User
-from cobalt.settings import ADMINS, COBALT_HOSTNAME
+from cobalt.settings import ADMINS, COBALT_HOSTNAME, RECAPTCHA_SITE_KEY
 from events.models import Congress
 from forums.models import Post, Forum
 from notifications.views import send_cobalt_email
@@ -131,6 +131,7 @@ def contact_logged_out(request):
         "support/contact_logged_out.html",
         {
             "form": form,
+            "site_key": RECAPTCHA_SITE_KEY,
         },
     )
 
