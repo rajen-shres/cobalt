@@ -28,6 +28,7 @@ cgit_uat_fix_finish       - releases fix to UAT
 Production
 ----------
 
+cgit_prod_preview         - shows what will be changed
 cgit_prod_publish         - push release to production
 cgit_prod_hotfix_start    - create hotfix 
 cgit_prod_hotfix_save     - save work so far 
@@ -41,8 +42,8 @@ Current Status
 EOF
 
 # Be careful with AWS env variables
-#unset AWS_SECRET_ACCESS_KEY
-#unset AWS_ACCESS_KEY_ID
+unset AWS_SECRET_ACCESS_KEY
+unset AWS_ACCESS_KEY_ID
 
 # Get status of envs
 TESTENV=$(eb list | grep cobalt-test | tr \* " ")

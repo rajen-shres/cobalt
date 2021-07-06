@@ -289,8 +289,17 @@ Set up your path (or copy files) and you should be able to run::
 This should get you started. If you don't already have the EB CLI tool,
 the AWSCLI tool and git installed then you will have problems.
 
-Additionally you need to install gawk if you want to use the reporting::
+Additionally you need to install a diff viewer to use the reporting::
 
-    brew install gnu-sed gawk
+    sudo npm install -g diff2html-cli
 
+Usage
+-----
 
+cgit_help provides a list of all of the commands. They should be used in order.
+
+Cgit adds descriptions to the Elastic Beanstalk releases so it can
+know exactly what is installed in each system. If you release without
+using cgit try to include this information anyway if you can::
+
+    eb deploy -m "<branch>@<YYYY.MM.DD:HH:MM>"
