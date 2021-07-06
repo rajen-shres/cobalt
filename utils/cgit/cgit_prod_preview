@@ -1,21 +1,25 @@
 #!/bin/bash
 
-BRANCH=$(git branch --show-current)
+# sudo npm install -g diff2html-cli
 
-if [[ $BRANCH != *"release"* ]]; then
-  echo "You are not on a release branch. Change to a release branch to perform this function."
-  exit 1
-fi
+#BRANCH=$(git branch --show-current)
+
+
+#if [[ $BRANCH != *"release"* ]]; then
+#  echo "You are not on a release branch. Change to a release branch to perform this function."
+#  exit 1
+#fi
 
 clear
+echo "Not testing for release branch"
 echo "Building Preview..."
 
-echo "Pulling $BRANCH..."
-git pull origin $BRANCH
-if [ $? -ne 0 ];then
- echo "error"
- exit 1
-fi
+#echo "Pulling $BRANCH..."
+#git pull origin $BRANCH
+#if [ $? -ne 0 ];then
+# echo "error"
+# exit 1
+#fi
 
 echo "Getting current production branch..."
 PRODENV=$(eb list | grep cobalt-production | tr \* " ")
@@ -31,29 +35,5 @@ if [ $? -ne 0 ];then
  echo "Error!"
  exit 1
 fi
-FILE_DIFF=$(git diff --name-status $PRODBRANCH..$BRANCH)
-FILE_COUNT=$(echo $FILE_DIFF|wc|awk '{print$1'})
 
-FILENAME=/tmp/a.html
-
-echo "<h1>Comparing Production($PRODBRANCH) to this branch($BRANCH)</h1>" > $FILENAME
-
-echo "<h2>File Changes</h2>" >> $FILENAME
-echo "There are $FILE_COUNT different files." >> $FILENAME
-echo "<ul>" >> $FILENAME
-for line in $FILE_DIFF; do
-    size=${#line}
-    if [ "$size" -gt "1" ]; then
-    echo "<li>$line" >> $FILENAME
-    fi
-done
-echo "</ul>" >> $FILENAME
-
-for line in $FILE_DIFF; do
-  size=${#line}
-  if [ "$size" -gt "1" ]; then
-  git diff --color-words $PRODBRANCH..$BRANCH $line | cgit_ansi2html.sh >>$FILENAME
-  fi
-done
-
-$(open $FILENAME)
+diff2html -s side --su open -- -M $PRODBRANCH
