@@ -40,6 +40,10 @@ Current Status
 
 EOF
 
+# Be careful with AWS env variables
+#unset AWS_SECRET_ACCESS_KEY
+#unset AWS_ACCESS_KEY_ID
+
 # Get status of envs
 TESTENV=$(eb list | grep cobalt-test | tr \* " ")
 UATENV=$(eb list | grep cobalt-uat | tr \* " ")
@@ -52,6 +56,7 @@ echo "Test is running: $DESC"
 APP=$(eb status $UATENV | grep Deploy | awk '{print $3}')
 DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
 UATBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
+#git pull origin $UATBRANCH
 FILE_DIFF=$(git diff --name-status $UATBRANCH..develop | wc | awk '{print $1}')
 echo "UAT is running: $DESC [$FILE_DIFF files different from develop]"
 
@@ -59,6 +64,7 @@ APP=$(eb status $PRODENV | grep Deploy | awk '{print $3}')
 DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
 PRODBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
 PRODBRANCH=release/1.0.13
+#git pull origin $PRODBRANCH
 echo "PRODBRANCH is hardcoded for now"
 FILE_DIFF=$(git diff --name-status $PRODBRANCH..$UATBRANCH | wc | awk '{print $1}')
 echo "Production is running: $DESC [$FILE_DIFF files different from UAT]"
