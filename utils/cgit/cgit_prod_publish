@@ -46,8 +46,8 @@ then
   echo ""
 
   PRODENV=`eb list | grep cobalt-production` 
-
-  eb deploy $PRODENV
+  DATE=$(date '+%Y.%m.%d:%H:%M')
+  eb deploy -m "$BRANCH@$DATE" $PRODENV
 
   echo ""
   echo ""
