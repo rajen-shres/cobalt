@@ -76,7 +76,8 @@ then
   PRODENV=`eb list | grep cobalt-prod` 
 
   echo "Deploying code to $PRODENV..."
-  eb deploy $PRODENV
+  DATE=$(date '+%Y.%m.%d:%H:%M')
+  eb deploy -m "release/#RELEASE@$DATE" $PRODENV
   echo ""
 
   echo ""
@@ -157,8 +158,6 @@ then
   echo "#        DONE         #"
   echo "#                     #"
   echo "#######################"
-  echo ""
-  echo ""
 
 else
   echo ""

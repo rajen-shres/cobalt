@@ -202,16 +202,17 @@ jQuery(document).ready(function() {
 //
 // listen for escape and close dialog
 //
-
   document.addEventListener('keyup', escapeSearch{{ search_id }});
 
 //
 // Fix for bootstrap on ios not showing the modal window
 //
+{# ------- This breaks summernote file upload so allow it to be disabled ------- #}
+    {% if not prevent_ios_fix %}
   $(document).on('show.bs.modal', '.modal', function () {
     $(this).appendTo('body');
   });
-
+    {% endif %}
 
 // Link enter key to clicking the search button
   var input = $("#id_system_number{{ search_id }}");

@@ -12,14 +12,14 @@
     </a>
     </td>
     <td title="{{ thing.created_date|timesince }} ago"
-        data-toggle="tooltip">{{ thing.created_date|date:'d/m/Y H:i:s' }}</td>
+        data-toggle="tooltip">{{ thing.created_date|date:'Y-m-d H:i:s' }}</td>
+    <td class="text-left">{{ thing.status }}</td>
     {% if thing.reported_by_user %}
         <td class="text-left">{{ thing.reported_by_user }}</td>
     {% else %}
         <td class="text-left">{{ thing.reported_by_name }} ({{ thing.reported_by_email }})</td>
     {% endif %}
     <td class="text-left">{{ thing.title }}</td>
-    <td class="text-left">{{ thing.status }}</td>
     <td class="text-left">{{ thing.incident_type }}</td>
     <td class="text-left">{{ thing.assigned_to.first_name }}</td>
     <td class="text-left">{{ thing.id }}</td>

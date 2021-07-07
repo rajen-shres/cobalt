@@ -1,7 +1,8 @@
 from django import forms
 
 from rbac.core import rbac_get_users_with_role
-from support.models import Incident, Attachment
+from support.models import Incident, Attachment, IncidentLineItem
+from django_summernote.widgets import SummernoteInplaceWidget
 
 
 class ContactForm(forms.Form):
@@ -95,3 +96,16 @@ class AttachmentForm(forms.ModelForm):
     class Meta:
         model = Attachment
         fields = ("document", "incident", "description")
+
+
+class IncidentLineItemForm(forms.ModelForm):
+
+    description = forms.CharField(
+        widget=SummernoteInplaceWidget(
+            attrs={"summernote": {"placeholder": "<br><br>Add Comment..."}}
+        )
+    )
+
+    class Meta:
+        model = IncidentLineItem
+        fields = ("description",)

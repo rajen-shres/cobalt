@@ -30,6 +30,9 @@
 
     </div>
     <h1>Contact Us</h1>
+    {% if not is_human %}
+    <h2>Form not submitted. Google thinks you are a robot</h2>
+    {% endif %}
     <div>
         <div class="inner">
             <form id="contactform" method="post">
@@ -53,12 +56,7 @@
 <script src="https://www.google.com/recaptcha/api.js"></script>
 <script>
    function onSubmit(token) {
-       console.log(token);
-       $.post( "https://www.google.com/recaptcha/api/siteverify", { secret: "{{ site_key }}", response: token })
-        .done(function( data ) {
-        console.log(data);
-        });
-     document.getElementById("contactform").submit();
+       document.getElementById("contactform").submit();
    }
  </script>
 {% endblock footer %}

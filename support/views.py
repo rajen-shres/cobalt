@@ -1,6 +1,7 @@
 import json
 from itertools import chain
 
+import requests
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import SuspiciousOperation
@@ -11,7 +12,12 @@ from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 
 from accounts.models import User
-from cobalt.settings import ADMINS, COBALT_HOSTNAME, RECAPTCHA_SITE_KEY
+from cobalt.settings import (
+    ADMINS,
+    COBALT_HOSTNAME,
+    RECAPTCHA_SITE_KEY,
+    RECAPTCHA_SECRET_KEY,
+)
 from events.models import Congress
 from forums.models import Post, Forum
 from notifications.views import send_cobalt_email
@@ -113,18 +119,35 @@ def contact_logged_out(request):
     """Contact form for logged out users"""
 
     form = HelpdeskLoggedOutContactForm(request.POST or None)
+    is_human = True  # Innocent until proven guilty
+
     if request.method == "POST" and form.is_valid():
-        ticket = form.save()
-        notify_user_new_ticket_by_form(request, ticket)
-        notify_group_new_ticket(request, ticket)
 
-        messages.add_message(
-            request,
-            messages.INFO,
-            "Helpdesk ticket logged. You will be informed of progress via email.",
+        # Check with Google for status of recaptcha request
+        recaptcha_token = request.POST.get("g-recaptcha-response")
+        data = {"response": recaptcha_token, "secret": RECAPTCHA_SECRET_KEY}
+        resp = requests.post(
+            "https://www.google.com/recaptcha/api/siteverify", data=data
         )
+        result_json = resp.json()
 
-        return redirect("/")
+        print(result_json)
+
+        is_human = bool(result_json.get("success"))
+
+        if is_human:
+
+            ticket = form.save()
+            notify_user_new_ticket_by_form(request, ticket)
+            notify_group_new_ticket(request, ticket)
+
+            messages.add_message(
+                request,
+                messages.INFO,
+                "Helpdesk ticket logged. You will be informed of progress via email.",
+            )
+
+            return redirect("/")
 
     return render(
         request,
@@ -132,6 +155,7 @@ def contact_logged_out(request):
         {
             "form": form,
             "site_key": RECAPTCHA_SITE_KEY,
+            "is_human": is_human,
         },
     )
 

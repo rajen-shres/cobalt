@@ -1,3 +1,4 @@
+import copy
 from datetime import timedelta
 
 from django.contrib import messages
@@ -7,11 +8,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 
 from cobalt.settings import COBALT_HOSTNAME
 from notifications.views import send_cobalt_email, CobaltEmail
 from rbac.decorators import rbac_check_role
-from support.forms import IncidentForm, AttachmentForm
+from support.forms import IncidentForm, AttachmentForm, IncidentLineItemForm
 from support.models import Incident, IncidentLineItem, Attachment, NotifyUserByType
 
 
@@ -122,6 +124,18 @@ def _notify_user_updated_ticket(request, ticket, comment):
     email_ticket_msg = f"{request.user.full_name} has updated a support ticket for you."
     email_ticket_footer = f"""<h2>Last Comment</h2><pre>{comment}</pre><br><br>
         You will be notified via email when the status of this ticket changes.<br><br>"""
+
+    _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
+
+
+def _notify_user_reopened_ticket(request, ticket):
+    """Notify a user when a ticket is reopened"""
+
+    subject = f"Support Ticket Re-opened #{ticket.id}"
+    email_ticket_msg = (
+        f"{request.user.full_name} has re-opened a support ticket for you."
+    )
+    email_ticket_footer = "<br><br>You will be notified via email when the status of this ticket changes.<br><br>"
 
     _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
 
@@ -421,6 +435,9 @@ def edit_ticket(request, ticket_id):
 
     ticket = get_object_or_404(Incident, pk=ticket_id)
 
+    # We need the original status later - use copy to copy the data and unlink
+    original_status = copy.copy(ticket.status)
+
     if request.method == "POST":
         form = IncidentForm(request.POST, instance=ticket)
         if form.is_valid():
@@ -443,6 +460,10 @@ def edit_ticket(request, ticket_id):
                 # client side validation says close it
                 ticket.status = "Closed"
                 ticket.save()
+                IncidentLineItem(
+                    incident=ticket,
+                    description=f"{request.user.full_name} closed ticket",
+                ).save()
                 _notify_user_resolved_ticket(request, ticket)
                 messages.success(
                     request,
@@ -463,6 +484,18 @@ def edit_ticket(request, ticket_id):
             # Can close by using the resolve button or by changing the status
             if "status" in form.changed_data and ticket.status == "Closed":
                 _notify_user_resolved_ticket(request, ticket)
+
+            # Check for ticket being re-opened
+            if (
+                "status" in form.changed_data
+                and ticket.status != "Closed"
+                and original_status == "Closed"
+            ):
+                _notify_user_reopened_ticket(request, ticket)
+                IncidentLineItem(
+                    incident=ticket,
+                    description=f"{request.user.full_name} re-opened ticket",
+                ).save()
 
             # Check for assignment
             if "assigned_to" in form.changed_data:
@@ -490,6 +523,7 @@ def edit_ticket(request, ticket_id):
             print(form.errors)
 
     form = IncidentForm(instance=ticket)
+    comment_form = IncidentLineItemForm(auto_id="comment_%s")
 
     # get related items
     incident_line_items = IncidentLineItem.objects.filter(incident=ticket)
@@ -502,6 +536,7 @@ def edit_ticket(request, ticket_id):
         "support/edit_ticket.html",
         {
             "form": form,
+            "comment_form": comment_form,
             "user": ticket.reported_by_user,
             "ticket": ticket,
             "incident_line_items": incident_line_items,
@@ -509,6 +544,22 @@ def edit_ticket(request, ticket_id):
             "attachments": attachments,
         },
     )
+
+
+@rbac_check_role("support.helpdesk.edit")
+@require_http_methods(["POST"])
+def add_comment(request, ticket_id):
+    """Form to add a comment. Form is embedded in the edit_ticket page"""
+
+    ticket = get_object_or_404(Incident, pk=ticket_id)
+
+    form = IncidentLineItemForm(request.POST, auto_id="comment_%s")
+
+    if form.is_valid():
+        text = form.cleaned_data["description"]
+        IncidentLineItem(description=text, staff=request.user, incident=ticket).save()
+
+    return redirect("support:helpdesk_edit", ticket_id=ticket_id)
 
 
 @rbac_check_role("support.helpdesk.edit")

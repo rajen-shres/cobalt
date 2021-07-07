@@ -58,7 +58,7 @@ class Incident(models.Model):
     )
     """ Standard User object - who is working on it"""
 
-    reported_by_email = models.CharField(max_length=100, blank=True, null=True)
+    reported_by_email = models.EmailField(blank=True, null=True)
     """ for use when we do not have a user object """
 
     reported_by_name = models.CharField(max_length=100, blank=True, null=True)

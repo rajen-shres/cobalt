@@ -23,6 +23,11 @@ urlpatterns = [
     path("helpdesk/menu", helpdesk.helpdesk_menu, name="helpdesk_menu"),
     path("helpdesk/list", helpdesk.helpdesk_list, name="helpdesk_list"),
     path("helpdesk/edit/<int:ticket_id>", helpdesk.edit_ticket, name="helpdesk_edit"),
+    path(
+        "helpdesk/add-comment/<int:ticket_id>",
+        helpdesk.add_comment,
+        name="helpdesk_add_comment",
+    ),
     path("helpdesk/user-list", helpdesk.user_list_tickets, name="helpdesk_user_list"),
     path(
         "helpdesk/user-edit/<int:ticket_id>",

@@ -1,9 +1,72 @@
 {% extends 'base.html' %}
+{% load crispy_forms_filters %}
 {% load widget_tweaks %}
 {% load cobalt_tags %}
 {% load static %}
 
+{% block headerjs %}
+
+<!-- The js libraries are a problem for Summernote so we override them here -->
+
+<script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
+<script src="{% static "assets/js/core/popper.min.js" %}"></script>
+{% if not request.user.windows_scrollbar %}
+<script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
+{% endif %}
+<link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
+<script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
+<script src="{% static "assets/js/cobalt-core.js" %}"></script>
+<link rel="stylesheet" href="{% static "assets/css/bootstrap.4.0.0.min.css" %}">
+
+
+<style>
+  /* remove bug from summernote height in codeview mode */
+  .note-codable {
+    min-height: 600px !important;
+  }
+
+  .note-editable {
+    line-height: 1.0;
+
+    background-color: {
+        {
+        forum.bg_colour
+      }
+    }
+
+     !important;
+
+    color: {
+        {
+        forum.fg_colour
+      }
+    }
+
+     !important;
+  }
+
+  .cobalt-min-width-100 {
+    min-width: 100%;
+  }
+</style>
+{% endblock %}
 {% block content %}
+
+<!-- Instead of using {{ form.media }} we hardcode the static files here
+     so we can control the version that we use. Django-summernote comes with
+     an older version of summernote that has some bugs especially relating
+     to how it shakes when it is slowly scrolled. We point to a newer
+     version of summernote and it fixes the problem. -->
+
+<link href="{% static "forums/summernote/summernote-bs4.css" %}" type="text/css" media="all" rel="stylesheet">
+<link href="{% static "forums/summernote/django_summernote.css" %}" type="text/css" media="all" rel="stylesheet">
+<script type="text/javascript" src="{% static "forums/summernote/jquery.ui.widget.js" %}"></script>
+<script type="text/javascript" src="{% static "forums/summernote/jquery.iframe-transport.js" %}"></script>
+<script type="text/javascript" src="{% static "forums/summernote/jquery.fileupload.js" %}"></script>
+<script type="text/javascript" src="{% static "forums/summernote/summernote-bs4.min.js" %}"></script>
+<script type="text/javascript" src="{% static "forums/summernote/ResizeSensor.js" %}"></script>
+
+
     {% include "utils/generic_user_search_body.html" with search_id=1 %}
     <nav aria-label="breadcrumb" role="navigation">
         <ol class="breadcrumb">
@@ -162,6 +225,26 @@
                             </div>
                         </div>
 
+
+                        <div>
+
+                            <a href="{% url "support:helpdesk_attachments" ticket_id=ticket.id %}"
+                               class="btn btn-sm btn-info">
+                                {% if attachments %}
+                                    Manage attachments
+                                {% else %}
+                                Add attachment
+                                {% endif %}
+                            </a>
+                        </div>
+                        <button class="btn btn-success mx-auto mt-4 cobalt-save" id="button_save" disabled>Save</button>
+                        <button class="btn btn-primary mx-auto mt-4 cobalt-save" id="id_resolve">Resolve</button>
+                        <a href="{% url "support:helpdesk_menu" %}" class="btn btn-info mt-4">Cancel</a>
+                        <button class="btn btn-danger mx-auto mt-4 cobalt-save" id="id_delete">Delete</button>
+                    </form>
+                    <br>
+                    <button class="btn btn-danger" id="id_toggle_history">Show History</button>
+                     <div id="id_history" style="display:none;">
                         {% for incident_line_item in incident_line_items %}
                             <div class="row">
                                 <div class="col-12">
@@ -185,40 +268,43 @@
 
 
                                         <br>
-                                        <pre>{{ incident_line_item.description }}</pre>
+                                        {{ incident_line_item.description|safe }}
                                     </div>
                                 </div>
                             </div>
                         {% endfor %}
+                     </div>
 
-                        <div>
-                            <button class="btn btn-sm btn-primary" id="add_comment">Add Comment</button>
-                            <a href="{% url "support:helpdesk_attachments" ticket_id=ticket.id %}"
-                               class="btn btn-sm btn-info">
-                                {% if attachments %}
-                                    Manage attachments
-                                {% else %}
-                                Add attachment
-                                {% endif %}
-                            </a>
-                        </div>
-                        <button class="btn btn-success mx-auto mt-4 cobalt-save">Save</button>
-                        <button class="btn btn-primary mx-auto mt-4 cobalt-save" id="id_resolve">Resolve</button>
-                        <a href="{% url "support:helpdesk_menu" %}" class="btn btn-info mt-4">Cancel</a>
-                        <button class="btn btn-danger mx-auto mt-4 cobalt-save" id="id_delete">Delete</button>
-                    </form>
                 </div>
+                <form method="POST" action="{% url "support:helpdesk_add_comment" ticket_id=ticket.id %}" id="comment_form">
+                    {% csrf_token %}
+                    <div style="padding: 20px;">
+                    {{ comment_form.description|as_crispy_field }}
+                    </div>
+                    <button class="btn btn-sm btn-primary" id="add_comment">Add Comment</button>
+                </form>
             </div>
+
         </div>
+
     </div>
+
 
 {% endblock %}
 
 {% block footer %}
+
+<script src="{% static "forums/assets/js/summernote-plugin-spades.js" %}"></script>
+<script src="{% static "forums/assets/js/summernote-plugin-hearts.js" %}"></script>
+<script src="{% static "forums/assets/js/summernote-plugin-diamonds.js" %}"></script>
+<script src="{% static "forums/assets/js/summernote-plugin-clubs.js" %}"></script>
+<!-- <script src="{% static "forums/assets/js/summernote-plugin-hand.js" %}"></script> -->
+    <script src="{% static "assets/js/core/jquery.cookie.min.js" %}"></script>
     <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
     <script>
 
-        {% include "utils/generic_user_search_footer.html" with search_id=1 include_me=True %}
+    {# Load generic search BUT tell it not to apply the ios fix - breaks Summernote file upload #}
+        {% include "utils/generic_user_search_footer.html" with search_id=1 include_me=True prevent_ios_fix=True %}
 
         function cobaltMemberSearchOk() {
             $('#id_reported_by_user').val(member_id[1]);
@@ -260,56 +346,12 @@
                     return;
                 }
 
-                // get text from user
-                swal.fire({
-                    title: 'New Activity on Case',
-                    input: 'textarea',
-                    inputPlaceholder: 'Type your update here...',
-                    confirmButtonText: 'Update',
-                    showCancelButton: true
-                })
-                    .then((result) => {
-                        // if they didn't cancel check if they want the user notified
-                        if (result.value) {
-                            Swal.fire({
-                                title: 'Share update with {{ first_name }}?',
-                                showCancelButton: true,
-                                confirmButtonText: 'Notify',
-                                cancelButtonText: 'Do Not Notify',
-                            }).then((result2) => {
-                                // set the private flag
-                                let private_flag;
-                                if (result2.value) {
-                                    private_flag = 0;
-                                } else {
-                                    private_flag = 1;
-                                }
-                                // call django function
-                                $.post("{% url "support:helpdesk_add_incident_line_item_ajax" %}",
-                                    {
-                                        ticket_id: {{ ticket.id }},
-                                        private_flag: private_flag,
-                                        text: result.value,
-                                        csrfmiddlewaretoken: '{{ csrf_token }}'
-                                    })
-                                    // check response
-                                    .done(response => {
-                                        var msg = response['data']['message'];
-                                        if (msg === 'Success') {
-                                            location.reload();
-                                        } else {
-                                            swal.fire({
-                                                title: "Error",
-                                                html: msg,
-                                                icon: "error"
-                                            })
-                                        }
-                                    });
-
-                            });
-                        }
-                    });
             });
+
+            // Show history
+            $('#id_toggle_history').click(function(){
+                $('#id_history').toggle();
+            })
 
             $("#id_delete").click(function (event) {
                 // don't be an enter button
@@ -327,6 +369,8 @@
                         $form.append('<input type="hidden" name="delete" value="yes" />');
                         $form.submit();
                     }
+                    // re-enable buttons if cancel
+                    $('.cobalt-save').enable();
                 });
             });
 
@@ -346,8 +390,17 @@
                         $form.append('<input type="hidden" name="resolve" value="yes" />');
                         $form.submit();
                     }
+                    // re-enable buttons if cancel
+                    $('.cobalt-save').enable();
                 });
             });
+
+            // enable save button on change
+            $(':input').change(
+              function(){
+                $("#button_save").prop("disabled",false);
+              }
+            );
 
             // initialise tooltips
             $('[data-toggle="tooltip"]').tooltip()
