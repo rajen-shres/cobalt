@@ -20,32 +20,39 @@ def get_client_ip(request):
 
 
 def log_event(user, severity, source, sub_source, message, request=None):
-    ip = get_client_ip(request) if request else None
+    ip = get_client_ip(request)[:15] if request else None
     logevent = Log()
-    logevent.user = user
+    logevent.user = user[:200]
     logevent.ip = ip
-    logevent.severity = severity
+    logevent.severity = severity[:8]
     logevent.source = source[:30]
     logevent.sub_source = sub_source[:50]
     logevent.message = message[:80]
     logevent.save()
 
     if severity == "CRITICAL":
-        mail_subject = "%s - %s" % (severity, source)
-        message = "Severity: %s\nSource: %s\nSub-Source: %s\nUser: %s\nMessage: %s" % (
-            severity,
-            source,
-            sub_source,
-            user,
-            message,
-        )
-        send_mail(
-            mail_subject,
-            message,
-            DEFAULT_FROM_EMAIL,
-            SUPPORT_EMAIL,
-            fail_silently=False,
-        )
+
+        try:
+            mail_subject = "%s - %s" % (severity, source)
+            message = (
+                "Severity: %s\nSource: %s\nSub-Source: %s\nUser: %s\nMessage: %s"
+                % (
+                    severity,
+                    source,
+                    sub_source,
+                    user,
+                    message,
+                )
+            )
+            send_mail(
+                mail_subject,
+                message,
+                DEFAULT_FROM_EMAIL,
+                SUPPORT_EMAIL,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print("%s" % e)
 
 
 @user_passes_test(lambda u: u.is_superuser)
