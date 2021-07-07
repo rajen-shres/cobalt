@@ -21,6 +21,13 @@
 
 <body>
 
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+        <li><span style="font-size: 30px;"{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</span></li>
+    {% endfor %}
+</ul>
+{% endif %}
 
 	<div class="header">
       <img href="/" src="{% static "assets/img/favicon.png" %}" height="35px">

@@ -13,6 +13,7 @@ from rbac.core import (
     rbac_add_role_to_group,
 )
 from accounts.models import User
+from support.models import NotifyUserByType
 
 
 class Command(BaseCommand):
@@ -53,3 +54,11 @@ class Command(BaseCommand):
         rbac_add_role_to_group(
             group, app="support", model="helpdesk", action="all", rule_type="Allow"
         )
+
+        # Now add users to static (non-RBAC)
+
+        if not NotifyUserByType.objects.filter(staff=user).exists():
+            NotifyUserByType(staff=user, incident_type="All").save()
+
+        if not NotifyUserByType.objects.filter(staff=user2).exists():
+            NotifyUserByType(staff=user2, incident_type="All").save()

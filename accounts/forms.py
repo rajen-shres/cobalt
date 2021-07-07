@@ -11,12 +11,12 @@ from django.core.exceptions import ValidationError
 
 
 class UserRegisterForm(UserCreationForm):
-    """ User Registration """
+    """User Registration"""
 
     email = forms.EmailField()
 
     class Meta:
-        """ Meta data """
+        """Meta data"""
 
         model = User
         fields = [
@@ -31,7 +31,7 @@ class UserRegisterForm(UserCreationForm):
         ]
 
     def clean_username(self):
-        """ check system_number is valid. Don't rely on client side validation """
+        """check system_number is valid. Don't rely on client side validation"""
 
         username = self.cleaned_data["username"]
         if username:
@@ -44,10 +44,10 @@ class UserRegisterForm(UserCreationForm):
 
 
 class UserUpdateForm(forms.ModelForm):
-    """ Used by Profile to update details """
+    """Used by Profile to update details"""
 
     class Meta:
-        """ Meta data """
+        """Meta data"""
 
         model = User
         fields = [
@@ -65,13 +65,13 @@ class UserUpdateForm(forms.ModelForm):
     def clean_dob(self):
         """
         Most of the users are born in 19xx so we default any 2 digit year to 1900
-        This code will only work for 80 more years or so 
+        This code will only work for 80 more years or so
         """
-        birthdate = self.cleaned_data['dob']
+        birthdate = self.cleaned_data["dob"]
         if birthdate is None:
             return None
         if birthdate > datetime.datetime.today().date():
-            raise ValidationError(f"Date of birth MUST be earlier than today.")
+            raise ValidationError("Date of birth MUST be earlier than today.")
         return birthdate
 
     def clean_mobile(self):
@@ -82,24 +82,26 @@ class UserUpdateForm(forms.ModelForm):
         if mobile_raw is None:
             return None
         mobile = mobile_raw.replace(" ", "")
-        mobile_regex = r'^[\+0]?1?\d{9,15}$'
+        mobile_regex = r"^[\+0]?1?\d{9,15}$"
         if re.match(mobile_regex, mobile):
             return mobile
         else:
-            raise ValidationError("Mobile number should be either starting with + or 0 and should be between 9-15 digits long")
+            raise ValidationError(
+                "Mobile number should be either starting with + or 0 and should be between 9-15 digits long"
+            )
 
-    def clean_email(self):
-        """ check the email is not already used """
-
-        email = self.cleaned_data["email"]
-        if email != self.instance.email:  # changed
-            if User.objects.filter(email=email).exists():  # already in use
-                raise ValidationError("Email already in use")
-        return email
+    # def clean_email(self):
+    #     """ check the email is not already used """
+    #
+    #     email = self.cleaned_data["email"]
+    #     if email != self.instance.email:  # changed
+    #         if User.objects.filter(email=email).exists():  # already in use
+    #             raise ValidationError("Email already in use")
+    #     return email
 
 
 class PhotoUpdateForm(forms.ModelForm):
-    """ Handles the sub-form on profile for picture """
+    """Handles the sub-form on profile for picture"""
 
     x = forms.FloatField(widget=forms.HiddenInput())
     y = forms.FloatField(widget=forms.HiddenInput())
@@ -107,7 +109,7 @@ class PhotoUpdateForm(forms.ModelForm):
     height = forms.FloatField(widget=forms.HiddenInput())
 
     class Meta:
-        """ Meta data """
+        """Meta data"""
 
         model = User
         fields = (
@@ -142,20 +144,20 @@ class PhotoUpdateForm(forms.ModelForm):
 
 
 class BlurbUpdateForm(forms.ModelForm):
-    """ Handles the sub-form on profile for wordage """
+    """Handles the sub-form on profile for wordage"""
 
     class Meta:
-        """ Meta data """
+        """Meta data"""
 
         model = User
         fields = ("about",)
 
 
 class UserSettingsForm(forms.ModelForm):
-    """ Used by Settings to update details """
+    """Used by Settings to update details"""
 
     class Meta:
-        """ Meta data """
+        """Meta data"""
 
         model = User
         fields = [

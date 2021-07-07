@@ -1,5 +1,6 @@
 <tr>
-    <td class="{{ td_class }}">
+    <td class="{{ td_class }}"><a href="{% url "support:helpdesk_edit" ticket_id=thing.id %}">
+
         <div class="row m-0 border-0">
             <div class="col float-left">
                 <span class="float-left material-icons {{ icon_colour }}">{{ icon }}</span>
@@ -8,10 +9,15 @@
                 {{ thing.severity }}
             </div>
         </div>
+    </a>
     </td>
     <td title="{{ thing.created_date|timesince }} ago"
         data-toggle="tooltip">{{ thing.created_date|date:'d/m/Y H:i:s' }}</td>
-    <td class="text-left">{{ thing.reported_by_user }}</td>
+    {% if thing.reported_by_user %}
+        <td class="text-left">{{ thing.reported_by_user }}</td>
+    {% else %}
+        <td class="text-left">{{ thing.reported_by_name }} ({{ thing.reported_by_email }})</td>
+    {% endif %}
     <td class="text-left">{{ thing.title }}</td>
     <td class="text-left">{{ thing.status }}</td>
     <td class="text-left">{{ thing.incident_type }}</td>

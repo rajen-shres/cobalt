@@ -1,0 +1,47 @@
+{% extends 'base_logged_out.html' %}
+{% load static %}
+{% load humanize %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+{% block header %}
+    <style>
+    @media (min-width: 768px) {
+        .inner {
+            width: 30%;
+            margin: 0 auto;
+        }
+    }
+    @media (max-width: 767px) {
+        .inner {
+            width: 100%;
+            margin: 0 auto;
+        }
+    }
+        #id_reported_by_name,#id_reported_by_email,#id_title,#id_description {
+             width: 340px;
+        }
+
+    </style>
+{% endblock header %}
+
+{% block content %}
+    <div class="container animate__animated animate__fadeInUp animate__delay-1s">
+
+    </div>
+    <h1>Contact Us</h1>
+    <div>
+        <div class="inner">
+            <form method="post">
+                {% csrf_token %}
+                <table>
+                    {{ form.as_table }}
+                </table>
+                <button>Send</button>
+                <a href="/" >Cancel</a>
+            </form>
+        </div>
+    </div>
+
+
+{% endblock %}

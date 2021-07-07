@@ -2,6 +2,8 @@ from django.contrib import admin
 from .models import (
     Incident,
     IncidentLineItem,
+    Attachment,
+    NotifyUserByType,
 )
 
 
@@ -17,3 +19,5 @@ class IncidentLineItemAdmin(admin.ModelAdmin):
 
 admin.site.register(Incident, IncidentAdmin)
 admin.site.register(IncidentLineItem, IncidentLineItemAdmin)
+admin.site.register(Attachment)
+admin.site.register(NotifyUserByType)

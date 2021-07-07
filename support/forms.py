@@ -1,11 +1,11 @@
 from django import forms
 
 from rbac.core import rbac_get_users_with_role
-from support.models import Incident
+from support.models import Incident, Attachment
 
 
 class ContactForm(forms.Form):
-    """ Contact Support """
+    """Contact Support"""
 
     title = forms.CharField(label="Title", max_length=80)
     message = forms.CharField(label="Message")
@@ -13,8 +13,42 @@ class ContactForm(forms.Form):
     email = forms.CharField(label="email(required if not logged in)")
 
 
-class CreateTicket(forms.ModelForm):
-    """ Create a new helpdesk ticket """
+class HelpdeskLoggedInContactForm(forms.ModelForm):
+    """Contact form for users who are logged in"""
+
+    class Meta:
+        model = Incident
+        fields = ("title", "description", "reported_by_user", "incident_type")
+
+
+class HelpdeskLoggedOutContactForm(forms.ModelForm):
+    """Contact form for users who are logged out"""
+
+    class Meta:
+        model = Incident
+        fields = (
+            "reported_by_name",
+            "reported_by_email",
+            "title",
+            "description",
+        )
+        labels = {
+            "title": "Subject",
+            "reported_by_email": "Your email address",
+            "reported_by_name": "Your name",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(HelpdeskLoggedOutContactForm, self).__init__(*args, **kwargs)
+        # require fields
+        self.fields["title"].required = True
+        self.fields["description"].required = True
+        self.fields["reported_by_email"].required = True
+        self.fields["reported_by_name"].required = True
+
+
+class IncidentForm(forms.ModelForm):
+    """Create a new helpdesk ticket"""
 
     class Meta:
         model = Incident
@@ -26,12 +60,13 @@ class CreateTicket(forms.ModelForm):
             "status",
             "incident_type",
             "reported_by_user",
+            "reported_by_name",
             "severity",
         )
 
     def __init__(self, *args, **kwargs):
-        """ override init so we can set the assigned_to field to be only support staff"""
-        super(CreateTicket, self).__init__(*args, **kwargs)
+        """override init so we can set the assigned_to field to be only support staff"""
+        super(IncidentForm, self).__init__(*args, **kwargs)
 
         staff = [(None, "Unassigned")] + list(
             rbac_get_users_with_role("support.helpdesk.edit").values_list(
@@ -41,8 +76,8 @@ class CreateTicket(forms.ModelForm):
         self.fields["assigned_to"].choices = staff
 
     def clean(self):
-        """ custom validation """
-        cleaned_data = super(CreateTicket, self).clean()
+        """custom validation"""
+        cleaned_data = super(IncidentForm, self).clean()
 
         print(cleaned_data.get("reported_by_user"))
         print(cleaned_data.get("reported_by_email"))
@@ -54,3 +89,9 @@ class CreateTicket(forms.ModelForm):
             self._errors["reported_by_user"] = txt
             raise forms.ValidationError(txt)
         return self.cleaned_data
+
+
+class AttachmentForm(forms.ModelForm):
+    class Meta:
+        model = Attachment
+        fields = ("document", "incident", "description")

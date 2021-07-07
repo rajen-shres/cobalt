@@ -18,7 +18,12 @@ from notifications.views import send_cobalt_email
 from payments.models import MemberTransaction
 from rbac.core import rbac_user_has_role
 from utils.utils import cobalt_paginator
-from .forms import ContactForm
+from .forms import (
+    ContactForm,
+    HelpdeskLoggedInContactForm,
+    HelpdeskLoggedOutContactForm,
+)
+from .helpdesk import notify_user_new_ticket_by_form, notify_group_new_ticket
 
 
 @login_required
@@ -47,7 +52,7 @@ def acceptable_use(request):
 
 
 def non_production_email_changer(request):
-    """ Only for test systems - changes email address of all users """
+    """Only for test systems - changes email address of all users"""
 
     if not request.user.is_superuser:
         raise SuspiciousOperation("This is only avaiable for admin users.")
@@ -77,8 +82,61 @@ def non_production_email_changer(request):
     )
 
 
+@login_required()
+def contact_logged_in(request):
+    """Contact form for logged in users"""
+
+    form = HelpdeskLoggedInContactForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        ticket = form.save()
+        notify_user_new_ticket_by_form(request, ticket)
+        notify_group_new_ticket(request, ticket)
+
+        messages.success(
+            request,
+            "Helpdesk ticket logged. You will be informed of progress via email.",
+            extra_tags="cobalt-message-success",
+        )
+
+        return redirect("support:support")
+
+    return render(
+        request,
+        "support/contact_logged_in.html",
+        {
+            "form": form,
+        },
+    )
+
+
+def contact_logged_out(request):
+    """Contact form for logged out users"""
+
+    form = HelpdeskLoggedOutContactForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        ticket = form.save()
+        notify_user_new_ticket_by_form(request, ticket)
+        notify_group_new_ticket(request, ticket)
+
+        messages.add_message(
+            request,
+            messages.INFO,
+            "Helpdesk ticket logged. You will be informed of progress via email.",
+        )
+
+        return redirect("/")
+
+    return render(
+        request,
+        "support/contact_logged_out.html",
+        {
+            "form": form,
+        },
+    )
+
+
 def contact(request):
-    """ Contact form """
+    """Contact form"""
 
     form = ContactForm(request.POST or None)
 
@@ -139,12 +197,32 @@ def contact(request):
 @login_required
 @csrf_exempt
 def browser_errors(request):
-    """ receive errors from browser code and notify support """
+    """receive errors from browser code and notify support"""
 
     if request.method == "POST":
         data = request.POST.get("data", None)
         if data:
             errors = json.loads(data)
+
+            # Ignore development
+            if COBALT_HOSTNAME == "127.0.0.1:8000":
+                print(
+                    f"Error from browser ignored: {errors['message']} User: {request.user}"
+                )
+                return HttpResponse("ok")
+
+            IGNORE_ERRORS = [
+                "TypeError: null is not an object",
+                "Uncaught ReferenceError: $sidebar is not defined",
+            ]
+
+            for ignore in IGNORE_ERRORS:
+                if errors["message"].find(ignore) >= 0:
+                    print(
+                        f"Error from browser ignored: {errors['message']} User: {request.user}"
+                    )
+                    return HttpResponse("ok")
+
             msg = f"""
                   <table>
                       <tr><td>Error<td>{errors['message']}</tr>

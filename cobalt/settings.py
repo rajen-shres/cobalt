@@ -54,7 +54,7 @@ DEBUG = set_value("DEBUG", False)
 # Set up ADMINS list from string
 ADMINS = [
     ("Mark Guthrie", "m@rkguthrie.com"),
-    #   ("Julian Foster", "julianrfoster@gmail.com"),
+    ("Julian Foster", "julianrfoster@gmail.com"),
 ]
 
 # Fix later
@@ -123,6 +123,10 @@ else:
 # Test Only - Dummy data count
 DUMMY_DATA_COUNT = int(set_value("DUMMY_DATA_COUNT", 20))
 
+# Maintenance mode setting used by cobalt.middleware
+# Set this to the string "ON" to put site into maintenance mode - only admins can login
+MAINTENANCE_MODE = set_value("MAINTENANCE_MODE", "OFF")
+
 #########################################
 # Dynamic settings.                     #
 #########################################
@@ -190,6 +194,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "cobalt.middleware.MaintenanceModeMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]

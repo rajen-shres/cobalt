@@ -49,6 +49,41 @@ def html_email_reset(request):
     )(request)
 
 
+def _check_duplicate_email(user):
+    """Check for a duplicate email address for this one"""
+
+    others_same_email = (
+        User.objects.filter(email=user.email).exclude(id=user.id).order_by("id")
+    )
+    for other_same_email in others_same_email:
+        msg = f"""A user - {user} - is using the same email address as you.
+        This is supported to allow couples to share the same email address. Only the first
+        registered user can login using the email address. All users can login with their
+        {GLOBAL_ORG} number.<br><br>
+        All messages for any of the users will be sent to the same email address but will
+        usually have the first name present to allow you to determine who the message was
+        intended for.<br><br>
+        We recommend that every user has a unique email address, but understand that some
+        people wish to share an email.<br><br><br>
+        The {GLOBAL_ORG} Technology Team
+        """
+        context = {
+            "name": other_same_email.first_name,
+            "title": "Someone Using Your Email Address",
+            "email_body": msg,
+            "host": COBALT_HOSTNAME,
+        }
+
+        html_msg = render_to_string("notifications/email.html", context)
+
+        # send
+        send_cobalt_email(
+            other_same_email.email,
+            f"{user} is using your email address",
+            html_msg,
+        )
+
+
 def register(request):
     """User registration form
 
@@ -73,37 +108,7 @@ def register(request):
             user.system_number = user.username
             user.save()
 
-            # Check for duplicate emails
-            others_same_email = (
-                User.objects.filter(email=user.email).exclude(id=user.id).order_by("id")
-            )
-            for other_same_email in others_same_email:
-                msg = f"""A new user - {user} - has registered using the same email address as you.
-                This is supported to allow couples to share the same email address. Only the first
-                registered user can login using the email address. All users can login with their
-                {GLOBAL_ORG} number.<br><br>
-                All messages for any of the users will be sent to the same email address but will
-                usually have the first name present to allow you to determine who the message was
-                intended for.<br><br>
-                We recommend that every user has a unique email address, but understand that some
-                people wish to share an email.<br><br><br>
-                The {GLOBAL_ORG} Technology Team
-                """
-                context = {
-                    "name": other_same_email.first_name,
-                    "title": "Someone Using Your Email Address",
-                    "email_body": msg,
-                    "host": COBALT_HOSTNAME,
-                }
-
-                html_msg = render_to_string("notifications/email.html", context)
-
-                # send
-                send_cobalt_email(
-                    other_same_email.email,
-                    f"{user} is using your email address",
-                    html_msg,
-                )
+            _check_duplicate_email(user)
 
             current_site = get_current_site(request)
             mail_subject = "Activate your account."
@@ -166,7 +171,7 @@ def activate(request, uidb64, token):
 
 
 def loggedout(request):
-    """ Should review if this is really needed. """
+    """Should review if this is really needed."""
     return render(request, "accounts/loggedout.html")
 
 
@@ -404,7 +409,11 @@ def member_search_ajax(request):
         else:
             search_first_name = None
 
-        exclude_list = [request.user.id, RBAC_EVERYONE, TBA_PLAYER]
+        # flag to include the user in the output
+        if "include_me" in request.GET:
+            exclude_list = [RBAC_EVERYONE, TBA_PLAYER]
+        else:
+            exclude_list = [request.user.id, RBAC_EVERYONE, TBA_PLAYER]
 
         if search_first_name and search_last_name:
             members = User.objects.filter(
@@ -496,7 +505,9 @@ def profile(request):
     if request.method == "POST":
         form = UserUpdateForm(data=request.POST, instance=request.user)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            if "email" in form.changed_data:
+                _check_duplicate_email(user)
             # auto top up select list needs to be refreshed
             # Fix DOB format for browser - expects DD/MM/YYYY
             if request.user.dob:
@@ -506,9 +517,7 @@ def profile(request):
                 request, "Profile Updated", extra_tags="cobalt-message-success"
             )
         else:
-            errors = ""
-            for k in form.errors:
-                errors += f"{form.errors[k][0]}"
+            errors = "".join(f"{form.errors[k][0]}" for k in form.errors)
             messages.error(request, f"Profile is not updated. {errors}")
     else:
         # Fix DOB format for browser - expects DD/MM/YYYY
@@ -742,8 +751,7 @@ def delete_team_mate_ajax(request):
     else:
         msg = "Invalid request"
 
-    response_data = {}
-    response_data["message"] = msg
+    response_data = {"message": msg}
     return JsonResponse({"data": response_data})
 
 
@@ -824,7 +832,7 @@ def delete_photo(request):
 
 
 def test_email_send(request):
-    """ Usually commented out! Used to test email """
+    """Usually commented out! Used to test email"""
 
     if COBALT_HOSTNAME in ["myabf.com.au", "www.myabf.com.au"]:
         raise SuspiciousOperation(
@@ -841,15 +849,13 @@ def test_email_send(request):
     for recipient in user_list:
         context = {
             "name": recipient.first_name,
-            "title1": f"Message from Someone",
+            "title1": "Message from Someone",
             "title2": subject,
             "email_body": body,
             "host": COBALT_HOSTNAME,
         }
 
-        html_msg = render_to_string(
-            "notifications/email_with_2_headings.html", context
-        )
+        html_msg = render_to_string("notifications/email_with_2_headings.html", context)
 
         email_sender.queue_email(
             recipient.email,

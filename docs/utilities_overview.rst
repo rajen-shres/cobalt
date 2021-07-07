@@ -30,6 +30,9 @@ Change 1 to whatever search_id was set to.
     <script>
     {% include "utils/generic_user_search_footer.html" with search_id=1 %}
 
+If you want to allow the user to include themselves in the
+search you can add include_me=True
+
 4. Below the block footer, set up a function to handle a user selecting another member from the list::
 
     function cobaltMemberSearchOk() {
@@ -45,6 +48,21 @@ Change 1 to whatever search_id was set to.
     function cobaltMemberSearchCancel(search_id) {
     // do something
     }
+
+Bringing it all together to make it easier to cut and paste::
+
+   {% include "utils/generic_user_search_body.html" with search_id=1 %}
+   <a class="cobalt_generic_member" data-toggle="modal" id="unique_id" data-target="#cobalt_general_member_search1">Add</a>
+   {% block footer %}
+    <script>
+    {% include "utils/generic_user_search_footer.html" with search_id=1 include_me=True%}
+    function cobaltMemberSearchOk() {
+
+    // Do whatever
+    alert(member_id[1]);
+
+    </script>
+    {% endblock %}
 
 Pagination Footer
 -----------------
@@ -249,3 +267,30 @@ attack) by adding this to your .ssh/config::
   Host *
    StrictHostKeyChecking no
    UserKnownHostsFile=/dev/null
+
+CGIT
+====
+
+Cgit is a bunch of scripts to make working with Git and Elastic
+Beanstalk easier. They are not a required part of Cobalt, but they do
+live within the Cobalt source code inside utils (utils/cgit - you
+can add this to your path or copy the files to somewhere on your path,
+it is up to you).
+
+Cgit only really runs on a Mac.
+
+Installation
+------------
+
+Set up your path (or copy files) and you should be able to run::
+
+    cgit_help
+
+This should get you started. If you don't already have the EB CLI tool,
+the AWSCLI tool and git installed then you will have problems.
+
+Additionally you need to install gawk if you want to use the reporting::
+
+    brew install gnu-sed gawk
+
+

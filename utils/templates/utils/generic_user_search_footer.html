@@ -148,7 +148,7 @@ jQuery(document).ready(function() {
     search_results{{ search_id }}.html("");
 
     if (ln.length + fn.length > 1) {
-      $.getJSON(member_search{{ search_id }} + "?lastname=" + ln + "&firstname=" + fn + "&search_id={{ search_id }}")
+      $.getJSON(member_search{{ search_id }} + "?lastname=" + ln + "&firstname=" + fn + "&search_id={{ search_id }}{% if include_me %}&include_me=1{% endif %}")
         .done(response => {
 
         // update screen with results

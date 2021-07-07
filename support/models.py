@@ -10,19 +10,27 @@ INCIDENT_STATUS_TYPES = [
     ("Closed", "Closed"),
 ]
 INCIDENT_NATURE_TYPES = [
-    ("Security", "Security Problem"),
-    ("Congress Entry", "Congress Entry Problem"),
+    ("Congress Admin", "Congress Admin"),
+    ("Congress Entry", "Congress Entry"),
+    ("Club Admin", "Club Admin"),
+    ("Forums", "Forums"),
+    ("Masterpoints", "Masterpoints"),
+    ("Notifications", "Notifications"),
     ("Other", "Other"),
+    ("Payments", "Payments"),
+    ("Profile/Settings", "Profile/Settings"),
+    ("Registration", "Registration"),
+    ("Security", "Security"),
 ]
 INCIDENT_COMMENT_TYPE = [
     ("Normal", "Normal - seen by all"),
     ("Private", "Private - not shown to user"),
 ]
 INCIDENT_SEVERITY = [
-    ("Low", "Low"),
-    ("Medium", "Medium"),
-    ("High", "High"),
     ("Critical", "Critical"),
+    ("High", "High"),
+    ("Medium", "Medium"),
+    ("Low", "Low"),
 ]
 
 
@@ -52,7 +60,10 @@ class Incident(models.Model):
     reported_by_email = models.CharField(max_length=100, blank=True, null=True)
     """ for use when we do not have a user object """
 
-    title = models.CharField(max_length=80)
+    reported_by_name = models.CharField(max_length=100, blank=True, null=True)
+    """ for use when we do not have a user object """
+
+    title = models.CharField("Subject", max_length=80)
     """ Short description """
 
     description = models.TextField()
@@ -84,7 +95,7 @@ class Incident(models.Model):
 
 
 class IncidentLineItem(models.Model):
-    """ a thing that happens to an Incident """
+    """a thing that happens to an Incident"""
 
     incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
     """ Parent incident """
@@ -106,10 +117,37 @@ class IncidentLineItem(models.Model):
     def __str__(self):
         return f"{self.incident} - {self.staff}"
 
-    # def save(self, *args, **kwargs):
-    #     """ handle an update """
-    #
-    #     super().save(*args, **kwargs)
-    #
-    #     # Notify folks
-    #     print("Busy")
+
+class Attachment(models.Model):
+    """screenshots etc"""
+
+    document = models.FileField(upload_to="helpdesk/%Y/%m/%d/")
+    create_date = models.DateTimeField(default=timezone.now)
+    incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
+    description = models.CharField("Description", max_length=200)
+
+    def __str__(self):
+        return f"{self.incident} - {self.description}"
+
+
+class NotifyUserByType(models.Model):
+    """Which users to tell about new tickets. We add an "All" option to the incident_type. Specifying all
+    means the user will receive all notifications.
+
+    Note that this is for notifications only. In order to be a support staff member you need to be in
+    the RBAC group "support.helpdesk.edit"
+
+    This allows people to be added to notifications without giving them access to the helpdesk module.
+    """
+
+    staff = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    """ Standard User object """
+
+    incident_type = models.CharField(
+        max_length=30, choices=INCIDENT_NATURE_TYPES + [("All", "All")], default="All"
+    )
+    """ type for this incident """
+
+    def __str__(self):
+
+        return f"{self.staff.full_name} - {self.incident_type}"

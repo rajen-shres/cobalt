@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% load cobalt_tags %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row">
+            <div class="card mx-auto">
+                <div class="card-header card-header-info">
+                    <h1>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                Helpdesk Tickets
+                            </div>
+                            <div>
+                                <i class="material-icons" style="font-size:50px">local_activity</i>
+                            </div>
+                        </div>
+                    </h1>
+                </div>
+
+                <div class="card-body">
+                    <div class="card">
+                        <div class="card-header card-header-danger"><h2>Open</h2></div>
+                        <div class="card-body">
+                            {% if open_tickets %}
+                                {% include "support/user_list_tickets_table.html" with tickets=open_tickets %}
+                            {% else %}
+                                <h3>You have no open tickets</h3>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <br>
+
+                   {% if closed_tickets %}
+
+                    <div class="card">
+                        <div class="card-header card-header-warning"><h2>Closed</h2></div>
+                        <div class="card-body">
+                               {% include "support/user_list_tickets_table.html" with tickets=closed_tickets %}
+                        </div>
+                    </div>
+
+                    {% endif %}
+
+                        <div class="container">
+                           <div class="row">
+                                <div class="col text-center">
+                    <a href="{% url "support:contact" %}" class="btn btn-primary">Create Support Ticket</a>
+                                </div>
+                           </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

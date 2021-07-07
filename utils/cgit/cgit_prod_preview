@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# sudo npm install -g diff2html-cli
+
+#BRANCH=$(git branch --show-current)
+
+
+#if [[ $BRANCH != *"release"* ]]; then
+#  echo "You are not on a release branch. Change to a release branch to perform this function."
+#  exit 1
+#fi
+
+clear
+echo "Not testing for release branch"
+echo "Building Preview..."
+
+#echo "Pulling $BRANCH..."
+#git pull origin $BRANCH
+#if [ $? -ne 0 ];then
+# echo "error"
+# exit 1
+#fi
+
+echo "Getting current production branch..."
+PRODENV=$(eb list | grep cobalt-production | tr \* " ")
+APP=$(eb status $PRODENV | grep Deploy | awk '{print $3}')
+DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
+PRODBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
+PRODBRANCH=release/1.0.13
+echo "PRODBRANCH is hardcoded for now"
+echo "Production is running $PRODBRANCH. This assumes cgit has been used for deployment"
+echo "Getting $PRODBRANCH..."
+git pull origin $PRODBRANCH
+if [ $? -ne 0 ];then
+ echo "Error!"
+ exit 1
+fi
+
+diff2html -s side --su open -- -M $PRODBRANCH
