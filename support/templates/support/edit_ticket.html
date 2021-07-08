@@ -143,10 +143,10 @@
                         {# severity #}
 
                         <div class="col-md-3">
-                            <div class="form-group bmd-form-group">
+                            <div>
                                         <span class="cobalt-form-error"
                                               id="id_severity_errors">{{ form.severity.errors|striptags }}</span>
-                                <label for="id_severity" class="bmd-label-static">Severity</label>
+                                <label for="id_severity" class="">Severity</label>
                                 {% render_field form.severity class+="form-control" %}
                             </div>
                         </div>
@@ -155,7 +155,7 @@
                         {# status #}
 
                         <div class="col-md-3">
-                            <div class="form-group bmd-form-group">
+                            <div>
                                         <span class="cobalt-form-error"
                                               id="id_status_errors">{{ form.status.errors|striptags }}</span>
                                 <label for="id_status" class="bmd-label-static">Status</label>
@@ -172,7 +172,7 @@
                                 <div class="form-group">
                                         <span class="cobalt-form-error"
                                               id="id_title_errors">{{ form.title.errors|striptags }}</span>
-                                    <label for="id_title" class="bmd-label-floating">Title</label>
+                                    <label for="id_title" class="bmd-label-floating">Subject</label>
                                     {% render_field form.title class+="form-control" %}
                                 </div>
                             </div>
@@ -180,7 +180,7 @@
                             {# assigned to #}
 
                             <div class="col-md-3">
-                                <div class="form-group bmd-form-group">
+                                <div>
                                         <span class="cobalt-form-error"
                                               id="id_assigned_to_errors">{{ form.assigned_to.errors|striptags }}</span>
                                     <label for="id_assigned_to" class="bmd-label-static">Assigned to</label>
@@ -192,7 +192,7 @@
                             {# incident type #}
 
                             <div class="col-md-3">
-                                <div class="form-group bmd-form-group">
+                                <div>
                                         <span class="cobalt-form-error"
                                               id="id_incident_type_errors">{{ form.incident_type.errors|striptags }}</span>
                                     <label for="id_incident_type" class="bmd-label-static">Product Area</label>

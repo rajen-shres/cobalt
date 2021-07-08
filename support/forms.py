@@ -80,8 +80,6 @@ class IncidentForm(forms.ModelForm):
         """custom validation"""
         cleaned_data = super(IncidentForm, self).clean()
 
-        print(cleaned_data.get("reported_by_user"))
-        print(cleaned_data.get("reported_by_email"))
         if not (
             cleaned_data.get("reported_by_user")
             or cleaned_data.get("reported_by_email")
@@ -99,6 +97,12 @@ class AttachmentForm(forms.ModelForm):
 
 
 class IncidentLineItemForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+
+        super(IncidentLineItemForm, self).__init__(*args, **kwargs)
+
+        # Hide the crispy labels
+        self.fields["description"].label = False
 
     description = forms.CharField(
         widget=SummernoteInplaceWidget(
