@@ -62,7 +62,7 @@ def _email_table(ticket, full_name):
                         <td style='text-align: left'>{owner}
                     </tr>
                     <tr>
-                        <td style='text-align: left' colspan="2"><pre>{ticket.description}</pre>
+                        <td style='text-align: left' colspan="2">{ticket.description}
                     </tr>
                 </table><br><br>
             """
@@ -122,7 +122,7 @@ def _notify_user_updated_ticket(request, ticket, comment):
 
     subject = f"Support Ticket Updated #{ticket.id}"
     email_ticket_msg = f"{request.user.full_name} has updated a support ticket for you."
-    email_ticket_footer = f"""<h2>Last Comment</h2><pre>{comment}</pre><br><br>
+    email_ticket_footer = f"""<h2>Last Comment</h2>{comment}<br><br>
         You will be notified via email when the status of this ticket changes.<br><br>"""
 
     _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
@@ -140,19 +140,10 @@ def _notify_user_reopened_ticket(request, ticket):
     _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
 
 
-def _notify_user_resolved_ticket(request, ticket):
+def _notify_user_resolved_ticket(request, ticket, text):
     """Notify a user when a ticket is resolved"""
 
-    last_comment = (
-        IncidentLineItem.objects.filter(incident=ticket)
-        .exclude(comment_type="Private")
-        .order_by("-created_date")
-        .first()
-    )
-    if last_comment:
-        last_part = f"<h2>Last Comment</h2><pre>{last_comment.description}</pre>"
-    else:
-        last_part = ""
+    last_part = f"<h2>Last Comment</h2>{text}"
 
     subject = "Support Ticket Resolved"
     email_ticket_msg = f"{request.user.full_name} has closed a support ticket for you."
@@ -216,7 +207,9 @@ def _notify_group_update_to_unassigned_ticket(request, ticket, reply):
     """Notify staff when a user updates an unassigned ticket"""
 
     subject = f"Unassigned ticket updated by user #{ticket.id}"
-    email_ticket_msg = f"{request.user.full_name} has updated an unassigned support ticket:<br><pre>{reply}</pre>"
+    email_ticket_msg = (
+        f"{request.user.full_name} has updated an unassigned support ticket:<br>{reply}"
+    )
 
     _notify_group_common(request, ticket, subject, email_ticket_msg)
 
@@ -225,7 +218,9 @@ def _notify_group_user_closed_unassigned_ticket(request, ticket, reply):
     """Notify staff when a user closes an unassigned ticket"""
 
     subject = f"Unassigned ticket closed by user #{ticket.id}"
-    email_ticket_msg = f"{request.user.full_name} has closed an unassigned support ticket:<br><pre>{reply}</pre>"
+    email_ticket_msg = (
+        f"{request.user.full_name} has closed an unassigned support ticket:<br>{reply}"
+    )
 
     _notify_group_common(request, ticket, subject, email_ticket_msg)
 
@@ -279,7 +274,7 @@ def _notify_staff_user_update_to_ticket(request, ticket, reply):
     email_ticket_msg = (
         f"{request.user.full_name} has updated a support ticket assigned to you."
     )
-    email_ticket_footer = f"<pre>{reply}</pre>"
+    email_ticket_footer = f"{reply}"
     _notify_staff_common(
         request, ticket, subject, email_ticket_msg, email_ticket_footer
     )
@@ -292,7 +287,7 @@ def _notify_staff_user_closed_ticket(request, ticket, reply):
     email_ticket_msg = (
         f"{request.user.full_name} has closed a support ticket assigned to you."
     )
-    email_ticket_footer = f"<pre>{reply}</pre>"
+    email_ticket_footer = f"{reply}"
     _notify_staff_common(
         request, ticket, subject, email_ticket_msg, email_ticket_footer
     )
@@ -454,24 +449,6 @@ def edit_ticket(request, ticket_id):
                 )
                 return redirect("support:helpdesk_menu")
 
-            # check for resolve flag
-            resolve = request.POST.get("resolve")
-            if resolve:
-                # client side validation says close it
-                ticket.status = "Closed"
-                ticket.save()
-                IncidentLineItem(
-                    incident=ticket,
-                    description=f"{request.user.full_name} closed ticket",
-                ).save()
-                _notify_user_resolved_ticket(request, ticket)
-                messages.success(
-                    request,
-                    "Ticket closed and user notified.",
-                    extra_tags="cobalt-message-success",
-                )
-                return redirect("support:helpdesk_menu")
-
             # handle changes
             ticket = form.save()
 
@@ -483,7 +460,7 @@ def edit_ticket(request, ticket_id):
 
             # Can close by using the resolve button or by changing the status
             if "status" in form.changed_data and ticket.status == "Closed":
-                _notify_user_resolved_ticket(request, ticket)
+                _notify_user_resolved_ticket(request, ticket, "")
 
             # Check for ticket being re-opened
             if (
@@ -555,9 +532,68 @@ def add_comment(request, ticket_id):
 
     form = IncidentLineItemForm(request.POST, auto_id="comment_%s")
 
+    # If this isn't assigned then assign it now
+    if not ticket.assigned_to:
+        ticket.assigned_to = request.user
+        ticket.status = "In Progress"
+        ticket.save()
+
+    # See if we are also closing the ticket
+    and_close = "add-close" in request.POST
+
+    # See if we are also changing status to awaiting user feedback
+    and_awaiting = "add-awaiting" in request.POST
+
+    # get private flag
+    private = request.POST.get("private")
+
     if form.is_valid():
         text = form.cleaned_data["description"]
+
+        # add comment
         IncidentLineItem(description=text, staff=request.user, incident=ticket).save()
+
+        if and_awaiting:
+            IncidentLineItem(
+                description="Changed status to Awaiting User Feedback",
+                staff=request.user,
+                incident=ticket,
+            ).save()
+            ticket.status = "Pending User Feedback"
+            ticket.save()
+
+        if and_close:
+            IncidentLineItem(
+                description="Closed ticket", staff=request.user, incident=ticket
+            ).save()
+            ticket.status = "Closed"
+            ticket.save()
+
+            if private:
+                text = ""
+            _notify_user_resolved_ticket(request, ticket, text)
+
+            messages.success(
+                request,
+                "Ticket closed and user notified.",
+                extra_tags="cobalt-message-success",
+            )
+            return redirect("support:helpdesk_menu")
+
+        else:
+            if private:
+                messages.success(
+                    request,
+                    "Ticket updated with private message.",
+                    extra_tags="cobalt-message-success",
+                )
+            else:
+                messages.success(
+                    request,
+                    "Ticket updated and user notified.",
+                    extra_tags="cobalt-message-success",
+                )
+                _notify_user_updated_ticket(request, ticket, text)
 
     return redirect("support:helpdesk_edit", ticket_id=ticket_id)
 
@@ -610,7 +646,12 @@ def helpdesk_attachments(request, ticket_id):
         form = AttachmentForm(request.POST, request.FILES)
 
         if form.is_valid():
-            form.save()
+            attachment = form.save()
+            IncidentLineItem(
+                incident=ticket,
+                staff=request.user,
+                description=f"Added attachment {attachment.description}",
+            ).save()
             messages.success(
                 request, "Attachment added", extra_tags="cobalt-message-success"
             )
@@ -637,6 +678,12 @@ def helpdesk_delete_attachment_ajax(request):
         attachment_id = request.GET["attachment_id"]
 
         attachment = get_object_or_404(Attachment, pk=attachment_id)
+
+        IncidentLineItem(
+            incident=attachment.incident,
+            staff=request.user,
+            description=f"Deleted attachment {attachment.description}",
+        ).save()
 
         attachment.delete()
 

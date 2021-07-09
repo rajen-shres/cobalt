@@ -1,9 +1,70 @@
 {% extends 'base.html' %}
+{% load crispy_forms_filters %}
 {% load widget_tweaks %}
 {% load cobalt_tags %}
 {% load static %}
+{% block headerjs %}
 
+<!-- The js libraries are a problem for Summernote so we override them here -->
+
+<script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
+<script src="{% static "assets/js/core/popper.min.js" %}"></script>
+{% if not request.user.windows_scrollbar %}
+<script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
+{% endif %}
+<link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
+<script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
+<script src="{% static "assets/js/cobalt-core.js" %}"></script>
+<link rel="stylesheet" href="{% static "assets/css/bootstrap.4.0.0.min.css" %}">
+
+
+<style>
+  /* remove bug from summernote height in codeview mode */
+  .note-codable {
+    min-height: 600px !important;
+  }
+
+  .note-editable {
+    line-height: 1.0;
+
+    background-color: {
+        {
+        forum.bg_colour
+      }
+    }
+
+     !important;
+
+    color: {
+        {
+        forum.fg_colour
+      }
+    }
+
+     !important;
+  }
+
+  .cobalt-min-width-100 {
+    min-width: 100%;
+  }
+</style>
+{% endblock %}
 {% block content %}
+
+
+<!-- Instead of using {{ form.media }} we hardcode the static files here
+     so we can control the version that we use. Django-summernote comes with
+     an older version of summernote that has some bugs especially relating
+     to how it shakes when it is slowly scrolled. We point to a newer
+     version of summernote and it fixes the problem. -->
+
+<link href="{% static "forums/summernote/summernote-bs4.css" %}" type="text/css" media="all" rel="stylesheet">
+<link href="{% static "forums/summernote/django_summernote.css" %}" type="text/css" media="all" rel="stylesheet">
+<script type="text/javascript" src="{% static "forums/summernote/jquery.ui.widget.js" %}"></script>
+<script type="text/javascript" src="{% static "forums/summernote/jquery.iframe-transport.js" %}"></script>
+<script type="text/javascript" src="{% static "forums/summernote/jquery.fileupload.js" %}"></script>
+<script type="text/javascript" src="{% static "forums/summernote/summernote-bs4.min.js" %}"></script>
+<script type="text/javascript" src="{% static "forums/summernote/ResizeSensor.js" %}"></script>
 
     <nav aria-label="breadcrumb" role="navigation">
         <ol class="breadcrumb">
@@ -80,7 +141,7 @@
                                                 {{ incident_line_item.created_date|cobalt_nice_datetime }}</span>
                                             </div>
                                         <br>
-                                        <pre>{{ incident_line_item.description }}</pre>
+                                        {{ incident_line_item.description|safe }}
                                     </div>
                                 </div>
                             </div>
@@ -93,7 +154,8 @@
                         {% csrf_token %}
                           <div class="form-group">
                             <label for="reply">Enter a reply below if you wish to provide more information or make a comment when closing this ticket</label>
-                            <textarea class="form-control" name="reply" id="reply" rows="8"></textarea>
+                            <textarea id="summernote" name="reply"></textarea>
+
                           </div>
                         <button type=""submit" name="reply_button" class="btn btn-success cobalt-save">Reply</button>
                         <button type=""submit" id="id_close_button" name="close_button" class="btn btn-danger cobalt-save">Close Ticket</button>
@@ -112,6 +174,8 @@
     <script>
 
         $(document).ready(function () {
+
+            $('#summernote').summernote({ height: 250});
 
             // initialise tooltips
             $('[data-toggle="tooltip"]').tooltip()

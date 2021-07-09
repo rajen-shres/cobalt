@@ -93,7 +93,7 @@ class IncidentForm(forms.ModelForm):
 class AttachmentForm(forms.ModelForm):
     class Meta:
         model = Attachment
-        fields = ("document", "incident", "description")
+        fields = ("document", "incident", "description", "user")
 
 
 class IncidentLineItemForm(forms.ModelForm):

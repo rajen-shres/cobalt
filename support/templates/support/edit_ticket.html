@@ -94,7 +94,7 @@
                 </div>
                 <div class="card-body">
 
-                    <form method="POST">
+                    <form method="POST" id="ticket_form">
                         {% csrf_token %}
 
                         {% if user %}
@@ -110,9 +110,11 @@
                                 </div>
                             </div>
                             <div class="col-2">
+                                <div id="id_member_button_div">
                                 <a class="cobalt_generic_member btn btn-sm btn-info" data-toggle="modal"
                                    data-target="#cobalt_general_member_search1"><span
                                         id="id_member_button">Change User</span></a>
+                                </div>
                             </div>
 
                             <input type="hidden" id="id_reported_by_user" name="reported_by_user" value="{{ user.id }}">
@@ -218,32 +220,34 @@
                                 <h3>Attachments</h3>
                                 <ul>
                                 {% for attachment in attachments %}
-                                <li><a target="_blank" href="{{ attachment.document.url }}">{{ attachment.description }}</a></li>
+                                    <div class="row">
+                                <a class="btn btn-sm btn-info" target="_blank"
+                                   href="{{ attachment.document.url }}">{{ attachment.description }}</a>
+                                    </div>
+                                    <div class="row">
+                                    <i>Uploaded by {{ attachment.user.full_name }}
+                                        - {{ attachment.create_date|cobalt_nice_datetime }}</i>
+                                    </div>
                                 {% endfor %}
-                                </ul>
+
                             {% endif %}
                             </div>
                         </div>
 
-
-                        <div>
-
-                            <a href="{% url "support:helpdesk_attachments" ticket_id=ticket.id %}"
-                               class="btn btn-sm btn-info">
-                                {% if attachments %}
-                                    Manage attachments
-                                {% else %}
-                                Add attachment
-                                {% endif %}
-                            </a>
-                        </div>
-                        <button class="btn btn-success mx-auto mt-4 cobalt-save" id="button_save" disabled>Save</button>
-                        <button class="btn btn-primary mx-auto mt-4 cobalt-save" id="id_resolve">Resolve</button>
-                        <a href="{% url "support:helpdesk_menu" %}" class="btn btn-info mt-4">Cancel</a>
+                        <button class="btn btn-success mx-auto mt-4 cobalt-save" id="button_save" style="display: none">Save</button>
+                        <a href="{% url "support:helpdesk_menu" %}" id="id_top_cancel" class="btn btn-info mt-4">Cancel</a>
                         <button class="btn btn-danger mx-auto mt-4 cobalt-save" id="id_delete">Delete</button>
+                        <a href="{% url "support:helpdesk_attachments" ticket_id=ticket.id %}"
+                           class="btn btn-rose mx-auto mt-4 cobalt-save" id="button_attach">
+                            {% if attachments %}
+                                Manage attachments
+                            {% else %}
+                                Add attachment
+                            {% endif %}
+                        </a>
                     </form>
                     <br>
-                    <button class="btn btn-danger" id="id_toggle_history">Show History</button>
+                    <button class="btn btn-danger btn-sm" id="id_toggle_history">Show History</button>
                      <div id="id_history" style="display:none;">
                         {% for incident_line_item in incident_line_items %}
                             <div class="row">
@@ -251,7 +255,7 @@
                                     <div class="card p-1">
                                         <div class="d-flex justify-content-between">
                                             <div>
-                                                {{ incident_line_item.staff.first_name }}:
+                                                {{ incident_line_item.staff.full_name }}:
                                                 <span data-toggle="tooltip"
                                                       title="{{ incident_line_item.created_date }}">
                                                 {{ incident_line_item.created_date|cobalt_nice_datetime }}</span>
@@ -265,8 +269,6 @@
                                                 {% endif %}
                                             </div>
                                         </div>
-
-
                                         <br>
                                         {{ incident_line_item.description|safe }}
                                     </div>
@@ -275,16 +277,32 @@
                         {% endfor %}
                      </div>
 
-                </div>
-                <form method="POST" action="{% url "support:helpdesk_add_comment" ticket_id=ticket.id %}" id="comment_form">
-                    {% csrf_token %}
-                    <div style="padding: 20px;">
-                    {{ comment_form.description|as_crispy_field }}
-                    </div>
-                    <button class="btn btn-sm btn-primary" id="add_comment">Add Comment</button>
-                </form>
-            </div>
 
+{#                Cannot comment on a closed ticket #}
+                {% if ticket.status != "Closed" %}
+                    <div id="add_new_comment">
+
+                        <form method="POST" action="{% url "support:helpdesk_add_comment" ticket_id=ticket.id %}"
+                              id="comment_form">
+                            <h4 style="padding-top: 30px; padding-bottom: 0px">Add New Comment</h4>
+                            {% csrf_token %}
+                            <div style="padding: 0px 10px 10px 10px;">
+                                {{ comment_form.description|as_crispy_field }}
+                            </div>
+                            <input type="checkbox" id="private" name="private" value="Private">
+                            <label for="private">Private comment (not shared with user)</label><br>
+                            <button class="btn btn-primary" id="add_comment" name="add">Add Comment</button>
+                            <button class="btn btn-success" id="add_close" name="add-close">Add and close ticket
+                            </button>
+                            <button class="btn btn-danger" id="add_awaiting" name="add-awaiting">Awaiting User Feedback
+                            </button>
+                            <a href="{% url "support:helpdesk_menu" %}" class="btn btn-info">Cancel</a>
+                        </form>
+                    </div>
+                {% endif %}
+
+            </div>
+       </div>
         </div>
 
     </div>
@@ -314,7 +332,7 @@
         $(document).ready(function () {
 
             // capture initial state of form so we can see if it changes
-            const $form = $('form');
+            const $form = $('#ticket_form');
             const originalForm = $form.serialize();
 
             // If assignee changes check the status
@@ -328,24 +346,6 @@
                 } else {
                     status.val("Unassigned");
                 }
-            });
-
-            // add comment
-            $("#add_comment").click(function (event) {
-
-                // don't be an enter button
-                event.preventDefault();
-
-                // check if main form has changed and do not continue. e.g. the User could have been updated
-                if ($form.serialize() !== originalForm) {
-                    swal.fire({
-                        title: "Save Your Changes",
-                        html: "Please save your changes to the ticket before adding a comment.",
-                        icon: "error"
-                    });
-                    return;
-                }
-
             });
 
             // Show history
@@ -374,33 +374,57 @@
                 });
             });
 
-            $("#id_resolve").click(function (event) {
-                // don't be an enter button
-                event.preventDefault();
+            // prevent users from editing both forms at the same time. Note - we can't tell if the comment summernote
+            // field is changed as Summernote intercepts all of those events
+            function handle_change(form_id) {
+                console.log(form_id);
+                if (form_id === 'ticket_form'){
+                    // show save button, hide delete and add attachment
+                    $('#button_save').show();
+                    $('#id_delete').hide();
+                    $('#button_attach').hide();
+                    // hide comment fields
+                    $('#add_new_comment').hide();
+                } else { // comment form has changed - stop edits on main form
+                    $('#ticket_form input').attr('readonly', true);
+                    $('#ticket_form textarea').attr('readonly', true);
+                    $('#id_status').attr("disabled", true);
+                    $('#id_incident_type').attr("disabled", true);
+                    $('#id_assigned_to').attr("disabled", true);
+                    $('#id_severity').attr("disabled", true);
+                    $('#button_save').hide();
+                    $('#id_delete').hide();
+                    $('#button_attach').hide();
+                    $('#id_top_cancel').hide();
+                    $('#id_member_button_div').hide();
+                }
 
-                Swal.fire({
-                    title: 'Close case and notify {{ first_name }}. Are you sure?',
-                    showDenyButton: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'Resolve',
-                    denyButtonText: 'Cancel',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // add a resolve to the form and submit it
-                        $form.append('<input type="hidden" name="resolve" value="yes" />');
-                        $form.submit();
-                    }
-                    // re-enable buttons if cancel
-                    $('.cobalt-save').enable();
-                });
+                $("#button_save").prop("disabled",false);
+            }
+
+            // Check for form changes - dropdowns and checkboxes
+            $(':input').change( function() {
+                handle_change($(this.form)[0].id);
             });
 
-            // enable save button on change
-            $(':input').change(
-              function(){
-                $("#button_save").prop("disabled",false);
-              }
-            );
+            // Check for form changes - textboxes
+            $('#id_description').on('input', function() {
+                handle_change($(this.form)[0].id);
+            });
+
+            $('#id_title').on('input', function() {
+                handle_change($(this.form)[0].id);
+            });
+
+            // same thing for summernote
+            $('#comment_description').summernote({
+                height: 300,
+                callbacks: {
+                    onChange: function(contents, $editable) {
+                        handle_change($(this.form)[0].id);
+                    }
+                }
+            });
 
             // initialise tooltips
             $('[data-toggle="tooltip"]').tooltip()

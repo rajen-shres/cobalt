@@ -124,6 +124,7 @@ class Attachment(models.Model):
 
     document = models.FileField(upload_to="helpdesk/%Y/%m/%d/")
     create_date = models.DateTimeField(default=timezone.now)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
     description = models.CharField("Description", max_length=200)
 
