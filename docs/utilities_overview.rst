@@ -310,12 +310,6 @@ cgit_dev_start
 .. code-block:: bash
 
   $ cgit_dev_start mine
-  From https://github.com/abftech/cobalt
-  * branch            develop    -> FETCH_HEAD
-  Already up to date.
-  Already on 'develop'
-  Your branch is up to date with 'origin/develop'.
-  Switched to a new branch 'mine'
 
 **Purpose**: Creates a new development branch
 
@@ -329,39 +323,6 @@ cgit_dev_save
 .. code-block:: bash
 
   $ cgit_dev_save "My comment"
-
-    Running collect static...
-
-    0 static files copied to '/Users/upstud/Development/c2/cobalt/static', 912 unmodified, 134 post-processed.
-
-    Adding changes to mine...
-
-    Trying to commit changes to cgitdoc...
-
-    black................................................(no files to check)Skipped
-    flake8...............................................(no files to check)Skipped
-    [cgitdoc f1d101c] Added cgit files
-     8 files changed, 151 insertions(+), 657 deletions(-)
-     delete mode 100755 utils/cgit/cgit_ansi2html.sh
-     create mode 100755 utils/cgit/cgit_compare
-     delete mode 100755 utils/cgit/cgit_prod_preview
-
-    Pushing changes to github...
-
-    Enumerating objects: 20, done.
-    Counting objects: 100% (20/20), done.
-    Delta compression using up to 4 threads
-    Compressing objects: 100% (11/11), done.
-    Writing objects: 100% (11/11), 2.57 KiB | 2.57 MiB/s, done.
-    Total 11 (delta 9), reused 0 (delta 0), pack-reused 0
-    remote: Resolving deltas: 100% (9/9), completed with 9 local objects.
-    remote:
-    remote: Create a pull request for 'mine' on GitHub by visiting:
-    remote:      https://github.com/abftech/cobalt/pull/new/mine
-    remote:
-    To https://github.com/abftech/cobalt.git
-     * [new branch]      cgitdoc -> cgitdoc
-
 
 **Purpose**: Saves local changes to Github server
 
@@ -422,6 +383,65 @@ cgit_uat_fix_finish
 
 **Purpose**: Patches UAT
 
-**Git Impact**: Updates release/x.y.z with fix. Deletes fix branch.
+**Git Impact**: Updates release/x.y.z with fix. Deletes fix branch. Merges changes into develop.
+
+**Environment Impact**: Updates UAT with patched release/x.y.z
+
+cgit_prod_publish
+^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+  $ cgit_prod_publish
+
+**Purpose**: Deploys release/x.y.z to production
+
+**Git Impact**: None
+
+**Environment Impact**: Updates Production with release/x.y.z
+
+
+cgit_prod_hotfix_start
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+  $ cgit_prod_hotfix_start release/x.y.z myhotfix
+
+**Purpose**: Starts working on a hotfix to go straight into production.
+
+**Git Impact**: Creates branch release/x.y.z=hotfix=myhotfix
 
 **Environment Impact**: None
+
+cgit_prod_hotfix_save
+^^^^^^^^^^^^^^^^^^^^^
+
+Same as cgit_dev_save, saves current branch to Github server
+
+
+cgit_prod_hotfix_test
+^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+  $ cgit_prod_hotfix_test
+
+**Purpose**: Releases hotfix branch to a test server (by default Test)
+
+**Git Impact**: None
+
+**Environment Impact**: Updates Test (or specified environment) with hotfix version. **Note**: Test may be ahead of Production in terms of migrations.
+
+cgit_prod_hotfix_finish
+^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+  $ cgit_prod_hotfix_finish
+
+**Purpose**: Patches release branch and deploys to Production.
+
+**Git Impact**: Merges patch into release/x.y.z. Deletes patch branch.
+
+**Environment Impact**: Updates production with hotfixed version release/z.y.z..
