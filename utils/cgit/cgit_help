@@ -62,7 +62,9 @@ echo "Test is running: $DESC"
 # UAT
 APP=$(eb status $UATENV | grep Deploy | awk '{print $3}')
 DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
-UATBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
+UATBRANCHLONG=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
+# we will either have release/1.1.1 or release/1.1.1-somefix
+UATBRANCH=$(echo $UATBRANCHLONG | tr '-' ' ' | awk '{print $1}')
 FILE_DIFF=$(git diff --name-status $UATBRANCH..develop | wc | awk '{print $1}')
 echo "UAT is running: $DESC [$FILE_DIFF files different from develop]"
 

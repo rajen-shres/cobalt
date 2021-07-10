@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Pull latest develop code into our branch
+
+BRANCH=`git branch --show-current`
+
+echo ""
+echo "Fetching and merging develop into $BRANCH..."
+echo ""
+
+
+git pull origin develop
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
