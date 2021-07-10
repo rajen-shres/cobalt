@@ -50,14 +50,7 @@ fi
 
 # Unless something stupid is put in for a release number this wont fail the pre-commits
 git commit -a -m "Updating release version to $RELEASE"
-if [ $? -ne 0 ];then
-  exit 1
-fi
-
 git push origin develop
-if [ $? -ne 0 ];then
-  exit 1
-fi
 
 echo ""
 echo "Creating release branch..."

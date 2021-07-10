@@ -303,3 +303,41 @@ know exactly what is installed in each system. If you release without
 using cgit try to include this information anyway if you can::
 
     eb deploy -m "<branch>@<YYYY.MM.DD:HH:MM>"
+
+cgit_dev_start
+^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+  $ cgit_dev_start cgitdoc
+  From https://github.com/abftech/cobalt
+  * branch            develop    -> FETCH_HEAD
+  Already up to date.
+  Already on 'develop'
+  Your branch is up to date with 'origin/develop'.
+  Switched to a new branch 'mine'
+
+**Purpose**: Creates a new development branch
+
+**Git Impact**: Creates temporary development branch
+
+**Environment Impact**: None
+
+cgit_dev_save
+^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+  $ cgit_dev_save
+  From https://github.com/abftech/cobalt
+  * branch            develop    -> FETCH_HEAD
+  Already up to date.
+  Already on 'develop'
+  Your branch is up to date with 'origin/develop'.
+  Switched to a new branch 'mine'
+
+**Purpose**: Creates a new development branch
+
+**Git Impact**: Creates temporary development branch
+
+**Environment Impact**: None

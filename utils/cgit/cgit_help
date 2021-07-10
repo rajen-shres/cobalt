@@ -28,12 +28,16 @@ cgit_uat_fix_finish       - releases fix to UAT
 Production
 ----------
 
-cgit_prod_preview         - shows what will be changed
 cgit_prod_publish         - push release to production
 cgit_prod_hotfix_start    - create hotfix 
 cgit_prod_hotfix_save     - save work so far 
 cgit_prod_hotfix_test     - releases hotfix to a test environment
 cgit_prod_hotfix_finish   - releases hotfix to production
+
+General
+-------
+
+cgit_compare              - compare this branch to what is running in test, uat or production
 
 Current Status
 --------------
@@ -50,23 +54,23 @@ TESTENV=$(eb list | grep cobalt-test | tr \* " ")
 UATENV=$(eb list | grep cobalt-uat | tr \* " ")
 PRODENV=$(eb list | grep cobalt-production | tr \* " ")
 
+# Test
 APP=$(eb status $TESTENV | grep Deploy | awk '{print $3}')
 DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
 echo "Test is running: $DESC"
 
+# UAT
 APP=$(eb status $UATENV | grep Deploy | awk '{print $3}')
 DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
 UATBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
-#git pull origin $UATBRANCH
 FILE_DIFF=$(git diff --name-status $UATBRANCH..develop | wc | awk '{print $1}')
 echo "UAT is running: $DESC [$FILE_DIFF files different from develop]"
 
+# PROD
 APP=$(eb status $PRODENV | grep Deploy | awk '{print $3}')
 DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
 PRODBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
-PRODBRANCH=release/1.0.13
-#git pull origin $PRODBRANCH
-echo "PRODBRANCH is hardcoded for now"
+
 FILE_DIFF=$(git diff --name-status $PRODBRANCH..$UATBRANCH | wc | awk '{print $1}')
 echo "Production is running: $DESC [$FILE_DIFF files different from UAT]"
 echo ""
