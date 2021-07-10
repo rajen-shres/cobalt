@@ -22,7 +22,7 @@ def get_client_ip(request):
 def log_event(user, severity, source, sub_source, message, request=None):
     ip = get_client_ip(request)[:15] if request else None
     logevent = Log()
-    logevent.user = user[:200]
+    logevent.user = user
     logevent.ip = ip
     logevent.severity = severity[:8]
     logevent.source = source[:30]

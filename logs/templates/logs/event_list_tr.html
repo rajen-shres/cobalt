@@ -10,7 +10,7 @@
         </div>
     </td>
     <td title="{{ thing.event_date|timesince }} ago"
-        data-toggle="tooltip">{{ thing.event_date|date:'d/m/Y H:i:s' }}</td>
+        data-toggle="tooltip">{{ thing.event_date|date:'Y-m-d H:i:s' }}</td>
     <td><a target="_blank" href="https://www.infosniper.net/index.php?ip_address={{ thing.ip }}">{{ thing.ip|default_if_none:"" }}</a></td>
     <td class="text-left">{{ thing.user|safe }}</td>
     <td class="text-left">{{ thing.source }}</td>
