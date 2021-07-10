@@ -58,7 +58,7 @@ THISBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
 echo "$ENV is running $THISBRANCH. This assumes cgit has been used for deployment"
 
 echo "Getting $THISBRANCH..."
-git pull origin $THISBRANCH
+git fetch origin $THISBRANCH
 
 # Now run the diff
 diff2html -s side --su open -- -M $THISBRANCH >/dev/null 2>&1

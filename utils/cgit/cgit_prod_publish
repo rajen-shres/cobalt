@@ -31,15 +31,6 @@ then
   if [ $? -ne 0 ];then
    exit 1
   fi
-  
-  echo ""
-  echo "Checking out $BRANCH branch..."
-  echo ""
-
-  git checkout $BRANCH
-  if [ $? -ne 0 ];then
-   exit 1
-  fi
 
   echo ""
   echo "Deploying to PRODUCTION server..."
@@ -65,15 +56,6 @@ else
 fi
 
 echo ""
-echo "Pulling latest develop branch..."
-echo ""
-
-git pull origin develop
-if [ $? -ne 0 ];then
- exit 1
-fi
-
-echo ""
 echo "Checking out develop branch..."
 echo ""
 
@@ -83,10 +65,28 @@ if [ $? -ne 0 ];then
 fi
 
 echo ""
+echo "Pulling latest develop branch..."
+echo ""
+
+git pull origin develop
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
+echo ""
 echo "Merging $BRANCH..."
 echo ""
 
 git merge $BRANCH
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
+echo ""
+echo "Checking out master branch..."
+echo ""
+
+git checkout master
 if [ $? -ne 0 ];then
  exit 1
 fi
@@ -100,15 +100,6 @@ if [ $? -ne 0 ];then
  exit 1
 fi
 
-echo ""      
-echo "Checking out master branch..."
-echo ""
-
-git checkout master
-if [ $? -ne 0 ];then
- exit 1
-fi
-
 echo ""   
 echo "Merging $BRANCH..."
 echo ""
@@ -118,3 +109,11 @@ if [ $? -ne 0 ];then
  exit 1
 fi
 
+echo ""
+echo "Pushing master branch..."
+echo ""
+
+git push origin master
+if [ $? -ne 0 ];then
+ exit 1
+fi

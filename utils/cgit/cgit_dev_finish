@@ -17,19 +17,19 @@ if [[ -z $(git status -s) ]]
 then
   echo ""
   echo ""
-  echo "Pulling latest develop branch..."
-  echo ""
-
-  git pull origin develop
-  if [ $? -ne 0 ];then
-   exit 1
-  fi
-  
-  echo ""
   echo "Checking out develop branch..."
   echo ""
 
   git checkout develop
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Pulling latest develop branch..."
+  echo ""
+
+  git pull origin develop
   if [ $? -ne 0 ];then
    exit 1
   fi

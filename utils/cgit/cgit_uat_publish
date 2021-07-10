@@ -34,13 +34,22 @@ if [ $? -ne 0 ];then
 fi
 
 echo ""
+echo "Pulling latest develop branch (should be up to date already)..."
+echo ""
+
+git pull origin develop
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+echo ""
 echo "Updating release version in Cobalt code..."
 echo ""
 
 echo "COBALT_VERSION = \"$RELEASE\"" > cobalt/version.py
 
 echo ""
-echo "Saving code to develop..."
+echo "Saving version number to develop..."
 echo ""
 
 git add -A
@@ -58,6 +67,13 @@ echo ""
 
 git checkout -b release/$RELEASE
 if [ $? -ne 0 ];then
+  echo "There is a problem with the branch."
+  echo "If you need to delete a local branch use: git branch -d release/$RELEASE"
+  echo "Use -D to force."
+  echo ""
+  echo "If you need to delete a remote branch use git push -d origin release/$RELEASE"
+  echo ""
+
   exit 1
 fi
 

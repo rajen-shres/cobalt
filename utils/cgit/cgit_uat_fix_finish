@@ -29,16 +29,17 @@ then
   echo "Pulling latest release/$RELEASE branch..."
   echo ""
 
-  git pull origin release/$RELEASE
-  if [ $? -ne 0 ];then
-   exit 1
-  fi
-  
+
   echo ""
   echo "Checking out release/$RELEASE branch..."
   echo ""
 
   git checkout release/$RELEASE
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  git pull origin release/$RELEASE
   if [ $? -ne 0 ];then
    exit 1
   fi
@@ -97,11 +98,6 @@ echo ""
 
 git branch -d $BRANCH
 
-echo "Pulling develop so I can merge change..."
-git pull origin develop
-if [ $? -ne 0 ];then
- exit 1
-fi
 
 echo ""
 echo "Checking out develop branch..."
@@ -112,11 +108,23 @@ if [ $? -ne 0 ];then
  exit 1
 fi
 
+echo "Pulling develop so I can merge change..."
+git pull origin develop
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
 echo ""
 echo "Merging release/$RELEASE into develop branch..."
 echo ""
 
 git merge release/$RELEASE
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
+echo "Pushing develop..."
+git push origin develop
 if [ $? -ne 0 ];then
  exit 1
 fi

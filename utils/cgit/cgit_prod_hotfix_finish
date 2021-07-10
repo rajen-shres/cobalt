@@ -77,12 +77,12 @@ then
   echo "Checking out develop..."
   echo ""
 
-  git pull origin develop
+  git checkout develop
   if [ $? -ne 0 ];then
    exit 1
   fi
 
-  git checkout develop
+  git pull origin develop
   if [ $? -ne 0 ];then
    exit 1
   fi
@@ -109,12 +109,12 @@ then
   echo "Checking out master..."
   echo ""
 
-  git pull origin master
+  git checkout master
   if [ $? -ne 0 ];then
    exit 1
   fi
 
-  git checkout master
+  git pull origin master
   if [ $? -ne 0 ];then
    exit 1
   fi
