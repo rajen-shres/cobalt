@@ -55,8 +55,15 @@ DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP"
 # Now we should have branch@time - we just want branch
 THISBRANCHLONG=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
 
-# we will either have release/1.1.1 or release/1.1.1-somefix
-UATBRANCH=$(echo $UATBRANCHLONG | tr '-' ' ' | awk '{print $1}')
+# we will either have release/1.1.1 or release/1.1.1-somefix or develop
+RELEASE=$(echo $THISBRANCHLONG|cut -d/ -f2 -s)
+
+if [ -z $RELEASE ]
+then
+  THISBRANCH=$THISBRANCHLONG
+else
+  THISBRANCH="release/$RELEASE"
+fi
 
 echo "$ENV is running $THISBRANCH. This assumes cgit has been used for deployment"
 

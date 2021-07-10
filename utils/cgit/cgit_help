@@ -62,16 +62,25 @@ echo "Test is running: $DESC"
 # UAT
 APP=$(eb status $UATENV | grep Deploy | awk '{print $3}')
 DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
+
 UATBRANCHLONG=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
-# we will either have release/1.1.1 or release/1.1.1-somefix
-UATBRANCH=$(echo $UATBRANCHLONG | tr '-' ' ' | awk '{print $1}')
+
+# we will either have release/1.1.1 or release/1.1.1/somefix
+RELEASE=$(echo $UATBRANCHLONG|cut -d/ -f2)
+
+UATBRANCH="release/$RELEASE"
 FILE_DIFF=$(git diff --name-status $UATBRANCH..develop | wc | awk '{print $1}')
 echo "UAT is running: $DESC [$FILE_DIFF files different from develop]"
 
 # PROD
 APP=$(eb status $PRODENV | grep Deploy | awk '{print $3}')
 DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
-PRODBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
+PRODBRANCHLONG=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
+
+# we will either have release/1.1.1 or release/1.1.1/somefix
+RELEASE=$(echo $PRODBRANCHLONG|cut -d/ -f2)
+
+PRODBRANCH="release/$RELEASE"
 
 FILE_DIFF=$(git diff --name-status $PRODBRANCH..$UATBRANCH | wc | awk '{print $1}')
 echo "Production is running: $DESC [$FILE_DIFF files different from UAT]"
