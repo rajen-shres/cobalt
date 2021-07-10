@@ -17,6 +17,9 @@ echo "I will then delete the branch '$BRANCH'."
 echo ""
 echo "The release I will be updating is $RELEASE"
 echo ""
+echo "Finally I will try to merge the changes into develop. If there are"
+echo "merge conflicts then you will need to fix them."
+echo ""
 read -p "Press key to continue..." -n1 -s
 
 if [[ -z $(git status -s) ]]
@@ -93,3 +96,27 @@ echo "Deleting branch $BRANCH..."
 echo ""
 
 git branch -d $BRANCH
+
+echo "Pulling develop so I can merge change..."
+git pull origin develop
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
+echo ""
+echo "Checking out develop branch..."
+echo ""
+
+git checkout develop
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
+echo ""
+echo "Merging release/$RELEASE into develop branch..."
+echo ""
+
+git merge release/$RELEASE
+if [ $? -ne 0 ];then
+ exit 1
+fi
