@@ -24,7 +24,7 @@ echo ""
 echo "MAKE SURE YOU RUN cgit_prod_preview before deploying this."
 echo ""
 echo "I will check your branch is clean and then copy your changes into both release/$RELEASE"
-echo "and release/$RELEASE/$PATCH. The later being a point in time snapshot of what was installed."
+echo "and release/$RELEASE--$PATCH. The later being a point in time snapshot of what was installed."
 echo ""
 echo "I will then deploy to the PRODUCTION system and update develop and master."
 echo ""
@@ -76,18 +76,18 @@ then
    exit 1
   fi
 
-  echo "Creating copy of $BRANCH as release patch branch [release/$RELEASE/$PATCH]..."
+  echo "Creating copy of $BRANCH as release patch branch [release/$RELEASE--$PATCH]..."
 
-  git checkout -b release/$RELEASE/$PATCH
+  git checkout -b release/$RELEASE--$PATCH
   if [ $? -ne 0 ];then
    exit 1
   fi
 
   echo ""
-  echo "Pushing release/$RELEASE/$PATCH branch to github..."
+  echo "Pushing release/$RELEASE--$PATCH branch to github..."
   echo ""
 
-  git push origin release/$RELEASE/$PATCH
+  git push origin release/$RELEASE--$PATCH
   if [ $? -ne 0 ];then
    exit 1
   fi
@@ -98,9 +98,9 @@ then
 
   PRODENV=$(eb list | grep cobalt-prod)
 
-  echo "Deploying code to $PRODENV from release/$RELEASE/$PATCH..."
-  DATE=$(date '+%Y.%m.%d:%H:%M')
-  eb deploy -m "release/$RELEASE/$PATCH@$DATE" $PRODENV
+  echo "Deploying code to $PRODENV from release/$RELEASE--$PATCH..."
+  DATE=$(date '+%a %d/%m/%Y %H:%M:%S')
+  eb deploy -m "release/$RELEASE--$PATCH@$DATE" $PRODENV
   echo ""
 
   echo ""
@@ -118,10 +118,10 @@ then
   fi
 
   echo ""
-  echo "Merging release/$RELEASE/$PATCH into develop..."
+  echo "Merging release/$RELEASE--$PATCH into develop..."
   echo ""
 
-  git merge release/$RELEASE/$PATCH
+  git merge release/$RELEASE--$PATCH
   if [ $? -ne 0 ];then
    exit 1
   fi
