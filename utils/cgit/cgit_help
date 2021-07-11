@@ -44,6 +44,11 @@ Current Status
 
 EOF
 
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
 # Be careful with AWS env variables
 unset AWS_SECRET_ACCESS_KEY
 unset AWS_ACCESS_KEY_ID
@@ -57,14 +62,29 @@ get_status() {
   THISSEARCH=$2
   REFBRANCH=$3
 
+  # Get full environment name from ebcli
   THISENV=$(eb list | grep $THISSEARCH | tr \* " ")
 
+  # Get which application is installed on this environment
   APP=$(eb status $THISENV | grep Deploy | awk '{print $3}')
+
+  # Use aws cli to get the description for this application
   DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
+
+  # Description is branch@timestamp - get branch
   THISBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
+
+  # Make sure we have latest copy of branch for reference
   git fetch origin $THISBRANCH >/dev/null 2>&1
+
+  # See how many files different from reference branch
   FILE_DIFF=$(git diff --name-status $THISBRANCH..$REFBRANCH | wc | awk '{print $1}')
-  echo "$THISNAME is running: $DESC [$FILE_DIFF files different from $REFBRANCH]"
+
+  # Get the timestamp from the description and replace _ with space
+  TIMESTAMP=$(echo $DESC|cut -d@ -f2 | tr '_' ' ')
+
+  # Print summary
+  printf "$THISNAME is running: ${YELLOW}${THISBRANCH}${NC} ${BLUE}${TIMESTAMP}${NC} [$FILE_DIFF files different from $REFBRANCH]\n"
 }
 
 get_status "Test" "cobalt-test" $BRANCH
