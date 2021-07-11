@@ -72,7 +72,7 @@ then
   if [ "$UATNUM" = "1" ]
   then
    echo "Deploying code to $UATENV..."
-   DATE=$(date '+%a %d/%m/%Y %H:%M:%S')
+   DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
    eb deploy -m "release/$RELEASE@$DATE" $UATENV
   else
    echo "Cannot deploy to UAT, found more than one UAT environment."

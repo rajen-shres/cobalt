@@ -99,7 +99,7 @@ then
   PRODENV=$(eb list | grep cobalt-prod)
 
   echo "Deploying code to $PRODENV from release/$RELEASE--$PATCH..."
-  DATE=$(date '+%a %d/%m/%Y %H:%M:%S')
+  DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
   eb deploy -m "release/$RELEASE--$PATCH@$DATE" $PRODENV
   echo ""
 
