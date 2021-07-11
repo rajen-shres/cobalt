@@ -63,7 +63,7 @@ then
   if [ "$TESTNUM" = "1" ]
   then
    echo "Deploying code to $TESTENV..."
-   DATE=$(date '+%Y.%m.%d:%H:%M')
+   DATE=$(date '+%a %d/%m/%Y %H:%M:%S')
    eb deploy -m "develop@$DATE" $TESTENV
   else
    echo "Cannot deploy to Test, found more than one test environment."
