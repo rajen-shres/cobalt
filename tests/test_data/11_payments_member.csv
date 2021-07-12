@@ -1,7 +1,5 @@
 payments, MemberTransaction,,,,,,,,
 id, id.member.accounts.User, amount,id.organisation.organisations.Organisation,id.other_member.accounts.User,id.stripe_transaction.payments.StripeTransaction,description,type,t.created_date,balance
-tr1,bb,45,,,stripe1,Payment from card **** **** ***** 4242 Exp 4/24,CC Payment,1,45
-tr2,bb,-45,fbc,,,Entry into Popup Tournament,Congress Entry,1,0
 tr3,ff,200.25,,,stripe2,Payment from card **** **** ***** 4242 Exp 4/24,Manual Top Up,395,200.25
 tr4,ff,-35,nsw,,,State event entry fee,Congress Entry,395,165.25
 tr5,ff,-35,rbc,,,Rival Congress,Congress Entry,395,130.25

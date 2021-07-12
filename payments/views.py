@@ -27,6 +27,8 @@ Key Points:
 
 import csv
 import datetime
+from itertools import chain
+
 import requests
 import stripe
 import pytz
@@ -134,7 +136,9 @@ def statement_common(user):
         club = "Unknown"
 
     # get balance
-    last_tran = MemberTransaction.objects.filter(member=user).last()
+    last_tran = (
+        MemberTransaction.objects.filter(member=user).order_by("created_date").last()
+    )
     balance = last_tran.balance if last_tran else "Nil"
     # get auto top up
     auto_button = user.stripe_auto_confirmed == "On"
@@ -2086,7 +2090,7 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
 
 @atomic
 def _refund_stripe_transaction_sub(stripe_item, amount, description, counterparty=None):
-    """ Atomic transaction update for refunds """
+    """Atomic transaction update for refunds"""
 
     # Update the Stripe transaction
     if amount + stripe_item.refund_amount >= stripe_item.amount:
@@ -2399,16 +2403,7 @@ def admin_stripe_rec(request):
     Returns:
         HTTPResponse
     """
-
-    # Default date is first day of this month
-    ref_date = datetime.datetime.now(tz=TZ).replace(
-        day=1, hour=0, minute=0, second=0, microsecond=0
-    )
-
-    form_date = request.POST.get("ref_date")
-
-    if form_date:
-        ref_date = datetime.datetime.strptime(form_date, "%d/%m/%Y").replace(tzinfo=TZ)
+    ref_date, _ = _admin_stripe_rec_ref_date(request)
 
     # get latest transaction per member - can't do a Sum after a distinct - not yet supported
     members = (
@@ -2455,3 +2450,155 @@ def admin_stripe_rec(request):
             "orgs_count": orgs.count(),
         },
     )
+
+
+def _admin_stripe_rec_ref_date(request):
+    """common function to handle reference date"""
+
+    # Default date is first day of this month
+    ref_date = datetime.datetime.now(tz=TZ).replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+
+    form_date = request.POST.get("ref_date")
+
+    if form_date:
+        ref_date = datetime.datetime.strptime(form_date, "%d/%m/%Y").replace(tzinfo=TZ)
+
+    # also calculate date a month earlier
+    if ref_date.month == 1:
+        ref_date_month_earlier = ref_date.replace(month=12, year=ref_date.year - 1)
+    else:
+        ref_date_month_earlier = ref_date.replace(month=ref_date.month - 1)
+
+    return ref_date, ref_date_month_earlier
+
+
+@rbac_check_role("payments.global.view")
+def admin_stripe_rec_download(request):
+    """CSV download of all movements for the month prior to the reference date
+    Args:
+        request (HTTPRequest): standard request object
+
+    Returns:
+        HTTPResponse
+    """
+
+    # Get the ref date
+    ref_date, ref_date_month_earlier = _admin_stripe_rec_ref_date(request)
+
+    # Get the 3 different kinds of financial transaction
+    members = MemberTransaction.objects.filter(created_date__lt=ref_date).filter(
+        created_date__gte=ref_date_month_earlier
+    )
+    stripes = (
+        StripeTransaction.objects.filter(created_date__lt=ref_date)
+        .filter(created_date__gte=ref_date_month_earlier)
+        .filter(status__in=["Succeeded", "Partial refund", "Refunded"])
+    )
+    orgs = OrganisationTransaction.objects.filter(created_date__lt=ref_date).filter(
+        created_date__gte=ref_date_month_earlier
+    )
+
+    # Merge them together
+    results = []
+
+    # MemberTransactions
+    for member in members:
+        counterparty = ""
+        if member.other_member:
+            counterparty = member.other_member
+        if member.organisation:
+            counterparty = member.organisation
+        item = {
+            "table": "Member Transaction",
+            "created_date": member.created_date,
+            "counterparty": counterparty,
+            "reference_no": member.reference_no,
+            "type": member.type,
+            "description": member.description,
+            "amount": member.amount,
+            "balance": member.balance,
+        }
+        results.append(item)
+
+    # OrgTransactions
+    for org in orgs:
+        counterparty = ""
+        if org.member:
+            counterparty = org.member
+        item = {
+            "table": "Organisation Transaction",
+            "created_date": org.created_date,
+            "counterparty": counterparty,
+            "reference_no": org.reference_no,
+            "type": org.type,
+            "description": org.description,
+            "amount": org.amount,
+            "balance": org.balance,
+        }
+        results.append(item)
+
+    # StripeTransactions
+    for stripe_item in stripes:
+        counterparty = ""
+        if stripe_item.linked_member:
+            counterparty = stripe_item.linked_member
+        if stripe_item.linked_organisation:
+            counterparty = stripe_item.linked_organisation
+        item = {
+            "table": "Stripe Transaction",
+            "created_date": stripe_item.created_date,
+            "counterparty": counterparty,
+            "reference_no": stripe_item.stripe_reference,
+            "type": stripe_item.status,
+            "description": stripe_item.description,
+            "amount": stripe_item.amount,
+            "balance": "",
+        }
+        results.append(item)
+
+    # Sort by created_date
+    results = sorted(results, key=lambda k: k["created_date"])
+
+    local_dt = timezone.localtime(timezone.now(), TZ)
+    today = dateformat.format(local_dt, "Y-m-d H:i:s")
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="reconciliation.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([f"Generated by {request.user.full_name}", f"Generated on {today}"])
+    writer.writerow(
+        ["Date range >=", dateformat.format(ref_date_month_earlier, "Y-m-d H:i:s")]
+    )
+    writer.writerow(["Date range <", dateformat.format(ref_date, "Y-m-d H:i:s")])
+    writer.writerow([""])
+    writer.writerow(
+        [
+            "Date",
+            "Table",
+            "Counterparty",
+            "Reference",
+            "Type",
+            "Description",
+            "Amount",
+            "Balance",
+        ]
+    )
+
+    for result in results:
+        writer.writerow(
+            [
+                dateformat.format(result["created_date"], "Y-m-d H:i:s"),
+                result["table"],
+                result["counterparty"],
+                result["reference_no"],
+                result["type"],
+                result["description"],
+                result["amount"],
+                result["balance"],
+            ]
+        )
+
+    return response

@@ -151,4 +151,9 @@ urlpatterns = [
         views.admin_stripe_rec,
         name="admin_stripe_rec",
     ),
+    path(
+        "admin-stripe-rec-download",
+        views.admin_stripe_rec_download,
+        name="admin_stripe_rec_download",
+    ),
 ]
