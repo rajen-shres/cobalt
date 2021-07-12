@@ -2,6 +2,7 @@
 {% load static %}
 {% block animate %}
 {% endblock %}
+{% block title %} - Congress View{% endblock %}
 {% block content %}
 {% if congress.raw_html %}
 {{ congress.raw_html|safe }}
