@@ -112,6 +112,7 @@ $(document).ready(function() {
       var max = $('#reportrange').data('daterangepicker').endDate;
       var startDate = moment(data[1], "DD/MM/YY").toDate();
       var endDate = moment(data[2], "DD/MM/YY").toDate();
+
       if (min == null && max == null) {
         return true;
       }
@@ -121,7 +122,7 @@ $(document).ready(function() {
       if (max == null && startDate >= min) {
         return true;
       }
-      if (startDate <= max && startDate >= min) {
+      if (startDate <= max && endDate >= min) {
         return true;
       }
       return false;
