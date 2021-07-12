@@ -388,7 +388,7 @@ def view_congress(request, congress_id, fullscreen=False):
 
 @login_required()
 def checkout(request):
-    """ Checkout view - make payments, get details """
+    """Checkout view - make payments, get details"""
 
     basket_items = BasketItem.objects.filter(player=request.user)
 
@@ -535,7 +535,7 @@ def checkout(request):
 
 @login_required()
 def view_events(request):
-    """ View Events you are entered into """
+    """View Events you are entered into"""
 
     # get event entries with event entry player entries for this user
     event_entries_list = (
@@ -580,7 +580,7 @@ def view_events(request):
 @login_required()
 @transaction.atomic
 def pay_outstanding(request):
-    """ Pay anything that is not in a status of paid """
+    """Pay anything that is not in a status of paid"""
 
     # Get outstanding payments for this user
     event_entry_players = (
@@ -635,7 +635,7 @@ def pay_outstanding(request):
 
 
 def view_event_entries(request, congress_id, event_id):
-    """ Screen to show entries to an event """
+    """Screen to show entries to an event"""
 
     congress = get_object_or_404(Congress, pk=congress_id)
     event = get_object_or_404(Event, pk=event_id)
@@ -674,7 +674,7 @@ def view_event_entries(request, congress_id, event_id):
 
 @login_required()
 def enter_event_success(request):
-    """ url for payments to go to after successful entry """
+    """url for payments to go to after successful entry"""
     messages.success(
         request,
         "Payment complete. You will receive a confirmation email.",
@@ -685,7 +685,7 @@ def enter_event_success(request):
 
 @login_required()
 def global_admin_congress_masters(request):
-    """ administration of congress masters """
+    """administration of congress masters"""
 
     role = "events.global.edit"
     if not rbac_user_has_role(request.user, role):
@@ -751,13 +751,10 @@ def edit_event_entry(request, congress_id, event_id, edit_flag=None, pay_status=
         event_entry=event_entry
     ).order_by("first_created_date")
 
-    count = 1
     pay_count = 0
-    for event_entry_player in event_entry_players:
+    for count, event_entry_player in enumerate(event_entry_players, start=1):
         if count > 4:
             event_entry_player.extra_player = True
-        count += 1
-
         # check payment outstanding so we can show a Pay All button if mmore than 1
         if event_entry_player.entry_fee - event_entry_player.payment_received > 0:
             pay_count += 1
@@ -813,7 +810,7 @@ def edit_event_entry(request, congress_id, event_id, edit_flag=None, pay_status=
 @login_required()
 @transaction.atomic
 def delete_event_entry(request, event_entry_id):
-    """ Delete an entry to an event """
+    """Delete an entry to an event"""
 
     event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
 
@@ -867,7 +864,7 @@ def delete_event_entry(request, event_entry_id):
             ).save()
             messages.success(
                 request,
-                f"Event deleted from shopping cart",
+                "Event deleted from shopping cart",
                 extra_tags="cobalt-message-success",
             )
             basket_item.delete()
@@ -1094,7 +1091,7 @@ def delete_event_entry(request, event_entry_id):
 
 @login_required()
 def third_party_checkout_player(request, event_entry_player_id):
-    """ Used by edit entry screen to pay for a single other player in the team """
+    """Used by edit entry screen to pay for a single other player in the team"""
 
     event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
 
@@ -1164,7 +1161,7 @@ def third_party_checkout_player(request, event_entry_player_id):
 
 @login_required()
 def third_party_checkout_entry(request, event_entry_id):
-    """ Used by edit entry screen to pay for all outstanding fees on an entry """
+    """Used by edit entry screen to pay for all outstanding fees on an entry"""
 
     event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
 
@@ -1243,7 +1240,7 @@ def third_party_checkout_entry(request, event_entry_id):
 
 @login_required()
 def global_admin_edit_congress_master(request, id):
-    """ edit congress masters """
+    """edit congress masters"""
 
     role = "events.global.edit"
     if not rbac_user_has_role(request.user, role):
@@ -1285,7 +1282,7 @@ def global_admin_edit_congress_master(request, id):
 
 @login_required()
 def global_admin_create_congress_master(request):
-    """ create congress master """
+    """create congress master"""
 
     role = "events.global.edit"
     if not rbac_user_has_role(request.user, role):
@@ -1307,7 +1304,7 @@ def global_admin_create_congress_master(request):
 
 @login_required()
 def enter_event_payment_fail(request):
-    """ payment required auto top up which failed """
+    """payment required auto top up which failed"""
 
     error = "Auto top up failed. We were unable to process your transaction."
     title = "Payment Failed"
@@ -1458,7 +1455,7 @@ def enter_event_form(event, congress, request):
 
 @login_required()
 def enter_event(request, congress_id, event_id):
-    """ enter an event """
+    """enter an event"""
 
     # Load the event
     event = get_object_or_404(Event, pk=event_id)
@@ -1601,7 +1598,7 @@ def enter_event(request, congress_id, event_id):
 
 @login_required()
 def view_event_partnership_desk(request, congress_id, event_id):
-    """ Show the partnership desk for an event """
+    """Show the partnership desk for an event"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -1630,7 +1627,7 @@ def view_event_partnership_desk(request, congress_id, event_id):
 
 @login_required()
 def partnership_desk_signup(request, congress_id, event_id):
-    """ sign up for the partnership desk """
+    """sign up for the partnership desk"""
 
     event = get_object_or_404(Event, pk=event_id)
 

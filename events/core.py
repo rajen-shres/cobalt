@@ -177,17 +177,9 @@ def _update_entries(route_payload, payment_user):
     for event_entry in event_entries:
         event_entry.check_if_paid()
 
-    # Check if the basket needs emptied
-
-
-#    event_entries_list = event_entries.values_list("id")
-#    BasketItem.objects.filter(player=payment_user).filter(
-#        event_entry__in=event_entries_list
-#    ).delete()
-
 
 def _send_notifications(route_payload, payment_user):
-    """ Send the notification emails """
+    """Send the notification emails"""
 
     email_sender = CobaltEmail()
 
@@ -384,12 +376,12 @@ def _send_notifications(route_payload, payment_user):
 
 
 def get_basket_for_user(user):
-    """ called by base html to show basket """
+    """called by base html to show basket"""
     return BasketItem.objects.filter(player=user).count()
 
 
 def get_events(user):
-    """ called by dashboard to get upcoming events """
+    """called by dashboard to get upcoming events"""
 
     # get last 50
     event_entry_players = (
@@ -438,7 +430,7 @@ def get_events(user):
 
 
 def get_conveners_for_congress(congress):
-    """ get list of conveners for a congress """
+    """get list of conveners for a congress"""
 
     role = "events.org.%s.edit" % congress.congress_master.org.id
     return rbac_get_users_with_role(role)
@@ -490,7 +482,7 @@ def notify_conveners(
 
 
 def events_status_summary():
-    """ Used by utils status to get the status of events """
+    """Used by utils status to get the status of events"""
 
     now = datetime.now().date()
     last_day_date_time = datetime.now() - timedelta(hours=24)

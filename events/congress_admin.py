@@ -74,7 +74,7 @@ TZ = pytz.timezone(TIME_ZONE)
 
 @login_required()
 def admin_summary(request, congress_id):
-    """ Admin View """
+    """Admin View"""
 
     congress = get_object_or_404(Congress, pk=congress_id)
     events = Event.objects.filter(congress=congress)
@@ -161,7 +161,7 @@ def admin_summary(request, congress_id):
 
 @login_required()
 def admin_event_summary(request, event_id):
-    """ Admin Event View """
+    """Admin Event View"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -225,7 +225,7 @@ def admin_event_summary(request, event_id):
 
 @login_required()
 def admin_evententry(request, evententry_id):
-    """ Admin Event Entry View """
+    """Admin Event Entry View"""
 
     event_entry = get_object_or_404(EventEntry, pk=evententry_id)
     event = event_entry.event
@@ -256,7 +256,7 @@ def admin_evententry(request, evententry_id):
 
 @login_required()
 def admin_evententryplayer(request, evententryplayer_id):
-    """ Admin Event Entry Player View """
+    """Admin Event Entry Player View"""
 
     event_entry_player = get_object_or_404(EventEntryPlayer, pk=evententryplayer_id)
     old_user = copy.copy(event_entry_player.player)
@@ -372,7 +372,7 @@ def admin_evententryplayer(request, evententryplayer_id):
 
 @login_required()
 def admin_event_csv(request, event_id):
-    """ Download a CSV file with details of the entries """
+    """Download a CSV file with details of the entries"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -514,7 +514,7 @@ def admin_event_csv(request, event_id):
 
 @login_required()
 def admin_event_csv_scoring(request, event_id):
-    """ Download a CSV file with info to import to a scoring program """
+    """Download a CSV file with info to import to a scoring program"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -599,7 +599,7 @@ def admin_event_csv_scoring(request, event_id):
 
 @login_required()
 def admin_event_offsystem(request, event_id):
-    """ Handle off system payments such as cheques and bank transfers """
+    """Handle off system payments such as cheques and bank transfers"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -631,7 +631,7 @@ def admin_event_offsystem(request, event_id):
 
 @login_required()
 def admin_event_offsystem_pp(request, event_id):
-    """ Handle Club PP system to allow clubs to use their existing PP system as a payment method """
+    """Handle Club PP system to allow clubs to use their existing PP system as a payment method"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -656,7 +656,7 @@ def admin_event_offsystem_pp(request, event_id):
 
 @login_required()
 def admin_event_unpaid(request, event_id):
-    """ Unpaid Report """
+    """Unpaid Report"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -682,7 +682,7 @@ def admin_event_unpaid(request, event_id):
 
 @login_required()
 def admin_players_report(request, event_id):
-    """ Unpaid Report """
+    """Unpaid Report"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -735,7 +735,7 @@ def get_player_mp_stats(player):
 
 @login_required()
 def admin_event_log(request, event_id):
-    """ Show logs for an event """
+    """Show logs for an event"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -755,7 +755,7 @@ def admin_event_log(request, event_id):
 
 @login_required()
 def admin_evententry_delete(request, evententry_id):
-    """ Delete an event entry """
+    """Delete an event entry"""
 
     event_entry = get_object_or_404(EventEntry, pk=evententry_id)
 
@@ -941,7 +941,7 @@ def admin_evententry_delete(request, evententry_id):
 
 @login_required()
 def admin_event_player_discount(request, event_id):
-    """ Manage discounted entry to events """
+    """Manage discounted entry to events"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -1044,7 +1044,7 @@ def admin_event_player_discount(request, event_id):
 
 @login_required()
 def admin_event_email(request, event_id):
-    """ Email all entrants to an event """
+    """Email all entrants to an event"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -1063,7 +1063,7 @@ def admin_event_email(request, event_id):
 
 @login_required()
 def admin_congress_email(request, congress_id):
-    """ Email all entrants to an entire congress """
+    """Email all entrants to an entire congress"""
 
     congress = get_object_or_404(Congress, pk=congress_id)
 
@@ -1081,7 +1081,7 @@ def admin_congress_email(request, congress_id):
 
 
 def _admin_email_common(request, recipients_qs, congress, event=None):
-    """ Common function for sending emails to entrants """
+    """Common function for sending emails to entrants"""
 
     form = EmailForm(request.POST or None)
 
@@ -1141,7 +1141,7 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
                 EventLog(
                     event=event,
                     actor=request.user,
-                    action=f"Sent email to all event entrants",
+                    action="Sent email to all event entrants",
                 ).save()
 
                 log_event(
@@ -1178,7 +1178,7 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
 
 @login_required()
 def admin_bulletins(request, congress_id):
-    """ Manage bulletins """
+    """Manage bulletins"""
 
     congress = get_object_or_404(Congress, pk=congress_id)
 
@@ -1220,7 +1220,7 @@ def admin_bulletins(request, congress_id):
 
 @login_required()
 def admin_latest_news(request, congress_id):
-    """ Manage latest news section """
+    """Manage latest news section"""
 
     congress = get_object_or_404(Congress, pk=congress_id)
 
@@ -1262,7 +1262,7 @@ def admin_latest_news(request, congress_id):
 @login_required()
 @transaction.atomic
 def admin_move_entry(request, event_entry_id):
-    """ Move an entry to another event """
+    """Move an entry to another event"""
 
     event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
 
@@ -1455,7 +1455,7 @@ def admin_event_entry_add(request, event_id):
 @login_required()
 @transaction.atomic
 def admin_event_entry_player_add(request, event_entry_id):
-    """ Add a player to a team """
+    """Add a player to a team"""
 
     event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
 
@@ -1499,7 +1499,7 @@ def admin_event_entry_player_add(request, event_entry_id):
 @login_required()
 @transaction.atomic
 def admin_event_entry_player_delete(request, event_entry_player_id):
-    """ Delete a player from a team """
+    """Delete a player from a team"""
 
     event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
     event_entry = event_entry_player.event_entry
@@ -1526,7 +1526,9 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
             event_entry=event_entry,
         ).save()
 
-        event_entry_player.delete()
+        tba = User.objects.get(pk=TBA_PLAYER)
+        event_entry_player.player = tba
+        event_entry_player.save()
 
         messages.success(request, "Player Deleted", extra_tags="cobalt-message-success")
 
@@ -1671,7 +1673,7 @@ def admin_event_offsystem_pp_batch(request, event_id):
 
 @login_required()
 def player_events_list(request, member_id, congress_id):
-    """ List what events a player has entered """
+    """List what events a player has entered"""
 
     congress = get_object_or_404(Congress, pk=congress_id)
 
