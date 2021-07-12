@@ -297,12 +297,28 @@ Usage
 -----
 
 cgit_help provides a list of all of the commands. They should be used in order.
+Cgit_help also shows the current versions installed in each environment.
 
 Cgit adds descriptions to the Elastic Beanstalk releases so it can
 know exactly what is installed in each system. If you release without
 using cgit try to include this information anyway if you can::
 
-    eb deploy -m "<branch>@<YYYY.MM.DD:HH:MM>"
+    eb deploy -m "<branch>@Sun_12/07/21_08:05"
+
+
+
+cgit_compare
+^^^^^^^^^^^^
+
+.. code-block:: bash
+
+  $ cgit_compare production
+
+**Purpose**: Compares the current branch with test, UAT or production.
+
+**Git Impact**: None
+
+**Environment Impact**: None
 
 cgit_dev_start
 ^^^^^^^^^^^^^^
