@@ -202,7 +202,7 @@ class Congress(models.Model):
         return self.name
 
     def user_is_convener(self, user):
-        """ check if a user has convener rights to this congress """
+        """check if a user has convener rights to this congress"""
 
         role = "events.org.%s.edit" % self.congress_master.org.id
         return rbac_user_has_role(user, role)
@@ -235,7 +235,7 @@ class Congress(models.Model):
 
 
 class Event(models.Model):
-    """ An event within a congress """
+    """An event within a congress"""
 
     congress = models.ForeignKey(Congress, on_delete=models.PROTECT)
     event_name = models.CharField("Event Name", max_length=100)
@@ -272,7 +272,7 @@ class Event(models.Model):
         return "%s - %s" % (self.congress, self.event_name)
 
     def is_open(self):
-        """ check if this event is taking entries today """
+        """check if this event is taking entries today"""
 
         today = timezone.now().date()
 
@@ -346,7 +346,7 @@ class Event(models.Model):
         # youth discounts apply after early entry discounts
         if (
             self.congress.allow_youth_payment_discount
-            and self.congress.early_payment_discount_date
+            and self.congress.youth_payment_discount_date
         ):
             if user.dob:  # skip if no date of birth set
                 dob = datetime.datetime.combine(user.dob, datetime.time(0, 0))
@@ -391,7 +391,7 @@ class Event(models.Model):
         return entry_fee, discount, reason[:40], description
 
     def already_entered(self, user):
-        """ check if a user has already entered """
+        """check if a user has already entered"""
 
         event_entry_list = self.evententry_set.all().values_list("id")
 
@@ -408,7 +408,7 @@ class Event(models.Model):
             return None
 
     def start_time(self):
-        """ return the start time of this event """
+        """return the start time of this event"""
         session = Session.objects.filter(event=self)
         if session:
             return session.earliest("session_date").session_start
@@ -416,7 +416,7 @@ class Event(models.Model):
             return None
 
     def start_date(self):
-        """ return the start date of this event """
+        """return the start date of this event"""
         session = Session.objects.filter(event=self)
         if session:
             return session.earliest("session_date").session_date
@@ -424,7 +424,7 @@ class Event(models.Model):
             return None
 
     def end_date(self):
-        """ return the end date of this event """
+        """return the end date of this event"""
         session = Session.objects.filter(event=self)
         if session:
             return session.latest("session_date").session_date
@@ -432,7 +432,7 @@ class Event(models.Model):
             return None
 
     def print_dates(self):
-        """ returns nicely formatted date string for event """
+        """returns nicely formatted date string for event"""
         start = self.start_date()
         end = self.end_date()
 
@@ -464,7 +464,7 @@ class Event(models.Model):
         )
 
     def entry_status(self, user):
-        """ returns the status of the team/pairs/individual entry """
+        """returns the status of the team/pairs/individual entry"""
 
         event_entry_player = (
             EventEntryPlayer.objects.filter(player=user)
@@ -479,7 +479,7 @@ class Event(models.Model):
         return None
 
     def is_full(self):
-        """ check if event is already full """
+        """check if event is already full"""
 
         if self.max_entries is None:
             return False
@@ -502,7 +502,7 @@ class Event(models.Model):
 
 
 class Category(models.Model):
-    """ Event Categories such as <100 MPs or club members etc. Free format."""
+    """Event Categories such as <100 MPs or club members etc. Free format."""
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     description = models.CharField("Event Category", max_length=30)
@@ -515,7 +515,7 @@ class Category(models.Model):
 
 
 class Session(models.Model):
-    """ A session within an event """
+    """A session within an event"""
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     session_date = models.DateField()
@@ -534,7 +534,7 @@ class Session(models.Model):
 
 
 class EventEntry(models.Model):
-    """ An entry to an event """
+    """An entry to an event"""
 
     event = models.ForeignKey(Event, on_delete=models.PROTECT)
     entry_status = models.CharField(
@@ -606,7 +606,7 @@ class EventEntry(models.Model):
 
 
 class EventEntryPlayer(models.Model):
-    """ A player who is entering an event """
+    """A player who is entering an event"""
 
     event_entry = models.ForeignKey(EventEntry, on_delete=models.CASCADE)
     player = models.ForeignKey(User, on_delete=models.CASCADE, related_name="player")
@@ -648,7 +648,7 @@ class PlayerBatchId(models.Model):
 
 
 class CongressLink(models.Model):
-    """ Link Items for Congresses """
+    """Link Items for Congresses"""
 
     congress = models.ForeignKey(Congress, on_delete=models.CASCADE)
     link = models.CharField("Congress Link", max_length=100)
@@ -658,7 +658,7 @@ class CongressLink(models.Model):
 
 
 class CongressNewsItem(models.Model):
-    """ News Items for Congresses """
+    """News Items for Congresses"""
 
     congress = models.ForeignKey(Congress, on_delete=models.CASCADE)
     text = models.TextField()
@@ -668,14 +668,14 @@ class CongressNewsItem(models.Model):
 
 
 class BasketItem(models.Model):
-    """ items in a basket. We don't define basket itself as it isn't needed """
+    """items in a basket. We don't define basket itself as it isn't needed"""
 
     player = models.ForeignKey(User, on_delete=models.CASCADE)
     event_entry = models.ForeignKey(EventEntry, on_delete=models.CASCADE)
 
 
 class EventLog(models.Model):
-    """ log of things that happen within an event """
+    """log of things that happen within an event"""
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     actor = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -709,7 +709,7 @@ class EventPlayerDiscount(models.Model):
 
 
 class Bulletin(models.Model):
-    """ Regular PDF bulletins for congresses """
+    """Regular PDF bulletins for congresses"""
 
     document = models.FileField(upload_to="bulletins/%Y/%m/%d/")
     create_date = models.DateTimeField(default=timezone.now)
@@ -734,7 +734,7 @@ class CongressDownload(models.Model):
 
 
 class PartnershipDesk(models.Model):
-    """ Partnership Desk players looking for partners """
+    """Partnership Desk players looking for partners"""
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     player = models.ForeignKey(User, on_delete=models.CASCADE)
