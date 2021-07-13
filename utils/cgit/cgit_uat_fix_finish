@@ -6,7 +6,6 @@
 BRANCH=$(git branch --show-current)
 
 RELEASE=$(echo $BRANCH|cut -d= -f1)
-FIX=$(echo $BRANCH|cut -d= -f2)
 
 echo ""
 echo ""
@@ -40,7 +39,7 @@ then
    exit 1
   fi
 
-  git pull origin release/$RELEASE
+  git fetch origin release/$RELEASE
   if [ $? -ne 0 ];then
    exit 1
   fi
@@ -73,8 +72,8 @@ then
   if [ "$UATNUM" = "1" ]
   then
    echo "Deploying code to $UATENV..."
-   DATE=$(date '+%Y.%m.%d:%H:%M')
-   eb deploy -m "release/$RELEASE/$FIX@$DATE" $UATENV
+   DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
+   eb deploy -m "release/$RELEASE@$DATE" $UATENV
   else
    echo "Cannot deploy to UAT, found more than one UAT environment."
    echo $UATENV
@@ -95,10 +94,10 @@ else
   exit
 fi
 
-echo "Deleting branch $BRANCH..."
-echo ""
-
-git branch -d $BRANCH
+#echo "Deleting branch $BRANCH..."
+#echo ""
+#
+#git branch -d $BRANCH
 
 
 echo ""

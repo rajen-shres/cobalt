@@ -16,6 +16,15 @@ if [ $# -ne 2 ]
     exit 1
 fi
 
+# Check for / in bugfix branch
+ERROR=$(echo $2 | grep "/")
+if [ -n "$ERROR" ]
+then
+  echo "Invalid character / in bugfix_name"
+  echo ""
+  exit 1
+fi
+
 git pull origin release/$1
 if [ $? -ne 0 ];then
   exit 1

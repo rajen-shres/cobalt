@@ -41,7 +41,6 @@ cgit_compare              - compare this branch to what is running in test, uat 
 
 Current Status
 --------------
-(Assumes local branches are up to date)
 
 EOF
 
@@ -49,28 +48,27 @@ EOF
 unset AWS_SECRET_ACCESS_KEY
 unset AWS_ACCESS_KEY_ID
 
-# Get status of envs
-TESTENV=$(eb list | grep cobalt-test | tr \* " ")
-UATENV=$(eb list | grep cobalt-uat | tr \* " ")
-PRODENV=$(eb list | grep cobalt-production | tr \* " ")
+# Get this branch
+BRANCH=$(git branch --show-current)
 
-# Test
-APP=$(eb status $TESTENV | grep Deploy | awk '{print $3}')
-DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
-echo "Test is running: $DESC"
+# Function to work with environments
+get_status() {
+  THISNAME=$1
+  THISSEARCH=$2
+  REFBRANCH=$3
 
-# UAT
-APP=$(eb status $UATENV | grep Deploy | awk '{print $3}')
-DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
-UATBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
-FILE_DIFF=$(git diff --name-status $UATBRANCH..develop | wc | awk '{print $1}')
-echo "UAT is running: $DESC [$FILE_DIFF files different from develop]"
+  THISENV=$(eb list | grep $THISSEARCH | tr \* " ")
 
-# PROD
-APP=$(eb status $PRODENV | grep Deploy | awk '{print $3}')
-DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
-PRODBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
+  APP=$(eb status $THISENV | grep Deploy | awk '{print $3}')
+  DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
+  THISBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
+  git fetch origin $THISBRANCH >/dev/null 2>&1
+  FILE_DIFF=$(git diff --name-status $THISBRANCH..$REFBRANCH | wc | awk '{print $1}')
+  echo "$THISNAME is running: $DESC [$FILE_DIFF files different from $REFBRANCH]"
+}
 
-FILE_DIFF=$(git diff --name-status $PRODBRANCH..$UATBRANCH | wc | awk '{print $1}')
-echo "Production is running: $DESC [$FILE_DIFF files different from UAT]"
-echo ""
+get_status "Test" "cobalt-test" $BRANCH
+get_status "UAT" "cobalt-uat" "develop"
+get_status "Production" "cobalt-production" "develop"
+
+

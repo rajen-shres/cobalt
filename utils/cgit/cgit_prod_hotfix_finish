@@ -23,8 +23,9 @@ echo "Congratulations on finishing a hotfix."
 echo ""
 echo "MAKE SURE YOU RUN cgit_prod_preview before deploying this."
 echo ""
-echo "I will check your branch is clean and then copy your changes into release/$RELEASE/$PATCH"
-echo "a patched version of the release branch."
+echo "I will check your branch is clean and then copy your changes into both release/$RELEASE"
+echo "and release/$RELEASE--$PATCH. The later being a point in time snapshot of what was installed."
+echo ""
 echo "I will then deploy to the PRODUCTION system and update develop and master."
 echo ""
 echo "I will not delete the branch '$BRANCH' as this is likely installed in test or UAT."
@@ -46,18 +47,47 @@ then
    exit 1
   fi
 
-  echo "Creating copy of $BRANCH as release patch branch [release/$RELEASE/$PATCH]..."
+  echo "Updating release/$RELEASE..."
 
-  git checkout -b release/$RELEASE/$PATCH
+  echo "Checking out release/$RELEASE..."
+  git checkout release/$RELEASE
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo "Pulling release/$RELEASE..."
+  git pull origin release/$RELEASE
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo "Merging $BRANCH..."
+  git merge $BRANCH
   if [ $? -ne 0 ];then
    exit 1
   fi
 
   echo ""
-  echo "Pushing release/$RELEASE/$PATCH branch to github..."
+  echo "Pushing release/$RELEASE to github..."
   echo ""
 
-  git push origin release/$RELEASE/$PATCH
+  git push origin release/$RELEASE
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo "Creating copy of $BRANCH as release patch branch [release/$RELEASE--$PATCH]..."
+
+  git checkout -b release/$RELEASE--$PATCH
+  if [ $? -ne 0 ];then
+   exit 1
+  fi
+
+  echo ""
+  echo "Pushing release/$RELEASE--$PATCH branch to github..."
+  echo ""
+
+  git push origin release/$RELEASE--$PATCH
   if [ $? -ne 0 ];then
    exit 1
   fi
@@ -68,9 +98,9 @@ then
 
   PRODENV=$(eb list | grep cobalt-prod)
 
-  echo "Deploying code to $PRODENV from release/$RELEASE/$PATCH..."
-  DATE=$(date '+%Y.%m.%d:%H:%M')
-  eb deploy -m "release/$RELEASE/$PATCH@$DATE" $PRODENV
+  echo "Deploying code to $PRODENV from release/$RELEASE--$PATCH..."
+  DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
+  eb deploy -m "release/$RELEASE--$PATCH@$DATE" $PRODENV
   echo ""
 
   echo ""
@@ -88,10 +118,10 @@ then
   fi
 
   echo ""
-  echo "Merging release/$RELEASE/$PATCH into develop..."
+  echo "Merging release/$RELEASE--$PATCH into develop..."
   echo ""
 
-  git merge release/$RELEASE/$PATCH
+  git merge release/$RELEASE--$PATCH
   if [ $? -ne 0 ];then
    exit 1
   fi
