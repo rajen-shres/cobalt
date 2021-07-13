@@ -11,6 +11,7 @@
         </div>
     </a>
     </td>
+    <td class="text-left">{{ thing.id }}</td>
     <td title="{{ thing.created_date|timesince }} ago"
         data-toggle="tooltip">{{ thing.created_date|date:'Y-m-d H:i:s' }}</td>
     <td class="text-left">{{ thing.status }}</td>
@@ -22,5 +23,4 @@
     <td class="text-left">{{ thing.title }}</td>
     <td class="text-left">{{ thing.incident_type }}</td>
     <td class="text-left">{{ thing.assigned_to.first_name }}</td>
-    <td class="text-left">{{ thing.id }}</td>
 </tr>
