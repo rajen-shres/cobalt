@@ -36,8 +36,10 @@
 
             <div class="row">
                 <div class="col">
-                    <button type="submit" id="submit_button" class="btn btn-info">Change Reference Date</button>
+                    <button type="submit" id="submit_button" class="btn btn-info">Refresh</button>
                     <button id="id_download" class="btn btn-rose">Download Previous Months Transactions</button>
+                    <button id="id_download_member" class="btn btn-warning">Download Member Balance at Reference Date</button>
+                    <button id="id_download_org" class="btn btn-danger">Download Org Balance at Reference Date</button>
                 </div>
             </div>
             <h3>Balance at {{ ref_date }}</h3>
@@ -51,41 +53,17 @@
                     <td>Organisations Balance</td><td><b>{{ GLOBAL_CURRENCY_SYMBOL }}{{ orgs_balance|floatformat:2|intcomma }}</b>
                     from <a href="{% url "payments:admin_orgs_with_balance" %}">{{ orgs_count }} organisations</a></td>
                 </tr>
-                <tr>
-                    <td>Last Member Transaction</td>
-                    <td>{{ last_tran_member.member }}</td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td>{{ GLOBAL_CURRENCY_SYMBOL }}{{ last_tran_member.amount|floatformat:2|intcomma  }}</td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td>{{ last_tran_member.description }}</td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td>{{ last_tran_member.created_date }}</td>
-                </tr>
-                <tr>
-                    <td>Last Organisation Transaction</td>
-                    <td>{{ last_tran_org.organisation }}</td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td>{{ GLOBAL_CURRENCY_SYMBOL }}{{ last_tran_org.amount|floatformat:2|intcomma  }}</td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td>{{ last_tran_org.description }}</td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td>{{ last_tran_org.created_date }}</td>
-                </tr>
+
                 </tbody>
             </table>
+       <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
     </div>
+
   </div>
 </div>
 
@@ -101,13 +79,33 @@
                 format: 'DD/MM/YYYY'
             });
 
+// Download all transactions for reference date (includes previous month)
             $('#id_download').click(function (event){
                 event.preventDefault();
                const ref_date = $('#id_ref_date').val();
-// create a form and submit it
-               $('<form action="{% url "payments:admin_stripe_rec_download" %}">{{ csrf_token }}<input type="text" value="' + ref_date + '"</form>').appendTo('body').submit();
+                // create a form and submit it
+               $('<form method="POST" action="{% url "payments:admin_stripe_rec_download" %}">{% csrf_token %}<input type="text" name="ref_date" value="' + ref_date + '"></form>').appendTo('body').submit();
 
             });
+
+// Download member balances at reference date
+            $('#id_download_member').click(function (event){
+                event.preventDefault();
+               const ref_date = $('#id_ref_date').val();
+                // create a form and submit it
+               $('<form method="POST" action="{% url "payments:admin_stripe_rec_download_member" %}">{% csrf_token %}<input type="text" name="ref_date" value="' + ref_date + '"></form>').appendTo('body').submit();
+
+            });
+
+// Download org balances at reference date
+            $('#id_download_org').click(function (event){
+                event.preventDefault();
+               const ref_date = $('#id_ref_date').val();
+// create a form and submit it
+               $('<form method="POST" action="{% url "payments:admin_stripe_rec_download_org" %}">{% csrf_token %}<input type="text" name="ref_date" value="' + ref_date + '"></form>').appendTo('body').submit();
+
+            });
+
 
         });
     </script>

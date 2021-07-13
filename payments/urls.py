@@ -156,4 +156,14 @@ urlpatterns = [
         views.admin_stripe_rec_download,
         name="admin_stripe_rec_download",
     ),
+    path(
+        "admin-stripe-rec-download-member",
+        views.admin_stripe_rec_download_member,
+        name="admin_stripe_rec_download_member",
+    ),
+    path(
+        "admin-stripe-rec-download-org",
+        views.admin_stripe_rec_download_org,
+        name="admin_stripe_rec_download_org",
+    ),
 ]

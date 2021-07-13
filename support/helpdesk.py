@@ -176,8 +176,6 @@ def _notify_group_common(request, ticket, subject, email_ticket_msg, exclude=Non
 
     for recipient in recipients:
 
-        print(recipient, exclude)
-
         if recipient.staff == exclude:
             continue
 

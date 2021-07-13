@@ -94,7 +94,7 @@ def get_all_congress_ajax(request):
 
 @login_required()
 def get_conveners_ajax(request, org_id):
-    """ returns a list of conveners as html for an organisation """
+    """returns a list of conveners as html for an organisation"""
 
     conveners = rbac_get_users_with_role("events.org.%s.edit" % org_id)
 
@@ -112,7 +112,7 @@ def get_conveners_ajax(request, org_id):
 
 @login_required()
 def get_congress_master_ajax(request, org_id):
-    """ returns a list of congress_masters as html for an organisation """
+    """returns a list of congress_masters as html for an organisation"""
 
     org = get_object_or_404(Organisation, pk=org_id)
 
@@ -128,7 +128,7 @@ def get_congress_master_ajax(request, org_id):
 
 @login_required()
 def get_congress_ajax(request, congress_id):
-    """ returns a list of congresses as html for an congress_master """
+    """returns a list of congresses as html for an congress_master"""
 
     master = get_object_or_404(CongressMaster, pk=congress_id)
 
@@ -144,7 +144,7 @@ def get_congress_ajax(request, congress_id):
 
 @login_required()
 def delete_event_ajax(request):
-    """ Ajax call to delete an event from a congress """
+    """Ajax call to delete an event from a congress"""
 
     if request.method == "GET":
         event_id = request.GET["event_id"]
@@ -185,7 +185,7 @@ def delete_event_ajax(request):
 
 @login_required()
 def delete_category_ajax(request):
-    """ Ajax call to delete a category from an event """
+    """Ajax call to delete a category from an event"""
 
     if request.method == "GET":
         category_id = request.GET["category_id"]
@@ -221,7 +221,7 @@ def delete_category_ajax(request):
 
 @login_required()
 def edit_category_ajax(request):
-    """ Ajax call to edit a category in an event """
+    """Ajax call to edit a category in an event"""
 
     if request.method == "POST":
         category_id = request.POST["category_id"]
@@ -260,7 +260,7 @@ def edit_category_ajax(request):
 
 @login_required()
 def delete_session_ajax(request):
-    """ Ajax call to delete a session from a congress """
+    """Ajax call to delete a session from a congress"""
 
     if request.method == "GET":
         session_id = request.GET["session_id"]
@@ -288,7 +288,7 @@ def delete_session_ajax(request):
 
 @login_required()
 def fee_for_user_ajax(request):
-    """ Ajax call to get entry fee for a user in an event """
+    """Ajax call to get entry fee for a user in an event"""
 
     if request.method == "GET":
         event_id = request.GET["event_id"]
@@ -389,7 +389,7 @@ def payment_options_for_user_ajax(request):
 
 @login_required()
 def add_category_ajax(request):
-    """ Ajax call to add an event category to an event """
+    """Ajax call to add an event category to an event"""
 
     if request.method == "POST":
         event_id = request.POST["event_id"]
@@ -420,7 +420,7 @@ def add_category_ajax(request):
 
 @login_required()
 def admin_offsystem_pay_ajax(request):
-    """ Ajax call to mark an off-system payment as made """
+    """Ajax call to mark an off-system payment as made"""
 
     if request.method == "POST":
         event_entry_player_id = request.POST["event_entry_player_id"]
@@ -467,7 +467,7 @@ def admin_offsystem_pay_ajax(request):
 
 @login_required()
 def admin_offsystem_unpay_ajax(request):
-    """ Ajax call to mark an off-system payment as no longer paid """
+    """Ajax call to mark an off-system payment as no longer paid"""
 
     if request.method == "POST":
         event_entry_player_id = request.POST["event_entry_player_id"]
@@ -513,7 +513,7 @@ def admin_offsystem_unpay_ajax(request):
 
 @login_required()
 def admin_offsystem_pay_pp_ajax(request):
-    """ Ajax call to mark a pp payment as paid """
+    """Ajax call to mark a pp payment as paid"""
 
     if request.method == "POST":
         event_entry_player_id = request.POST["event_entry_player_id"]
@@ -560,7 +560,7 @@ def admin_offsystem_pay_pp_ajax(request):
 
 @login_required()
 def admin_offsystem_unpay_pp_ajax(request):
-    """ Ajax call to mark a pp payment as no longer paid """
+    """Ajax call to mark a pp payment as no longer paid"""
 
     if request.method == "POST":
         event_entry_player_id = request.POST["event_entry_player_id"]
@@ -605,7 +605,7 @@ def admin_offsystem_unpay_pp_ajax(request):
 
 @login_required()
 def delete_basket_item_ajax(request):
-    """ Delete an item from a users basket (and delete the event entry) """
+    """Delete an item from a users basket (and delete the event entry)"""
 
     if request.method == "GET":
         basket_id = request.GET["basket_id"]
@@ -630,7 +630,7 @@ def delete_basket_item_ajax(request):
 
 @login_required()
 def admin_player_discount_delete_ajax(request):
-    """ Delete a player discount record """
+    """Delete a player discount record"""
 
     if request.method == "POST":
         discount_id = request.POST["event_player_discount_id"]
@@ -674,7 +674,7 @@ def admin_player_discount_delete_ajax(request):
 
 @login_required()
 def check_player_entry_ajax(request):
-    """ Check if a player is already entered in an event """
+    """Check if a player is already entered in an event"""
 
     if request.method == "GET":
         member_id = request.GET["member_id"]
@@ -701,7 +701,7 @@ def check_player_entry_ajax(request):
 
 @login_required()
 def change_player_entry_ajax(request):
-    """ Change a player in an event. Also update entry_fee if required """
+    """Change a player in an event. Also update entry_fee if required"""
 
     if request.method == "GET":
         member_id = request.GET["member_id"]
@@ -927,7 +927,7 @@ def change_player_entry_ajax(request):
 
 @login_required()
 def add_player_to_existing_entry_ajax(request):
-    """ Add a player to a team from the edit entry screen """
+    """Add a player to a team from the edit entry screen"""
 
     if request.method == "GET":
         event_entry_id = request.GET["event_entry_id"]
@@ -982,7 +982,7 @@ def add_player_to_existing_entry_ajax(request):
 
 @login_required()
 def delete_player_from_entry_ajax(request):
-    """ Delete a player (5 or 6 only) from a team from the edit entry screen """
+    """Delete a player (5 or 6 only) from a team from the edit entry screen"""
 
     if request.method == "GET":
         event_entry_player_id = request.GET["event_entry_player_id"]
@@ -1098,7 +1098,7 @@ def change_category_on_existing_entry_ajax(request, event_entry_id, category_id)
 
 @login_required()
 def change_answer_on_existing_entry_ajax(request, event_entry_id, answer):
-    """ Update the answer to the question on entry """
+    """Update the answer to the question on entry"""
 
     event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
 
@@ -1129,7 +1129,7 @@ def change_answer_on_existing_entry_ajax(request, event_entry_id, answer):
 
 @login_required()
 def admin_delete_bulletin_ajax(request):
-    """ Ajax call to delete a bulletin from a congress """
+    """Ajax call to delete a bulletin from a congress"""
 
     if request.method == "GET":
         bulletin_id = request.GET["bulletin_id"]
@@ -1157,7 +1157,7 @@ def admin_delete_bulletin_ajax(request):
 
 @login_required()
 def admin_delete_download_ajax(request):
-    """ Ajax call to delete a download from a congress """
+    """Ajax call to delete a download from a congress"""
 
     if request.method == "GET":
         download_id = request.GET["download_id"]
@@ -1185,7 +1185,7 @@ def admin_delete_download_ajax(request):
 
 @login_required()
 def delete_me_from_partnership_desk(request, event_id):
-    """ delete this user from the partnership desk """
+    """delete this user from the partnership desk"""
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -1218,7 +1218,7 @@ def delete_me_from_partnership_desk(request, event_id):
 
 @login_required()
 def contact_partnership_desk_person_ajax(request):
-    """ get in touch with someone who you want to play with from the partnership desk """
+    """get in touch with someone who you want to play with from the partnership desk"""
 
     if request.method == "GET":
         partnership_desk_id = request.GET["partnership_desk_id"]
@@ -1276,7 +1276,7 @@ def contact_partnership_desk_person_ajax(request):
 
 @login_required()
 def change_payment_method_on_existing_entry_ajax(request):
-    """ Ajax call from edit event entry screen to change payment method """
+    """Ajax call from edit event entry screen to change payment method"""
 
     if request.method == "GET":
         player_entry_id = request.GET["player_entry_id"]
@@ -1300,7 +1300,8 @@ def change_payment_method_on_existing_entry_ajax(request):
         EventLog(
             event=player_entry.event_entry.event,
             actor=request.user,
-            action=f"Changed payment method to {payment_method}",
+            action=f"Changed payment method for {player_entry.player} to {payment_method}",
+            event_entry=player_entry.event_entry,
         ).save()
 
         log_event(
@@ -1318,7 +1319,7 @@ def change_payment_method_on_existing_entry_ajax(request):
 
 @login_required()
 def admin_event_entry_notes_ajax(request):
-    """ Ajax call from event entry screen to update notes """
+    """Ajax call from event entry screen to update notes"""
 
     if request.method == "POST":
         data = json.loads(request.body.decode("utf-8"))
@@ -1350,7 +1351,7 @@ def admin_event_entry_notes_ajax(request):
 
 @login_required()
 def edit_comment_event_entry_ajax(request):
-    """ Edit comment on an event entry """
+    """Edit comment on an event entry"""
 
     if request.method != "POST":
         return JsonResponse({"message": "Invalid call"})
