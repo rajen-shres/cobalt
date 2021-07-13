@@ -247,7 +247,9 @@
                         </a>
                     </form>
                     <br>
+                {% if incident_line_items %}
                     <button class="btn btn-danger btn-sm" id="id_toggle_history">Show History</button>
+                {% endif %}
                      <div id="id_history" style="display:none;">
                         {% for incident_line_item in incident_line_items %}
                             <div class="row">
@@ -290,12 +292,17 @@
                                 {{ comment_form.description|as_crispy_field }}
                             </div>
                             <input type="checkbox" id="private" name="private" value="Private">
-                            <label for="private">Private comment (not shared with user)</label><br>
-                            <button class="btn btn-primary" id="add_comment" name="add">Add Comment</button>
-                            <button class="btn btn-success" id="add_close" name="add-close">Add and close ticket
-                            </button>
-                            <button class="btn btn-danger" id="add_awaiting" name="add-awaiting">Awaiting User Feedback
-                            </button>
+                            <label for="private" style="color: black">Private comment (not shared with user)</label><br>
+                            <select class="selectpicker" data-style="btn btn-success btn-sm" id="id_action" name="action">
+
+                               <option value="add-comment" selected>Add Comment</option>
+                               <option value="add-close">Add Comment and Close Ticket</option>
+                               <option value="add-awaiting">Add Comment and Change to Awaiting User Feedback</option>
+
+                            </select><br>
+
+
+                            <button class="btn btn-primary cobalt-save" id="add_comment" name="add">Save</button>
                             <a href="{% url "support:helpdesk_menu" %}" class="btn btn-info">Cancel</a>
                         </form>
                     </div>
@@ -311,7 +318,7 @@
 {% endblock %}
 
 {% block footer %}
-
+<script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
 <script src="{% static "forums/assets/js/summernote-plugin-spades.js" %}"></script>
 <script src="{% static "forums/assets/js/summernote-plugin-hearts.js" %}"></script>
 <script src="{% static "forums/assets/js/summernote-plugin-diamonds.js" %}"></script>
@@ -335,6 +342,9 @@
             const $form = $('#ticket_form');
             const originalForm = $form.serialize();
 
+            // poke the selectpicker
+            $('.selectpicker').selectpicker('refresh');
+
             // If assignee changes check the status
             $('#id_assigned_to').on('change', function (e) {
                 const status = $('#id_status');
@@ -351,7 +361,12 @@
             // Show history
             $('#id_toggle_history').click(function(){
                 $('#id_history').toggle();
-            })
+                if ($('#id_toggle_history').text() === "Show History"){
+                     $('#id_toggle_history').text("Hide History")
+                }else{
+                     $('#id_toggle_history').text("Show History")
+                }
+            });
 
             $("#id_delete").click(function (event) {
                 // don't be an enter button
@@ -419,6 +434,16 @@
             // same thing for summernote
             $('#comment_description').summernote({
                 height: 300,
+                toolbar: [
+                    ["style", ["style"]],
+                    ["fontsize", ["fontsize"]],
+                    ["font", ["bold", "italic", "underline"]],
+                    ["fontname", ["fontname"]],
+                    ["color", ["color"]],
+                    ["para", ["ul", "ol", "paragraph"]],
+                    ["table", ["table"]],
+                    ["insert", ["link", "picture", "hr"]],
+                ],
                 callbacks: {
                     onChange: function(contents, $editable) {
                         handle_change($(this.form)[0].id);

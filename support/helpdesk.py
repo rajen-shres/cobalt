@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from cobalt.settings import COBALT_HOSTNAME
+from cobalt.settings import COBALT_HOSTNAME, SUMMERNOTE_CONFIG
 from notifications.views import send_cobalt_email, CobaltEmail
 from rbac.decorators import rbac_check_role
 from support.forms import IncidentForm, AttachmentForm, IncidentLineItemForm
@@ -160,7 +160,7 @@ def _notify_user_resolved_ticket(request, ticket, text):
     _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
 
 
-def _notify_group_common(request, ticket, subject, email_ticket_msg):
+def _notify_group_common(request, ticket, subject, email_ticket_msg, exclude=None):
     """Common shared code for notifying the group"""
 
     first_name, email, full_name = _get_user_details_from_ticket(ticket)
@@ -175,6 +175,12 @@ def _notify_group_common(request, ticket, subject, email_ticket_msg):
     email_sender = CobaltEmail()
 
     for recipient in recipients:
+
+        print(recipient, exclude)
+
+        if recipient.staff == exclude:
+            continue
+
         html_msg = render_to_string(
             "notifications/email_with_button.html",
             {
@@ -201,6 +207,18 @@ def notify_group_new_ticket(request, ticket):
     email_ticket_msg = f"{full_name} has created a support ticket."
 
     _notify_group_common(request, ticket, subject, email_ticket_msg)
+
+
+def notify_group_new_ticket_by_staff(request, ticket):
+    """Notify staff when a new ticket is raised by a staff member. Don't notify the person who raised it"""
+
+    first_name, email, full_name = _get_user_details_from_ticket(ticket)
+    subject = f"Support Ticket Raised - Unassigned #{ticket.id}"
+    email_ticket_msg = f"{request.user.full_name} has created a support ticket for {full_name}. This ticket is unassigned."
+
+    _notify_group_common(
+        request, ticket, subject, email_ticket_msg, exclude=request.user
+    )
 
 
 def _notify_group_update_to_unassigned_ticket(request, ticket, reply):
@@ -306,7 +324,7 @@ def create_ticket(request):
 
         # if unassigned, notify everyone
         if ticket.status == "Unassigned":
-            notify_group_new_ticket(request, ticket)
+            notify_group_new_ticket_by_staff(request, ticket)
 
         else:
             IncidentLineItem(
@@ -501,6 +519,12 @@ def edit_ticket(request, ticket_id):
 
     form = IncidentForm(instance=ticket)
     comment_form = IncidentLineItemForm(auto_id="comment_%s")
+    summernote_config = SUMMERNOTE_CONFIG
+    # summernote_config['callbacks'] = """"{
+    #                                         onChange: function(contents, $editable) {
+    #                                             handle_change($(this.form)[0].id);
+    #                                             }}
+    #                                   """
 
     # get related items
     incident_line_items = IncidentLineItem.objects.filter(incident=ticket)
@@ -519,6 +543,7 @@ def edit_ticket(request, ticket_id):
             "incident_line_items": incident_line_items,
             "first_name": first_name,
             "attachments": attachments,
+            "summernote_config": summernote_config,
         },
     )
 
@@ -538,20 +563,27 @@ def add_comment(request, ticket_id):
         ticket.status = "In Progress"
         ticket.save()
 
-    # See if we are also closing the ticket
-    and_close = "add-close" in request.POST
-
-    # See if we are also changing status to awaiting user feedback
-    and_awaiting = "add-awaiting" in request.POST
-
     # get private flag
     private = request.POST.get("private")
+    comment_type = "Private" if private else "Default"
 
     if form.is_valid():
         text = form.cleaned_data["description"]
+        action = form.cleaned_data["action"]
+
+        # See if we are also closing the ticket
+        and_close = action == "add-close"
+
+        # See if we are also changing status to awaiting user feedback
+        and_awaiting = action == "add-awaiting"
 
         # add comment
-        IncidentLineItem(description=text, staff=request.user, incident=ticket).save()
+        IncidentLineItem(
+            description=text,
+            staff=request.user,
+            incident=ticket,
+            comment_type=comment_type,
+        ).save()
 
         if and_awaiting:
             IncidentLineItem(

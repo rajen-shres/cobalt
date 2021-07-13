@@ -109,6 +109,13 @@ class IncidentLineItemForm(forms.ModelForm):
             attrs={"summernote": {"placeholder": "<br><br>Add Comment..."}}
         )
     )
+    action = forms.ChoiceField(
+        choices=[
+            ("add-comment", "Add Comment"),
+            ("add-close", "Add Comment and Close Ticket"),
+            ("add-awaiting", "Add Comment and set to awaiting user feedback"),
+        ]
+    )
 
     class Meta:
         model = IncidentLineItem
