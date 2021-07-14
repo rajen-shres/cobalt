@@ -1,16 +1,17 @@
 from django import template
 from django.utils.dateformat import DateFormat
 from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 register = template.Library()
+
 
 # custom filter for datetime so we can get "am" amd "pm" instead of "a.m." and "p.m."
 # accepted datetime object or time object
 # returns e.g. 10am, 7:15pm 10:01am
 @register.filter(name="cobalt_time", expects_localtime=True)
 def cobalt_time(value):
-
     if not value:
         return None
 
@@ -20,17 +21,14 @@ def cobalt_time(value):
     hour_num = "%d" % int(hour_str)
 
     if min_str == "00":
-        time_str = f"{hour_num}{ampm_str}"
+        return f"{hour_num}{ampm_str}"
     else:
-        time_str = f"{hour_num}:{min_str}{ampm_str}"
-
-    return time_str
+        return f"{hour_num}:{min_str}{ampm_str}"
 
 
 # custom filter for datetime to format as full date
 @register.filter(name="cobalt_nice_date", expects_localtime=True)
 def cobalt_nice_date(value):
-
     if not value:
         return None
 
@@ -40,7 +38,6 @@ def cobalt_nice_date(value):
 # custom filter for datetime to format as full date
 @register.filter(name="cobalt_nice_datetime", expects_localtime=True)
 def cobalt_nice_datetime(value):
-
     if not value:
         return None
 
@@ -53,53 +50,47 @@ def cobalt_nice_datetime(value):
 # custom filter for user which includes link to public profile
 @register.filter(name="cobalt_user_link", is_safe=True)
 def cobalt_user_link(user):
-
     if not user:
         return None
 
     url = reverse("accounts:public_profile", kwargs={"pk": user.id})
-    return mark_safe(f"<a href='{url}'>{user}</a>")
+    return format_html("<a href='{}'>{}</a>", mark_safe(url), user)
 
 
 # custom filter for user which includes link to public profile
 # Short version - name only, no system number
 @register.filter(name="cobalt_user_link_short", is_safe=True)
 def cobalt_user_link_short(user):
-
     if not user:
         return None
 
     url = reverse("accounts:public_profile", kwargs={"pk": user.id})
-    return mark_safe(f"<a href='{url}'>{user.full_name}</a>")
+    return format_html("<a href='{}'>{}</a>", mark_safe(url), user.full_name)
 
 
 # return formatted bridge credit number
 @register.filter(name="cobalt_credits", is_safe=True)
-def cobalt_credits(credits):
-
+def cobalt_credits(credits_amt):
     try:
-        credits = float(credits)
+        credits_amt = float(credits_amt)
     except ValueError:
-        return mark_safe(None)
+        return None
 
-    if credits == 1.0:
-        word = "credit"
-    else:
-        word = "credits"
+    word = "credit" if credits_amt == 1.0 else "credits"
 
     try:
-        if int(credits) == credits:
-            credits = int(credits)
-        ret = f"{credits:,} {word}"
+        if int(credits_amt) == credits_amt:
+            credits_amt = int(credits_amt)
+        ret = f"{credits_amt:,} {word}"
     except TypeError:
         ret = None
 
-    return mark_safe(ret)
+    return ret
+
 
 # custom filter for email address which hides the address. Used by admin email viewer
 @register.filter(name="cobalt_hide_email", is_safe=True)
 def cobalt_hide_email(email):
-
     if not email:
         return None
 
@@ -108,11 +99,12 @@ def cobalt_hide_email(email):
 
     if loc and last_fullstop:
         hidden_email = "*" * len(email)
-        hidden_email = hidden_email[:loc] + "@" + hidden_email[loc+1:]
+        hidden_email = hidden_email[:loc] + "@" + hidden_email[loc + 1 :]  # noqa: E203
         hidden_email = hidden_email[:last_fullstop] + email[last_fullstop:]
-        return mark_safe(hidden_email)
+        return hidden_email
     else:
         return "*******************"
+
 
 # return class of object - used by search
 @register.filter(name="get_class")

@@ -30,6 +30,7 @@ These are links to documents that describe each module.
 * :doc:`rbac_ABF_Roles`
 * :doc:`forums_overview`
 * :doc:`utilities_overview`
+* :doc:`security_overview`
 * :doc:`support_overview`
 * :doc:`testing_overview`
 * :doc:`test_data_overview`

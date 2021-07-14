@@ -1,7 +1,13 @@
+import bleach
 from django.db import models
 from django.utils import timezone
 
 from accounts.models import User
+from cobalt.settings import (
+    BLEACH_ALLOWED_ATTRIBUTES,
+    BLEACH_ALLOWED_TAGS,
+    BLEACH_ALLOWED_STYLES,
+)
 
 INCIDENT_STATUS_TYPES = [
     ("Unassigned", "Unassigned"),
@@ -94,6 +100,18 @@ class Incident(models.Model):
     def __str__(self):
         return f"{self.incident_type} - {self.reported_by_user}"
 
+    def save(self, *args, **kwargs):
+        if self.description and getattr(self, "_description_changed", True):
+            self.description = bleach.clean(
+                self.description,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        super(Incident, self).save(*args, **kwargs)
+
 
 class IncidentLineItem(models.Model):
     """a thing that happens to an Incident"""
@@ -117,6 +135,18 @@ class IncidentLineItem(models.Model):
 
     def __str__(self):
         return f"{self.incident} - {self.staff}"
+
+    def save(self, *args, **kwargs):
+        if self.description and getattr(self, "_description_changed", True):
+            self.description = bleach.clean(
+                self.description,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        super(IncidentLineItem, self).save(*args, **kwargs)
 
 
 class Attachment(models.Model):
@@ -151,5 +181,4 @@ class NotifyUserByType(models.Model):
     """ type for this incident """
 
     def __str__(self):
-
         return f"{self.staff.full_name} - {self.incident_type}"

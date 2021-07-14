@@ -21,7 +21,6 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
-from django.utils.safestring import mark_safe
 
 from accounts.models import User
 from cobalt.settings import (
@@ -52,10 +51,10 @@ MAX_EMAIL_THREADS = 20
 
 
 class CobaltEmail:
-    """ Class to handle sending emails. See the notifications_overview in the docs for an explanation """
+    """Class to handle sending emails. See the notifications_overview in the docs for an explanation"""
 
     def __init__(self):
-        """ initiate instance"""
+        """initiate instance"""
 
         # Batch id is associated with this instance of CobaltEmail. All outgoing emails will get this batch_id
         self.batch_id = "%s-%s-%s" % (
@@ -87,12 +86,12 @@ class CobaltEmail:
         ).save()
 
     def empty_queue(self):
-        """ Empty the queue if required. Must be done in real time or the batch process will send anyway. """
+        """Empty the queue if required. Must be done in real time or the batch process will send anyway."""
 
         Email.objects.filter(batch_id=self.batch_id).delete()
 
     def _post_commit(self):
-        """ Called after the database commit has completed """
+        """Called after the database commit has completed"""
 
         # Create an email thread record to show we are running
         self.email_thread = EmailThread()
@@ -121,7 +120,7 @@ class CobaltEmail:
                 source="Notifications",
                 sub_source="Email",
                 message="Cannot start email thread, too many already running: %s"
-                        % active_threads,
+                % active_threads,
             )
             print(
                 "Cannot start email thread, too many already running: %s"
@@ -133,7 +132,7 @@ class CobaltEmail:
         transaction.on_commit(self._post_commit)
 
     def _send_queued_emails_thread(self):
-        """ Send out queued emails. This thread does the actual work."""
+        """Send out queued emails. This thread does the actual work."""
 
         try:
 
@@ -342,7 +341,7 @@ def get_notifications_for_user(user):
 
 
 def contact_member(member, msg, contact_type, link=None, html_msg=None, subject=None):
-    """ Contact member using email or SMS """
+    """Contact member using email or SMS"""
 
     # Ignore system accounts
     if member.id in (RBAC_EVERYONE, TBA_PLAYER):
@@ -364,8 +363,10 @@ def contact_member(member, msg, contact_type, link=None, html_msg=None, subject=
         send_cobalt_sms(member.mobile, msg)
 
 
-def contact_member_and_queue_email(member, email_object, msg, link=None, html_msg=None, subject=None):
-    """ Contact member using email.
+def contact_member_and_queue_email(
+    member, email_object, msg, link=None, html_msg=None, subject=None
+):
+    """Contact member using email.
 
     Args:
         member: User Member to notify
@@ -389,16 +390,18 @@ def contact_member_and_queue_email(member, email_object, msg, link=None, html_ms
     # Always create an in app notification
     add_in_app_notification(member, msg, link)
 
-    email_object.queue_email(to_address=member.email, subject=subject, message=html_msg, member=member)
+    email_object.queue_email(
+        to_address=member.email, subject=subject, message=html_msg, member=member
+    )
 
 
 def create_user_notification(
-        member,
-        application_name,
-        event_type,
-        topic,
-        subtopic=None,
-        notification_type="Email",
+    member,
+    application_name,
+    event_type,
+    topic,
+    subtopic=None,
+    notification_type="Email",
 ):
     """create a notification record for a user
 
@@ -428,15 +431,15 @@ def create_user_notification(
 
 
 def notify_happening_forums(
-        application_name,
-        event_type,
-        msg,
-        topic,
-        subtopic=None,
-        link=None,
-        html_msg=None,
-        email_subject=None,
-        user=None,
+    application_name,
+    event_type,
+    msg,
+    topic,
+    subtopic=None,
+    link=None,
+    html_msg=None,
+    email_subject=None,
+    user=None,
 ):
     """sub function for notify_happening() - handles Forum events
     Might be able to make this generic
@@ -471,15 +474,15 @@ def notify_happening_forums(
 
 
 def notify_happening(
-        application_name,
-        event_type,
-        msg,
-        topic,
-        subtopic=None,
-        link=None,
-        html_msg=None,
-        email_subject=None,
-        user=None,
+    application_name,
+    event_type,
+    msg,
+    topic,
+    subtopic=None,
+    link=None,
+    html_msg=None,
+    email_subject=None,
+    user=None,
 ):
     """Called by Cobalt applications to tell notify they have done something.
 
@@ -541,7 +544,7 @@ def delete_all_in_app_notifications(member):
 
 @login_required
 def homepage(request):
-    """ homepage for notifications listings """
+    """homepage for notifications listings"""
 
     notes = InAppNotification.objects.filter(member=request.user).order_by(
         "-created_date"
@@ -552,34 +555,34 @@ def homepage(request):
 
 @login_required
 def delete(request, id):
-    """ when a user clicks on delete we come here. returns the homepage """
+    """when a user clicks on delete we come here. returns the homepage"""
     delete_in_app_notification(id)
     return homepage(request)
 
 
 @login_required
 def deleteall(request):
-    """ when a user clicks on delete all we come here. returns the homepage """
+    """when a user clicks on delete all we come here. returns the homepage"""
     delete_all_in_app_notifications(request.user)
     return homepage(request)
 
 
 def passthrough(request, id):
-    """ passthrough function to acknowledge a message has been clicked on """
+    """passthrough function to acknowledge a message has been clicked on"""
 
     note = acknowledge_in_app_notification(id)
     return redirect(note.link)
 
 
 def add_listener(
-        member,
-        application,
-        event_type,
-        topic=None,
-        subtopic=None,
-        notification_type="Email",
+    member,
+    application,
+    event_type,
+    topic=None,
+    subtopic=None,
+    notification_type="Email",
 ):
-    """ Add a user to be notified of an event """
+    """Add a user to be notified of an event"""
 
     listener = NotificationMapping(
         member=member,
@@ -593,7 +596,7 @@ def add_listener(
 
 
 def remove_listener(member, application, event_type, topic=None, subtopic=None):
-    """ Remove a user from being notified of an event """
+    """Remove a user from being notified of an event"""
 
     listeners = NotificationMapping.objects.filter(
         member=member,
@@ -607,7 +610,7 @@ def remove_listener(member, application, event_type, topic=None, subtopic=None):
 
 
 def check_listener(member, application, event_type, topic=None, subtopic=None):
-    """ Check if a user is being notified of an event """
+    """Check if a user is being notified of an event"""
 
     listeners = NotificationMapping.objects.filter(
         member=member,
@@ -646,7 +649,7 @@ def notifications_in_english(member):
 
 @login_required()
 def admin_view_all(request):
-    """ Show email notifications for administrators """
+    """Show email notifications for administrators"""
 
     # check access
     role = "notifications.admin.view"
@@ -661,7 +664,7 @@ def admin_view_all(request):
 
 @login_required()
 def admin_view_email(request, email_id):
-    """ Show single email for administrators """
+    """Show single email for administrators"""
 
     # check access
     role = "notifications.admin.view"
@@ -674,7 +677,7 @@ def admin_view_email(request, email_id):
 
 
 def notifications_status_summary():
-    """ Used by utils status to get a status of notifications """
+    """Used by utils status to get a status of notifications"""
 
     latest = Email.objects.all().order_by("-id").first()
     pending = Email.objects.filter(status="Queued").count()
@@ -688,7 +691,7 @@ def notifications_status_summary():
 
 @login_required()
 def email_contact(request, member_id):
-    """ email contact form """
+    """email contact form"""
 
     member = get_object_or_404(User, pk=member_id)
 

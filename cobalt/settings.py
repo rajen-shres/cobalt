@@ -361,3 +361,54 @@ SESSION_COOKIE_AGE = 52560000
 # Upgrade to Django 3.2 requires this setting. Not clear if BigAutoField would be better
 # This is the current default so using that
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+# The bleach module is used to clean user supplied HTML, mainly for textfields from Summernote
+BLEACH_ALLOWED_TAGS = [
+    "a",
+    "abbr",
+    "acronym",
+    "b",
+    "u",
+    "blockquote",
+    "code",
+    "em",
+    "i",
+    "li",
+    "ol",
+    "strong",
+    "ul",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "br",
+    "p",
+    "span",
+    "font",
+    "pre",
+    "table",
+    "tbody",
+    "tr",
+    "td",
+    "img",
+    "hr",
+]
+BLEACH_ALLOWED_ATTRIBUTES = [
+    "title",
+    "href",
+    "style",
+    "color",
+    "class",
+    "target",
+    "src",
+]
+BLEACH_ALLOWED_STYLES = [
+    "text-decoration",
+    "text-align",
+    "font-size",
+    "font-family",
+    "background-color",
+    "width",
+]

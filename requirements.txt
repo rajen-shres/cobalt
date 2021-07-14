@@ -18,3 +18,4 @@ botocore==1.15.39
 django-filter==2.3.0
 geopy==2.0.0
 essential-generators==0.9.2
+bleach==3.3.0

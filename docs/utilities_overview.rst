@@ -460,7 +460,7 @@ cgit_prod_hotfix_finish
 
 **Git Impact**: Merges patch into release/x.y.z. Deletes patch branch.
 
-**Environment Impact**: Updates production with hotfixed version release/z.y.z..
+**Environment Impact**: Updates production with hotfixed version release/z.y.z.
 
 Mapping Branches to AWS Descriptions
 ------------------------------------
@@ -469,8 +469,14 @@ In test the branch will normally be develop, unless test has been used
 to trial a fix before releasing to another environment. The AWS
 description will be develop@<time>.
 
-In UAT or Production the description will be release/x.y.z@<time> or
-release/x.y.z-fixlabel@<time>. This will always match with the Github
+In UAT the description will be release/x.y.z@<time>.
+This will always match with the Github
+branch release/x.y.z which is patched whenever a fix is deployed.
+
+In Production the description will be release/x.y.z@<time> or
+release/x.y.z--fixlabel@<time>. This will always match with the Github
 branch release/x.y.z which is patched whenever a fix is deployed. The
 extra part of the label is useful for knowing what the latest patch
-applied was.
+applied was. The branch release/x.y.z--fixlabel is kept for tracking
+purposes and will be identical to release/x.y.z when the hotfix is
+applied. Subsequently it can get out of step.

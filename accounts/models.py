@@ -3,6 +3,8 @@
 from datetime import date
 
 from django.urls import reverse
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from cobalt.settings import AUTO_TOP_UP_MAX_AMT, GLOBAL_ORG, TBA_PLAYER, RBAC_EVERYONE
 from django.contrib.auth.models import AbstractUser
@@ -14,7 +16,9 @@ from django.db import models
 def no_future(value):
     today = date.today()
     if value > today:
-        raise ValidationError('Purchase_Date cannot be in the future.')
+        raise ValidationError("Purchase_Date cannot be in the future.")
+
+
 class User(AbstractUser):
     """
     User class based upon AbstractUser.
@@ -101,12 +105,14 @@ class User(AbstractUser):
     def href(self):
         """Returns an HTML link tag that can be used to go to the users public profile"""
 
-        tag = reverse("accounts:public_profile", kwargs={'pk': self.id})
-        return f"<a href='{tag}' target='_blank'>{self.full_name}</a>"
+        url = reverse("accounts:public_profile", kwargs={"pk": self.id})
+        return format_html(
+            "<a href='{}' target='_blank'>{}</a>", mark_safe(url), self.full_name
+        )
 
 
 class TeamMate(models.Model):
-    """ link two members together """
+    """link two members together"""
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="team_mate_user"

@@ -1,7 +1,14 @@
 """ Models for Forums """
+import bleach
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+
+from cobalt.settings import (
+    BLEACH_ALLOWED_TAGS,
+    BLEACH_ALLOWED_ATTRIBUTES,
+    BLEACH_ALLOWED_STYLES,
+)
 
 FORUM_TYPES = [
     ("Discussion", "Discussion Forum"),
@@ -11,7 +18,7 @@ FORUM_TYPES = [
 
 
 class Forum(models.Model):
-    """ Forum is a list of valid places to create a Post """
+    """Forum is a list of valid places to create a Post"""
 
     title = models.CharField("Forum Short Title", max_length=80)
     description = models.CharField("Forum Description", max_length=200)
@@ -26,7 +33,7 @@ class Forum(models.Model):
 
 
 class AbstractForum(models.Model):
-    """ Lots of things have the same attributes so use an Abstract Class """
+    """Lots of things have the same attributes so use an Abstract Class"""
 
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_date = models.DateTimeField(default=timezone.now)
@@ -36,14 +43,14 @@ class AbstractForum(models.Model):
     )
 
     class Meta:
-        """ We are abstract """
+        """We are abstract"""
 
         abstract = True
         ordering = ["-created_date"]
 
 
 class Post(AbstractForum):
-    """ A Post is the highest level thing in Forums """
+    """A Post is the highest level thing in Forums"""
 
     forum = models.ForeignKey(Forum, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
@@ -53,9 +60,21 @@ class Post(AbstractForum):
     def __str__(self):
         return self.title
 
+    # If the text changes, run it through bleach before saving
+    def save(self, *args, **kwargs):
+        if getattr(self, "_text_changed", True):
+            self.text = bleach.clean(
+                self.text,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+        super(Post, self).save(*args, **kwargs)
+
 
 class Comment1(AbstractForum):
-    """ First level comments """
+    """First level comments"""
 
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     text = models.TextField()
@@ -66,7 +85,7 @@ class Comment1(AbstractForum):
 
 
 class Comment2(AbstractForum):
-    """ Second level comments """
+    """Second level comments"""
 
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     comment1 = models.ForeignKey(Comment1, on_delete=models.CASCADE)
@@ -74,36 +93,36 @@ class Comment2(AbstractForum):
 
 
 class AbstractLike(models.Model):
-    """ Abstract for likes """
+    """Abstract for likes"""
 
     liker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
-        """ We are abstract """
+        """We are abstract"""
 
         abstract = True
 
 
 class LikePost(AbstractLike):
-    """ Like for a post """
+    """Like for a post"""
 
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
 
 
 class LikeComment1(AbstractLike):
-    """ Like for a comment1 """
+    """Like for a comment1"""
 
     comment1 = models.ForeignKey(Comment1, on_delete=models.CASCADE)
 
 
 class LikeComment2(AbstractLike):
-    """ Like for a comment2 """
+    """Like for a comment2"""
 
     comment2 = models.ForeignKey(Comment2, on_delete=models.CASCADE)
 
 
 class ForumFollow(models.Model):
-    """ List of Forums that a user is subscribed to """
+    """List of Forums that a user is subscribed to"""
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     forum = models.ForeignKey(Forum, on_delete=models.CASCADE)

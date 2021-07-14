@@ -1,16 +1,22 @@
 import datetime
 from decimal import Decimal
 
+import bleach
 import pytz
 from django.contrib.humanize.templatetags.humanize import ordinal
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from accounts.models import User
 from cobalt.settings import (
     TIME_ZONE,
     BRIDGE_CREDITS,
+    BLEACH_ALLOWED_TAGS,
+    BLEACH_ALLOWED_ATTRIBUTES,
+    BLEACH_ALLOWED_STYLES,
 )
 from organisations.models import Organisation
 from payments.models import MemberTransaction
@@ -109,9 +115,6 @@ class CongressMaster(models.Model):
 
     name = models.CharField("Congress Master Name", max_length=100)
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    # status = models.CharField(
-    #         "Status", max_length=14, choices=[("Open", "Open"), ("Disabled", "Disabled")], default="Open"
-    #     )
 
     def __str__(self):
         return self.name
@@ -201,6 +204,123 @@ class Congress(models.Model):
     def __str__(self):
         return self.name
 
+    # If the text changes, run it through bleach before saving
+    def save(self, *args, **kwargs):
+
+        if self.sponsors and getattr(self, "_sponsors_changed", True):
+            self.sponsors = bleach.clean(
+                self.sponsors,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.latest_news and getattr(self, "_latest_news_changed", True):
+            self.latest_news = bleach.clean(
+                self.latest_news,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.venue_transport and getattr(self, "_venue_transport_changed", True):
+            self.venue_transport = bleach.clean(
+                self.venue_transport,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.venue_catering and getattr(self, "_venue_catering_changed", True):
+            self.venue_catering = bleach.clean(
+                self.venue_catering,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.venue_additional_info and getattr(
+            self, "_venue_additional_info_changed", True
+        ):
+            self.venue_additional_info = bleach.clean(
+                self.venue_additional_info,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.raw_html and getattr(self, "_raw_html_changed", True):
+            self.raw_html = bleach.clean(
+                self.raw_html,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.general_info and getattr(self, "_general_info_changed", True):
+            self.general_info = bleach.clean(
+                self.general_info,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.people and getattr(self, "_people_changed", True):
+            self.people = bleach.clean(
+                self.people,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.links and getattr(self, "_links_changed", True):
+            self.links = bleach.clean(
+                self.links,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.latest_news and getattr(self, "_latest_news_changed", True):
+            self.latest_news = bleach.clean(
+                self.latest_news,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.bank_transfer_details and getattr(
+            self, "_bank_transfer_details_changed", True
+        ):
+            self.bank_transfer_details = bleach.clean(
+                self.bank_transfer_details,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.cheque_details and getattr(self, "_cheque_details_changed", True):
+            self.cheque_details = bleach.clean(
+                self.cheque_details,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        super(Congress, self).save(*args, **kwargs)
+
     def user_is_convener(self, user):
         """check if a user has convener rights to this congress"""
 
@@ -271,6 +391,41 @@ class Event(models.Model):
     def __str__(self):
         return "%s - %s" % (self.congress, self.event_name)
 
+        # If the text changes, run it through bleach before saving
+
+    def save(self, *args, **kwargs):
+
+        if self.event_name and getattr(self, "_event_name_changed", True):
+            self.event_name = bleach.clean(
+                self.event_name,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.description and getattr(self, "_description_changed", True):
+            self.description = bleach.clean(
+                self.description,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.free_format_question and getattr(
+            self, "_free_format_question_changed", True
+        ):
+            self.free_format_question = bleach.clean(
+                self.free_format_question,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        super(Event, self).save(*args, **kwargs)
+
     def is_open(self):
         """check if this event is taking entries today"""
 
@@ -292,10 +447,7 @@ class Event(models.Model):
 
         # check start date of event
         start_date = self.start_date()
-        print("Start date:")
-        print(start_date)
-        print("Today:")
-        print(today)
+
         if start_date and start_date < today:  # event started
             return False
         elif start_date == today:
@@ -496,8 +648,11 @@ class Event(models.Model):
         """Returns an HTML link tag that can be used to go to the event log"""
 
         tag = reverse("events:admin_event_log", kwargs={"event_id": self.id})
-        return (
-            f"<a href='{tag}' target='_blank'>{self.congress} - {self.event_name}</a>"
+        return format_html(
+            "<a href='{}' target='_blank'>{} - {}</a>",
+            mark_safe(tag),
+            self.congress,
+            self.event_name,
         )
 
 
@@ -512,6 +667,19 @@ class Category(models.Model):
 
     def __str__(self):
         return self.description
+
+    def save(self, *args, **kwargs):
+
+        if self.description and getattr(self, "_description_changed", True):
+            self.description = bleach.clean(
+                self.description,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        super(Category, self).save(*args, **kwargs)
 
 
 class Session(models.Model):
@@ -549,6 +717,8 @@ class EventEntry(models.Model):
     )
     notes = models.TextField("Notes", null=True, blank=True)
     comment = models.TextField("Comments", null=True, blank=True)
+    first_created_date = models.DateTimeField(default=timezone.now)
+    entry_complete_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "Event entries"
@@ -560,8 +730,38 @@ class EventEntry(models.Model):
             self.primary_entrant,
         )
 
-    first_created_date = models.DateTimeField(default=timezone.now)
-    entry_complete_date = models.DateTimeField(null=True, blank=True)
+    def save(self, *args, **kwargs):
+
+        if self.free_format_answer and getattr(
+            self, "_free_format_answer_changed", True
+        ):
+            self.free_format_answer = bleach.clean(
+                self.free_format_answer,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.notes and getattr(self, "_notes_changed", True):
+            self.notes = bleach.clean(
+                self.notes,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.comment and getattr(self, "_comment_changed", True):
+            self.comment = bleach.clean(
+                self.comment,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        super(EventEntry, self).save(*args, **kwargs)
 
     def check_if_paid(self):
         """go through sub level event entry players and see if this is now
@@ -635,6 +835,19 @@ class EventEntryPlayer(models.Model):
     def __str__(self):
         return "%s - %s" % (self.event_entry, self.player)
 
+    def save(self, *args, **kwargs):
+
+        if self.reason and getattr(self, "_reason_changed", True):
+            self.reason = bleach.clean(
+                self.reason,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        super(EventEntryPlayer, self).save(*args, **kwargs)
+
 
 class PlayerBatchId(models.Model):
     """Maps a batch Id associated with a payment to the user who made the
@@ -664,7 +877,20 @@ class CongressNewsItem(models.Model):
     text = models.TextField()
 
     def __str__(self):
-        return "%s" % (self.congress)
+        return "%s" % self.congress
+
+    def save(self, *args, **kwargs):
+
+        if self.text and getattr(self, "_text_changed", True):
+            self.text = bleach.clean(
+                self.text,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        super(CongressNewsItem, self).save(*args, **kwargs)
 
 
 class BasketItem(models.Model):
@@ -744,3 +970,16 @@ class PartnershipDesk(models.Model):
 
     def __str__(self):
         return f"{self.event} - {self.player}"
+
+    def save(self, *args, **kwargs):
+
+        if self.comment and getattr(self, "_comment_changed", True):
+            self.comment = bleach.clean(
+                self.comment,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        super(PartnershipDesk, self).save(*args, **kwargs)
