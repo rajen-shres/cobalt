@@ -2174,8 +2174,8 @@ def member_transfer_org(request, org_id):
                 description=description,
                 log_msg=f"Transfer to {member} from {organisation}",
                 source="payments",
-                sub_source="manual_adjust_member",
-                payment_type="Manual Adjustment",
+                sub_source="member_transfer_org",
+                payment_type="Org Transfer",
                 organisation=organisation,
             )
 

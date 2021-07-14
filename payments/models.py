@@ -29,6 +29,7 @@ TRANSACTION_TYPE = [
     ("Miscellaneous", "Miscellaneous payment"),
     ("Settlement", "Settlement payment"),
     ("Manual Adjustment", "Manual adjustment"),
+    ("Org Transfer", "Organisation Transfer"),
     # Refund is Org to Player +ve for player
     ("Refund", "Refund"),
     # Card Refund is ABF to Players Credit Card -ve for player
@@ -176,7 +177,7 @@ class StripeTransaction(models.Model):
 
 
 class AbstractTransaction(models.Model):
-    """ Common attributes for the other transaction classes """
+    """Common attributes for the other transaction classes"""
 
     created_date = models.DateTimeField("Create Date", default=timezone.now)
 
@@ -199,7 +200,7 @@ class AbstractTransaction(models.Model):
 
 
 class MemberTransaction(AbstractTransaction):
-    """ Member Transactions. May have a linked transaction. """
+    """Member Transactions. May have a linked transaction."""
 
     # This is the primary member whose account is being interacted with
     member = models.ForeignKey(
@@ -247,7 +248,7 @@ class MemberTransaction(AbstractTransaction):
 
 
 class OrganisationTransaction(AbstractTransaction):
-    """ Organisation transactions. """
+    """Organisation transactions."""
 
     organisation = models.ForeignKey(
         Organisation,
@@ -284,7 +285,7 @@ class OrganisationTransaction(AbstractTransaction):
 
     @property
     def settlement_amount(self):
-        """ How much will org actually be paid for this BALANCE (not amount) after we deduct our fees """
+        """How much will org actually be paid for this BALANCE (not amount) after we deduct our fees"""
 
         percent = 1.0 - (float(self.organisation.settlement_fee_percent) / 100.0)
         amt = float(self.balance) * percent
@@ -296,7 +297,7 @@ class OrganisationTransaction(AbstractTransaction):
 
 
 class StripeLog(models.Model):
-    """ Log messages received from Stripe on the webhook in case we need them in full """
+    """Log messages received from Stripe on the webhook in case we need them in full"""
 
     created_date = models.DateTimeField("Create Date", default=timezone.now)
     event = models.TextField("Event", blank=True, null=True)
@@ -308,7 +309,7 @@ class StripeLog(models.Model):
 
 
 class PaymentStatic(models.Model):
-    """ single row table with static data on payments """
+    """single row table with static data on payments"""
 
     active = models.BooleanField("Active", default=True)
     created_date = models.DateTimeField("Create Date", default=timezone.now)
@@ -345,7 +346,7 @@ class PaymentStatic(models.Model):
 
 
 class OrganisationSettlementFees(models.Model):
-    """ ability to override default_org_fee_percent for an organisation """
+    """ability to override default_org_fee_percent for an organisation"""
 
     organisation = models.OneToOneField(Organisation, on_delete=models.CASCADE)
     org_fee_percent = models.DecimalField(
