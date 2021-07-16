@@ -2462,23 +2462,24 @@ def admin_stripe_rec(request):
 def _admin_stripe_rec_ref_date(request):
     """common function to handle reference date"""
 
-    # Default date is first day of this month
+    # Default date is last day of the previous month. Get first of this month and step back 1 day
     ref_date = datetime.datetime.now(tz=TZ).replace(
-        day=1, hour=0, minute=0, second=0, microsecond=0
-    )
+        day=1, hour=23, minute=59, second=59, microsecond=999_999
+    ) - datetime.timedelta(days=1)
 
     form_date = request.POST.get("ref_date")
 
-    print(request.POST)
-
     if form_date:
-        ref_date = datetime.datetime.strptime(form_date, "%d/%m/%Y").replace(tzinfo=TZ)
+        ref_date = (
+            datetime.datetime.strptime(form_date, "%d/%m/%Y")
+            .replace(tzinfo=TZ)
+            .replace(hour=23, minute=59, second=59, microsecond=999_999)
+        )
 
     # also calculate date a month earlier
-    if ref_date.month == 1:
-        ref_date_month_earlier = ref_date.replace(month=12, year=ref_date.year - 1)
-    else:
-        ref_date_month_earlier = ref_date.replace(month=ref_date.month - 1)
+    ref_date_month_earlier = ref_date.replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    ) - datetime.timedelta(days=1)
 
     return ref_date, ref_date_month_earlier
 
@@ -2497,15 +2498,15 @@ def admin_stripe_rec_download(request):
     ref_date, ref_date_month_earlier = _admin_stripe_rec_ref_date(request)
 
     # Get the 3 different kinds of financial transaction
-    members = MemberTransaction.objects.filter(created_date__lt=ref_date).filter(
+    members = MemberTransaction.objects.filter(created_date__lte=ref_date).filter(
         created_date__gte=ref_date_month_earlier
     )
     stripes = (
-        StripeTransaction.objects.filter(created_date__lt=ref_date)
+        StripeTransaction.objects.filter(created_date__lte=ref_date)
         .filter(created_date__gte=ref_date_month_earlier)
         .filter(status__in=["Succeeded", "Partial refund", "Refunded"])
     )
-    orgs = OrganisationTransaction.objects.filter(created_date__lt=ref_date).filter(
+    orgs = OrganisationTransaction.objects.filter(created_date__lte=ref_date).filter(
         created_date__gte=ref_date_month_earlier
     )
 
@@ -2581,7 +2582,7 @@ def admin_stripe_rec_download(request):
     writer.writerow(
         ["Date range >=", dateformat.format(ref_date_month_earlier, "Y-m-d H:i:s")]
     )
-    writer.writerow(["Date range <", dateformat.format(ref_date, "Y-m-d H:i:s")])
+    writer.writerow(["Date range <=", dateformat.format(ref_date, "Y-m-d H:i:s")])
     writer.writerow([""])
     writer.writerow(
         [

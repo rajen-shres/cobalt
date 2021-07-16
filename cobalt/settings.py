@@ -411,4 +411,5 @@ BLEACH_ALLOWED_STYLES = [
     "font-family",
     "background-color",
     "width",
+    "float",
 ]
