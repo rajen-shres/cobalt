@@ -145,7 +145,7 @@ def _notify_user_resolved_ticket(request, ticket, text):
 
     last_part = f"<h2>Last Comment</h2>{text}"
 
-    subject = "Support Ticket Resolved"
+    subject = "Support Ticket Closed"
     email_ticket_msg = f"{request.user.full_name} has closed a support ticket for you."
     email_ticket_footer = f"""<table class="receipt" border="1" cellpadding="0" cellspacing="0">
                         <tr>
@@ -352,6 +352,9 @@ def helpdesk_menu(request):
     open_tickets = tickets.count()
     unassigned_tickets = tickets.filter(assigned_to=None)
     assigned_to_you = tickets.filter(assigned_to=request.user)
+    assigned_to_others = tickets.exclude(assigned_to=request.user).exclude(
+        assigned_to=None
+    )
 
     return render(
         request,
@@ -360,6 +363,7 @@ def helpdesk_menu(request):
             "open_tickets": open_tickets,
             "unassigned_tickets": unassigned_tickets,
             "assigned_to_you": assigned_to_you,
+            "assigned_to_others": assigned_to_others,
         },
     )
 
@@ -377,11 +381,13 @@ def helpdesk_list(request):
 
     days = int(form_days) if form_days else 7
 
-    ref_date = timezone.now() - timedelta(days=days)
-
-    tickets = Incident.objects.filter(created_date__gte=ref_date).order_by(
-        "-created_date"
-    )
+    if days == -1:  # no filter
+        tickets = Incident.objects.all().order_by("-created_date")
+    else:
+        ref_date = timezone.now() - timedelta(days=days)
+        tickets = Incident.objects.filter(created_date__gte=ref_date).order_by(
+            "-created_date"
+        )
 
     if form_severity not in ["All", None]:
         tickets = tickets.filter(severity=form_severity)

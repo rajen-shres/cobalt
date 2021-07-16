@@ -20,7 +20,7 @@
                 </div>
                 <div class="card-body">
                                         <a href="{% url "support:create_ticket" %}" class="btn-success btn-sm btn">Create New Ticket</a>
-                    <a href="{% url "support:helpdesk_list" %}" class="btn-rose btn-sm btn">List Tickets</a>
+                    <a href="{% url "support:helpdesk_list" %}" class="btn-rose btn-sm btn">Filter Tickets</a>
 
                     <div class="card">
                         <div class="card-header card-header-danger">
@@ -47,9 +47,22 @@
                             {% endif %}
                         </div>
                     </div>
+                    <div class="card">
+                        <div class="card-header card-header-success">
+                            <h2>Assigned to Others({{ assigned_to_others.count }})</h2>
+                        </div>
+                        <div class="card-body">
+                            {% if assigned_to_others %}
+{#                            Pass a counter to give the table a unique name#}
+                        {%  include "support/list_tickets_table.html" with things=assigned_to_others counter=2 %}
+                            {% else %}
+                            <h3>There is nothing assigned to others.</h3>
+                            {% endif %}
+                        </div>
+                    </div>
 
                     <a href="{% url "support:create_ticket" %}" class="btn-success btn-sm btn">Create New Ticket</a>
-                    <a href="{% url "support:helpdesk_list" %}" class="btn-rose btn-sm btn">List Tickets</a>
+                    <a href="{% url "support:helpdesk_list" %}" class="btn-rose btn-sm btn">Filter Tickets</a>
                 </div>
             </div>
         </div>
@@ -65,6 +78,7 @@
             // Unhide table now. A bit annoying, but we share the table code with other html files
             $('#ticket_table').show();
             $('#ticket_table1').show();
+            $('#ticket_table2').show();
 
 
             // handle clicking on a row - assumes row has one <a> link in it which is applied to all cells

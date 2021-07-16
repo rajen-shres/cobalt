@@ -236,7 +236,7 @@
 
                         <button class="btn btn-success mx-auto mt-4 cobalt-save" id="button_save" style="display: none">Save</button>
                         <a href="{% url "support:helpdesk_menu" %}" id="id_top_cancel" class="btn btn-info mt-4">Cancel</a>
-                        <button class="btn btn-danger mx-auto mt-4 cobalt-save" id="id_delete">Delete</button>
+                        <button class="btn btn-danger mx-auto mt-4 cobalt-save" id="id_delete">Delete Ticket</button>
                         <a href="{% url "support:helpdesk_attachments" ticket_id=ticket.id %}"
                            class="btn btn-rose mx-auto mt-4 cobalt-save" id="button_attach">
                             {% if attachments %}
@@ -291,19 +291,28 @@
                             <div style="padding: 0px 10px 10px 10px;">
                                 {{ comment_form.description|as_crispy_field }}
                             </div>
+                            <div id="comment_form_block" style="display: none;">
                             <input type="checkbox" id="private" name="private" value="Private">
                             <label for="private" style="color: black">Private comment (not shared with user)</label><br>
-                            <select class="selectpicker" data-style="btn btn-success btn-sm" id="id_action" name="action">
+                            <select class="selectpicker" data-style="btn btn-success btn-sm"
+                                    id="id_action" name="action">
 
                                <option value="add-comment" selected>Add Comment</option>
-                               <option value="add-close">Add Comment and Close Ticket</option>
                                <option value="add-awaiting">Add Comment and Change to Awaiting User Feedback</option>
+                               <option value="add-close">Add Comment and Close Ticket</option>
 
                             </select><br>
 
 
-                            <button class="btn btn-primary cobalt-save" id="add_comment" name="add">Save</button>
-                            <a href="{% url "support:helpdesk_menu" %}" class="btn btn-info">Cancel</a>
+                            <button class="btn btn-primary cobalt-save"
+                                    id="add_comment" name="add">
+                                Save
+                            </button>
+                            <a href="{% url "support:helpdesk_edit" ticket_id=ticket.id %}"
+                               id="reset" class="btn btn-info">
+                                Reset
+                            </a>
+                                </div>
                         </form>
                     </div>
                 {% endif %}
@@ -368,6 +377,7 @@
                 }
             });
 
+            // Delete button
             $("#id_delete").click(function (event) {
                 // don't be an enter button
                 event.preventDefault();
@@ -389,10 +399,8 @@
                 });
             });
 
-            // prevent users from editing both forms at the same time. Note - we can't tell if the comment summernote
-            // field is changed as Summernote intercepts all of those events
+            // prevent users from editing both forms at the same time.
             function handle_change(form_id) {
-                console.log(form_id);
                 if (form_id === 'ticket_form'){
                     // show save button, hide delete and add attachment
                     $('#button_save').show();
@@ -412,6 +420,10 @@
                     $('#button_attach').hide();
                     $('#id_top_cancel').hide();
                     $('#id_member_button_div').hide();
+                    // show rest of comment form
+                    $('#comment_form_block').show();
+                    // cobalt-core doesn't pick up the summernote change so set it manually
+                    cobalt_form_data_changed=true;
                 }
 
                 $("#button_save").prop("disabled",false);
