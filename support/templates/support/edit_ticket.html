@@ -4,52 +4,7 @@
 {% load cobalt_tags %}
 {% load static %}
 {% block title %} - Helpdesk Edit Ticket{% endblock %}
-{% block headerjs %}
 
-<!-- The js libraries are a problem for Summernote so we override them here -->
-
-<script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
-<script src="{% static "assets/js/core/popper.min.js" %}"></script>
-{% if not request.user.windows_scrollbar %}
-<script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
-{% endif %}
-<link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
-<script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
-<script src="{% static "assets/js/cobalt-core.js" %}"></script>
-<link rel="stylesheet" href="{% static "assets/css/bootstrap.4.0.0.min.css" %}">
-
-
-<style>
-  /* remove bug from summernote height in codeview mode */
-  .note-codable {
-    min-height: 600px !important;
-  }
-
-  .note-editable {
-    line-height: 1.0;
-
-    background-color: {
-        {
-        forum.bg_colour
-      }
-    }
-
-     !important;
-
-    color: {
-        {
-        forum.fg_colour
-      }
-    }
-
-     !important;
-  }
-
-  .cobalt-min-width-100 {
-    min-width: 100%;
-  }
-</style>
-{% endblock %}
 {% block content %}
 
 <!-- Instead of using {{ form.media }} we hardcode the static files here
@@ -58,12 +13,13 @@
      to how it shakes when it is slowly scrolled. We point to a newer
      version of summernote and it fixes the problem. -->
 
-<link href="{% static "forums/summernote/summernote-bs4.css" %}" type="text/css" media="all" rel="stylesheet">
 <link href="{% static "forums/summernote/django_summernote.css" %}" type="text/css" media="all" rel="stylesheet">
 <script type="text/javascript" src="{% static "forums/summernote/jquery.ui.widget.js" %}"></script>
 <script type="text/javascript" src="{% static "forums/summernote/jquery.iframe-transport.js" %}"></script>
 <script type="text/javascript" src="{% static "forums/summernote/jquery.fileupload.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/summernote-bs4.min.js" %}"></script>
+
+<link href="{% static "assets/packages/summernote-0.8.18-dist/summernote-bs4.css" %}" rel="stylesheet">
+<script src="{% static "assets/packages/summernote-0.8.18-dist/summernote-bs4.min.js" %}"></script>
 <script type="text/javascript" src="{% static "forums/summernote/ResizeSensor.js" %}"></script>
 
 
@@ -460,7 +416,19 @@
                     onChange: function(contents, $editable) {
                         handle_change($(this.form)[0].id);
                     }
-                }
+                },
+                  hint: {
+                    mentions: [{{ staff }}],
+                    match: /\B@(\w*)$/,
+                    search: function (keyword, callback) {
+                      callback($.grep(this.mentions, function (item) {
+                        return item.indexOf(keyword) == 0;
+                      }));
+                    },
+                    content: function (item) {
+                      return '@' + item;
+                    }
+                  }
             });
 
             // initialise tooltips
