@@ -17,4 +17,5 @@ urlpatterns = [
     ),
     path("admin/view-email", views.admin_view_email, name="admin_view_email"),
     path("email/send-email/<int:member_id>", views.email_contact, name="email_contact"),
+    path("email/watch_emails/<int:batch_id>", views.watch_emails, name="watch_emails"),
 ]

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load cobalt_tags %}
+{% block title %} - Watch Emails{% endblock %}
+{% block content %}
+
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h2>Email Queue</h2>
+        </div>
+        <div class="card-body">
+            <h3>Queued: {{ emails_queued }}</h3>
+            <h3>Sent: {{ emails_sent }}</h3>
+        </div>
+    </div>
+
+{% endblock %}
+

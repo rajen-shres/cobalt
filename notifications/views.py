@@ -736,3 +736,18 @@ def email_contact(request, member_id):
     return render(
         request, "notifications/email_form.html", {"form": form, "member": member}
     )
+
+
+@login_required()
+def watch_emails(request, batch_id):
+    """Track progress of email by batch id"""
+
+    emails = Email.objects.filter(batch_id=batch_id)
+    emails_queued = emails.filter(status="Queued").count()
+    emails_sent = emails.filter(status="Sent").count()
+
+    return render(
+        request,
+        "notifications/watch_email.html",
+        {"emails_queued": emails_queued, "emails_sent": emails_sent},
+    )

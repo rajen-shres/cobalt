@@ -1,6 +1,8 @@
 """ The file has the code relating to a convener managing an existing event """
 
 import csv
+from threading import Thread
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.forms import formset_factory
@@ -1080,6 +1082,34 @@ def admin_congress_email(request, congress_id):
     return _admin_email_common(request, recipients_qs, congress, event=None)
 
 
+def _admin_email_common_thread(
+    request, congress, subject, body, recipients, email_sender
+):
+    """we run a thread so we can return to the user straight away"""
+
+    for recipient in recipients:
+        context = {
+            "name": recipient.first_name,
+            "title1": f"Message from {request.user.full_name} on behalf of {congress}",
+            "title2": subject,
+            "email_body": body,
+            "host": COBALT_HOSTNAME,
+        }
+
+        html_msg = render_to_string("notifications/email_with_2_headings.html", context)
+
+        email_sender.queue_email(
+            recipient.email,
+            subject,
+            html_msg,
+            recipient,
+            reply_to=request.user.email,
+        )
+
+    # send
+    email_sender.send()
+
+
 def _admin_email_common(request, recipients_qs, congress, event=None):
     """Common function for sending emails to entrants"""
 
@@ -1097,32 +1127,23 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
         body = form.cleaned_data["body"]
 
         recipients = [request.user] if "test" in request.POST else all_recipients
+
+        # start thread
+
         email_sender = CobaltEmail()
 
-        for recipient in recipients:
+        args = {
+            "request": request,
+            "congress": congress,
+            "subject": subject,
+            "body": body,
+            "recipients": recipients,
+            "email_sender": email_sender,
+        }
 
-            context = {
-                "name": recipient.first_name,
-                "title1": f"Message from {request.user.full_name} on behalf of {congress}",
-                "title2": subject,
-                "email_body": body,
-                "host": COBALT_HOSTNAME,
-            }
-
-            html_msg = render_to_string(
-                "notifications/email_with_2_headings.html", context
-            )
-
-            email_sender.queue_email(
-                recipient.email,
-                subject,
-                html_msg,
-                recipient,
-                reply_to=request.user.email,
-            )
-
-        # send
-        email_sender.send()
+        thread = Thread(target=_admin_email_common_thread, kwargs=args)
+        thread.setDaemon(True)
+        thread.start()
 
         if "test" in request.POST:
             messages.success(
@@ -1151,7 +1172,6 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
                     sub_source="events_admin",
                     message=f"Sent email to all entrants in {event.href}",
                 )
-                return redirect("events:admin_event_summary", event_id=event.id)
             else:
 
                 log_event(
@@ -1161,8 +1181,9 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
                     sub_source="events_admin",
                     message=f"Sent email to whole congress {congress.href}",
                 )
-                return redirect("events:admin_summary", congress_id=congress.id)
-
+            return redirect(
+                "notifications:watch_emails", batch_id=email_sender.batch_id
+            )
     return render(
         request,
         "events/admin_email.html",
