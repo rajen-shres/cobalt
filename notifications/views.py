@@ -63,10 +63,13 @@ class CobaltEmail:
             "".join(random.choices(string.ascii_uppercase + string.digits, k=4)),
         )
 
-    def queue_email(self, to_address, subject, message, member=None, reply_to=""):
+    def queue_email(
+        self, to_address, subject, message, member=None, reply_to="", sender=None
+    ):
         """Adds email to the queue ready to send. Why no bcc_address? No need to bcc when sending to only one person.
 
         Args:
+            sender: (User): Who sent this (optional)
             to_address (str): who to send to
             subject (str): subject line for email
             message (str): message to send in HTML or plain format
@@ -83,6 +86,7 @@ class CobaltEmail:
             recipient=to_address,
             member=member,
             reply_to=reply_to,
+            sender=sender,
         ).save()
 
     def empty_queue(self):
@@ -746,8 +750,38 @@ def watch_emails(request, batch_id):
     emails_queued = emails.filter(status="Queued").count()
     emails_sent = emails.filter(status="Sent").count()
 
+    sender = emails[0].sender
+
     return render(
         request,
         "notifications/watch_email.html",
-        {"emails_queued": emails_queued, "emails_sent": emails_sent},
+        {
+            "emails_queued": emails_queued,
+            "emails_sent": emails_sent,
+            "batch_id": batch_id,
+            "sender": sender,
+        },
+    )
+
+
+@login_required()
+def watch_emails_details(request, batch_id):
+    """Track progress of email by batch id with details"""
+
+    emails = Email.objects.filter(batch_id=batch_id)
+    emails_queued = emails.filter(status="Queued").count()
+    emails_sent = emails.filter(status="Sent").count()
+
+    sender = emails[0].sender
+
+    return render(
+        request,
+        "notifications/watch_email_details.html",
+        {
+            "emails_queued": emails_queued,
+            "emails_sent": emails_sent,
+            "batch_id": batch_id,
+            "emails": emails,
+            "sender": sender,
+        },
     )

@@ -1104,6 +1104,7 @@ def _admin_email_common_thread(
             html_msg,
             recipient,
             reply_to=request.user.email,
+            sender=request.user,
         )
 
     # send
@@ -1181,6 +1182,7 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
                     sub_source="events_admin",
                     message=f"Sent email to whole congress {congress.href}",
                 )
+
             return redirect(
                 "notifications:watch_emails", batch_id=email_sender.batch_id
             )
