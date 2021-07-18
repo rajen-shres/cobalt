@@ -3,26 +3,13 @@
 {% load widget_tweaks %}
 {% load cobalt_tags %}
 {% load static %}
-{% block title %} - Helpdesk Edit Ticket{% endblock %}
-
+{% block title %} - Helpdesk Edit Ticket #{{ ticket.id }}{% endblock %}
+{% block header %}
+    <link href="{% static "assets/css/cobalt-summernote.css" %}" rel="stylesheet">
+{% endblock header %}
 {% block content %}
 
-<!-- Instead of using {{ form.media }} we hardcode the static files here
-     so we can control the version that we use. Django-summernote comes with
-     an older version of summernote that has some bugs especially relating
-     to how it shakes when it is slowly scrolled. We point to a newer
-     version of summernote and it fixes the problem. -->
-
-<link href="{% static "forums/summernote/django_summernote.css" %}" type="text/css" media="all" rel="stylesheet">
-<script type="text/javascript" src="{% static "forums/summernote/jquery.ui.widget.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/jquery.iframe-transport.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/jquery.fileupload.js" %}"></script>
-
-<link href="{% static "assets/packages/summernote-0.8.18-dist/summernote-bs4.css" %}" rel="stylesheet">
-<script src="{% static "assets/packages/summernote-0.8.18-dist/summernote-bs4.min.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/ResizeSensor.js" %}"></script>
-
-
+    {% include "utils/summernote_heading.html" %}
     {% include "utils/generic_user_search_body.html" with search_id=1 %}
     <nav aria-label="breadcrumb" role="navigation">
         <ol class="breadcrumb">
@@ -56,45 +43,45 @@
                         {% if user %}
                             {# user #}
                             <div class="row" id="impacted_user_fields">
-                            <div class="col-4">
-                                <div class="form-group">
-                                    <label class="bmd-label-floating">Impacted User</label>
-                                    <span class="cobalt-form-error"
-                                          id="id_reported_by_user_errors">{{ form.reported_by_user.errors|striptags }}</span>
-                                    <input type="text" name="reported_by_user_fake" class="form-control"
-                                           id="id_reported_by_user_fake" value="{{ user }}" readonly>
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label class="bmd-label-floating">Impacted User</label>
+                                        <span class="cobalt-form-error"
+                                            id="id_reported_by_user_errors">{{ form.reported_by_user.errors|striptags }}</span>
+                                        <input type="text" name="reported_by_user_fake" class="form-control"
+                                            id="id_reported_by_user_fake" value="{{ user }}" readonly>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-2">
-                                <div id="id_member_button_div">
-                                <a class="cobalt_generic_member btn btn-sm btn-info" data-toggle="modal"
-                                   data-target="#cobalt_general_member_search1"><span
-                                        id="id_member_button">Change User</span></a>
+                                <div class="col-2">
+                                    <div id="id_member_button_div">
+                                        <a class="cobalt_generic_member btn btn-sm btn-info" data-toggle="modal"
+                                            data-target="#cobalt_general_member_search1"><span
+                                                id="id_member_button">Change User</span></a>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <input type="hidden" id="id_reported_by_user" name="reported_by_user" value="{{ user.id }}">
+                                <input type="hidden" id="id_reported_by_user" name="reported_by_user" value="{{ user.id }}">
 
                         {% else %}
                             {# user email #}
                             <div class="row" id="user_email">
-                            <div class="col-3">
-                                <div class="form-group">
-                                    <label class="bmd-label-floating">Impacted User Email</label>
-                                    <span class="cobalt-form-error"
-                                          id="id_reported_by_email_errors">{{ form.reported_by_email.errors|striptags }}</span>
-                                    {% render_field form.reported_by_email class+="form-control" %}
+                                <div class="col-3">
+                                    <div class="form-group">
+                                        <label class="bmd-label-floating">Impacted User Email</label>
+                                        <span class="cobalt-form-error"
+                                            id="id_reported_by_email_errors">{{ form.reported_by_email.errors|striptags }}</span>
+                                        {% render_field form.reported_by_email class+="form-control" %}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="col-3">
-                                <div class="form-group">
-                                    <label class="bmd-label-floating">Name</label>
-                                    <span class="cobalt-form-error"
-                                          id="id_reported_by_name_errors">{{ form.reported_by_name.errors|striptags }}</span>
-                                    {% render_field form.reported_by_name class+="form-control" %}
+                                <div class="col-3">
+                                    <div class="form-group">
+                                        <label class="bmd-label-floating">Name</label>
+                                        <span class="cobalt-form-error"
+                                            id="id_reported_by_name_errors">{{ form.reported_by_name.errors|striptags }}</span>
+                                        {% render_field form.reported_by_name class+="form-control" %}
+                                    </div>
                                 </div>
-                            </div>
 
                         {% endif %}
 
@@ -102,8 +89,8 @@
 
                         <div class="col-md-3">
                             <div>
-                                        <span class="cobalt-form-error"
-                                              id="id_severity_errors">{{ form.severity.errors|striptags }}</span>
+                                <span class="cobalt-form-error"
+                                    id="id_severity_errors">{{ form.severity.errors|striptags }}</span>
                                 <label for="id_severity" class="">Severity</label>
                                 {% render_field form.severity class+="form-control" %}
                             </div>
@@ -114,168 +101,170 @@
 
                         <div class="col-md-3">
                             <div>
-                                        <span class="cobalt-form-error"
-                                              id="id_status_errors">{{ form.status.errors|striptags }}</span>
+                                <span class="cobalt-form-error"
+                                    id="id_status_errors">{{ form.status.errors|striptags }}</span>
                                 <label for="id_status" class="bmd-label-static">Status</label>
                                 {% render_field form.status class+="form-control" %}
                             </div>
 
 
                         </div>
-                        </div>
+                    </div>
 
-                        {# title #}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                        <span class="cobalt-form-error"
-                                              id="id_title_errors">{{ form.title.errors|striptags }}</span>
-                                    <label for="id_title" class="bmd-label-floating">Subject</label>
-                                    {% render_field form.title class+="form-control" %}
-                                </div>
-                            </div>
-
-                            {# assigned to #}
-
-                            <div class="col-md-3">
-                                <div>
-                                        <span class="cobalt-form-error"
-                                              id="id_assigned_to_errors">{{ form.assigned_to.errors|striptags }}</span>
-                                    <label for="id_assigned_to" class="bmd-label-static">Assigned to</label>
-                                    {% render_field form.assigned_to class+="form-control" %}
-                                </div>
-                            </div>
-
-
-                            {# incident type #}
-
-                            <div class="col-md-3">
-                                <div>
-                                        <span class="cobalt-form-error"
-                                              id="id_incident_type_errors">{{ form.incident_type.errors|striptags }}</span>
-                                    <label for="id_incident_type" class="bmd-label-static">Product Area</label>
-                                    {% render_field form.incident_type class+="form-control" %}
-                                </div>
+                    {# title #}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <span class="cobalt-form-error"
+                                    id="id_title_errors">{{ form.title.errors|striptags }}</span>
+                                <label for="id_title" class="bmd-label-floating">Subject</label>
+                                {% render_field form.title class+="form-control" %}
                             </div>
                         </div>
 
-                        {# description #}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p>Created: {{ ticket.created_date|cobalt_nice_datetime }}</p>
-                                <div class="form-group">
-                                        <span class="cobalt-form-error"
-                                              id="id_description_errors">{{ form.description.errors|striptags }}</span>
-                                    <label for="id_description" class="bmd-label-fixed">Description</label>
-                                    {% render_field form.description class+="form-control pt-4" %}
-                                </div>
-                            </div>
+                        {# assigned to #}
 
-                            <div class="col-md-6">
+                        <div class="col-md-3">
+                            <div>
+                                <span class="cobalt-form-error"
+                                    id="id_assigned_to_errors">{{ form.assigned_to.errors|striptags }}</span>
+                                <label for="id_assigned_to" class="bmd-label-static">Assigned to</label>
+                                {% render_field form.assigned_to class+="form-control" %}
+                            </div>
+                        </div>
+
+
+                        {# incident type #}
+
+                        <div class="col-md-3">
+                            <div>
+                                <span class="cobalt-form-error"
+                                    id="id_incident_type_errors">{{ form.incident_type.errors|striptags }}</span>
+                                <label for="id_incident_type" class="bmd-label-static">Product Area</label>
+                                {% render_field form.incident_type class+="form-control" %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {# description #}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>Created: {{ ticket.created_date|cobalt_nice_datetime }}</p>
+                            <div class="form-group">
+                                <span class="cobalt-form-error"
+                                    id="id_description_errors">{{ form.description.errors|striptags }}</span>
+                                <label for="id_description" class="bmd-label-fixed">Description</label>
+                                {% render_field form.description class+="form-control pt-4" %}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
                             {% if attachments %}
                                 <h3>Attachments</h3>
                                 <ul>
-                                {% for attachment in attachments %}
-                                    <div class="row">
-                                <a class="btn btn-sm btn-info" target="_blank"
-                                   href="{{ attachment.document.url }}">{{ attachment.description }}</a>
-                                    </div>
-                                    <div class="row">
-                                    <i>Uploaded by {{ attachment.user.full_name }}
-                                        - {{ attachment.create_date|cobalt_nice_datetime }}</i>
-                                    </div>
-                                {% endfor %}
+                                    {% for attachment in attachments %}
+                                        <div class="row">
+                                            <a class="btn btn-sm btn-info" target="_blank"
+                                                href="{{ attachment.document.url }}">{{ attachment.description }}</a>
+                                        </div>
+                                        <div class="row">
+                                            <i>Uploaded by {{ attachment.user.full_name }}
+                                                - {{ attachment.create_date|cobalt_nice_datetime }}</i>
+                                        </div>
+                                    {% endfor %}
 
                             {% endif %}
-                            </div>
                         </div>
+                    </div>
 
-                        <button class="btn btn-success mx-auto mt-4 cobalt-save" id="button_save" style="display: none">Save</button>
-                        <a href="{% url "support:helpdesk_menu" %}" id="id_top_cancel" class="btn btn-info mt-4">Cancel</a>
-                        <button class="btn btn-danger mx-auto mt-4 cobalt-save" id="id_delete">Delete Ticket</button>
-                        <a href="{% url "support:helpdesk_attachments" ticket_id=ticket.id %}"
-                           class="btn btn-rose mx-auto mt-4 cobalt-save" id="button_attach">
-                            {% if attachments %}
-                                Manage attachments
-                            {% else %}
-                                Add attachment
-                            {% endif %}
-                        </a>
-                    </form>
-                    <br>
+                    <button class="btn btn-success mx-auto mt-4 cobalt-save" id="button_save" style="display: none">Save</button>
+                    <a href="{% url "support:helpdesk_menu" %}" id="id_top_cancel" class="btn btn-info mt-4">Cancel</a>
+                    <button class="btn btn-danger mx-auto mt-4 cobalt-save" id="id_delete">Delete Ticket</button>
+                    <a href="{% url "support:helpdesk_attachments" ticket_id=ticket.id %}"
+                        class="btn btn-rose mx-auto mt-4 cobalt-save" id="button_attach">
+                        {% if attachments %}
+                            Manage attachments
+                        {% else %}
+                            Add attachment
+                        {% endif %}
+                    </a>
+                </form>
+                <br>
                 {% if incident_line_items %}
                     <button class="btn btn-danger btn-sm" id="id_toggle_history">Show History</button>
                 {% endif %}
-                     <div id="id_history" style="display:none;">
-                        {% for incident_line_item in incident_line_items %}
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="card p-1">
-                                        <div class="d-flex justify-content-between">
-                                            <div>
-                                                {{ incident_line_item.staff.full_name }}:
-                                                <span data-toggle="tooltip"
-                                                      title="{{ incident_line_item.created_date }}">
+                <div id="id_history" style="display:none;">
+                    {% for incident_line_item in incident_line_items %}
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card p-1">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            {{ incident_line_item.staff.full_name }}:
+                                            <span data-toggle="tooltip"
+                                                title="{{ incident_line_item.created_date }}">
                                                 {{ incident_line_item.created_date|cobalt_nice_datetime }}</span>
-                                            </div>
-                                            <div>
-                                                {% if incident_line_item.comment_type == "Private" %}
-                                                    <span class="material-icons text-primary"
-                                                          data-toggle="tooltip"
-                                                          title="This update was not shared with {{ first_name }}">
-                                                        lock</span>
-                                                {% endif %}
-                                            </div>
                                         </div>
-                                        <br>
-                                        {{ incident_line_item.description|safe }}
+                                        <div>
+                                            {% if incident_line_item.comment_type == "Private" %}
+                                                <span class="material-icons text-primary"
+                                                    data-toggle="tooltip"
+                                                    title="This update was not shared with {{ first_name }}">
+                                                    lock</span>
+                                            {% endif %}
+                                        </div>
                                     </div>
+                                    <br>
+                                    {{ incident_line_item.description|safe }}
                                 </div>
                             </div>
-                        {% endfor %}
-                     </div>
+                        </div>
+                    {% endfor %}
+                </div>
 
 
-{#                Cannot comment on a closed ticket #}
+                {#                Cannot comment on a closed ticket #}
                 {% if ticket.status != "Closed" %}
                     <div id="add_new_comment">
 
                         <form method="POST" action="{% url "support:helpdesk_add_comment" ticket_id=ticket.id %}"
-                              id="comment_form">
+                            id="comment_form">
                             <h4 style="padding-top: 30px; padding-bottom: 0px">Add New Comment</h4>
                             {% csrf_token %}
                             <div style="padding: 0px 10px 10px 10px;">
-                                {{ comment_form.description|as_crispy_field }}
+                                <textarea name="description" cols="40" rows="10"
+                                       class="summernoteinplacewidget form-control"
+                                          id="comment_description" hidden="true"></textarea>
                             </div>
                             <div id="comment_form_block" style="display: none;">
-                            <input type="checkbox" id="private" name="private" value="Private">
-                            <label for="private" style="color: black">Private comment (not shared with user)</label><br>
-                            <select class="selectpicker" data-style="btn btn-success btn-sm"
+                                <input type="checkbox" id="private" name="private" value="Private">
+                                <label for="private" style="color: black">Private comment (not shared with user)</label><br>
+                                <select class="selectpicker" data-style="btn btn-success btn-sm"
                                     id="id_action" name="action">
 
-                               <option value="add-comment" selected>Add Comment</option>
-                               <option value="add-awaiting">Add Comment and Change to Awaiting User Feedback</option>
-                               <option value="add-close">Add Comment and Close Ticket</option>
+                                    <option value="add-comment" selected>Add Comment</option>
+                                    <option value="add-awaiting">Add Comment and Change to Awaiting User Feedback</option>
+                                    <option value="add-close">Add Comment and Close Ticket</option>
 
-                            </select><br>
+                                </select><br>
 
 
-                            <button class="btn btn-primary cobalt-save"
+                                <button class="btn btn-primary cobalt-save"
                                     id="add_comment" name="add">
-                                Save
-                            </button>
-                            <a href="{% url "support:helpdesk_edit" ticket_id=ticket.id %}"
-                               id="reset" class="btn btn-info">
-                                Reset
-                            </a>
-                                </div>
+                                    Save
+                                </button>
+                                <a href="{% url "support:helpdesk_edit" ticket_id=ticket.id %}"
+                                    id="reset" class="btn btn-info">
+                                    Reset
+                                </a>
+                            </div>
                         </form>
                     </div>
                 {% endif %}
 
             </div>
-       </div>
         </div>
+    </div>
 
     </div>
 
@@ -283,17 +272,17 @@
 {% endblock %}
 
 {% block footer %}
-<script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
-<script src="{% static "forums/assets/js/summernote-plugin-spades.js" %}"></script>
-<script src="{% static "forums/assets/js/summernote-plugin-hearts.js" %}"></script>
-<script src="{% static "forums/assets/js/summernote-plugin-diamonds.js" %}"></script>
-<script src="{% static "forums/assets/js/summernote-plugin-clubs.js" %}"></script>
-<!-- <script src="{% static "forums/assets/js/summernote-plugin-hand.js" %}"></script> -->
+    <script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
+    <script src="{% static "forums/assets/js/summernote-plugin-spades.js" %}"></script>
+    <script src="{% static "forums/assets/js/summernote-plugin-hearts.js" %}"></script>
+    <script src="{% static "forums/assets/js/summernote-plugin-diamonds.js" %}"></script>
+    <script src="{% static "forums/assets/js/summernote-plugin-clubs.js" %}"></script>
+    <!-- <script src="{% static "forums/assets/js/summernote-plugin-hand.js" %}"></script> -->
     <script src="{% static "assets/js/core/jquery.cookie.min.js" %}"></script>
     <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
     <script>
 
-    {# Load generic search BUT tell it not to apply the ios fix - breaks Summernote file upload #}
+        {# Load generic search BUT tell it not to apply the ios fix - breaks Summernote file upload #}
         {% include "utils/generic_user_search_footer.html" with search_id=1 include_me=True prevent_ios_fix=True %}
 
         function cobaltMemberSearchOk() {
@@ -327,9 +316,9 @@
             $('#id_toggle_history').click(function(){
                 $('#id_history').toggle();
                 if ($('#id_toggle_history').text() === "Show History"){
-                     $('#id_toggle_history').text("Hide History")
+                    $('#id_toggle_history').text("Hide History")
                 }else{
-                     $('#id_toggle_history').text("Show History")
+                    $('#id_toggle_history').text("Show History")
                 }
             });
 
@@ -390,18 +379,18 @@
                 handle_change($(this.form)[0].id);
             });
 
-            // Check for form changes - textboxes
+            // Check for form changes - text boxes
             $('#id_description').on('input', function() {
                 handle_change($(this.form)[0].id);
             });
-
             $('#id_title').on('input', function() {
                 handle_change($(this.form)[0].id);
             });
 
-            // same thing for summernote
+            // Set up summernote
             $('#comment_description').summernote({
                 height: 300,
+                placeholder: '<br>You can use @ to mention people and they will be notified of this update.<br>You must put some text after the mention, a full stop will do.',
                 toolbar: [
                     ["style", ["style"]],
                     ["fontsize", ["fontsize"]],
@@ -409,26 +398,42 @@
                     ["fontname", ["fontname"]],
                     ["color", ["color"]],
                     ["para", ["ul", "ol", "paragraph"]],
-                    ["table", ["table"]],
                     ["insert", ["link", "picture", "hr"]],
+                    ["view", ["fullscreen", "codeview"]],
                 ],
                 callbacks: {
                     onChange: function(contents, $editable) {
                         handle_change($(this.form)[0].id);
                     }
                 },
-                  hint: {
+                codemirror: {
+	                lineNumbers: true,
+	                theme: 'monokai',
+                    htmlMode: true,
+                    mode: 'text/html'
+	            },
+                prettifyHtml:true,
+                {# Enable the @ key to search for mentions #}
+                hint: {
                     mentions: [{{ staff }}],
                     match: /\B@(\w*)$/,
                     search: function (keyword, callback) {
-                      callback($.grep(this.mentions, function (item) {
-                        return item.indexOf(keyword) == 0;
-                      }));
+                        callback($.grep(this.mentions, function (item) {
+                            return item.indexOf(keyword) === 0;
+                        }));
                     },
                     content: function (item) {
-                      return '@' + item;
+                        {#Nasty Summernote bug doesn't update the right things. Force an update by adding space #}
+                        {#setTimeout(() => {#}
+                        {##}
+                        {#    const rng = $('#comment_description').summernote('editor.getLastRange');#}
+                        {#    const node = rng.insertNode(document.createElement('div'));#}
+                        {#    $('#comment_description').summernote('insertText', 'Hello, world');#}
+                        {##}
+                        {#    }, 1000);#}
+                        return '@' + item;
                     }
-                  }
+                }
             });
 
             // initialise tooltips
