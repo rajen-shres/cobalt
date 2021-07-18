@@ -329,10 +329,8 @@
 
                 Swal.fire({
                     title: 'This cannot be undone. Are you sure?',
-                    showDenyButton: true,
                     showCancelButton: true,
                     confirmButtonText: 'Delete',
-                    denyButtonText: 'Cancel',
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // add a delete to the form and submit it
@@ -340,7 +338,7 @@
                         $form.submit();
                     }
                     // re-enable buttons if cancel
-                    $('.cobalt-save').enable();
+                    $('.cobalt-save').prop('disabled', false);
                 });
             });
 
@@ -353,6 +351,9 @@
                     $('#button_attach').hide();
                     // hide comment fields
                     $('#add_new_comment').hide();
+                    // Change cancel to be a reset button
+                    $("#id_top_cancel").attr("href", "{% url "support:helpdesk_edit" ticket_id=ticket.id %}")
+
                 } else { // comment form has changed - stop edits on main form
                     $('#ticket_form input').attr('readonly', true);
                     $('#ticket_form textarea').attr('readonly', true);
@@ -390,7 +391,8 @@
             // Set up summernote
             $('#comment_description').summernote({
                 height: 300,
-                placeholder: '<br>You can use @ to mention people and they will be notified of this update.<br>You must put some text after the mention, a full stop will do.',
+                placeholder: '<br>You can use @ to mention people and they will be notified of this update.' +
+                    '<br>You must put some text after the mention, a full stop will do.',
                 toolbar: [
                     ["style", ["style"]],
                     ["fontsize", ["fontsize"]],
@@ -425,12 +427,12 @@
                     content: function (item) {
                         {#Nasty Summernote bug doesn't update the right things. Force an update by adding space #}
                         {#setTimeout(() => {#}
-                        {##}
-                        {#    const rng = $('#comment_description').summernote('editor.getLastRange');#}
-                        {#    const node = rng.insertNode(document.createElement('div'));#}
-                        {#    $('#comment_description').summernote('insertText', 'Hello, world');#}
-                        {##}
-                        {#    }, 1000);#}
+
+                            {#const rng = $('#comment_description').summernote('editor.getLastRange');#}
+                            {#const node = rng.insertNode(document.createElement('div'));#}
+                            {#$('#comment_description').summernote('insertText', 'Hello, world');#}
+
+                            {#}, 1000);#}
                         return '@' + item;
                     }
                 }
