@@ -21,7 +21,7 @@ class Command(BaseCommand):
         sleep(randint(0, 10))
         print("email_sender_cron.py is running...")
 
-        ref_date = timezone.now() - timedelta(minutes=1)
+        ref_date = timezone.now() - timedelta(minutes=30)
         emails = Email.objects.filter(status="Queued").filter(created_date__lt=ref_date)
 
         for email in emails:
