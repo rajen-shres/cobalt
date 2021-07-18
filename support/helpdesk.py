@@ -1,4 +1,5 @@
 import copy
+import re
 from datetime import timedelta
 
 from django.contrib import messages
@@ -8,10 +9,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html, escape
+from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_http_methods
 
 from cobalt.settings import COBALT_HOSTNAME, SUMMERNOTE_CONFIG
 from notifications.views import send_cobalt_email, CobaltEmail
+from rbac.core import rbac_get_users_with_role
 from rbac.decorators import rbac_check_role
 from support.forms import IncidentForm, AttachmentForm, IncidentLineItemForm
 from support.models import Incident, IncidentLineItem, Attachment, NotifyUserByType
@@ -251,11 +255,17 @@ def _notify_group_unassigned_ticket(request, ticket):
 
 
 def _notify_staff_common(
-    request, ticket, subject, email_ticket_msg, email_ticket_footer=""
+    ticket, subject, email_ticket_msg, email_ticket_footer="", first_name_override=None
 ):
     """common parts for notifying staff"""
 
     first_name, email, full_name = _get_user_details_from_ticket(ticket)
+
+    if first_name_override:
+        staff_first_name = first_name_override
+    else:
+        staff_first_name = ticket.assigned_to.first_name
+
     email_table = _email_table(ticket, full_name)
     email_body = f"""{email_ticket_msg}{email_table}{email_ticket_footer}"""
     link = reverse("support:helpdesk_edit", kwargs={"ticket_id": ticket.id})
@@ -263,7 +273,7 @@ def _notify_staff_common(
     html_msg = render_to_string(
         "notifications/email_with_button.html",
         {
-            "name": ticket.assigned_to.first_name,
+            "name": staff_first_name,
             "title": subject,
             "host": COBALT_HOSTNAME,
             "link_text": "Open Ticket",
@@ -280,7 +290,7 @@ def _notify_staff_assigned_to_ticket(request, ticket):
 
     subject = f"Support Ticket Assigned to You - #{ticket.id}"
     email_ticket_msg = f"{request.user.full_name} has assigned a support ticket to you."
-    _notify_staff_common(request, ticket, subject, email_ticket_msg)
+    _notify_staff_common(ticket, subject, email_ticket_msg)
 
 
 def _notify_staff_user_update_to_ticket(request, ticket, reply):
@@ -291,9 +301,7 @@ def _notify_staff_user_update_to_ticket(request, ticket, reply):
         f"{request.user.full_name} has updated a support ticket assigned to you."
     )
     email_ticket_footer = f"{reply}"
-    _notify_staff_common(
-        request, ticket, subject, email_ticket_msg, email_ticket_footer
-    )
+    _notify_staff_common(ticket, subject, email_ticket_msg, email_ticket_footer)
 
 
 def _notify_staff_user_closed_ticket(request, ticket, reply):
@@ -304,8 +312,21 @@ def _notify_staff_user_closed_ticket(request, ticket, reply):
         f"{request.user.full_name} has closed a support ticket assigned to you."
     )
     email_ticket_footer = f"{reply}"
+    _notify_staff_common(ticket, subject, email_ticket_msg, email_ticket_footer)
+
+
+def notify_staff_mention(request, ticket, reply, first_name):
+    """Notify a staff member when a comment has mentioned them"""
+
+    subject = f"You Were Mentioned in an Update to a Support Ticket - #{ticket.id}"
+    email_ticket_msg = f"{request.user.full_name} mentioned you in this ticket."
+    email_ticket_footer = reply
     _notify_staff_common(
-        request, ticket, subject, email_ticket_msg, email_ticket_footer
+        ticket,
+        subject,
+        email_ticket_msg,
+        email_ticket_footer,
+        first_name_override=first_name,
     )
 
 
@@ -523,18 +544,25 @@ def edit_ticket(request, ticket_id):
 
     form = IncidentForm(instance=ticket)
     comment_form = IncidentLineItemForm(auto_id="comment_%s")
-    summernote_config = SUMMERNOTE_CONFIG
-    # summernote_config['callbacks'] = """"{
-    #                                         onChange: function(contents, $editable) {
-    #                                             handle_change($(this.form)[0].id);
-    #                                             }}
-    #                                   """
 
     # get related items
     incident_line_items = IncidentLineItem.objects.filter(incident=ticket)
     attachments = Attachment.objects.filter(incident=ticket).order_by("-pk")
 
     first_name, _, _ = _get_user_details_from_ticket(ticket)
+
+    staff_list = rbac_get_users_with_role("support.helpdesk.edit")
+
+    staff = ""
+    for staff_list_item in staff_list:
+        staff += "'%s-%s', " % (
+            escape(staff_list_item.first_name),
+            escape(staff_list_item.last_name),
+        )
+    if len(staff) > 0:
+        staff = staff[:-2]
+
+    staff = mark_safe(staff)
 
     return render(
         request,
@@ -547,7 +575,7 @@ def edit_ticket(request, ticket_id):
             "incident_line_items": incident_line_items,
             "first_name": first_name,
             "attachments": attachments,
-            "summernote_config": summernote_config,
+            "staff": staff,
         },
     )
 
@@ -588,6 +616,17 @@ def add_comment(request, ticket_id):
             incident=ticket,
             comment_type=comment_type,
         ).save()
+
+        # look for mentions in the text e.g. @Betty-Bunting
+        # This regex finds all occurrences of @ followed by not space or not full stop or not <
+        mentions = re.findall(r"@[^ |^.|^<]*", text)
+
+        staff_list = rbac_get_users_with_role("support.helpdesk.edit")
+
+        for mention in mentions:
+            for staff in staff_list:
+                if f"@{staff.first_name}-{staff.last_name}" == mention:
+                    notify_staff_mention(request, ticket, text, staff.first_name)
 
         if and_awaiting:
             IncidentLineItem(
