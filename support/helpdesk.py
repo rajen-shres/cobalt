@@ -618,15 +618,12 @@ def add_comment(request, ticket_id):
         ).save()
 
         # look for mentions in the text e.g. @Betty-Bunting
-        # This regex finds all occurrences of @ followed by not space or not full stop or not <
-        mentions = re.findall(r"@[^ |^.|^<]*", text)
 
         staff_list = rbac_get_users_with_role("support.helpdesk.edit")
 
-        for mention in mentions:
-            for staff in staff_list:
-                if f"@{staff.first_name}-{staff.last_name}" == mention:
-                    notify_staff_mention(request, ticket, text, staff.first_name)
+        for staff in staff_list:
+            if f"@{staff.first_name}-{staff.last_name}" in text:
+                notify_staff_mention(request, ticket, text, staff.first_name)
 
         if and_awaiting:
             IncidentLineItem(
@@ -671,44 +668,6 @@ def add_comment(request, ticket_id):
                 _notify_user_updated_ticket(request, ticket, text)
 
     return redirect("support:helpdesk_edit", ticket_id=ticket_id)
-
-
-@rbac_check_role("support.helpdesk.edit")
-def add_incident_line_item_ajax(request):
-    """Ajax call to add a line item"""
-
-    if request.method != "POST":
-        return
-    ticket_id = request.POST.get("ticket_id")
-    private_flag = request.POST.get("private_flag")
-    private_flag = private_flag == "1"
-    feedback_flag = request.POST.get("feedback_flag")
-    feedback_flag = feedback_flag == "1"
-    text = request.POST.get("text")
-
-    ticket = get_object_or_404(Incident, pk=ticket_id)
-
-    # If this isn't assigned then assign it now
-    if not ticket.assigned_to:
-        ticket.assigned_to = request.user
-        ticket.status = "In Progress"
-        ticket.save()
-
-    # if feedback flag is set then change the status
-    if feedback_flag:
-        ticket.status = "Awaiting User Feedback"
-        ticket.save()
-
-    comment_type = "Private" if private_flag else "Default"
-    IncidentLineItem(
-        incident=ticket, description=text, staff=request.user, comment_type=comment_type
-    ).save()
-
-    if not private_flag:
-        _notify_user_updated_ticket(request, ticket, text)
-
-    response_data = {"message": "Success"}
-    return JsonResponse({"data": response_data})
 
 
 @rbac_check_role("support.helpdesk.edit")
