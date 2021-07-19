@@ -752,6 +752,9 @@ def watch_emails(request, batch_id):
 
     sender = emails[0].sender
 
+    # Don't show link to details if too many for page
+    show_details = emails.count() < 5000
+
     return render(
         request,
         "notifications/watch_email.html",
@@ -760,6 +763,7 @@ def watch_emails(request, batch_id):
             "emails_sent": emails_sent,
             "batch_id": batch_id,
             "sender": sender,
+            "show_details": show_details,
         },
     )
 

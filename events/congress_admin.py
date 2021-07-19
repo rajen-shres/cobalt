@@ -1185,6 +1185,8 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
                 "notifications:watch_emails", batch_id=email_sender.batch_id
             )
 
+    recipient_count = len(all_recipients)
+
     # Screen will timeout if too many recipients - only really an issue for testing
     if len(all_recipients) > 1000:
         all_recipients = ["Too many to show"]
@@ -1196,7 +1198,7 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
             "form": form,
             "congress": congress,
             "event": event,
-            "count": len(all_recipients),
+            "count": recipient_count,
             "recipients": all_recipients,
         },
     )
