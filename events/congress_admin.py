@@ -1056,11 +1056,14 @@ def admin_event_email(request, event_id):
         return rbac_forbidden(request, role)
 
     # who will receive this
-    recipients_qs = EventEntryPlayer.objects.filter(event_entry__event=event).exclude(
-        event_entry__entry_status="Cancelled"
+    all_recipients = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .exclude(event_entry__entry_status="Cancelled")
+        .values_list("player__first_name", "player__last_name", "player__email")
+        .distinct()
     )
 
-    return _admin_email_common(request, recipients_qs, event.congress, event)
+    return _admin_email_common(request, all_recipients, event.congress, event)
 
 
 @login_required()
@@ -1075,11 +1078,14 @@ def admin_congress_email(request, congress_id):
         return rbac_forbidden(request, role)
 
     # who will receive this
-    recipients_qs = EventEntryPlayer.objects.filter(
-        event_entry__event__congress=congress
-    ).exclude(event_entry__entry_status="Cancelled")
+    all_recipients = (
+        EventEntryPlayer.objects.filter(event_entry__event__congress=congress)
+        .exclude(event_entry__entry_status="Cancelled")
+        .values_list("player__first_name", "player__last_name", "player__email")
+        .distinct()
+    )
 
-    return _admin_email_common(request, recipients_qs, congress, event=None)
+    return _admin_email_common(request, all_recipients, congress, event=None)
 
 
 def _admin_email_common_thread(
@@ -1089,7 +1095,7 @@ def _admin_email_common_thread(
 
     for recipient in recipients:
         context = {
-            "name": recipient.first_name,
+            "name": recipient[0],
             "title1": f"Message from {request.user.full_name} on behalf of {congress}",
             "title2": subject,
             "email_body": body,
@@ -1099,10 +1105,9 @@ def _admin_email_common_thread(
         html_msg = render_to_string("notifications/email_with_2_headings.html", context)
 
         email_sender.queue_email(
-            recipient.email,
+            recipient[2],
             subject,
             html_msg,
-            recipient,
             reply_to=request.user.email,
             sender=request.user,
         )
@@ -1111,21 +1116,20 @@ def _admin_email_common_thread(
     email_sender.send()
 
 
-def _admin_email_common(request, recipients_qs, congress, event=None):
+def _admin_email_common(request, all_recipients, congress, event=None):
     """Common function for sending emails to entrants"""
 
     form = EmailForm(request.POST or None)
-
-    all_recipients = []
-    for recipient in recipients_qs:
-        if recipient.player not in all_recipients:
-            all_recipients.append(recipient.player)
 
     if request.method == "POST" and form.is_valid():
         subject = form.cleaned_data["subject"]
         body = form.cleaned_data["body"]
 
-        recipients = [request.user] if "test" in request.POST else all_recipients
+        recipients = (
+            [(request.user.first_name, request.user.last_name, request.user.email)]
+            if "test" in request.POST
+            else all_recipients
+        )
 
         # start thread
 

@@ -766,26 +766,3 @@ def watch_emails(request, batch_id):
             "show_details": show_details,
         },
     )
-
-
-@login_required()
-def watch_emails_details(request, batch_id):
-    """Track progress of email by batch id with details"""
-
-    emails = Email.objects.filter(batch_id=batch_id)
-    emails_queued = emails.filter(status="Queued").count()
-    emails_sent = emails.filter(status="Sent").count()
-
-    sender = emails[0].sender
-
-    return render(
-        request,
-        "notifications/watch_email_details.html",
-        {
-            "emails_queued": emails_queued,
-            "emails_sent": emails_sent,
-            "batch_id": batch_id,
-            "emails": emails,
-            "sender": sender,
-        },
-    )
