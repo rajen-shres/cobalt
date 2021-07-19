@@ -92,7 +92,7 @@
                                 <span class="cobalt-form-error"
                                     id="id_severity_errors">{{ form.severity.errors|striptags }}</span>
                                 <label for="id_severity" class="">Severity</label>
-                                {% render_field form.severity class+="form-control" %}
+                                {% render_field form.severity class+="form-control our_input" %}
                             </div>
                         </div>
 
@@ -104,7 +104,7 @@
                                 <span class="cobalt-form-error"
                                     id="id_status_errors">{{ form.status.errors|striptags }}</span>
                                 <label for="id_status" class="bmd-label-static">Status</label>
-                                {% render_field form.status class+="form-control" %}
+                                {% render_field form.status class+="form-control our_input" %}
                             </div>
 
 
@@ -118,7 +118,7 @@
                                 <span class="cobalt-form-error"
                                     id="id_title_errors">{{ form.title.errors|striptags }}</span>
                                 <label for="id_title" class="bmd-label-floating">Subject</label>
-                                {% render_field form.title class+="form-control" %}
+                                {% render_field form.title class+="form-control our_input" %}
                             </div>
                         </div>
 
@@ -129,7 +129,7 @@
                                 <span class="cobalt-form-error"
                                     id="id_assigned_to_errors">{{ form.assigned_to.errors|striptags }}</span>
                                 <label for="id_assigned_to" class="bmd-label-static">Assigned to</label>
-                                {% render_field form.assigned_to class+="form-control" %}
+                                {% render_field form.assigned_to class+="form-control our_input" %}
                             </div>
                         </div>
 
@@ -141,7 +141,7 @@
                                 <span class="cobalt-form-error"
                                     id="id_incident_type_errors">{{ form.incident_type.errors|striptags }}</span>
                                 <label for="id_incident_type" class="bmd-label-static">Product Area</label>
-                                {% render_field form.incident_type class+="form-control" %}
+                                {% render_field form.incident_type class+="form-control our_input" %}
                             </div>
                         </div>
                     </div>
@@ -154,7 +154,7 @@
                                 <span class="cobalt-form-error"
                                     id="id_description_errors">{{ form.description.errors|striptags }}</span>
                                 <label for="id_description" class="bmd-label-fixed">Description</label>
-                                {% render_field form.description class+="form-control pt-4" %}
+                                {% render_field form.description class+="form-control pt-4 our_input" %}
                             </div>
                         </div>
 
@@ -233,13 +233,13 @@
                             {% csrf_token %}
                             <div style="padding: 0px 10px 10px 10px;">
                                 <textarea name="description" cols="40" rows="10"
-                                       class="summernoteinplacewidget form-control"
+                                       class="summernoteinplacewidget form-control our_input"
                                           id="comment_description" hidden="true"></textarea>
                             </div>
                             <div id="comment_form_block" style="display: none;">
                                 <input type="checkbox" id="private" name="private" value="Private">
                                 <label for="private" style="color: black">Private comment (not shared with user)</label><br>
-                                <select class="selectpicker" data-style="btn btn-success btn-sm"
+                                <select class="selectpicker our_input" data-style="btn btn-success btn-sm"
                                     id="id_action" name="action">
 
                                     <option value="add-comment" selected>Add Comment</option>
@@ -255,7 +255,7 @@
                                 </button>
                                 <a href="{% url "support:helpdesk_edit" ticket_id=ticket.id %}"
                                     id="reset" class="btn btn-info">
-                                    Reset
+                                    Cancel
                                 </a>
                             </div>
                         </form>
@@ -285,9 +285,44 @@
         {# Load generic search BUT tell it not to apply the ios fix - breaks Summernote file upload #}
         {% include "utils/generic_user_search_footer.html" with search_id=1 include_me=True prevent_ios_fix=True %}
 
+        // prevent users from editing both forms at the same time.
+        function handle_change(form_id) {
+            if (form_id === 'ticket_form'){
+                // show save button, hide delete and add attachment
+                $('#button_save').show();
+                $('#id_delete').hide();
+                $('#button_attach').hide();
+                // hide comment fields
+                $('#add_new_comment').hide();
+                // Change cancel to be a reset button
+                $("#id_top_cancel").attr("href", "{% url "support:helpdesk_edit" ticket_id=ticket.id %}")
+
+            } else { // comment form has changed - stop edits on main form
+                $('#ticket_form input').attr('readonly', true);
+                $('#ticket_form textarea').attr('readonly', true);
+                $('#id_status').attr("disabled", true);
+                $('#id_incident_type').attr("disabled", true);
+                $('#id_assigned_to').attr("disabled", true);
+                $('#id_severity').attr("disabled", true);
+                $('#button_save').hide();
+                $('#id_delete').hide();
+                $('#button_attach').hide();
+                $('#id_top_cancel').hide();
+                $('#id_member_button_div').hide();
+                // show rest of comment form
+                $('#comment_form_block').show();
+                // cobalt-core doesn't pick up the summernote change so set it manually
+                cobalt_form_data_changed=true;
+            }
+
+            $("#button_save").prop("disabled",false);
+        }
+
         function cobaltMemberSearchOk() {
             $('#id_reported_by_user').val(member_id[1]);
             $('#id_reported_by_user_fake').val(member_name[1]);
+            // Update buttons
+            handle_change('ticket_form');
         }
 
         $(document).ready(function () {
@@ -342,41 +377,8 @@
                 });
             });
 
-            // prevent users from editing both forms at the same time.
-            function handle_change(form_id) {
-                if (form_id === 'ticket_form'){
-                    // show save button, hide delete and add attachment
-                    $('#button_save').show();
-                    $('#id_delete').hide();
-                    $('#button_attach').hide();
-                    // hide comment fields
-                    $('#add_new_comment').hide();
-                    // Change cancel to be a reset button
-                    $("#id_top_cancel").attr("href", "{% url "support:helpdesk_edit" ticket_id=ticket.id %}")
-
-                } else { // comment form has changed - stop edits on main form
-                    $('#ticket_form input').attr('readonly', true);
-                    $('#ticket_form textarea').attr('readonly', true);
-                    $('#id_status').attr("disabled", true);
-                    $('#id_incident_type').attr("disabled", true);
-                    $('#id_assigned_to').attr("disabled", true);
-                    $('#id_severity').attr("disabled", true);
-                    $('#button_save').hide();
-                    $('#id_delete').hide();
-                    $('#button_attach').hide();
-                    $('#id_top_cancel').hide();
-                    $('#id_member_button_div').hide();
-                    // show rest of comment form
-                    $('#comment_form_block').show();
-                    // cobalt-core doesn't pick up the summernote change so set it manually
-                    cobalt_form_data_changed=true;
-                }
-
-                $("#button_save").prop("disabled",false);
-            }
-
             // Check for form changes - dropdowns and checkboxes
-            $(':input').change( function() {
+            $('.our_input').change( function() {
                 handle_change($(this.form)[0].id);
             });
 
@@ -415,6 +417,7 @@
                     mode: 'text/html'
 	            },
                 prettifyHtml:true,
+                tooltip: false,
                 {# Enable the @ key to search for mentions #}
                 hint: {
                     mentions: [{{ staff }}],
