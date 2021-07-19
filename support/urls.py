@@ -44,9 +44,4 @@ urlpatterns = [
         helpdesk.helpdesk_delete_attachment_ajax,
         name="helpdesk_delete_attachment_ajax",
     ),
-    path(
-        "helpdesk-ajax/comment",
-        helpdesk.add_incident_line_item_ajax,
-        name="helpdesk_add_incident_line_item_ajax",
-    ),
 ]
