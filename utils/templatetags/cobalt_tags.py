@@ -63,9 +63,12 @@ def cobalt_user_link(user):
 def cobalt_user_link_short(user):
     if not user:
         return None
-
-    url = reverse("accounts:public_profile", kwargs={"pk": user.id})
-    return format_html("<a href='{}'>{}</a>", mark_safe(url), user.full_name)
+    try:
+        url = reverse("accounts:public_profile", kwargs={"pk": user.id})
+        return format_html("<a href='{}'>{}</a>", mark_safe(url), user.full_name)
+    # Try to return the object if it was not a User
+    except AttributeError:
+        return user
 
 
 # return formatted bridge credit number

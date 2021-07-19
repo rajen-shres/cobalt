@@ -1119,8 +1119,6 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
     all_recipients = []
     for recipient in recipients_qs:
         if recipient.player not in all_recipients:
-            print(recipient)
-            print(all_recipients)
             all_recipients.append(recipient.player)
 
     if request.method == "POST" and form.is_valid():
@@ -1186,6 +1184,11 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
             return redirect(
                 "notifications:watch_emails", batch_id=email_sender.batch_id
             )
+
+    # Screen will timeout if too many recipients - only really an issue for testing
+    if len(all_recipients) > 1000:
+        all_recipients = ["Too many to show"]
+
     return render(
         request,
         "events/admin_email.html",
