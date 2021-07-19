@@ -434,6 +434,16 @@ urlpatterns = [
         congress_admin.admin_event_entry_player_delete,
         name="admin_event_entry_player_delete",
     ),
+    path(
+        "congress-admin/event-payment-methods/<int:event_id>",
+        congress_admin.admin_event_payment_methods,
+        name="admin_event_payment_methods",
+    ),
+    path(
+        "congress-admin/event-payment-methods-csv/<int:event_id>",
+        congress_admin.admin_event_payment_methods_csv,
+        name="admin_event_payment_methods_csv",
+    ),
     #######################################################
     # higher level admin functions                        #
     #######################################################

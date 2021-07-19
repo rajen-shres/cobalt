@@ -1,4 +1,6 @@
 # from django.shortcuts import render
+import csv
+
 from geopy.geocoders import Nominatim
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -24,7 +26,7 @@ import pytz
 
 @login_required
 def user_activity(request):
-    """ show user activity figures """
+    """show user activity figures"""
 
     users = (
         User.objects.order_by("-last_activity")
@@ -63,7 +65,7 @@ def user_activity(request):
 
 @login_required()
 def geo_location(request, location):
-    """ return lat and long for a text address """
+    """return lat and long for a text address"""
 
     try:
         geolocator = Nominatim(user_agent="cobalt")
@@ -71,8 +73,8 @@ def geo_location(request, location):
         html = {"lat": loc.latitude, "lon": loc.longitude}
         data_dict = {"data": html}
         return JsonResponse(data=data_dict, safe=False)
-    except:
-        return JsonResponse({"data":{"lat":None, "lon":None}}, safe=False)
+    except:  # noqa E722
+        return JsonResponse({"data": {"lat": None, "lon": None}}, safe=False)
 
 
 class CobaltBatch:
@@ -127,7 +129,6 @@ class CobaltBatch:
 
 @user_passes_test(lambda u: u.is_superuser)
 def batch(request):
-
     events_list = Batch.objects.all().order_by("-run_date", "-start_time", "-end_time")
 
     things = cobalt_paginator(request, events_list)
@@ -137,7 +138,7 @@ def batch(request):
 
 @login_required()
 def status(request):
-    """ Basic system health """
+    """Basic system health"""
 
     # if not rbac_user_has_role(request.user, "support.support.view"):
     #     return rbac_forbidden(request, "support.support.view")
@@ -187,10 +188,27 @@ def status(request):
     )
 
 
-# @login_required()
-# def payment_status(request):
-#     """ Basic payment health """
-#
-#     payments = None
-#
-#     return render(request, "utils/payment_status.html", {"payments": payments})
+def download_csv(request, queryset):
+    """Copied from Stack Overflow - generic CSV download"""
+
+    model = queryset.model
+    model_fields = model._meta.fields + model._meta.many_to_many
+    field_names = [field.name for field in model_fields]
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="export.csv"'
+
+    # the csv writer
+    writer = csv.writer(response)
+    # Write a first row with header information
+    writer.writerow(field_names)
+    # Write data rows
+    for row in queryset:
+        values = []
+        for field in field_names:
+            value = getattr(row, field)
+
+            values.append(value)
+        writer.writerow(values)
+
+    return response
