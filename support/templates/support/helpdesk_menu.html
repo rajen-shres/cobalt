@@ -19,8 +19,11 @@
                     <h3>Open Tickets: {{ open_tickets }}</h3>
                 </div>
                 <div class="card-body">
-                                        <a href="{% url "support:create_ticket" %}" class="btn-success btn-sm btn">Create New Ticket</a>
+                    <a href="{% url "support:create_ticket" %}" class="btn-success btn-sm btn">Create New Ticket</a>
                     <a href="{% url "support:helpdesk_list" %}" class="btn-rose btn-sm btn">Filter Tickets</a>
+                    <div class="float-right">
+                        <a href="{% url "support:helpdesk_admin" %}" class="btn-danger btn-sm btn">Admin</a>
+                    </div>
 
                     <div class="card">
                         <div class="card-header card-header-danger">
@@ -28,9 +31,9 @@
                         </div>
                         <div class="card-body">
                             {% if assigned_to_you %}
-                        {%  include "support/list_tickets_table.html" with things=assigned_to_you %}
+                                {%  include "support/list_tickets_table.html" with things=assigned_to_you %}
                             {% else %}
-                            <h3>You have nothing assigned.</h3>
+                                <h3>You have nothing assigned.</h3>
                             {% endif %}
                         </div>
                     </div>
@@ -40,10 +43,10 @@
                         </div>
                         <div class="card-body">
                             {% if unassigned_tickets %}
-{#                            Pass a counter to give the table a unique name#}
-                        {%  include "support/list_tickets_table.html" with things=unassigned_tickets counter=1 %}
+                                {#                            Pass a counter to give the table a unique name#}
+                                {%  include "support/list_tickets_table.html" with things=unassigned_tickets counter=1 %}
                             {% else %}
-                            <h3>There is nothing pending.</h3>
+                                <h3>There is nothing pending.</h3>
                             {% endif %}
                         </div>
                     </div>
@@ -53,10 +56,10 @@
                         </div>
                         <div class="card-body">
                             {% if assigned_to_others %}
-{#                            Pass a counter to give the table a unique name#}
-                        {%  include "support/list_tickets_table.html" with things=assigned_to_others counter=2 %}
+                                {#                            Pass a counter to give the table a unique name#}
+                                {%  include "support/list_tickets_table.html" with things=assigned_to_others counter=2 %}
                             {% else %}
-                            <h3>There is nothing assigned to others.</h3>
+                                <h3>There is nothing assigned to others.</h3>
                             {% endif %}
                         </div>
                     </div>
@@ -72,7 +75,7 @@
 
 {% endblock %}
 {%  block footer %}
-   <script>
+    <script>
         $(document).ready(function () {
 
             // Unhide table now. A bit annoying, but we share the table code with other html files
@@ -90,5 +93,5 @@
             });
 
         });
-   </script>
+    </script>
 {% endblock footer %}

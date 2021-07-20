@@ -62,6 +62,28 @@ def rbac_delete_group(group):
         return False
 
 
+def rbac_get_group_by_name(group_name):
+    """Get an RBAC group by name
+
+    Args:
+        group_name(str): group name to find
+
+    Returns:
+        RBACGroup
+    """
+
+    name_parts = group_name.split(".")
+    group_name_item = name_parts[-1]
+    group_name_qualifier = ".".join(name_parts[:-1])
+
+    try:
+        return RBACGroup.objects.get(
+            name_qualifier=group_name_qualifier, name_item=group_name_item
+        )
+    except RBACGroup.DoesNotExist:
+        return False
+
+
 def rbac_delete_group_by_name(group_name):
     """Delete an RBAC group by name
 
@@ -415,7 +437,7 @@ def rbac_user_has_role_explain(member, role):
 
 
 def allow_to_boolean(test_string):
-    """ takes a string and returns True if it is "Allow" """
+    """takes a string and returns True if it is "Allow" """
 
     if test_string == "Allow":
         return True
@@ -729,7 +751,7 @@ def rbac_access_in_english_sub(user, this_name):
 
 
 def rbac_get_admins_for_group(group):
-    """ returns a queryset of admins who can change users for a given group """
+    """returns a queryset of admins who can change users for a given group"""
 
     path = group.name
     # Get the groups who have access to this part of the tree
@@ -744,7 +766,7 @@ def rbac_get_admins_for_group(group):
 
 
 def rbac_add_user_to_admin_group(group, user):
-    """ adds a user to an admin group """
+    """adds a user to an admin group"""
 
     if not RBACAdminUserGroup.objects.filter(group=group, member=user).exists():
         item = RBACAdminUserGroup(group=group, member=user)
@@ -752,7 +774,7 @@ def rbac_add_user_to_admin_group(group, user):
 
 
 def rbac_add_role_to_admin_group(group, app, model, model_id=None):
-    """ adds a role to an admin group """
+    """adds a role to an admin group"""
 
     if not RBACAdminGroupRole.objects.filter(
         group=group, app=app, model=model, model_id=model_id
@@ -803,7 +825,7 @@ def rbac_get_groups_for_role(role):
 
 
 def rbac_get_users_in_group(groupname):
-    """ returns a list of users in a group or None """
+    """returns a list of users in a group or None"""
     parts = groupname.split(".")
     name_qualifier = ".".join(parts[:-1])
     name_item = parts[len(parts) - 1]

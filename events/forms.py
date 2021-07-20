@@ -361,7 +361,7 @@ class EmailForm(forms.Form):
             attrs={
                 "summernote": {
                     "height": "250",
-                    "placeholder": "<br><br>Enter the body of your email. You can use the test button as many times.",
+                    "placeholder": "<br><br>Enter the body of your email. You can use the test button as many times as you like.",
                 }
             }
         )
