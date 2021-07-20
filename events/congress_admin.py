@@ -14,6 +14,8 @@ from django.db.models import Sum, Q
 from notifications.views import contact_member, send_cobalt_bulk_email, CobaltEmail
 from logs.views import log_event
 from django.db import transaction
+
+from utils.views import download_csv
 from .models import (
     Congress,
     Category,
@@ -1750,3 +1752,46 @@ def player_events_list(request, member_id, congress_id):
             "event_logs": event_logs,
         },
     )
+
+
+@login_required()
+def admin_event_payment_methods(request, event_id):
+    """List of payment methods including Cancelled entries"""
+
+    event = get_object_or_404(Event, pk=event_id)
+
+    # check access
+    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    event_entry_players = EventEntryPlayer.objects.filter(event_entry__event=event)
+
+    # Get log events
+    event_logs = EventLog.objects.filter(event=event)
+
+    return render(
+        request,
+        "events/admin_event_payment_methods.html",
+        {
+            "event": event,
+            "event_entry_players": event_entry_players,
+            "event_logs": event_logs,
+        },
+    )
+
+
+@login_required()
+def admin_event_payment_methods_csv(request, event_id):
+    """List of payment methods including Cancelled entries as csv"""
+
+    event = get_object_or_404(Event, pk=event_id)
+
+    # check access
+    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    event_entry_players = EventEntryPlayer.objects.filter(event_entry__event=event)
+
+    return download_csv(request, event_entry_players)
