@@ -92,7 +92,7 @@
 
                                 <h3>Add Notification</h3>
 
-                                <span class="cobalt-form-error" id="id_email_errors">{{ notify_form.incident_type.errors|striptags }}</span>
+                                <span class="cobalt-form-error" id="id_staff_errors">{{ notify_form.staff.errors|striptags }}</span>
                                 <form action="{% url "support:helpdesk_admin_notify" %}" method="post">
                                     {% csrf_token %}
                                     <div class="container">
@@ -121,14 +121,10 @@
                                             <button type="submit" class="btn btn-success cobalt-save" id="save-notify" style="display: none">Add</button>
                                         </div>
                                     </div>
-
                                 </form>
-
                             </div>
-
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

@@ -141,15 +141,21 @@ class NotifyUserByTypeForm(forms.ModelForm):
         if incident_type == "All":
             NotifyUserByType.objects.filter(staff=staff).delete()
         else:
-            if NotifyUserByType.objects.filter(incident_type="All").filter(staff=staff):
+            if (
+                NotifyUserByType.objects.filter(incident_type="All")
+                .filter(staff=staff)
+                .exists()
+            ):
                 txt = "There is already an All setting for this user"
-                self._errors["incident_type"] = txt
+                self._errors["staff"] = txt
                 raise forms.ValidationError(txt)
-            if NotifyUserByType.objects.filter(incident_type=incident_type).filter(
-                staff=staff
+            if (
+                NotifyUserByType.objects.filter(incident_type=incident_type)
+                .filter(staff=staff)
+                .exists()
             ):
                 txt = f"There is already a setting for {incident_type} for this user"
-                self._errors["incident_type"] = txt
+                self._errors["staff"] = txt
                 raise forms.ValidationError(txt)
         return self.cleaned_data
 
