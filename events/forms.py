@@ -195,15 +195,24 @@ class CongressForm(forms.ModelForm):
             }
         )
     )
+
     def clean_allow_youth_payment_discount(self):
-        if self.cleaned_data["allow_youth_payment_discount"] and (self.cleaned_data.get("youth_payment_discount_date",None) is None):
-            raise ValidationError('If "Give Youth Entry Discount" is checked then you must enter the youth cutoff date')
+        if self.cleaned_data["allow_youth_payment_discount"] and (
+            self.cleaned_data.get("youth_payment_discount_date", None) is None
+        ):
+            raise ValidationError(
+                'If "Give Youth Entry Discount" is checked then you must enter the youth cutoff date'
+            )
         return self.cleaned_data["allow_youth_payment_discount"]
 
     def clean_allow_early_payment_discount(self):
         early_payment_discount = self.cleaned_data["allow_early_payment_discount"]
-        if early_payment_discount and (self.cleaned_data.get("early_payment_discount_date",None) is None):
-            raise ValidationError('If "Give Early Entry Discount" is checked, then you must enter last date for discount')
+        if early_payment_discount and (
+            self.cleaned_data.get("early_payment_discount_date", None) is None
+        ):
+            raise ValidationError(
+                'If "Give Early Entry Discount" is checked, then you must enter last date for discount'
+            )
         return early_payment_discount
 
     class Meta:
@@ -282,6 +291,7 @@ class EventForm(forms.ModelForm):
             "entry_youth_payment_discount",
             "free_format_question",
         )
+
     def clean_entry_early_payment_discount(self):
         data = self.cleaned_data["entry_early_payment_discount"]
         if data is None:
@@ -351,7 +361,7 @@ class EmailForm(forms.Form):
             attrs={
                 "summernote": {
                     "height": "250",
-                    "placeholder": "<br><br>Enter the body of your email. Do not insert pictures as they will not work.",
+                    "placeholder": "<br><br>Enter the body of your email. You can use the test button as many times as you like.",
                 }
             }
         )
@@ -396,7 +406,7 @@ class PartnershipForm(forms.ModelForm):
 
 
 class OffSystemPPForm(forms.Form):
-    """ For off system PP payments """
+    """For off system PP payments"""
 
     CARD_CHOICES = [
         ("Dummy", "Dummy"),
@@ -404,11 +414,12 @@ class OffSystemPPForm(forms.Form):
 
     # Handle checkboxes
     event_entry_players_list = forms.MultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple, choices=CARD_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        choices=CARD_CHOICES,
     )
 
     def __init__(self, *args, **kwargs):
-        """ dynamic override of checkbox list """
+        """dynamic override of checkbox list"""
 
         # Get list of event_entry_players
         self.event_entry_players = kwargs.pop("event_entry_players", None)

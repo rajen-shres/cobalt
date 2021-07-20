@@ -63,10 +63,13 @@ class CobaltEmail:
             "".join(random.choices(string.ascii_uppercase + string.digits, k=4)),
         )
 
-    def queue_email(self, to_address, subject, message, member=None, reply_to=""):
+    def queue_email(
+        self, to_address, subject, message, member=None, reply_to="", sender=None
+    ):
         """Adds email to the queue ready to send. Why no bcc_address? No need to bcc when sending to only one person.
 
         Args:
+            sender: (User): Who sent this (optional)
             to_address (str): who to send to
             subject (str): subject line for email
             message (str): message to send in HTML or plain format
@@ -83,6 +86,7 @@ class CobaltEmail:
             recipient=to_address,
             member=member,
             reply_to=reply_to,
+            sender=sender,
         ).save()
 
     def empty_queue(self):
@@ -735,4 +739,30 @@ def email_contact(request, member_id):
 
     return render(
         request, "notifications/email_form.html", {"form": form, "member": member}
+    )
+
+
+@login_required()
+def watch_emails(request, batch_id):
+    """Track progress of email by batch id"""
+
+    emails = Email.objects.filter(batch_id=batch_id)
+    emails_queued = emails.filter(status="Queued").count()
+    emails_sent = emails.filter(status="Sent").count()
+
+    sender = emails[0].sender
+
+    # Don't show link to details if too many for page
+    show_details = emails.count() < 5000
+
+    return render(
+        request,
+        "notifications/watch_email.html",
+        {
+            "emails_queued": emails_queued,
+            "emails_sent": emails_sent,
+            "batch_id": batch_id,
+            "sender": sender,
+            "show_details": show_details,
+        },
     )

@@ -1,6 +1,8 @@
 """ The file has the code relating to a convener managing an existing event """
 
 import csv
+from threading import Thread
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.forms import formset_factory
@@ -12,6 +14,8 @@ from django.db.models import Sum, Q
 from notifications.views import contact_member, send_cobalt_bulk_email, CobaltEmail
 from logs.views import log_event
 from django.db import transaction
+
+from utils.views import download_csv
 from .models import (
     Congress,
     Category,
@@ -1054,11 +1058,14 @@ def admin_event_email(request, event_id):
         return rbac_forbidden(request, role)
 
     # who will receive this
-    recipients_qs = EventEntryPlayer.objects.filter(event_entry__event=event).exclude(
-        event_entry__entry_status="Cancelled"
+    all_recipients = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .exclude(event_entry__entry_status="Cancelled")
+        .values_list("player__first_name", "player__last_name", "player__email")
+        .distinct()
     )
 
-    return _admin_email_common(request, recipients_qs, event.congress, event)
+    return _admin_email_common(request, all_recipients, event.congress, event)
 
 
 @login_required()
@@ -1073,56 +1080,75 @@ def admin_congress_email(request, congress_id):
         return rbac_forbidden(request, role)
 
     # who will receive this
-    recipients_qs = EventEntryPlayer.objects.filter(
-        event_entry__event__congress=congress
-    ).exclude(event_entry__entry_status="Cancelled")
+    all_recipients = (
+        EventEntryPlayer.objects.filter(event_entry__event__congress=congress)
+        .exclude(event_entry__entry_status="Cancelled")
+        .values_list("player__first_name", "player__last_name", "player__email")
+        .distinct()
+    )
 
-    return _admin_email_common(request, recipients_qs, congress, event=None)
+    return _admin_email_common(request, all_recipients, congress, event=None)
 
 
-def _admin_email_common(request, recipients_qs, congress, event=None):
+def _admin_email_common_thread(
+    request, congress, subject, body, recipients, email_sender
+):
+    """we run a thread so we can return to the user straight away"""
+
+    for recipient in recipients:
+        context = {
+            "name": recipient[0],
+            "title1": f"Message from {request.user.full_name} on behalf of {congress}",
+            "title2": subject,
+            "email_body": body,
+            "host": COBALT_HOSTNAME,
+        }
+
+        html_msg = render_to_string("notifications/email_with_2_headings.html", context)
+
+        email_sender.queue_email(
+            recipient[2],
+            subject,
+            html_msg,
+            reply_to=request.user.email,
+            sender=request.user,
+        )
+
+    # send
+    email_sender.send()
+
+
+def _admin_email_common(request, all_recipients, congress, event=None):
     """Common function for sending emails to entrants"""
 
     form = EmailForm(request.POST or None)
-
-    all_recipients = []
-    for recipient in recipients_qs:
-        if recipient.player not in all_recipients:
-            print(recipient)
-            print(all_recipients)
-            all_recipients.append(recipient.player)
 
     if request.method == "POST" and form.is_valid():
         subject = form.cleaned_data["subject"]
         body = form.cleaned_data["body"]
 
-        recipients = [request.user] if "test" in request.POST else all_recipients
+        recipients = (
+            [(request.user.first_name, request.user.last_name, request.user.email)]
+            if "test" in request.POST
+            else all_recipients
+        )
+
+        # start thread
+
         email_sender = CobaltEmail()
 
-        for recipient in recipients:
+        args = {
+            "request": request,
+            "congress": congress,
+            "subject": subject,
+            "body": body,
+            "recipients": recipients,
+            "email_sender": email_sender,
+        }
 
-            context = {
-                "name": recipient.first_name,
-                "title1": f"Message from {request.user.full_name} on behalf of {congress}",
-                "title2": subject,
-                "email_body": body,
-                "host": COBALT_HOSTNAME,
-            }
-
-            html_msg = render_to_string(
-                "notifications/email_with_2_headings.html", context
-            )
-
-            email_sender.queue_email(
-                recipient.email,
-                subject,
-                html_msg,
-                recipient,
-                reply_to=request.user.email,
-            )
-
-        # send
-        email_sender.send()
+        thread = Thread(target=_admin_email_common_thread, kwargs=args)
+        thread.setDaemon(True)
+        thread.start()
 
         if "test" in request.POST:
             messages.success(
@@ -1151,7 +1177,6 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
                     sub_source="events_admin",
                     message=f"Sent email to all entrants in {event.href}",
                 )
-                return redirect("events:admin_event_summary", event_id=event.id)
             else:
 
                 log_event(
@@ -1161,7 +1186,16 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
                     sub_source="events_admin",
                     message=f"Sent email to whole congress {congress.href}",
                 )
-                return redirect("events:admin_summary", congress_id=congress.id)
+
+            return redirect(
+                "notifications:watch_emails", batch_id=email_sender.batch_id
+            )
+
+    recipient_count = len(all_recipients)
+
+    # Screen will timeout if too many recipients - only really an issue for testing
+    if len(all_recipients) > 1000:
+        all_recipients = ["Too many to show"]
 
     return render(
         request,
@@ -1170,7 +1204,7 @@ def _admin_email_common(request, recipients_qs, congress, event=None):
             "form": form,
             "congress": congress,
             "event": event,
-            "count": len(all_recipients),
+            "count": recipient_count,
             "recipients": all_recipients,
         },
     )
@@ -1718,3 +1752,46 @@ def player_events_list(request, member_id, congress_id):
             "event_logs": event_logs,
         },
     )
+
+
+@login_required()
+def admin_event_payment_methods(request, event_id):
+    """List of payment methods including Cancelled entries"""
+
+    event = get_object_or_404(Event, pk=event_id)
+
+    # check access
+    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    event_entry_players = EventEntryPlayer.objects.filter(event_entry__event=event)
+
+    # Get log events
+    event_logs = EventLog.objects.filter(event=event)
+
+    return render(
+        request,
+        "events/admin_event_payment_methods.html",
+        {
+            "event": event,
+            "event_entry_players": event_entry_players,
+            "event_logs": event_logs,
+        },
+    )
+
+
+@login_required()
+def admin_event_payment_methods_csv(request, event_id):
+    """List of payment methods including Cancelled entries as csv"""
+
+    event = get_object_or_404(Event, pk=event_id)
+
+    # check access
+    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    event_entry_players = EventEntryPlayer.objects.filter(event_entry__event=event)
+
+    return download_csv(request, event_entry_players)

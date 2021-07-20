@@ -3,6 +3,9 @@ from django.utils.dateformat import DateFormat
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+from django.contrib.humanize.templatetags.humanize import intcomma
+
+from cobalt.settings import GLOBAL_CURRENCY_SYMBOL
 
 register = template.Library()
 
@@ -63,9 +66,12 @@ def cobalt_user_link(user):
 def cobalt_user_link_short(user):
     if not user:
         return None
-
-    url = reverse("accounts:public_profile", kwargs={"pk": user.id})
-    return format_html("<a href='{}'>{}</a>", mark_safe(url), user.full_name)
+    try:
+        url = reverse("accounts:public_profile", kwargs={"pk": user.id})
+        return format_html("<a href='{}'>{}</a>", mark_safe(url), user.full_name)
+    # Try to return the object if it was not a User
+    except AttributeError:
+        return user
 
 
 # return formatted bridge credit number
@@ -110,3 +116,21 @@ def cobalt_hide_email(email):
 @register.filter(name="get_class")
 def get_class(value):
     return value.__class__.__name__
+
+
+# Return number formatted with commas and 2 decimals
+@register.filter(name="cobalt_number", is_safe=True)
+def cobalt_number(dollars):
+    dollars = round(float(dollars), 2)
+    return "%s%s" % (intcomma(int(dollars)), ("%0.2f" % dollars)[-3:])
+
+
+# Return number formatted as currency
+@register.filter(name="cobalt_currency", is_safe=True)
+def cobalt_currency(dollars):
+    dollars = round(float(dollars), 2)
+    return "%s%s%s" % (
+        GLOBAL_CURRENCY_SYMBOL,
+        intcomma(int(dollars)),
+        ("%0.2f" % dollars)[-3:],
+    )

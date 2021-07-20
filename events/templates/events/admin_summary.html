@@ -5,91 +5,91 @@
 {% load cobalt_tags %}
 {% block title %} - Admin Summary{% endblock %}
 {% block content %}
-<div id="ignore_cobalt_save"></div>
+    <div id="ignore_cobalt_save"></div>
 
-<div class="container justify-content-center">
-  <div class="row h-100 d-flex justify-content-center">
-    <div class="card">
-      <div class="card-header card-header-warning">
-        <h2>Congress Admin View</h2>
-        <h3>{{ congress }}</h3>
-        <h4>{{ congress.congress_master.org }}</h4>
-        <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}" class="btn btn-sm btn-secondary">Edit Congress</a>
-        <a href="{% url "events:admin_bulletins" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Bulletins</a>
-        <a href="{% url "events:admin_latest_news" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Latest News</a>
-        <a href="{% url "events:admin_congress_email" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Email Congress</a>
-        <a class="cobalt_generic_member btn btn-sm btn-secondary text-dark" data-toggle="modal" id="player_search" data-target="#cobalt_general_member_search1">Player Search</a>
-      </div>
-      <div class="card-body">
+    <div class="container justify-content-center">
+        <div class="row h-100 d-flex justify-content-center">
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h2>Congress Admin View</h2>
+                    <h3>{{ congress }}</h3>
+                    <h4>{{ congress.congress_master.org }}</h4>
+                    <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}" class="btn btn-sm btn-secondary">Edit Congress</a>
+                    <a href="{% url "events:admin_bulletins" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Bulletins</a>
+                    <a href="{% url "events:admin_latest_news" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Latest News</a>
+                    <a href="{% url "events:admin_congress_email" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Email Congress</a>
+                    <a class="cobalt_generic_member btn btn-sm btn-secondary text-dark" data-toggle="modal" id="player_search" data-target="#cobalt_general_member_search1">Player Search</a>
+                </div>
+                <div class="card-body">
 
-        <table class="table table-responsive table-hover">
-        <thead>
-          <tr>
-            <th>Event</th>
-            <th>Type</th>
-            <th>Status</th>
-            <th>Full Entry Fee</th>
-            <th>Early Entry Fee</th>
-            <th>Entries</th>
-            <th>Tables</th>
-            <th>Due</th>
-            <th>Paid</th>
-            <th>Pending</th>
-          </tr>
-        </thead>
-        <tbody>
+                    <table class="table table-responsive table-hover">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Full Entry Fee</th>
+                                <th>Early Entry Fee</th>
+                                <th>Entries</th>
+                                <th>Tables</th>
+                                <th>Due</th>
+                                <th>Paid</th>
+                                <th>Pending</th>
+                            </tr>
+                        </thead>
+                        <tbody>
 
 
-{% for event in events %}
+                            {% for event in events %}
 
-      <tr>
-        <td><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></td>
-        <td>{{ event.event_type|default_if_none:"" }}</td>
-        <td>{% if event.is_open %}Entries Open{% else %}Entries Closed{% endif %}</td>
-        <td class="text-right">{{ event.entry_fee }}</td>
-        <td class="text-right">{{ event.early_fee }}</td>
-        <td class="text-right">{{ event.entries }}</td>
-        <td class="text-right">{{ event.tables }}</td>
-        <td class="text-right">{{ event.due }}</td>
-        <td class="text-right">{{ event.paid }}</td>
-        <td class="text-right">{{ event.pending }}</td>
-      </tr>
+                                <tr>
+                                    <td><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></td>
+                                    <td>{{ event.event_type|default_if_none:"" }}</td>
+                                    <td>{% if event.is_open %}Entries Open{% else %}Entries Closed{% endif %}</td>
+                                    <td class="text-right">{{ event.entry_fee|cobalt_number }}</td>
+                                    <td class="text-right">{{ event.early_fee|cobalt_number }}</td>
+                                    <td class="text-right">{{ event.entries }}</td>
+                                    <td class="text-right">{{ event.tables }}</td>
+                                    <td class="text-right">{{ event.due|cobalt_number }}</td>
+                                    <td class="text-right">{{ event.paid|cobalt_number }}</td>
+                                    <td class="text-right">{{ event.pending|cobalt_number }}</td>
+                                </tr>
 
-{% endfor %}
+                            {% endfor %}
 
-      <tr>
-        <td class="font-weight-bold">Total</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+                            <tr>
+                                <td class="font-weight-bold">Total</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
 
-        <td class="text-right font-weight-bold">{{ total.entries }}</td>
-        <td class="text-right font-weight-bold">{{ total.tables }}</td>
-        <td class="text-right font-weight-bold">{{ total.due }}</td>
-        <td class="text-right font-weight-bold">{{ total.paid }}</td>
-        <td class="text-right font-weight-bold">{{ total.pending }}</td>
-      </tr>
+                                <td class="text-right font-weight-bold">{{ total.entries }}</td>
+                                <td class="text-right font-weight-bold">{{ total.tables }}</td>
+                                <td class="text-right font-weight-bold">{{ total.due }}</td>
+                                <td class="text-right font-weight-bold">{{ total.paid }}</td>
+                                <td class="text-right font-weight-bold">{{ total.pending }}</td>
+                            </tr>
 
-        </tbody>
-        </table>
-      </div>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-{% include "utils/generic_user_search_body.html" with search_id=1 %}
+    {% include "utils/generic_user_search_body.html" with search_id=1 %}
 
 {% endblock %}
 
 {% block footer %}
-<script>
-{% include "utils/generic_user_search_footer.html" with search_id=1 %}
+    <script>
+        {% include "utils/generic_user_search_footer.html" with search_id=1 %}
 
-function cobaltMemberSearchOk() {
-    // TODO: Find a good way to do this using url
-    window.location = "/events/congress-admin/player_events_list/" + member_id[1] + "/{{ congress.id }}"
-}
+        function cobaltMemberSearchOk() {
+            // TODO: Find a good way to do this using url
+            window.location = "/events/congress-admin/player_events_list/" + member_id[1] + "/{{ congress.id }}"
+        }
 
-</script>
+    </script>
 {% endblock footer %}

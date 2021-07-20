@@ -341,7 +341,7 @@ SUMMERNOTE_CONFIG = {
     },
     "attachment_require_authentication": True,
     "disable_attachment": False,
-    "attachment_absolute_uri": False,
+    "attachment_absolute_uri": True,
     "attachment_filesize_limit": 20000000,
 }
 
@@ -403,6 +403,7 @@ BLEACH_ALLOWED_ATTRIBUTES = [
     "class",
     "target",
     "src",
+    "data-filename",
 ]
 BLEACH_ALLOWED_STYLES = [
     "text-decoration",
@@ -413,3 +414,6 @@ BLEACH_ALLOWED_STYLES = [
     "width",
     "float",
 ]
+
+# Group used to manage the helpdesk staff
+RBAC_HELPDESK_GROUP = "rbac.orgs.abf.abf_roles.helpdesk_staff"

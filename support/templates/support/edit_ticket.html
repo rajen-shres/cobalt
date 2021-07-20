@@ -232,9 +232,7 @@
                             <h4 style="padding-top: 30px; padding-bottom: 0px">Add New Comment</h4>
                             {% csrf_token %}
                             <div style="padding: 0px 10px 10px 10px;">
-                                <textarea name="description" cols="40" rows="10"
-                                       class="summernoteinplacewidget form-control our_input"
-                                          id="comment_description" hidden="true"></textarea>
+                                {{ comment_form.description|as_crispy_field }}
                             </div>
                             <div id="comment_form_block" style="display: none;">
                                 <input type="checkbox" id="private" name="private" value="Private">
@@ -273,13 +271,6 @@
 
 {% block footer %}
     <script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
-    <script src="{% static "forums/assets/js/summernote-plugin-spades.js" %}"></script>
-    <script src="{% static "forums/assets/js/summernote-plugin-hearts.js" %}"></script>
-    <script src="{% static "forums/assets/js/summernote-plugin-diamonds.js" %}"></script>
-    <script src="{% static "forums/assets/js/summernote-plugin-clubs.js" %}"></script>
-    <!-- <script src="{% static "forums/assets/js/summernote-plugin-hand.js" %}"></script> -->
-    <script src="{% static "assets/js/core/jquery.cookie.min.js" %}"></script>
-    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
     <script>
 
         {# Load generic search BUT tell it not to apply the ios fix - breaks Summernote file upload #}
@@ -394,7 +385,7 @@
             $('#comment_description').summernote({
                 height: 300,
                 placeholder: '<br>You can use @ to mention people and they will be notified of this update.' +
-                    '<br>You must put some text after the mention, a full stop will do.',
+                '<br>You must put some text after the mention, a full stop will do.',
                 toolbar: [
                     ["style", ["style"]],
                     ["fontsize", ["fontsize"]],
@@ -411,13 +402,12 @@
                     }
                 },
                 codemirror: {
-	                lineNumbers: true,
-	                theme: 'monokai',
+                    lineNumbers: true,
+                    theme: 'monokai',
                     htmlMode: true,
                     mode: 'text/html'
-	            },
+                },
                 prettifyHtml:true,
-                tooltip: false,
                 {# Enable the @ key to search for mentions #}
                 hint: {
                     mentions: [{{ staff }}],
@@ -428,14 +418,6 @@
                         }));
                     },
                     content: function (item) {
-                        {#Nasty Summernote bug doesn't update the right things. Force an update by adding space #}
-                        {#setTimeout(() => {#}
-
-                            {#const rng = $('#comment_description').summernote('editor.getLastRange');#}
-                            {#const node = rng.insertNode(document.createElement('div'));#}
-                            {#$('#comment_description').summernote('insertText', 'Hello, world');#}
-
-                            {#}, 1000);#}
                         return '@' + item;
                     }
                 }

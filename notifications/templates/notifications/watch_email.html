@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %} - Watch Emails{% endblock %}
+{% block content %}
+
+    <div class="jumbotron">
+        <div class="d-flex justify-content-center">
+            <div class="card col-md-6">
+                <div class="card-header card-header-primary">
+                    <h2>Email Status for: {{ batch_id }}</h2>
+                    <p>This shows the status of a batch of emails. Queued means it is in a queue, waiting to be sent.
+                        Sent means it has been sent by us.</p>
+                    <p>It is not possible to know if it has been received.</p>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        {% if emails_queued == 0 %}
+                            <div class="text-center"><span class="material-icons display-2 text-success">task_alt</span></div>
+                        {% endif %}
+                        <div class="d-flex justify-content-center">
+                            {% if sender %}
+                                <h2 class="w-100">Sent By:{{ sender.full_name }}</h2>
+                            {% endif %}
+                            <table class="table-condensed table-hover">
+                                <tr>
+                                    <td class="text-left h3 pr-3">
+                                        Queued:
+                                    </td>
+                                    <td class="h3">
+                                        {{ emails_queued }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left h3">
+                                        Sent:
+                                    </td>
+                                    <td class="h3">
+                                        {{  emails_sent }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-center pt-5">
+                            <a href="{% url "notifications:watch_emails" batch_id=batch_id %}" class="btn btn-sm btn-info">refresh</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+

@@ -1,7 +1,7 @@
 from django import forms
 
 from rbac.core import rbac_get_users_with_role
-from support.models import Incident, Attachment, IncidentLineItem
+from support.models import Incident, Attachment, IncidentLineItem, NotifyUserByType
 from django_summernote.widgets import SummernoteInplaceWidget
 
 
@@ -120,3 +120,45 @@ class IncidentLineItemForm(forms.ModelForm):
     class Meta:
         model = IncidentLineItem
         fields = ("description",)
+
+
+class NotifyUserByTypeForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+
+        super(NotifyUserByTypeForm, self).__init__(*args, **kwargs)
+
+        # Hide the crispy labels
+        self.fields["incident_type"].label = False
+
+    def clean(self):
+        """custom validation"""
+        cleaned_data = super(NotifyUserByTypeForm, self).clean()
+
+        incident_type = cleaned_data.get("incident_type")
+        staff = cleaned_data.get("staff")
+
+        # Lets clean up if all is specified
+        if incident_type == "All":
+            NotifyUserByType.objects.filter(staff=staff).delete()
+        else:
+            if (
+                NotifyUserByType.objects.filter(incident_type="All")
+                .filter(staff=staff)
+                .exists()
+            ):
+                txt = "There is already an All setting for this user"
+                self._errors["staff"] = txt
+                raise forms.ValidationError(txt)
+            if (
+                NotifyUserByType.objects.filter(incident_type=incident_type)
+                .filter(staff=staff)
+                .exists()
+            ):
+                txt = f"There is already a setting for {incident_type} for this user"
+                self._errors["staff"] = txt
+                raise forms.ValidationError(txt)
+        return self.cleaned_data
+
+    class Meta:
+        model = NotifyUserByType
+        fields = ("incident_type", "staff")

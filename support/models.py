@@ -145,7 +145,6 @@ class IncidentLineItem(models.Model):
                 attributes=BLEACH_ALLOWED_ATTRIBUTES,
                 styles=BLEACH_ALLOWED_STYLES,
             )
-
         super(IncidentLineItem, self).save(*args, **kwargs)
 
 

@@ -13,11 +13,22 @@ from django.utils.html import format_html, escape
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_http_methods
 
-from cobalt.settings import COBALT_HOSTNAME, SUMMERNOTE_CONFIG
+from accounts.models import User
+from cobalt.settings import COBALT_HOSTNAME, SUMMERNOTE_CONFIG, RBAC_HELPDESK_GROUP
 from notifications.views import send_cobalt_email, CobaltEmail
-from rbac.core import rbac_get_users_with_role
+from rbac.core import (
+    rbac_get_users_with_role,
+    rbac_add_user_to_group,
+    rbac_get_group_by_name,
+    rbac_remove_user_from_group,
+)
 from rbac.decorators import rbac_check_role
-from support.forms import IncidentForm, AttachmentForm, IncidentLineItemForm
+from support.forms import (
+    IncidentForm,
+    AttachmentForm,
+    IncidentLineItemForm,
+    NotifyUserByTypeForm,
+)
 from support.models import Incident, IncidentLineItem, Attachment, NotifyUserByType
 
 
@@ -824,3 +835,101 @@ def user_list_tickets(request):
             "closed_tickets": closed_tickets,
         },
     )
+
+
+@rbac_check_role("support.helpdesk.edit")
+def helpdesk_admin(request, notify_form=None):
+    """Basic User admin for the helpdesk module. helpdesk_admin_add_notify calls us with the form if it has an error
+    otherwise the errors aren't returned to the user"""
+
+    notify_user_by_types = NotifyUserByType.objects.all()
+    staff = rbac_get_users_with_role("support.helpdesk.edit")
+    if not notify_form:
+        notify_form = NotifyUserByTypeForm()
+
+    return render(
+        request,
+        "support/helpdesk_admin.html",
+        {
+            "notify_user_by_types": notify_user_by_types,
+            "staff": staff,
+            "notify_form": notify_form,
+        },
+    )
+
+
+@rbac_check_role("support.helpdesk.edit")
+def helpdesk_admin_add_notify(request):
+    """add a user and notify type to table"""
+
+    form = NotifyUserByTypeForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(
+            request,
+            "Notification successfully added.",
+            extra_tags="cobalt-message-success",
+        )
+    else:
+        print(form.errors)
+
+    return helpdesk_admin(request, form)
+
+
+@rbac_check_role("support.helpdesk.edit")
+def helpdesk_delete_notify_ajax(request):
+    """Ajax call to delete a notify user record"""
+
+    if request.method == "GET":
+        notify_id = request.GET["notify_id"]
+
+        notify = get_object_or_404(NotifyUserByType, pk=notify_id)
+
+        notify.delete()
+
+        response_data = {"message": "Success"}
+        return JsonResponse({"data": response_data})
+
+
+@rbac_check_role("support.helpdesk.edit")
+def helpdesk_admin_add_staff(request):
+    """add a helpdesk user"""
+
+    if request.method == "POST":
+        staff_id = request.POST.get("staff_user")
+        staff = get_object_or_404(User, pk=staff_id)
+
+        group = rbac_get_group_by_name(RBAC_HELPDESK_GROUP)
+        rbac_add_user_to_group(staff, group)
+
+        messages.success(
+            request,
+            "User successfully added.",
+            extra_tags="cobalt-message-success",
+        )
+
+    return redirect("support:helpdesk_admin")
+
+
+@rbac_check_role("support.helpdesk.edit")
+def helpdesk_delete_staff_ajax(request):
+    """Ajax call to delete helpdesk user"""
+
+    if request.method == "GET":
+
+        if len(rbac_get_users_with_role("support.helpdesk.edit")) == 1:
+            response_data = {
+                "message": "Error. Cannot delete the last person from this group"
+            }
+            return JsonResponse({"data": response_data})
+
+        staff_id = request.GET["staff_id"]
+
+        staff = get_object_or_404(User, pk=staff_id)
+        group = rbac_get_group_by_name(RBAC_HELPDESK_GROUP)
+
+        rbac_remove_user_from_group(staff, group)
+
+        response_data = {"message": "Success"}
+        return JsonResponse({"data": response_data})

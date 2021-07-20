@@ -21,7 +21,7 @@ class InAppNotification(models.Model):
 
 
 class NotificationMapping(models.Model):
-    """ Stores mappings of users to events and actions  """
+    """Stores mappings of users to events and actions"""
 
     NOTIFICATION_TYPES = [("SMS", "SMS Message"), ("Email", "Email Message")]
 
@@ -81,6 +81,13 @@ class AbstractEmail(models.Model):
         null=True,
         related_name="member",
     )
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="sender",
+    )
     created_date = models.DateTimeField("Create Date", default=timezone.now)
     sent_date = models.DateTimeField("Sent Date", blank=True, null=True)
 
@@ -96,6 +103,6 @@ class EmailArchive(AbstractEmail):
 
 
 class EmailThread(models.Model):
-    """ Used to keep track of running threads """
+    """Used to keep track of running threads"""
 
     created_date = models.DateTimeField("Create Date", default=timezone.now)

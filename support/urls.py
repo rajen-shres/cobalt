@@ -22,6 +22,17 @@ urlpatterns = [
     path("helpdesk/create", helpdesk.create_ticket, name="create_ticket"),
     path("helpdesk/menu", helpdesk.helpdesk_menu, name="helpdesk_menu"),
     path("helpdesk/list", helpdesk.helpdesk_list, name="helpdesk_list"),
+    path(
+        "helpdesk/admin/add-notify",
+        helpdesk.helpdesk_admin_add_notify,
+        name="helpdesk_admin_notify",
+    ),
+    path(
+        "helpdesk/admin/add-staff",
+        helpdesk.helpdesk_admin_add_staff,
+        name="helpdesk_admin_add_staff",
+    ),
+    path("helpdesk/admin", helpdesk.helpdesk_admin, name="helpdesk_admin"),
     path("helpdesk/edit/<int:ticket_id>", helpdesk.edit_ticket, name="helpdesk_edit"),
     path(
         "helpdesk/add-comment/<int:ticket_id>",
@@ -43,5 +54,15 @@ urlpatterns = [
         "helpdesk-ajax-delete-attachment",
         helpdesk.helpdesk_delete_attachment_ajax,
         name="helpdesk_delete_attachment_ajax",
+    ),
+    path(
+        "helpdesk-ajax-delete-notify",
+        helpdesk.helpdesk_delete_notify_ajax,
+        name="helpdesk_delete_notify_ajax",
+    ),
+    path(
+        "helpdesk-ajax-delete-staff",
+        helpdesk.helpdesk_delete_staff_ajax,
+        name="helpdesk_delete_staff_ajax",
     ),
 ]

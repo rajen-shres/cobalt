@@ -5,95 +5,88 @@
 {% load cobalt_tags %}
 {% load humanize %}
 {% block title %} - Admin Email{% endblock %}
-{% block headerjs %}
-{% include "events/congress_wizard_include_header.html" %}
-{% endblock %}
+{% block header %}
+    <link href="{% static "assets/css/cobalt-summernote.css" %}" rel="stylesheet">
+{% endblock header %}
 {% block content %}
-<link href="{% static "forums/summernote/summernote-bs4.css" %}" type="text/css" media="all" rel="stylesheet">
-<link href="{% static "forums/summernote/django_summernote.css" %}" type="text/css" media="all" rel="stylesheet">
-<script type="text/javascript" src="{% static "forums/summernote/jquery.ui.widget.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/jquery.iframe-transport.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/jquery.fileupload.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/summernote-bs4.min.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/ResizeSensor.js" %}"></script>
+    {% include "utils/summernote_heading.html" %}
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=congress.id %}">{{ congress.name }}</a></li>
+            {% if event %}
+                <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">Email</li>
+        </ol>
+    </nav>
 
-<nav aria-label="breadcrumb" role="navigation">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=congress.id %}">{{ congress.name }}</a></li>
-      {% if event %}
-    <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
-      {% endif %}
-    <li class="breadcrumb-item active" aria-current="page">Email</li>
-  </ol>
-</nav>
+    <div class="container justify-content-center">
+        <div class="row h-100 d-flex justify-content-center">
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h2>Email</h2>
+                    {% if event %}
+                        <h3>{{ event.event_name }} in {{ congress }}</h3>
+                    {% else %}
+                        <h3>Email Whole Congress: {{ congress }}</h3>
+                    {% endif %}
+                </div>
+                <div class="card-body mx-auto">
 
-<div class="container justify-content-center">
-  <div class="row h-100 d-flex justify-content-center">
-    <div class="card">
-      <div class="card-header card-header-warning">
-        <h2>Email</h2>
-          {% if event %}
-        <h3>{{ event.event_name }} in {{ congress }}</h3>
-          {% else %}
-              <h3>Email Whole Congress: {{ congress }}</h3>
-          {% endif %}
-      </div>
-      <div class="card-body mx-auto">
-
-            <form method="post">
-              {% csrf_token %}
-              <div class="row">
-                <div class="col-12">
-                  <div class="form-group">
-                    <label class="bmd-label-static">Subject</label>
-                    <span class="cobalt-form-error" id="id_subject_errors">{{ form.subject.errors|striptags }}</span>
-                    {% render_field form.subject class+="form-control" %}
-                  </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="bmd-label-static">Subject</label>
+                                    <span class="cobalt-form-error" id="id_subject_errors">{{ form.subject.errors|striptags }}</span>
+                                    {% render_field form.subject class+="form-control" %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                {{ form.body|as_crispy_field }}
+                            </div>
+                        </div>
+                        <hr>
+                        <div>
+                            <a href="javascript:void(0)" id="show-recipients">Show Recipients</a>
+                            <div id="recipients" class="mt-2" style="display: none;">
+                                <ul>
+                                    {% for recipient in recipients %}
+                                        <li>{{ recipient|cobalt_user_link_short }}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button class="btn btn-info btn-sm cobalt-save" name="test">Test</button>
+                            <button class="btn btn-success btn-sm cobalt-save" name="send">Send ({{ count }})</button>
+                        </div>
+                    </form>
                 </div>
-              </div>
-              <div class="row">
-                <div class="col-12">
-                  {{ form.body|as_crispy_field }}
-                </div>
-              </div>
-              <hr>
-            <div>
-                <a href="javascript:void(0)" id="show-recipients">Show Recipients</a>
-                <div id="recipients" class="mt-2" style="display: none;">
-                <ul>
-                {% for recipient in recipients %}
-                <li>{{ recipient|cobalt_user_link_short }}
-                {% endfor %}
-                </ul>
-                </div>
-              </div>
-              <div class="text-center">
-              <button class="btn btn-info btn-sm cobalt-save" name="test">Test</button>
-              <button class="btn btn-success btn-sm cobalt-save" name="send">Send ({{ count }})</button>
-              </div>
-            </form>
-          </div>
+            </div>
         </div>
-      </div>
     </div>
 {% endblock %}
 
 {% block footer %}
-<script>
-$(document).ready(function(){
+    <script>
+        $(document).ready(function(){
 
-// handle click on show recipients
-  $("#show-recipients").click(function(){
-      if ($("#show-recipients").text()==="Show Recipients"){
-        $("#show-recipients").text("Hide Recipients");
-        $("#recipients").show();
-      } else {
-        $("#show-recipients").text("Show Recipients");
-        $("#recipients").hide();
+            // handle click on show recipients
+            $("#show-recipients").click(function(){
+                if ($("#show-recipients").text()==="Show Recipients"){
+                    $("#show-recipients").text("Hide Recipients");
+                    $("#recipients").show();
+                } else {
+                    $("#show-recipients").text("Show Recipients");
+                    $("#recipients").hide();
 
-      }
-  });
-});
+                }
+            });
+        });
 
-</script>
+    </script>
 {% endblock %}
