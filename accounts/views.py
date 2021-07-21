@@ -504,35 +504,26 @@ def profile(request):
         HttpResponse
     """
 
-    if request.method == "POST":
-        form = UserUpdateForm(data=request.POST, instance=request.user)
-        if form.is_valid():
-            user = form.save()
-            if "email" in form.changed_data:
-                if _check_duplicate_email(user):
-                    messages.warning(
-                        request,
-                        "This email is also being used by another member. This is allowed, but please check the name on the email to see who it was intended for.",
-                        extra_tags="cobalt-message-warning",
-                    )
+    form = UserUpdateForm(data=request.POST or None, instance=request.user)
 
-            # auto top up select list needs to be refreshed
-            # Fix DOB format for browser - expects DD/MM/YYYY
-            if request.user.dob:
-                request.user.dob = request.user.dob.strftime("%d/%m/%Y")
-            form = UserUpdateForm(instance=request.user)
+    if request.method == "POST":
+        if form.is_valid():
+
+            form.save()
+            if "email" in form.changed_data and _check_duplicate_email(request.user):
+                messages.warning(
+                    request,
+                    "This email is also being used by another member. This is allowed, but please check the name on the email to see who it was intended for.",
+                    extra_tags="cobalt-message-warning",
+                )
+
             messages.success(
                 request, "Profile Updated", extra_tags="cobalt-message-success"
             )
-        else:
-            errors = "".join(f"{form.errors[k][0]}" for k in form.errors)
-            messages.error(request, f"Profile is not updated. {errors}")
-    else:
-        # Fix DOB format for browser - expects DD/MM/YYYY
-        if request.user.dob:
-            request.user.dob = request.user.dob.strftime("%d/%m/%Y")
 
-        form = UserUpdateForm(instance=request.user)
+            # Reload form or dates don't work
+            form = UserUpdateForm(instance=request.user)
+
     blurbform = BlurbUpdateForm(instance=request.user)
     photoform = PhotoUpdateForm(instance=request.user)
 
@@ -540,13 +531,16 @@ def profile(request):
         "team_mate__first_name"
     )
 
-    context = {
-        "form": form,
-        "blurbform": blurbform,
-        "photoform": photoform,
-        "team_mates": team_mates,
-    }
-    return render(request, "accounts/profile.html", context)
+    return render(
+        request,
+        "accounts/profile.html",
+        {
+            "form": form,
+            "blurbform": blurbform,
+            "photoform": photoform,
+            "team_mates": team_mates,
+        },
+    )
 
 
 def blurb_form_upload(request):

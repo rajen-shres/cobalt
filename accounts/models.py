@@ -16,7 +16,7 @@ from django.db import models
 def no_future(value):
     today = date.today()
     if value > today:
-        raise ValidationError("Purchase_Date cannot be in the future.")
+        raise ValidationError("Date cannot be in the future.")
 
 
 class User(AbstractUser):

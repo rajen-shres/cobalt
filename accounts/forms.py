@@ -45,10 +45,6 @@ class UserRegisterForm(UserCreationForm):
         return username
 
 
-class DateInput(forms.DateInput):
-    input_type = "date"
-
-
 class UserUpdateForm(forms.ModelForm):
     """Used by Profile to update details"""
 
@@ -68,9 +64,9 @@ class UserUpdateForm(forms.ModelForm):
             "bbo_name",
         ]
 
-        widgets = {
-            "dob": DateInput(),
-        }
+        # widgets = {
+        #     'dob': forms.DateInput(format='%Y-%m-%d')
+        # }
 
     def __init__(self, *args, **kwargs):
         super(UserUpdateForm, self).__init__(*args, **kwargs)
@@ -78,16 +74,14 @@ class UserUpdateForm(forms.ModelForm):
         self.helper.form_show_labels = False
 
     def clean_dob(self):
-        """
-        Most of the users are born in 19xx so we default any 2 digit year to 1900
-        This code will only work for 80 more years or so
-        """
-        birthdate = self.cleaned_data["dob"]
-        if birthdate is None:
+        dob = self.cleaned_data["dob"]
+        if dob is None:
             return None
-        if birthdate > datetime.datetime.today().date():
-            raise ValidationError("Date of birth MUST be earlier than today.")
-        return birthdate
+        if dob > datetime.datetime.today().date():
+            # raise ValidationError("Date of birth must be earlier than today.")
+            self.add_error("dob", "Date of birth must be earlier than today.")
+        print(dob)
+        return dob
 
     def clean_mobile(self):
         """
@@ -104,15 +98,6 @@ class UserUpdateForm(forms.ModelForm):
             raise ValidationError(
                 "Mobile number should be either starting with + or 0 and should be between 9-15 digits long"
             )
-
-    # def clean_email(self):
-    #     """ check the email is not already used """
-    #
-    #     email = self.cleaned_data["email"]
-    #     if email != self.instance.email:  # changed
-    #         if User.objects.filter(email=email).exists():  # already in use
-    #             raise ValidationError("Email already in use")
-    #     return email
 
 
 class PhotoUpdateForm(forms.ModelForm):
@@ -134,13 +119,7 @@ class PhotoUpdateForm(forms.ModelForm):
             "width",
             "height",
         )
-        widgets = {
-            "file": forms.FileInput(
-                attrs={
-                    "accept": "image/*"  # this is not an actual validation! don't rely on that!
-                }
-            )
-        }
+        widgets = {"file": forms.FileInput(attrs={"accept": "image/*"})}
 
     def save(self):
         photo = super(PhotoUpdateForm, self).save()
