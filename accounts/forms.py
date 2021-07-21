@@ -3,6 +3,8 @@
 from PIL import Image
 import re
 import datetime
+
+from crispy_forms.helper import FormHelper
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from masterpoints.views import system_number_available
@@ -43,6 +45,10 @@ class UserRegisterForm(UserCreationForm):
         return username
 
 
+class DateInput(forms.DateInput):
+    input_type = "date"
+
+
 class UserUpdateForm(forms.ModelForm):
     """Used by Profile to update details"""
 
@@ -61,6 +67,15 @@ class UserUpdateForm(forms.ModelForm):
             "pic",
             "bbo_name",
         ]
+
+        widgets = {
+            "dob": DateInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(UserUpdateForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_show_labels = False
 
     def clean_dob(self):
         """
