@@ -506,23 +506,22 @@ def profile(request):
 
     form = UserUpdateForm(data=request.POST or None, instance=request.user)
 
-    if request.method == "POST":
-        if form.is_valid():
+    if request.method == "POST" and form.is_valid():
 
-            form.save()
-            if "email" in form.changed_data and _check_duplicate_email(request.user):
-                messages.warning(
-                    request,
-                    "This email is also being used by another member. This is allowed, but please check the name on the email to see who it was intended for.",
-                    extra_tags="cobalt-message-warning",
-                )
-
-            messages.success(
-                request, "Profile Updated", extra_tags="cobalt-message-success"
+        form.save()
+        if "email" in form.changed_data and _check_duplicate_email(request.user):
+            messages.warning(
+                request,
+                "This email is also being used by another member. This is allowed, but please check the name on the email to see who it was intended for.",
+                extra_tags="cobalt-message-warning",
             )
 
-            # Reload form or dates don't work
-            form = UserUpdateForm(instance=request.user)
+        messages.success(
+            request, "Profile Updated", extra_tags="cobalt-message-success"
+        )
+
+        # Reload form or dates don't work
+        form = UserUpdateForm(instance=request.user)
 
     blurbform = BlurbUpdateForm(instance=request.user)
     photoform = PhotoUpdateForm(instance=request.user)
