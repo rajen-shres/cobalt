@@ -1,5 +1,6 @@
 import psycopg2
 from django.apps import AppConfig
+from django.db import ProgrammingError
 
 
 class NotificationsConfig(AppConfig):
@@ -22,5 +23,7 @@ class NotificationsConfig(AppConfig):
             from .models import EmailThread
 
             EmailThread.objects.all().delete()
-        except Exception as e:
-            print(e)
+
+        except (psycopg2.errors.UndefinedTable, ProgrammingError):
+            # Should only happen if this a clean install (dev, test, UAT). Reasonably safe to ignore.
+            pass

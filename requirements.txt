@@ -6,16 +6,12 @@ requests==2.20.1
 stripe==2.43.0
 Pillow==8.2.0
 psycopg2-binary==2.8
-django-health-check
 django-summernote==0.8.11.6
 django-crispy-forms==1.9.0
-ipinfo==3.0.0
 django-widget-tweaks==1.4.8
 django-extensions==2.2.9
-django-easy-pdf==0.1.1
 boto3==1.12.39
 botocore==1.15.39
-django-filter==2.3.0
 geopy==2.0.0
 essential-generators==0.9.2
 bleach==3.3.0
