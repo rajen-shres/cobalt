@@ -64,10 +64,6 @@ class UserUpdateForm(forms.ModelForm):
             "bbo_name",
         ]
 
-        # widgets = {
-        #     'dob': forms.DateInput(format='%Y-%m-%d')
-        # }
-
     def __init__(self, *args, **kwargs):
         super(UserUpdateForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
@@ -80,6 +76,8 @@ class UserUpdateForm(forms.ModelForm):
         if dob > datetime.datetime.today().date():
             # raise ValidationError("Date of birth must be earlier than today.")
             self.add_error("dob", "Date of birth must be earlier than today.")
+        if dob.year < 1900:
+            self.add_error("dob", "Date of birth must be after 1900.")
         print(dob)
         return dob
 

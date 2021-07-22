@@ -1,130 +1,132 @@
 {% extends 'base.html' %}
+{% load cobalt_tags %}
 {% load static %}
 {% load humanize %}
 {% block title %} - Statement Admin Summary{% endblock %}
 
 {% block content %}
-<div id="ignore_cobalt_save"></div>
-<div class="">
-  <div class="card">
-    <div class="card-header card-header-primary">
-      <h1>{{ BRIDGE_CREDITS }}</h1>
-      <h2>System Administration</h2>
-      <h2>Net Liability: {{ GLOBAL_CURRENCY_SYMBOL}}{{ balance|floatformat:2|intcomma }}</h2>
-    </div>
-    <div class="card-body table-responsive">
-      <div class="card">
-        <div class="card-header card-header-warning">
-          <h2>Members</h2>
-        </div>
-        <div class="card-body">
-          <table>
-            <tr>
-              <td>Total Members:</td>
-              <td class="text-right px-2">{{ total_members|floatformat:0|intcomma }}</td>
-            </tr>
-            <tr>
-              <td>Members with Balances:</td>
-              <td class="text-right px-2">{{ members_with_balances|floatformat:0|intcomma }}</td>
-            </tr>
-            <tr>
-              <td>Auto Top Up Enabled:</td>
-              <td class="text-right px-2">{{ auto_top_up|intcomma }}</td>
-            </tr>
-            <tr>
-              <td>Total Balance:</td>
-              <td class="text-right px-2">{{ GLOBAL_CURRENCY_SYMBOL }}{{ total_balance_members|floatformat:2|intcomma }}</td>
-            </tr>
-          </table>
-          {% include "utils/generic_user_search_body.html" with search_id=1 %}
-          <a class="cobalt_generic_member btn btn-warning btn-sm" data-toggle="modal" id="id_member_search1" data-target="#cobalt_general_member_search1"><span style="color: white;">Lookup Member Statement</span></a>
-          <a href="{% url "payments:admin_members_with_balance" %}" class="btn btn-success btn-sm">Members with Balances</a>
-          <a href="{% url "payments:manual_adjust_member" %}" class="btn btn-info btn-sm">Manual Adjustment</a>
-        </div>
-      </div>
-      <br>
-      <div class="card">
-        <div class="card-header card-header-success">
-          <h2>Organisations</h2>
-        </div>
-        <div class="card-body">
-          <table>
-            <tr>
-              <td>Total Organisations:</td>
-              <td class="text-right px-2">{{ total_orgs|floatformat:0|intcomma }}</td>
-            </tr>
-            <tr>
-              <td>Organisations with Balances:</td>
-              <td class="text-right px-2">{{ orgs_with_balances|floatformat:0|intcomma }}</td>
-            </tr>
-            <tr>
-              <td>Total Balance:</td>
-              <td class="text-right px-2">{{ GLOBAL_CURRENCY_SYMBOL }}{{ total_balance_orgs|floatformat:2|intcomma }}</td>
-            </tr>
-          </table>
-          {% include "generic_org_search_body.html" %}
-          <a class="cobalt_generic_org btn btn-warning btn-sm" data-toggle="modal" id="id_org_search" data-target="#cobalt_general_org_search"><span style="color: white;">Lookup Org Statement</span></a>
-          <a href="{% url "payments:admin_orgs_with_balance" %}" class="btn btn-success btn-sm">Orgs with Balances</a>
-          <a href="{% url "payments:manual_adjust_org" %}" class="btn btn-info btn-sm">Manual Adjustment</a>
-          <br>
-          <a href="{% url "payments:settlement" %}" class="btn btn-danger">Settlement</a>
-        </div>
-      </div>
-      <br>
-      <div class="card">
-        <div class="card-header card-header-info">
-          <h2>Other</h2>
-        </div>
-        <div class="card-body">
-          <a href="{% url "payments:admin_stripe_rec" %}" class="btn btn-sm btn-success">Stripe Reconciliation</a>
-          <a href="{% url "payments:admin_view_manual_adjustments" %}" class="btn btn-sm btn-primary">View Manual Adjustments</a>
-          <a href="{% url "payments:admin_payments_static" %}" class="btn btn-sm btn-danger">Edit Payment Settings</a>
-        </div>
-      </div>
+    <div id="ignore_cobalt_save"></div>
+    <div class="">
+        <div class="card">
+            <div class="card-header card-header-primary">
+                <h1>{{ BRIDGE_CREDITS }}</h1>
+                <h2>System Administration</h2>
+                <h2>Net Liability: {{ GLOBAL_CURRENCY_SYMBOL}}{{ balance|floatformat:2|intcomma }}</h2>
+            </div>
+            <div class="card-body table-responsive">
+                <div class="card">
+                    <div class="card-header card-header-warning">
+                        <h2>Members</h2>
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <tr>
+                                <td>Total Members:</td>
+                                <td class="text-right px-2">{{ total_members|floatformat:0|intcomma }}</td>
+                            </tr>
+                            <tr>
+                                <td>Members with Balances:</td>
+                                <td class="text-right px-2">{{ members_with_balances|floatformat:0|intcomma }}</td>
+                            </tr>
+                            <tr>
+                                <td>Auto Top Up Enabled:</td>
+                                <td class="text-right px-2">{{ auto_top_up|intcomma }}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Balance:</td>
+                                <td class="text-right px-2">{{ GLOBAL_CURRENCY_SYMBOL }}{{ total_balance_members|floatformat:2|intcomma }}</td>
+                            </tr>
+                        </table>
+                        {% include "utils/generic_user_search_body.html" with search_id=1 %}
+                        <a class="cobalt_generic_member btn btn-warning btn-sm" data-toggle="modal" id="id_member_search1" data-target="#cobalt_general_member_search1"><span style="color: white;">Lookup Member Statement</span></a>
+                        <a href="{% url "payments:admin_members_with_balance" %}" class="btn btn-success btn-sm">Members with Balances</a>
+                        <a href="{% url "payments:manual_adjust_member" %}" class="btn btn-info btn-sm">Manual Adjustment</a>
+                    </div>
+                </div>
+                <br>
+                <div class="card">
+                    <div class="card-header card-header-success">
+                        <h2>Organisations</h2>
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <tr>
+                                <td>Total Organisations:</td>
+                                <td class="text-right px-2">{{ total_orgs|floatformat:0|intcomma }}</td>
+                            </tr>
+                            <tr>
+                                <td>Organisations with Balances:</td>
+                                <td class="text-right px-2">{{ orgs_with_balances|floatformat:0|intcomma }}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Balance:</td>
+                                <td class="text-right px-2">{{ GLOBAL_CURRENCY_SYMBOL }}{{ total_balance_orgs|floatformat:2|intcomma }}</td>
+                            </tr>
+                        </table>
+                        {% include "generic_org_search_body.html" %}
+                        <a class="cobalt_generic_org btn btn-warning btn-sm" data-toggle="modal" id="id_org_search" data-target="#cobalt_general_org_search"><span style="color: white;">Lookup Org Statement</span></a>
+                        <a href="{% url "payments:admin_orgs_with_balance" %}" class="btn btn-success btn-sm">Orgs with Balances</a>
+                        <a href="{% url "payments:manual_adjust_org" %}" class="btn btn-info btn-sm">Manual Adjustment</a>
+                        <br>
+                        <a href="{% url "payments:settlement" %}" class="btn btn-danger">Settlement</a>
+                    </div>
+                </div>
+                <br>
+                <div class="card">
+                    <div class="card-header card-header-info">
+                        <h2>Other</h2>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url "payments:admin_stripe_rec" %}" class="btn btn-sm btn-success">Stripe Reconciliation</a>
+                        <a href="{% url "payments:admin_view_manual_adjustments" %}" class="btn btn-sm btn-primary">View Manual Adjustments</a>
+                        <a href="{% url "payments:admin_payments_static" %}" class="btn btn-sm btn-danger">Edit Payment Settings</a>
+                    </div>
+                </div>
 
-      <br>
-      <div class="card">
-        <div class="card-header card-header-danger">
-          <h2>Stripe</h2>
-        </div>
-        <div class="card-body">
-          <table>
-            <tr>
-              <td>Last 30 days:</td>
-              <td class="text-right px-2">{{ GLOBAL_CURRENCY_SYMBOL }}{{ stripe.amount__sum|floatformat:2|intcomma }}</td>
-            </tr>
-          </table>
-          <a href="{% url "payments:admin_view_stripe_transactions" %}" class="btn btn-sm btn-primary">View Stripe Transactions</a>
-          <a href="/admin/payments/stripelog/" class="btn btn-sm btn-Info">View Stripe Logs</a>
-        </div>
-      </div>
+                <br>
+                <div class="card">
+                    <div class="card-header card-header-danger">
+                        <h2>Stripe</h2>
+                        <h3>Balance: {{ stripe_balance|cobalt_currency }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <tr>
+                                <td>Last 30 days:</td>
+                                <td class="text-right px-2">{{ GLOBAL_CURRENCY_SYMBOL }}{{ stripe.amount__sum|floatformat:2|intcomma }}</td>
+                            </tr>
+                        </table>
+                        <a href="{% url "payments:admin_view_stripe_transactions" %}" class="btn btn-sm btn-primary">View Stripe Transactions</a>
+                        <a href="/admin/payments/stripelog/" class="btn btn-sm btn-Info">View Stripe Logs</a>
+                    </div>
+                </div>
 
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
 {% endblock %}
 
 {% block footer %}
-<script>
-  {% include 'utils/generic_user_search_footer.html' with search_id=1 %}
-  {% include 'generic_org_search_footer.html' %}
+    <script>
+        {% include 'utils/generic_user_search_footer.html' with search_id=1 %}
+        {% include 'generic_org_search_footer.html' %}
 
-  function cobaltMemberSearchOk() {
+        function cobaltMemberSearchOk() {
 
-    // Go to member statement
-    window.location.href = 'statement-admin-view/' + member_id[1];
-  }
+            // Go to member statement
+            window.location.href = 'statement-admin-view/' + member_id[1];
+        }
 
-  function cobaltOrgSearchOk() {
-    // clear the form
-    clearModalOrg();
+        function cobaltOrgSearchOk() {
+            // clear the form
+            clearModalOrg();
 
-    // Go to org statement
-    window.location.href = 'statement-org/' + org_id;
-  }
+            // Go to org statement
+            window.location.href = 'statement-org/' + org_id;
+        }
 
-</script>
+    </script>
 
 
 {% endblock %}

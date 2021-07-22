@@ -76,6 +76,7 @@ from .core import (
     auto_topup_member,
     update_organisation,
     update_account,
+    stripe_current_balance,
 )
 from organisations.views import org_balance
 from .models import (
@@ -921,6 +922,8 @@ def statement_admin_summary(request):
         .aggregate(Sum("amount"))
     )
 
+    stripe_balance = stripe_current_balance()
+
     return render(
         request,
         "payments/statement_admin_summary.html",
@@ -934,6 +937,7 @@ def statement_admin_summary(request):
             "orgs_with_balances": orgs_with_balances,
             "balance": total_balance_orgs + total_balance_members,
             "stripe": stripe,
+            "stripe_balance": stripe_balance,
         },
     )
 
@@ -1790,7 +1794,7 @@ def admin_view_stripe_transaction_detail(request, stripe_transaction_id):
 ####################################
 @login_required()
 def refund_stripe_transaction(request, stripe_transaction_id):
-    """Allows auser to refund a Stripe transaction
+    """Allows a user to refund a Stripe transaction
 
     Args:
         request (HTTPRequest): standard request object
@@ -1842,6 +1846,14 @@ def refund_stripe_transaction(request, stripe_transaction_id):
         messages.error(
             request,
             "Cannot refund. Balance will be negative",
+            extra_tags="cobalt-message-error",
+        )
+        return redirect("payments:statement")
+
+    if not stripe_current_balance() - bridge_credit_charge >= 0.0:
+        messages.error(
+            request,
+            "Cannot refund. We have insufficient funds available with Stripe. Please try again later.",
             extra_tags="cobalt-message-error",
         )
         return redirect("payments:statement")

@@ -8,7 +8,6 @@
 {% endblock %}
 {% block content %}
 
-    <div id="ignore_cobalt_save"></div>
     <div class="container-fluid">
         <p>You can edit your profile here. You can also change less personal things in <a href="{% url "accounts:user_settings" %}" class="btn btn-sm btn-danger">settings</a></p>
         <div class="row">
@@ -19,7 +18,7 @@
                         <p class="card-category">Basic details</p>
                     </div>
                     <div class="card-body">
-                        <form method="post" action="{% url "accounts:user_profile" %}">
+                        <form method="post" id="profile_form" action="{% url "accounts:user_profile" %}">
                             {% csrf_token %}
                             <input type="hidden" id="id_username" name="username" value="{{ form.username.value }}">
                             <input type="hidden" name="system_number" id="id_system_number" value="{{ form.system_number.value }}">
@@ -29,13 +28,13 @@
                                         <label class="bmd-label-floating">Email address</label>
                                         <span class="cobalt-form-error" id="id_email_errors">{{ form.email.errors|striptags }}</span>
 
-                                        <input type="email" name="email" id="id_email" class="form-control" value="{{ form.email.value }}">
+                                        <input type="email" name="email" id="id_email" class="form-control profile_form_element" value="{{ form.email.value }}">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="bmd-label-floating">Mobile Number</label>
-                                        <input type="text" title="Mobile number" name="mobile" id="id_mobile" class="form-control" value="{{ form.mobile.value|default_if_none:""}}">
+                                        <input type="text" title="Mobile number" name="mobile" id="id_mobile" class="form-control profile_form_element" value="{{ form.mobile.value|default_if_none:""}}">
                                         <span class="cobalt-form-error" id="id_mobile_errors">{{ form.mobile.errors|striptags }}</span>
 
                                     </div>
@@ -45,13 +44,13 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="bmd-label-floating">First Name</label>
-                                        <input type="text" name="first_name" id="id_first_name" class="form-control" maxlength="30" value="{{ form.first_name.value }}">
+                                        <input type="text" name="first_name" id="id_first_name" class="form-control profile_form_element" maxlength="30" value="{{ form.first_name.value }}">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="bmd-label-floating">Last Name</label>
-                                        <input type="text" name="last_name" id="id_last_name" class="form-control" maxlength="30" value="{{ form.last_name.value }}">
+                                        <input type="text" name="last_name" id="id_last_name" class="form-control profile_form_element" maxlength="30" value="{{ form.last_name.value }}">
                                     </div>
                                 </div>
                             </div>
@@ -70,7 +69,7 @@
                                                     {% else %}
                                                         "{{ form.dob.value }}"
                                                     {% endif %}
-                                                    class="dateinput form-control" id="id_dob">
+                                                    class="dateinput form-control profile_form_element" id="id_dob">
                                             </div>
                                             <span class="cobalt-form-error" id="id_dob_errors">{{ form.dob.errors|striptags }}</span>
 
@@ -80,11 +79,12 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="bmd-label-floating">BBO Username</label>
-                                        <input type="text" name="bbo_name" id="id_bbo_name" class="form-control" value="{{ form.bbo_name.value|default_if_none:'' }}">
+                                        <input type="text" name="bbo_name" id="id_bbo_name" class="form-control profile_form_element" value="{{ form.bbo_name.value|default_if_none:'' }}">
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-success pull-right cobalt-save">Update Profile</button>
+                            <button type="submit" id="id_profile_button" disabled class="btn btn-success pull-right cobalt-save">Update Profile</button>
+                            <a href="{% url "accounts:user_profile" %}" style="display: none;" id="id_profile_cancel" class="btn btn-info">Cancel</a>
                             <div class="clearfix"></div>
                         </form>
                     </div>
@@ -220,7 +220,7 @@
                                     <br>
                                     <a href="{% url "accounts:delete_photo" %}" class="btn btn-sm">Delete Photo</a>
                                     <br />
-                                    <a href="javascript:;" class="btn btn-danger btn-round fileinput-exists" data-dismiss="fileinput"><i class="fa fa-times"></i> Remove</a>
+                                    <a href="javascript:" class="btn btn-danger btn-round fileinput-exists" data-dismiss="fileinput"><i class="fa fa-times"></i> Remove</a>
                                 </div>
                             </div>
                         </form>
@@ -231,7 +231,8 @@
                                 <textarea rows=8 name="about" id="id_about" class="form-control" placeholder="Tell people about yourself in a few words.">{{ blurbform.about.value|default_if_none:"" }}</textarea>
                             </p>
 
-                            <button type="submit" class="btn btn-success cobalt-save">Update</button>
+                            <button type="submit" disabled id="id_blurb_button" class="btn btn-success cobalt-save">Update</button>
+                            <a href="{% url "accounts:user_profile" %}" style="display: none;" id="id_blurb_cancel" class="btn btn-info">Cancel</a>
                         </form>
                     </div>
                 </div>
@@ -245,7 +246,6 @@
 
 {% block footer %}
     <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
-    <script src="{% static "assets/js/plugins/bootstrap-datetimepicker.min.js" %}"></script>
     <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
 
 
@@ -309,11 +309,6 @@
 
         $(document).ready(function() {
 
-            {#// initialise date time picker#}
-            {#    $('#id_dob').datetimepicker({#}
-            {#      format: 'DD/MM/YYYY'#}
-            {#    });#}
-
             // initialise tooltips
             $('[data-toggle="tooltip"]').tooltip()
 
@@ -331,7 +326,22 @@
                 toggleUser(id);
             });
 
+            // watch for field updates and prevent users from editing both forms at the same time.
+            $(".profile_form_element, #id_about").on('change keydown paste input', function(){
+                if ($(this.form)[0].id === 'profile_form') {
+                    $('#id_profile_button').prop('disabled', false);
+                    $('#id_profile_cancel').show();
+                    $('#id_blurb_button').hide();
+                    $('#id_about').attr('readonly', true);
+                } else {
+                    $('#id_blurb_button').prop('disabled', false);
+                    $('#id_blurb_cancel').show();
+                    $('#id_profile_button').hide();
+                    $('.profile_form_element').attr('readonly', true);
+                }
+            });
         });
+
 
         // add a team mate
         function addUser(member_id){
@@ -414,6 +424,7 @@
                 }
             })
         }
+
 
         function help(title, html){
             swal.fire({ title:title, html: html, icon: "info"})

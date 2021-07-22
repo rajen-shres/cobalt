@@ -296,21 +296,15 @@ def stripe_auto_payment_intent(request):
 ######################
 # test_callback      #
 ######################
-def test_callback(status, payload, tran):
-    """Eventually I will be moved to another module. I am only here for testing purposes
+def stripe_current_balance():
+    """Get our (ABF) current balance with Stripe"""
 
-    I also shouldn't have the 3rd parameter. I only get status and the payload that I provided
-    when I made the call to payments to get money from a member. I am responsible for my own
-    actions, but for testing I get the StripeTransaction passed so I can reverse it.
+    stripe.api_key = STRIPE_SECRET_KEY
+    ret = stripe.Balance.retrieve()
 
-    """
-    log_event(
-        user="Callback",
-        severity="DEBUG",
-        source="Payments",
-        sub_source="test_callback",
-        message="Received callback from payment: %s %s %s" % (status, payload, tran),
-    )
+    # Will be in cents so convert to dollars
+    # TODO: make this international
+    return float(ret.available[0].amount / 100.0)
 
 
 #####################
@@ -1120,10 +1114,7 @@ def callback_router(route_code=None, route_payload=None, tran=None, status="Succ
 
     if route_code:  # do nothing in no route_code passed
 
-        if route_code == "MAN":
-            test_callback(status, route_payload, tran)
-
-        elif route_code == "EVT":
+        if route_code == "EVT":
             events_payments_callback(status, route_payload, tran)
 
         elif route_code == "EV2":
@@ -1205,7 +1196,7 @@ def update_organisation(
     other_organisation=None,
     member=None,
 ):
-    """ method to update an organisations account """
+    """method to update an organisations account"""
 
     last_tran = OrganisationTransaction.objects.filter(organisation=organisation).last()
     balance = last_tran.balance if last_tran else 0.0
