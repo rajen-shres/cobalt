@@ -19,9 +19,9 @@ class NotificationsConfig(AppConfig):
         # Can't import at top of file - Django won't be ready yet
         # Also if this is a clean install migrate won't have been run so catch an error and ignore
 
-        # try:
-        from .models import EmailThread
+        try:
+            from .models import EmailThread
 
-        EmailThread.objects.all().delete()
-
-    #
+            EmailThread.objects.all().delete()
+        except Exception as e:
+            print(e)
