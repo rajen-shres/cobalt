@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load cobalt_tags %}
 {% load crispy_forms_filters %}
 {% load static %}
 {% block header %}
@@ -35,6 +36,8 @@
                                     <div class="form-group">
                                         <label class="bmd-label-floating">Mobile Number</label>
                                         <input type="text" title="Mobile number" name="mobile" id="id_mobile" class="form-control" value="{{ form.mobile.value|default_if_none:""}}">
+                                        <span class="cobalt-form-error" id="id_mobile_errors">{{ form.mobile.errors|striptags }}</span>
+
                                     </div>
                                 </div>
                             </div>
@@ -55,9 +58,23 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="bmd-label-static" style="font-size:11px">Date of Birth</label>
-                                        {{ form.dob|as_crispy_field }}
-                                        {#                  <input type="text" name="dob" id="id_dob" class="form-control datepicker" value="{{ form.dob.value|default_if_none:'' }}">#}
+                                        Date of Birth
+                                        <div id="div_id_dob" class="form-group">
+                                            <div class="">
+                                                <input type="date" name="dob" value=
+
+                                                    {# We get a str back if the form is invalid, can't work out why. Work around. #}
+
+                                                    {% if form.dob.value|get_class == "date" %}
+                                                        "{{ form.dob.value|date:'Y-m-d' }}"
+                                                    {% else %}
+                                                        "{{ form.dob.value }}"
+                                                    {% endif %}
+                                                    class="dateinput form-control" id="id_dob">
+                                            </div>
+                                            <span class="cobalt-form-error" id="id_dob_errors">{{ form.dob.errors|striptags }}</span>
+
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">

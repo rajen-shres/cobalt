@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# List local and remote branches
+
+echo ""
+echo "LOCAL BRANCHES (sorted by last change)"
+echo "--------------------------------------"
+echo ""
+git for-each-ref --sort=committerdate refs/heads/ --sort='-authordate' --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:short)%(color:reset))'
+
+echo ""
+echo "REMOTE BRANCHES (sorted by last change)"
+echo "---------------------------------------"
+echo ""
+git for-each-ref --sort=committerdate refs/remotes/ --sort='-authordate' --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:short)%(color:reset))'
+
+for branch in `git branch -r | grep -v HEAD`;do echo -e `git show --format="%ci %cr" $branch | head -n 1` \\t$branch; done | sort -r
+
