@@ -2,6 +2,7 @@
 *.pot
 *.pyc
 __pycache__/
+_build/
 db.sqlite3*
 /media
 .DS_Store
