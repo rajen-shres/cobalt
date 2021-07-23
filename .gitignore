@@ -6,6 +6,7 @@ _build/
 db.sqlite3*
 /media
 .DS_Store
+*.map
 .coverage
 .idea
 .pytest_cache
