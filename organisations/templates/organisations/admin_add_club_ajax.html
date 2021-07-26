@@ -1,0 +1,20 @@
+{% load crispy_forms_filters %}
+
+{% if errors %}
+    <span class="cobalt-form-error">{{ errors }}</span>
+{% endif %}
+
+<div class="card">
+    <div class="card-header card-header-danger">
+        <h2>{{ form.name.value|default_if_none:"Add Club" }}</h2>
+        {% if club_number %}
+            <h3>{{ GLOBAL_ORG }}Club Number: {{ club_number }}</h3>
+        {% endif %}
+    </div>
+    <div class="card-body">
+
+        {{ form|crispy }}
+
+    </div>
+
+</div>

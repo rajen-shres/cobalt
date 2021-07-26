@@ -44,7 +44,6 @@ def process_transactions(details, month, year):
 
 @login_required()
 def masterpoints_detail(request, system_number=None, years=1, retry=False):
-
     if system_number is None:
         system_number = request.user.system_number
 
@@ -178,22 +177,22 @@ def masterpoints_detail(request, system_number=None, years=1, retry=False):
     # fill in the chart data
     running_gold = float(summary["TotalGold"])
     gold_series = []
-    for l in reversed(labels_key):
-        running_gold = running_gold - chart_gold[l]
+    for label in reversed(labels_key):
+        running_gold = running_gold - chart_gold[label]
         gold_series.append(float("%.2f" % running_gold))
     gold_series.reverse()
 
     running_red = float(summary["TotalRed"])
     red_series = []
-    for l in reversed(labels_key):
-        running_red = running_red - chart_red[l]
+    for label in reversed(labels_key):
+        running_red = running_red - chart_red[label]
         red_series.append(float("%.2f" % running_red))
     red_series.reverse()
 
     running_green = float(summary["TotalGreen"])
     green_series = []
-    for l in reversed(labels_key):
-        running_green = running_green - chart_green[l]
+    for label in reversed(labels_key):
+        running_green = running_green - chart_green[label]
         green_series.append(float("%.2f" % running_green))
     green_series.reverse()
 
@@ -376,7 +375,7 @@ def user_summary(system_number):
     ):
         r = []
 
-    if len(r) == 0:
+    if not r:
         return None
 
     summary = r[0]

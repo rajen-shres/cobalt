@@ -1,85 +1,26 @@
+from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
-from django.template.loader import render_to_string
 from django.utils import timezone
 from django.contrib import messages
 
 from events.models import CongressMaster
-from rbac.decorators import rbac_check_role
 from rbac.models import RBACGroupRole
 from .models import Organisation
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
-from .forms import OrgForm
+from .forms import OrgForm, OrgFormOld
 from payments.models import OrganisationTransaction
 
 
-@login_required()
-def org_search_ajax(request):
-    """Ajax org search function. Used by the generic org search.
+def _get_rbac_model_for_state(state):
+    """Take in a state name e.g. NSW and return the model that maps to that organisation.
+    Assumes one state organisation per state."""
 
-    Args:
-        orgname - partial org name to search for.
-
-    Returns:
-        HttpResponse - either a message or a list of users in HTML format.
-    """
-
-    msg = ""
-
-    if request.method == "GET":
-
-        if "orgname" not in request.GET:
-            return HttpResponse("orgname missing from request")
-        else:
-            search_org_name = request.GET.get("orgname")
-            orgs = Organisation.objects.filter(name__icontains=search_org_name)
-
-        if request.is_ajax:
-            if orgs.count() > 30:
-                msg = "Too many results (%s)" % orgs.count()
-                orgs = None
-            elif orgs.count() == 0:
-                msg = "No matches found"
-            html = render_to_string(
-                template_name="organisations/org_search_ajax.html",
-                context={"orgs": orgs, "msg": msg},
-            )
-
-            data_dict = {"data": html}
-
-            return JsonResponse(data=data_dict, safe=False)
-
-    return HttpResponse("invalid request")
-
-
-@login_required()
-def org_detail_ajax(request):
-    """Returns basic info on an org for the generic org search.
-
-    Ajax call to get basic info on an org. Will return an empty json array
-    if the org number is invalid.
-
-    Args:
-        org_id - org number
-
-    Returns:
-        Json array: address etc.
-    """
-
-    if request.method == "GET":
-        if "org_id" in request.GET:
-            org_id = request.GET.get("org_id")
-            org = get_object_or_404(Organisation, pk=org_id)
-            if request.is_ajax:
-                html = render_to_string(
-                    template_name="organisations/org_detail_ajax.html",
-                    context={"org": org},
-                )
-                data_dict = {"data": html, "org": org.name}
-                return JsonResponse(data=data_dict, safe=False)
-    return JsonResponse(data={"error": "Invalid request"})
+    state_org = Organisation.objects.filter(state=state).filter(type="State")
+    if state_org.count() != 1:
+        raise ImproperlyConfigured
+    return state_org.first().id
 
 
 @login_required()
@@ -92,14 +33,17 @@ def org_edit(request, org_id):
     Returns:
         HttpResponse - page to edit organisation
     """
-    if not rbac_user_has_role(request.user, "orgs.org.%s.edit" % org_id):
+    if not (
+        rbac_user_has_role(request.user, "orgs.org.%s.edit" % org_id)
+        or rbac_user_has_role(request.user, "orgs.admin.edit")
+    ):
         return rbac_forbidden(request, "orgs.org.%s.edit" % org_id)
 
     org = get_object_or_404(Organisation, pk=org_id)
 
     if request.method == "POST":
 
-        form = OrgForm(request.POST, instance=org)
+        form = OrgFormOld(request.POST, instance=org)
         if form.is_valid():
             org = form.save(commit=False)
             org.last_updated_by = request.user
@@ -110,7 +54,7 @@ def org_edit(request, org_id):
             )
 
     else:
-        form = OrgForm(instance=org)
+        form = OrgFormOld(instance=org)
 
     return render(request, "organisations/edit_org.html", {"form": form})
 
@@ -155,15 +99,26 @@ def org_portal(request, org_id):
     )
 
 
-@rbac_check_role("orgs.admin.edit")
-def admin_manage_club_rbac(request):
-    """Set up or change the basic RBAC structure for an organisation
+@login_required()
+def admin_add_club(request):
+    """Add a club to the system. For State or ABF Administrators
 
-    Args:
-        request - standard HTTPRequest object
+    NOTE: For now the club must be defined in the Masterpoints Centre already
 
-    Returns:
-        HttpResponse - page to edit rbac for an org
     """
+    # TODO: Add RBAC once we have which state this club belongs to
+    # TODO: Get rid of higher up edit org function and replace with this
 
-    return render(request, "organisations/admin_manage_club_rbac.html")
+    # if not (rbac_user_has_role(request.user, "orgs.org.%s.edit" % org_id) or rbac_user_has_role(request.user, "orgs.admin.edit")):
+    #     return rbac_forbidden(request, "orgs.org.%s.edit" % org_id)
+
+    form = OrgForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        org = form.save(commit=False)
+        org.last_updated_by = request.user
+        org.last_updated = timezone.localtime()
+        org.save()
+        messages.success(request, "Changes saved", extra_tags="cobalt-message-success")
+
+    return render(request, "organisations/admin_add_club.html", {"form": form})

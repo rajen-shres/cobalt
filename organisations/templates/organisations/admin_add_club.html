@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% block title %} - Add Club{% endblock %}
+
+{% block content %}
+
+
+    <div class="">
+        <div class="card col-md-12 align-content-center">
+            <div class="card-header card-header-primary">
+                <h2>Add A Club</h2>
+                <h3>Clubs must already be defined in the Masterpoints Centre before they can be added to {{ GLOBAL_TITLE }}</h3>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-6">
+
+                        <div class="card-body">
+                            <div class="card">
+                                <div class="card-header card-header-success">
+                                    <h3>Search</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="col-6">
+
+                                                <form hx-post="{% url "organisations:get_club_details_ajax" %}" hx-target="#club">
+
+                                                    <div class="form-group">
+                                                        <label>Club Number</label>
+                                                        <input type="text" class="form-control" name="club_number">
+                                                    </div>
+                                                    <button class="btn btn-sm btn-info">Search</button>
+                                                </form>
+                                            </div>
+                                            <div class="col-6">
+
+                                                <form hx-post="{% url "organisations:get_club_details_ajax" %}" hx-target="#club">
+
+                                                    <div class="form-group">
+                                                        <label>Club Name</label>
+                                                        <input type="text" class="form-control" name="club_number">
+                                                    </div>
+
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div id="club">
+                        {% include "organisations/admin_add_club_ajax.html" %}
+                    </div>
+
+                    <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
+                    <button class="btn btn-info" onclick="window.location.href='/'; return false;">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block footer %}
+    <script src="{% static "assets/packages/htmx-1.5.0/htmx.js" %}"></script>
+
+    <script>
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        })
+    </script>
+{% endblock footer %}

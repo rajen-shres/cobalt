@@ -12,6 +12,7 @@ from rbac.core import (
     rbac_add_role_to_admin_group,
     rbac_create_group,
     rbac_add_role_to_group,
+    rbac_add_user_to_group,
 )
 from organisations.models import Organisation
 from accounts.models import User
@@ -81,6 +82,17 @@ class Command(BaseCommand):
             "state",
             "edit",
             "State level ability to create/edit/delete clubs.",
+        )
+
+        group = rbac_create_group(
+            "rbac.orgs.abf.abf_roles",
+            "organisation_admin",
+            "Add/Delete/Edit Clubs",
+        )
+        for user in su_list:
+            rbac_add_user_to_group(user, group)
+        rbac_add_role_to_group(
+            group, app="orgs", model="admin", action="edit", rule_type="Allow"
         )
 
         # We will add the rest of the RBAC rules in create_states so it is in once place plus we need the states to
