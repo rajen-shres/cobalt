@@ -14,13 +14,6 @@ dummy, rbac.orgs.clubs.tas.made_up_rsl, staff, Staff at Dummy Bridge Club
 dummy, rbac.orgs.clubs.wa.made_up_rsl, staff, Staff at Dummy Bridge Club
 dummy, rbac.orgs.clubs.sa.made_up_rsl, staff, Staff at Dummy Bridge Club
 dummy, rbac.orgs.clubs.nt.made_up_rsl, staff, Staff at Dummy Bridge Club
-dummy, rbac.orgs.states.nsw.admin, staff, Staff at NSW State Org
-dummy, rbac.orgs.states.nt.admin, staff, Staff at NT State Org
-dummy, rbac.orgs.states.vic.admin, staff, Staff at VIC State Org
-dummy, rbac.orgs.states.sa.admin, staff, Staff at SA State Org
-dummy, rbac.orgs.states.wa.admin, staff, Staff at WA State Org
-dummy, rbac.orgs.states.tas.admin, staff, Staff at TAS State Org
-dummy, rbac.orgs.states.act.admin, staff, Staff at ACT State Org
 dummy, rbac.modules.payments, dummy, Payments stuff
 dummy, rbac.modules.scoring, dummy, Scoring stuff
 dummy, rbac.modules.scoring, dummy, Scoring stuff

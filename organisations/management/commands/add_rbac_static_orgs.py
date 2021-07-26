@@ -1,11 +1,18 @@
 from django.core.management.base import BaseCommand
+
 from rbac.management.commands.rbac_core import (
     create_RBAC_admin_group,
     create_RBAC_admin_tree,
     create_RBAC_default,
     create_RBAC_action,
+    super_user_list,
 )
-from rbac.core import rbac_add_user_to_admin_group, rbac_add_role_to_admin_group
+from rbac.core import (
+    rbac_add_user_to_admin_group,
+    rbac_add_role_to_admin_group,
+    rbac_create_group,
+    rbac_add_role_to_group,
+)
 from organisations.models import Organisation
 from accounts.models import User
 
@@ -22,23 +29,7 @@ from accounts.models import User
 class Command(BaseCommand):
     def handle(self, *args, **options):
         print("Running add_rbac_static_orgs")
-        user = User.objects.filter(username="Mark").first()
-        user2 = User.objects.filter(username="518891").first()
-        orgs = Organisation.objects.all()
-        for org in orgs:
-            if org.type == "Club":
-                state = "UNKNOWN" if org.state in ["", " "] else org.state
-                item = org.name.replace(" ", "-")
-                qualifier = f"admin.clubs.{state}"
-                description = f"{org.name} Admins"
-
-                group = create_RBAC_admin_group(self, qualifier, item, description)
-                create_RBAC_admin_tree(self, group, f"{qualifier}.{item}")
-                rbac_add_user_to_admin_group(group, user)
-                rbac_add_user_to_admin_group(group, user2)
-                rbac_add_role_to_admin_group(
-                    group, app="payments", model="manage", model_id=org.id
-                )
+        su_list = super_user_list(self)
 
         # Edit club details permissions
         create_RBAC_default(self, "orgs", "org", "Block")
@@ -71,6 +62,26 @@ class Command(BaseCommand):
             "Group for admins who can grant access to edit orgs.",
         )
         create_RBAC_admin_tree(self, group, "admin.orgs.abf.clubs.edit-orgs")
-        rbac_add_user_to_admin_group(group, user)
-        rbac_add_user_to_admin_group(group, user2)
+
+        for user in su_list:
+            rbac_add_user_to_admin_group(group, user)
+
         rbac_add_role_to_admin_group(group, app="orgs", model="org")
+
+        # Create groups for states to administer clubs
+        # for each club, org.parent points to a state that can control it
+
+        # Defaults
+        create_RBAC_default(self, "orgs", "state", "Block")
+
+        # Only need one action - edit
+        create_RBAC_action(
+            self,
+            "orgs",
+            "state",
+            "edit",
+            "State level ability to create/edit/delete clubs.",
+        )
+
+        # We will add the rest of the RBAC rules in create_states so it is in once place plus we need the states to
+        # exist before we can manipulate them.

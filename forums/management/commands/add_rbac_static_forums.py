@@ -4,12 +4,12 @@ from rbac.management.commands.rbac_core import (
     create_RBAC_default,
     create_RBAC_admin_group,
     create_RBAC_admin_tree,
+    super_user_list,
 )
 from rbac.core import (
     rbac_add_user_to_admin_group,
     rbac_add_role_to_admin_group,
 )
-from accounts.models import User
 
 
 class Command(BaseCommand):
@@ -57,8 +57,7 @@ class Command(BaseCommand):
 
         # add default admins and create tree and group
         # This lets us create admins who can create and delete forums
-        user = User.objects.filter(username="Mark").first()
-        user2 = User.objects.filter(username="518891").first()
+        su_list = super_user_list(self)
 
         group = create_RBAC_admin_group(
             self,
@@ -68,8 +67,8 @@ class Command(BaseCommand):
         )
         create_RBAC_admin_tree(self, group, "rbac.orgs")
         create_RBAC_admin_tree(self, group, "rbac.modules.forums")
-        rbac_add_user_to_admin_group(group, user)
-        rbac_add_user_to_admin_group(group, user2)
+        for user in su_list:
+            rbac_add_user_to_admin_group(group, user)
         rbac_add_role_to_admin_group(group, app="forums", model="admin")
 
         # grant writes to forums.forum
@@ -82,7 +81,9 @@ class Command(BaseCommand):
         )
         # create group - won't duplicate if already exists
         create_RBAC_admin_tree(self, group, "rbac.orgs.abf.forums")
-        rbac_add_user_to_admin_group(group, user)
-        rbac_add_user_to_admin_group(group, user2)
+
+        for user in su_list:
+            rbac_add_user_to_admin_group(group, user)
+
         rbac_add_role_to_admin_group(group, app="forums", model="forum")
         rbac_add_role_to_admin_group(group, app="forums", model="moderate")

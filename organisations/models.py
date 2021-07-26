@@ -8,7 +8,8 @@ from django.core.validators import RegexValidator
 class Organisation(models.Model):
 
     bsb_regex = RegexValidator(
-        regex=r"^\d{3}-\d{3}$", message="BSB must be entered in the format: '999-999'.",
+        regex=r"^\d{3}-\d{3}$",
+        message="BSB must be entered in the format: '999-999'.",
     )
 
     account_regex = RegexValidator(
@@ -22,6 +23,8 @@ class Organisation(models.Model):
         ("National", "National Body"),
         ("Other", "Other"),
     ]
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, blank=True, null=True)
+    # ABF Organisation ID as per MPC
     org_id = models.CharField(max_length=4, unique=True)
     name = models.CharField(max_length=50)
     type = models.CharField(choices=ORG_TYPE, max_length=8, blank="True", null=True)
@@ -45,13 +48,16 @@ class Organisation(models.Model):
         validators=[account_regex],
     )
     last_updated_by = models.ForeignKey(
-        User, on_delete=models.PROTECT, null=True, blank=True,
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
     )
     last_updated = models.DateTimeField(default=timezone.now)
 
     @property
     def settlement_fee_percent(self):
-        """ return what our settlement fee is set to """
+        """return what our settlement fee is set to"""
 
         import payments.models as payments
 

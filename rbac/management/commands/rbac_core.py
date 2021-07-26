@@ -1,5 +1,5 @@
 """ Functions to manipulate RBAC from command scripts """
-
+from accounts.models import User
 from rbac.models import (
     RBACModelDefault,
     RBACAppModelAction,
@@ -9,8 +9,15 @@ from rbac.models import (
 from django.db.utils import IntegrityError
 
 
+def super_user_list(self):
+    """We use the same users for everything. Build list in one place"""
+
+    # Currently Mark and Julian
+    return User.objects.filter(username__in=["Mark", "518891"])
+
+
 def create_RBAC_default(self, app, model, default_behaviour="Block"):
-    """ create a default behaviour for an app.model
+    """create a default behaviour for an app.model
 
     Args:
         self(object): the calling management object
@@ -32,7 +39,7 @@ def create_RBAC_default(self, app, model, default_behaviour="Block"):
 
 
 def create_RBAC_action(self, app, model, action, description):
-    """ create an action for an app.model
+    """create an action for an app.model
 
     Args:
         self(object): the calling management object
@@ -65,7 +72,7 @@ def create_RBAC_action(self, app, model, action, description):
 
 
 def create_RBAC_admin_tree(self, group, tree):
-    """ create a tree entry for admin
+    """create a tree entry for admin
 
     Args:
         self(object): the calling management object
@@ -92,7 +99,7 @@ def create_RBAC_admin_tree(self, group, tree):
 
 
 def create_RBAC_admin_group(self, qualifier, item, description):
-    """ create an admin group
+    """create an admin group
 
     Args:
         self(object): the calling management object

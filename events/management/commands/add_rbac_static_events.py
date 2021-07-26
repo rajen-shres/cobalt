@@ -4,10 +4,13 @@ from rbac.management.commands.rbac_core import (
     create_RBAC_default,
     create_RBAC_admin_group,
     create_RBAC_admin_tree,
+    super_user_list,
 )
 from rbac.core import (
     rbac_add_user_to_admin_group,
     rbac_add_role_to_admin_group,
+    rbac_add_user_to_group,
+    rbac_add_role_to_group,
 )
 from accounts.models import User
 
@@ -35,9 +38,9 @@ class Command(BaseCommand):
             "Allows a user to manage Congress Masters",
         )
 
-        # add myself as an admin and create tree and group
+        # add admins and create tree and group
         # This lets us create admins who can create and delete forums
-        user = User.objects.filter(username="Mark").first()
+        su_list = super_user_list(self)
 
         group = create_RBAC_admin_group(
             self,
@@ -46,12 +49,7 @@ class Command(BaseCommand):
             "Group to create users who can create, modify or delete congresses",
         )
         create_RBAC_admin_tree(self, group, "admin.abf.events")
-        rbac_add_user_to_admin_group(group, user)
-        rbac_add_role_to_admin_group(group, app="events", model="org")
-        rbac_add_role_to_admin_group(group, app="events", model="global")
-
-        # create group - won't duplicate if already exists
-        create_RBAC_admin_tree(self, group, "rbac.abf.events")
-        rbac_add_user_to_admin_group(group, user)
+        for user in su_list:
+            rbac_add_user_to_admin_group(group, user)
         rbac_add_role_to_admin_group(group, app="events", model="org")
         rbac_add_role_to_admin_group(group, app="events", model="global")
