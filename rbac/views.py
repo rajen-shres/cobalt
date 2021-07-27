@@ -29,6 +29,7 @@ from .core import (
     role_to_parts,
     rbac_get_users_with_role,
     rbac_admin_tree_access,
+    rbac_user_has_any_model,
 )
 from cobalt.settings import TIME_ZONE
 from .forms import AddGroup
@@ -52,7 +53,7 @@ def rbac_forbidden(request, role):
 
 @login_required
 def main_admin_screen(request):
-    """ Shows the main admin screen - maybe shouldn't live in RBAC """
+    """Shows the main admin screen - maybe shouldn't live in RBAC"""
 
     payments_admin = rbac_user_role_list(request.user, "payments", "manage")
     org_list = []
@@ -65,6 +66,9 @@ def main_admin_screen(request):
 
     events_site_admin = rbac_user_has_role(request.user, "events.global.edit")
     email_site_admin = rbac_user_has_role(request.user, "notifications.admin.view")
+    orgs_site_admin = rbac_user_has_role(
+        request.user, "orgs.admin.edit"
+    ) or rbac_user_has_any_model(request.user, "orgs", "state")
 
     # Get build time of this release
     TZ = pytz.timezone(TIME_ZONE)
@@ -82,6 +86,7 @@ def main_admin_screen(request):
             "payments_site_admin": payments_site_admin,
             "events_site_admin": events_site_admin,
             "email_site_admin": email_site_admin,
+            "orgs_site_admin": orgs_site_admin,
             "build_date": build_date,
         },
     )
@@ -89,7 +94,7 @@ def main_admin_screen(request):
 
 @login_required
 def view_screen(request):
-    """ Shows the user what roles they have in RBAC """
+    """Shows the user what roles they have in RBAC"""
 
     groups = RBACGroup.objects.filter(rbacusergroup__member=request.user)
 
@@ -223,7 +228,7 @@ def generic_tree_builder(groups, detail_link=None, html_type="href"):
 
 
 def generic_tree_screen(request, groups, detail_link, title):
-    """ Show full RBAC Tree for RBAC or Admin """
+    """Show full RBAC Tree for RBAC or Admin"""
 
     html_tree = generic_tree_builder(groups, detail_link)
 
@@ -234,7 +239,7 @@ def generic_tree_screen(request, groups, detail_link, title):
 
 @login_required
 def tree_screen(request):
-    """ Show full RBAC Tree """
+    """Show full RBAC Tree"""
     # Get groups
     groups = RBACGroup.objects.all().order_by("name_qualifier")
 
@@ -243,7 +248,7 @@ def tree_screen(request):
 
 @login_required
 def admin_tree_screen(request):
-    """ Show full RBAC Admin Tree """
+    """Show full RBAC Admin Tree"""
     # Get groups
     groups = RBACAdminGroup.objects.all().order_by("name_qualifier")
 
@@ -254,7 +259,7 @@ def admin_tree_screen(request):
 
 @login_required
 def role_view_screen(request):
-    """ Show Roles """
+    """Show Roles"""
     # Get groups
     roles = RBACAppModelAction.objects.all().order_by("app", "model", "valid_action")
     defaults = RBACModelDefault.objects.all().order_by("app", "model")
@@ -266,7 +271,7 @@ def role_view_screen(request):
 
 @login_required
 def group_view(request, group_id):
-    """ view to show details of a group """
+    """view to show details of a group"""
 
     group = get_object_or_404(RBACGroup, pk=group_id)
     users = RBACUserGroup.objects.filter(group=group)
@@ -288,7 +293,7 @@ def group_view(request, group_id):
 
 @login_required
 def admin_group_view(request, group_id):
-    """ view to show details of an admin group """
+    """view to show details of an admin group"""
 
     group = get_object_or_404(RBACAdminGroup, pk=group_id)
     users = RBACAdminUserGroup.objects.filter(group=group)
@@ -314,7 +319,7 @@ def admin_group_view(request, group_id):
 
 @login_required
 def group_delete(request, group_id):
-    """ view to delete a group """
+    """view to delete a group"""
 
     group = get_object_or_404(RBACGroup, pk=group_id)
     if not rbac_user_is_group_admin(request.user, group):
@@ -333,7 +338,7 @@ def group_delete(request, group_id):
 
 @login_required
 def admin_group_delete(request, group_id):
-    """ view to delete an admin group """
+    """view to delete an admin group"""
 
     group = get_object_or_404(RBACAdminGroup, pk=group_id)
     if not rbac_user_is_group_admin(request.user, group):
@@ -352,7 +357,7 @@ def admin_group_delete(request, group_id):
 
 @login_required
 def group_create(request):
-    """ view to create a new group """
+    """view to create a new group"""
 
     if request.method == "POST":
         form = AddGroup(request.POST, user=request.user, environment="rbac")
@@ -385,7 +390,7 @@ def group_create(request):
 
 @login_required
 def admin_group_create(request):
-    """ view to create a new admin group """
+    """view to create a new admin group"""
 
     if request.method == "POST":
         form = AddGroup(request.POST, user=request.user, environment="admin")
@@ -419,7 +424,7 @@ def admin_group_create(request):
 
 @login_required
 def group_edit(request, group_id):
-    """ view to edit a group """
+    """view to edit a group"""
 
     group = get_object_or_404(RBACGroup, pk=group_id)
     if not rbac_user_is_group_admin(request.user, group):
@@ -462,7 +467,7 @@ def group_edit(request, group_id):
 
 @login_required
 def admin_group_edit(request, group_id):
-    """ view to edit an admin group """
+    """view to edit an admin group"""
 
     group = get_object_or_404(RBACAdminGroup, pk=group_id)
 
@@ -511,7 +516,7 @@ def admin_group_edit(request, group_id):
 
 @login_required
 def rbac_admin(request):
-    """ shows the admin groups a user is in """
+    """shows the admin groups a user is in"""
 
     group_list = RBACAdminUserGroup.objects.filter(member=request.user).values_list(
         "group"
@@ -534,7 +539,7 @@ def rbac_admin(request):
 
 @login_required
 def rbac_tests(request):
-    """ easy way to underlying functions. Test only """
+    """easy way to underlying functions. Test only"""
 
     ans = None
     userid = None

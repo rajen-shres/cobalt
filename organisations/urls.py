@@ -10,6 +10,11 @@ urlpatterns = [
     path(
         "admin/club-details", ajax.get_club_details_ajax, name="get_club_details_ajax"
     ),
+    path(
+        "admin/club-name-search",
+        ajax.club_name_search_ajax,
+        name="club_name_search_ajax",
+    ),
     path("edit/<int:org_id>", views.org_edit, name="org_edit"),
     path("admin/add-club", views.admin_add_club, name="admin_add_club"),
     path("portal/<int:org_id>", views.org_portal, name="org_portal"),

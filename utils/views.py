@@ -1,6 +1,7 @@
 # from django.shortcuts import render
 import csv
 
+import requests
 from geopy.geocoders import Nominatim
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -210,5 +211,28 @@ def download_csv(request, queryset):
 
             values.append(value)
         writer.writerow(values)
+
+    return response
+
+
+def masterpoint_query(query):
+    """Generic function to talk to the masterpoints server and return data
+
+    Takes in a SQLServer query e.g. "select count(*) from table"
+
+    Returns an iterable, either an empty list or the response from the server.
+
+    In case there is a problem connecting to the server, this will do everything it
+    can to fail silently.
+
+    """
+
+    # Try to load data from MP Server
+
+    try:
+        response = requests.get(query, timeout=10).json()
+    except Exception as exc:
+        print(exc)
+        response = []
 
     return response

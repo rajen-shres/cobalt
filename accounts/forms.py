@@ -78,7 +78,6 @@ class UserUpdateForm(forms.ModelForm):
             self.add_error("dob", "Date of birth must be earlier than today.")
         if dob.year < 1900:
             self.add_error("dob", "Date of birth must be after 1900.")
-        print(dob)
         return dob
 
     def clean_mobile(self):

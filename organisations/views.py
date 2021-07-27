@@ -13,7 +13,7 @@ from .forms import OrgForm, OrgFormOld
 from payments.models import OrganisationTransaction
 
 
-def _get_rbac_model_for_state(state):
+def get_rbac_model_for_state(state):
     """Take in a state name e.g. NSW and return the model that maps to that organisation.
     Assumes one state organisation per state."""
 
@@ -106,18 +106,16 @@ def admin_add_club(request):
     NOTE: For now the club must be defined in the Masterpoints Centre already
 
     """
-    # TODO: Add RBAC once we have which state this club belongs to
     # TODO: Get rid of higher up edit org function and replace with this
 
-    # if not (rbac_user_has_role(request.user, "orgs.org.%s.edit" % org_id) or rbac_user_has_role(request.user, "orgs.admin.edit")):
-    #     return rbac_forbidden(request, "orgs.org.%s.edit" % org_id)
-
-    form = OrgForm(request.POST or None)
+    # The form handles the RBAC checks
+    form = OrgForm(request.POST or None, user=request.user)
 
     if request.method == "POST" and form.is_valid():
         org = form.save(commit=False)
         org.last_updated_by = request.user
         org.last_updated = timezone.localtime()
+        org.type = "Club"
         org.save()
         messages.success(request, "Changes saved", extra_tags="cobalt-message-success")
 

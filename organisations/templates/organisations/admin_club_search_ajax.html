@@ -1,0 +1,8 @@
+<ul>
+    {% for club in club_list %}
+        <li>{{ club.ClubName }}</li>
+    {% endfor %}
+</ul>
+{% if more_data %}
+    <i>More Results</i>
+{% endif %}

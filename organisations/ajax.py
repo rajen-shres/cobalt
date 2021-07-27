@@ -6,9 +6,10 @@ from django.template.loader import render_to_string
 
 from cobalt.settings import GLOBAL_MPSERVER, GLOBAL_TITLE
 from rbac.core import rbac_user_has_role
+from utils.views import masterpoint_query
 from .forms import OrgForm
 from .models import Organisation
-from .views import _get_rbac_model_for_state
+from .views import get_rbac_model_for_state
 
 
 @login_required()
@@ -97,31 +98,29 @@ def get_club_details_ajax(request):
         # Try to load data from MP Server
         qry = f"{GLOBAL_MPSERVER}/clubDetails/{club_number}"
 
-        try:
-            club_details = requests.get(qry).json()[0]
-        except (
-            IndexError,
-            requests.exceptions.InvalidSchema,
-            requests.exceptions.MissingSchema,
-            ConnectionError,
-        ):
-            club_details = []
+        club_details = masterpoint_query(qry)
+
+        if len(club_details) > 0:
+            club_details = club_details[0]
 
         if club_details:
-
-            print(club_details)
-            print(club_details["ClubName"])
 
             data = {
                 "name": club_details["ClubName"],
                 "state": club_details["VenueState"],
                 "postcode": club_details["VenuePostcode"],
+                "club_email": club_details["ClubEmail"],
+                "club_website": club_details["ClubWebsite"],
+                "address1": club_details["VenueAddress1"],
+                "address2": club_details["VenueAddress2"],
+                "suburb": club_details["VenueSuburb"],
+                "org_id": club_number,
             }
 
             # Finally we can check security - need to have access for this state
 
             state = data["state"]
-            rbac_model_for_state = _get_rbac_model_for_state(state)
+            rbac_model_for_state = get_rbac_model_for_state(state)
 
             if not (
                 rbac_user_has_role(
@@ -140,4 +139,36 @@ def get_club_details_ajax(request):
         request,
         "organisations/admin_add_club_ajax.html",
         {"form": form, "club_number": club_number, "errors": errors},
+    )
+
+
+@login_required()
+def club_name_search_ajax(request):
+    """Get list of matching club names from Masterpoints centre"""
+
+    if request.method != "POST" or "club_name_search" not in request.POST:
+        return
+
+    club_name_search = request.POST.get("club_name_search")
+
+    # initialise return data
+    # errors = None
+    # data = {}
+
+    # Try to load data from MP Server
+    qry = f"{GLOBAL_MPSERVER}/clubNameSearch/{club_name_search}"
+
+    club_list = masterpoint_query(qry)
+
+    # We get 11 rows but only show 10 so we know if there is more data or not
+    if len(club_list) > 10:
+        more_data = True
+        club_list = club_list[:10]
+    else:
+        more_data = False
+
+    return render(
+        request,
+        "organisations/admin_club_search_ajax.html",
+        {"club_list": club_list, "more_data": more_data},
     )

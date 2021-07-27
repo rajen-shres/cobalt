@@ -6,6 +6,9 @@ from django.core.validators import RegexValidator
 
 
 class Organisation(models.Model):
+    """Many of these fields map to fields in the Masterpoints Database
+    We don't worry about phone numbers and addresses for secretaries and MP secretaries
+    They seem to relate to sending letters to people. We keep the Venue address though."""
 
     bsb_regex = RegexValidator(
         regex=r"^\d{3}-\d{3}$",
@@ -23,27 +26,46 @@ class Organisation(models.Model):
         ("National", "National Body"),
         ("Other", "Other"),
     ]
-    parent = models.ForeignKey("self", on_delete=models.CASCADE, blank=True, null=True)
-    # ABF Organisation ID as per MPC
+
     org_id = models.CharField(max_length=4, unique=True)
+    """ maps to MPC OrgID """
+
     name = models.CharField(max_length=50)
-    type = models.CharField(choices=ORG_TYPE, max_length=8, blank="True", null=True)
-    address1 = models.CharField(
-        "Address Line 1", max_length=100, blank="True", null=True
-    )
-    address2 = models.CharField(
-        "Address Line 2", max_length=100, blank="True", null=True
-    )
-    suburb = models.CharField(max_length=50, blank="True", null=True)
-    state = models.CharField(max_length=3, blank="True", null=True)
-    postcode = models.CharField(max_length=10, blank="True", null=True)
+    """ maps to MPC ClubName """
+
+    type = models.CharField(choices=ORG_TYPE, max_length=8, blank=True, null=True)
+
+    club_email = models.CharField(max_length=40, blank=True, null=True)
+    """ maps to PMC ClubEmail """
+
+    address1 = models.CharField("Address Line 1", max_length=100, blank=True, null=True)
+    """ maps to MPC VenueAddress1 """
+
+    address2 = models.CharField("Address Line 2", max_length=100, blank=True, null=True)
+    """ maps to MPC VenueAddress2 """
+
+    suburb = models.CharField(max_length=50, blank=True, null=True)
+    """ maps to MPC Venue suburb """
+
+    state = models.CharField(max_length=3, blank=True, null=True)
+    """ maps to MPC VenueState"""
+
+    postcode = models.CharField(max_length=10, blank=True, null=True)
+    """ maps to MPC VenuePostcode """
+
+    club_website = models.CharField(max_length=100, blank=True, null=True)
+    """ maps to MPC ClubWebsite """
+
+    #  club_secretary = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    """ maps to MPC ClubSecName. Not sure we need this """
+
     bank_bsb = models.CharField(
-        "BSB Number", max_length=7, blank="True", null=True, validators=[bsb_regex]
+        "BSB Number", max_length=7, blank=True, null=True, validators=[bsb_regex]
     )
     bank_account = models.CharField(
         "Bank Account Number",
         max_length=14,
-        blank="True",
+        blank=True,
         null=True,
         validators=[account_regex],
     )

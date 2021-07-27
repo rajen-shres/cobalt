@@ -920,3 +920,22 @@ def rbac_show_admin(request):
 
     # Probably good enough for now just to show it if the user is in any RBAC group
     return RBACUserGroup.objects.filter(member=request.user).exists()
+
+
+def rbac_user_has_any_model(member, app, model):
+    """check if a user has access to any model in a role
+
+    Args:
+        member(User): standard user object
+        app(str): app to check
+        model(str): model to check
+
+    Returns:
+        bool: True or False for user role
+    """
+
+    return (
+        RBACGroupRole.objects.filter(app=app, model=model)
+        .filter(group__rbacusergroup__member=member)
+        .exists()
+    )

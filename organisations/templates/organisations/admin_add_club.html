@@ -16,7 +16,7 @@
             </div>
             <div class="container">
                 <div class="row">
-                    <div class="col-6">
+                    <div class="col-10">
 
                         <div class="card-body">
                             <div class="card">
@@ -39,14 +39,25 @@
                                             </div>
                                             <div class="col-6">
 
-                                                <form hx-post="{% url "organisations:get_club_details_ajax" %}" hx-target="#club">
+                                                <div class="form-group">
+                                                    <label>Club Name
+                                                        <span class="htmx-indicator">
+                                                            <img src="{% static "assets/img/spinners/bars.svg" %}"/>
+                                                        </span>
+                                                    </label>
 
-                                                    <div class="form-group">
-                                                        <label>Club Name</label>
-                                                        <input type="text" class="form-control" name="club_number">
-                                                    </div>
+                                                    <input type="text"
+                                                        class="form-control"
+                                                        name="club_name_search"
+                                                        hx-post="{% url "organisations:club_name_search_ajax" %}"
+                                                        hx-trigger="keyup changed delay:500ms"
+                                                        hx-target="#club-search"
+                                                        hx-indicator=".htmx-indicator"
+                                                        placeholder="Start typing to search..."
+                                                    >
+                                                </div>
 
-                                                </form>
+                                                <div id="club-search"></div>
                                             </div>
                                         </div>
                                     </div>
