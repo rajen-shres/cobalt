@@ -87,3 +87,13 @@ img.cobalt-rounded {
 .tooltip {
     pointer-events: none;
 }
+
+/* Show a button as if it is an a link */
+.cobalt-button-as-link {
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  color: #069;
+  text-decoration: underline;
+  cursor: pointer;
+}

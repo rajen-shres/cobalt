@@ -239,6 +239,7 @@ def browser_errors(request):
             IGNORE_ERRORS = [
                 "TypeError: null is not an object",
                 "Uncaught ReferenceError: $sidebar is not defined",
+                "ReferenceError: Can't find variable: $sidebar",
             ]
 
             for ignore in IGNORE_ERRORS:

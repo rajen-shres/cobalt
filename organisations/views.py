@@ -119,4 +119,6 @@ def admin_add_club(request):
         org.save()
         messages.success(request, "Changes saved", extra_tags="cobalt-message-success")
 
+    print(form.errors)
+
     return render(request, "organisations/admin_add_club.html", {"form": form})

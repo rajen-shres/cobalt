@@ -1,5 +1,7 @@
+from crispy_forms.helper import FormHelper
 from django import forms
 
+from cobalt.settings import ABF_STATES
 from rbac.core import rbac_user_has_role
 from .models import Organisation
 
@@ -37,9 +39,20 @@ class OrgForm(forms.ModelForm):
             "bank_account",
         )
 
+        # Make State a choice field
+        choices = [("", "Select State...")]
+        for state in ABF_STATES:
+            choices.append((ABF_STATES[state][1], ABF_STATES[state][1]))
+        widgets = {
+            # Need position relative or crispy forms makes a mess of the drop down
+            "state": forms.Select(
+                choices=choices, attrs={"style": "position: relative"}
+            ),
+        }
+
     def __init__(self, *args, **kwargs):
 
-        # Get user parameter so we can check access
+        # Get user parameter so we can check access in validation
         user = kwargs.pop("user", None)
 
         # Call Super()
@@ -47,6 +60,9 @@ class OrgForm(forms.ModelForm):
 
         # Add field
         self.user = user
+
+        # Remove label from dropdown
+        self.fields["state"].label = False
 
     def clean_state(self):
         """check this user has access to this state"""

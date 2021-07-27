@@ -417,3 +417,15 @@ BLEACH_ALLOWED_STYLES = [
 
 # Group used to manage the helpdesk staff
 RBAC_HELPDESK_GROUP = "rbac.orgs.abf.abf_roles.helpdesk_staff"
+
+# ABF States - org_id, name, state
+ABF_STATES = {
+    1801: ("BFACT", "ACT"),
+    2001: ("NSWBA", "NSW"),
+    8901: ("NTBA", "NT"),
+    4501: ("QBA", "QLD"),
+    5700: ("SABF", "SA"),
+    7801: ("TBA", "TAS"),
+    3301: ("VBA", "VIC"),
+    6751: ("BAWA", "WA"),
+}

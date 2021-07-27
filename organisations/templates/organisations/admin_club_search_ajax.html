@@ -1,6 +1,14 @@
+
+
 <ul>
     {% for club in club_list %}
-        <li>{{ club.ClubName }}</li>
+        <li>
+            <form hx-post="{% url "organisations:get_club_details_ajax" %}" hx-target="#club">
+                <input type="hidden" name="club_number" value="{{ club.ClubNumber }}">
+
+                <button class="cobalt-button-as-link">{{ club.ClubName }}</button>
+            </form>
+        </li>
     {% endfor %}
 </ul>
 {% if more_data %}

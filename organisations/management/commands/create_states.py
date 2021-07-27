@@ -1,6 +1,8 @@
 """ Must run after add_rbac_static_orgs """
 
 from django.core.management.base import BaseCommand
+
+from cobalt.settings import ABF_STATES
 from organisations.models import Organisation
 from rbac.core import (
     rbac_create_group,
@@ -13,17 +15,6 @@ from rbac.management.commands.rbac_core import (
     create_RBAC_admin_tree,
     super_user_list,
 )
-
-ABF_STATES = {
-    1801: ("BFACT", "ACT"),
-    2001: ("NSWBA", "NSW"),
-    3301: ("VBA", "VIC"),
-    4501: ("QBA", "QLD"),
-    5700: ("SABF", "SA"),
-    6751: ("BAWA", "WA"),
-    7801: ("TBA", "TAS"),
-    8901: ("NTBA", "NT"),
-}
 
 
 class Command(BaseCommand):

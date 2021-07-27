@@ -4,9 +4,9 @@
 {% load widget_tweaks %}
 {% load crispy_forms_tags %}
 {% block title %} - Add Club{% endblock %}
-
 {% block content %}
 
+    {#    This file uses HTMX. It is the first trial of HTMX in Cobalt     #}
 
     <div class="">
         <div class="card col-md-12 align-content-center">
@@ -81,15 +81,8 @@
             </div>
         </div>
     </div>
-
 {% endblock content %}
 
 {% block footer %}
-    <script src="{% static "assets/packages/htmx-1.5.0/htmx.js" %}"></script>
-
-    <script>
-        document.body.addEventListener('htmx:configRequest', (event) => {
-            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
-        })
-    </script>
+    {% include "utils/include_htmx.html" %}
 {% endblock footer %}
