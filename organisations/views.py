@@ -1,9 +1,10 @@
 from django.core.exceptions import ImproperlyConfigured
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib import messages
 
+from accounts.models import User
 from events.models import CongressMaster
 from rbac.models import RBACGroupRole
 from .models import Organisation
@@ -122,8 +123,19 @@ def admin_add_club(request):
         org.last_updated = timezone.localtime()
         org.type = "Club"
         org.save()
-        messages.success(request, "Changes saved", extra_tags="cobalt-message-success")
+        messages.success(
+            request, "{org.name} created", extra_tags="cobalt-message-success"
+        )
+        return redirect("organisations:admin_add_club")
 
     print(form.errors)
 
-    return render(request, "organisations/admin_add_club.html", {"form": form})
+    # secretary is a bit fiddly so we pass as a separate thing
+    secretary_id = form["secretary"].value()
+    secretary_name = User.objects.filter(pk=secretary_id).first()
+
+    return render(
+        request,
+        "organisations/admin_add_club.html",
+        {"form": form, "secretary_id": secretary_id, "secretary_name": secretary_name},
+    )

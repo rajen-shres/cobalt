@@ -47,7 +47,7 @@ class OrgForm(forms.ModelForm):
         widgets = {
             # Need position relative or crispy forms makes a mess of the drop down
             "state": forms.Select(
-                choices=choices, attrs={"style": "position: relative"}
+                choices=choices,
             ),
         }
 

@@ -68,7 +68,9 @@ def cobalt_user_link_short(user):
         return None
     try:
         url = reverse("accounts:public_profile", kwargs={"pk": user.id})
-        return format_html("<a href='{}'>{}</a>", mark_safe(url), user.full_name)
+        return format_html(
+            "<a target='_blank' href='{}'>{}</a>", mark_safe(url), user.full_name
+        )
     # Try to return the object if it was not a User
     except AttributeError:
         return user

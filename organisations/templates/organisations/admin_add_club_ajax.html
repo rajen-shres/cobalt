@@ -1,4 +1,7 @@
 {% load crispy_forms_filters %}
+{# HTMX Calls this to replace the whole form if org_id is provided.. Also provided empty for a new form. #}
+
+{% load cobalt_tags %}
 
 {% if errors %}
     <span class="cobalt-form-error">{{ errors }}</span>
@@ -17,12 +20,44 @@
             {% endif %}
         </div>
         <div class="card-body">
-            <h1>{{ possible_club_sec_name }}</h1>
-            <ul>
-                {% for club_sec in club_secs %}
-                    <li>{{ club_sec }}</li>
-                {% endfor %}
-            </ul>
+
+            {# ------ Club Secretary ------- #}
+
+            {% if possible_club_sec_name %}
+
+                <p>Found a club secretary from the Masterpoints Centre: {{ possible_club_sec_name }}</p>
+
+                <p>
+                    Matches within {{ GLOBAL_TITLE }}:
+                    <ul>
+                        {% for club_sec in club_secs %}
+                            <li>{{ club_sec|cobalt_user_link_short }}</li>
+                        {% endfor %}
+                    </ul>
+                </p>
+
+            {% endif %}
+
+
+
+            <div class="row">
+                {#                secretary           #}
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <b>Club Secretary: </b><span id="dummy_name">{{ secretary_name|default_if_none:"Not Set" }}</span>
+                        <input type="hidden" id="id_secretary" name="secretary" value="{{ secretary_id|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ form.secretary.errors }}</span>
+                        <a class="cobalt_generic_member btn btn-sm btn-info" data-toggle="modal" id="unique_id" data-target="#cobalt_general_member_search1">Edit</a>
+                    </div>
+                </div>
+                {#            state         #}
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {{ form.state|as_crispy_field }}
+                    </div>
+                </div>
+            </div>
+
 
             {#        Form        #}
 
@@ -50,7 +85,7 @@
                             id="id_org_id"
                             class="form-control"
                             required
-                            value="{{ form.org_id.value }}">
+                            value="{{ form.org_id.value|default_if_none:"" }}">
                         <span class="cobalt-form-error">{{ form.org_id.errors }}</span>
                     </div>
                 </div>
@@ -126,7 +161,7 @@
                             id="id_bank_bsb"
                             class="form-control"
                             maxlength="7"
-                            value="{{ form.bank_bsb.value }}">
+                            value="{{ form.bank_bsb.value|default_if_none:"" }}">
                         <span class="cobalt-form-error">{{ form.bank_bsb.errors }}</span>
                     </div>
                 </div>
@@ -139,7 +174,7 @@
                             id="id_bank_account"
                             class="form-control"
                             maxlength="7"
-                            value="{{ form.bank_account.value }}">
+                            value="{{ form.bank_account.value|default_if_none:"" }}">
                         <span class="cobalt-form-error">{{ form.bank_account.errors }}</span>
                     </div>
                 </div>

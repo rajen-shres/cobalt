@@ -93,6 +93,8 @@ def get_club_details_ajax(request):
     # initialise return data
     errors = None
     data = {}
+    secretary_name = "Not Set"
+    secretary_id = None
 
     # check if already exists
     if Organisation.objects.filter(org_id=club_number).exists():
@@ -128,12 +130,11 @@ def get_club_details_ajax(request):
                 club_secs = User.objects.filter(first_name=first_name).filter(
                     last_name=last_name
                 )
-                print(possible_club_sec_name)
-                print(first_name)
-                print(last_name)
-                print(club_secs)
+                if club_secs:  # use the first match
+                    secretary_name = club_secs[0]
+                    secretary_id = club_secs[0].id
 
-            # Finally we can check security - need to have access for this state
+                # Finally we can check security - need to have access for this state
 
             state = data["state"]
             rbac_model_for_state = get_rbac_model_for_state(state)
@@ -160,6 +161,8 @@ def get_club_details_ajax(request):
             "errors": errors,
             "club_secs": club_secs,
             "possible_club_sec_name": possible_club_sec_name,
+            "secretary_name": secretary_name,
+            "secretary_id": secretary_id,
         },
     )
 
