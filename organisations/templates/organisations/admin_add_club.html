@@ -100,5 +100,19 @@
             $('#dummy_name').text(member_name[1]);
 
         }
+
+        $(document).ready(function () {
+
+            // after HTMX reloads the table we want to move the focus down to the firm
+            htmx.on("htmx:after-swap", function(evt) {
+                // only if this targeted the club div
+                if (evt.target.id === "club") {
+                    // scroll down
+                    const aTag = $('#top_of_form');
+                    $('html,body').animate({scrollTop: aTag.offset().top}, 'slow');
+                };
+            });
+        });
+
     </script>
 {% endblock footer %}

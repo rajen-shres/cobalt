@@ -16,6 +16,7 @@ from .models import (
     RBACAdminGroupRole,
     RBACModelDefault,
     RBACAdminTree,
+    RBACAdminGroup,
 )
 from cobalt.settings import RBAC_EVERYONE
 from accounts.models import User
@@ -39,6 +40,28 @@ def rbac_create_group(name_qualifier, name_item, description):
     ).first()
     if not group:
         group = RBACGroup(
+            name_qualifier=name_qualifier, name_item=name_item, description=description
+        )
+        group.save()
+    return group
+
+
+def rbac_create_admin_group(name_qualifier, name_item, description):
+    """create an admin group
+    Args:
+         name_qualifier(str): where in the tree the group will go
+         name_item(str): name
+         description(str): free format description
+
+     Returns:
+         RBACAdminGroup
+    """
+
+    group = RBACAdminGroup.objects.filter(
+        name_qualifier=name_qualifier, name_item=name_item
+    ).first()
+    if not group:
+        group = RBACAdminGroup(
             name_qualifier=name_qualifier, name_item=name_item, description=description
         )
         group.save()
@@ -118,6 +141,21 @@ def rbac_add_user_to_group(member, group):
         user_group = RBACUserGroup(member=member, group=group)
         user_group.save()
     return user_group
+
+
+def rbac_add_user_to_admin_group(member, admin_group):
+    """Adds a user to an RBAC admin group
+
+    Args:
+        member(User): standard user object
+        group(RBACAdminGroup): group to add to
+
+    Returns:
+        Nothing
+    """
+
+    if not RBACAdminUserGroup.objects.filter(group=admin_group, member=member).exists():
+        RBACAdminUserGroup(group=admin_group, member=member).save()
 
 
 def rbac_remove_user_from_group(member, group):
@@ -765,14 +803,6 @@ def rbac_get_admins_for_group(group):
     return admins
 
 
-def rbac_add_user_to_admin_group(group, user):
-    """adds a user to an admin group"""
-
-    if not RBACAdminUserGroup.objects.filter(group=group, member=user).exists():
-        item = RBACAdminUserGroup(group=group, member=user)
-        item.save()
-
-
 def rbac_add_role_to_admin_group(group, app, model, model_id=None):
     """adds a role to an admin group"""
 
@@ -939,3 +969,17 @@ def rbac_user_has_any_model(member, app, model):
         .filter(group__rbacusergroup__member=member)
         .exists()
     )
+
+
+def rbac_admin_add_tree_to_group(group, tree):
+    """Add tree to an admin group
+
+    Args:
+        group(RBACAdminGroup): group to update
+        tree(str): Tree tp add
+
+    Returns:
+        Nothing
+    """
+    if not RBACAdminTree.objects.filter(group=group, tree=tree).exists():
+        RBACAdminTree(group=group, tree=tree).save()

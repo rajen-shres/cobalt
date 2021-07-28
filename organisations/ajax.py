@@ -95,6 +95,8 @@ def get_club_details_ajax(request):
     data = {}
     secretary_name = "Not Set"
     secretary_id = None
+    club_secs = None
+    possible_club_sec_name = "Not Found"
 
     # check if already exists
     if Organisation.objects.filter(org_id=club_number).exists():
@@ -122,9 +124,10 @@ def get_club_details_ajax(request):
             }
 
             # We get a name for club secretary. See if we can find a match
-            possible_club_sec_name = club_details["ClubSecName"]
-            club_secs = None
-            if possible_club_sec_name:
+            possible_club_sec_name = club_details["ClubSecName"].strip()
+
+            # ClubSec can be spaces or empty
+            if possible_club_sec_name and len(possible_club_sec_name) > 0:
                 first_name = possible_club_sec_name.split(" ")[0]
                 last_name = possible_club_sec_name.split(" ")[-1]
                 club_secs = User.objects.filter(first_name=first_name).filter(

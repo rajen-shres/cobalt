@@ -8,13 +8,20 @@
         <div class="card col-md-12 align-content-center">
             <div class="card-header card-header-primary">
                 <h1>{{ club }}</h1>
+                <h3>{{ club.state }}</h3>
+                <h3>Secretary: {{ club.secretary }}</h3>
                 <h2>Role Based Access Controls</h2>
             </div>
             <div class="card-body">
                 <h2>{{ error }}</h2>
-                {{ rbac_simple }}
-                <br>
-                {{ rbac_advanced }}
+                {% if rbac_simple %}
+                    <p>This club is set up for Simple RBAC.</p>
+                    <a href="" class="btn btn-danger">Change to Advanced</a>
+                {% endif %}
+                {% if rbac_advanced %}
+                    <p>This club is set up for Advanced RBAC.</p>
+                    <a href="" class="btn btn-danger">Change to Simple</a>
+                {% endif %}
 
                 {% if new_setup %}
                     <p>Select basic or advanced set up (You can change it later).</p>
@@ -25,8 +32,13 @@
                     </ul>
                     <p>Basic is good for small clubs. Advanced is good for larger clubs or clubs that want more granular control of security.</p>
                     <p>This only applies to club administrators, not to members.</p>
-                    <a href="" class="btn btn-success">Basic</a>
-                    <a href="" class="btn btn-warning">Advanced</a>
+                    <a href="{% url "organisations:admin_club_rbac_add_basic" club_id=club.id %}" class="btn btn-success">Basic</a>
+                    <a href="{% url "organisations:admin_club_rbac_add_advanced" club_id=club.id %}" class="btn btn-warning">Advanced</a>
+
+                {% else %}
+
+                    <a href="" class="btn btn-info">Go to club admin</a>
+
                 {% endif %}
 
             </div>

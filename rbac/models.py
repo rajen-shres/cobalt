@@ -15,7 +15,7 @@ RULE_TYPES = [("Allow", "Allow User Access"), ("Block", "Block User Access")]
 
 
 class RBACGroup(models.Model):
-    """ Group definitions """
+    """Group definitions"""
 
     name_qualifier = models.CharField(max_length=50)
     """ eg "organisations.trumps" """
@@ -23,8 +23,8 @@ class RBACGroup(models.Model):
     name_item = models.CharField(max_length=50)
     """ chosen by the admin. appends onto name_qualifier """
 
-    description = models.CharField(max_length=50)
-    """ Free format decription """
+    description = models.TextField()
+    """ Free format description """
 
     created_date = models.DateTimeField("Create Date", default=timezone.now)
     """ date created """
@@ -46,7 +46,7 @@ class RBACGroup(models.Model):
 
 
 class RBACUserGroup(models.Model):
-    """ Maps users to Groups """
+    """Maps users to Groups"""
 
     member = models.ForeignKey(User, on_delete=models.CASCADE)
     """ Standard User object """
@@ -59,7 +59,7 @@ class RBACUserGroup(models.Model):
 
 
 class RBACGroupRole(models.Model):
-    """ Core model to map a group to a role. """
+    """Core model to map a group to a role."""
 
     group = models.ForeignKey(RBACGroup, on_delete=models.CASCADE)
     """ RBACGroup for this Role """
@@ -120,7 +120,7 @@ class RBACModelDefault(models.Model):
 
 
 class RBACAppModelAction(models.Model):
-    """ Valid Actions for an App and Model combination """
+    """Valid Actions for an App and Model combination"""
 
     app = models.CharField(max_length=15)
     """ Application level hierarchy """
@@ -136,7 +136,7 @@ class RBACAppModelAction(models.Model):
 
 
 class RBACAdminGroup(models.Model):
-    """ Admin Group definitions """
+    """Admin Group definitions"""
 
     name_qualifier = models.CharField(max_length=50)
     """ eg "organisations.trumps" """
@@ -167,7 +167,7 @@ class RBACAdminGroup(models.Model):
 
 
 class RBACAdminUserGroup(models.Model):
-    """ Maps admins to Groups """
+    """Maps admins to Groups"""
 
     member = models.ForeignKey(User, on_delete=models.CASCADE)
     """ Standard User object """
@@ -180,7 +180,7 @@ class RBACAdminUserGroup(models.Model):
 
 
 class RBACAdminGroupRole(models.Model):
-    """ Admin model to map a group to a role. """
+    """Admin model to map a group to a role."""
 
     group = models.ForeignKey(RBACAdminGroup, on_delete=models.CASCADE)
     """ RBACGroup for this Role """
@@ -207,7 +207,7 @@ class RBACAdminGroupRole(models.Model):
 
 
 class RBACAdminTree(models.Model):
-    """ Control where in the tree a member of a group can create groups """
+    """Control where in the tree a member of a group can create groups"""
 
     group = models.ForeignKey(RBACAdminGroup, on_delete=models.CASCADE)
     """ RBACGroup for this Role """

@@ -21,5 +21,15 @@ urlpatterns = [
     path(
         "admin/club-rbac/<int:club_id>", views.admin_club_rbac, name="admin_club_rbac"
     ),
+    path(
+        "admin/club-rbac-basic/<int:club_id>",
+        views.admin_club_rbac_add_basic,
+        name="admin_club_rbac_add_basic",
+    ),
+    path(
+        "admin/club-rbac-advanced/<int:club_id>",
+        views.admin_club_rbac_add_advanced,
+        name="admin_club_rbac_add_advanced",
+    ),
     path("portal/<int:org_id>", views.org_portal, name="org_portal"),
 ]

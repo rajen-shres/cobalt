@@ -4,6 +4,33 @@ from accounts.models import User
 from django.utils import timezone
 from django.core.validators import RegexValidator
 
+# Variable to control what is expected to be in the RBAC structure for Organisations
+# A management script runs to update RBAC structure for all clubs if a new option is found.
+
+ORGS_RBAC_GROUPS_AND_ROLES = {
+    # Conveners for this orgs events
+    "conveners": {
+        "app": "events",
+        "model": "org",
+        "action": "edit",
+        "description": "Manage congresses for ",
+    },
+    # See payments details
+    "payments_view": {
+        "app": "payments",
+        "model": "manage",
+        "action": "view",
+        "description": "View payments info for ",
+    },
+    # Change payments details
+    "payments_edit": {
+        "app": "payments",
+        "model": "manage",
+        "action": "edit",
+        "description": "Edit payments info for ",
+    },
+}
+
 
 class Organisation(models.Model):
     """Many of these fields map to fields in the Masterpoints Database

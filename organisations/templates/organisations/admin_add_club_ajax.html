@@ -3,6 +3,9 @@
 
 {% load cobalt_tags %}
 
+{# anchor for JS to go to after load #}
+<span id="top_of_form"></span>
+
 {% if errors %}
     <span class="cobalt-form-error">{{ errors }}</span>
     <a href="{% url "organisations:admin_add_club" %}" class="btn btn-success cobalt-save">Reset</a>
@@ -25,16 +28,20 @@
 
             {% if possible_club_sec_name %}
 
-                <p>Found a club secretary from the Masterpoints Centre: {{ possible_club_sec_name }}</p>
+                <p>Found a club secretary from the Masterpoints Centre: <b>{{ possible_club_sec_name }}</b></p>
 
-                <p>
-                    Matches within {{ GLOBAL_TITLE }}:
-                    <ul>
-                        {% for club_sec in club_secs %}
-                            <li>{{ club_sec|cobalt_user_link_short }}</li>
-                        {% endfor %}
-                    </ul>
-                </p>
+                {% if club_secs %}
+                    <p>
+                        Matches within {{ GLOBAL_TITLE }}:
+                        <ul>
+                            {% for club_sec in club_secs %}
+                                <li>{{ club_sec|cobalt_user_link_short }}</li>
+                            {% endfor %}
+                        </ul>
+                    </p>
+                {% else %}
+                    <b>No matches for {{ possible_club_sec_name }} (club secretary) found in {{ GLOBAL_TITLE }}</b>
+                {% endif %}
 
             {% endif %}
 
