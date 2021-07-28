@@ -10,15 +10,141 @@
         <div class="card-header card-header-danger">
             <h2>{{ form.name.value|default_if_none:"Add Club" }}</h2>
             {% if club_number %}
-                <h3>{{ GLOBAL_ORG }}Club Number: {{ club_number }}</h3>
+                <h3>{{ GLOBAL_ORG }} Club Number: {{ club_number }}</h3>
+                <h4>It is not recommended to edit these fields as they will be out of step
+                    with the Masterpoints Centre. It is better to first change them in the MPC
+                    and then import the club here.</h4>
             {% endif %}
         </div>
         <div class="card-body">
+            <h1>{{ possible_club_sec_name }}</h1>
+            <ul>
+                {% for club_sec in club_secs %}
+                    <li>{{ club_sec }}</li>
+                {% endfor %}
+            </ul>
 
-            {{ form|crispy }}
+            {#        Form        #}
 
+            <div class="row">
+                {#                name           #}
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="bmd-label-floating">Club Name</label>
+                        <input type="text"
+                            name="name"
+                            id="id_name"
+                            class="form-control"
+                            maxlength="50"
+                            required
+                            value="{{ form.name.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ form.name.errors }}</span>
+                    </div>
+                </div>
+                {#                org_id         #}
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="bmd-label-floating">{{ GLOBAL_ORG }} Club Number</label>
+                        <input type="number" min="0" step="1"
+                            name="org_id"
+                            id="id_org_id"
+                            class="form-control"
+                            required
+                            value="{{ form.org_id.value }}">
+                        <span class="cobalt-form-error">{{ form.org_id.errors }}</span>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row">
+                {#                address1           #}
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="bmd-label-floating">Address Line 1</label>
+                        <input type="text"
+                            name="address1"
+                            id="id_address1"
+                            class="form-control"
+                            maxlength="100"
+                            value="{{ form.address1.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ form.address1.errors }}</span>
+                    </div>
+                </div>
+                {#                suburb           #}
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="bmd-label-floating">Suburb</label>
+                        <input type="text"
+                            name="suburb"
+                            id="id_suburb"
+                            class="form-control"
+                            maxlength="50"
+                            value="{{ form.suburb.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ form.suburb.errors }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                {#                address2           #}
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="bmd-label-floating">Address Line 2</label>
+                        <input type="text"
+                            name="address2"
+                            id="id_address2"
+                            class="form-control"
+                            maxlength="100"
+                            value="{{ form.address2.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ form.address2.errors }}</span>
+                    </div>
+                </div>
+
+                {#                postcode           #}
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label class="bmd-label-floating">Postcode</label>
+                        <input type="text"
+                            name="postcode"
+                            id="id_postcode"
+                            class="form-control"
+                            maxlength="10"
+                            value="{{ form.postcode.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ form.postcode.errors }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                {#                bank_bsb           #}
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="bmd-label-floating">Bank BSB Number</label>
+                        <input type="number" min="0" step="1"
+                            name="bank_bsb"
+                            id="id_bank_bsb"
+                            class="form-control"
+                            maxlength="7"
+                            value="{{ form.bank_bsb.value }}">
+                        <span class="cobalt-form-error">{{ form.bank_bsb.errors }}</span>
+                    </div>
+                </div>
+                {#                bank_account           #}
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="bmd-label-floating">Bank Account Number</label>
+                        <input type="number" min="0" step="1"
+                            name="bank_account"
+                            id="id_bank_account"
+                            class="form-control"
+                            maxlength="7"
+                            value="{{ form.bank_account.value }}">
+                        <span class="cobalt-form-error">{{ form.bank_account.errors }}</span>
+                    </div>
+                </div>
+            </div>
         </div>
-
     </div>
 
 {% endif %}

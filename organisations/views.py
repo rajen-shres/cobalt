@@ -18,8 +18,13 @@ def get_rbac_model_for_state(state):
     Assumes one state organisation per state."""
 
     state_org = Organisation.objects.filter(state=state).filter(type="State")
-    if state_org.count() != 1:
+
+    if not state_org:
+        return None
+
+    if state_org.count() > 1:
         raise ImproperlyConfigured
+
     return state_org.first().id
 
 

@@ -12,7 +12,7 @@
         <div class="card col-md-12 align-content-center">
             <div class="card-header card-header-primary">
                 <h2>Add A Club</h2>
-                <h3>Clubs must already be defined in the Masterpoints Centre before they can be added to {{ GLOBAL_TITLE }}</h3>
+                <h3>Clubs should already be defined in the Masterpoints Centre before they are added to {{ GLOBAL_TITLE }}</h3>
             </div>
             <div class="container">
                 <div class="row">
@@ -21,17 +21,19 @@
                         <div class="card-body">
                             <div class="card">
                                 <div class="card-header card-header-success">
-                                    <h3>Search</h3>
+                                    <h3>Search Masterpoints Centre</h3>
                                 </div>
                                 <div class="card-body">
                                     <div class="container">
                                         <div class="row">
                                             <div class="col-6">
 
-                                                <form hx-post="{% url "organisations:get_club_details_ajax" %}" hx-target="#club">
+                                                <form
+                                                    hx-post="{% url "organisations:get_club_details_ajax" %}"
+                                                    hx-target="#club">
 
                                                     <div class="form-group">
-                                                        <label>Club Number</label>
+                                                        <label>{{ GLOBAL_ORG }} Club Number</label>
                                                         <input type="text" class="form-control" name="club_number">
                                                     </div>
                                                     <button class="btn btn-sm btn-info">Search</button>
@@ -77,7 +79,9 @@
 
                     <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
                     <button class="btn btn-info" onclick="window.location.href='/'; return false;">Cancel</button>
+
                 </form>
+
             </div>
         </div>
     </div>

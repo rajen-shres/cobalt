@@ -33,6 +33,11 @@ class Organisation(models.Model):
     name = models.CharField(max_length=50)
     """ maps to MPC ClubName """
 
+    secretary = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="secretary"
+    )
+    """ maps to MPC ClubSecName, but we need to map this to a Cobalt user so not a CharField """
+
     type = models.CharField(choices=ORG_TYPE, max_length=8, blank=True, null=True)
 
     club_email = models.CharField(max_length=40, blank=True, null=True)
@@ -56,9 +61,6 @@ class Organisation(models.Model):
     club_website = models.CharField(max_length=100, blank=True, null=True)
     """ maps to MPC ClubWebsite """
 
-    #  club_secretary = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    """ maps to MPC ClubSecName. Not sure we need this """
-
     bank_bsb = models.CharField(
         "BSB Number", max_length=7, blank=True, null=True, validators=[bsb_regex]
     )
@@ -74,6 +76,7 @@ class Organisation(models.Model):
         on_delete=models.PROTECT,
         null=True,
         blank=True,
+        related_name="org_last_updated_by",
     )
     last_updated = models.DateTimeField(default=timezone.now)
 

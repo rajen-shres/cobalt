@@ -26,6 +26,7 @@ class OrgForm(forms.ModelForm):
     class Meta:
         model = Organisation
         fields = (
+            "secretary",
             "name",
             "org_id",
             "club_email",
@@ -72,6 +73,7 @@ class OrgForm(forms.ModelForm):
         state = self.cleaned_data["state"]
         if not state:
             self.add_error("state", "State cannot be empty")
+            return state
 
         # Get model id for this state
         rbac_model_for_state = get_rbac_model_for_state(state)

@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 
+from accounts.models import User
 from cobalt.settings import GLOBAL_MPSERVER, GLOBAL_TITLE
 from rbac.core import rbac_user_has_role
 from utils.views import masterpoint_query
@@ -29,9 +30,9 @@ def org_search_ajax(request):
 
         if "orgname" not in request.GET:
             return HttpResponse("orgname missing from request")
-        else:
-            search_org_name = request.GET.get("orgname")
-            orgs = Organisation.objects.filter(name__icontains=search_org_name)
+
+        search_org_name = request.GET.get("orgname")
+        orgs = Organisation.objects.filter(name__icontains=search_org_name)
 
         if request.is_ajax:
             if orgs.count() > 30:
@@ -80,11 +81,13 @@ def org_detail_ajax(request):
 
 @login_required()
 def get_club_details_ajax(request):
-    """Get details about club from Masterpoints centre"""
+    """Get details about club from Masterpoints centre
+    This request is called by HTMX and returns HTML, not json"""
 
     if request.method != "POST" or "club_number" not in request.POST:
         return
 
+    # get club number from form
     club_number = request.POST.get("club_number")
 
     # initialise return data
@@ -97,7 +100,6 @@ def get_club_details_ajax(request):
     else:
         # Try to load data from MP Server
         qry = f"{GLOBAL_MPSERVER}/clubDetails/{club_number}"
-
         club_details = masterpoint_query(qry)
 
         if len(club_details) > 0:
@@ -116,6 +118,20 @@ def get_club_details_ajax(request):
                 "suburb": club_details["VenueSuburb"],
                 "org_id": club_number,
             }
+
+            # We get a name for club secretary. See if we can find a match
+            possible_club_sec_name = club_details["ClubSecName"]
+            club_secs = None
+            if possible_club_sec_name:
+                first_name = possible_club_sec_name.split(" ")[0]
+                last_name = possible_club_sec_name.split(" ")[-1]
+                club_secs = User.objects.filter(first_name=first_name).filter(
+                    last_name=last_name
+                )
+                print(possible_club_sec_name)
+                print(first_name)
+                print(last_name)
+                print(club_secs)
 
             # Finally we can check security - need to have access for this state
 
@@ -138,7 +154,13 @@ def get_club_details_ajax(request):
     return render(
         request,
         "organisations/admin_add_club_ajax.html",
-        {"form": form, "club_number": club_number, "errors": errors},
+        {
+            "form": form,
+            "club_number": club_number,
+            "errors": errors,
+            "club_secs": club_secs,
+            "possible_club_sec_name": possible_club_sec_name,
+        },
     )
 
 
@@ -147,25 +169,20 @@ def club_name_search_ajax(request):
     """Get list of matching club names from Masterpoints centre"""
 
     if request.method != "POST" or "club_name_search" not in request.POST:
-        return
+        return HttpResponse("Error")
 
+    # Get partial club name to search for from form
     club_name_search = request.POST.get("club_name_search")
-
-    # initialise return data
-    # errors = None
-    # data = {}
 
     # Try to load data from MP Server
     qry = f"{GLOBAL_MPSERVER}/clubNameSearch/{club_name_search}"
-
     club_list = masterpoint_query(qry)
 
     # We get 11 rows but only show 10 so we know if there is more data or not
+    more_data = False
     if len(club_list) > 10:
         more_data = True
         club_list = club_list[:10]
-    else:
-        more_data = False
 
     return render(
         request,
