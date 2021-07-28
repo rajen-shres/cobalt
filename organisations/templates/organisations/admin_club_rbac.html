@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} - Club RBAC{% endblock %}
+
+{% block content %}
+
+    <div class="">
+        <div class="card col-md-12 align-content-center">
+            <div class="card-header card-header-primary">
+                <h1>{{ club }}</h1>
+                <h2>Role Based Access Controls</h2>
+            </div>
+            <div class="card-body">
+                <h2>{{ error }}</h2>
+                {{ rbac_simple }}
+                <br>
+                {{ rbac_advanced }}
+
+                {% if new_setup %}
+                    <p>Select basic or advanced set up (You can change it later).</p>
+                    <ul>
+                        <li><b>Basic</b> - Creates a single security group for everything. All users get the same access.</li>
+                        <li><b>Advanced</b> - Creates a number of security groups to allow different roles within the club
+                            such as finance, directing and user administration.</li>
+                    </ul>
+                    <p>Basic is good for small clubs. Advanced is good for larger clubs or clubs that want more granular control of security.</p>
+                    <p>This only applies to club administrators, not to members.</p>
+                    <a href="" class="btn btn-success">Basic</a>
+                    <a href="" class="btn btn-warning">Advanced</a>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+

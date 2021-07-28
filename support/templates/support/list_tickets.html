@@ -3,19 +3,7 @@
 {% load cobalt_tags %}
 {% block title %} - Helpdesk Filter Tickets{% endblock %}
 {% block header %}
-    <link rel="stylesheet" type="text/css"
-          href="{% static "assets/packages/datatables.1.10.25/dataTables.bootstrap4.min.css" %}"/>
-    <link rel="stylesheet" type="text/css"
-          href="{% static "assets/packages/datatables.1.10.25/responsive.bootstrap4.min.css" %}"/>
-
-    <script type="text/javascript"
-            src="{% static "assets/packages/datatables.1.10.25/jquery.dataTables.min.js" %}"></script>
-    <script type="text/javascript"
-            src="{% static "assets/packages/datatables.1.10.25/dataTables.bootstrap4.min.js" %}"></script>
-    <script type="text/javascript"
-            src="{% static "assets/packages/datatables.1.10.25/dataTables.responsive.min.js" %}"></script>
-    <script type="text/javascript"
-            src="{% static "assets/packages/datatables.1.10.25/responsive.bootstrap4.min.js" %}"></script>
+    {% include "utils/datatables_header.html" %}
 
 {% endblock %}
 {% load log %}
@@ -58,8 +46,8 @@
                     <option value="All">Severity - All</option>
                     {% for severity in severities %}
                         <option
-                                {% if form_severity == severity.severity %}selected{% endif %}
-                                value="{{ severity.severity }}">
+                            {% if form_severity == severity.severity %}selected{% endif %}
+                            value="{{ severity.severity }}">
                             {{ severity.severity }}
                         </option>
                     {% endfor %}
@@ -68,8 +56,8 @@
                     <option value="All">Status - All</option>
                     {% for status in statuses %}
                         <option
-                                {% if form_status == status.status %}selected{% endif %}
-                                value="{{ status.status }}">
+                            {% if form_status == status.status %}selected{% endif %}
+                            value="{{ status.status }}">
                             {{ status.status }}
                         </option>
                     {% endfor %}
@@ -79,8 +67,8 @@
                     <option value="All">Users - All</option>
                     {% for user in users %}
                         <option
-                                {% if form_user == user.id %}selected{% endif %}
-                                value="{{ user.id }}">
+                            {% if form_user == user.id %}selected{% endif %}
+                            value="{{ user.id }}">
                             {{ user.full_name }}
                         </option>
                     {% endfor %}
@@ -89,8 +77,8 @@
                     <option value="All">Product Area - All</option>
                     {% for incident_type in incident_types %}
                         <option
-                                {% if form_incident_type == incident_type.incident_type %}selected{% endif %}
-                                value="{{ incident_type.incident_type }}">
+                            {% if form_incident_type == incident_type.incident_type %}selected{% endif %}
+                            value="{{ incident_type.incident_type }}">
                             {{ incident_type.incident_type }}
                         </option>
                     {% endfor %}
@@ -99,8 +87,8 @@
                     <option value="All">Assigned To - All</option>
                     {% for assigned_to in assigned_tos %}
                         <option
-                                {% if form_assigned_to == assigned_to.id %}selected{% endif %}
-                                value="{{ assigned_to.id }}">
+                            {% if form_assigned_to == assigned_to.id %}selected{% endif %}
+                            value="{{ assigned_to.id }}">
                             {{ assigned_to.full_name }}
                         </option>
                     {% endfor %}

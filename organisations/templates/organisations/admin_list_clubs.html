@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} - List Clubs{% endblock %}
+{% block header %}
+    {% include "utils/datatables_header.html" %}
+{% endblock header %}
+
+{% block content %}
+
+    <div class="">
+        <div class="card col-md-12 align-content-center">
+            <div class="card-header card-header-primary">
+                <h2>List Clubs</h2>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="clubs" class="table table-condensed" style="display: none">
+                        <thead>
+                            <tr>
+                                <th class="text-left">State</th>
+                                <th class="text-left">Club Name</th>
+                                <th class="text-left">Club Secretary</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for club in clubs %}
+                                <tr>
+                                    <td class="text-left">{{ club.state }}</td>
+                                    <td class="text-left">{{ club.name }}</td>
+                                    <td class="text-left">{{ club.secretary|default_if_none:"-" }}</td>
+                                    <td><a href="" class="btn btn-sm btn-success">Edit</a>
+                                        <a href="{% url "organisations:admin_club_rbac" club_id=club.id %}" class="btn btn-sm btn-rose">RBAC</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block footer %}
+    <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
+    <script>
+        $(document).ready(function () {
+
+            // Initialise datatable - only show pagination if more than one page, sort in reverse date order, column 0
+            $('#clubs').DataTable({
+                "order": [[1, "desc"]],
+                drawCallback: function (settings) {
+                    const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+                    pagination.toggle(this.api().page.info().pages > 1);
+                },
+            });
+
+            // Unhide table now. This avoids the flicker
+            $('#clubs').show();
+        });
+    </script>
+
+{% endblock footer %}

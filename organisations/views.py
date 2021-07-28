@@ -8,7 +8,7 @@ from accounts.models import User
 from events.models import CongressMaster
 from rbac.models import RBACGroupRole
 from .models import Organisation
-from rbac.core import rbac_user_has_role
+from rbac.core import rbac_user_has_role, rbac_get_group_by_name
 from rbac.views import rbac_forbidden
 from .forms import OrgForm, OrgFormOld
 from payments.models import OrganisationTransaction
@@ -138,4 +138,72 @@ def admin_add_club(request):
         request,
         "organisations/admin_add_club.html",
         {"form": form, "secretary_id": secretary_id, "secretary_name": secretary_name},
+    )
+
+
+@login_required()
+def admin_list_clubs(request):
+    """List Clubs in the system. For State or ABF Administrators"""
+
+    clubs = Organisation.objects.filter(type="Club").order_by("state", "name")
+
+    return render(request, "organisations/admin_list_clubs.html", {"clubs": clubs})
+
+
+@login_required()
+def admin_club_rbac(request, club_id):
+    """Manage RBAC basic set up for a Club
+
+    This doesn't control who gets access - clubs can do that themselves, this controls whether it is basic
+    or advanced RBAC configuration. It is the RBAC structure, not the content.
+
+    """
+
+    # Get club
+    club = get_object_or_404(Organisation, pk=club_id)
+
+    # Get model id for this state
+    rbac_model_for_state = get_rbac_model_for_state(club.state)
+
+    # Check access
+    role = "orgs.state.%s.edit" % rbac_model_for_state
+    if not (
+        rbac_user_has_role(request.user, role)
+        or rbac_user_has_role(request.user, "orgs.admin.edit")
+    ):
+        return rbac_forbidden(request, role)
+
+    # Check rbac setup
+
+    # Simple is e.g. rbac.orgs.clubs.nsw.34.basic (we can't use the club name as it might change, use pk)
+    rbac_simple = rbac_get_group_by_name(
+        "rbac.orgs.clubs.%s.%s.basic" % (club.state.lower(), club.id)
+    )
+
+    # Advanced has a few groups e.g. rbac.orgs.clubs.nsw.34.managers
+    # managers will always exist
+    rbac_advanced = rbac_get_group_by_name(
+        "rbac.orgs.clubs.%s.%s.managers" % (club.state.lower(), club.id)
+    )
+
+    error = ""
+    new_setup = False
+
+    if rbac_advanced and rbac_simple:
+        error = "Error: This club is set up with both simple and advanced RBAC. Contact Support."
+
+    if not rbac_advanced and not rbac_simple:
+        error = "RBAC not set up yet."
+        new_setup = True
+
+    return render(
+        request,
+        "organisations/admin_club_rbac.html",
+        {
+            "club": club,
+            "new_setup": new_setup,
+            "rbac_simple": rbac_simple,
+            "rbac_advanced": rbac_advanced,
+            "error": error,
+        },
     )

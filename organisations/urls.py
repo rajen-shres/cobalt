@@ -17,5 +17,9 @@ urlpatterns = [
     ),
     path("edit/<int:org_id>", views.org_edit, name="org_edit"),
     path("admin/add-club", views.admin_add_club, name="admin_add_club"),
+    path("admin/list-clubs", views.admin_list_clubs, name="admin_list_clubs"),
+    path(
+        "admin/club-rbac/<int:club_id>", views.admin_club_rbac, name="admin_club_rbac"
+    ),
     path("portal/<int:org_id>", views.org_portal, name="org_portal"),
 ]
