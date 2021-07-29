@@ -15,12 +15,13 @@
             <div class="card-body">
                 <h2>{{ error }}</h2>
                 {% if rbac_simple %}
-                    <p>This club is set up for Simple RBAC.</p>
-                    <a href="" class="btn btn-danger">Change to Advanced</a>
+                    <p>This club is set up for Basic RBAC.</p>
+                    <a href="{% url "organisations:admin_club_rbac_convert_basic_to_advanced" club_id=club.id %}"
+                        class="btn btn-danger">Change to Advanced</a>
                 {% endif %}
                 {% if rbac_advanced %}
                     <p>This club is set up for Advanced RBAC.</p>
-                    <a href="" class="btn btn-danger">Change to Simple</a>
+                    <a href="" class="btn btn-danger">Change to Basic</a>
                 {% endif %}
 
                 {% if new_setup %}

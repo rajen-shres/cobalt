@@ -102,6 +102,11 @@
         }
 
         $(document).ready(function () {
+            if (window.performance.navigation.type === 2) {
+                // the page was navigated to via the forward or back button
+                // refresh to make sure auto top up status is correct
+                location.reload();
+            }
 
             // after HTMX reloads the table we want to move the focus down to the firm
             htmx.on("htmx:after-swap", function(evt) {

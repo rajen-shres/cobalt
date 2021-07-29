@@ -69,7 +69,7 @@ def rbac_create_admin_group(name_qualifier, name_item, description):
 
 
 def rbac_delete_group(group):
-    """Delete an RBAC group
+    """Delete an RBAC group. Cascade takes care of related objects.
 
     Args:
         group(RBACGroup): Group to delete
@@ -107,6 +107,28 @@ def rbac_get_group_by_name(group_name):
         return False
 
 
+def rbac_get_admin_group_by_name(group_name):
+    """Get an RBAC Admin group by name
+
+    Args:
+        group_name(str): group name to find
+
+    Returns:
+        RBACGroup
+    """
+
+    name_parts = group_name.split(".")
+    group_name_item = name_parts[-1]
+    group_name_qualifier = ".".join(name_parts[:-1])
+
+    try:
+        return RBACAdminGroup.objects.get(
+            name_qualifier=group_name_qualifier, name_item=group_name_item
+        )
+    except RBACAdminGroup.DoesNotExist:
+        return False
+
+
 def rbac_delete_group_by_name(group_name):
     """Delete an RBAC group by name
 
@@ -117,12 +139,20 @@ def rbac_delete_group_by_name(group_name):
         bool
     """
 
-    try:
-        group = RBACGroup.objects.get(group_name=group_name)
-        group.delete()
-        return True
-    except RBACGroup.DoesNotExist:
-        return False
+    rbac_get_group_by_name(group_name).delete()
+
+
+def rbac_delete_admin_group_by_name(group_name):
+    """Delete an RBAC Admin group by name
+
+    Args:
+        group_name(str): group name to delete
+
+    Returns:
+        bool
+    """
+
+    rbac_get_admin_group_by_name(group_name).delete()
 
 
 def rbac_add_user_to_group(member, group):
@@ -862,7 +892,7 @@ def rbac_get_users_in_group(groupname):
     group = RBACGroup.objects.filter(
         name_qualifier=name_qualifier, name_item=name_item
     ).first()
-    return RBACUserGroup.objects.filter(group=group).order_by("member")
+    return User.objects.filter(rbacusergroup__group=group).order_by("first_name")
 
 
 def rbac_get_users_with_role(role):

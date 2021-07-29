@@ -31,5 +31,10 @@ urlpatterns = [
         views.admin_club_rbac_add_advanced,
         name="admin_club_rbac_add_advanced",
     ),
+    path(
+        "admin/club-rbac-basic-to-advanced/<int:club_id>",
+        views.admin_club_rbac_convert_basic_to_advanced,
+        name="admin_club_rbac_convert_basic_to_advanced",
+    ),
     path("portal/<int:org_id>", views.org_portal, name="org_portal"),
 ]
