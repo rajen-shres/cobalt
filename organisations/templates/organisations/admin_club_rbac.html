@@ -38,7 +38,7 @@
 
                 {% else %}
 
-                    <a href="" class="btn btn-info">Go to club admin</a>
+                    <a href="{% url "organisations:club_admin" club_id=club.id %}" class="btn btn-info">Go to club admin</a>
 
                 {% endif %}
 

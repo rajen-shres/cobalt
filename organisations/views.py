@@ -93,34 +93,6 @@ def org_balance(org, text=None):
 
 
 @login_required()
-def org_portal(request, org_id):
-    """Edit details about an organisation
-
-    Args:
-        org_id - organisation to view
-
-    Returns:
-        HttpResponse - page to edit organisation
-    """
-    if not rbac_user_has_role(request.user, "orgs.org.%s.edit" % org_id):
-        return rbac_forbidden(request, "orgs.org.%s.edit" % org_id)
-
-    org = get_object_or_404(Organisation, pk=org_id)
-    congresses = CongressMaster.objects.filter(org=org)
-    rbac_groups = (
-        RBACGroupRole.objects.filter(app="events")
-        .filter(model="org")
-        .filter(model_id=org_id)
-    )
-
-    return render(
-        request,
-        "organisations/club_portal.html",
-        {"org": org, "congresses": congresses, "rbac_groups": rbac_groups},
-    )
-
-
-@login_required()
 def admin_add_club(request):
     """Add a club to the system. For State or ABF Administrators
 
@@ -515,3 +487,27 @@ def admin_club_rbac_convert_advanced_to_basic(request, club_id):
         )
 
     return redirect("organisations:admin_club_rbac", club_id=club.id)
+
+
+@login_required()
+def club_admin(request, club_id):
+    """Edit details about an organisation
+
+    Args:
+        club_id - organisation to view
+
+    Returns:
+        HttpResponse - page to edit organisation
+    """
+    # if not rbac_user_has_role(request.user, "orgs.org.%s.edit" % org_id):
+    #     return rbac_forbidden(request, "orgs.org.%s.edit" % org_id)
+
+    club = get_object_or_404(Organisation, pk=club_id)
+
+    return render(
+        request,
+        "organisations/club_admin.html",
+        {
+            "club": club,
+        },
+    )
