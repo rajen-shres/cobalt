@@ -20,17 +20,33 @@
             </li>
         {% endfor %}
     </ul>
-    <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#userSearchModal">Add 1</button>
+    <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#userSearchModal">Add</button>
 
 </div>
 
-{% include "accounts/user_search_include_htmx.html" %}
+{% include "accounts/user_search_include_htmx.html"  %}
 
 
 <script>
+
     function cobaltMemberSearchOk(id, name){
-        console.log("No number");
-        console.log(id);
-        console.log(name);
+        // Add user if search is successful
+        const postData = {
+            'club_id': {{ club.id }},
+            'user_id': id
+        }
+
+        // post data
+        $.ajax({
+            url: '{% url "organisations:club_admin_access_basic_add_user_htmx" %}',
+            method: "POST",
+            headers: {'X-CSRFToken': '{{ csrf_token }}'},
+            data: postData,
+        }).done(function(data) {
+            // update our div with new data
+            $('#access-basic').html(data);
+            // We did this outside HTMX so let it know
+            htmx.process(document.body);
+        });
     }
 </script>

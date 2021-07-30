@@ -1,4 +1,5 @@
 from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
@@ -545,6 +546,37 @@ def club_admin_access_basic_delete_user_htmx(request, club_id, user_id):
 
     group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
     rbac_remove_user_from_group(user, group)
+
+    access_users, access_roles = _club_menu_access_basic(club)
+
+    return render(
+        request,
+        "organisations/club_menu_sub_access_basic.html",
+        {
+            "club": club,
+            "access_users": access_users,
+            "access_roles": access_roles,
+        },
+    )
+
+
+@login_required()
+def club_admin_access_basic_add_user_htmx(request):
+    """Add a user to club rbac basic group. Returns HTMX"""
+
+    # TODO: RBAC
+    if request.method != "POST":
+        return HttpResponse("Error")
+
+    # Get form parameters
+    club_id = request.POST.get("club_id")
+    user_id = request.POST.get("user_id")
+
+    club = get_object_or_404(Organisation, pk=club_id)
+    user = get_object_or_404(User, pk=user_id)
+
+    group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
+    rbac_add_user_to_group(user, group)
 
     access_users, access_roles = _club_menu_access_basic(club)
 

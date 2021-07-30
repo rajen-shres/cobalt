@@ -22,7 +22,7 @@ To use it, add the following to your HTML template::
 
     {% block footer %}
     {% include "utils/include_htmx.html" %}
-     {% include "accounts/user_search_include_htmx.html" with search_id={{ search_id %}
+     {% include "accounts/user_search_include_htmx.html" with search_id={{ search_id}} include_me=True %}
 
     <script>
         function cobaltMemberSearchOk{{ search_id }}(id, name){

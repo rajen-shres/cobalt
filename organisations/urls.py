@@ -47,4 +47,9 @@ urlpatterns = [
         views.club_admin_access_basic_delete_user_htmx,
         name="club_admin_access_basic_delete_user_htmx",
     ),
+    path(
+        "admin/access-basic/add-user",
+        views.club_admin_access_basic_add_user_htmx,
+        name="club_admin_access_basic_add_user_htmx",
+    ),
 ]

@@ -873,6 +873,22 @@ def test_email_send(request):
     return HttpResponse("Ok")
 
 
+def _get_exclude_list_for_search(request):
+    """get the exclude list. System IDs and this user are excluded unless include_me is set"""
+
+    # Check for include_me flag, otherwise don't include current user
+    include_me = bool(request.POST.get("include_me"))
+
+    # ignore system accounts
+    exclude_list = [RBAC_EVERYONE, TBA_PLAYER]
+
+    # Ignore this user unless overridden
+    if not include_me:
+        exclude_list.append(request.user.id)
+
+    return include_me, exclude_list
+
+
 @login_required()
 def member_search_htmx(request):
     """Search on user first and last name"""
@@ -891,14 +907,23 @@ def member_search_htmx(request):
     if not last_name_search and not first_name_search:
         return HttpResponse("")
 
+    # ignore system accounts
+    include_me, exclude_list = _get_exclude_list_for_search(request)
+
     if last_name_search and first_name_search:
-        name_list = User.objects.filter(last_name__istartswith=last_name_search).filter(
-            first_name__istartswith=first_name_search
+        name_list = (
+            User.objects.filter(last_name__istartswith=last_name_search)
+            .filter(first_name__istartswith=first_name_search)
+            .exclude(pk__in=exclude_list)
         )
     elif last_name_search:
-        name_list = User.objects.filter(last_name__istartswith=last_name_search)
+        name_list = User.objects.filter(
+            last_name__istartswith=last_name_search
+        ).exclude(pk__in=exclude_list)
     else:
-        name_list = User.objects.filter(first_name__istartswith=first_name_search)
+        name_list = User.objects.filter(
+            first_name__istartswith=first_name_search
+        ).exclude(pk__in=exclude_list)
 
     # See if there is more data
     more_data = False
@@ -909,7 +934,12 @@ def member_search_htmx(request):
     return render(
         request,
         "accounts/name_search_htmx.html",
-        {"name_list": name_list, "more_data": more_data, "search_id": search_id},
+        {
+            "name_list": name_list,
+            "more_data": more_data,
+            "search_id": search_id,
+            "include_me": include_me,
+        },
     )
 
 
@@ -932,7 +962,14 @@ def system_number_search_htmx(request):
     search_id = request.POST.get("search_id", "")
     print(search_id)
 
-    member = User.objects.filter(system_number=system_number).first()
+    # ignore system accounts
+    _, exclude_list = _get_exclude_list_for_search(request)
+
+    member = (
+        User.objects.filter(system_number=system_number)
+        .exclude(pk__in=exclude_list)
+        .first()
+    )
 
     if member:
         return render(
@@ -956,7 +993,10 @@ def member_match_htmx(request):
     # Get search id
     search_id = request.POST.get("search_id", "")
 
-    member = User.objects.filter(pk=member_id).first()
+    # ignore system accounts
+    _, exclude_list = _get_exclude_list_for_search(request)
+
+    member = User.objects.filter(pk=member_id).exclude(pk__in=exclude_list).first()
 
     if member:
         return render(

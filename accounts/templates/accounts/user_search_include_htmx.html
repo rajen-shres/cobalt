@@ -32,11 +32,11 @@
                                 name="last_name_search"
                                 id="id_last_name_search{{ search_id }}"
                                 hx-post="{% url "accounts:member_search_htmx" %}"
-                                hx-trigger="keyup changed delay:500ms"
+                                hx-trigger="keyup changed delay:100ms"
                                 hx-target="#name-matches{{ search_id }}"
                                 hx-indicator=".htmx-indicator"
-                                {# add search id to hx-vars if it is set, or ignore #}
-                                hx-vars="first_name_search:getFirstName{{ search_id }}(){% if search_id != "" %}, search_id:{{ search_id }}{% endif %}"
+                                {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
+                                hx-vars="first_name_search:getFirstName{{ search_id }}(){% if search_id %}, search_id:{{ search_id }}{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
                             >
                         </div>
                         <div class="col-12 form-group">
@@ -48,11 +48,11 @@
                                 name="first_name_search"
                                 id="id_first_name_search{{ search_id }}"
                                 hx-post="{% url "accounts:member_search_htmx" %}"
-                                hx-trigger="keyup changed delay:500ms"
+                                hx-trigger="keyup changed delay:100ms"
                                 hx-target="#name-matches{{ search_id }}"
                                 hx-indicator=".htmx-indicator"
-                                {# add search id to hx-vars if it is set, or ignore #}
-                                hx-vars="last_name_search:getLastName{{ search_id }}(){% if search_id != "" %}, search_id:{{ search_id }}{% endif %}"
+                                {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
+                                hx-vars="last_name_search:getLastName{{ search_id }}(){% if search_id %}, search_id:{{ search_id }}{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
                             >
                         </div>
                         {% if request.user.system_number_search %}
@@ -65,8 +65,8 @@
                                     hx-post="{% url "accounts:system_number_search_htmx" %}"
                                     hx-target="#name-matches{{ search_id }}"
                                     hx-indicator=".htmx-indicator"
-                                    {# add search id to hx-vars if it is set, or ignore #}
-                                    hx-vars="system_number_search:getSystemNumber{{ search_id }}(){% if search_id != "" %}, search_id:{{ search_id }}{% endif %}"
+                                    {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
+                                    hx-vars="system_number_search:getSystemNumber{{ search_id }}(){% if search_id %}, search_id:{{ search_id }}{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
 
                                 >Lookup Number</button>
                             </div>
