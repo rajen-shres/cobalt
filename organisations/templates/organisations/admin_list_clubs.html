@@ -32,8 +32,8 @@
                                     <td><a href="" class="btn btn-sm btn-success">Edit</a>
                                         <a href="{% url "organisations:admin_club_rbac" club_id=club.id %}"
                                             class="btn btn-sm btn-rose">RBAC</a>
-                                        <a href="{% url "organisations:club_admin" club_id=club.id %}"
-                                            class="btn btn-sm btn-info">Club Admin</a>
+                                        <a href="{% url "organisations:club_menu" club_id=club.id %}"
+                                            class="btn btn-sm btn-info">Club Menu</a>
                                     </td>
                                 </tr>
                             {% endfor %}

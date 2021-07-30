@@ -157,7 +157,7 @@ def get_club_details_ajax(request):
 
     return render(
         request,
-        "organisations/admin_add_club_ajax.html",
+        "organisations/admin_add_club_htmx.html",
         {
             "form": form,
             "club_number": club_number,
@@ -192,6 +192,6 @@ def club_name_search_ajax(request):
 
     return render(
         request,
-        "organisations/admin_club_search_ajax.html",
+        "organisations/admin_club_search_htmx.html",
         {"club_list": club_list, "more_data": more_data},
     )

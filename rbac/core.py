@@ -884,14 +884,57 @@ def rbac_get_groups_for_role(role):
     ).filter(Q(action=action) | Q(action="All"))
 
 
-def rbac_get_users_in_group(groupname):
-    """returns a list of users in a group or None"""
-    parts = groupname.split(".")
-    name_qualifier = ".".join(parts[:-1])
-    name_item = parts[len(parts) - 1]
-    group = RBACGroup.objects.filter(
-        name_qualifier=name_qualifier, name_item=name_item
-    ).first()
+def rbac_get_roles_for_group(group):
+    """list roles that are provided by a group.
+
+    e.g. if group 17 has RBACGroupRoles:
+        app.model.model_id.action
+        org.pencil.12.edit
+        payments.chair.12.view
+
+        This will return:
+        [
+        {'app': 'org', 'model': 'pencil', 'action': 'edit'},
+        {'app': 'payments', 'model': 'chair', 'action': 'view'}
+        ]
+
+    Args:
+        group(RBACGroup): group to check
+
+    Returns:
+       queryset dictionary: app, model, action
+
+    """
+
+    return RBACGroupRole.objects.filter(group=group).values("app", "model", "action")
+
+
+def rbac_get_users_in_group_by_name(group_name):
+    """returns a list of users in a group using the group name
+
+    Args:
+        group_name(str): group name to check
+
+    Returns:
+        list: List of users
+
+    """
+
+    group = rbac_get_group_by_name(group_name)
+    return rbac_get_users_in_group(group)
+
+
+def rbac_get_users_in_group(group):
+    """returns a list of users in a group
+
+    Args:
+        group(RBACGroup): group to check
+
+    Returns:
+        list: List of users
+
+    """
+
     return User.objects.filter(rbacusergroup__group=group).order_by("first_name")
 
 

@@ -1,0 +1,26 @@
+{% load static %}
+<div id="access-basic">
+    <h2>Access</h2>
+    <h3>What You Can Do</h3>
+
+    <ul>
+        {% for role in access_roles %}
+            <li>{{ role }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Who Can Do It</h3>
+    <ul>
+        {% for user in access_users %}
+            <li>{{ user }}
+                {% include "utils/htmx_delete_modal.html" with id=user.id message=user.first_name hx_target="#access-basic" hx_post=user.hx_post %}
+                <button type="button" class="btn btn-sm btn-danger fade-me-out" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
+                    Delete
+                </button>
+            </li>
+        {% endfor %}
+    </ul>
+
+
+
+</div>

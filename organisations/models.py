@@ -125,6 +125,30 @@ class Organisation(models.Model):
 
         return default.default_org_fee_percent
 
+    @property
+    def rbac_name_qualifier(self):
+        """We use the rbac name qualifier a lot for clubs. Neater to have as a property
+
+        This shows where in the RBAC tree this club lives.
+
+        """
+
+        return "rbac.orgs.clubs.generated.%s.%s" % (
+            self.state.lower(),
+            self.id,
+        )
+
+    @property
+    def rbac_admin_name_qualifier(self):
+        """
+        This shows where in the RBAC admin tree this club lives.
+        """
+
+        return "admin.clubs.generated.%s.%s" % (
+            self.state.lower(),
+            self.id,
+        )
+
     def __str__(self):
         return self.name
 

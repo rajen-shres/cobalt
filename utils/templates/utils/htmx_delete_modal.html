@@ -1,0 +1,40 @@
+{# Bootstrap delete item modal with HTMX #}
+
+{# include this and specify parameters: #}
+{# hx_post   - URL to go to in order to delete item #}
+{# hx_target - CSS identifier of what to replace when done #}
+{# id        - unique identifier for this item #}
+{# message   - message to show to user #}
+
+{# ensure HTMX is included #}
+
+<div class="modal fade" id="deleteModal{{ id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel{{ id }}">Are you sure?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h4>This will delete {{ message }}</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button id="id_delete_button_{{ id }}" type="button" hx-post="{{ hx_post }}" hx-target="{{ hx_target }}" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready( function () {
+
+        {# Hide the modal when the delete is clicked or background stays dark #}
+
+        htmx.on("#id_delete_button_{{ id }}", "click", function(evt) {
+            $('#deleteModal{{ id }}').modal('hide');
+        });
+    });
+</script>

@@ -76,7 +76,7 @@
                     {% csrf_token %}
 
                     <div id="club">
-                        {% include "organisations/admin_add_club_ajax.html" %}
+                        {% include "organisations/admin_add_club_htmx.html" %}
                     </div>
 
                     <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
@@ -108,7 +108,7 @@
                 location.reload();
             }
 
-            // after HTMX reloads the table we want to move the focus down to the firm
+            // after HTMX reloads the table we want to move the focus down to the form
             htmx.on("htmx:after-swap", function(evt) {
                 // only if this targeted the club div
                 if (evt.target.id === "club") {

@@ -36,5 +36,15 @@ urlpatterns = [
         views.admin_club_rbac_convert_basic_to_advanced,
         name="admin_club_rbac_convert_basic_to_advanced",
     ),
-    path("club-admin/<int:club_id>", views.club_admin, name="club_admin"),
+    path(
+        "admin/club-rbac-advanced-to-basic/<int:club_id>",
+        views.admin_club_rbac_convert_advanced_to_basic,
+        name="admin_club_rbac_convert_advanced_to_basic",
+    ),
+    path("club-menu/<int:club_id>", views.club_menu, name="club_menu"),
+    path(
+        "admin/access-basic/delete-user/<int:club_id>/<int:user_id>",
+        views.club_admin_access_basic_delete_user_htmx,
+        name="club_admin_access_basic_delete_user_htmx",
+    ),
 ]

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
+
 {% block content %}
     <div class="jumbotron">
         <div class="card">
@@ -59,7 +60,13 @@
                                 Results go here. Upload files etc.
                             </div>
                             <div class="tab-pane" id="access">
-                                Who has access to what.
+
+                                {% if access_basic %}
+                                    {% include "organisations/club_menu_sub_access_basic.html" %}
+                                {% else %}
+                                    {% include "organisations/club_menu_sub_access_advanced.html" %}
+                                {% endif %}
+
                             </div>
                             <div class="tab-pane" id="settings">
                                 club settings.
@@ -70,3 +77,8 @@
             </div>
         </div>
 {% endblock content %}
+
+{% block footer %}
+    {% include "utils/include_htmx.html" %}
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+{% endblock footer %}

@@ -1,6 +1,7 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from django.utils import timezone
 from django.contrib import messages
 
@@ -23,6 +24,9 @@ from rbac.core import (
     rbac_delete_admin_group_by_name,
     rbac_get_users_in_group,
     rbac_get_admin_group_by_name,
+    rbac_get_roles_for_group,
+    rbac_get_users_in_group_by_name,
+    rbac_remove_user_from_group,
 )
 from rbac.views import rbac_forbidden
 from .forms import OrgForm, OrgFormOld
@@ -156,7 +160,7 @@ def _rbac_user_has_admin(club, user):
 def _rbac_get_basic_and_advanced(club):
     """Get the setup for this club"""
 
-    # Simple is e.g. rbac.orgs.clubs.generated.nsw.34.basic (we can't use the club name as it might change, use pk)
+    # Basic is e.g. rbac.orgs.clubs.generated.nsw.34.basic (we can't use the club name as it might change, use pk)
     rbac_basic = rbac_get_group_by_name(
         "rbac.orgs.clubs.generated.%s.%s.basic" % (club.state.lower(), club.id)
     )
@@ -167,7 +171,7 @@ def _rbac_get_basic_and_advanced(club):
         "rbac.orgs.clubs.generated.%s.%s.conveners" % (club.state.lower(), club.id)
     )
 
-    return rbac_basic, rbac_advanced
+    return bool(rbac_basic), bool(rbac_advanced)
 
 
 @login_required()
@@ -216,12 +220,8 @@ def _admin_club_rbac_add_basic_sub(club):
     """low level steps to add rbac basic for club"""
 
     # Create group
-    name_qualifier = "rbac.orgs.clubs.generated.%s.%s" % (
-        club.state.lower(),
-        club.id,
-    )
     group = rbac_create_group(
-        name_qualifier=name_qualifier,
+        name_qualifier=club.rbac_name_qualifier,
         name_item="basic",
         description=f"Basic security group for org {club.id} ({club.name})",
     )
@@ -240,12 +240,8 @@ def _admin_club_rbac_add_basic_sub(club):
         )
 
     # Add admin - no need to add roles, the tree is enough for user admin
-    admin_name_qualifier = "admin.clubs.generated.%s.%s" % (
-        club.state.lower(),
-        club.id,
-    )
     admin_group = rbac_create_admin_group(
-        name_qualifier=admin_name_qualifier,
+        name_qualifier=club.rbac_admin_name_qualifier,
         name_item="admin",
         description=f"Admin people for {club.id} ({club.name})",
     )
@@ -253,7 +249,7 @@ def _admin_club_rbac_add_basic_sub(club):
 
     # Don't give user tree access to this branch or they can create new groups
     # TODO: Test this
-    rbac_admin_add_tree_to_group(admin_group, name_qualifier + ".basic")
+    rbac_admin_add_tree_to_group(admin_group, club.rbac_admin_name_qualifier + ".basic")
 
 
 @login_required()
@@ -299,18 +295,10 @@ def _admin_club_rbac_add_advanced_sub(club):
     """low level steps to add rbac advanced for club"""
 
     # Create groups
-    name_qualifier = "rbac.orgs.clubs.generated.%s.%s" % (
-        club.state.lower(),
-        club.id,
-    )
 
-    # Acreate admin group - no need to add roles, the tree is enough for user admin
-    admin_name_qualifier = "admin.clubs.generated.%s.%s" % (
-        club.state.lower(),
-        club.id,
-    )
+    # Create admin group - no need to add roles, the tree is enough for user admin
     admin_group = rbac_create_admin_group(
-        name_qualifier=admin_name_qualifier,
+        name_qualifier=club.rbac_admin_name_qualifier,
         name_item="admin",
         description=f"Admin people for {club.id} ({club.name})",
     )
@@ -319,7 +307,7 @@ def _admin_club_rbac_add_advanced_sub(club):
     # Add roles - multiple groups with a single role each
     for rule in ORGS_RBAC_GROUPS_AND_ROLES:
         group = rbac_create_group(
-            name_qualifier=name_qualifier,
+            name_qualifier=club.rbac_name_qualifier,
             name_item=rule,
             description=f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} {club.id} ({club.name})",
         )
@@ -335,7 +323,7 @@ def _admin_club_rbac_add_advanced_sub(club):
             model_id=club.id,
         )
         # Add admin tree
-        rbac_admin_add_tree_to_group(admin_group, name_qualifier + f".{rule}")
+        rbac_admin_add_tree_to_group(admin_group, club.rbac_name_qualifier + f".{rule}")
 
 
 @login_required()
@@ -407,17 +395,12 @@ def admin_club_rbac_convert_basic_to_advanced(request, club_id):
             club.state.lower(),
             club.id,
         )
-        users = rbac_get_users_in_group(old_group_name)
-
-        name_qualifier = "rbac.orgs.clubs.generated.%s.%s" % (
-            club.state.lower(),
-            club.id,
-        )
+        users = rbac_get_users_in_group_by_name(old_group_name)
 
         # add all users to all advanced groups. Admin can filter out later. This is the same access they had before
         for user in users:
             for rule in ORGS_RBAC_GROUPS_AND_ROLES:
-                group = rbac_get_group_by_name(f"{name_qualifier}.{rule}")
+                group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
                 rbac_add_user_to_group(user, group)
 
         # delete basic
@@ -436,7 +419,7 @@ def admin_club_rbac_convert_basic_to_advanced(request, club_id):
 
 @login_required()
 def admin_club_rbac_convert_advanced_to_basic(request, club_id):
-    """Change rbac setup for a club basic -> advanced"""
+    """Change rbac setup for a club advanced -> basic"""
 
     # Get club
     club = get_object_or_404(Organisation, pk=club_id)
@@ -460,17 +443,12 @@ def admin_club_rbac_convert_advanced_to_basic(request, club_id):
         _admin_club_rbac_add_basic_sub(club)
 
         # migrate access across - any user goes into the one group
-        name_qualifier = "rbac.orgs.clubs.generated.%s.%s" % (
-            club.state.lower(),
-            club.id,
-        )
-
         # find the newly created basic group
-        new_group = rbac_get_group_by_name(f"{name_qualifier}.basic")
+        new_group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
 
         # Go through adding users from old structure to basic group and deleting old groups
         for rule in ORGS_RBAC_GROUPS_AND_ROLES:
-            old_group = rbac_get_group_by_name(f"{name_qualifier}.{rule}")
+            old_group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
             users = rbac_get_users_in_group(old_group)
             # Add all users to group
             for user in users:
@@ -482,16 +460,44 @@ def admin_club_rbac_convert_advanced_to_basic(request, club_id):
 
         messages.success(
             request,
-            "Club set up with Advanced RBAC. Check permissions, all users will have every access.",
+            "Club changed to Basic RBAC.",
             extra_tags="cobalt-message-success",
         )
 
     return redirect("organisations:admin_club_rbac", club_id=club.id)
 
 
+def _club_menu_access_basic(club):  # sourcery skip: list-comprehension
+    """Do the work for the Access tab on the club menu for basic RBAC."""
+
+    group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
+    users = rbac_get_users_in_group(group)
+
+    for user in users:
+        user.hx_post = reverse(
+            "organisations:club_admin_access_basic_delete_user_htmx",
+            kwargs={"club_id": club.id, "user_id": user.id},
+        )
+
+    roles = []
+    for rule in ORGS_RBAC_GROUPS_AND_ROLES:
+        roles.append(f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} {club}")
+
+    return users, roles
+
+
+def _club_menu_access_advanced(club):
+    """Do the work for the Access tab on the club menu for advanced RBAC."""
+
+    return None
+
+
 @login_required()
-def club_admin(request, club_id):
-    """Edit details about an organisation
+def club_menu(request, club_id):
+    """Main menu for club administrators to handle things.
+
+    This use a tabbed navigation panel with each tab providing distinct information.
+    We use a different sub function to prepare the information for each tab to keep it clean.
 
     Args:
         club_id - organisation to view
@@ -499,15 +505,55 @@ def club_admin(request, club_id):
     Returns:
         HttpResponse - page to edit organisation
     """
-    # if not rbac_user_has_role(request.user, "orgs.org.%s.edit" % org_id):
-    #     return rbac_forbidden(request, "orgs.org.%s.edit" % org_id)
+
+    # Check access
+    # TODO: Work out what group to use
+    # if not rbac_user_has_role(request.user, "orgs.org.%s.edit" % club_id):
+    #     return rbac_forbidden(request, "orgs.org.%s.edit" % club_id)
 
     club = get_object_or_404(Organisation, pk=club_id)
 
+    # Access tab - we have basic or advanced which are very different so use two functions for this
+    rbac_basic, rbac_advanced = _rbac_get_basic_and_advanced(club)
+
+    if rbac_basic:
+
+        access_users, access_roles = _club_menu_access_basic(club)
+    else:
+        access = _club_menu_access_advanced(club)
+        print(access)
+
     return render(
         request,
-        "organisations/club_admin.html",
+        "organisations/club_menu.html",
         {
             "club": club,
+            "access_basic": rbac_basic,
+            "access_users": access_users,
+            "access_roles": access_roles,
+        },
+    )
+
+
+@login_required()
+def club_admin_access_basic_delete_user_htmx(request, club_id, user_id):
+    """Remove a user from club rbac basic group. Returns HTMX"""
+
+    # TODO: RBAC
+    club = get_object_or_404(Organisation, pk=club_id)
+    user = get_object_or_404(User, pk=user_id)
+
+    group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
+    rbac_remove_user_from_group(user, group)
+
+    access_users, access_roles = _club_menu_access_basic(club)
+
+    return render(
+        request,
+        "organisations/club_menu_sub_access_basic.html",
+        {
+            "club": club,
+            "access_users": access_users,
+            "access_roles": access_roles,
         },
     )

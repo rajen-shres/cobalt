@@ -15,6 +15,7 @@ from rbac.core import (
     rbac_get_users_in_group,
     rbac_add_user_to_group,
     rbac_get_users_with_role,
+    rbac_get_users_in_group_by_name,
 )
 from cobalt.settings import COBALT_HOSTNAME
 from notifications.views import contact_member
@@ -151,9 +152,7 @@ def post_detail(request, pk):
                 "link_text": "Go To Reply",
             }
 
-            html_msg = render_to_string(
-                "notifications/email_with_button.html", context
-            )
+            html_msg = render_to_string("notifications/email_with_button.html", context)
 
             msg = "New Comment by %s on %s" % (request.user, post.post.title)
 
@@ -229,7 +228,7 @@ def post_detail(request, pk):
 @login_required()
 @transaction.atomic
 def post_new(request, forum_id=None):
-    """ Create a new post in a forum """
+    """Create a new post in a forum"""
 
     if request.method == "POST":
         form = PostForm(request.POST)
@@ -264,7 +263,7 @@ def post_new(request, forum_id=None):
 
             post.save()
 
-            notify_me = form.cleaned_data['get_notified_of_replies']
+            notify_me = form.cleaned_data["get_notified_of_replies"]
             if notify_me == "True":
                 add_listener(
                     member=request.user,
@@ -706,7 +705,7 @@ def forum_delete_ajax(request, forum_id):
 
 @login_required()
 def comment_edit_common(request, comment, comment_type):
-    """ common code for editing c1 and c2 """
+    """common code for editing c1 and c2"""
 
     role = "forums.forum.%s.create" % comment.post.forum.id
 
@@ -778,7 +777,7 @@ def comment2_edit(request, comment_id):
 
 @login_required()
 def forum_edit(request, forum_id):
-    """ View to allow an admin to edit a forums settings """
+    """View to allow an admin to edit a forums settings"""
 
     # Moderators or forum admins can do this
     if not (
@@ -804,7 +803,9 @@ def forum_edit(request, forum_id):
     else:
         form = ForumForm(instance=forum)
 
-    blocked_users = rbac_get_users_in_group(f"forums.forum.{forum_id}.blocked_users")
+    blocked_users = rbac_get_users_in_group_by_name(
+        f"forums.forum.{forum_id}.blocked_users"
+    )
 
     return render(
         request,
@@ -820,7 +821,7 @@ def forum_edit(request, forum_id):
 
 @login_required()
 def block_user(request, user_id, forum_id):
-    """ stop a user from being able to post to a forum """
+    """stop a user from being able to post to a forum"""
 
     if not (
         rbac_user_has_role(request.user, "forums.admin.edit")
@@ -866,7 +867,7 @@ def block_user(request, user_id, forum_id):
 
 @login_required()
 def unblock_user(request, user_id, forum_id):
-    """ remove block on a user so they can post to a forum """
+    """remove block on a user so they can post to a forum"""
 
     if not (
         rbac_user_has_role(request.user, "forums.admin.edit")
@@ -892,7 +893,7 @@ def unblock_user(request, user_id, forum_id):
 
 @login_required()
 def report_abuse(request):
-    """ Ajax call to report a post or comment that someone doesn't like """
+    """Ajax call to report a post or comment that someone doesn't like"""
 
     if request.method == "POST":
         data = json.loads(request.body.decode("utf-8"))
@@ -927,7 +928,7 @@ def report_abuse(request):
 
 
 def notify_moderators_of_abuse(post, c1, c2, user, author, reason):
-    """ Let moderators know about a complaint """
+    """Let moderators know about a complaint"""
 
     moderators = rbac_get_users_with_role("forums.moderate.%s.edit" % post.forum.id)
 
@@ -976,7 +977,7 @@ def notify_moderators_of_abuse(post, c1, c2, user, author, reason):
 
 
 def forums_status_summary():
-    """ Used by utils status to check on the health of forums """
+    """Used by utils status to check on the health of forums"""
 
     latest_post = Post.objects.all().order_by("-created_date").first()
     latest_c1 = Comment1.objects.all().order_by("-created_date").first()
