@@ -1,0 +1,34 @@
+<div class="card card-profile px-5">
+    <div class="card-body">
+        <img class="cobalt-rounded" src="/media/{{ member.pic }}" />
+        <h3>{{ member.full_name }}</h3>
+        <h4>{{ GLOBAL_ORG }} Number: {{ member.system_number }}</h4>
+        {% for club in clubs %}
+            <h4>{{ club.organisation }}</h4>
+        {% endfor %}
+    </div>
+    <div class="row justify-content-center">
+        <button id="id_cobalt_search_ok{{ search_id}}" class="btn btn-sm btn-success">Ok</button>
+        <button id="id_cobalt_search_cancel{{ search_id}}" class="btn btn-sm btn-secondary">Cancel</button>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // on cancel button being clicked hide all modals
+        $('#id_cobalt_search_cancel{{ search_id}}').click(function(){
+            $(".modal").modal('hide');
+        })
+
+        // on ok being clicked call a function within the main code
+        // We use the search_id to identify which function to call
+        $('#id_cobalt_search_ok{{ search_id}}').click(function(){
+            $(".modal").modal('hide');
+            try {
+                cobaltMemberSearchOk{{ search_id }}({{ member.id }}, "{{ member }}" );
+            } catch (error) {
+                // no function defined in calling module - just ignore
+            }
+        });
+    });
+</script>

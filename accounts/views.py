@@ -871,3 +871,98 @@ def test_email_send(request):
     email_sender.send()
 
     return HttpResponse("Ok")
+
+
+@login_required()
+def member_search_htmx(request):
+    """Search on user first and last name"""
+
+    if request.method != "POST":
+        return HttpResponse("Error")
+
+    # Get search id
+    search_id = request.POST.get("search_id", "")
+
+    # Get partial first name to search for from form
+    last_name_search = request.POST.get("last_name_search")
+    first_name_search = request.POST.get("first_name_search")
+
+    # If user enters data and then deletes it we can get nothing through - ignore
+    if not last_name_search and not first_name_search:
+        return HttpResponse("")
+
+    if last_name_search and first_name_search:
+        name_list = User.objects.filter(last_name__istartswith=last_name_search).filter(
+            first_name__istartswith=first_name_search
+        )
+    elif last_name_search:
+        name_list = User.objects.filter(last_name__istartswith=last_name_search)
+    else:
+        name_list = User.objects.filter(first_name__istartswith=first_name_search)
+
+    # See if there is more data
+    more_data = False
+    if name_list.count() > 10:
+        more_data = True
+        name_list = name_list[:10]
+
+    return render(
+        request,
+        "accounts/name_search_htmx.html",
+        {"name_list": name_list, "more_data": more_data, "search_id": search_id},
+    )
+
+
+@login_required()
+def system_number_search_htmx(request):
+    """Search on system number"""
+
+    if request.method != "POST":
+        return HttpResponse("Error")
+
+    # Get partial first name to search for from form
+    system_number = request.POST.get("system_number_search")
+
+    if system_number == "":
+        return HttpResponse(
+            "<span class='cobalt-form-error''>Enter a number to look up, or type in the name fields</span>"
+        )
+
+    # Get search id
+    search_id = request.POST.get("search_id", "")
+    print(search_id)
+
+    member = User.objects.filter(system_number=system_number).first()
+
+    if member:
+        return render(
+            request,
+            "accounts/name_match_htmx.html",
+            {"member": member, "search_id": search_id},
+        )
+    else:
+        return HttpResponse("No match found")
+
+
+@login_required()
+def member_match_htmx(request):
+    """show member details when a user picks from the list of matches"""
+
+    if request.method != "POST":
+        return HttpResponse("Error")
+
+    member_id = request.POST.get("member_id")
+
+    # Get search id
+    search_id = request.POST.get("search_id", "")
+
+    member = User.objects.filter(pk=member_id).first()
+
+    if member:
+        return render(
+            request,
+            "accounts/name_match_htmx.html",
+            {"member": member, "search_id": search_id},
+        )
+    else:
+        return HttpResponse("No match found")

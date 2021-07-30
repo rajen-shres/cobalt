@@ -33,4 +33,11 @@ urlpatterns = [
     path("user-signed-up-list", views.user_signed_up_list, name="user_signed_up_list"),
     path("delete-photo", views.delete_photo, name="delete_photo"),
     path("test_email_send", views.test_email_send, name="test_email_send"),
+    path("search/member-search", views.member_search_htmx, name="member_search_htmx"),
+    path(
+        "search/system-number-search",
+        views.system_number_search_htmx,
+        name="system_number_search_htmx",
+    ),
+    path("search/member-match", views.member_match_htmx, name="member_match_htmx"),
 ]

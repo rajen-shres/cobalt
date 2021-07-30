@@ -80,7 +80,7 @@ def org_detail_ajax(request):
 
 
 @login_required()
-def get_club_details_ajax(request):
+def get_club_details_htmx(request):
     """Get details about club from Masterpoints centre
     This request is called by HTMX and returns HTML, not json"""
 
@@ -171,7 +171,7 @@ def get_club_details_ajax(request):
 
 
 @login_required()
-def club_name_search_ajax(request):
+def club_name_search_htmx(request):
     """Get list of matching club names from Masterpoints centre"""
 
     if request.method != "POST" or "club_name_search" not in request.POST:

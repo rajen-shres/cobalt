@@ -11,6 +11,39 @@ Utilities Overview
 Generic User Search
 -------------------
 
+This replaces the original generic user search which is still in the
+documentation below to allow supporting older code within Cobalt.
+
+This is the preferred version for all new work.
+
+The user search uses HTMX for a much cleaner coding experience.
+
+To use it, add the following to your HTML template::
+
+    {% block footer %}
+    {% include "utils/include_htmx.html" %}
+     {% include "accounts/user_search_include_htmx.html" with search_id={{ search_id %}
+
+    <script>
+        function cobaltMemberSearchOk{{ search_id }}(id, name){
+        // do something
+            console.log(id);
+            console.log(name);
+        }
+    </script>
+    {% endblock footer %}
+
+To call it add a line to your HTML body::
+
+   <button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal{{ search_id }}">Add</button>
+
+Drop the search id if you only have one user search on your page.
+
+The user search dynamically adds functions using HTMX.
+
+Generic User Search - Old. Do Not Use
+-------------------------------------
+
 This is a client side utility that shows a pop up box for the user to search
 for another user. In order to implement this you need to do 4 things:
 
@@ -63,6 +96,41 @@ Bringing it all together to make it easier to cut and paste::
 
     </script>
     {% endblock %}
+
+Delete Modal
+------------
+
+You often want to warn a user that they are about to delete something.
+The delete modal (using HTMX) can handle this for you, e.g.::
+
+    <ul>
+        {% for user in users %}
+            <li>{{ user }}
+                {% include "utils/htmx_delete_modal.html" with id=user.id message=user.first_name hx_target="#access-basic" hx_post=user.hx_post %}
+                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
+                    Delete
+                </button>
+            </li>
+        {% endfor %}
+    </ul>
+
+hx_target specifies which CSS identifier to replace with the results.
+
+You need to add an attribute to your list of objects called hx_post to
+define what the url should be for the delete action. You can do this in
+your code with something like::
+
+    for user in users:
+        user.hx_post = reverse(
+            "organisations:club_admin_access_basic_delete_user_htmx",
+            kwargs={"club_id": club.id, "user_id": user.id},
+        )
+
+Usually hx_target will point to your list that includes the item you
+are deleting and your delete function needs to return a replacement list.
+When building the list initially you should separate the list code
+into a separate HTMX.HTML document and include it so that the list code
+is re-used by the initial and the replace (delete) functionality.
 
 Pagination Footer
 -----------------

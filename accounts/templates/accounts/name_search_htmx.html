@@ -1,0 +1,18 @@
+{# HTMX returns this to replace the HTML. This is a list of matching names #}
+
+<ul>
+    {% for name in name_list %}
+        <li class="cobalt-button-as-link"
+            hx-post="{% url "accounts:member_match_htmx" %}"
+            hx-target="#name-matches{{ search_id }}"
+            hx-indicator=".htmx-indicator"
+            {# add search id to hx-vars if it is set, or ignore #}
+            hx-vars="member_id:{{ name.id }}{% if search_id != "" %}, search_id:{{ search_id }}{% endif %}"
+        >{{ name }}</li>
+    {% empty %}
+        <h4>No Matches</h4>
+    {% endfor %}
+</ul>
+{% if more_data %}
+    <i>More Results</i>
+{% endif %}

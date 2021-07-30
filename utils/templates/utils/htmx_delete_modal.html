@@ -31,7 +31,7 @@
 <script>
     $(document).ready( function () {
 
-        {# Hide the modal when the delete is clicked or background stays dark #}
+        {# Hide the modal when the delete is clicked, or background stays dark #}
 
         htmx.on("#id_delete_button_{{ id }}", "click", function(evt) {
             $('#deleteModal{{ id }}').modal('hide');

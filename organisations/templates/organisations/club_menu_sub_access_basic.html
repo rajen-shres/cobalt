@@ -14,13 +14,23 @@
         {% for user in access_users %}
             <li>{{ user }}
                 {% include "utils/htmx_delete_modal.html" with id=user.id message=user.first_name hx_target="#access-basic" hx_post=user.hx_post %}
-                <button type="button" class="btn btn-sm btn-danger fade-me-out" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
+                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
                     Delete
                 </button>
             </li>
         {% endfor %}
     </ul>
-
-
+    <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#userSearchModal">Add 1</button>
 
 </div>
+
+{% include "accounts/user_search_include_htmx.html" %}
+
+
+<script>
+    function cobaltMemberSearchOk(id, name){
+        console.log("No number");
+        console.log(id);
+        console.log(name);
+    }
+</script>
