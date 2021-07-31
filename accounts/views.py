@@ -933,7 +933,7 @@ def member_search_htmx(request):
 
     return render(
         request,
-        "accounts/name_search_htmx.html",
+        "accounts/member_search_htmx.html",
         {
             "name_list": name_list,
             "more_data": more_data,

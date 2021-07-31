@@ -39,7 +39,43 @@ To call it add a line to your HTML body::
 
 Drop the search id if you only have one user search on your page.
 
-The user search dynamically adds functions using HTMX.
+Drop the include_me option if you do not want the logged in user to be included in the search results.
+
+The user search dynamically adds functions using HTMX (https://htmx.org).
+
+Design
+^^^^^^
+
+If you have to support this, here is how it works.
+
+It starts with user_search_include_htmx.html which has the modal and the HTMX calls to load the next parts. The bottom
+of the modal has a div that gets populated with the response from the server, either the user that is found or errors,
+or for the name searches a list of matches.
+
+The modal is brought to the front by the button in the calling code.
+
+The searches and templates are:
+
+URL
+accounts:member_search_htmx
+
+.. list-table:: Other Components
+   :header-rows: 1
+
+   * - URL
+     - View
+     - Template
+   * - views.member_search_htmx
+     - views.member_search_htmx
+     - member_search_htmx.html
+   * - system_number_search_htmx
+     - system_number_search_htmx
+     - name_match_htmx.html
+   * - member_match_htmx
+     - member_match_htmx
+     - name_match_htmx.html
+
+System_number_search returns the member_match template if it finds a match or sends an error itself.
 
 Generic User Search - Old. Do Not Use
 -------------------------------------
@@ -106,7 +142,7 @@ The delete modal (using HTMX) can handle this for you, e.g.::
     <ul>
         {% for user in users %}
             <li>{{ user }}
-                {% include "utils/htmx_delete_modal.html" with id=user.id message=user.first_name hx_target="#access-basic" hx_post=user.hx_post %}
+                {% include "utils/htmx_delete_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-basic" hx_post=user.hx_post %}
                 <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
                     Delete
                 </button>
@@ -115,6 +151,9 @@ The delete modal (using HTMX) can handle this for you, e.g.::
     </ul>
 
 hx_target specifies which CSS identifier to replace with the results.
+
+You can specify either delete_item, which will be inserted into a generic string, or
+delete_message which will totally replace the generic string.
 
 You need to add an attribute to your list of objects called hx_post to
 define what the url should be for the delete action. You can do this in
