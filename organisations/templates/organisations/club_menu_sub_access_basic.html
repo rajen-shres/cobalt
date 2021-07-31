@@ -1,27 +1,6 @@
 {% load static %}
 <div id="access-basic">
-    <h2>Access</h2>
-    <h3>What You Can Do</h3>
-
-    <ul>
-        {% for role in access_roles %}
-            <li>{{ role }}</li>
-        {% endfor %}
-    </ul>
-
-    <h3>Who Can Do It</h3>
-    <ul>
-        {% for user in access_users %}
-            <li>{{ user }}
-                {% include "utils/htmx_delete_modal.html" with id=user.id message=user.first_name hx_target="#access-basic" hx_post=user.hx_post %}
-                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
-                    Delete
-                </button>
-            </li>
-        {% endfor %}
-    </ul>
-    <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#userSearchModal">Add</button>
-
+    {% include "organisations/club_menu_sub_access_basic_div_htmx.html" %}
 </div>
 
 {% include "accounts/user_search_include_htmx.html"  %}

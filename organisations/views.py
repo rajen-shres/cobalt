@@ -551,7 +551,7 @@ def club_admin_access_basic_delete_user_htmx(request, club_id, user_id):
 
     return render(
         request,
-        "organisations/club_menu_sub_access_basic.html",
+        "organisations/club_menu_sub_access_basic_div_htmx.html",
         {
             "club": club,
             "access_users": access_users,
@@ -582,7 +582,7 @@ def club_admin_access_basic_add_user_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu_sub_access_basic.html",
+        "organisations/club_menu_sub_access_basic_div_htmx.html",
         {
             "club": club,
             "access_users": access_users,

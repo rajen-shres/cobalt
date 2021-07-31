@@ -20,9 +20,16 @@ Some ABF specific things are also stored in Confluence.
 User Guides
 ===========
 
-These are links to documents that describe each module.
+Here are pages that describe things relevant to Cobalt in general:
 
 * :doc:`development_overview`
+* :doc:`design_overview`
+* :doc:`security_overview`
+* :doc:`testing_overview`
+* :doc:`test_data_overview`
+
+Here are links to documents that describe specific modules.
+
 * :doc:`payments_overview`
 * :doc:`events_overview`
 * :doc:`notifications_overview`
@@ -31,10 +38,7 @@ These are links to documents that describe each module.
 * :doc:`forums_overview`
 * :doc:`notifications_overview`
 * :doc:`utilities_overview`
-* :doc:`security_overview`
 * :doc:`support_overview`
-* :doc:`testing_overview`
-* :doc:`test_data_overview`
 
 
 .. toctree::
