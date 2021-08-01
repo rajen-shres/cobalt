@@ -224,57 +224,19 @@ def contact(request):
 def browser_errors(request):
     """receive errors from browser code and notify support"""
 
-    if request.method == "POST":
-        data = request.POST.get("data", None)
-        if data:
-            errors = json.loads(data)
+    # Log to stdout only - emails disabled as too much noise from old browser
 
-            # Ignore development
-            if COBALT_HOSTNAME == "127.0.0.1:8000":
+    if request.method == "POST":
+        try:
+            data = request.POST.get("data", None)
+            if data:
+                errors = json.loads(data)
                 print(
                     f"Error from browser ignored: {errors['message']} User: {request.user}"
                 )
-                return HttpResponse("ok")
 
-            IGNORE_ERRORS = [
-                "TypeError: null is not an object",
-                "Uncaught ReferenceError: $sidebar is not defined",
-                "ReferenceError: Can't find variable: $sidebar",
-            ]
-
-            for ignore in IGNORE_ERRORS:
-                if errors["message"].find(ignore) >= 0:
-                    print(
-                        f"Error from browser ignored: {errors['message']} User: {request.user}"
-                    )
-                    return HttpResponse("ok")
-
-            msg = f"""
-                  <table>
-                      <tr><td>Error<td>{errors['message']}</tr>
-                      <tr><td>Line Number<td>{errors['num']}</tr>
-                      <tr><td>Page<td>{errors['url']}</tr>
-                      <tr><td>User<td>{request.user}</tr>
-                  </table>
-            """
-
-            for admin in ADMINS:
-
-                context = {
-                    "name": admin[0].split()[0],
-                    "title": "Some user broke a page again",
-                    "email_body": msg,
-                    "host": COBALT_HOSTNAME,
-                    "link_text": "Set Up Card",
-                }
-
-                html_msg = render_to_string(
-                    "notifications/email-notification-no-button-error.html", context
-                )
-
-                send_cobalt_email(
-                    admin[1], f"{COBALT_HOSTNAME} - Client-side Error", html_msg
-                )
+        except Exception as err:
+            print(err)
 
     return HttpResponse("ok")
 
