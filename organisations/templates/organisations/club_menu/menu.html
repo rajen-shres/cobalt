@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}- Club Menu {{ club }}{% endblock %}
+
+{% block content %}
+
+
+    <h1 class="text-center pt-4">{{ club }}</h1>
+    <h2 class="text-center">Club Menu</h2>
+
+    <div class="card-body">
+        <div class="card">
+            <div class="card-header card-header-secondary">
+                <ul id="id_menu" class="nav nav-pills nav-pills-icons" role="tablist">
+                    <li class="nav-item">
+                        <a id="id_tab_dashboard" class="nav-link" href="#dashboard" role="tab" data-toggle="tab">
+                            <i class="material-icons">space_dashboard</i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#members" role="tab" data-toggle="tab">
+                            <i class="material-icons">manage_accounts</i>
+                            Members
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#congress" role="tab" data-toggle="tab">
+                            <i class="material-icons">book_online</i>
+                            Congresses
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#results" role="tab" data-toggle="tab">
+                            <i class="material-icons">content_paste</i>
+                            Results
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#comms" role="tab" data-toggle="tab">
+                            <i class="material-icons">alternate_email</i>
+                            Communications
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#finance" role="tab" data-toggle="tab">
+                            <i class="material-icons">monetization_on</i>
+                            Finance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#access" role="tab" data-toggle="tab">
+                            <i class="material-icons">face</i>
+                            Access
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#settings" role="tab" data-toggle="tab">
+                            <i class="material-icons">settings</i>
+                            Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content tab-space">
+                    <div class="tab-pane" id="dashboard">
+                        {% include "organisations/club_menu/dashboard.html" %}
+                    </div>
+                    <div class="tab-pane" id="members">
+                        {% include "organisations/club_menu/members.html" %}
+                    </div>
+                    <div class="tab-pane" id="congress">
+                        {% include "organisations/club_menu/congress.html" %}
+                    </div>
+
+                    <div class="tab-pane" id="results">
+                        {% include "organisations/club_menu/results.html" %}
+                    </div>
+                    <div class="tab-pane" id="comms">
+                        {% include "organisations/club_menu/comms.html" %}
+                    </div>
+                    <div class="tab-pane" id="finance">
+                        {% include "organisations/club_menu/finance.html" %}
+                    </div>
+                    <div class="tab-pane  active" id="access">
+
+                        {% if access_basic %}
+                            {% include "organisations/club_menu/access_basic.html" %}
+                        {% else %}
+                            {% include "organisations/club_menu_sub_access_advanced.html" %}
+                        {% endif %}
+
+                    </div>
+                    <div class="tab-pane" id="settings">
+                        {% include "organisations/club_menu/settings.html" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}
+
+{% block footer %}
+    {% include "utils/include_htmx.html" %}
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            // When a tab is clicked the first time we load the data
+            $('#id_menu a').on('click', function (e) {
+                console.log(this.id);
+                htmx.trigger(htmx.find("#id_panel_dashboard"), "myEvent");
+                {#e.preventDefault()#}
+                {#$(this).tab('show')#}
+            })
+        });
+    </script>
+{% endblock footer %}
