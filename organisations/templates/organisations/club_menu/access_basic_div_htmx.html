@@ -1,40 +1,32 @@
 {% load static %}
 {% load cobalt_tags %}
 
-<div class="card">
-    <div class="card-header card-header-danger">
-        <h2>Access</h2>
-    </div>
-    <div class="card-body">
-        <h3>Admin Rights</h3>
+<h3>Admin Rights</h3>
 
-        <ul>
-            {% for role in access_roles %}
-                <li>{{ role }}</li>
+<ul>
+    {% for role in roles %}
+        <li>{{ role }}</li>
+    {% endfor %}
+</ul>
+
+<h3>Administrators</h3>
+<div class="table-responsive col-md-6 col-lg-4">
+    <table class="table table-hover table-condensed">
+        <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user|cobalt_user_link_short }}
+                        {% include "utils/htmx_confirm_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-basic" hx_post=user.hx_post %}
+                        <td><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
+                            Remove
+                        </button>
+                        </tr>
             {% endfor %}
-        </ul>
-
-        <h3>Who Can Do It</h3>
-        <div class="table-responsive col-md-6 col-lg-4">
-            <table class="table table-hover table-condensed">
-                <tbody>
-                    {% for user in access_users %}
-                        <tr>
-                            <td>{{ user|cobalt_user_link_short }}
-                                {% include "utils/htmx_delete_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-basic" hx_post=user.hx_post %}
-                                <td><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
-                                    Remove
-                                </button>
-                                </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal">Add User</button>
-
-
-    </div>
+        </tbody>
+    </table>
 </div>
+
+<button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal">Add User</button>
+
 
 

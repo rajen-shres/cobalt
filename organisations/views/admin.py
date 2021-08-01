@@ -6,7 +6,7 @@ from django.utils import timezone
 from accounts.models import User
 from organisations.forms import OrgForm
 from organisations.models import Organisation, ORGS_RBAC_GROUPS_AND_ROLES
-from organisations.views.general import get_rbac_model_for_state
+from organisations.views import general
 from rbac.core import (
     rbac_user_has_role,
     rbac_get_group_by_name,
@@ -73,7 +73,7 @@ def _rbac_user_has_admin(club, user):
     """Check if this user has access to do rbac admin for this club"""
 
     # Get model id for this state
-    rbac_model_for_state = get_rbac_model_for_state(club.state)
+    rbac_model_for_state = general.get_rbac_model_for_state(club.state)
 
     # Check access
     role = "orgs.state.%s.edit" % rbac_model_for_state
@@ -85,7 +85,7 @@ def _rbac_user_has_admin(club, user):
     return True, None
 
 
-def _rbac_get_basic_and_advanced(club):
+def rbac_get_basic_and_advanced(club):
     """Get the setup for this club"""
 
     # Basic is e.g. rbac.orgs.clubs.generated.nsw.34.basic (we can't use the club name as it might change, use pk)
@@ -119,7 +119,7 @@ def admin_club_rbac(request, club_id):
         return rbac_forbidden(request, role)
 
     # Check rbac setup
-    rbac_basic, rbac_advanced = _rbac_get_basic_and_advanced(club)
+    rbac_basic, rbac_advanced = rbac_get_basic_and_advanced(club)
 
     error = ""
     new_setup = False
@@ -197,7 +197,7 @@ def admin_club_rbac_add_basic(request, club_id):
         return rbac_forbidden(request, role)
 
     # Check rbac setup
-    rbac_basic, rbac_advanced = _rbac_get_basic_and_advanced(club)
+    rbac_basic, rbac_advanced = rbac_get_basic_and_advanced(club)
 
     # Double check before creating
     if rbac_advanced or rbac_basic:
@@ -271,7 +271,7 @@ def admin_club_rbac_add_advanced(request, club_id):
         return rbac_forbidden(request, role)
 
     # Check rbac setup
-    rbac_basic, rbac_advanced = _rbac_get_basic_and_advanced(club)
+    rbac_basic, rbac_advanced = rbac_get_basic_and_advanced(club)
 
     # Double check before creating
     if rbac_advanced or rbac_basic:
@@ -305,7 +305,7 @@ def admin_club_rbac_convert_basic_to_advanced(request, club_id):
         return rbac_forbidden(request, role)
 
     # Check rbac setup
-    rbac_basic, rbac_advanced = _rbac_get_basic_and_advanced(club)
+    rbac_basic, rbac_advanced = rbac_get_basic_and_advanced(club)
 
     # Double check before creating
     if rbac_advanced:
@@ -357,7 +357,7 @@ def admin_club_rbac_convert_advanced_to_basic(request, club_id):
         return rbac_forbidden(request, role)
 
     # Check rbac setup
-    rbac_basic, rbac_advanced = _rbac_get_basic_and_advanced(club)
+    rbac_basic, rbac_advanced = rbac_get_basic_and_advanced(club)
 
     # Double check before creating
     if rbac_basic:

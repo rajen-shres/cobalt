@@ -1,12 +1,12 @@
 {% load static %}
 
 <div class="card">
-    <div class="card-header card-header-primary">
-        <h2>Dashboard</h2>
+    <div class="card-header card-header-danger">
+        <h2>Access</h2>
     </div>
     <div class="card-body">
-        <div id="id_panel_dashboard"
-            hx-post="{% url "organisations:club_menu_tab_dashboard_htmx" %}"
+        <div id="id_panel_access"
+            hx-post="{% url "organisations:club_menu_tab_access_htmx" %}"
             hx-trigger="tab_load_event"
             hx-indicator=".htmx-indicator"
             hx-vars="club_id:{{ club.id }}"

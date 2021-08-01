@@ -1,3 +1,5 @@
+import random
+
 from django import template
 from django.utils.dateformat import DateFormat
 from django.urls import reverse
@@ -136,3 +138,11 @@ def cobalt_currency(dollars):
         intcomma(int(dollars)),
         ("%0.2f" % dollars)[-3:],
     )
+
+
+# Return random bootstrap colour - useful for card headers from lists
+@register.simple_tag(name="cobalt_random_colour")
+def cobalt_random_colour():
+    colours = ["primary", "info", "warning", "danger", "success", "error", "rose"]
+
+    return random.choice(colours)

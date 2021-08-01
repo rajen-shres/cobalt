@@ -1,4 +1,3 @@
-from crispy_forms.helper import FormHelper
 from django import forms
 
 from cobalt.settings import ABF_STATES
@@ -68,7 +67,7 @@ class OrgForm(forms.ModelForm):
     def clean_state(self):
         """check this user has access to this state"""
 
-        from .views import get_rbac_model_for_state
+        from .views.general import get_rbac_model_for_state
 
         state = self.cleaned_data["state"]
         if not state:
