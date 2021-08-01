@@ -4,7 +4,8 @@ from django.urls import path
 import organisations.views.club_menu
 
 import organisations.views.admin
-from . import views, ajax
+from . import ajax
+from .views.general import org_edit
 
 app_name = "organisations"  # pylint: disable=invalid-name
 
@@ -19,7 +20,7 @@ urlpatterns = [
         ajax.club_name_search_htmx,
         name="club_name_search_ajax",
     ),
-    path("edit/<int:org_id>", views.org_edit, name="org_edit"),
+    path("edit/<int:org_id>", org_edit, name="org_edit"),
     path(
         "admin/add-club",
         organisations.views.admin.admin_add_club,

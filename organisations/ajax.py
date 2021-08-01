@@ -10,7 +10,7 @@ from rbac.core import rbac_user_has_role
 from utils.views import masterpoint_query
 from .forms import OrgForm
 from .models import Organisation
-from .views import get_rbac_model_for_state
+from .views.general import get_rbac_model_for_state
 
 
 @login_required()

@@ -6,7 +6,7 @@ from django.utils import timezone
 from accounts.models import User
 from organisations.forms import OrgForm
 from organisations.models import Organisation, ORGS_RBAC_GROUPS_AND_ROLES
-from organisations.views import get_rbac_model_for_state
+from organisations.views.general import get_rbac_model_for_state
 from rbac.core import (
     rbac_user_has_role,
     rbac_get_group_by_name,

@@ -78,7 +78,7 @@ from .core import (
     update_account,
     stripe_current_balance,
 )
-from organisations.views import org_balance
+from organisations.views.general import org_balance
 from .models import (
     MemberTransaction,
     StripeTransaction,

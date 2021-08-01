@@ -1,16 +1,26 @@
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import get_object_or_404, render
-from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.contrib import messages
 
-from .models import Organisation
-from rbac.core import (
-    rbac_user_has_role,
-)
-from rbac.views import rbac_forbidden
-from .forms import OrgFormOld
+from organisations.forms import OrgFormOld
+from organisations.models import Organisation
 from payments.models import OrganisationTransaction
+from rbac.core import rbac_user_has_role
+from rbac.views import rbac_forbidden
+
+
+def org_balance(org, text=None):
+    """return organisation balance. If balance is zero return 0.0 unless
+    text is True, then return "Nil" """
+
+    # get balance
+    last_tran = OrganisationTransaction.objects.filter(organisation=org).last()
+    if last_tran:
+        return last_tran.balance
+    else:
+        return "Nil" if text else 0.0
 
 
 def get_rbac_model_for_state(state):
@@ -62,15 +72,3 @@ def org_edit(request, org_id):
         form = OrgFormOld(instance=org)
 
     return render(request, "organisations/edit_org.html", {"form": form})
-
-
-def org_balance(org, text=None):
-    """return organisation balance. If balance is zero return 0.0 unless
-    text is True, then return "Nil" """
-
-    # get balance
-    last_tran = OrganisationTransaction.objects.filter(organisation=org).last()
-    if last_tran:
-        return last_tran.balance
-    else:
-        return "Nil" if text else 0.0
