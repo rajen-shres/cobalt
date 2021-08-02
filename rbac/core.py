@@ -938,6 +938,22 @@ def rbac_get_users_in_group(group):
     return User.objects.filter(rbacusergroup__group=group).order_by("first_name")
 
 
+def rbac_get_admin_users_in_group(admin_group):
+    """returns a list of users in an admin group
+
+    Args:
+        admin_group(RBACAdminGroup): group to check
+
+    Returns:
+        list: List of users
+
+    """
+
+    return User.objects.filter(rbacadminusergroup__group=admin_group).order_by(
+        "first_name"
+    )
+
+
 def rbac_get_users_with_role(role):
     """returns a list of all users who have a role, either specifically or
     from having the equivalent generic role. E.g. forums.forum.5.view would

@@ -36,7 +36,7 @@
                                 hx-target="#name-matches{{ search_id }}"
                                 hx-indicator=".htmx-indicator"
                                 {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
-                                hx-vars="first_name_search:getFirstName{{ search_id }}(){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
+                                hx-vars="first_name_search:getFirstName('{{ search_id }}'){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
                             >
                         </div>
                         <div class="col-12 form-group">
@@ -52,7 +52,7 @@
                                 hx-target="#name-matches{{ search_id }}"
                                 hx-indicator=".htmx-indicator"
                                 {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
-                                hx-vars="last_name_search:getLastName{{ search_id }}(){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
+                                hx-vars="last_name_search:getLastName('{{ search_id }}'){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
                             >
                         </div>
                         {% if request.user.system_number_search %}
@@ -66,7 +66,7 @@
                                     hx-target="#name-matches{{ search_id }}"
                                     hx-indicator=".htmx-indicator"
                                     {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
-                                    hx-vars="system_number_search:getSystemNumber{{ search_id }}(){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
+                                    hx-vars="system_number_search:getSystemNumber('{{ search_id }}'){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
 
                                 >Lookup Number</button>
                             </div>
@@ -80,25 +80,4 @@
     </div>
 </div>
 
-<script>
-    // get other name to submit with HTMX query
-    function getFirstName{{ search_id }}(){
-        return $('#id_first_name_search{{ search_id }}').val()
-    }
-    function getLastName{{ search_id }}(){
-        return $('#id_last_name_search{{ search_id }}').val()
-    }
-    function getSystemNumber{{ search_id }}(){
-        return $('#id_system_number{{ search_id }}').val()
-    }
 
-    $(document).ready( function () {
-
-        // clear input and result fields if modal gets hidden
-        $(".modal").on("hidden.bs.modal", function(){
-            $(".modal-input").val("");
-            $('#name-matches{{ search_id }}').html("");
-        });
-
-    });
-</script>

@@ -23,6 +23,8 @@ from rbac.core import (
     rbac_remove_user_from_group,
     rbac_get_admin_group_by_name,
     rbac_remove_admin_user_from_group,
+    rbac_get_admin_users_in_group,
+    rbac_add_user_to_admin_group,
 )
 
 from rbac.views import rbac_forbidden
@@ -89,6 +91,32 @@ def access_basic(request, club):  # sourcery skip: list-comprehension
     )
 
 
+def access_basic_div(request, club):  # sourcery skip: list-comprehension
+    """Do the work for the Access tab on the club menu for basic RBAC."""
+
+    group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
+
+    # Get users
+    users = rbac_get_users_in_group(group)
+
+    for user in users:
+        user.hx_post = reverse(
+            "organisations:club_admin_access_basic_delete_user_htmx",
+            kwargs={"club_id": club.id, "user_id": user.id},
+        )
+
+    # Get roles
+    roles = []
+    for rule in ORGS_RBAC_GROUPS_AND_ROLES:
+        roles.append(f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} {club}")
+
+    return render(
+        request,
+        "organisations/club_menu/access_basic_div_htmx.html",
+        {"club": club, "setup": "basic", "users": users, "roles": roles},
+    )
+
+
 def access_advanced(request, club):
     """Do the work for the Access tab on the club menu for advanced RBAC."""
 
@@ -119,12 +147,31 @@ def access_advanced(request, club):
 
         user_roles[rule] = [desc, user_list]
 
-    # TODO: Add admin management
+        # Get admins
+        admin_group = rbac_get_admin_group_by_name(
+            f"{club.rbac_admin_name_qualifier}.admin"
+        )
+        admins = rbac_get_admin_users_in_group(admin_group)
+        admin_list = []
+        for admin in admins:
+            admin.hx_post = reverse(
+                "organisations:access_advanced_delete_admin_htmx",
+                kwargs={
+                    "club_id": club.id,
+                    "user_id": admin.id,
+                },
+            )
+            admin_list.append(admin)
 
     return render(
         request,
         "organisations/club_menu/access_advanced.html",
-        {"club": club, "setup": "advanced", "user_roles": user_roles},
+        {
+            "club": club,
+            "setup": "advanced",
+            "user_roles": user_roles,
+            "admin_list": admin_list,
+        },
     )
 
 
@@ -314,9 +361,9 @@ def access_basic_add_user_htmx(request):
     admin_group = rbac_get_admin_group_by_name(
         f"{club.rbac_admin_name_qualifier}.admin"
     )
-    rbac_add_user_to_group(user, admin_group)
+    rbac_add_user_to_admin_group(user, admin_group)
 
-    return access_basic(request, club)
+    return access_basic_div(request, club)
 
 
 @login_required()
@@ -379,5 +426,47 @@ def access_advanced_delete_user_htmx(request, club_id, user_id, group_name_item)
 
     group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{group_name_item}")
     rbac_remove_user_from_group(user, group)
+
+    return access_advanced(request, club)
+
+
+@login_required()
+def access_advanced_delete_admin_htmx(request, club_id, user_id):
+    """Remove an admin from club rbac advanced group. Returns HTMX"""
+
+    club = get_object_or_404(Organisation, pk=club_id)
+    user = get_object_or_404(User, pk=user_id)
+
+    # Check security
+    allowed, role = _menu_rbac_has_access(club, request.user)
+    if not allowed:
+        return rbac_forbidden(request, role)
+
+    admin_group = rbac_get_admin_group_by_name(
+        f"{club.rbac_admin_name_qualifier}.admin"
+    )
+
+    rbac_remove_admin_user_from_group(user, admin_group)
+
+    return access_advanced(request, club)
+
+
+@login_required()
+def access_advanced_add_admin_htmx(request):
+    """Add an admin to club rbac advanced group. Returns HTMX"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    # Get user
+    user_id = request.POST.get("user_id")
+    user = get_object_or_404(User, pk=user_id)
+
+    admin_group = rbac_get_admin_group_by_name(
+        f"{club.rbac_admin_name_qualifier}.admin"
+    )
+
+    rbac_add_user_to_admin_group(user, admin_group)
 
     return access_advanced(request, club)

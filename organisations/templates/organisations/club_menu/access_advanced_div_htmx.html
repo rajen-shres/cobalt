@@ -1,9 +1,10 @@
 {% load static %}
 {% load cobalt_tags %}
+
+{#RBAC Groups#}
+
 <div class="container">
     <div class="row">
-
-
         {% for action, data in user_roles.items %}
             <div class="card-group col-lg-4 col-md-6 col-sm-12">
                 <div class="card ">
@@ -26,14 +27,41 @@
                                 </tbody>
                             </table>
                         </div>
-                        <button type="button" class="btn btn-info mt-auto" data-toggle="modal" data-target="#userSearchModal{{ action }}">Add User</button>
+                        <button type="button" class="btn btn-info mt-auto" data-toggle="modal" data-target="#userSearchModal{{ action }}">Add Staff</button>
                     </div>
                 </div>
             </div>
-
-
-
         {% endfor %}
+    </div>
+</div>
 
+{#Admin Groups#}
+
+<div class="container pt-4">
+    <div class="row">
+        <div class="card col-md-6 mx-auto">
+            <div class="card-header card-header-primary">
+                <h3>Administrators</h3>
+                <p>Administrators can change access for other people</p>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <div class="table-responsive">
+                    <table class="table table-hover table-condensed">
+                        <tbody>
+                            {% for user in admin_list %}
+                                <tr>
+                                    <td>{{ user|cobalt_user_link_short }}
+                                        {% include "utils/htmx_confirm_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-advanced-outer" hx_post=user.hx_post %}
+                                        <td><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
+                                            Remove
+                                        </button>
+                                        </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" class="btn btn-warning mt-auto" data-toggle="modal" data-target="#userSearchModal_admin">Add Administrator</button>
+            </div>
+        </div>
     </div>
 </div>

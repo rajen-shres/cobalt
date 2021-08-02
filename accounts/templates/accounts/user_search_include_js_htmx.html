@@ -1,0 +1,31 @@
+{# This is the HTMX user search #}
+{#  include it in your HTML file with an optional search_id value if you want to have more than once search or a page #}
+{#  define a function called cobaltMemberSearchOk() to receive the output #}
+
+{#  This replaces the older Javascript generic search and should be used in new work #}
+
+{% load static %}
+
+<script>
+    // get other name to submit with HTMX query
+    function getFirstName(id){
+        return $('#id_first_name_search' + id).val()
+    }
+    function getLastName(id){
+        return $('#id_last_name_search' + id).val()
+    }
+    function getSystemNumber{{ search_id }}(){
+        return $('#id_system_number' + id).val()
+    }
+
+    $(document).ready( function () {
+
+        // clear input and result fields if modal gets hidden
+        $(".modal").on("hidden.bs.modal", function(){
+            $(".modal-input").val("");
+            $('#name-matches{{ search_id }}').html("");
+        });
+
+    });
+</script>
+
