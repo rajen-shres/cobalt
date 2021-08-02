@@ -15,17 +15,20 @@
 
 <script>
     $(document).ready(function() {
+        console.log("doc ready in dynamic name_match_htmx called")
         // on cancel button being clicked hide all modals
         $('#id_cobalt_search_cancel{{ search_id}}').click(function(){
+            console.log("name_match_htmx - cancel")
             $(".modal").modal('hide');
         })
 
         // on ok being clicked call a function within the main code
         // We use the search_id to identify which function to call
         $('#id_cobalt_search_ok{{ search_id}}').click(function(){
+            console.log("name_match_htmx - ok")
             $(".modal").modal('hide');
             try {
-                cobaltMemberSearchOk{{ search_id }}({{ member.id }}, "{{ member }}" );
+                cobaltMemberSearchOk('{{ search_id }}', {{ member.id }}, "{{ member }}" );
             } catch (error) {
                 // no function defined in calling module - just ignore
             }

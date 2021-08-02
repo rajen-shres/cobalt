@@ -106,7 +106,7 @@
 
 {% block footer %}
     {% include "utils/include_htmx.html" %}
-    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+    {% include "accounts/user_search_include_js_htmx.html" %}
 
     <script>
         $(document).ready(function () {

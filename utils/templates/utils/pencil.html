@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <div id="pencil-div"></div>
+
+    {% include "accounts/user_search_include_htmx.html" with search_id=1 %}
+    <button type="button" class="btn btn-info mt-auto" data-toggle="modal" data-target="#userSearchModal1">Add Staff</button>
+
+
+{% endblock content %}
+
+{% block footer %}
+    {% include "utils/include_htmx.html" %}
+    {% include "accounts/user_search_include_js_htmx.html" %}
+
+    <script>
+
+        function cobaltMemberSearchOk(search_id, user_id, user_name){
+            console.log("searchOk. Received: search_id=" + search_id + " user_id=" + user_id + " user_name=" + user_name)
+            const postData = {
+                'search_id': "'" + search_id +"'",
+                'user_id': user_id,
+                'user_name': user_name,
+            }
+            // post data
+            $.ajax({
+                url: '{% url "utils:pencil_user_htmx" %}',
+                method: "POST",
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: postData,
+            }).done(function(data) {
+                // update our div with new data
+                $('#pencil-div').append(data);
+                {#$('#pencil-div').html(data);#}
+                // We did this outside HTMX so let it know
+                htmx.process(document.body);
+            });
+        }
+    </script>
+
+{% endblock footer %}

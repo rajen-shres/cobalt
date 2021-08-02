@@ -18,7 +18,7 @@
                                     {% for user in data.1 %}
                                         <tr>
                                             <td>{{ user|cobalt_user_link_short }}
-                                                {% include "utils/htmx_confirm_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-advanced-outer" hx_post=user.hx_post %}
+                                                {% include "utils/htmx_confirm_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-advanced" hx_post=user.hx_post %}
                                                 <td><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
                                                     Remove
                                                 </button>
@@ -27,6 +27,7 @@
                                 </tbody>
                             </table>
                         </div>
+                        {% include "accounts/user_search_include_htmx.html" with search_id=action %}
                         <button type="button" class="btn btn-info mt-auto" data-toggle="modal" data-target="#userSearchModal{{ action }}">Add Staff</button>
                     </div>
                 </div>
@@ -40,7 +41,7 @@
 <div class="container pt-4">
     <div class="row">
         <div class="card col-md-6 mx-auto">
-            <div class="card-header card-header-primary">
+            <div class="card-header bg-dark text-light">
                 <h3>Administrators</h3>
                 <p>Administrators can change access for other people</p>
             </div>
@@ -51,7 +52,7 @@
                             {% for user in admin_list %}
                                 <tr>
                                     <td>{{ user|cobalt_user_link_short }}
-                                        {% include "utils/htmx_confirm_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-advanced-outer" hx_post=user.hx_post %}
+                                        {% include "utils/htmx_confirm_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-advanced" hx_post=user.hx_post %}
                                         <td><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
                                             Remove
                                         </button>
@@ -60,7 +61,8 @@
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="btn btn-warning mt-auto" data-toggle="modal" data-target="#userSearchModal_admin">Add Administrator</button>
+                {% include "accounts/user_search_include_htmx.html" with search_id="admin" %}
+                <button type="button" class="btn btn-warning mt-auto" data-toggle="modal" data-target="#userSearchModaladmin">Add Administrator</button>
             </div>
         </div>
     </div>

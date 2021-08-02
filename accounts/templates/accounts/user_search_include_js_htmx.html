@@ -14,7 +14,7 @@
     function getLastName(id){
         return $('#id_last_name_search' + id).val()
     }
-    function getSystemNumber{{ search_id }}(){
+    function getSystemNumber(id){
         return $('#id_system_number' + id).val()
     }
 
@@ -22,8 +22,9 @@
 
         // clear input and result fields if modal gets hidden
         $(".modal").on("hidden.bs.modal", function(){
+            console.log("user_search_include js - detected modal hidden - empty form");
             $(".modal-input").val("");
-            $('#name-matches{{ search_id }}').html("");
+            $('.name-match').html("");
         });
 
     });

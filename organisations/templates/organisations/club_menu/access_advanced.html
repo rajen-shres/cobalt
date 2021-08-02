@@ -1,69 +1,49 @@
 {% load static %}
-<div id="access-advanced-outer">
-    <div id="access-advanced">
-        {% include "organisations/club_menu/access_advanced_div_htmx.html" %}
-    </div>
-
-    {#RBAC Groups search - add for each action#}
-
-    {% for action, data in user_roles.items %}
-
-        {% include "accounts/user_search_include_htmx.html" with search_id=action %}
-
-        <script>
-
-            function cobaltMemberSearchOk{{ action }}(id, name){
-                // Add user if search is successful
-                const postData = {
-                    'club_id': {{ club.id }},
-                    'user_id': id,
-                    'group_name_item': "{{  action }}"
-                }
-                console.log("inside search ok {{ action }}");
-                // post data
-                $.ajax({
-                    url: '{% url "organisations:club_admin_access_advanced_add_user_htmx" %}',
-                    method: "POST",
-                    headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                    data: postData,
-                }).done(function(data) {
-                    // update our div with new data
-                    $('#access-advanced').html(data);
-                    // We did this outside HTMX so let it know
-                    htmx.process(document.body);
-                });
-            }
-        </script>
-
-    {% endfor %}
-
-    {#RABC Admin Search - add once#}
-
-    {% include "accounts/user_search_include_htmx.html" with search_id="_admin" %}
-
-    <script>
-
-        function cobaltMemberSearchOk_admin(id, name){
-            // Add user if search is successful
-            const postData = {
-                'club_id': {{ club.id }},
-                'user_id': id,
-            }
-            console.log("In searchOk_admin");
-            // post data
-            $.ajax({
-                url: '{% url "organisations:access_advanced_add_admin_htmx" %}',
-                method: "POST",
-                headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                data: postData,
-            }).done(function(data) {
-                // update our div with new data
-                $('#access-advanced-outer').html(data);
-                // We did this outside HTMX so let it know
-                htmx.process(document.body);
-            });
-        }
-    </script>
-
-
+<div id="access-advanced">
+    {% include "organisations/club_menu/access_advanced_div_htmx.html" %}
 </div>
+
+<script>
+
+    // handle user selecting a member from search - one function for all events
+    function cobaltMemberSearchOk(search_id, user_id, user_name){
+        console.log("searchOk. Received: search_id=" + search_id + " user_id=" + user_id + " user_name=" + user_name)
+
+        // for RBAC group searches the search_id will be the action, eg congresses
+        // for RBAC Admin searches the search_id will be "admin"
+
+        var url;
+        var postData;
+
+        if (search_id === "admin"){
+            console.log("admin RBAC");
+            postData = {
+                'club_id': {{ club.id }},
+                'user_id': user_id,
+            };
+            url = '{% url "organisations:access_advanced_add_admin_htmx" %}';
+        } else {
+            console.log("normal RBAC");
+            postData = {
+                'user_id': user_id,
+                'club_id': {{ club.id }},
+                'group_name_item': search_id,
+            };
+            url = '{% url "organisations:club_admin_access_advanced_add_user_htmx" %}';
+        };
+        console.log(postData);
+        $.ajax({
+            url: url,
+            method: "POST",
+            headers: {'X-CSRFToken': '{{ csrf_token }}'},
+            data: postData,
+        }).done(function(data) {
+            // update our div with new data
+            $('#access-advanced').html(data);
+            // We did this outside HTMX so let it know
+            htmx.process(document.body);
+        }).fail(function() {
+            alert( "error" );
+        });
+    }
+</script>

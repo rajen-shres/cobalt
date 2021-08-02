@@ -236,3 +236,19 @@ def masterpoint_query(query):
         response = []
 
     return response
+
+
+def pencil(request):
+    return render(request, "utils/pencil.html")
+
+
+def pencil_user_htmx(request):
+    search_id = request.POST.get("search_id")
+    user_id = request.POST.get("user_id")
+    user_name = request.POST.get("user_name")
+
+    return render(
+        request,
+        "utils/pencil_user_htmx.html",
+        {"search_id": search_id, "user_id": user_id, "user_name": user_name},
+    )

@@ -1,0 +1,16 @@
+<div>
+    <h4>Search_id: {{ search_id }}</h4>
+    <h4>User_id: {{ user_id }}</h4>
+    <h4>User_name: {{ user_name }}</h4>
+
+    <h4>{{ user_name }}</h4>
+    {% include "utils/htmx_confirm_modal.html" with id=user_id delete_item=first_name hx_target="#access-advanced-outer" hx_post=user.hx_post %}
+    <td><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
+        Remove
+
+
+
+        {#             {% include "accounts/user_search_include_htmx.html" with search_id=1 %}#}
+        {#          <button type="button" class="btn btn-info mt-auto" data-toggle="modal" data-target="#userSearchModal1">Add Staff</button>#}
+
+    </div>

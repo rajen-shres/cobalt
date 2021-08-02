@@ -8,5 +8,6 @@ urlpatterns = [
     path("batch", views.batch, name="batch"),
     path("user-activity", views.user_activity, name="user_activity"),
     path("status", views.status, name="status"),
-    #    path("payment-status", views.payment_status, name="payment_status"),
+    path("pencil", views.pencil, name="pencil"),
+    path("pencil-user-htmx", views.pencil_user_htmx, name="pencil_user_htmx"),
 ]
