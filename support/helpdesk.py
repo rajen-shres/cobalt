@@ -187,6 +187,11 @@ def _notify_group_common(request, ticket, subject, email_ticket_msg, exclude=Non
     recipients = NotifyUserByType.objects.filter(
         incident_type__in=["All", ticket.incident_type]
     )
+
+    print("Recipients\n---------")
+    print(recipients)
+    print(exclude)
+
     email_sender = CobaltEmail()
 
     for recipient in recipients:

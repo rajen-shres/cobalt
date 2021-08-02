@@ -352,6 +352,9 @@ RBAC_EVERYONE = 1
 # TBA User for Event entries
 TBA_PLAYER = 2
 
+# ABF User for Announcements
+ABF_USER = 3
+
 # Org id for the system account
 GLOBAL_ORG_ID = 1
 

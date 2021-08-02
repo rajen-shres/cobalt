@@ -2,6 +2,7 @@
 
 from django.core.management.base import BaseCommand
 
+from accounts.models import User
 from cobalt.settings import ABF_STATES
 from organisations.models import Organisation
 from rbac.core import (
@@ -19,7 +20,16 @@ from rbac.management.commands.rbac_core import (
 
 class Command(BaseCommand):
     def create_states(
-        self, org_id, name, address1, address2, address3, state, postcode, org_type
+        self,
+        org_id,
+        name,
+        address1,
+        address2,
+        address3,
+        state,
+        postcode,
+        org_type,
+        secretary,
     ):
 
         if not Organisation.objects.filter(org_id=org_id).exists():
@@ -33,6 +43,7 @@ class Command(BaseCommand):
                 state=state,
                 type=org_type,
                 postcode=postcode,
+                secretary=secretary,
             )
             org.save()
             self.stdout.write(
@@ -45,6 +56,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         print("Creating State Organisations.")
+
+        secretary = User.objects.get(pk=1)
+
         for state in ABF_STATES:
             self.create_states(
                 state,
@@ -55,6 +69,7 @@ class Command(BaseCommand):
                 ABF_STATES[state][1],
                 None,
                 "State",
+                secretary,
             )
 
         print("Setting up RBAC for states.")
@@ -87,7 +102,7 @@ class Command(BaseCommand):
             create_RBAC_admin_tree(self, group, f"{qualifier}.{state}")
 
             for user in su_list:
-                rbac_add_user_to_admin_group(group, user)
+                rbac_add_user_to_admin_group(user, group)
 
             rbac_add_role_to_admin_group(
                 group, app="orgs", model="state", model_id=state_org.id

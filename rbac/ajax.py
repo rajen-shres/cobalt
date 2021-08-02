@@ -26,7 +26,7 @@ from accounts.models import User
 
 @login_required
 def group_to_user_ajax(request, group_id):
-    """ Called by the admin page when a user selects a group.
+    """Called by the admin page when a user selects a group.
 
     Takes the RBACGroup id and return the matching records from RBACUserGroup
 
@@ -50,7 +50,7 @@ def group_to_user_ajax(request, group_id):
 
 @login_required
 def group_to_action_ajax(request, group_id):
-    """ Called by the admin page when a user selects a group.
+    """Called by the admin page when a user selects a group.
 
     Takes the RBACGroup id and return the matching records from RBACGroupRole
 
@@ -74,7 +74,7 @@ def group_to_action_ajax(request, group_id):
 
 @login_required()
 def rbac_add_user_to_group_ajax(request):
-    """ Ajax call to add a user to a group
+    """Ajax call to add a user to a group
 
     Args:
         request(HTTPRequest): standard request
@@ -106,7 +106,7 @@ def rbac_add_user_to_group_ajax(request):
 
 @login_required()
 def rbac_add_user_to_admin_group_ajax(request):
-    """ Ajax call to add a user to an admin group
+    """Ajax call to add a user to an admin group
 
     Args:
         request(HTTPRequest): standard request
@@ -123,7 +123,7 @@ def rbac_add_user_to_admin_group_ajax(request):
         group = RBACAdminGroup.objects.get(pk=group_id)
 
         if rbac_user_is_admin_for_admin_group(request.user, group):
-            rbac_add_user_to_admin_group(group, member)
+            rbac_add_user_to_admin_group(member, group)
             msg = "Success"
         else:
             msg = "Access Denied"
@@ -138,7 +138,7 @@ def rbac_add_user_to_admin_group_ajax(request):
 
 @login_required()
 def rbac_add_role_to_group_ajax(request):
-    """ Ajax call to add a role to a group
+    """Ajax call to add a role to a group
 
     The user needs to be both a group admin (have access to this part of
     the tree), and also be an admin for the role thay are adding.
@@ -197,7 +197,7 @@ def rbac_add_role_to_group_ajax(request):
 
 @login_required()
 def rbac_add_role_to_admin_group_ajax(request):
-    """ Ajax call to add a role to an admin group
+    """Ajax call to add a role to an admin group
 
     Args:
         request(HTTPRequest): standard request
@@ -224,7 +224,10 @@ def rbac_add_role_to_admin_group_ajax(request):
 
         if rbac_user_is_role_admin(request.user, role_str):
             rbac_add_role_to_admin_group(
-                group=group, app=app, model=model, model_id=model_id,
+                group=group,
+                app=app,
+                model=model,
+                model_id=model_id,
             )
             msg = "Success"
         else:
@@ -240,7 +243,7 @@ def rbac_add_role_to_admin_group_ajax(request):
 
 @login_required()
 def rbac_get_action_for_model_ajax(request):
-    """ Ajax call to get the action types for a given app and model
+    """Ajax call to get the action types for a given app and model
 
     Args:
         request(HTTPRequest): standard request - needs to include "app" and "model"
@@ -271,7 +274,7 @@ def rbac_get_action_for_model_ajax(request):
 
 @login_required()
 def rbac_delete_user_from_group_ajax(request):
-    """ Ajax call to delete a user from a group
+    """Ajax call to delete a user from a group
 
     Args:
         request(HTTPRequest): standard request
@@ -305,7 +308,7 @@ def rbac_delete_user_from_group_ajax(request):
 
 @login_required()
 def rbac_delete_user_from_admin_group_ajax(request):
-    """ Ajax call to delete an admin user from a group
+    """Ajax call to delete an admin user from a group
 
     Args:
         request(HTTPRequest): standard request
@@ -337,7 +340,7 @@ def rbac_delete_user_from_admin_group_ajax(request):
 
 @login_required()
 def rbac_delete_role_from_group_ajax(request):
-    """ Ajax call to delete a role from a group
+    """Ajax call to delete a role from a group
 
     Args:
         request(HTTPRequest): standard request
@@ -382,7 +385,7 @@ def rbac_delete_role_from_group_ajax(request):
 
 @login_required()
 def rbac_delete_role_from_admin_group_ajax(request):
-    """ Ajax call to delete a role from an admin group
+    """Ajax call to delete a role from an admin group
 
     Args:
         request(HTTPRequest): standard request

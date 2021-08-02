@@ -1,4 +1,6 @@
 from django.core.management.base import BaseCommand
+
+from accounts.models import User
 from organisations.models import Organisation
 
 
@@ -9,7 +11,16 @@ class Command(BaseCommand):
     """
 
     def CreateClubs(
-        self, org_id, name, address1, address2, address3, state, postcode, type
+        self,
+        org_id,
+        name,
+        address1,
+        address2,
+        address3,
+        state,
+        postcode,
+        type,
+        secretary,
     ):
 
         if not Organisation.objects.filter(org_id=org_id).exists():
@@ -23,6 +34,7 @@ class Command(BaseCommand):
                 state=state,
                 type=type,
                 postcode=postcode,
+                secretary=secretary,
             )
             org.save()
             self.stdout.write(
@@ -35,6 +47,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         print("Creating ABF.")
+        secretary = User.objects.get(pk=1)
         self.CreateClubs(
-            0, "ABF", "PO Box 397", None, "Fyshwick", "ACT", "2609", "National"
+            0,
+            "ABF",
+            "PO Box 397",
+            None,
+            "Fyshwick",
+            "ACT",
+            "2609",
+            "National",
+            secretary,
         )

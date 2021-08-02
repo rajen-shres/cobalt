@@ -1,5 +1,36 @@
 {% load static %}
-<div id="access-advanced">
-    {% include "organisations/club_menu/access_advanced_div_htmx.html" %}
-</div>
+<div id="access-advanced-outer">
+    <div id="access-advanced">
+        {% include "organisations/club_menu/access_advanced_div_htmx.html" %}
+    </div>
 
+    {% for action, data in user_roles.items %}
+
+        {% include "accounts/user_search_include_htmx.html" with search_id=action %}
+
+        <script>
+
+            function cobaltMemberSearchOk{{ action }}(id, name){
+                // Add user if search is successful
+                const postData = {
+                    'club_id': {{ club.id }},
+                    'user_id': id,
+                    'group_name_item': "{{  action }}"
+                }
+
+                // post data
+                $.ajax({
+                    url: '{% url "organisations:club_admin_access_advanced_add_user_htmx" %}',
+                    method: "POST",
+                    headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                    data: postData,
+                }).done(function(data) {
+                    // update our div with new data
+                    $('#access-advanced').html(data);
+                    // We did this outside HTMX so let it know
+                    htmx.process(document.body);
+                });
+            }
+        </script>
+    {% endfor %}
+</div>

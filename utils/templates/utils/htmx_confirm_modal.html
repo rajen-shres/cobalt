@@ -39,13 +39,7 @@
         {# Hide the modal when the delete is clicked, or background stays dark #}
 
         htmx.on("#id_delete_button_{{ id }}", "htmx:beforeRequest", function(evt) {
-            console.log("htmx stuff - before Request");
-            console.log(this);
             $('#deleteModal{{ id }}').modal('hide');
         });
-        {#htmx.on("#id_delete_button_{{ id }}", "htmx:afterRequest", function(evt) {#}
-        {#    console.log("htmx stuff after");#}
-        {#    $('#deleteModal{{ id }}').modal('hide');#}
-        {#});#}
     });
 </script>

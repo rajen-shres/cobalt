@@ -1,55 +1,39 @@
 {% load static %}
 {% load cobalt_tags %}
+<div class="container">
+    <div class="row">
 
-{% for group, users in user_roles.items %}
-    <div class="card py-4">
-        <div class="card-header card-header-{% cobalt_random_colour %}">
-            <h3>{{ group }}</h3>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive col-md-6 col-lg-4">
-                <table class="table table-hover table-condensed">
-                    <tbody>
-                        {% for user in users %}
-                            <tr>
-                                <td>{{ user|cobalt_user_link_short }}
-                                    {% include "utils/htmx_confirm_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-basic" hx_post=user.hx_post %}
-                                    <td><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
-                                        Remove
-                                    </button>
-                                    </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% include "accounts/user_search_include_htmx.html" %}
 
-                <script>
-
-                    function cobaltMemberSearchOk(id, name){
-                        // Add user if search is successful
-                        const postData = {
-                            'club_id': {{ club.id }},
-                            'user_id': id
-                        }
-
-                        // post data
-                        $.ajax({
-                            url: '{% url "organisations:club_admin_access_advanced_add_user_htmx" %}',
-                            method: "POST",
-                            headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                            data: postData,
-                        }).done(function(data) {
-                            // update our div with new data
-                            $('#access-basic').html(data);
-                            // We did this outside HTMX so let it know
-                            htmx.process(document.body);
-                        });
-                    }
-                </script>
-                <button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal">Add User</button>
+        {% for action, data in user_roles.items %}
+            <div class="card-group col-lg-4 col-md-6 col-sm-12">
+                <div class="card ">
+                    <div class="card-header card-header-{% cobalt_random_colour %}">
+                        <h3>{{ data.0 }}</h3>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-condensed">
+                                <tbody>
+                                    {% for user in data.1 %}
+                                        <tr>
+                                            <td>{{ user|cobalt_user_link_short }}
+                                                {% include "utils/htmx_confirm_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-advanced-outer" hx_post=user.hx_post %}
+                                                <td><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
+                                                    Remove
+                                                </button>
+                                                </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" class="btn btn-info mt-auto" data-toggle="modal" data-target="#userSearchModal{{ action }}">Add User</button>
+                    </div>
+                </div>
             </div>
-        </div>
+
+
+
+        {% endfor %}
+
     </div>
-{% endfor %}
-
-
+</div>

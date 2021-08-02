@@ -143,6 +143,6 @@ def cobalt_currency(dollars):
 # Return random bootstrap colour - useful for card headers from lists
 @register.simple_tag(name="cobalt_random_colour")
 def cobalt_random_colour():
-    colours = ["primary", "info", "warning", "danger", "success", "error", "rose"]
+    colours = ["primary", "info", "warning", "danger", "success", "rose"]
 
     return random.choice(colours)

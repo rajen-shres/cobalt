@@ -68,7 +68,7 @@ class Command(BaseCommand):
         create_RBAC_admin_tree(self, group, "rbac.orgs")
         create_RBAC_admin_tree(self, group, "rbac.modules.forums")
         for user in su_list:
-            rbac_add_user_to_admin_group(group, user)
+            rbac_add_user_to_admin_group(user, group)
         rbac_add_role_to_admin_group(group, app="forums", model="admin")
 
         # grant writes to forums.forum
@@ -83,7 +83,7 @@ class Command(BaseCommand):
         create_RBAC_admin_tree(self, group, "rbac.orgs.abf.forums")
 
         for user in su_list:
-            rbac_add_user_to_admin_group(group, user)
+            rbac_add_user_to_admin_group(user, group)
 
         rbac_add_role_to_admin_group(group, app="forums", model="forum")
         rbac_add_role_to_admin_group(group, app="forums", model="moderate")

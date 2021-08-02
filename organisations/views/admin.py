@@ -237,7 +237,7 @@ def _admin_club_rbac_add_advanced_sub(club):
         group = rbac_create_group(
             name_qualifier=club.rbac_name_qualifier,
             name_item=rule,
-            description=f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} {club.id} ({club.name})",
+            description=f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} for {club.id} ({club.name})",
         )
         # Add user
         rbac_add_user_to_group(club.secretary, group)

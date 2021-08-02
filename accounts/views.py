@@ -36,7 +36,13 @@ from .forms import (
 )
 from forums.models import Post, Comment1, Comment2
 from utils.utils import cobalt_paginator
-from cobalt.settings import GLOBAL_ORG, RBAC_EVERYONE, TBA_PLAYER, COBALT_HOSTNAME
+from cobalt.settings import (
+    GLOBAL_ORG,
+    RBAC_EVERYONE,
+    TBA_PLAYER,
+    COBALT_HOSTNAME,
+    ABF_USER,
+)
 from masterpoints.views import user_summary
 
 
@@ -880,7 +886,7 @@ def _get_exclude_list_for_search(request):
     include_me = bool(request.POST.get("include_me"))
 
     # ignore system accounts
-    exclude_list = [RBAC_EVERYONE, TBA_PLAYER]
+    exclude_list = [RBAC_EVERYONE, TBA_PLAYER, ABF_USER]
 
     # Ignore this user unless overridden
     if not include_me:

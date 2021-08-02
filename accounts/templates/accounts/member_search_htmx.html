@@ -7,7 +7,7 @@
             hx-target="#name-matches{{ search_id }}"
             hx-indicator=".htmx-indicator"
             {# add search id to hx-vars if it is set, or ignore #}
-            hx-vars="member_id:{{ name.id }}{% if search_id  %}, search_id:{{ search_id }}{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
+            hx-vars="member_id:{{ name.id }}{% if search_id  %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
         >{{ name }}</li>
     {% empty %}
         <h4>No Matches</h4>
@@ -20,8 +20,6 @@
 <script>
     $(document).ready( function () {
         htmx.on(".modal", "htmx:beforeRequest", function(evt) {
-            console.log("hidden - before Request");
-            console.log(this);
             $('.modal').modal('hide');
         });
     });

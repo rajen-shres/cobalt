@@ -96,15 +96,15 @@ def access_advanced(request, club):
     user_roles = {}
 
     for rule in ORGS_RBAC_GROUPS_AND_ROLES:
-        user_roles[f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} {club}"] = []
 
         # get group
         group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
 
         # Get users
         users = rbac_get_users_in_group(group)
-
+        user_list = []
         for user in users:
+
             user.hx_post = reverse(
                 "organisations:club_admin_access_advanced_delete_user_htmx",
                 kwargs={
@@ -113,13 +113,13 @@ def access_advanced(request, club):
                     "group_name_item": rule,
                 },
             )
-            user_roles[
-                f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} {club}"
-            ].append(user)
+            user_list.append(user)
+
+        desc = f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']}"
+
+        user_roles[rule] = [desc, user_list]
 
     # TODO: Add admin management
-
-    print(user_roles)
 
     return render(
         request,
@@ -335,6 +335,7 @@ def access_advanced_add_user_htmx(request):
     group_name_item = request.POST.get("group_name_item")
 
     group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{group_name_item}")
+
     rbac_add_user_to_group(user, group)
 
     return access_advanced(request, club)

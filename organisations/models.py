@@ -13,21 +13,21 @@ ORGS_RBAC_GROUPS_AND_ROLES = {
         "app": "events",
         "model": "org",
         "action": "edit",
-        "description": "Manage congresses for ",
+        "description": "Manage congresses",
     },
     # See payments details
     "payments_view": {
         "app": "payments",
         "model": "manage",
         "action": "view",
-        "description": "View payments info for ",
+        "description": "View payments info",
     },
     # Change payments details
     "payments_edit": {
         "app": "payments",
         "model": "manage",
         "action": "edit",
-        "description": "Edit payments info for ",
+        "description": "Edit payments info",
     },
 }
 

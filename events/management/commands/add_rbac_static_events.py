@@ -50,6 +50,6 @@ class Command(BaseCommand):
         )
         create_RBAC_admin_tree(self, group, "admin.abf.events")
         for user in su_list:
-            rbac_add_user_to_admin_group(group, user)
+            rbac_add_user_to_admin_group(user, group)
         rbac_add_role_to_admin_group(group, app="events", model="org")
         rbac_add_role_to_admin_group(group, app="events", model="global")

@@ -1,5 +1,5 @@
 organisations, Organisation,,,,,,,,,
-id, org_id, name, address1, address2, suburb, state, postcode, type, bank_bsb, bank_account
-fbc,9991, Fantasy Bridge Club, A Street,,,ACT,0,Club,309120,98765432
-rbc,9992, Rival Bridge Club, B Street,,,ACT,0,Club,304477,4144931
-nsw,9993, NSW Club, C Street,,,NSW,0,Club,82888,12345678
+id, org_id, name, id.secretary.accounts.User, type, club_email, address1, address2, suburb, state, postcode, club_website, bank_bsb, bank_account
+fbc,9991, Fantasy Bridge Club, aa, Club, a@b.com, A Street,West Something,Croydon, ACT,2034,fbc.com.au,309120,98765432
+rbc,9992, Rival Bridge Club, bb, Club, a@b.com, 12 The Road,East Something,Chiswick, ACT,2035,rbc.com.au,309120,98765432
+nsw,9993, NSW Club, ff, Club, a@b.com, 34 The Avenue,North Something,Thyme, ACT,2055,nsw.com.au,309120,98765432
