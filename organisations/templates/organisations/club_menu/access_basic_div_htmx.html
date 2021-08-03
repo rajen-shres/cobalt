@@ -1,6 +1,12 @@
 {% load static %}
 {% load cobalt_tags %}
 
+
+You are using the basic RBAC set up. This gives everyone access to all functions and makes everyone an
+administrator (able to grant access to others). This is the recommended configuration for most clubs.
+
+<a href="{% url "organisations:admin_club_rbac" club_id=club.id %}">Change RBAC Set Up</a>
+
 <h3>Admin Rights</h3>
 
 <ul>
@@ -26,7 +32,7 @@
     </table>
 </div>
 
-<button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal">Add User</button>
+<button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal">Add Staff</button>
 
 
 

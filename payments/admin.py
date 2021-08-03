@@ -20,7 +20,8 @@ class OrganisationTransactionAdmin(admin.ModelAdmin):
 
 class StripeTransactionAdmin(admin.ModelAdmin):
     search_fields = ["stripe_reference"]
-    list_display = ['member', 'status', 'amount', 'refund_amount']
+    list_display = ["member", "status", "amount", "refund_amount"]
+
 
 class StripeLogAdmin(admin.ModelAdmin):
     search_fields = ["event"]

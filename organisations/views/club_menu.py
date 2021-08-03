@@ -5,7 +5,7 @@ The entry point is club_menu() which loads the page menu.html
 Menu.html uses HTMX to load the tab pages e.g. tab_dashboard_htmx()
 
 """
-
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -26,6 +26,7 @@ from rbac.core import (
     rbac_get_admin_users_in_group,
     rbac_add_user_to_admin_group,
 )
+from rbac.models import RBACAdminUserGroup, RBACUserGroup
 
 from rbac.views import rbac_forbidden
 
@@ -63,6 +64,31 @@ def _menu_rbac_has_access(club, user):
         return True, None
 
     return False, club_role
+
+
+def _menu_rbac_advanced_is_admin(club, user):
+    """Check if the user is an RBAC admin for this club when using advanced RBAC set up"""
+
+    admin_group = rbac_get_admin_group_by_name(
+        f"{club.rbac_admin_name_qualifier}.admin"
+    )
+    admins = rbac_get_admin_users_in_group(admin_group)
+
+    # Check if in admin group
+    if user in admins:
+        return True
+
+    # check if in State group
+    rbac_model_for_state = get_rbac_model_for_state(club.state)
+    state_role = "orgs.state.%s.edit" % rbac_model_for_state
+    if rbac_user_has_role(user, state_role):
+        return True
+
+    # Finally check for global role
+    elif rbac_user_has_role(user, "orgs.admin.edit"):
+        return True
+
+    return False
 
 
 def access_basic(request, club):  # sourcery skip: list-comprehension
@@ -117,11 +143,12 @@ def access_basic_div(request, club):  # sourcery skip: list-comprehension
     )
 
 
-def access_advanced(request, club):
+def access_advanced(request, club, errors={}):
     """Do the work for the Access tab on the club menu for advanced RBAC."""
 
     # We have multiple groups to handle so we get a dictionary for users with the role as the key
     user_roles = {}
+    admin_list = []
 
     for rule in ORGS_RBAC_GROUPS_AND_ROLES:
 
@@ -133,6 +160,7 @@ def access_advanced(request, club):
         user_list = []
         for user in users:
 
+            # link for HTMX hx_post to go to
             user.hx_post = reverse(
                 "organisations:club_admin_access_advanced_delete_user_htmx",
                 kwargs={
@@ -141,6 +169,9 @@ def access_advanced(request, club):
                     "group_name_item": rule,
                 },
             )
+            # unique id for this user and group
+            user.delete_id = f"{rule}-{user.id}"
+
             user_list.append(user)
 
         desc = f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']}"
@@ -163,14 +194,22 @@ def access_advanced(request, club):
             )
             admin_list.append(admin)
 
+    # Check if this use is an admin (in RBAC admin group or has higher access)
+    user_is_admin = _menu_rbac_advanced_is_admin(club, request.user)
+
+    # disable buttons (still show them) if user not admin
+    disable_buttons = "" if user_is_admin else "disabled"
+
     return render(
         request,
         "organisations/club_menu/access_advanced.html",
         {
             "club": club,
-            "setup": "advanced",
+            "user_is_admin": user_is_admin,
+            "disable_buttons": disable_buttons,
             "user_roles": user_roles,
             "admin_list": admin_list,
+            "errors": errors,
         },
     )
 
@@ -383,9 +422,13 @@ def access_advanced_add_user_htmx(request):
 
     group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{group_name_item}")
 
-    rbac_add_user_to_group(user, group)
+    errors = {}
+    if RBACUserGroup.objects.filter(group=group, member=user).exists():
+        errors[group_name_item] = f"{user.first_name} is already in this group"
+    else:
+        rbac_add_user_to_group(user, group)
 
-    return access_advanced(request, club)
+    return access_advanced(request, club, errors)
 
 
 @login_required()
@@ -419,10 +462,9 @@ def access_advanced_delete_user_htmx(request, club_id, user_id, group_name_item)
     club = get_object_or_404(Organisation, pk=club_id)
     user = get_object_or_404(User, pk=user_id)
 
-    # Check security
-    allowed, role = _menu_rbac_has_access(club, request.user)
-    if not allowed:
-        return rbac_forbidden(request, role)
+    # Check if this use is an admin (in RBAC admin group or has higher access)
+    if not _menu_rbac_advanced_is_admin(club, request.user):
+        return HttpResponse("Access denied")
 
     group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{group_name_item}")
     rbac_remove_user_from_group(user, group)
@@ -437,18 +479,23 @@ def access_advanced_delete_admin_htmx(request, club_id, user_id):
     club = get_object_or_404(Organisation, pk=club_id)
     user = get_object_or_404(User, pk=user_id)
 
-    # Check security
-    allowed, role = _menu_rbac_has_access(club, request.user)
-    if not allowed:
-        return rbac_forbidden(request, role)
+    # Check if this use is an admin (in RBAC admin group or has higher access)
+    if not _menu_rbac_advanced_is_admin(club, request.user):
+        return HttpResponse("Access denied")
 
     admin_group = rbac_get_admin_group_by_name(
         f"{club.rbac_admin_name_qualifier}.admin"
     )
 
-    rbac_remove_admin_user_from_group(user, admin_group)
+    # Don't allow the last admin to be removed
+    errors = {}
 
-    return access_advanced(request, club)
+    if RBACAdminUserGroup.objects.filter(group=admin_group).count() > 1:
+        rbac_remove_admin_user_from_group(user, admin_group)
+    else:
+        errors["admin"] = "Cannot delete the last admin user"
+
+    return access_advanced(request, club, errors)
 
 
 @login_required()
@@ -458,6 +505,10 @@ def access_advanced_add_admin_htmx(request):
     status, error_page, club = _tab_is_okay(request)
     if not status:
         return error_page
+
+    # Check if this use is an admin (in RBAC admin group or has higher access)
+    if not _menu_rbac_advanced_is_admin(club, request.user):
+        return HttpResponse("Access denied")
 
     # Get user
     user_id = request.POST.get("user_id")

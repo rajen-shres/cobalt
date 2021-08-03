@@ -8,11 +8,11 @@
 
 <script>
 
-    function cobaltMemberSearchOk(id, name){
+    function cobaltMemberSearchOk(search_id, user_id, user_name){
         // Add user if search is successful
         const postData = {
             'club_id': {{ club.id }},
-            'user_id': id
+            'user_id': user_id
         }
 
         // post data

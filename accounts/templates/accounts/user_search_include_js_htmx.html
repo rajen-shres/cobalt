@@ -18,15 +18,20 @@
         return $('#id_system_number' + id).val()
     }
 
-    $(document).ready( function () {
+    // Called for any cancel event. Clear entries and hide
+    function cancelLookup(){
+        $(".modal-input").val("");
+        $('.name-match').html("");
+        $(".modal").modal('hide');
+    }
 
-        // clear input and result fields if modal gets hidden
-        $(".modal").on("hidden.bs.modal", function(){
-            console.log("user_search_include js - detected modal hidden - empty form");
-            $(".modal-input").val("");
-            $('.name-match').html("");
-        });
-
-    });
+    function memberSelected(ok_id){
+        const search_id = ok_id.replace("id_cobalt_search_ok", "");
+        const member_id = $('#results_member_id' + search_id).val();
+        const member_name = $('#results_member_name' + search_id).val();
+        // call cancel to tidy up
+        cancelLookup();
+        // call the callback function in the main code
+        cobaltMemberSearchOk(search_id, member_id, member_name);
+    }
 </script>
-

@@ -3,6 +3,14 @@
 {% load humanize %}
 {% block title %}- Club Menu {{ club }}{% endblock %}
 
+{#{% block header %}#}
+{#    <style>#}
+{#      .remove-all-styles {#}
+{#             all: inherit;#}
+{#      }#}
+{#    </style>#}
+{#{% endblock header %}#}
+
 {% block content %}
 
 
@@ -16,7 +24,7 @@
                     <li class="nav-item">
                         <a id="id_tab_dashboard" class="nav-link active" href="#dashboard" role="tab" data-toggle="tab">
                             <i class="material-icons">space_dashboard</i>
-                            Dashboard
+                            Club
                         </a>
                     </li>
                     <li class="nav-item">
@@ -116,10 +124,11 @@
             $('#id_menu a').on('click', function (e) {
 
                 // get matching panel id from this id
-                // this.id is something like 'id_tab_dashboard' and the panel id is 'id_panel_dashboard'
+                // this.id is something like 'id_tab_dashboard' and the placeholder in the panel is 'id_panel_dashboard'
 
                 const panel_id = '#id_panel_' + this.id.split("_")[2];
                 const panel = $(panel_id);
+
                 if (panel.html().length === 0) {
 
                     htmx.trigger(htmx.find(panel_id), "tab_load_event");
