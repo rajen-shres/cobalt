@@ -6,6 +6,7 @@ from events.core import get_basket_for_user
 from support.helpdesk import get_tickets
 from .version import COBALT_VERSION
 from rbac.core import rbac_show_admin
+from organisations.views import general as orgs
 
 
 def global_settings(request):
@@ -21,6 +22,7 @@ def global_settings(request):
         basket_items = get_basket_for_user(request.user)
         show_admin_on_template = rbac_show_admin(request)
         support_tickets = get_tickets(request.user)
+        club_staff = orgs.club_staff(request.user)
 
     return {
         "notification_count": notification_count,
@@ -28,6 +30,7 @@ def global_settings(request):
         "basket_items": basket_items,
         "show_admin_on_template": show_admin_on_template,
         "support_tickets": support_tickets,
+        "club_staff": club_staff,
         "COBALT_VERSION": COBALT_VERSION,
         "COBALT_HOSTNAME": settings.COBALT_HOSTNAME,
         "BRIDGE_CREDITS": settings.BRIDGE_CREDITS,

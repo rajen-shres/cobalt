@@ -25,10 +25,11 @@ To use it, add the following to your HTML template::
      {% include "accounts/user_search_include_htmx.html" with search_id={{ search_id}} include_me=True %}
 
     <script>
-        function cobaltMemberSearchOk{{ search_id }}(id, name){
+        function cobaltMemberSearchOk(search_id, user_id, user_name){
         // do something
-            console.log(id);
-            console.log(name);
+            console.log(search_id);
+            console.log(user_id);
+            console.log(user_name);
         }
     </script>
     {% endblock footer %}
@@ -36,8 +37,6 @@ To use it, add the following to your HTML template::
 To call it add a line to your HTML body::
 
    <button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal{{ search_id }}">Add</button>
-
-Drop the search id if you only have one user search on your page.
 
 Drop the include_me option if you do not want the logged in user to be included in the search results.
 
@@ -76,6 +75,9 @@ accounts:member_search_htmx
      - name_match_htmx.html
 
 System_number_search returns the member_match template if it finds a match or sends an error itself.
+
+With HTMX avoid adding Javascript dynamically over HTMX as it can be problematic. Here we use static Javascript
+functions which are loaded with the main page.
 
 Generic User Search - Old. Do Not Use
 -------------------------------------

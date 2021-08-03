@@ -167,6 +167,16 @@ def _admin_club_rbac_add_basic_sub(club):
             model_id=club.id,
         )
 
+    # Also add orgs.org as this is the easiest way to check if a user should have access
+    rbac_add_role_to_group(
+        group=group,
+        app="orgs",
+        model="org",
+        action="view",
+        rule_type="Allow",
+        model_id=club.id,
+    )
+
     # Add admin - no need to add roles, the tree is enough for user admin
     admin_group = rbac_create_admin_group(
         name_qualifier=club.rbac_admin_name_qualifier,
@@ -250,6 +260,17 @@ def _admin_club_rbac_add_advanced_sub(club):
             rule_type="Allow",
             model_id=club.id,
         )
+
+        # Also add orgs.org as this is the easiest way to check if a user should have access
+        rbac_add_role_to_group(
+            group=group,
+            app="orgs",
+            model="org",
+            action="view",
+            rule_type="Allow",
+            model_id=club.id,
+        )
+
         # Add admin tree
         rbac_admin_add_tree_to_group(admin_group, club.rbac_name_qualifier + f".{rule}")
 

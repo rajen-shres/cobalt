@@ -8,6 +8,7 @@ from organisations.forms import OrgFormOld
 from organisations.models import Organisation
 from payments.models import OrganisationTransaction
 from rbac.core import rbac_user_has_role
+from rbac.models import RBACUserGroup, RBACGroupRole
 from rbac.views import rbac_forbidden
 
 
@@ -38,6 +39,7 @@ def get_rbac_model_for_state(state):
     return state_org.first().id
 
 
+# TODO: Retire this
 @login_required()
 def org_edit(request, org_id):
     """Edit details about an organisation
@@ -72,3 +74,25 @@ def org_edit(request, org_id):
         form = OrgFormOld(instance=org)
 
     return render(request, "organisations/edit_org.html", {"form": form})
+
+
+def club_staff(user):
+    """Used by dashboard. Returns the first club found that this user is a staff member for or None
+
+    Args:
+        user: User objects
+
+    Returns:
+        group: RBACGroupRole. If not None then model_id is the first organisation that this user has access to
+
+    """
+
+    return (
+        RBACGroupRole.objects.filter(group__rbacusergroup__member=user)
+        .filter(app="orgs")
+        .filter(model="org")
+        .first()
+    )
+
+
+#    return RBACUserGroup.objects.filter(group__rbacgrouprole__app="orgs").filter(group__rbacgrouprole__model="org").first()

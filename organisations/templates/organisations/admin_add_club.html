@@ -92,7 +92,7 @@
 {% block footer %}
     {% include "utils/include_htmx.html" %}
     <script>
-        {% include "utils/generic_user_search_footer.html" with search_id=1 include_me=True%}
+        {% include "utils/generic_user_search_footer.html" with search_id=1 include_me='yes' %}
 
         function cobaltMemberSearchOk() {
             // update club_secretary. Note: the fields are not defined in this file, they are loaded from admin_add_club_ajax.html

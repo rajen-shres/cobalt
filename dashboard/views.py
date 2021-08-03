@@ -6,7 +6,6 @@ from masterpoints.views import get_masterpoints
 from payments.core import get_balance_detail
 from events.core import get_events
 
-# from forums.views import post_list_dashboard
 from utils.utils import cobalt_paginator
 from forums.models import Post, ForumFollow
 from rbac.core import rbac_user_blocked_for_model
@@ -18,12 +17,12 @@ logger = logging.getLogger("django")
 
 @login_required()
 def dashboard(request):
-    """ view to force the login prompt to come up """
+    """view to force the login prompt to come up"""
     return home(request)
 
 
 def home(request):
-    """ Home page """
+    """Home page"""
 
     if request.user.is_authenticated:
         system_number = request.user.system_number
@@ -51,16 +50,19 @@ def home(request):
 
 
 def logged_out(request):
-    """ Home screen for logged out users """
+    """Home screen for logged out users"""
 
     posts = get_announcements_logged_out()
     return render(request, "dashboard/logged_out.html", {"posts": posts})
+
 
 def help(request):
     """
     help page for new bridge users
     """
     return render(request, "dashboard/help.html")
+
+
 @login_required()
 def scroll1(request):
     """Cutdown homepage to be called by infinite scroll.
@@ -90,7 +92,7 @@ def scroll2(request):
 
 
 def get_announcements(request):
-    """ internal function to get Posts for forum_type="Announcements" """
+    """internal function to get Posts for forum_type="Announcements" """
 
     # TODO: Add clubs
     posts_list = Post.objects.filter(forum__forum_type="Announcement").order_by(
@@ -101,7 +103,7 @@ def get_announcements(request):
 
 
 def get_posts(request):
-    """ internal function to get Posts """
+    """internal function to get Posts"""
 
     # Get users preferences plus default Forums
     # TODO: ADD EVERYONE
@@ -137,8 +139,8 @@ def get_posts(request):
 
 
 def get_announcements_logged_out():
-    """ internal function to get Posts for logged out users
-        For now just return the latest 3 posts in Forum id=1
+    """internal function to get Posts for logged out users
+    For now just return the latest 3 posts in Forum id=1
     """
 
     posts = Post.objects.all().order_by("-created_date")[:3]

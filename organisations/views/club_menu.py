@@ -398,7 +398,10 @@ def access_basic_add_user_htmx(request):
     user_id = request.POST.get("user_id")
     user = get_object_or_404(User, pk=user_id)
 
+    # Get group
     group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
+
+    # Add user to group
     rbac_add_user_to_group(user, group)
 
     # All users are admins
