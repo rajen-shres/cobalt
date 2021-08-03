@@ -1,1 +1,23 @@
-<h2>Coming Soon</h2>
+{% load cobalt_tags %}
+
+<h2>Balance: {{ balance|cobalt_currency }}</h2>
+
+<div class="table-responsive">
+    <table class="table table-hover table-condensed">
+        <thead>
+
+        </thead>
+        <tbody>
+            {% for tran in recent_trans %}
+                <tr>
+                    <td>{{ tran.created_date }}</td>
+                    <td>{{ tran.description }}</td>
+                    <td>{{ tran.amount }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+

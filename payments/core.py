@@ -105,6 +105,37 @@ def get_balance(member):
     return float(last_tran.balance) if last_tran else 0.0
 
 
+################
+# get_balance  #
+################
+def get_balance_and_recent_trans_org(org):
+    """Gets organisation account balance and most recent transactions
+
+    This function returns the current balance of the organisation's account and the most recent transactions.
+
+    Args:
+        org (Organisation): An Organisation object
+
+    Returns:
+        float: The member's current balance
+        list: the most recent transactions
+
+    """
+
+    trans = OrganisationTransaction.objects.filter(organisation=org).order_by(
+        "-created_date"
+    )[10:]
+
+    last_tran = trans.first()
+
+    if last_tran:
+        balance = float(last_tran.balance)
+    else:
+        balance = 0.0
+
+    return balance, trans
+
+
 ################################
 # stripe_manual_payment_intent #
 ################################

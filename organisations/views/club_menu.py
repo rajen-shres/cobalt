@@ -15,6 +15,7 @@ from accounts.models import User
 from organisations.models import ORGS_RBAC_GROUPS_AND_ROLES, Organisation
 from organisations.views.admin import rbac_get_basic_and_advanced
 from organisations.views.general import get_rbac_model_for_state
+from payments.core import get_balance_and_recent_trans_org
 from rbac.core import (
     rbac_get_group_by_name,
     rbac_get_users_in_group,
@@ -337,8 +338,12 @@ def tab_finance_htmx(request):
     if not status:
         return error_page
 
+    balance, recent_trans = get_balance_and_recent_trans_org(club)
+
     return render(
-        request, "organisations/club_menu/tab_finance_htmx.html", {"club": club}
+        request,
+        "organisations/club_menu/tab_finance_htmx.html",
+        {"club": club, "balance": balance, "recent_trans": recent_trans},
     )
 
 
