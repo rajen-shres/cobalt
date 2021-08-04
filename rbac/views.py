@@ -278,6 +278,11 @@ def group_view(request, group_id):
     roles = RBACGroupRole.objects.filter(group=group)
     is_admin = rbac_user_is_group_admin(request.user, group)
     admins = rbac_get_admins_for_group(group)
+
+    warning = None
+    if group.name_qualifier.find(".generated.") > 0:
+        warning = "This is a generated group."
+
     return render(
         request,
         "rbac/group_view.html",
@@ -287,6 +292,7 @@ def group_view(request, group_id):
             "group": group,
             "is_admin": is_admin,
             "admins": admins,
+            "warning": warning,
         },
     )
 
@@ -324,16 +330,15 @@ def group_delete(request, group_id):
     group = get_object_or_404(RBACGroup, pk=group_id)
     if not rbac_user_is_group_admin(request.user, group):
         return HttpResponse("You are not an admin for this group")
-    else:
-        if request.method == "POST":
-            group.delete()
-            messages.success(
-                request,
-                "Group successfully deleted.",
-                extra_tags="cobalt-message-success",
-            )
-            return redirect("rbac:access_screen")
-        return render(request, "rbac/group_delete.html", {"group": group})
+    if request.method == "POST":
+        group.delete()
+        messages.success(
+            request,
+            "Group successfully deleted.",
+            extra_tags="cobalt-message-success",
+        )
+        return redirect("rbac:tree_screen")
+    return render(request, "rbac/group_delete.html", {"group": group})
 
 
 @login_required
@@ -427,42 +432,48 @@ def group_edit(request, group_id):
     """view to edit a group"""
 
     group = get_object_or_404(RBACGroup, pk=group_id)
+
     if not rbac_user_is_group_admin(request.user, group):
         return HttpResponse("You are not an admin for this group")
-    else:
-        if request.method == "POST":
-            form = AddGroup(request.POST, user=request.user, environment="rbac")
-            if form.is_valid():
-                group.name_item = form.cleaned_data["name_item"]
-                group.description = form.cleaned_data["description"]
-                group.save()
-                messages.success(
-                    request,
-                    "Group successfully updated.",
-                    extra_tags="cobalt-message-success",
-                )
-            else:
-                print(form.errors)
+
+    if request.method == "POST":
+        form = AddGroup(request.POST, user=request.user, environment="rbac")
+        if form.is_valid():
+            group.name_item = form.cleaned_data["name_item"]
+            group.description = form.cleaned_data["description"]
+            group.save()
+            messages.success(
+                request,
+                "Group successfully updated.",
+                extra_tags="cobalt-message-success",
+            )
         else:
-            form = AddGroup(user=request.user, environment="rbac")
-            form.fields["name_item"].initial = group.name_item
-            form.fields["description"].initial = group.description
+            print(form.errors)
+    else:
+        form = AddGroup(user=request.user, environment="rbac")
+        form.fields["name_item"].initial = group.name_item
+        form.fields["description"].initial = group.description
 
-        users = RBACUserGroup.objects.filter(group=group)
-        admin_roles = rbac_admin_all_rights(request.user)
-        roles = RBACGroupRole.objects.filter(group=group)
+    users = RBACUserGroup.objects.filter(group=group)
+    admin_roles = rbac_admin_all_rights(request.user)
+    roles = RBACGroupRole.objects.filter(group=group)
 
-        return render(
-            request,
-            "rbac/group_edit.html",
-            {
-                "form": form,
-                "group": group,
-                "users": users,
-                "roles": roles,
-                "admin_roles": admin_roles,
-            },
-        )
+    warning = None
+    if group.name_qualifier.find(".generated.") > 0:
+        warning = "This is a generated group. It is strongly advised that you do not edit this here."
+
+    return render(
+        request,
+        "rbac/group_edit.html",
+        {
+            "form": form,
+            "group": group,
+            "users": users,
+            "roles": roles,
+            "admin_roles": admin_roles,
+            "warning": warning,
+        },
+    )
 
 
 @login_required

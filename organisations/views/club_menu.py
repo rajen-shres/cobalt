@@ -12,7 +12,12 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
 from accounts.models import User
-from organisations.models import ORGS_RBAC_GROUPS_AND_ROLES, Organisation
+from events.models import Congress
+from organisations.models import (
+    ORGS_RBAC_GROUPS_AND_ROLES,
+    Organisation,
+    MemberOrganisation,
+)
 from organisations.views.admin import rbac_get_basic_and_advanced
 from organisations.views.general import get_rbac_model_for_state
 from payments.core import get_balance_and_recent_trans_org
@@ -27,7 +32,7 @@ from rbac.core import (
     rbac_get_admin_users_in_group,
     rbac_add_user_to_admin_group,
 )
-from rbac.models import RBACAdminUserGroup, RBACUserGroup
+from rbac.models import RBACAdminUserGroup, RBACUserGroup, RBACGroupRole
 
 from rbac.views import rbac_forbidden
 
@@ -231,15 +236,39 @@ def club_menu(request, club_id):
 
     club = get_object_or_404(Organisation, pk=club_id)
 
+    # Check access
     allowed, role = _menu_rbac_has_access(club, request.user)
     if not allowed:
         return rbac_forbidden(request, role)
+
+    # Check if we show the finance tab
+    show_finance = rbac_user_has_role(request.user, f"orgs.org.{club.id}.view")
+
+    # Check if we show the congress tab
+    show_congress = rbac_user_has_role(request.user, f"events.org.{club.id}.edit")
+
+    # Check if staff member for other clubs - get all from tree that are like "clubs.generated"
+    other_club_ids = (
+        RBACGroupRole.objects.filter(group__rbacusergroup__member=request.user)
+        .filter(group__name_qualifier__contains="clubs.generated")
+        .values("model_id")
+        .distinct()
+    )
+    if len(other_club_ids) > 1:
+        other_clubs = Organisation.objects.filter(pk__in=other_club_ids).exclude(
+            pk=club.id
+        )
+    else:
+        other_clubs = None
 
     return render(
         request,
         "organisations/club_menu/menu.html",
         {
             "club": club,
+            "show_finance": show_finance,
+            "show_congress": show_congress,
+            "other_clubs": other_clubs,
         },
     )
 
@@ -299,8 +328,26 @@ def tab_dashboard_htmx(request):
     if not status:
         return error_page
 
+    # TODO: Add status to query when we change the model for members to have status and dates
+    member_count = MemberOrganisation.objects.filter(organisation=club).count()
+    congress_count = Congress.objects.filter(congress_master__org=club).count()
+    staff_count = (
+        RBACUserGroup.objects.filter(group__rbacgrouprole__model_id=club.id)
+        .filter(group__name_qualifier=club.rbac_name_qualifier)
+        .values_list("member")
+        .distinct()
+        .count()
+    )
+
     return render(
-        request, "organisations/club_menu/tab_dashboard_htmx.html", {"club": club}
+        request,
+        "organisations/club_menu/tab_dashboard_htmx.html",
+        {
+            "club": club,
+            "member_count": member_count,
+            "congress_count": congress_count,
+            "staff_count": staff_count,
+        },
     )
 
 
@@ -325,8 +372,12 @@ def tab_congress_htmx(request):
     if not status:
         return error_page
 
+    congresses = Congress.objects.filter(congress_master__org=club)
+
     return render(
-        request, "organisations/club_menu/tab_congress_htmx.html", {"club": club}
+        request,
+        "organisations/club_menu/tab_congress_htmx.html",
+        {"club": club, "congresses": congresses},
     )
 
 

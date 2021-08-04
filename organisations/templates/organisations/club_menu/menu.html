@@ -1,20 +1,19 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
+{% load cobalt_tags %}
 {% block title %}- Club Menu {{ club }}{% endblock %}
-
-{#{% block header %}#}
-{#    <style>#}
-{#      .remove-all-styles {#}
-{#             all: inherit;#}
-{#      }#}
-{#    </style>#}
-{#{% endblock header %}#}
 
 {% block content %}
 
+    {% if other_clubs %}
+        <h4>You have access to multiple clubs, change club:</h4>
+        {% for other_club in other_clubs %}
+            <a href="{% url "organisations:club_menu" club_id=other_club.id %}" class="btn btn-sm btn-{% cobalt_random_colour %}">{{ other_club }}</a>
+        {% endfor %}
+    {% endif %}
 
-    <h1 class="text-center pt-4">{{ club }}</h1>
+    <h1 class="text-center pt-4">{{ club }} - {{ club.state }}</h1>
     <h2 class="text-center">Club Menu</h2>
 
     <div class="card-body">
@@ -22,7 +21,7 @@
             <div class="card-header card-header-secondary">
                 <ul id="id_menu" class="nav nav-pills nav-pills-icons" role="tablist">
                     <li class="nav-item">
-                        <a id="id_tab_dashboard" class="nav-link active" href="#dashboard" role="tab" data-toggle="tab">
+                        <a id="id_tab_dashboard" class="nav-link active auto-refresh" href="#dashboard" role="tab" data-toggle="tab">
                             <i class="material-icons">space_dashboard</i>
                             Club
                         </a>
@@ -33,12 +32,18 @@
                             Members
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a id="id_tab_congress" class="nav-link" href="#congress" role="tab" data-toggle="tab">
-                            <i class="material-icons">book_online</i>
-                            Congresses
-                        </a>
-                    </li>
+
+                    {% if show_congress %}
+
+                        <li class="nav-item">
+                            <a id="id_tab_congress" class="nav-link" href="#congress" role="tab" data-toggle="tab">
+                                <i class="material-icons">book_online</i>
+                                Congresses
+                            </a>
+                        </li>
+
+                    {% endif %}
+
                     <li class="nav-item">
                         <a id="id_tab_results" class="nav-link" href="#results" role="tab" data-toggle="tab">
                             <i class="material-icons">content_paste</i>
@@ -51,12 +56,18 @@
                             Communications
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a id="id_tab_finance" class="nav-link" href="#finance" role="tab" data-toggle="tab">
-                            <i class="material-icons">monetization_on</i>
-                            Finance
-                        </a>
-                    </li>
+
+                    {% if show_finance %}
+
+                        <li class="nav-item">
+                            <a id="id_tab_finance" class="nav-link" href="#finance" role="tab" data-toggle="tab">
+                                <i class="material-icons">monetization_on</i>
+                                Finance
+                            </a>
+                        </li>
+
+                    {% endif %}
+
                     <li class="nav-item">
                         <a id="id_tab_access" class="nav-link" href="#access" role="tab" data-toggle="tab">
                             <i class="material-icons">face</i>
@@ -125,12 +136,17 @@
 
                 // get matching panel id from this id
                 // this.id is something like 'id_tab_dashboard' and the placeholder in the panel is 'id_panel_dashboard'
+                // this isn't a proper this so to get the classes we need to create the tab variable
 
-                const panel_id = '#id_panel_' + this.id.split("_")[2];
+                const id = this.id.split("_")[2];
+                const panel_id = '#id_panel_' + id;
+                const tab_id = '#id_tab_' + id;
                 const panel = $(panel_id);
+                const tab = $(tab_id);
 
-                if (panel.html().length === 0) {
-
+                // allow auto refresh using auto-refresh class
+                // only auto-refresh if another tab could have changed our values
+                if (panel.html().length === 0 || tab.hasClass('auto-refresh')) {
                     htmx.trigger(htmx.find(panel_id), "tab_load_event");
                 }
             })

@@ -17,6 +17,7 @@ def global_settings(request):
         basket_items = 0
         show_admin_on_template = False
         support_tickets = False
+        club_staff = False
     else:
         (notification_count, notifications) = get_notifications_for_user(request.user)
         basket_items = get_basket_for_user(request.user)

@@ -93,6 +93,3 @@ def club_staff(user):
         .filter(model="org")
         .first()
     )
-
-
-#    return RBACUserGroup.objects.filter(group__rbacgrouprole__app="orgs").filter(group__rbacgrouprole__model="org").first()

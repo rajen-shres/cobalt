@@ -1797,6 +1797,7 @@ def refund_stripe_transaction(request, stripe_transaction_id):
     """Allows a user to refund a Stripe transaction
 
     Args:
+        stripe_transaction_id:
         request (HTTPRequest): standard request object
 
     Returns:
@@ -1842,7 +1843,7 @@ def refund_stripe_transaction(request, stripe_transaction_id):
         )
         return redirect("payments:statement")
 
-    if not balance_after >= 0.0:
+    if balance_after < 0.0:
         messages.error(
             request,
             "Cannot refund. Balance will be negative",
@@ -1850,7 +1851,7 @@ def refund_stripe_transaction(request, stripe_transaction_id):
         )
         return redirect("payments:statement")
 
-    if not stripe_current_balance() - bridge_credit_charge >= 0.0:
+    if stripe_current_balance() - bridge_credit_charge < 0.0:
         messages.error(
             request,
             "Cannot refund. We have insufficient funds available with Stripe. Please try again later.",
@@ -1894,7 +1895,16 @@ def refund_stripe_transaction(request, stripe_transaction_id):
                 {"rc": e, "stripe_item": stripe_item},
             )
 
-        if rc["status"] != "succeeded":
+        if rc["status"] not in ["succeeded", "pending"]:
+
+            log_event(
+                user=request.user.full_name,
+                severity="CRITICAL",
+                source="Payments",
+                sub_source="Admin refund",
+                message=f"User Refund. Unknown status from stripe refund. Stripe Item:{stripe_item}    Return Code{rc}",
+            )
+
             return render(
                 request,
                 "payments/payments_refund_error.html",
@@ -1983,7 +1993,7 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
     member_balance = get_balance(stripe_item.member)
 
     if request.method == "POST":
-        print(stripe_item.refund_left)
+
         form = StripeRefund(request.POST, payment_amount=stripe_item.refund_left)
         if form.is_valid():
 
@@ -2012,6 +2022,8 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
                 # Stripe uses cents not dollars
                 stripe_amount = int(amount * 100)
 
+                stripe.api_key = STRIPE_SECRET_KEY
+
                 try:
                     rc = stripe.Refund.create(
                         charge=stripe_item.stripe_reference,
@@ -2021,7 +2033,7 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
                 except stripe.error.InvalidRequestError as e:
                     log_event(
                         user=request.user.full_name,
-                        severity="HIGH",
+                        severity="CRITICAL",
                         source="Payments",
                         sub_source="Admin refund",
                         message=str(e),
@@ -2033,7 +2045,14 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
                         {"rc": e, "stripe_item": stripe_item},
                     )
 
-                if rc["status"] != "succeeded":
+                if rc["status"] not in ["succeeded", "pending"]:
+                    log_event(
+                        user=request.user.full_name,
+                        severity="CRITICAL",
+                        source="Payments",
+                        sub_source="Admin refund",
+                        message=f"Admin Refund. Unknown status from stripe refund. Stripe Item:{stripe_item}    Return Code{rc}",
+                    )
                     return render(
                         request,
                         "payments/payments_refund_error.html",

@@ -1,11 +1,11 @@
 {% load static %}
 
 <div class="card">
-    <div class="card-header card-header-primary">
-        <h2>Congress</h2>
+    <div class="card-header card-header-warning">
+        <h2>Congresses</h2>
     </div>
     <div class="card-body">
-        <div id="id_panel_dashboard"
+        <div id="id_panel_congress"
             hx-post="{% url "organisations:club_menu_tab_congress_htmx" %}"
             hx-trigger="tab_load_event"
             hx-indicator=".htmx-indicator"

@@ -14,6 +14,7 @@ cp /var/app/current/cobalt/static/copy-to-media/pic_folder/* /cobalt-media/pic_f
 ./manage.py add_rbac_static_forums
 ./manage.py add_rbac_static_payments
 ./manage.py add_rbac_static_orgs
+./manage.py update_club_rbac_groups
 ./manage.py add_rbac_static_events
 ./manage.py add_rbac_static_notifications
 ./manage.py add_rbac_static_support
