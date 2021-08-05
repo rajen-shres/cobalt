@@ -3,7 +3,7 @@ from accounts.models import User
 
 
 class Command(BaseCommand):
-    def CreateDefaultTestUsers(
+    def create_initial_user(
         self, newuser, email, system_number, first, last, about="No info", pic=None
     ):
         if not User.objects.filter(username=newuser).exists():
@@ -31,11 +31,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         print("Running createsu.")
         # RBAC Everyone
-        self.CreateDefaultTestUsers(
+        self.create_initial_user(
             "EVERYONE", "a@b.com", "0", "EVERYONE", "system_account"
         )
         # TBA User for event entry
-        self.CreateDefaultTestUsers(
+        self.create_initial_user(
             "TBA",
             "a@b.com",
             "1",
@@ -45,7 +45,7 @@ class Command(BaseCommand):
             "pic_folder/tba.png",
         )
 
-        self.CreateDefaultTestUsers(
+        self.create_initial_user(
             "ABF",
             "nto@abf.com.au",
             "2",
@@ -55,7 +55,7 @@ class Command(BaseCommand):
             "pic_folder/abf.png",
         )
 
-        self.CreateDefaultTestUsers(
+        self.create_initial_user(
             "Mark",
             "m@rkguthrie.com",
             "620246",
@@ -65,9 +65,10 @@ class Command(BaseCommand):
             "pic_folder/mark.jpg",
         )
 
-        self.CreateDefaultTestUsers(
+        self.create_initial_user(
             "518891",
-            "julianrfoster@gmail.com",
+            # "julianrfoster@gmail.com",
+            "m@rkguthrie.com",
             "518891",
             "Julian",
             "Foster",
