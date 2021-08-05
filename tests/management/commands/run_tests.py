@@ -1,3 +1,4 @@
+import os
 import sys
 
 from django.core.exceptions import SuspiciousOperation
@@ -12,6 +13,7 @@ class Command(BaseCommand):
         # Positional arguments
 
         parser.add_argument("--app", help="App name e.g. payments.")
+        parser.add_argument("--browser", help="Browser - default is chrome")
 
     def handle(self, *args, **options):
 
@@ -20,13 +22,22 @@ class Command(BaseCommand):
                 "Not for use in production. This cannot be used in a production system."
             )
 
-        app = options["app"]
+        # If we crash then we leave dead browser sessions, try to kill them off
+        os.system('pkill - f"(chrome)?(--headless)"')
+        os.system('pkill - f"(firefox)?(--headless)"')
 
-        print(app)
+        app = options["app"]
+        browser = options["browser"]
 
         # create testManager to oversee things
-        manager = CobaltTestManager()
-        if not manager.run():
-            html = manager.report_html()
-            print(html)
-            sys.exit(1)
+        manager = CobaltTestManager(app, browser)
+
+        manager.run()
+
+
+#     manager.report()
+# manager.clean_up()
+# if not manager.run():
+#     html = manager.report_html()
+#     print(html)
+#     sys.exit(1)

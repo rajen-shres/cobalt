@@ -217,3 +217,11 @@ August 05, 2021 - 20:14:07
 Django version 3.2.4, using settings 'cobalt.settings'
 Starting development server at http://0.0.0.0:8088/
 Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+August 06, 2021 - 04:06:32
+Django version 3.2.4, using settings 'cobalt.settings'
+Starting development server at http://0.0.0.0:8088/
+Quit the server with CONTROL-C.

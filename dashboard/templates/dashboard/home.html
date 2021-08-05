@@ -23,7 +23,7 @@
                             </div>
                             <p class="card-category">{{ BRIDGE_CREDITS }}</p>
 
-                            <h3 class="card-title"><span class="text-nowrap" id="balance">{{ payments.balance|intcomma }}</span></h3>
+                            <h3 class="card-title"><span class="text-nowrap" id="id_account_balance">{{ payments.balance|intcomma }}</span></h3>
                         </div>
                         <div class="card-footer">
                             <div class="stats">
@@ -306,7 +306,7 @@
             // ABF$
             {% if payments.balance_num %}
 
-                let counter = new countUp.CountUp('balance', {{ payments.balance_num }}, options);
+                let counter = new countUp.CountUp('id_account_balance', {{ payments.balance_num }}, options);
                 if (!counter.error) {
                     counter.start();
                 } else {

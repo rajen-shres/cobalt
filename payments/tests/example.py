@@ -12,8 +12,7 @@ class Example:
         # self.client.force_login(test_user)
         self.py = self.manager.py
 
-    def ex(self):
-        print("inside ex")
+    def test_we_can_fill_form(self):
         response = self.manager.client.get("/dashboard/")
         self.manager.results(response.status_code, "Load Dashboard")
 
@@ -23,13 +22,17 @@ class Example:
         if self.py.contains("Carlos Kidman"):
             self.manager.results(True, "Check a website")
 
-    def ex2(self):
+    def check_interest_rate_calcs(self):
         print("inside e2x")
         response = self.manager.client.get("/dashboard/")
-        self.manager.results(response.status_code, "Load Dashboard")
+        self.manager.results(response.status_code, "Perform difficult calcs")
 
         self.py.visit("https://qap.dev")
         self.py.get('a[href="/about"]').hover()
         self.py.get('a[href="/leadership"][class^="Header-nav"]').click()
         if self.py.contains("Carlos Kidman"):
-            self.manager.results(False, "Check another website")
+            self.manager.results(
+                False,
+                "Check another website",
+                "Something really bad happened.\nNo response.\nAbort",
+            )
