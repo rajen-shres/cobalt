@@ -8,12 +8,11 @@ from django.urls import reverse
 from accounts.models import User
 from payments.forms import MemberTransfer
 from payments.models import MemberTransaction
-from pylenium.driver import Pylenium
 
 setup_test_environment()
 
 
-class ClientTest:
+class CobaltTestManager:
     """
     These tests access the app from within Django and through the Client object.
     This is the similar to accessing the app from the web but doesn't involve any
