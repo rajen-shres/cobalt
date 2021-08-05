@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Run tests on local machine
+
+# Variables
+PORT=8088
+export RDS_DB_NAME=test
+export DUMMY_DATA_COUNT=1
+
+# Kill manage.py if running
+lsof -i tcp:$PORT | awk 'NR!=1 {print $2}' | xargs kill
+
+# Rebuild database
+cat << EOF > /tmp/drop_db
+\c postgres
+drop database IF EXISTS $RDS_DB_NAME;
+create database $RDS_DB_NAME with owner postgres;
+EOF
+
+# psql </tmp/drop_db
+
+# For build server use:
+sudo su - postgres -c "psql </tmp/drop_db"
+
+# include scripts
+utils/aws/rebuild_test_database_subcommands.sh
+
+# Start manage.py
+# nohup ./manage.py runserver 0.0.0.0:$PORT >/dev/null 2>&1 &
+nohup ./manage.py runserver 0.0.0.0:$PORT &
+
+# run tests
+./manage.py run_tests
+

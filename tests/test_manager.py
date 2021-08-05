@@ -4,10 +4,13 @@ from pprint import pprint
 from django.test import Client
 from django.test.utils import setup_test_environment
 from django.urls import reverse
+from pylenium.driver import Pylenium
+from pylenium.config import PyleniumConfig
 
 from accounts.models import User
 from payments.forms import MemberTransfer
 from payments.models import MemberTransaction
+
 
 setup_test_environment()
 
@@ -31,6 +34,11 @@ class CobaltTestManager:
         self.login("100")
         self.success = []
         self.failure = []
+        config = PyleniumConfig()
+        config.driver.browser = "firefox"
+        # config.driver.browser='opera'
+        config.driver.options = ["headless"]
+        self.py = Pylenium(config)
 
     def login(self, username):
         test_user = User.objects.filter(username=username).first()
@@ -92,12 +100,25 @@ class CobaltTestManager:
         return html
 
     def run(self):
-        self.run_dashboard()
-        self.run_dashboard_details()
-        self.run_forums()
-        self.run_forums_details()
-        self.run_member_transfer()
-        return not self.failure
+
+        from payments.tests.example import Example
+
+        f = Example(self)
+        attrs = (getattr(f, name) for name in dir(f))
+        methods = filter(inspect.ismethod, attrs)
+        for method in methods:
+            try:
+                method()
+            except TypeError:
+                # Can't handle methods with required arguments.
+                pass
+
+        # self.run_dashboard()
+        # self.run_dashboard_details()
+        # self.run_forums()
+        # self.run_forums_details()
+        # self.run_member_transfer()
+        # return not self.failure
 
     def run_dashboard(self):
         response = self.client.get("/dashboard/")

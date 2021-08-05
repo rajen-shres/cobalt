@@ -1,0 +1,219 @@
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+August 05, 2021 - 19:28:20
+Django version 3.2.4, using settings 'cobalt.settings'
+Starting development server at http://0.0.0.0:80000/
+Quit the server with CONTROL-C.
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/threading.py", line 917, in _bootstrap_inner
+    self.run()
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/threading.py", line 865, in run
+    self._target(*self._args, **self._kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/core/management/commands/runserver.py", line 140, in inner_run
+    ipv6=self.use_ipv6, threading=threading, server_cls=self.server_cls)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/core/servers/basehttp.py", line 210, in run
+    httpd = httpd_cls(server_address, WSGIRequestHandler, ipv6=ipv6)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/core/servers/basehttp.py", line 71, in __init__
+    super().__init__(*args, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/socketserver.py", line 452, in __init__
+    self.server_bind()
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/wsgiref/simple_server.py", line 50, in server_bind
+    HTTPServer.server_bind(self)
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/http/server.py", line 137, in server_bind
+    socketserver.TCPServer.server_bind(self)
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/socketserver.py", line 466, in server_bind
+    self.socket.bind(self.server_address)
+OverflowError: getsockaddrarg: port must be 0-65535.
+
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+August 05, 2021 - 19:30:02
+Django version 3.2.4, using settings 'cobalt.settings'
+Starting development server at http://0.0.0.0:8088/
+Quit the server with CONTROL-C.
+[05/Aug/2021 19:30:12] "GET / HTTP/1.1" 200 35286
+[05/Aug/2021 19:30:12] "GET /static/assets/css/cobalt.css HTTP/1.1" 200 1840
+[05/Aug/2021 19:30:12] "GET /static/assets/js/core/popper.min.js HTTP/1.1" 200 33477
+[05/Aug/2021 19:30:13] "GET /static/assets/js/plugins/perfect-scrollbar.jquery.min.js HTTP/1.1" 200 25332
+[05/Aug/2021 19:30:13] "GET /static/assets/js/core/bootstrap-material-design.min.js HTTP/1.1" 200 76652
+[05/Aug/2021 19:30:13] "GET /static/assets/js/core/jquery-3.4.1.min.js HTTP/1.1" 200 88145
+[05/Aug/2021 19:30:13] "GET /static/assets/css/material-dashboard.css?v=2.1.1 HTTP/1.1" 200 662666
+[05/Aug/2021 19:30:13] "GET /static/assets/js/jquery-validation-1.19.2/jquery.validate.min.js HTTP/1.1" 200 24443
+[05/Aug/2021 19:30:13] "GET /static/assets/js/jquery-validation-1.19.2/additional-methods.min.js HTTP/1.1" 200 22660
+[05/Aug/2021 19:30:13] "GET /static/assets/css/font-awesome.5.14/css/all.min.css HTTP/1.1" 200 58935
+[05/Aug/2021 19:30:13] "GET /static/assets/js/waypoints/jquery.waypoints.min.js HTTP/1.1" 200 9028
+[05/Aug/2021 19:30:13] "GET /static/assets/js/waypoints/shortcuts/infinite.min.js HTTP/1.1" 200 1460
+[05/Aug/2021 19:30:13] "GET /static/assets/js/countUp.2.0.7/countUp.umd.js HTTP/1.1" 200 10765
+[05/Aug/2021 19:30:13] "GET /static/assets/js/polyfill.core-js.2.4.1.js HTTP/1.1" 200 238050
+[05/Aug/2021 19:30:13] "GET /static/assets/js/material-dashboard-noscroll.js?v=2.1.1 HTTP/1.1" 200 21885
+[05/Aug/2021 19:30:13] "GET /static/assets/img/abftechlogo.png HTTP/1.1" 200 120249
+[05/Aug/2021 19:30:13] "GET /media/pic_folder/tba.png HTTP/1.1" 200 4646
+[05/Aug/2021 19:30:13] "GET /media/pic_folder/105.jpg HTTP/1.1" 200 296535
+[05/Aug/2021 19:30:13] "GET /media/pic_folder/102.jpg HTTP/1.1" 200 624774
+[05/Aug/2021 19:30:13] "GET /media/pic_folder/109.jpg HTTP/1.1" 200 602644
+[05/Aug/2021 19:30:13] "GET /media/pic_folder/104.jpg HTTP/1.1" 200 697697
+[05/Aug/2021 19:30:14] "GET /static/assets/img/slider.jpg HTTP/1.1" 200 18135
+[05/Aug/2021 19:30:14] "GET /static/assets/img/favicon.png HTTP/1.1" 200 4109
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+August 05, 2021 - 19:46:09
+Django version 3.2.4, using settings 'cobalt.settings'
+Starting development server at http://0.0.0.0:8088/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/base/base.py", line 219, in ensure_connection
+    self.connect()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/base/base.py", line 200, in connect
+    self.connection = self.get_new_connection(conn_params)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/postgresql/base.py", line 187, in get_new_connection
+    connection = Database.connect(**conn_params)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/psycopg2/__init__.py", line 126, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: FATAL:  database "test" does not exist
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/threading.py", line 917, in _bootstrap_inner
+    self.run()
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/threading.py", line 865, in run
+    self._target(*self._args, **self._kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/core/management/commands/runserver.py", line 110, in inner_run
+    autoreload.raise_last_exception()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/autoreload.py", line 87, in raise_last_exception
+    raise _exception[1]
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/core/management/__init__.py", line 375, in execute
+    autoreload.check_errors(django.setup)()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/apps/registry.py", line 122, in populate
+    app_config.ready()
+  File "/Users/guthrie/Development/c2/cobalt/notifications/apps.py", line 25, in ready
+    EmailThread.objects.all().delete()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/models/query.py", line 746, in delete
+    deleted, _rows_count = collector.delete()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/models/deletion.py", line 400, in delete
+    with transaction.atomic(using=self.using, savepoint=False):
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/transaction.py", line 189, in __enter__
+    if not connection.get_autocommit():
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/base/base.py", line 389, in get_autocommit
+    self.ensure_connection()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/base/base.py", line 219, in ensure_connection
+    self.connect()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/utils.py", line 90, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/base/base.py", line 219, in ensure_connection
+    self.connect()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/base/base.py", line 200, in connect
+    self.connection = self.get_new_connection(conn_params)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/postgresql/base.py", line 187, in get_new_connection
+    connection = Database.connect(**conn_params)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/psycopg2/__init__.py", line 126, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: FATAL:  database "test" does not exist
+
+
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/base/base.py", line 219, in ensure_connection
+    self.connect()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/base/base.py", line 200, in connect
+    self.connection = self.get_new_connection(conn_params)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/postgresql/base.py", line 187, in get_new_connection
+    connection = Database.connect(**conn_params)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/psycopg2/__init__.py", line 126, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: FATAL:  database "test" does not exist
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/threading.py", line 917, in _bootstrap_inner
+    self.run()
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/threading.py", line 865, in run
+    self._target(*self._args, **self._kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/core/management/commands/runserver.py", line 110, in inner_run
+    autoreload.raise_last_exception()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/autoreload.py", line 87, in raise_last_exception
+    raise _exception[1]
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/core/management/__init__.py", line 375, in execute
+    autoreload.check_errors(django.setup)()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/apps/registry.py", line 122, in populate
+    app_config.ready()
+  File "/Users/guthrie/Development/c2/cobalt/notifications/apps.py", line 25, in ready
+    EmailThread.objects.all().delete()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/models/query.py", line 746, in delete
+    deleted, _rows_count = collector.delete()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/models/deletion.py", line 400, in delete
+    with transaction.atomic(using=self.using, savepoint=False):
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/transaction.py", line 189, in __enter__
+    if not connection.get_autocommit():
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/base/base.py", line 389, in get_autocommit
+    self.ensure_connection()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/base/base.py", line 219, in ensure_connection
+    self.connect()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/utils.py", line 90, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/base/base.py", line 219, in ensure_connection
+    self.connect()
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/base/base.py", line 200, in connect
+    self.connection = self.get_new_connection(conn_params)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/django/db/backends/postgresql/base.py", line 187, in get_new_connection
+    connection = Database.connect(**conn_params)
+  File "/Users/guthrie/Development/c2/myenv/lib/python3.7/site-packages/psycopg2/__init__.py", line 126, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: FATAL:  database "test" does not exist
+
+
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+August 05, 2021 - 20:14:07
+Django version 3.2.4, using settings 'cobalt.settings'
+Starting development server at http://0.0.0.0:8088/
+Quit the server with CONTROL-C.
