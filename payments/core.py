@@ -324,9 +324,9 @@ def stripe_auto_payment_intent(request):
     return JsonResponse({"error": "POST required"})
 
 
-######################
-# test_callback      #
-######################
+###########################
+# stripe_current_balance  #
+###########################
 def stripe_current_balance():
     """Get our (ABF) current balance with Stripe"""
 
