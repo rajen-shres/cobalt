@@ -31,13 +31,5 @@ class Command(BaseCommand):
 
         # create testManager to oversee things
         manager = CobaltTestManager(app, browser)
-
         manager.run()
-
-
-#     manager.report()
-# manager.clean_up()
-# if not manager.run():
-#     html = manager.report_html()
-#     print(html)
-#     sys.exit(1)
+        manager.report()

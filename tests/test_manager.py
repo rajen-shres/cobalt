@@ -10,12 +10,13 @@ from pylenium.driver import Pylenium
 
 from accounts.models import User
 
+# Stop sending emails plus some other things we don't care about
 setup_test_environment()
 
 # List of tests to run format is "class": "location"
 LIST_OF_TESTS = {
     # "Example": "payments.tests.example",
-    "PaymentsTest37": "payments.tests.my_big_payments_test",
+    "MemberTransfer": "payments.tests.member_actions",
 }
 
 
@@ -24,6 +25,7 @@ def run_methods(class_instance):
     attrs = (getattr(class_instance, name) for name in dir(class_instance))
     methods = filter(inspect.ismethod, attrs)
     for method in methods:
+        print("--Calling", method)
         try:
             method()
         except TypeError:
@@ -80,28 +82,34 @@ class CobaltTestManager:
         self.test_code = "F1shcake"
 
         # Login first user - Alan Admin
-        self.login_user("100")
+        self.test_user = self.get_user("100")
+
+        # Log user in
+        self.login_user(self.test_user)
 
         # Variables for results of tests
         self.overall_success = True
-        self.test_results = {}
+        self.test_results = {}  # actual results
+        self.test_results_list = []  # order of results
 
-    #        self.test_results_index = {}
+    def get_user(self, username):
+        """Get a user by username"""
+        return User.objects.filter(username=username).first()
 
-    def login_user(self, username):
+    def login_user(self, user):
         """Login user to both test client and Pylenium"""
-        self.login_test_client(username)
-        self.login_pylenium_user(username)
+        self.login_test_client(user)
+        self.login_pylenium_user(user)
 
-    def login_test_client(self, username):
+    def login_test_client(self, user):
         """login user through test client interface"""
-        test_user = User.objects.filter(username=username).first()
-        self.client.force_login(test_user)
 
-    def login_pylenium_user(self, username):
+        self.client.force_login(user)
+
+    def login_pylenium_user(self, user):
         """login user through browser"""
         self.py.visit(f"{self.base_url}/accounts/login")
-        self.py.get("#id_username").type(username)
+        self.py.get("#id_username").type(user.username)
         self.py.get("#id_password").type(self.test_code)
         self.py.get(".btn").click()
 
@@ -131,6 +139,11 @@ class CobaltTestManager:
 
         self.test_results[calling_class][calling_method][test_name] = (status, details)
 
+        # Add to our list if not already there
+        this_id = f"{calling_class}:{calling_method}"
+        if this_id not in self.test_results_list:
+            self.test_results_list.append(this_id)
+
         if not status:
             self.overall_success = False
 
@@ -146,20 +159,21 @@ class CobaltTestManager:
         else:
             print("Failed")
 
-        print("\n\n-----------------------------------------\n")
+        print("\n-----------------------------------------\n")
 
-        for calling_class in self.test_results:
-            print(f"\n+++++{calling_class} in {LIST_OF_TESTS[calling_class]}+++++")
+        for result_item in self.test_results_list:
+            calling_class, calling_method = result_item.split(":")
 
-            for calling_method in self.test_results[calling_class]:
-                for test_name in self.test_results[calling_class][calling_method]:
-                    status, error_desc = self.test_results[calling_class][
-                        calling_method
-                    ][test_name]
-                    status_word = "Pass" if status else "Fail"
-                    print(f"{calling_method} - {test_name} - {status_word}")
-                    if error_desc:
-                        print(error_desc)
+            for test_name in self.test_results[calling_class][calling_method]:
+                status, error_desc = self.test_results[calling_class][calling_method][
+                    test_name
+                ]
+                status_word = "Pass" if status else "Fail"
+                print(
+                    f"{calling_class} - {calling_method} - {test_name} - {status_word}"
+                )
+                if not status and error_desc:
+                    print(error_desc)
 
     def report_html(self):
         """return report as html"""
@@ -239,44 +253,3 @@ class CobaltTestManager:
     #     details.append(detail)
     #
     #     self.results(passing, "Load Dashboard and check details", details)
-    #
-    # def run_member_transfer(self):
-    #     """perform a member transfer and check results"""
-    #
-    #     url = reverse("payments:member_transfer")
-    #
-    #     betty = User.objects.filter(username="101").first()
-    #
-    #     form_data = {
-    #         "transfer_to": betty,
-    #         "amount": 54.45,
-    #         "description": "test transfer",
-    #     }
-    #     form = MemberTransfer(data=form_data)
-    #     print("Checking form...")
-    #     print(form.is_valid())
-    #
-    #     form_data = {
-    #         "transfer_to": betty.id,
-    #         "amount": 54.45,
-    #         "description": "test transfer",
-    #     }
-    #
-    #     print("Checking POST...")
-    #     response = self.client.post(url, form_data)
-    #
-    #     print(response)
-    #
-    #     print("check transactions...")
-    #     betty_tran = (
-    #         MemberTransaction.objects.filter(member=betty)
-    #         .order_by("-created_date")
-    #         .first()
-    #     )
-    #     print(betty_tran.description, betty_tran.amount, betty_tran.other_member)
-    #
-    #     print("Checking statements...")
-    #
-    #     url = reverse("payments:statement_admin_view", kwargs={"member_id": betty.id})
-    #     response = self.client.get(url)
-    #     pprint(response.context["things"])
