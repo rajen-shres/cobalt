@@ -1,199 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 
-{% load static %}
+    {% load static %}
 
-<head>
-  <meta charset="utf-8" />
-  <link rel="apple-touch-icon" sizes="76x76" href="{% static "assets/img/apple-icon.png" %}">
-  <link rel="icon" type="image/png" href="{% static "assets/img/favicon.png" %}">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
-  <title>
-    {{ GLOBAL_TITLE }}
-  </title>
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
-  <link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
-  <link href="{% static "assets/css/cobalt.css" %}" rel="stylesheet" />
-  <style>
-    .bg {
-      height: 100%;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-size: cover;
-    }
-  </style>
-</head>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="apple-touch-icon" sizes="76x76" href="{% static "assets/img/apple-icon.png" %}">
+        <link rel="icon" type="image/png" href="{% static "assets/img/favicon.png" %}">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+        <title>
+            {{ GLOBAL_TITLE }}
+        </title>
+        <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+        <link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
+        <link href="{% static "assets/css/cobalt.css" %}" rel="stylesheet" />
+        <style>
+            .bg {
+                height: 100%;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: cover;
+            }
+        </style>
+    </head>
 
-<body>
-  <div class="bg" id="bg">
-    <div class="wrapper d-flex align-items-center min-vh-100">
-      <div class="container d-flex justify-content-center">
-        <div class="col-lg-6 col-md-8 col-sm-8 align-self-center">
-          <div clas="row justify-content-center">
-            <div class="card">
-              <div class="card-header card-header-primary">
-                <h3 class="card-title text-center font-weight-bold">My {{ GLOBAL_ORG }}</h3>
-                <div class=" text-center">
-                  <h4><i class="material-icons">how_to_reg</i></h4>
+    <body>
+        <div class="bg" id="bg">
+            <div class="wrapper d-flex align-items-center min-vh-100">
+                <div class="container d-flex justify-content-center">
+                    <div class="col-lg-6 col-md-8 col-sm-8 align-self-center">
+                        <div clas="row justify-content-center">
+                            <div class="card">
+                                <div class="card-header card-header-primary">
+                                    <h3 class="card-title text-center font-weight-bold">My {{ GLOBAL_ORG }}</h3>
+                                    <div class=" text-center">
+                                        <h4><i class="material-icons">how_to_reg</i></h4>
+                                    </div>
+                                    <h4 class="text-center">Sign Up. It's free for members!</h4>
+                                </div>
+                                <div class="card-body">
+                                    <form role="form" method="post">
+                                        {% csrf_token %}
+                                        {% if user_form.non_field_errors %}
+                                            {% for error in user_form.non_field_errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        {% endif %}
+                                        <div class="form-group">
+                                            <span id="username_error" class="cobalt-form-error"></span>
+                                            <span class="cobalt-form-error" id="id_username_errors">{{ user_form.username.errors|striptags }}</span>
+                                            <input type="number" name="username" id="id_username" class="form-control input-sm" placeholder="{{ GLOBAL_ORG }} Number" value="{{ user_form.username.value|default_if_none:'' }}">
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-xs-6 col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <span class="cobalt-form-error" id="id_first_name_errors">{{ user_form.first_name.errors|striptags }}</span>
+                                                    <input type="text" readonly name="first_name" id="id_first_name" class="form-control input-sm" placeholder="First Name" value="{{ user_form.first_name.value|default_if_none:'' }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-6 col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <span class="cobalt-form-error" id="id_last_name_errors">{{ user_form.last_name.errors|striptags }}</span>
+                                                    <input type="text" readonly name="last_name" id="id_last_name" class="form-control input-sm" placeholder="Last Name" value="{{ user_form.last_name.value|default_if_none:'' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <span class="cobalt-form-error" id="id_email_errors">{{ user_form.email.errors|striptags }}</span>
+
+                                            <input type="email" name="email" id="id_email" class="form-control input-sm" placeholder="Email Address" value="{{ user_form.email.value|default_if_none:'' }}">
+                                        </div>
+                                        <div class="form-group">
+                                            <span class="cobalt-form-error" id="id_password1_errors">{{ user_form.password1.errors|striptags }}</span>
+                                            <input type="password" name="password1" id="id_password1" class="form-control input-sm" placeholder="Password">
+                                        </div>
+                                        <div class="form-group">
+                                            <span class="cobalt-form-error" id="id_password2_errors">{{ user_form.password2.errors|striptags }}</span>
+                                            <input type="password" name="password2" id="id_password2" class="form-control input-sm" placeholder="Confirm Password">
+                                        </div>
+                                        <input type="submit" value="Sign Up" class="btn btn-block bg-info">
+                                    </form>
+                                    <span class="center-block">
+                                        <a href="{% url "dashboard:dashboard" %}">
+                                            <div class="text-center">Already signed up? Log In.</div>
+                                        </a>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h4 class="text-center">Sign Up. It's free for members!</h4>
-              </div>
-              <div class="card-body">
-                <form role="form" method="post">
-                  {% csrf_token %}
-                  {% if user_form.non_field_errors %}
-                  {% for error in user_form.non_field_errors %}
-                  {{ error }}
-                  {% endfor %}
-                  {% endif %}
-                  <div class="form-group">
-                    <span id="username_error" class="cobalt-form-error"></span>
-                    <span class="cobalt-form-error" id="id_username_errors">{{ user_form.username.errors|striptags }}</span>
-                    <input type="number" name="username" id="id_username" class="form-control input-sm" placeholder="{{ GLOBAL_ORG }} Number" value="{{ user_form.username.value|default_if_none:'' }}">
-                  </div>
-                  <div class="row">
-                    <div class="col-xs-6 col-sm-6 col-md-6">
-                      <div class="form-group">
-                        <span class="cobalt-form-error" id="id_first_name_errors">{{ user_form.first_name.errors|striptags }}</span>
-                        <input type="text" readonly name="first_name" id="id_first_name" class="form-control input-sm" placeholder="First Name" value="{{ user_form.first_name.value|default_if_none:'' }}">
-                      </div>
-                    </div>
-                    <div class="col-xs-6 col-sm-6 col-md-6">
-                      <div class="form-group">
-                        <span class="cobalt-form-error" id="id_last_name_errors">{{ user_form.last_name.errors|striptags }}</span>
-                        <input type="text" readonly name="last_name" id="id_last_name" class="form-control input-sm" placeholder="Last Name" value="{{ user_form.last_name.value|default_if_none:'' }}">
-                      </div>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <span class="cobalt-form-error" id="id_email_errors">{{ user_form.email.errors|striptags }}</span>
-
-                    <input type="email" name="email" id="id_email" class="form-control input-sm" placeholder="Email Address" value="{{ user_form.email.value|default_if_none:'' }}">
-                  </div>
-                  <div class="form-group">
-                    <span class="cobalt-form-error" id="id_password1_errors">{{ user_form.password1.errors|striptags }}</span>
-                    <input type="password" name="password1" id="id_password1" class="form-control input-sm" placeholder="Password">
-                  </div>
-                  <div class="form-group">
-                    <span class="cobalt-form-error" id="id_password2_errors">{{ user_form.password2.errors|striptags }}</span>
-                    <input type="password" name="password2" id="id_password2" class="form-control input-sm" placeholder="Confirm Password">
-                  </div>
-                  <input type="submit" value="Sign Up" class="btn btn-block bg-info">
-                </form>
-                <span class="center-block">
-                  <a href="{% url "dashboard:dashboard" %}">
-                    <div class="text-center">Already signed up? Log In.</div>
-                  </a>
-                </span>
-              </div>
             </div>
-          </div>
+            <footer class="footer fixed-bottom">
+                <div class="container-fluid">
+                    <nav class="float-left">
+                        <ul>
+                            <li>
+                                <a href="{% url 'support:contact_logged_out' %}">
+                                    Contact Us
+                                </a>
+                            </li>
+                            <li>
+                                <a href=" {{ GLOBAL_ABOUT }}">
+                                    About Us
+                                </a>
+                            </li>
+                            <li>
+                                <a href=" {{ GLOBAL_PRIVACY }}">
+                                    Privacy
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <div class="copyright float-right">
+                        {{ GLOBAL_ORG }} &copy;
+                        <script>
+                            document.write(new Date().getFullYear())
+                        </script>
+                    </div>
+                </div>
+            </footer>
         </div>
-      </div>
-    </div>
-    <footer class="footer fixed-bottom">
-      <div class="container-fluid">
-        <nav class="float-left">
-          <ul>
-            <li>
-              <a href="{{ GLOBAL_CONTACT }}">
-                Contact Us
-              </a>
-            </li>
-            <li>
-              <a href=" {{ GLOBAL_ABOUT }}">
-                About Us
-              </a>
-            </li>
-            <li>
-              <a href=" {{ GLOBAL_PRIVACY }}">
-                Privacy
-              </a>
-            </li>
-          </ul>
-        </nav>
-        <div class="copyright float-right">
-          {{ GLOBAL_ORG }} &copy;
-          <script>
-            document.write(new Date().getFullYear())
-          </script>
-        </div>
-      </div>
-    </footer>
-  </div>
 
 
-  <!--   Core JS Files   -->
-  <script src="{% static "assets/js/core/jquery.min.js" %}"></script>
-  <script src="{% static "assets/js/core/popper.min.js" %}"></script>
-  <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
+        <!--   Core JS Files   -->
+        <script src="{% static "assets/js/core/jquery.min.js" %}"></script>
+        <script src="{% static "assets/js/core/popper.min.js" %}"></script>
+        <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
 
-  <script>
-    jQuery(document).ready(function() {
+        <script>
+            jQuery(document).ready(function() {
 
-      $(window).keydown(function(event) {
-        if (event.keyCode == 13) {
-          event.preventDefault();
-          return false;
-        }
-      });
+                $(window).keydown(function(event) {
+                    if (event.keyCode == 13) {
+                        event.preventDefault();
+                        return false;
+                    }
+                });
 
-      function getPlayerName() {
+                function getPlayerName() {
 
-        var username = document.getElementById('id_username')
-        var fname = document.getElementById('id_first_name')
-        var lname = document.getElementById('id_last_name')
-        var err = document.getElementById('username_error')
-        var username_err = document.getElementById('id_username_errors')
+                    var username = document.getElementById('id_username')
+                    var fname = document.getElementById('id_first_name')
+                    var lname = document.getElementById('id_last_name')
+                    var err = document.getElementById('username_error')
+                    var username_err = document.getElementById('id_username_errors')
 
-        err.innerHTML = "";
+                    err.innerHTML = "";
 
-        var trimmed_username = username.value.replace(/^\s+|\s+$/g, '');
+                    var trimmed_username = username.value.replace(/^\s+|\s+$/g, '');
 
-        if (trimmed_username == '') {
-          return;
-        }
+                    if (trimmed_username == '') {
+                        return;
+                    }
 
-        var strURL = "{% url "masterpoints:system_number_lookup" %}?system_number=" + trimmed_username;
+                    var strURL = "{% url "masterpoints:system_number_lookup" %}?system_number=" + trimmed_username;
 
-        jQuery.ajax({
-          url: strURL,
-          context: document.body,
-          success: function(txt) {
+                    jQuery.ajax({
+                        url: strURL,
+                        context: document.body,
+                        success: function(txt) {
 
-            var res = txt.split(" ");
-            if (res.length == 2) {
-              fname.value = res[0];
-              lname.value = res[1];
-            }
-            var n = txt.search("Error");
-            if (n >= 0) {
-              username.focus();
-              err.innerHTML = txt;
-              username_err.innerHTML = "";
+                            var res = txt.split(" ");
+                            if (res.length == 2) {
+                                fname.value = res[0];
+                                lname.value = res[1];
+                            }
+                            var n = txt.search("Error");
+                            if (n >= 0) {
+                                username.focus();
+                                err.innerHTML = txt;
+                                username_err.innerHTML = "";
 
-            }
-          }
-        });
-      }
+                            }
+                        }
+                    });
+                }
 
-      jQuery('#id_username').on('change', function(e) {
-        getPlayerName();
-      });
+                jQuery('#id_username').on('change', function(e) {
+                    getPlayerName();
+                });
 
-      jQuery('#id_username').on('blur', function(e) {
-        getPlayerName();
-      });
+                jQuery('#id_username').on('blur', function(e) {
+                    getPlayerName();
+                });
 
-      // set random background
-      pic = Math.floor(Math.random() * 10) + 1;
-      $('#bg').css('background-image', 'url(/static/assets/img/backgrounds/bg' + pic +'.jpg');
-      $('#bg').fadeIn(100);
+                // set random background
+                pic = Math.floor(Math.random() * 10) + 1;
+                $('#bg').css('background-image', 'url(/static/assets/img/backgrounds/bg' + pic +'.jpg');
+                $('#bg').fadeIn(100);
 
-    });
-  </script>
-</body>
+            });
+        </script>
+    </body>
 
 </html>

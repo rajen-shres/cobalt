@@ -2,6 +2,7 @@ import copy
 import re
 from datetime import timedelta
 
+import pytz
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
@@ -14,7 +15,12 @@ from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_http_methods
 
 from accounts.models import User
-from cobalt.settings import COBALT_HOSTNAME, SUMMERNOTE_CONFIG, RBAC_HELPDESK_GROUP
+from cobalt.settings import (
+    COBALT_HOSTNAME,
+    SUMMERNOTE_CONFIG,
+    RBAC_HELPDESK_GROUP,
+    TIME_ZONE,
+)
 from notifications.views import send_cobalt_email, CobaltEmail
 from rbac.core import (
     rbac_get_users_with_role,
@@ -30,6 +36,8 @@ from support.forms import (
     NotifyUserByTypeForm,
 )
 from support.models import Incident, IncidentLineItem, Attachment, NotifyUserByType
+
+TZ = pytz.timezone(TIME_ZONE)
 
 
 def _get_user_details_from_ticket(ticket):
@@ -51,6 +59,8 @@ def _email_table(ticket, full_name):
 
     owner = ticket.assigned_to.full_name if ticket.assigned_to else "Unassigned"
 
+    created_date_local = ticket.created_date.astimezone(TZ)
+
     return f"""<br><br><table class="receipt" border="1" cellpadding="0" cellspacing="0">
                     <tr>
                         <td style='text-align: left'><b>Ticket #{ticket.id}</b>
@@ -70,7 +80,7 @@ def _email_table(ticket, full_name):
                     </tr>
                     <tr>
                         <td style='text-align: left'><b>Created Date</b>
-                        <td style='text-align: left'>{ticket.created_date:%Y-%m-%d %H:%M}
+                        <td style='text-align: left'>{created_date_local:%Y-%m-%d %H:%M}
                     </tr>
                     <tr>
                         <td style='text-align: left'><b>Assigned To</b>
