@@ -89,7 +89,7 @@ class CobaltTestManager:
         self.test_user = self.get_user("100")
 
         # Log user in
-        self.login_user(self.test_user)
+        # self.login_user(self.test_user)
 
         # Variables for results of tests
         self.overall_success = True

@@ -28,10 +28,6 @@ class Command(BaseCommand):
                 "Not for use in production. This cannot be used in a production system."
             )
 
-        # If we crash then we leave dead browser sessions, try to kill them off
-        os.system('pkill - f"(chrome)?(--headless)"')
-        os.system('pkill - f"(firefox)?(--headless)"')
-
         app = options["app"]
         browser = options["browser"]
         base_url = options["base_url"]

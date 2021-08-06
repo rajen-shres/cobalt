@@ -4,137 +4,144 @@
 {% load cobalt_tags %}
 {% block title %} - Auto Top Up{% endblock %}
 {% block header %}
-<link href="{% static "payments/css/normalize.css" %}" rel="stylesheet" />
-<link href="{% static "payments/css/stripe-global.css" %}" rel="stylesheet" />
+    <link href="{% static "payments/css/normalize.css" %}" rel="stylesheet" />
+    <link href="{% static "payments/css/stripe-global.css" %}" rel="stylesheet" />
 
-<!-- Must load Stripe js from their server to be PCI compliant -->
-<script src="https://js.stripe.com/v3/"></script>
-<script type="text/javascript" src="{% static "payments/js/stripe-auto-script.js" %}" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
-<script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
-<style>
-  /* HIDE RADIO */
-  [type=radio] {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
+    <!-- Must load Stripe js from their server to be PCI compliant -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="text/javascript" src="{% static "payments/js/stripe-auto-script.js" %}" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+    <style>
+        /* HIDE RADIO */
+        [type=radio] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
 
-  /* IMAGE STYLES */
-  [type=radio]+img {
-    cursor: pointer;
-  }
+        /* IMAGE STYLES */
+        [type=radio]+img {
+            cursor: pointer;
+        }
 
-  /* CHECKED STYLES */
-  [type=radio]:checked+img {
-    outline: 4px solid #f00;
-  }
-</style>
+        /* CHECKED STYLES */
+        [type=radio]:checked+img {
+            outline: 4px solid #f00;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="justify-content-center d-flex">
-    <div class="row col-md-8">
-      <div class="card">
-        <div class="card-header card-header-primary">
-          <h3 class="card-title">{{ BRIDGE_CREDITS }}</h3>
-          <h5>Auto Top Up</h5>
-          <h5>Balance: ${{ balance|floatformat:2|intcomma }}</h5>
-        </div>
-        <div class="card-body">
-          <div id="cobalt-main-body">
-            <p class="cobalt-form-error">{{ warn }}</p>
-            <p>Thank you for choosing auto top up. When your balance falls below
-              {{AUTO_TOP_UP_LOW_LIMIT|cobalt_credits}} your account will automatically be topped up.
-              <h3 class="text-center">Today's Exchange Rate: $1 AUD buys 1 Bridge Credit</h3>
+    <div class="container">
+        <div class="justify-content-center d-flex">
+            <div class="row col-md-8">
+                <div class="card">
+                    <div class="card-header card-header-primary">
+                        <h3 class="card-title">{{ BRIDGE_CREDITS }}</h3>
+                        <h5>Auto Top Up</h5>
+                        <h5>Balance: ${{ balance|floatformat:2|intcomma }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="cobalt-main-body">
+                            <p class="cobalt-form-error">{{ warn }}</p>
+                            <p>Thank you for choosing auto top up. When your balance falls below
+                                {{AUTO_TOP_UP_LOW_LIMIT|cobalt_credits}} your account will automatically be topped up.
+                                <h3 class="text-center">Today's Exchange Rate: $1 AUD buys 1 Bridge Credit</h3>
 
-            <div align="center">
-              <div class="card-body">
-                <form>
-                  <div id="autotopdiv">
-                    <h3>Auto Top Up Amount</h3>
+                                <div align="center">
+                                    <div class="card-body">
+                                        <form>
+                                            <div id="autotopdiv">
+                                                <h3>Auto Top Up Amount</h3>
 
-                    <label>
-                      <input type="radio" name="cobalt-amount-radio" value="50" {% if topup == 50 %}checked{% endif %}>
-                      <img width="60px" src="{% static "assets/img/50.png" %}">
-                    </label>
+                                                <label>
+                                                    <input type="radio" name="cobalt-amount-radio" value="50" {% if topup == 50 %}checked{% endif %}>
+                                                    <img width="60px" src="{% static "assets/img/50.png" %}">
+                                                </label>
 
-                    <label>
-                      <input type="radio" name="cobalt-amount-radio" value="100" {% if topup == 100 %}checked{% endif %}>
-                      <img width="60px" src="{% static "assets/img/100.png" %}">
-                    </label>
+                                                <label>
+                                                    <input type="radio" name="cobalt-amount-radio" value="100" {% if topup == 100 %}checked{% endif %}>
+                                                    <img width="60px" src="{% static "assets/img/100.png" %}">
+                                                </label>
 
-                    <label>
-                      <input type="radio" name="cobalt-amount-radio" value="150" {% if topup == 150 %}checked{% endif %}>
-                      <img width="60px" src="{% static "assets/img/150.png" %}">
-                    </label>
+                                                <label>
+                                                    <input type="radio" name="cobalt-amount-radio" value="150" {% if topup == 150 %}checked{% endif %}>
+                                                    <img width="60px" src="{% static "assets/img/150.png" %}">
+                                                </label>
 
-                    <label>
-                      <input type="radio" name="cobalt-amount-radio" value="200" {% if topup == 200 %}checked{% endif %}>
-                      <img width="60px" src="{% static "assets/img/200.png" %}">
-                    </label>
-                  </div>
-                </form>
-              </div>
-              <div class="sr-main">
-                <h3 align="center">Card Details</h3>
-                <form id="payment-form" class="sr-payment-form">
-                  <div class="sr-combo-inputs-row">
-                    <div class="sr-input sr-card-element" id="card-element"></div>
-                  </div>
-                  <div class="sr-field-error" id="card-errors" role="alert"></div>
-                  <button id="submit">
-                    <div class="spinner hidden" id="spinner"></div>
-                    <span id="button-text">Save Card</span><span id="order-amount"></span>
-                  </button>
+                                                <label>
+                                                    <input type="radio" name="cobalt-amount-radio" value="200" {% if topup == 200 %}checked{% endif %}>
+                                                    <img width="60px" src="{% static "assets/img/200.png" %}">
+                                                </label>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="sr-main">
+                                        <h3 align="center">Card Details</h3>
+                                        <form id="payment-form" class="sr-payment-form">
+                                            <div class="sr-combo-inputs-row">
+                                                <div class="sr-input sr-card-element" id="card-element"></div>
+                                            </div>
+                                            <div class="sr-field-error" id="card-errors" role="alert"></div>
+                                            <button id="submit">
+                                                <div class="spinner hidden" id="spinner"></div>
+                                                <span id="button-text">Save Card</span><span id="order-amount"></span>
+                                            </button>
 
 
-                </form>
-                <div class="sr-result hidden">
-                  <p>Payment completed<br /></p>
-                  <pre>
+                                        </form>
+                                        <div class="sr-result hidden">
+                                            <p>Payment completed<br /></p>
+                                            <pre>
                     <code></code>
                   </pre>
+                                        </div>
+                                    </div>
+
+
+                                    <br>
+                                    <button id="cancel" name="cancel" class="btn btn-info col-3" onclick="history.back();">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
-
-
-              <br>
-              <button id="cancel" name="cancel" class="btn btn-info col-3" onclick="history.back();">Cancel</button>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 {% endblock %}
 {% block footer %}
-<script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
-<script>
-  // change auto top up amount when user clicks on a value
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+    <script>
+        // change auto top up amount when user clicks on a value
 
-  $(document).ready(function() {
-    $("input[name='cobalt-amount-radio']").click(function() {
-      var auto_amt = $('input[name="cobalt-amount-radio"]:checked').val();
-      var strURL = "{% url "payments:update_auto_amount" %}?amount=" + auto_amt;
+        $(document).ready(function() {
 
-      $.ajax({
-        url: strURL,
-        context: document.body,
-        success: function(txt) {
-          swal.fire({
-            title: "Updated",
-            html: "Auto top up amount updated.",
-            icon: "success"
-          })
-        }
-      });
-    });
-  });
-</script>
+            const id = $("[name*=privateStripeFrame]");
+            console.log(id);
+
+
+
+
+            $("input[name='cobalt-amount-radio']").click(function() {
+                var auto_amt = $('input[name="cobalt-amount-radio"]:checked').val();
+                var strURL = "{% url "payments:update_auto_amount" %}?amount=" + auto_amt;
+
+                $.ajax({
+                    url: strURL,
+                    context: document.body,
+                    success: function(txt) {
+                        swal.fire({
+                            title: "Updated",
+                            html: "Auto top up amount updated.",
+                            icon: "success"
+                        })
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}
