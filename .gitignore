@@ -6,6 +6,7 @@ _build/
 db.sqlite3*
 /media
 .DS_Store
+.scannerwork
 *.map
 .coverage
 .idea
