@@ -22,17 +22,20 @@ psql </tmp/drop_db
 # For build server use:
 # sudo su - postgres -c "psql </tmp/drop_db"
 
+# Env variables
+export RDS_DB_NAME=test
+
 # include scripts
 utils/aws/rebuild_test_database_subcommands.sh
 
 # Start manage.py
 # nohup ./manage.py runserver 0.0.0.0:$PORT >/dev/null 2>&1 &
-nohup ./manage.py runserver 0.0.0.0:$PORT &
+#nohup ./manage.py runserver 0.0.0.0:$PORT &
 
 # If we crash then we leave dead browser sessions, try to kill them off
 pkill - f"(chrome)?(--headless)"
 pkill - f"(firefox)?(--headless)"
 
 # run tests
-./manage.py run_tests
+#./manage.py run_tests --base_url http://127.0.0.1:$PORT
 

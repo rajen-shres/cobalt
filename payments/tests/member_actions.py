@@ -1,23 +1,18 @@
 """Tests for things a member is likely to do that uses payments"""
 
 import time
-from pprint import pprint
 
-from django.test import Client
 from django.urls import reverse
 
-from accounts.models import User
 from payments.core import get_balance
 from payments.models import MemberTransaction
 from payments import forms
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support import expected_conditions
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from payments.tests.common_functions import (
+    setup_auto_top_up,
+    check_balance_for_user,
+    check_last_transaction_for_user,
+)
 
 
 class MemberTransfer:
@@ -26,31 +21,30 @@ class MemberTransfer:
     def __init__(self, manager):
         self.manager = manager
         self.client = self.manager.client
-        self.py = self.manager.py
 
     def a1_member_transfer_with_sufficient_funds(self):
         """Transfer to another member with sufficient funds in account"""
-        return
+
+        # Set up betty to transfer to
+        betty = self.manager.get_user(username="101")
+        alan = self.manager.test_user  # shorthand
 
         # Check Alan's balance before
         alan_expected_initial_balance = 400.0
-        alan_balance = get_balance(self.manager.test_user)
-        test = alan_balance == alan_expected_initial_balance
-        self.manager.results(
-            test,
+        check_balance_for_user(
+            self.manager,
+            alan,
+            alan_expected_initial_balance,
             "Check initial balance for Alan",
-            f"Expected ${alan_expected_initial_balance}, got ${alan_balance}",
         )
 
         # Check Betty's balance before
-        betty = self.manager.get_user(username="101")
         betty_expected_initial_balance = 404.44
-        betty_balance = get_balance(betty)
-        test = betty_balance == betty_expected_initial_balance
-        self.manager.results(
-            test,
+        check_balance_for_user(
+            self.manager,
+            betty,
+            betty_expected_initial_balance,
             "Check initial balance for Betty",
-            f"Expected ${betty_expected_initial_balance}, got ${betty_balance}",
         )
 
         # Transfer from Alan to Betty
@@ -87,6 +81,86 @@ class MemberTransfer:
         # Check after
 
         # Betty side
+        check_last_transaction_for_user(
+            self.manager,
+            betty,
+            desc,
+            amt,
+            "Execute member transfer over view - Alan to Betty. Betty transaction",
+        )
+
+        # Alan side
+        check_last_transaction_for_user(
+            self.manager,
+            alan,
+            desc,
+            -amt,
+            "Execute member transfer over view - Alan to Betty. Alan transaction",
+        )
+
+        # Check Alan's balance after
+        check_balance_for_user(
+            self.manager,
+            alan,
+            alan_expected_initial_balance - amt,
+            "Execute member transfer over view - Alan to Betty. Alan balance",
+        )
+
+        # Check Betty's balance after
+        check_balance_for_user(
+            self.manager,
+            betty,
+            betty_expected_initial_balance + amt,
+            "Execute member transfer over view - Alan to Betty. Betty balance",
+        )
+
+    def a2_member_auto_top_up_enable(self):
+        """Enable auto top up"""
+        alan = self.manager.test_user
+        betty = self.manager.get_user(username="101")
+
+        # set it ip
+        setup_auto_top_up(self.manager)
+
+        # Check auto top up
+        test = bool(alan.stripe_auto_confirmed)
+        self.manager.results(
+            test,
+            "Check auto top up turned on from Alan",
+            "Expected stripe_auto_confirmed=True",
+        )
+
+        # Check auto top up amount
+        test = alan.auto_amount == 100
+        self.manager.results(
+            test,
+            "Check auto top up amount for Alan",
+            f"Expected $50, got ${alan.auto_amount}",
+        )
+
+        # Trigger auto top up
+        amt = 500.0
+        desc = "Trigger Auto"
+        view_data = {
+            "transfer_to": betty.id,
+            "amount": amt,
+            "description": desc,
+        }
+
+        url = reverse("payments:member_transfer")
+        response = self.client.post(url, view_data)
+
+        self.manager.results(
+            response.status_code,
+            "Manual transfer to trigger auto top up - Alan to Betty",
+        )
+
+        # Give Stripe time to call us back
+        time.sleep(5)
+
+        # Check after
+
+        # Betty side
         betty_tran = (
             MemberTransaction.objects.filter(member=betty)
             .order_by("-created_date")
@@ -106,71 +180,12 @@ class MemberTransfer:
             result,
         )
 
-        # Alan side
-        alan_tran = (
-            MemberTransaction.objects.filter(member=self.manager.test_user)
-            .order_by("-created_date")
-            .first()
-        )
+        alan_balance = get_balance(alan)
 
-        if alan_tran.description == desc and float(alan_tran.amount) == -amt:
-            test = True
-        else:
-            test = False
-
-        result = f"Expected {-amt} and '{desc}'. Got {alan_tran.amount} and '{alan_tran.description}'"
+        test = alan_balance == 500.0
 
         self.manager.results(
             test,
-            "Execute member transfer over view - Alan to Betty. Alan transaction",
-            result,
+            "Manual transfer to trigger auto top up - Alan balance",
+            f"Expected $500. Got {alan_balance}",
         )
-
-        # Check Alan's balance
-        alan_new_balance = float(get_balance(self.manager.test_user))
-        alan_expected_new_balance = float(alan_expected_initial_balance) - amt
-        test = alan_new_balance == alan_expected_new_balance
-        self.manager.results(
-            test,
-            "Check final balance for Alan",
-            f"Expected ${alan_expected_new_balance}, got ${alan_new_balance}",
-        )
-
-        # Check Betty's balance
-        betty_new_balance = float(get_balance(betty))
-        betty_expected_new_balance = float(betty_expected_initial_balance) + amt
-        test = betty_new_balance == betty_expected_new_balance
-        self.manager.results(
-            test,
-            "Check final balance for Betty",
-            f"Expected ${betty_expected_new_balance}, got ${betty_new_balance}",
-        )
-
-    def a2_member_auto_top_up_enable(self):
-        """Enable auto top up"""
-
-        self.driver = webdriver.Chrome()
-
-        self.driver.get("http://127.0.0.1:8000/accounts/login")
-        self.driver.find_element(By.ID, "id_username").click()
-        self.driver.find_element(By.ID, "id_username").send_keys(
-            self.manager.test_user.username
-        )
-        self.driver.find_element(By.ID, "id_password").click()
-        self.driver.find_element(By.ID, "id_password").send_keys(self.manager.test_code)
-
-        self.driver.find_element_by_class_name("btn").click()
-
-        self.driver.get("http://127.0.0.1:8000/payments/setup-autotopup")
-
-        self.driver.switch_to.frame(
-            self.driver.find_element_by_tag_name("iframe")
-        )  # First iframe
-        cc_input = self.driver.find_element_by_css_selector('input[name="cardnumber"]')
-        cc_input.send_keys("4242424242424242")
-        cc_input2 = self.driver.find_element_by_css_selector('input[name="exp-date"]')
-        cc_input2.send_keys("0235")
-        cc_input3 = self.driver.find_element_by_css_selector('input[name="cvc"]')
-        cc_input3.send_keys("999")
-        self.driver.switch_to.default_content()
-        self.driver.find_element(By.ID, "submit").click()
