@@ -30,5 +30,5 @@ utils/aws/rebuild_test_database_subcommands.sh
 nohup ./manage.py runserver 0.0.0.0:$PORT &
 
 # run tests
-./manage.py run_tests
+./manage.py run_tests --base_url http://127.0.0.1:$PORT
 

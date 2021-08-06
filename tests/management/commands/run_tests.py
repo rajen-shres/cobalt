@@ -14,6 +14,9 @@ class Command(BaseCommand):
 
         parser.add_argument("--app", help="App name e.g. payments.")
         parser.add_argument("--browser", help="Browser - default is chrome")
+        parser.add_argument(
+            "--base_url", help="Base url for server e.g. http://127.0.0.1:8088"
+        )
 
     def handle(self, *args, **options):
 
@@ -28,8 +31,9 @@ class Command(BaseCommand):
 
         app = options["app"]
         browser = options["browser"]
+        base_url = options["base_url"]
 
         # create testManager to oversee things
-        manager = CobaltTestManager(app, browser)
+        manager = CobaltTestManager(app, browser, base_url)
         manager.run()
         manager.report()

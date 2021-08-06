@@ -58,13 +58,16 @@ class CobaltTestManager:
     approaches mentioned above.
     """
 
-    def __init__(self, app, webdriver, base_url="http://127.0.0.1:8000"):
+    def __init__(self, app, webdriver, base_url):
         """Set up basic environment for individual tests"""
-
-        self.base_url = base_url
 
         if not webdriver:
             webdriver = "chrome"
+
+        if not base_url:
+            base_url = "http://127.0.0.1:8000"
+
+        self.base_url = base_url
 
         # Specify app to only run specific tests
         self.app_to_test = app
