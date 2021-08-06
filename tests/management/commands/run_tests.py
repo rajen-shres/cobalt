@@ -17,6 +17,9 @@ class Command(BaseCommand):
         parser.add_argument(
             "--base_url", help="Base url for server e.g. http://127.0.0.1:8088"
         )
+        parser.add_argument(
+            "--headless", help="Specify an value to run browser in the background"
+        )
 
     def handle(self, *args, **options):
 
@@ -32,8 +35,9 @@ class Command(BaseCommand):
         app = options["app"]
         browser = options["browser"]
         base_url = options["base_url"]
+        headless = options["headless"]
 
         # create testManager to oversee things
-        manager = CobaltTestManager(app, browser, base_url)
+        manager = CobaltTestManager(app, browser, base_url, headless)
         manager.run()
         manager.report()

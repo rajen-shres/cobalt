@@ -58,7 +58,7 @@ class CobaltTestManager:
     approaches mentioned above.
     """
 
-    def __init__(self, app, webdriver, base_url):
+    def __init__(self, app, webdriver, base_url, headless):
         """Set up basic environment for individual tests"""
 
         if not webdriver:
@@ -78,7 +78,8 @@ class CobaltTestManager:
         # Create Pylenium client
         config = PyleniumConfig()
         config.driver.browser = webdriver
-        #  config.driver.options = ["headless"]
+        if headless:
+            config.driver.options = ["headless"]
         self.py = Pylenium(config)
 
         # Default system-wide pwd
