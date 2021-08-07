@@ -14,9 +14,10 @@ tell application "System Events"
 end tell
     tell application "Terminal"
       activate
-      do script with command "echo Window A" in window $((window_count+1))
-      do script with command "echo Window A3" in window 3
+      do script with command "echo Window A=$((window_count))" in window $((window_count))
+      do script with command "echo Window B=$((window_count+1))" in window $((window_count+1))
+      do script with command "echo Window C=$((window_count+2))" in window $((window_count+2))
       -- do script with command "stripe listen --forward-to 127.0.0.1:8088/payments/stripe-webhook" in window $((window_count+2))
-      do script with command "echo Window C" in window $((window_count+3))
+      set custom title of window $((window_count)) to "Window A $((window_count)) --- Cobalt Window"
     end tell
 EOF
