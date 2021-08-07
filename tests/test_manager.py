@@ -1,5 +1,6 @@
 import importlib
 import inspect
+from pprint import pprint
 
 from django.test import Client
 from django.test.utils import setup_test_environment
@@ -123,9 +124,7 @@ class CobaltTestManager:
         self.driver.find_element(By.ID, "id_password").send_keys(self.test_code)
         self.driver.find_element_by_class_name("btn").click()
 
-    def results(
-        self, status, test_name, details=None, calling_class=None, calling_method=None
-    ):
+    def results(self, status, test_name, details=None):
         """handle logging results
 
         args:
@@ -139,11 +138,14 @@ class CobaltTestManager:
         if isinstance(status, str):
             status = status in ["200", "301", "302"]
 
-        # work out who called us
-        if not calling_class:  # must provide class and function to override
-            stack = inspect.stack()
+        # work out who called us - if the level up isn't a class (helper function) try next level
+        stack = inspect.stack()
+        try:
             calling_class = stack[1][0].f_locals["self"].__class__.__name__
             calling_method = stack[1][0].f_code.co_name
+        except KeyError:
+            calling_class = stack[2][0].f_locals["self"].__class__.__name__
+            calling_method = stack[2][0].f_code.co_name
 
         if calling_class not in self.test_results:
             self.test_results[calling_class] = {}
@@ -163,8 +165,6 @@ class CobaltTestManager:
 
     def report(self):
         """Report on total test findings"""
-
-        self.driver.quit()
 
         print("\n\n-----------------------------------------\n")
 
@@ -221,4 +221,7 @@ class CobaltTestManager:
                 self.app_to_test is None
                 or self.app_to_test == type(class_instance).__name__
             ):
+                print(f"Running {LIST_OF_TESTS[test_list_item]} - {test_list_item}")
                 run_methods(class_instance)
+
+        self.driver.quit()

@@ -12,6 +12,10 @@ from payments import forms
 
 from selenium.webdriver.common.by import By
 
+"""
+    Common functions for payments.
+"""
+
 
 def setup_auto_top_up(manager, user=None):
     """Selenium function to set up auto top up
@@ -54,31 +58,43 @@ def setup_auto_top_up(manager, user=None):
         manager.login_selenium_user(manager.test_user)
 
 
-def check_last_transaction_for_user(manager, user, desc, amt, msg):
+def check_last_transaction_for_user(
+    manager,
+    user,
+    desc,
+    amt,
+    msg,
+    other_member=None,
+):
     """Check if last transaction is as expected"""
-    stack = inspect.stack()
-    calling_class = stack[1][0].f_locals["self"].__class__.__name__
-    calling_method = stack[1][0].f_code.co_name
 
     user_tran = (
         MemberTransaction.objects.filter(member=user).order_by("-created_date").first()
     )
 
-    if user_tran.description == desc and float(user_tran.amount) == amt:
-        test_result = True
+    if other_member:
+        if (
+            user_tran.description == desc
+            and float(user_tran.amount) == amt
+            and other_member == user_tran.other_member
+        ):
+            test_result = True
+        else:
+            test_result = False
+        result = f"Expected {other_member}, {amt} and '{desc}'. Got {user_tran.other_member}, {user_tran.amount} and '{user_tran.description}'"
     else:
-        test_result = False
+        if user_tran.description == desc and float(user_tran.amount) == amt:
+            test_result = True
+        else:
+            test_result = False
 
-    result = f"Expected {amt} and '{desc}'. Got {user_tran.amount} and '{user_tran.description}'"
+        result = f"Expected {amt} and '{desc}'. Got {user_tran.amount} and '{user_tran.description}'"
 
-    manager.results(test_result, msg, result, calling_class, calling_method)
+    manager.results(test_result, msg, result)
 
 
 def check_balance_for_user(manager, user, expected_balance, msg):
     """Check and return balance"""
-    stack = inspect.stack()
-    calling_class = stack[1][0].f_locals["self"].__class__.__name__
-    calling_method = stack[1][0].f_code.co_name
 
     user_balance = get_balance(user)
     test = user_balance == expected_balance
@@ -86,8 +102,6 @@ def check_balance_for_user(manager, user, expected_balance, msg):
         test,
         msg,
         f"Expected ${expected_balance}, got ${user_balance}",
-        calling_class,
-        calling_method,
     )
 
     return user_balance

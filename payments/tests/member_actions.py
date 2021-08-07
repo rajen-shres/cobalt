@@ -87,6 +87,7 @@ class MemberTransfer:
             desc,
             amt,
             "Execute member transfer over view - Alan to Betty. Betty transaction",
+            alan,
         )
 
         # Alan side
@@ -96,6 +97,7 @@ class MemberTransfer:
             desc,
             -amt,
             "Execute member transfer over view - Alan to Betty. Alan transaction",
+            betty,
         )
 
         # Check Alan's balance after
