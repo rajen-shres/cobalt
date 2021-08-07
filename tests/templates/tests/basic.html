@@ -14,48 +14,56 @@
     <body>
         <div class="jumbotron">
             <div class="container">
-                <h1>Test Results</h1>
+                <h1 class="text-center pt-03">Test Results</h1>
 
                 {% for calling_class, data2 in data.items %}
-                    <h2>{{ calling_class }}</h2>
+                    <h2 class="pt-4">{{ calling_class }}</h2>
                     {% for calling_method, data3 in data2.items %}
-                        <div class="card">
-                            <div class="card-header card-header-primary">
-                                <h3>{{ calling_method }}</h3>
+                        <div class="pt-5">
+                            <div class="card">
+                                <div class="card-header card-header-primary">
+                                    <h3>{{ calling_method }}</h3>
 
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-condensed">
-                                        <thead>
-                                            <tr>
-                                                <th>Test</th>
-                                                <th>Status</th>
-                                                <th>Description</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for row in data3 %}
-                                                <tr>
-                                                    <td>{{ row.test_name }}</td>
-                                                    <td>{{ row.status }}
-                                                        {% if row.status == "Pass" %}
-                                                            <span class="material-icons">
-                                                                check_circle
-                                                            </span>
-                                                        {% else %}
-                                                            <span class="material-icons">
-                                                                error
-                                                            </span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>{{ row.error_desc }}</td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
                                 </div>
-
+                                <div class="card-body">
+                                    <div class="table-responsive container-fluid">
+                                        <table class="table table-hover table-condensed table-striped">
+                                            <thead>
+                                                <tr class="d-flex">
+                                                    <th class="col-6">Test</th>
+                                                    <th class="col-2">Status</th>
+                                                    <th class="col-4">Description</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for row in data3 %}
+                                                    <tr class="d-flex">
+                                                        <td class="col-6">{{ row.counter }} {{ row.test_name }}</td>
+                                                        <td class="col-2">
+                                                            {% if row.status == "Pass" %}
+                                                                <span class="material-icons" style="color: blue">
+                                                                    check_circle
+                                                                </span>
+                                                            {% else %}
+                                                                <span class="material-icons" style="color: #1b1e21">
+                                                                    error
+                                                                </span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="col-4"><span
+                                                            id="error-{{ calling_class }}-{{ calling_method }}-{{ row.test_name.split|join:"-" }}"
+                                                            {% if row.status == "Pass" %}
+                                                                style="display: none;"
+                                                            {% endif %}
+                                                        >
+                                                            {{ row.error_desc }}
+                                                        </span></td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

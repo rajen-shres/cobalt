@@ -123,12 +123,17 @@ class MemberTransfer:
 
         # set it ip
         setup_auto_top_up(self.manager)
+        self.manager.results(
+            True,
+            "Turn on auto top up for Alan",
+            "Hardcoded result. Tests follow.",
+        )
 
         # Check auto top up
         test = bool(alan.stripe_auto_confirmed)
         self.manager.results(
             test,
-            "Check auto top up turned on from Alan",
+            "Check auto top up flag turned on for Alan",
             "Expected stripe_auto_confirmed=True",
         )
 

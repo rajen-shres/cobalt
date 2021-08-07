@@ -205,7 +205,10 @@ class CobaltTestManager:
             if calling_method not in data[calling_class]:
                 data[calling_class][calling_method] = []
 
-            for test_name in self.test_results[calling_class][calling_method]:
+            length = len(self.test_results[calling_class][calling_method])
+            for counter, test_name in enumerate(
+                self.test_results[calling_class][calling_method], start=1
+            ):
                 status, error_desc = self.test_results[calling_class][calling_method][
                     test_name
                 ]
@@ -215,11 +218,9 @@ class CobaltTestManager:
                         "test_name": test_name,
                         "status": status_word,
                         "error_desc": error_desc,
+                        "counter": f"[{counter}/{length}]",
                     }
                 )
-
-        pprint(data)
-
         return render_to_string("tests/basic.html", {"data": data})
 
     def run(self):
