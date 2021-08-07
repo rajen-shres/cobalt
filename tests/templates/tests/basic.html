@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+            rel="stylesheet">
+        <title>Report</title>
+    </head>
+    <body>
+        <div class="jumbotron">
+            <div class="container">
+                <h1>Test Results</h1>
+
+                {% for calling_class, data2 in data.items %}
+                    <h2>{{ calling_class }}</h2>
+                    {% for calling_method, data3 in data2.items %}
+                        <div class="card">
+                            <div class="card-header card-header-primary">
+                                <h3>{{ calling_method }}</h3>
+
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-condensed">
+                                        <thead>
+                                            <tr>
+                                                <th>Test</th>
+                                                <th>Status</th>
+                                                <th>Description</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for row in data3 %}
+                                                <tr>
+                                                    <td>{{ row.test_name }}</td>
+                                                    <td>{{ row.status }}
+                                                        {% if row.status == "Pass" %}
+                                                            <span class="material-icons">
+                                                                check_circle
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="material-icons">
+                                                                error
+                                                            </span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ row.error_desc }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+                        </div>
+
+
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
+    </body>
+</html>

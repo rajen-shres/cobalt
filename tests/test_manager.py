@@ -2,6 +2,8 @@ import importlib
 import inspect
 from pprint import pprint
 
+from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.test import Client
 from django.test.utils import setup_test_environment
 from selenium import webdriver
@@ -12,7 +14,7 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from accounts.models import User
 
 # Stop sending emails plus some other things we don't care about
-# setup_test_environment()
+setup_test_environment()
 
 # List of tests to run format is "class": "location"
 LIST_OF_TESTS = {
@@ -192,19 +194,33 @@ class CobaltTestManager:
     def report_html(self):
         """return report as html"""
 
-        if self.failure:
-            count_success = len(self.success)
-            count_failure = len(self.failure)
-            count_total = count_success + count_failure
-            html = f"<h2>Failed {count_failure}/{count_total}</h2>\n"
-            for item in self.failure:
-                html += f"Failed {item['function']} - {item['msg']}\n"
-                if item["details"]:
-                    for error in item["details"]:
-                        html += f"  {error['status']}: {error['msg']}\n"
-        else:
-            html = "<h1>Success</h1>"
-        return html
+        data = {}
+
+        for result_item in self.test_results_list:
+            calling_class, calling_method = result_item.split(":")
+
+            if calling_class not in data:
+                data[calling_class] = {}
+
+            if calling_method not in data[calling_class]:
+                data[calling_class][calling_method] = []
+
+            for test_name in self.test_results[calling_class][calling_method]:
+                status, error_desc = self.test_results[calling_class][calling_method][
+                    test_name
+                ]
+                status_word = "Pass" if status else "Fail"
+                data[calling_class][calling_method].append(
+                    {
+                        "test_name": test_name,
+                        "status": status_word,
+                        "error_desc": error_desc,
+                    }
+                )
+
+        pprint(data)
+
+        return render_to_string("tests/basic.html", {"data": data})
 
     def run(self):
         # Actually run the test. Pass in this class instance too.

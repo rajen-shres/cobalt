@@ -36,6 +36,20 @@ utils/aws/rebuild_test_database_subcommands.sh
 pkill - f"(chrome)?(--headless)"
 pkill - f"(firefox)?(--headless)"
 
+osascript << EOF
+tell application "System Events"
+	tell process "Terminal"
+		tell menu item "Test Layout" of menu "Open Window Group" of menu item "Open Window Group" of menu "Window" of menu bar item "Window" of menu bar 1
+			click
+		end tell
+	end tell
+end tell
+EOF
+
+read -p "Press key to continue..." -n1 -s
+echo "Starting tests"
 # run tests
-#./manage.py run_tests --base_url http://127.0.0.1:$PORT
+./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless yes
+
+
 

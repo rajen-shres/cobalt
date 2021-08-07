@@ -40,12 +40,12 @@ def star(radiuses):
 
 star(list(range(0, 12)) + list(range(10, 0, -1)) + list(range(0, 50)))
 
-lines = ["You have woken up in a mysterious maze",
-         "The building has 5 levels",
-         "Scans show that the floors increase in size as you go down"]
-
-for line in lines:
-    for c in line:
-        print(c, end='', flush=True)
-        sleep(uniform(0, 0.1))
-    print('')             
+#lines = ["You have woken up in a mysterious maze",
+#         "The building has 5 levels",
+#         "Scans show that the floors increase in size as you go down"]
+#
+#for line in lines:
+#    for c in line:
+#        print(c, end='', flush=True)
+#        sleep(uniform(0, 0.1))
+#    print('')
