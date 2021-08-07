@@ -44,7 +44,6 @@ lines = ["You have woken up in a mysterious maze",
          "The building has 5 levels",
          "Scans show that the floors increase in size as you go down"]
 
-
 for line in lines:
     for c in line:
         print(c, end='', flush=True)
