@@ -140,14 +140,19 @@ class CobaltTestManager:
         if isinstance(status, str):
             status = status in ["200", "301", "302"]
 
-        # work out who called us - if the level up isn't a class (helper function) try next level
+        # work out who called us
+        # - if the level up isn't a class we could be in a common helper functions so try next level
         stack = inspect.stack()
         try:
             calling_class = stack[1][0].f_locals["self"].__class__.__name__
+            calling_class_doc = stack[1][0].f_locals["self"].__class__.__doc__
             calling_method = stack[1][0].f_code.co_name
         except KeyError:
             calling_class = stack[2][0].f_locals["self"].__class__.__name__
+            calling_class_doc = stack[2][0].f_locals["self"].__class__.__doc__
             calling_method = stack[2][0].f_code.co_name
+
+        print(calling_class, calling_class_doc)
 
         if calling_class not in self.test_results:
             self.test_results[calling_class] = {}

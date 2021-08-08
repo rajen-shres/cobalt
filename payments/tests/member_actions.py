@@ -13,12 +13,13 @@ from payments.tests.common_functions import (
     check_balance_for_user,
     check_last_transaction_for_user,
 )
+from tests.test_manager import CobaltTestManager
 
 
 class MemberTransfer:
     """Member transfer related activities"""
 
-    def __init__(self, manager):
+    def __init__(self, manager: CobaltTestManager):
         self.manager = manager
         self.client = self.manager.client
 
