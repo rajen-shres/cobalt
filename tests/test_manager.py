@@ -213,12 +213,14 @@ class CobaltTestManager:
                     test_name
                 ]
                 status_word = "Pass" if status else "Fail"
+
                 data[calling_class][calling_method].append(
                     {
                         "test_name": test_name,
                         "status": status_word,
                         "error_desc": error_desc,
                         "counter": f"[{counter}/{length}]",
+                        "id": f"{calling_method}-{counter}",
                     }
                 )
         return render_to_string("tests/basic.html", {"data": data})
