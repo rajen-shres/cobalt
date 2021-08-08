@@ -151,7 +151,8 @@ def cobalt_random_colour():
 # return value from key for an array in a template. Django doesn't do this out of the box
 @register.filter(name="cobalt_dict_key")
 def cobalt_dict_key(my_dict, my_keyname):
+
     try:
         return my_dict[my_keyname]
-    except KeyError:
+    except (KeyError, TypeError):
         return ""

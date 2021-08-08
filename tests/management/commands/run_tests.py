@@ -36,8 +36,7 @@ class Command(BaseCommand):
         # create testManager to oversee things
         manager = CobaltTestManager(app, browser, base_url, headless)
         manager.run()
-        manager.report()
-        if not manager.overall_success:
-            with open("/tmp/test-output.html", "w") as html_file:
-                html_file.write(manager.report_html())
-            os.system("open /tmp/test-output.html")
+        #        if not manager.overall_success:
+        with open("/tmp/test-output.html", "w") as html_file:
+            html_file.write(manager.report_html())
+        os.system("open /tmp/test-output.html")

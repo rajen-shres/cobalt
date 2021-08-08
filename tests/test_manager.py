@@ -1,8 +1,7 @@
 import importlib
 import inspect
-from pprint import pprint
 
-from django.shortcuts import render
+from termcolor import colored
 from django.template.loader import render_to_string
 from django.test import Client
 from django.test.utils import setup_test_environment
@@ -93,7 +92,7 @@ class CobaltTestManager:
         # Default system-wide pwd
         self.test_code = "F1shcake"
 
-        # Login first user - Alan Admin
+        # First user - Alan Admin
         self.test_user = self.get_user("100")
 
         # Log user in
@@ -103,6 +102,8 @@ class CobaltTestManager:
         self.overall_success = True
         self.test_results = {}  # actual results
         self.test_results_list = []  # order of results
+        self.class_docs = {}  # Doc strings for classes
+        self.nice_function_names = {}  # turn function names into nice strings
 
     def get_user(self, username):
         """Get a user by username"""
@@ -126,19 +127,22 @@ class CobaltTestManager:
         self.driver.find_element(By.ID, "id_password").send_keys(self.test_code)
         self.driver.find_element_by_class_name("btn").click()
 
-    def results(self, status, test_name, details=None):
+    def save_results(self, status, test_name, test_description=None, output=None):
         """handle logging results
 
         args:
-            status: Boolean for success or failure OR HTTP Status code
-            msg: Str. High level message on what this tests
-            details: List. List of specific sub-tests performed.
+            status: Boolean for success or failure OR HTTP Status Code
+            test_name: Str. Name of test (short description)
+            test_description: Str. Explains what this test does in detail (optional)
+            output: Output from test
 
         """
 
         # If we got a number for status, convert to True or False from success HTTP codes
         if isinstance(status, str):
             status = status in ["200", "301", "302"]
+        if isinstance(status, int):
+            status = status in [200, 301, 302]
 
         # work out who called us
         # - if the level up isn't a class we could be in a common helper functions so try next level
@@ -151,9 +155,18 @@ class CobaltTestManager:
             calling_class = stack[2][0].f_locals["self"].__class__.__name__
             calling_class_doc = stack[2][0].f_locals["self"].__class__.__doc__
             calling_method = stack[2][0].f_code.co_name
-            print(inspect.getdoc(stack[2][0].f_code))
 
-        print(calling_class, calling_class_doc)
+        # dictionary for class doc strings
+        if calling_class not in self.class_docs:
+            self.class_docs[calling_class] = calling_class_doc
+
+        # dictionary for nice function names
+        if calling_method not in self.nice_function_names:
+            self.nice_function_names[calling_method] = calling_method.replace(
+                "_", " "
+            ).title()
+
+        # create dictionary entries if new
 
         if calling_class not in self.test_results:
             self.test_results[calling_class] = {}
@@ -161,7 +174,11 @@ class CobaltTestManager:
         if calling_method not in self.test_results[calling_class]:
             self.test_results[calling_class][calling_method] = {}
 
-        self.test_results[calling_class][calling_method][test_name] = (status, details)
+        self.test_results[calling_class][calling_method][test_name] = {
+            "status": status,
+            "test_description": test_description,
+            "output": output,
+        }
 
         # Add to our list if not already there
         this_id = f"{calling_class}:{calling_method}"
@@ -170,6 +187,18 @@ class CobaltTestManager:
 
         if not status:
             self.overall_success = False
+            status_coloured = colored(
+                "Fail", "yellow", "on_blue", attrs=["blink", "bold"]
+            )
+        else:
+            status_coloured = colored("Pass", "white", "on_magenta", attrs=["bold"])
+
+        test_name_coloured = colored(test_name, "green")
+        calling_method_coloured = colored(calling_method, "cyan")
+
+        print(
+            f"[{status_coloured} - {test_name_coloured} in {calling_method_coloured}]"
+        )
 
     def report(self):
         """Report on total test findings"""
@@ -187,9 +216,9 @@ class CobaltTestManager:
             calling_class, calling_method = result_item.split(":")
 
             for test_name in self.test_results[calling_class][calling_method]:
-                status, error_desc = self.test_results[calling_class][calling_method][
-                    test_name
-                ]
+                item = self.test_results[calling_class][calling_method][test_name]
+                status = item["status"]
+                error_desc = item["output"]
                 status_word = "Pass" if status else "Fail"
                 print(
                     f"{calling_class} - {calling_method} - {test_name} - {status_word}"
@@ -215,21 +244,30 @@ class CobaltTestManager:
             for counter, test_name in enumerate(
                 self.test_results[calling_class][calling_method], start=1
             ):
-                status, error_desc = self.test_results[calling_class][calling_method][
-                    test_name
-                ]
+                item = self.test_results[calling_class][calling_method][test_name]
+                status = item["status"]
+                error_desc = item["output"]
+                test_description = item["test_description"]
                 status_word = "Pass" if status else "Fail"
 
                 data[calling_class][calling_method].append(
                     {
                         "test_name": test_name,
                         "status": status_word,
+                        "test_description": test_description,
                         "error_desc": error_desc,
                         "counter": f"[{counter}/{length}]",
                         "id": f"{calling_method}-{counter}",
                     }
                 )
-        return render_to_string("tests/basic.html", {"data": data})
+        return render_to_string(
+            "tests/basic.html",
+            {
+                "data": data,
+                "class_docs": self.class_docs,
+                "nice_function_names": self.nice_function_names,
+            },
+        )
 
     def run(self):
         # Actually run the test. Pass in this class instance too.

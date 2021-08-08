@@ -12,12 +12,14 @@ from payments import forms
 
 from selenium.webdriver.common.by import By
 
+from tests.test_manager import CobaltTestManager
+
 """
     Common functions for payments.
 """
 
 
-def setup_auto_top_up(manager, user=None):
+def setup_auto_top_up(manager: CobaltTestManager, user: User = None):
     """Selenium function to set up auto top up
 
     Args:
@@ -59,12 +61,13 @@ def setup_auto_top_up(manager, user=None):
 
 
 def check_last_transaction_for_user(
-    manager,
-    user,
-    desc,
-    amt,
-    msg,
+    manager: CobaltTestManager,
+    user: User,
+    tran_desc,
+    tran_amt,
+    test_name,
     other_member=None,
+    test_description=None,
 ):
     """Check if last transaction is as expected"""
 
@@ -74,34 +77,47 @@ def check_last_transaction_for_user(
 
     if other_member:
         if (
-            user_tran.description == desc
-            and float(user_tran.amount) == amt
+            user_tran.description == tran_desc
+            and float(user_tran.amount) == tran_amt
             and other_member == user_tran.other_member
         ):
             test_result = True
         else:
             test_result = False
-        result = f"Expected {other_member}, {amt} and '{desc}'. Got {user_tran.other_member}, {user_tran.amount} and '{user_tran.description}'"
+        result = f"Expected {other_member}, {tran_amt} and '{tran_desc}'. Got {user_tran.other_member}, {user_tran.amount} and '{user_tran.description}'"
     else:
-        if user_tran.description == desc and float(user_tran.amount) == amt:
+        if user_tran.description == tran_desc and float(user_tran.amount) == tran_amt:
             test_result = True
         else:
             test_result = False
 
-        result = f"Expected {amt} and '{desc}'. Got {user_tran.amount} and '{user_tran.description}'"
+        result = f"Expected {tran_amt} and '{tran_desc}'. Got {user_tran.amount} and '{user_tran.description}'"
 
-    manager.results(test_result, msg, result)
+    manager.save_results(
+        status=test_result,
+        test_name=test_name,
+        output=result,
+        test_description=test_description,
+    )
 
 
-def check_balance_for_user(manager, user, expected_balance, msg):
+def check_balance_for_user(
+    manager: CobaltTestManager,
+    user: User = None,
+    expected_balance=0,
+    test_name=None,
+    test_description=None,
+):
     """Check and return balance"""
 
     user_balance = get_balance(user)
-    test = user_balance == expected_balance
-    manager.results(
-        test,
-        msg,
-        f"Expected ${expected_balance}, got ${user_balance}",
+    test_result = user_balance == expected_balance
+
+    manager.save_results(
+        status=test_result,
+        test_name=test_name,
+        output=f"Expected ${expected_balance}, got ${user_balance}",
+        test_description=test_description,
     )
 
     return user_balance

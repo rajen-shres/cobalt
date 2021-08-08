@@ -3,4 +3,4 @@ pylint
 ipython
 radon
 termcolor
-pyleniumio
+selenium

@@ -1,4 +1,5 @@
 {% load static %}
+{% load cobalt_tags %}
 
 <!doctype html>
 <html lang="en">
@@ -23,16 +24,18 @@
 
                 {% for calling_class, data2 in data.items %}
                     <h2 class="pt-4">{{ calling_class }}</h2>
+                    <p class="fst-italic">{{ class_docs|cobalt_dict_key:calling_class }}</p>
+
                     {% for calling_method, data3 in data2.items %}
                         <div class="pt-5">
                             <div class="card">
                                 <div class="card-header card-header-primary">
-                                    <h3>{{ calling_method }}</h3>
+                                    <h3>{{ nice_function_names|cobalt_dict_key:calling_method }}</h3>
 
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive container-fluid">
-                                        <table class="table table-hover table-condensed table-striped">
+                                        <table class="table table-hover table-condensed">
                                             <thead>
                                                 <tr class="d-flex">
                                                     <th class="col-6">Test</th>
@@ -43,9 +46,36 @@
                                             <tbody>
                                                 {% for row in data3 %}
                                                     <tr class="d-flex">
-                                                        <td class="col-6">{{ row.counter }} {{ row.test_name }}</td>
+                                                        <td class="col-6">
+
+                                                            {# click on name to show detailed description #}
+
+                                                            <span class="hidden-detail" id="reveal_detail_{{ row.id }}">
+                                                                {{ row.counter }} {{ row.test_name }}
+                                                            </span>
+
+                                                            {# detailed description #}
+
+                                                            <div id="detail_{{ row.id }}"
+                                                                style="display: none;"
+                                                                class="p-3">
+                                                                <div class="card">
+                                                                    <div class="card-body">
+                                                                        <h5 class="card-title">Test Description</h5>
+                                                                        <p class="card-text fst-italic">{{ row.test_description|default_if_none:"No information available" }}</p>
+                                                                    </div>
+                                                                </div>
+
+                                                            </div>
+
+                                                        </td>
+
+                                                        {#  hide output for Pass but allow click on icon to reveal it #}
+
                                                         <td class="col-2">
+
                                                             {% if row.status == "Pass" %}
+
                                                                 <i class="material-icons hidden-desc"
                                                                     id="show_{{ row.id }}"
                                                                     title="{% if row.error_desc %}Click to Show{% else %}No information{% endif %}"
@@ -53,20 +83,26 @@
                                                                     style="color: blue">
                                                                     check_circle
                                                                 </i>
+
                                                             {% else %}
+
                                                                 <span class="material-icons" style="color: #1b1e21">
                                                                     error
                                                                 </span>
+
                                                             {% endif %}
+
                                                         </td>
+
                                                         <td class="col-4">
                                                             <span id="desc_{{ row.id }}"
                                                                 {% if row.status == "Pass" %}
                                                                     style="display: none;"
                                                                 {% endif %}
                                                             >
-                                                                {{ row.error_desc }}
+                                                                {{ row.error_desc|default_if_none:"" }}
                                                             </span></td>
+
                                                     </tr>
                                                 {% endfor %}
                                             </tbody>
@@ -82,11 +118,14 @@
             </div>
         </div>
 
+    </body>
+
+    <footer>
+
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script src="https://unpkg.com/@popperjs/core@2"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
-    </body>
-    <footer>
+
         <script>
             $(document).ready(function(){
                 // init tooltips
@@ -96,8 +135,14 @@
                 $('.hidden-desc').click(function(evt){
                     const id = this.id.replace('show_', 'desc_');
                     $('#' + id).toggle();
-
                 });
+
+                // Show description for Pass messages if clicked
+                $('.hidden-detail').click(function(evt){
+                    const id = this.id.replace('reveal_detail_', 'detail_');
+                    $('#' + id).toggle();
+                });
+
             });
         </script>
     </footer>
