@@ -141,8 +141,6 @@ class CobaltTestManager:
         # If we got a number for status, convert to True or False from success HTTP codes
         if isinstance(status, str):
             status = status in ["200", "301", "302"]
-        if isinstance(status, int):
-            status = status in [200, 301, 302]
 
         # work out who called us
         # - if the level up isn't a class we could be in a common helper functions so try next level

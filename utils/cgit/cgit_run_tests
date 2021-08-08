@@ -28,10 +28,6 @@ export RDS_DB_NAME=test
 # include scripts
 utils/aws/rebuild_test_database_subcommands.sh
 
-# Start manage.py
-# nohup ./manage.py runserver 0.0.0.0:$PORT >/dev/null 2>&1 &
-#nohup ./manage.py runserver 0.0.0.0:$PORT &
-
 # If we crash then we leave dead browser sessions, try to kill them off
 pkill - f"(chrome)?(--headless)"
 pkill - f"(firefox)?(--headless)"
@@ -39,7 +35,7 @@ pkill - f"(firefox)?(--headless)"
 osascript << EOF
 tell application "System Events"
 	tell process "Terminal"
-		tell menu item "Test Layout" of menu "Open Window Group" of menu item "Open Window Group" of menu "Window" of menu bar item "Window" of menu bar 1
+		tell menu item "testing" of menu "Open Window Group" of menu item "Open Window Group" of menu "Window" of menu bar item "Window" of menu bar 1
 			click
 		end tell
 	end tell
@@ -47,9 +43,9 @@ end tell
 EOF
 
 read -p "Press key to continue..." -n1 -s
+echo ""
+echo ""
 echo "Starting tests"
-# run tests
-./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless yes
-
+./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
 
 

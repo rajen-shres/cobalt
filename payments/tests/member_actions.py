@@ -94,7 +94,7 @@ class MemberTransfer:
 
         self.manager.save_results(
             status=response.status_code,
-            test_name="Execute member transfer over view - Alan to Betty",
+            test_name="Execute member transfer - Alan to Betty",
             test_description="Use the view to actually perform a transfer from Alan to Betty. Alan should have sufficient funds for this to go through.",
         )
 
@@ -108,7 +108,7 @@ class MemberTransfer:
             user=betty,
             tran_desc=desc,
             tran_amt=amt,
-            test_name="2 Execute member transfer over view - Alan to Betty. Betty transaction",
+            test_name="Execute member transfer - Alan to Betty. Betty transaction",
             other_member=alan,
             test_description="Check that Betty's latest transaction is the transfer from Alan.",
         )
@@ -120,8 +120,8 @@ class MemberTransfer:
             manager=self.manager,
             user=alan,
             tran_desc=desc,
-            tran_amt=amt,
-            test_name="3 Execute member transfer over view - Alan to Betty. Alan transaction",
+            tran_amt=-amt,
+            test_name="Execute member transfer - Alan to Betty. Alan transaction",
             other_member=betty,
             test_description="Check that Alan's latest transaction is the transfer to Betty.",
         )
@@ -133,7 +133,7 @@ class MemberTransfer:
             manager=self.manager,
             user=alan,
             expected_balance=alan_expected_initial_balance - amt,
-            test_name="Execute member transfer over view - Alan to Betty. Alan balance",
+            test_name="Execute member transfer - Alan to Betty. Alan balance",
             test_description="Check that Alan's balance after the transfer to Betty is correct.",
         )
 
@@ -144,7 +144,7 @@ class MemberTransfer:
             manager=self.manager,
             user=betty,
             expected_balance=betty_expected_initial_balance + amt,
-            test_name="Execute member transfer over view - Alan to Betty. Betty balance",
+            test_name="Execute member transfer - Alan to Betty. Betty balance",
             test_description="Check that Betty's balance after the transfer from Alan is correct.",
         )
 
@@ -178,11 +178,12 @@ class MemberTransfer:
         ##############################
 
         # Check auto top up amount
-        test = alan.auto_amount == 100
+        expected_amount = 100.0
+        test = alan.auto_amount == expected_amount
         self.manager.save_results(
             status=test,
             test_name="Check auto top up amount for Alan",
-            output=f"Expected $100, got ${alan.auto_amount}",
+            output=f"Expected ${expected_amount}, got ${alan.auto_amount}",
             test_description="Looks at user object to see that auto top up amount is set to expected value.",
         )
 
@@ -238,11 +239,11 @@ class MemberTransfer:
 
         alan_balance = get_balance(alan)
 
-        test_result = alan_balance == 500.0
+        test_result = alan_balance == 345.55
 
         self.manager.save_results(
             status=test_result,
             test_name="Manual transfer triggering auto top up - Alan to Betty. Alan's balance",
-            output=f"Expected $500. Got {alan_balance}",
+            output=f"Expected ${alan_balance}. Got ${alan_balance}",
             test_description="tba",
         )
