@@ -151,6 +151,7 @@ class CobaltTestManager:
             calling_class = stack[2][0].f_locals["self"].__class__.__name__
             calling_class_doc = stack[2][0].f_locals["self"].__class__.__doc__
             calling_method = stack[2][0].f_code.co_name
+            print(inspect.getdoc(stack[2][0].f_code))
 
         print(calling_class, calling_class_doc)
 
