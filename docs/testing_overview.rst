@@ -59,11 +59,13 @@ User Testing
 Automated Testing
 -----------------
 
-There are three types of automated tests used:
+There are two basic types of automated tests used:
 
-* UI - we use Pylenium (front end to Selenium) to test through the web page
-* Client - we test through client objects to simulate logged in users
-* Model - we create and manipulate objects through the model interfaces
+* Selenium is used to test through the web page
+* We also use the Django test client, along with direct model access and Forms to do functional testing.
+
+Both approaches are used together, so a we might use Selenium to create something and then access
+the model directly to confirm it was successful.
 
 Performance Testing
 -------------------
@@ -91,21 +93,41 @@ for whoever is maintaining this if you already know
 these frameworks, but our approach is so simple
 that it shouldn't be hard for you.
 
-Client Testing
-==============
+Running Tests
+=============
 
-The Client tests assume a clean database with the
-test data loaded. If you change the test data there
-is a good change you will break the Client tests.
+Most of the testing is done in the development environment,
+with the build server running confirmation tests when code
+is committed to develop.
 
-To run the client tests we use a standard Django
-management command::
+The testing scripts assume you are running on a Mac
+and have set up command windows to run the server and the
+Stripe client. You can take the commands from the script
+and run them separately if this is not the case.
 
-    ./manage.py run_tests
+cgit_dev_test
+-------------
 
-The tests are built as classes within tests/client_test.py
+This is the wrapper script to start the tests. it does the following:
 
-This will not run on the MyABF production server, but
-would be a bad thing if it ran on any production
-server so be careful.
+* Rebuilds the test database (the ebdb database is not touched by testing)
+* Sets the RDS_DB_NAME to "test"
+* Sets the port to 8088 (usually development runs on 8000 so there is no conflict)
+* Starts the Mac Terminal Window Group "testing" which should be set to run two windows. One for ./manage runserver on port 8088 and one for Stripe connecting to port 8088.
+* After a keypress to confirm the windows are running it will run::
+
+    ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
+
+run_tests.py management command
+-------------------------------
+
+run_tests just starts the tests off and when they complete it launches a web browser to display the results.
+
+test_manager.py
+---------------
+
+The CobaltTestManager class within test_manager.py orchestrates the testing. It has a list of tests to run and calls
+those classes in order. It provides a basic environment for each test to be able to run, including users, login
+commands and Selenium scripts and a common way to report how the test worked.
+
 
