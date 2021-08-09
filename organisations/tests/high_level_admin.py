@@ -1,5 +1,9 @@
+from pprint import pprint
+
 from django.urls import reverse
 
+from organisations.models import Organisation
+from organisations.tests.common_functions import add_club
 from rbac.core import rbac_user_has_role
 from tests.test_manager import CobaltTestManager
 
@@ -74,50 +78,59 @@ class OrgHighLevelAdmin:
 
         ################################################
 
-        # Alan add a club
+        # Check orgs don't exist before we start
+        north_shore_id = 2120
+        trumps_id = 2259
+        sunshine_id = 4860
+        waverley_id = 3480
 
-        # We have to use real clubs as it links to the MPC at the moment
+        ns_ok = not Organisation.objects.filter(org_id=north_shore_id).exists()
+        tr_ok = not Organisation.objects.filter(org_id=trumps_id).exists()
+        su_ok = not Organisation.objects.filter(org_id=sunshine_id).exists()
+
+        ok = ns_ok and tr_ok and su_ok
+
+        self.manager.save_results(
+            status=ok,
+            test_name="Check orgs not present",
+            output=f"Checking if orgs exists: {not ok}",
+            test_description="Before we start we check that the organisations don't exist.",
+        )
+
+        #############################################################
 
         view_data = {
             "secretary": self.betty.id,
             "name": "North Shore Bridge Club Inc",
-            "org_id": 2120,
+            "org_id": north_shore_id,
             "club_email": "a@b.com",
             "club_website": "www.com",
             "address1": "20 Street Avenue",
             "suburb": "Wombleville",
-            "state": "NSW",
-            "postcode": 2000,
+            "state": "ACT",
+            "postcode": 1000,
         }
 
-        url = reverse("organisations:admin_add_club")
-        response = self.client.post(url, view_data)
-        print(response)
-        print(response.context["form"])
+        # Alan add a club - should work
+        add_club(self.manager, self.alan, view_data)
 
-        self.manager.save_results(
-            status=response.status_code,
-            test_name="Alan adds North Shore Bridge Club",
-            test_description="Alan adds North Shore Bridge Club as a club. Alan has global admin so this should work. We have to use real club names as this connects to the MPC",
-        )
-
-        ###################################################
-
-        # Betty add a club
-
-        view_data["org_id"] = 2259
+        # Betty add a club - should work
+        view_data["org_id"] = trumps_id
+        view_data["state"] = "NSW"
         view_data["name"] = "Trumps Bridge Centre"
+        add_club(self.manager, self.betty, view_data)
 
-        self.manager.login_test_client(self.betty)
+        # Colin add a club - should work
+        view_data["org_id"] = sunshine_id
+        view_data["state"] = "QLD"
+        view_data["name"] = "Sunshine Coast Contract Bridge Club Inc"
+        add_club(self.manager, self.colin, view_data)
 
-        response = self.client.post(url, view_data)
-        print(response.context["form"])
+        # Betty add a club - should fail
+        view_data["org_id"] = waverley_id
+        view_data["state"] = "VIC"
+        view_data["name"] = "Waverley Bridge Club"
+        add_club(self.manager, self.betty, view_data, reverse)
 
-        self.manager.save_results(
-            status=response.status_code,
-            test_name="Betty adds Trumps",
-            test_description="Betty adds Trumps as a club. Betty has NSW admin so this should work.",
-        )
-
-
-####################################################
+        # Colin add a club - should fail
+        add_club(self.manager, self.colin, view_data, reverse)

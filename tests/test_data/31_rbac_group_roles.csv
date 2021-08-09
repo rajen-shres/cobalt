@@ -19,4 +19,4 @@ rbc_congress, events, org, all, Allow,11
 abfe,events,global,all,Allow,
 abf_org,orgs,admin,all,Allow
 nsw_org,orgs,state,all,Allow,3
-qld_org,orgs,state,all,Allow,5
+qld_org,orgs,state,edit,Allow,5

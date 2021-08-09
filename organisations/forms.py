@@ -77,6 +77,10 @@ class OrgForm(forms.ModelForm):
         # Get model id for this state
         rbac_model_for_state = get_rbac_model_for_state(state)
 
+        if not rbac_model_for_state:
+            self.add_error("state", "No RBAC model found for this state.")
+            return state
+
         # Check access - state or admin both work
         if not (
             rbac_user_has_role(self.user, "orgs.state.%s.edit" % rbac_model_for_state)
