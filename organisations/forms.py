@@ -87,3 +87,13 @@ class OrgForm(forms.ModelForm):
             )
 
         return state
+
+    def clean_org_id(self):
+        """Check that this isn't a duplicate - don't trust client side validation"""
+
+        org_id = self.cleaned_data["org_id"]
+
+        if Organisation.objects.filter(org_id=org_id).exists():
+            self.add_error("org_id", "This organisation is already set up")
+
+        return org_id

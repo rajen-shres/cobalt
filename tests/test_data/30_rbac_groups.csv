@@ -30,3 +30,6 @@ abfpv, rbac.orgs.abf.abf_roles, payments_view, Read only access to payments for 
 fbc_congress, rbac.orgs.clubs.act.fantasy_bridge_club, congresses, Congress Conveners at Fantasy Bridge Club
 rbc_congress, rbac.orgs.clubs.act.rival_bridge_club, congresses, Congress Conveners at Rival Bridge Club
 abfe, rbac.orgs.abf.abf_roles,events,Global events management
+abf_org, rbac.orgs.abf.abf_roles, org_admin, Manage organisations globally
+nsw_org, rbac.orgs.states.NSWBA,test_club_admin, Club Admin for state
+qld_org, rbac.orgs.states.QBA,test_club_admin, Club Admin for state

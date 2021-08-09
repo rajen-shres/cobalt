@@ -81,7 +81,6 @@ class Command(BaseCommand):
             state = ABF_STATES[state_id][0]
 
             # Get Cobalt organisation for this state body
-            print(state, state_id)
             state_org = Organisation.objects.get(org_id=state_id)
 
             # RBAC
@@ -90,7 +89,12 @@ class Command(BaseCommand):
 
             group = rbac_create_group(qualifier, "club_admin", description)
             rbac_add_role_to_group(
-                group, app="orgs", model="state", action="all", rule_type="Allow"
+                group,
+                app="orgs",
+                model="state",
+                action="all",
+                rule_type="Allow",
+                model_id=state_id,
             )
 
             # Admin

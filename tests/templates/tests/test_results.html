@@ -24,7 +24,7 @@
 
                 {% for calling_class, data2 in data.items %}
                     <h2 class="pt-4">{{ calling_class }}</h2>
-                    <p class="fst-italic">{{ class_docs|cobalt_dict_key:calling_class }}</p>
+                    <p class="fst-italic">{{ class_docs|cobalt_dict_key:calling_class|safe }}</p>
 
                     {% for calling_method, data3 in data2.items %}
                         <div class="pt-5">

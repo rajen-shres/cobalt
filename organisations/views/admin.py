@@ -47,8 +47,6 @@ def admin_add_club(request):
         )
         return redirect("organisations:admin_club_rbac", club_id=org.id)
 
-    print(form.errors)
-
     # secretary is a bit fiddly so we pass as a separate thing
     secretary_id = form["secretary"].value()
     secretary_name = User.objects.filter(pk=secretary_id).first()

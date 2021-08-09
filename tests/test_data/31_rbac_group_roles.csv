@@ -1,5 +1,5 @@
 rbac, RBACGroupRole,,,,
- id.group.rbac.RBACGroup, app, model, action, rule_type, model_id
+id.group.rbac.RBACGroup, app, model, action, rule_type, model_id
 fbc_staff, orgs, org, edit, Allow,10
 fbc_pay, payments, manage, all, Allow,10
 forum_admin, forums, admin, edit, Allow,
@@ -17,3 +17,6 @@ abfpv, payments, global,view, Allow,
 fbc_congress, events, org, all, Allow,10
 rbc_congress, events, org, all, Allow,11
 abfe,events,global,all,Allow,
+abf_org,orgs,admin,all,Allow
+nsw_org,orgs,state,all,Allow,3
+qld_org,orgs,state,all,Allow,5

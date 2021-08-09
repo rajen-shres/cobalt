@@ -18,7 +18,8 @@ setup_test_environment()
 # List of tests to run format is "class": "location"
 LIST_OF_TESTS = {
     # "Example": "payments.tests.example",
-    "MemberTransfer": "payments.tests.member_actions",
+    #   "MemberTransfer": "payments.tests.member_actions",
+    "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
 }
 
 
@@ -156,7 +157,7 @@ class CobaltTestManager:
 
         # dictionary for class doc strings
         if calling_class not in self.class_docs:
-            self.class_docs[calling_class] = calling_class_doc
+            self.class_docs[calling_class] = calling_class_doc.replace("\n", "<br>")
 
         # dictionary for nice function names
         if calling_method not in self.nice_function_names:
@@ -259,7 +260,7 @@ class CobaltTestManager:
                     }
                 )
         return render_to_string(
-            "tests/basic.html",
+            "tests/test_results.html",
             {
                 "data": data,
                 "class_docs": self.class_docs,
