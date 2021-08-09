@@ -35,26 +35,27 @@
                     </div>
                     <br>
 
-                   {% if closed_tickets %}
+                    {% if closed_tickets %}
 
-                    <div class="card">
-                        <div class="card-header card-header-warning"><h2>Closed</h2></div>
-                        <div class="card-body">
-                               {% include "support/user_list_tickets_table.html" with tickets=closed_tickets %}
+                        <div class="card">
+                            <div class="card-header card-header-warning"><h2>Closed</h2></div>
+                            <div class="card-body">
+                                {% include "support/user_list_tickets_table.html" with tickets=closed_tickets %}
+                            </div>
                         </div>
-                    </div>
 
                     {% endif %}
 
-                        <div class="container">
-                           <div class="row">
-                                <div class="col text-center">
-                    <a href="{% url "support:contact" %}" class="btn btn-primary">Create Support Ticket</a>
-                                </div>
-                           </div>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col text-center">
+                                <a href="{% url "support:contact_logged_in" %}" class="btn btn-primary">Create Support Ticket</a>
+                            </div>
                         </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
 {% endblock content %}

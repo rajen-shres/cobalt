@@ -4,68 +4,9 @@
 {% load cobalt_tags %}
 {% load static %}
 {% block title %} - Helpdesk Edit Ticket{% endblock %}
-{% block headerjs %}
 
-<!-- The js libraries are a problem for Summernote so we override them here -->
-
-<script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
-<script src="{% static "assets/js/core/popper.min.js" %}"></script>
-{% if not request.user.windows_scrollbar %}
-<script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
-{% endif %}
-<link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
-<script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
-<script src="{% static "assets/js/cobalt-core.js" %}"></script>
-<link rel="stylesheet" href="{% static "assets/css/bootstrap.4.0.0.min.css" %}">
-
-
-<style>
-  /* remove bug from summernote height in codeview mode */
-  .note-codable {
-    min-height: 600px !important;
-  }
-
-  .note-editable {
-    line-height: 1.0;
-
-    background-color: {
-        {
-        forum.bg_colour
-      }
-    }
-
-     !important;
-
-    color: {
-        {
-        forum.fg_colour
-      }
-    }
-
-     !important;
-  }
-
-  .cobalt-min-width-100 {
-    min-width: 100%;
-  }
-</style>
-{% endblock %}
 {% block content %}
-
-
-<!-- Instead of using {{ form.media }} we hardcode the static files here
-     so we can control the version that we use. Django-summernote comes with
-     an older version of summernote that has some bugs especially relating
-     to how it shakes when it is slowly scrolled. We point to a newer
-     version of summernote and it fixes the problem. -->
-
-<link href="{% static "forums/summernote/summernote-bs4.css" %}" type="text/css" media="all" rel="stylesheet">
-<link href="{% static "forums/summernote/django_summernote.css" %}" type="text/css" media="all" rel="stylesheet">
-<script type="text/javascript" src="{% static "forums/summernote/jquery.ui.widget.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/jquery.iframe-transport.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/jquery.fileupload.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/summernote-bs4.min.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/ResizeSensor.js" %}"></script>
+    {% include "utils/summernote_heading.html" %}
 
     <nav aria-label="breadcrumb" role="navigation">
         <ol class="breadcrumb">
@@ -89,84 +30,84 @@
                         </div>
                     </h1>
                     {% if ticket.status == "Closed" %}
-                    <h2>This ticket is closed</h2>
+                        <h2>This ticket is closed</h2>
                     {% endif %}
                     <p>Ticket is {{ ticket.created_date|timesince }} old</p>
                 </div>
                 <div class="card-body">
                     <table class="table-responsive table-hover table-bordered">
-                    <tr>
-                        <td>Title
-                        <td>{{ ticket.title }}
-                    </tr>
-                    <tr>
+                        <tr>
+                            <td>Title
+                                <td>{{ ticket.title }}
+                                </tr>
+                                <tr>
 
-{# Only logged in users can access this page - no need to cater for unregistered #}
+                                    {# Only logged in users can access this page - no need to cater for unregistered #}
 
-                        <td>Member
-                        <td>{{ ticket.reported_by_user.full_name }}
-                    </tr>
-                     <tr>
-                        <td>Contact Email
-                        <td>{{ ticket.reported_by_user.email }}
-                    </tr>
-                    <tr>
-                        <td>Ticket Status
-                        <td>{{ ticket.status }}
-                    </tr>
-                    <tr>
-                        <td>Ticket Created Date
-                        <td>{{ ticket.created_date|cobalt_nice_datetime }}
-                    </tr>
-                    <tr>
-                        <td>Assigned To
-                        <td>{{ ticket.assigned_to.full_name|default_if_none:"Unassigned" }}
-                    </tr>
-                </table>
-                <div class="card">
-                    <div class="card-header card-header-rose">
-                        <h3>Description</h3>
-                    </div>
-                    <div class="card-body">
-                        <pre>{{ ticket.description }}</pre>
-                    </div>
-                </div>
-                        {% for incident_line_item in incident_line_items %}
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="card p-1">
-                                            <div>
-                                                {{ incident_line_item.staff.full_name }}:
-                                                <span data-toggle="tooltip"
-                                                      title="{{ incident_line_item.created_date|timesince }} ago">
-                                                {{ incident_line_item.created_date|cobalt_nice_datetime }}</span>
-                                            </div>
-                                        <br>
-                                        {{ incident_line_item.description|safe }}
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
+                                    <td>Member
+                                        <td>{{ ticket.reported_by_user.full_name }}
+                                        </tr>
+                                        <tr>
+                                            <td>Contact Email
+                                                <td>{{ ticket.reported_by_user.email }}
+                                                </tr>
+                                                <tr>
+                                                    <td>Ticket Status
+                                                        <td>{{ ticket.status }}
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Ticket Created Date
+                                                                <td>{{ ticket.created_date|cobalt_nice_datetime }}
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>Assigned To
+                                                                        <td>{{ ticket.assigned_to.full_name|default_if_none:"Unassigned" }}
+                                                                        </tr>
+                                                                    </table>
+                                                                    <div class="card">
+                                                                        <div class="card-header card-header-rose">
+                                                                            <h3>Description</h3>
+                                                                        </div>
+                                                                        <div class="card-body">
+                                                                            <pre>{{ ticket.description }}</pre>
+                                                                        </div>
+                                                                    </div>
+                                                                    {% for incident_line_item in incident_line_items %}
+                                                                        <div class="row">
+                                                                            <div class="col-12">
+                                                                                <div class="card p-1">
+                                                                                    <div>
+                                                                                        {{ incident_line_item.staff.full_name }}:
+                                                                                        <span data-toggle="tooltip"
+                                                                                            title="{{ incident_line_item.created_date|timesince }} ago">
+                                                                                            {{ incident_line_item.created_date|cobalt_nice_datetime }}</span>
+                                                                                    </div>
+                                                                                    <br>
+                                                                                    {{ incident_line_item.description|safe }}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    {% endfor %}
 
-                    {% if ticket.status == "Closed" %}
-                    <h3>Ticket is closed</h3>
-                    {% else %}
-                    <form method="POST">
-                        {% csrf_token %}
-                          <div class="form-group">
-                            <label for="reply">Enter a reply below if you wish to provide more information or make a comment when closing this ticket</label>
-                            <textarea id="summernote" name="reply"></textarea>
+                                                                    {% if ticket.status == "Closed" %}
+                                                                        <h3>Ticket is closed</h3>
+                                                                    {% else %}
+                                                                        <form method="POST">
+                                                                            {% csrf_token %}
+                                                                            <div class="form-group">
+                                                                                <label for="reply">Enter a reply below if you wish to provide more information or make a comment when closing this ticket</label>
+                                                                                <textarea id="summernote" name="reply"></textarea>
 
-                          </div>
-                        <button type=""submit" name="reply_button" class="btn btn-success cobalt-save">Reply</button>
-                        <button type=""submit" id="id_close_button" name="close_button" class="btn btn-danger cobalt-save">Close Ticket</button>
-                        <a href="{%  url "dashboard:dashboard" %}" class="btn btn-info">Cancel</a>
-                    </form>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+                                                                            </div>
+                                                                            <button type=""submit" name="reply_button" class="btn btn-success cobalt-save">Reply</button>
+                                                                            <button type=""submit" id="id_close_button" name="close_button" class="btn btn-danger cobalt-save">Close Ticket</button>
+                                                                            <a href="{%  url "support:helpdesk_user_list" %}" class="btn btn-info">Cancel</a>
+                                                                        </form>
+                                                                    {% endif %}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
 {% endblock %}
 
@@ -176,7 +117,33 @@
 
         $(document).ready(function () {
 
-            $('#summernote').summernote({ height: 250});
+            // Set up summernote
+            $('#summernote').summernote({
+                height: 250,
+                toolbar: [
+                    ["style", ["style"]],
+                    ["fontsize", ["fontsize"]],
+                    ["font", ["bold", "italic", "underline"]],
+                    ["fontname", ["fontname"]],
+                    ["color", ["color"]],
+                    ["para", ["ul", "ol", "paragraph"]],
+                    ["insert", ["link", "hr"]],
+                    ["view", ["fullscreen", "codeview"]],
+                ],
+                callbacks: {
+                    onChange: function(contents, $editable) {
+                        // cobalt-core doesn't pick up the summernote change so set it manually
+                        cobalt_form_data_changed=true;
+                    }
+                },
+                codemirror: {
+                    lineNumbers: true,
+                    theme: 'monokai',
+                    htmlMode: true,
+                    mode: 'text/html'
+                },
+                prettifyHtml:true,
+            });
 
             // initialise tooltips
             $('[data-toggle="tooltip"]').tooltip()

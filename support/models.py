@@ -24,7 +24,7 @@ INCIDENT_NATURE_TYPES = [
     ("Masterpoints", "Masterpoints"),
     ("Notifications", "Notifications"),
     ("Other", "Other"),
-    ("Payments", "Payments"),
+    ("Payments/Refunds", "Payments/Refunds"),
     ("Profile/Settings", "Profile/Settings"),
     ("Registration", "Registration"),
     ("Security", "Security"),

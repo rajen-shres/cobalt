@@ -271,6 +271,7 @@
 
 {% block footer %}
     <script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
     <script>
 
         {# Load generic search BUT tell it not to apply the ios fix - breaks Summernote file upload #}
@@ -353,7 +354,7 @@
                 // don't be an enter button
                 event.preventDefault();
 
-                Swal.fire({
+                swal.fire({
                     title: 'This cannot be undone. Are you sure?',
                     showCancelButton: true,
                     confirmButtonText: 'Delete',
@@ -392,7 +393,7 @@
                     ["fontname", ["fontname"]],
                     ["color", ["color"]],
                     ["para", ["ul", "ol", "paragraph"]],
-                    ["insert", ["link", "picture", "hr"]],
+                    ["insert", ["link", "hr"]],
                     ["view", ["fullscreen", "codeview"]],
                 ],
                 callbacks: {
