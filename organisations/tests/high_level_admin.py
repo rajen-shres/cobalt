@@ -87,8 +87,9 @@ class OrgHighLevelAdmin:
         ns_ok = not Organisation.objects.filter(org_id=north_shore_id).exists()
         tr_ok = not Organisation.objects.filter(org_id=trumps_id).exists()
         su_ok = not Organisation.objects.filter(org_id=sunshine_id).exists()
+        wa_ok = not Organisation.objects.filter(org_id=waverley_id).exists()
 
-        ok = ns_ok and tr_ok and su_ok
+        ok = ns_ok and tr_ok and su_ok and wa_ok
 
         self.manager.save_results(
             status=ok,
@@ -134,3 +135,6 @@ class OrgHighLevelAdmin:
 
         # Colin add a club - should fail
         add_club(self.manager, self.colin, view_data, reverse)
+
+    # def a2_admin_change_rbac(self):
+    #

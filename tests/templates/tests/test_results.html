@@ -22,98 +22,129 @@
             <div class="container">
                 <h1 class="text-center pt-03">Test Results</h1>
 
+                <h4>Table of Contents</h4>
+                <div class="table-responsive col-6 mb-3">
+                    <table class="table table-striped border-primary table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Class</th>
+                                <th>Function</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in toc %}
+                                <tr>
+                                    <td><a href="#{{ row.calling_class }}">{{ row.calling_class }}</a> - {{ row.calling_class_from }}</td>
+                                    <td><a href="#{{ row.calling_method }}">{{ nice_function_names|cobalt_dict_key:row.calling_method }}</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
                 {% for calling_class, data2 in data.items %}
-                    <h2 class="pt-4">{{ calling_class }}</h2>
-                    <p class="fst-italic">{{ class_docs|cobalt_dict_key:calling_class|safe }}</p>
-
-                    {% for calling_method, data3 in data2.items %}
-                        <div class="pt-5">
-                            <div class="card">
-                                <div class="card-header card-header-primary">
-                                    <h3>{{ nice_function_names|cobalt_dict_key:calling_method }}</h3>
-
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive container-fluid">
-                                        <table class="table table-hover table-condensed">
-                                            <thead>
-                                                <tr class="d-flex">
-                                                    <th class="col-6">Test</th>
-                                                    <th class="col-2">Status</th>
-                                                    <th class="col-4">Description</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for row in data3 %}
-                                                    <tr class="d-flex">
-                                                        <td class="col-6">
-
-                                                            {# click on name to show detailed description #}
-
-                                                            <span class="hidden-detail" id="reveal_detail_{{ row.id }}">
-                                                                {{ row.counter }} {{ row.test_name }}
-                                                            </span>
-
-                                                            {# detailed description #}
-
-                                                            <div id="detail_{{ row.id }}"
-                                                                style="display: none;"
-                                                                class="p-3">
-                                                                <div class="card">
-                                                                    <div class="card-body">
-                                                                        <h5 class="card-title">Test Description</h5>
-                                                                        <p class="card-text fst-italic">{{ row.test_description|default_if_none:"No information available" }}</p>
-                                                                    </div>
-                                                                </div>
-
-                                                            </div>
-
-                                                        </td>
-
-                                                        {#  hide output for Pass but allow click on icon to reveal it #}
-
-                                                        <td class="col-2">
-
-                                                            {% if row.status == "Pass" %}
-
-                                                                <i class="material-icons hidden-desc"
-                                                                    id="show_{{ row.id }}"
-                                                                    title="{% if row.error_desc %}Click to Show{% else %}No information{% endif %}"
-                                                                    data-toggle="tooltip"
-                                                                    style="color: blue">
-                                                                    check_circle
-                                                                </i>
-
-                                                            {% else %}
-
-                                                                <span class="material-icons" style="color: #1b1e21">
-                                                                    error
-                                                                </span>
-
-                                                            {% endif %}
-
-                                                        </td>
-
-                                                        <td class="col-4">
-                                                            <span id="desc_{{ row.id }}"
-                                                                {% if row.status == "Pass" %}
-                                                                    style="display: none;"
-                                                                {% endif %}
-                                                            >
-                                                                {{ row.error_desc|default_if_none:"" }}
-                                                            </span></td>
-
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+                    <div class="card mb-3">
+                        <div class="card-header text-dark bg-warning">
+                            <h2 class="pt-4" id="{{ calling_class }}">{{ calling_class }}
+                                <i class="material-icons hidden-doc"
+                                    id="showdoc_string_{{ calling_class }}"
+                                    style="color: blue">add_circle</i>
+                            </h2>
+                            <div id="doc_string_{{ calling_class }}" style="display: none;">
+                                <p class="fst-italic">{{ class_docs|cobalt_dict_key:calling_class|safe }}</p>
                             </div>
                         </div>
+                        <div class="card-body">
+                            {% for calling_method, data3 in data2.items %}
+                                <div class="pt-5">
+                                    <div class="card">
+                                        <div class="card-header text-dark bg-info">
+                                            <h3 id="{{ calling_method }}">{{ nice_function_names|cobalt_dict_key:calling_method }}</h3>
+
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive container-fluid">
+                                                <table class="table table-hover table-condensed">
+                                                    <thead>
+                                                        <tr class="d-flex">
+                                                            <th class="col-6">Test</th>
+                                                            <th class="col-2">Status</th>
+                                                            <th class="col-4">Description</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for row in data3 %}
+                                                            <tr class="d-flex">
+                                                                <td class="col-6">
+
+                                                                    {# click on name to show detailed description #}
+
+                                                                    <span class="hidden-detail" id="reveal_detail_{{ row.id }}">
+                                                                        {{ row.counter }} {{ row.test_name }}
+                                                                    </span>
+
+                                                                    {# detailed description #}
+
+                                                                    <div id="detail_{{ row.id }}"
+                                                                        style="display: none;"
+                                                                        class="p-3">
+                                                                        <div class="card">
+                                                                            <div class="card-body">
+                                                                                <h5 class="card-title">Test Description</h5>
+                                                                                <p class="card-text fst-italic">{{ row.test_description|default_if_none:"No information available" }}</p>
+                                                                            </div>
+                                                                        </div>
+
+                                                                    </div>
+
+                                                                </td>
+
+                                                                {#  hide output for Pass but allow click on icon to reveal it #}
+
+                                                                <td class="col-2">
+
+                                                                    {% if row.status == "Pass" %}
+
+                                                                        <i class="material-icons hidden-desc"
+                                                                            id="show_{{ row.id }}"
+                                                                            title="{% if row.error_desc %}Click to Show{% else %}No information{% endif %}"
+                                                                            data-toggle="tooltip"
+                                                                            style="color: blue">
+                                                                            check_circle
+                                                                        </i>
+
+                                                                    {% else %}
+
+                                                                        <span class="material-icons" style="color: #1b1e21">
+                                                                            error
+                                                                        </span>
+
+                                                                    {% endif %}
+
+                                                                </td>
+
+                                                                <td class="col-4">
+                                                                    <span id="desc_{{ row.id }}"
+                                                                        {% if row.status == "Pass" %}
+                                                                            style="display: none;"
+                                                                        {% endif %}
+                                                                    >
+                                                                        {{ row.error_desc|default_if_none:"" }}
+                                                                    </span></td>
+
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
 
-                    {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
                 {% endfor %}
             </div>
         </div>
@@ -141,6 +172,21 @@
                 $('.hidden-detail').click(function(evt){
                     const id = this.id.replace('reveal_detail_', 'detail_');
                     $('#' + id).toggle();
+                });
+
+                // Show doc string for class if clicked
+                $('.hidden-doc').click(function(evt){
+                    const this_id = this.id;
+                    const id = this_id.replace('showdoc_string_', 'doc_string_');
+                    $('#' + id).toggle();
+                    const this_button =  $('#' + this_id);
+                    const text = this_button.text();
+                    console.log(text);
+                    if (text === "add_circle") {
+                        this_button.text("remove_circle");
+                    } else {
+                        this_button.text("add_circle");
+                    }
                 });
 
             });

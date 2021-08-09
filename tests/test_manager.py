@@ -229,6 +229,7 @@ class CobaltTestManager:
         """return report as html"""
 
         data = {}
+        toc = []
 
         for result_item in self.test_results_list:
             calling_class, calling_method = result_item.split(":")
@@ -238,6 +239,13 @@ class CobaltTestManager:
 
             if calling_method not in data[calling_class]:
                 data[calling_class][calling_method] = []
+                toc.append(
+                    {
+                        "calling_class": calling_class,
+                        "calling_class_from": LIST_OF_TESTS[calling_class],
+                        "calling_method": calling_method,
+                    }
+                )
 
             length = len(self.test_results[calling_class][calling_method])
             for counter, test_name in enumerate(
@@ -265,6 +273,7 @@ class CobaltTestManager:
                 "data": data,
                 "class_docs": self.class_docs,
                 "nice_function_names": self.nice_function_names,
+                "toc": toc,
             },
         )
 
