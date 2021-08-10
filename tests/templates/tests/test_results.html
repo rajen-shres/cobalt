@@ -23,12 +23,13 @@
                 <h1 class="text-center pt-03">Test Results</h1>
 
                 <h4>Table of Contents</h4>
-                <div class="table-responsive col-6 mb-3">
+                <div class="table-responsive col-md-9 mb-3">
                     <table class="table table-striped border-primary table-sm table-bordered">
                         <thead>
                             <tr>
                                 <th>Class</th>
                                 <th>Function</th>
+                                <th>Pass Rate</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -36,6 +37,7 @@
                                 <tr>
                                     <td><a href="#{{ row.calling_class }}">{{ row.calling_class }}</a> - {{ row.calling_class_from }}</td>
                                     <td><a href="#{{ row.calling_method }}">{{ nice_function_names|cobalt_dict_key:row.calling_method }}</a></td>
+                                    <td>{{ row.pass_rate }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -48,7 +50,7 @@
                             <h2 class="pt-4" id="{{ calling_class }}">{{ calling_class }}
                                 <i class="material-icons hidden-doc"
                                     id="showdoc_string_{{ calling_class }}"
-                                    style="color: blue">add_circle</i>
+                                    style="color: grey; cursor: pointer;">add_circle</i>
                             </h2>
                             <div id="doc_string_{{ calling_class }}" style="display: none;">
                                 <p class="fst-italic">{{ class_docs|cobalt_dict_key:calling_class|safe }}</p>
@@ -69,7 +71,7 @@
                                                         <tr class="d-flex">
                                                             <th class="col-6">Test</th>
                                                             <th class="col-2">Status</th>
-                                                            <th class="col-4">Description</th>
+                                                            <th class="col-4">Output</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -79,7 +81,7 @@
 
                                                                     {# click on name to show detailed description #}
 
-                                                                    <span class="hidden-detail" id="reveal_detail_{{ row.id }}">
+                                                                    <span class="hidden-detail" id="reveal_detail_{{ row.id }}" style="cursor: pointer;">
                                                                         {{ row.counter }} {{ row.test_name }}
                                                                     </span>
 
@@ -109,7 +111,7 @@
                                                                             id="show_{{ row.id }}"
                                                                             title="{% if row.error_desc %}Click to Show{% else %}No information{% endif %}"
                                                                             data-toggle="tooltip"
-                                                                            style="color: blue">
+                                                                            style="color: blue; {% if row.error_desc %}cursor: pointer;{% endif %}">
                                                                             check_circle
                                                                         </i>
 

@@ -18,8 +18,9 @@ setup_test_environment()
 # List of tests to run format is "class": "location"
 LIST_OF_TESTS = {
     # "Example": "payments.tests.example",
-    #   "MemberTransfer": "payments.tests.member_actions",
-    "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
+    #    "MemberTransfer": "payments.tests.member_actions",
+    #   "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
+    "ClubLevelAdmin": "organisations.tests.club_level_admin",
 }
 
 
@@ -151,9 +152,14 @@ class CobaltTestManager:
             calling_class_doc = stack[1][0].f_locals["self"].__class__.__doc__
             calling_method = stack[1][0].f_code.co_name
         except KeyError:
-            calling_class = stack[2][0].f_locals["self"].__class__.__name__
-            calling_class_doc = stack[2][0].f_locals["self"].__class__.__doc__
-            calling_method = stack[2][0].f_code.co_name
+            try:
+                calling_class = stack[2][0].f_locals["self"].__class__.__name__
+                calling_class_doc = stack[2][0].f_locals["self"].__class__.__doc__
+                calling_method = stack[2][0].f_code.co_name
+            except KeyError:
+                calling_class = stack[3][0].f_locals["self"].__class__.__name__
+                calling_class_doc = stack[3][0].f_locals["self"].__class__.__doc__
+                calling_method = stack[3][0].f_code.co_name
 
         # dictionary for class doc strings
         if calling_class not in self.class_docs:
@@ -234,20 +240,32 @@ class CobaltTestManager:
         for result_item in self.test_results_list:
             calling_class, calling_method = result_item.split(":")
 
+            # How many test in this part
+            length = len(self.test_results[calling_class][calling_method])
+
             if calling_class not in data:
                 data[calling_class] = {}
 
             if calling_method not in data[calling_class]:
                 data[calling_class][calling_method] = []
+
+                # Table of Contents
+                passing = 0
+                for test_name in self.test_results[calling_class][calling_method]:
+                    if self.test_results[calling_class][calling_method][test_name][
+                        "status"
+                    ]:
+                        passing += 1
+
                 toc.append(
                     {
                         "calling_class": calling_class,
                         "calling_class_from": LIST_OF_TESTS[calling_class],
                         "calling_method": calling_method,
+                        "pass_rate": f"{passing}/{length}",
                     }
                 )
 
-            length = len(self.test_results[calling_class][calling_method])
             for counter, test_name in enumerate(
                 self.test_results[calling_class][calling_method], start=1
             ):

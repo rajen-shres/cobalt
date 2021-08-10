@@ -9,6 +9,8 @@ from django.core.validators import RegexValidator
 
 ORGS_RBAC_GROUPS_AND_ROLES = {
     # Conveners for this orgs events
+    # CONVENERS IS THE ANCHOR. THIS IS ASSUMED TO BE THERE WHEN TESTING FOR ADVANCED RBAC.
+    # DO NOT CHANGE WITHOUT CHANGING IN CODE
     "conveners": {
         "app": "events",
         "model": "org",

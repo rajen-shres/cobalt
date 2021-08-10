@@ -20,6 +20,7 @@ from rbac.core import (
     rbac_delete_group_by_name,
     rbac_get_users_in_group,
     rbac_delete_group,
+    rbac_user_has_admin_tree_access,
 )
 from rbac.views import rbac_forbidden
 
@@ -70,15 +71,31 @@ def admin_list_clubs(request):
 def _rbac_user_has_admin(club, user):
     """Check if this user has access to do rbac admin for this club"""
 
+    # First check individual role
+    user_role = f"orgs.org.{club.id}.edit"
+
+    if rbac_user_has_role(user, user_role):
+        # User has the right role, but if RBAC Advanced, also needs the admin tree permissions
+        _, advanced = rbac_get_basic_and_advanced(club)
+
+        # If not advanced then anyone can administer this,
+        # if advanced then also need the admin role - assume conveners always there
+        if not advanced or rbac_user_has_admin_tree_access(
+            user, f"{club.rbac_name_qualifier}.conveners"
+        ):
+            return True, None
+
+    # Not individual, try higher up access
+
     # Get model id for this state
     rbac_model_for_state = general.get_rbac_model_for_state(club.state)
 
-    # Check access
+    # Check admin access
     role = "orgs.state.%s.edit" % rbac_model_for_state
     if not (
         rbac_user_has_role(user, role) or rbac_user_has_role(user, "orgs.admin.edit")
     ):
-        return False, role
+        return False, user_role
 
     return True, None
 
@@ -170,7 +187,7 @@ def _admin_club_rbac_add_basic_sub(club):
         group=group,
         app="orgs",
         model="org",
-        action="view",
+        action="edit",
         rule_type="Allow",
         model_id=club.id,
     )
@@ -264,7 +281,7 @@ def _admin_club_rbac_add_advanced_sub(club):
             group=group,
             app="orgs",
             model="org",
-            action="view",
+            action="edit",
             rule_type="Allow",
             model_id=club.id,
         )

@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from accounts.models import User
 from organisations.models import Organisation
+from organisations.views.admin import rbac_get_basic_and_advanced
 from tests.test_manager import CobaltTestManager
 
 
@@ -63,3 +64,184 @@ def add_club(
         output=output,
         test_description=desc,
     )
+
+
+def confirm_club_rbac_status(
+    manager: CobaltTestManager,
+    club_org_id: int,
+    expected_status: str,
+    test_name: str,
+    test_description: str,
+    reverse_result=False,
+):
+    """Common function to test the rbac status of a club
+
+    Args:
+        manager: test_manager.Manager object for interacting with system
+        club_org_id: org id of club
+        expected_status: what the status should be
+        test_description: long description of test
+        test_name: name of test
+        reverse_result: if failure is a good outcome
+    """
+
+    club = Organisation.objects.filter(org_id=club_org_id).first()
+
+    basic, advanced = rbac_get_basic_and_advanced(club)
+
+    if basic and advanced:
+        rbac_state = "Both basic and advanced"
+    elif basic:
+        rbac_state = "Basic"
+    elif advanced:
+        rbac_state = "Advanced"
+    else:
+        rbac_state = "Not Set Up"
+
+    ok = expected_status == rbac_state
+
+    if reverse_result:
+        ok = not ok
+
+    manager.save_results(
+        status=ok,
+        test_name=test_name,
+        output=f"{club} checked for RBAC state to be: '{expected_status}'. Actual state is: '{rbac_state}'",
+        test_description=test_description,
+    )
+
+
+def set_rbac_status_as_user(
+    manager: CobaltTestManager,
+    user: User,
+    club_org_id: int,
+    new_status: str,
+    test_name: str,
+    test_description: str,
+    reverse_result: bool,
+):
+    """Common function to change the rbac state of a club and check the outcome. Sometimes we expect this to fail.
+
+    Args:
+        manager: test_manager.Manager object for interacting with system
+        user: User object
+        club_org_id: org id of club
+        new_status: status to change to
+        test_description: long description of test
+        test_name: name of test
+        reverse_result: for tests that should fail
+    """
+
+    # log user in
+    manager.login_test_client(user)
+
+    # Get club
+    club = Organisation.objects.filter(org_id=club_org_id).first()
+
+    if new_status == "Advanced":
+        url_string = "organisations:admin_club_rbac_add_advanced"
+
+    elif new_status == "Basic":
+        url_string = "organisations:admin_club_rbac_add_basic"
+
+    url = reverse(url_string, kwargs={"club_id": club.id})
+
+    # run - don't bother checking what comes back
+    manager.client.post(url)
+
+    # see what the status is now
+    confirm_club_rbac_status(
+        manager, club_org_id, new_status, test_name, test_description, reverse_result
+    )
+
+
+def change_rbac_status_as_user(
+    manager: CobaltTestManager,
+    user: User,
+    club_org_id: int,
+    new_status: str,
+    test_name: str,
+    test_description: str,
+    reverse_result: bool,
+):
+    """Common function to change the rbac state of a club and check the outcome. Sometimes we expect this to fail.
+
+    Args:
+        manager: test_manager.Manager object for interacting with system
+        user: User object
+        club_org_id: org id of club
+        new_status: status to change to
+        test_description: long description of test
+        test_name: name of test
+        reverse_result: for tests that should fail
+    """
+
+    # log user in
+    manager.login_test_client(user)
+
+    # Get club
+    club = Organisation.objects.filter(org_id=club_org_id).first()
+
+    if new_status == "Basic":
+        url_string = "organisations:admin_club_rbac_convert_advanced_to_basic"
+
+    elif new_status == "Advanced":
+        url_string = "organisations:admin_club_rbac_convert_basic_to_advanced"
+
+    url = reverse(url_string, kwargs={"club_id": club.id})
+
+    # run - don't bother checking what comes back
+    manager.client.post(url)
+
+    # see what the status is now
+    confirm_club_rbac_status(
+        manager, club_org_id, new_status, test_name, test_description, reverse_result
+    )
+
+
+# def access_club_menu(manager: CobaltTestManager, user: User, club_id: int, expected_club_name: str,
+#                      test_name: str, test_description: str):
+#     """Common function to check access to the club menu for different users
+#
+#         The club menu uses a lot of HTMX so we access this through Selenium.
+#
+#         Initial Selenium State: Any
+#         Final Selenium State: On front page of Club Menu for provide club name as provide user
+#
+#     Args:
+#         manager: test_manager.Manager object for interacting with system
+#         user: User object
+#         club_id: Django id of club, not org_id
+#         expected_club_name: name we expect to find in the H1
+#         test_description: long description of test
+#         test_name: name of test
+#     """
+#
+#     print("inside")
+
+# # login
+# manager.login_selenium_user(user)
+#
+# # go to page
+# url = manager.base_url + reverse("organisations:club_menu", kwargs={"club_id": club_id})
+# manager.driver.get(url)
+#
+# # Get club name
+# club_name = manager.driver.find_element_by_id('t_club_name')
+#
+# ok = club_name.text = expected_club_name
+#
+# print("ok", ok)
+#
+# manager.save_results(
+#     status=ok,
+#     test_name=test_name,
+#     output=f"Visited club menu for club_id={club_id} ({url}). Looked for club name '{expected_club_name}'. {ok}",
+#     test_description=test_description,
+# )
+
+
+def access_club_menu(
+    manager, user, club_id, expected_club_name, test_name, test_description
+):
+    print("CM2")

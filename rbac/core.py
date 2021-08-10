@@ -1004,6 +1004,28 @@ def rbac_admin_tree_access(user):
     return [item for match in matches for item in match]
 
 
+def rbac_user_has_admin_tree_access(user, admin_tree):
+    """returns whether a user has admin access to this exact part of the tree.
+
+    Used initially by orgs for club admin so only checks the provided path, not anything higher.
+
+    e.g. if user has admin.b this will not match on admin.b.c
+
+    Args:
+        user(User): standard user object
+        admin_tree(str): tree path to check
+
+    Returns:
+        boolean
+    """
+
+    return (
+        RBACAdminUserGroup.objects.filter(member=user)
+        .filter(group__rbacadmintree__tree=admin_tree)
+        .exists()
+    )
+
+
 def rbac_group_id_from_name(name_qualifier, name_item):
     """returns the id of a group based upon its name
 

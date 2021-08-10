@@ -42,13 +42,16 @@ class Command(BaseCommand):
             "edit",
             "Has the ability to edit details relating to the specified organisation.",
         )
-        create_RBAC_action(
-            self,
-            "orgs",
-            "org",
-            "view",
-            "Has the ability to view details relating to the specified organisation.",
-        )
+
+        # Change orgs.org to a single role (edit). Don't seem to be any problems, but needs to be tested.
+
+        # create_RBAC_action(
+        #     self,
+        #     "orgs",
+        #     "org",
+        #     "view",
+        #     "Has the ability to view details relating to the specified organisation.",
+        # )
         create_RBAC_action(
             self,
             "orgs",
