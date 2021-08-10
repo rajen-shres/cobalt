@@ -23,7 +23,7 @@ administrator (able to grant access to others). This is the recommended configur
                 <tr>
                     <td>{{ user|cobalt_user_link_short }}
                         {% include "utils/htmx_confirm_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-basic" hx_post=user.hx_post %}
-                        <td><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
+                        <td><button id="id_delete_user_{{ user.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
                             Remove
                         </button>
                         </tr>
@@ -32,7 +32,7 @@ administrator (able to grant access to others). This is the recommended configur
     </table>
 </div>
 
-<button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal">Add Staff</button>
+<button id="id_search_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal">Add Staff</button>
 
 
 

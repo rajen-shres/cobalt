@@ -293,3 +293,46 @@ def club_menu_items(
         output=f"Checked tabs present versus expected. Found differences: {diffs}",
         test_description=test_description,
     )
+
+
+def club_menu_go_to_tab(
+    manager: CobaltTestManager,
+    tab: str,
+    title: str,
+    test_name: str,
+    test_description: str,
+):
+    """Common function to move to the Access tab
+
+        Initial Selenium State: On any tab of Club Menu
+        Final Selenium State: On Access tab of Club Menu
+
+    Args:
+        manager: test_manager.Manager object for interacting with system
+        tab: the tabs we want to go to
+        title: expected H1 of tab
+        test_description: long description of test
+        test_name: name of test
+    """
+
+    # Click on tab
+    manager.driver.find_element_by_css_selector(
+        f"#id_tab_{tab} > .material-icons"
+    ).click()
+
+    # Confirm
+    tab_heading = manager.driver.find_elements_by_id("t_tab_heading")
+
+    if tab_heading:
+        tab_title = tab_heading[0].text
+        ok = title == tab_title
+    else:
+        tab_title = "Not found"
+        ok = False
+
+    manager.save_results(
+        status=ok,
+        test_name=test_name,
+        output=f"Clicked on tab {tab}. Checked if t_tab_heading={title}. Actual value: {tab_title}. {ok}.",
+        test_description=test_description,
+    )

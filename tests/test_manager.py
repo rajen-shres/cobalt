@@ -1,6 +1,7 @@
 import importlib
 import inspect
 
+from selenium.common.exceptions import TimeoutException
 from termcolor import colored
 from django.template.loader import render_to_string
 from django.test import Client
@@ -9,6 +10,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions
 
 from accounts.models import User
 
@@ -18,7 +21,7 @@ setup_test_environment()
 # List of tests to run format is "class": "location"
 LIST_OF_TESTS = {
     #   "MemberTransfer": "payments.tests.member_actions",
-    #  "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
+    "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
     "ClubLevelAdmin": "organisations.tests.club_level_admin",
 }
 
@@ -63,6 +66,16 @@ class CobaltTestManager:
     def __init__(self, app, browser, base_url, headless):
         """Set up basic environment for individual tests"""
 
+        self.alan = self.get_user("100")
+        self.betty = self.get_user("101")
+        self.colin = self.get_user("102")
+        self.debbie = self.get_user("103")
+        self.eric = self.get_user("104")
+        self.fiona = self.get_user("105")
+
+        # First user - Alan Admin
+        self.test_user = self.alan
+
         if not browser:
             browser = "chrome"
 
@@ -93,9 +106,6 @@ class CobaltTestManager:
         # Default system-wide pwd
         self.test_code = "F1shcake"
 
-        # First user - Alan Admin
-        self.test_user = self.get_user("100")
-
         # Log user in
         self.login_user(self.test_user)
 
@@ -125,6 +135,33 @@ class CobaltTestManager:
         self.driver.find_element(By.ID, "id_username").send_keys(user.username)
         self.driver.find_element(By.ID, "id_password").send_keys(self.test_code)
         self.driver.find_element_by_class_name("btn").click()
+
+    def selenium_wait_for(self, element_id):
+        """Wait for element_id to be on page and return it"""
+        element_present = expected_conditions.presence_of_element_located(
+            (By.ID, element_id)
+        )
+        WebDriverWait(self.driver, 5).until(element_present)
+        return self.driver.find_element_by_id(element_id)
+
+    def selenium_wait_for_clickable(self, element_id):
+        """Wait for element_id to be clickable and return it. E.g. if element is hidden."""
+        element_clickable = expected_conditions.element_to_be_clickable(
+            (By.ID, element_id)
+        )
+        WebDriverWait(self.driver, 5).until(element_clickable)
+        return self.driver.find_element_by_id(element_id)
+
+    def selenium_wait_for_text(self, element_id, text):
+        """Wait for text to appear in element_id."""
+        element_has_text = expected_conditions.text_to_be_present_in_element(
+            (By.ID, element_id), text
+        )
+        try:
+            WebDriverWait(self.driver, 5).until(element_has_text)
+            return True
+        except TimeoutException:
+            return False
 
     def save_results(self, status, test_name, test_description=None, output=None):
         """handle logging results
@@ -302,19 +339,19 @@ class CobaltTestManager:
             if score == 1.0:
                 total_score = "A+"
             elif score > 0.95:
-                total_score = "A"
-            elif score > 0.9:
                 total_score = "A-"
+            elif score > 0.9:
+                total_score = "B+"
             elif score > 0.85:
-                total_score = "B"
+                total_score = "B-"
             elif score > 0.8:
-                total_score = "C"
+                total_score = "C+"
             elif score > 0.7:
                 total_score = "C-"
             elif score > 0.6:
-                total_score = "D"
+                total_score = "D-"
             else:
-                total_score = "F"
+                total_score = "Fail"
         return render_to_string(
             "tests/test_results.html",
             {

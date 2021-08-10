@@ -14,70 +14,70 @@
                 <span class="htmx-indicator">
                     <img src="{% static "assets/img/spinners/bars.svg" %}"/>
                 </span>
-            </h5>
-            <button type="button" onclick="cancelLookup()" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div class="container">
-                <div id="cobalt-search{{ search_id }}" class="row justify-content-center">
+                <button type="button" onclick="cancelLookup()" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div id="cobalt-search{{ search_id }}" class="row justify-content-center">
 
-                    <div class="col-12 form-group">
-                        <label for="id_lastname{{ search_id }}" id="id_label_lastname{{ search_id }}" class="bmd-label-static">Last Name
-                        </label>
+                        <div class="col-12 form-group">
+                            <label for="id_lastname{{ search_id }}" id="id_label_lastname{{ search_id }}" class="bmd-label-static">Last Name
+                            </label>
 
-                        <input type="text"
-                            class="form-control modal-input"
-                            name="last_name_search"
-                            id="id_last_name_search{{ search_id }}"
-                            hx-post="{% url "accounts:member_search_htmx" %}"
-                            hx-trigger="keyup changed delay:100ms"
-                            hx-target="#name-matches{{ search_id }}"
-                            hx-indicator=".htmx-indicator"
-                            {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
-                            hx-vars="first_name_search:getFirstName('{{ search_id }}'){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
-                        >
-                    </div>
-                    <div class="col-12 form-group">
-                        <label for="id_lastname{{ search_id }}" id="id_label_lastname{{ search_id }}" class="bmd-label-static">First Name
-                        </label>
-
-                        <input type="text"
-                            class="form-control modal-input"
-                            name="first_name_search"
-                            id="id_first_name_search{{ search_id }}"
-                            hx-post="{% url "accounts:member_search_htmx" %}"
-                            hx-trigger="keyup changed delay:100ms"
-                            hx-target="#name-matches{{ search_id }}"
-                            hx-indicator=".htmx-indicator"
-                            {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
-                            hx-vars="last_name_search:getLastName('{{ search_id }}'){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
-                        >
-                    </div>
-                    {% if request.user.system_number_search %}
-                        <div class="col-8 form-group" style="margin-top: 0 !important;">
-                            <label for="id_system_number{{ search_id }}" id="id_label_system_number{{ search_id }}" class="bmd-label-static">{{ GLOBAL_ORG }} Number</label>
-                            <input type="number" class="form-control modal-input" id="id_system_number{{ search_id }}" name="system_number" value="">
-                        </div>
-                        <div class="col-4 form-group text-right">
-                            <button class="btn btn-sm bt-warning"
-                                hx-post="{% url "accounts:system_number_search_htmx" %}"
+                            <input type="text"
+                                class="form-control modal-input"
+                                name="last_name_search"
+                                id="id_last_name_search{{ search_id }}"
+                                hx-post="{% url "accounts:member_search_htmx" %}"
+                                hx-trigger="keyup changed delay:100ms"
                                 hx-target="#name-matches{{ search_id }}"
                                 hx-indicator=".htmx-indicator"
                                 {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
-                                hx-vars="system_number_search:getSystemNumber('{{ search_id }}'){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
+                                hx-vars="first_name_search:getFirstName('{{ search_id }}'){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
+                            >
+                        </div>
+                        <div class="col-12 form-group">
+                            <label for="id_lastname{{ search_id }}" id="id_label_lastname{{ search_id }}" class="bmd-label-static">First Name
+                            </label>
 
-                            >Lookup Number</button>
+                            <input type="text"
+                                class="form-control modal-input"
+                                name="first_name_search"
+                                id="id_first_name_search{{ search_id }}"
+                                hx-post="{% url "accounts:member_search_htmx" %}"
+                                hx-trigger="keyup changed delay:100ms"
+                                hx-target="#name-matches{{ search_id }}"
+                                hx-indicator=".htmx-indicator"
+                                {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
+                                hx-vars="last_name_search:getLastName('{{ search_id }}'){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
+                            >
                         </div>
-                        <div class="name-match" id="name-matches{{ search_id }}">
-                        </div>
-                    {% endif %}
+                        {% if request.user.system_number_search %}
+                            <div class="col-8 form-group" style="margin-top: 0 !important;">
+                                <label for="id_system_number{{ search_id }}" id="id_label_system_number{{ search_id }}" class="bmd-label-static">{{ GLOBAL_ORG }} Number</label>
+                                <input type="number" class="form-control modal-input" id="id_system_number{{ search_id }}" name="system_number" value="">
+                            </div>
+                            <div class="col-4 form-group text-right">
+                                <button class="btn btn-sm bt-warning"
+                                    id="id_button_system_number_search"
+                                    hx-post="{% url "accounts:system_number_search_htmx" %}"
+                                    hx-target="#name-matches{{ search_id }}"
+                                    hx-indicator=".htmx-indicator"
+                                    {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
+                                    hx-vars="system_number_search:getSystemNumber('{{ search_id }}'){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
+
+                                >Lookup Number</button>
+                            </div>
+                            <div class="name-match" id="name-matches{{ search_id }}">
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </div>
 
 
