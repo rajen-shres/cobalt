@@ -17,9 +17,8 @@ setup_test_environment()
 
 # List of tests to run format is "class": "location"
 LIST_OF_TESTS = {
-    # "Example": "payments.tests.example",
-    #    "MemberTransfer": "payments.tests.member_actions",
-    #   "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
+    "MemberTransfer": "payments.tests.member_actions",
+    "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
     "ClubLevelAdmin": "organisations.tests.club_level_admin",
 }
 
@@ -123,9 +122,7 @@ class CobaltTestManager:
     def login_selenium_user(self, user):
         """login user through browser"""
         self.driver.get(f"{self.base_url}/accounts/login")
-        self.driver.find_element(By.ID, "id_username").send_keys(
-            self.test_user.username
-        )
+        self.driver.find_element(By.ID, "id_username").send_keys(user.username)
         self.driver.find_element(By.ID, "id_password").send_keys(self.test_code)
         self.driver.find_element_by_class_name("btn").click()
 
@@ -146,6 +143,7 @@ class CobaltTestManager:
 
         # work out who called us
         # - if the level up isn't a class we could be in a common helper functions so try next level
+        # - if that fails try another level
         stack = inspect.stack()
         try:
             calling_class = stack[1][0].f_locals["self"].__class__.__name__
@@ -236,6 +234,9 @@ class CobaltTestManager:
 
         data = {}
         toc = []
+        toc_last_calling_class = None
+        total_length = 0
+        total_passing = 0
 
         for result_item in self.test_results_list:
             calling_class, calling_method = result_item.split(":")
@@ -257,9 +258,16 @@ class CobaltTestManager:
                     ]:
                         passing += 1
 
+                if calling_class != toc_last_calling_class:
+                    # New class so show in table
+                    display_calling_class = calling_class
+                    toc_last_calling_class = calling_class
+                else:
+                    display_calling_class = None
+
                 toc.append(
                     {
-                        "calling_class": calling_class,
+                        "calling_class": display_calling_class,
                         "calling_class_from": LIST_OF_TESTS[calling_class],
                         "calling_method": calling_method,
                         "pass_rate": f"{passing}/{length}",
@@ -285,6 +293,10 @@ class CobaltTestManager:
                         "id": f"{calling_method}-{counter}",
                     }
                 )
+
+            total_length += length
+            total_passing += passing
+
         return render_to_string(
             "tests/test_results.html",
             {
@@ -292,6 +304,8 @@ class CobaltTestManager:
                 "class_docs": self.class_docs,
                 "nice_function_names": self.nice_function_names,
                 "toc": toc,
+                "total_passing": total_passing,
+                "total_length": total_length,
             },
         )
 

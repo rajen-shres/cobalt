@@ -1,6 +1,8 @@
 """
     Common functions for organisations.
 """
+import time
+
 from django.urls import reverse
 
 from accounts.models import User
@@ -199,49 +201,95 @@ def change_rbac_status_as_user(
     )
 
 
-# def access_club_menu(manager: CobaltTestManager, user: User, club_id: int, expected_club_name: str,
-#                      test_name: str, test_description: str):
-#     """Common function to check access to the club menu for different users
-#
-#         The club menu uses a lot of HTMX so we access this through Selenium.
-#
-#         Initial Selenium State: Any
-#         Final Selenium State: On front page of Club Menu for provide club name as provide user
-#
-#     Args:
-#         manager: test_manager.Manager object for interacting with system
-#         user: User object
-#         club_id: Django id of club, not org_id
-#         expected_club_name: name we expect to find in the H1
-#         test_description: long description of test
-#         test_name: name of test
-#     """
-#
-#     print("inside")
-
-# # login
-# manager.login_selenium_user(user)
-#
-# # go to page
-# url = manager.base_url + reverse("organisations:club_menu", kwargs={"club_id": club_id})
-# manager.driver.get(url)
-#
-# # Get club name
-# club_name = manager.driver.find_element_by_id('t_club_name')
-#
-# ok = club_name.text = expected_club_name
-#
-# print("ok", ok)
-#
-# manager.save_results(
-#     status=ok,
-#     test_name=test_name,
-#     output=f"Visited club menu for club_id={club_id} ({url}). Looked for club name '{expected_club_name}'. {ok}",
-#     test_description=test_description,
-# )
-
-
 def access_club_menu(
-    manager, user, club_id, expected_club_name, test_name, test_description
+    manager: CobaltTestManager,
+    user: User,
+    club_id: int,
+    expected_club_name: str,
+    test_name: str,
+    test_description: str,
+    reverse_result=False,
 ):
-    print("CM2")
+    """Common function to check access to the club menu for different users
+
+        The club menu uses a lot of HTMX so we access this through Selenium.
+
+        Initial Selenium State: Any
+        Final Selenium State: On front page of Club Menu for provided club name as provided user
+
+    Args:
+        manager: test_manager.Manager object for interacting with system
+        user: User object
+        club_id: Django id of club, not org_id
+        expected_club_name: name we expect to find in the H1
+        test_description: long description of test
+        test_name: name of test
+        reverse_result: for tests that should fail
+
+    """
+
+    # login
+    manager.login_selenium_user(user)
+
+    # go to page
+    url = manager.base_url + reverse(
+        "organisations:club_menu", kwargs={"club_id": club_id}
+    )
+    manager.driver.get(url)
+
+    # Get club name
+    club_name = manager.driver.find_elements_by_id("t_club_name")
+
+    # Check for club
+    ok = club_name[0].text == expected_club_name if len(club_name) > 0 else False
+
+    if reverse_result:
+        new_ok = not ok
+    else:
+        new_ok = ok
+
+    manager.save_results(
+        status=new_ok,
+        test_name=test_name,
+        output=f"Visited club menu for club_id={club_id} ({url}). Looked for club name '{expected_club_name}'. {ok}",
+        test_description=test_description,
+    )
+
+
+def club_menu_items(
+    manager: CobaltTestManager,
+    expected_tabs: list,
+    test_name: str,
+    test_description: str,
+):
+    """Common function to check which tabs a user has access to
+
+        Initial Selenium State: On front page of Club Menu
+        Final Selenium State: On front page of Club Menu
+
+    Args:
+        manager: test_manager.Manager object for interacting with system
+        expected_tabs: the tabs we expect to find
+        test_description: long description of test
+        test_name: name of test
+    """
+
+    # Get all of the nav-links
+    elements = manager.driver.find_elements_by_class_name("nav-link")
+
+    # Find the ones with id_tab_
+    tabs = []
+    for element in elements:
+        tab_id = element.get_attribute("id")
+        if tab_id.find("id_tab_") >= 0:
+            tabs.append(tab_id)
+
+    # Check the tabs are as expected
+    diffs = list(set(tabs) ^ set(expected_tabs))
+
+    manager.save_results(
+        status=not bool(diffs),
+        test_name=test_name,
+        output=f"Checked tabs present versus expected. Found differences: {diffs}",
+        test_description=test_description,
+    )

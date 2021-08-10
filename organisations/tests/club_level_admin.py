@@ -1,11 +1,8 @@
-import time
-from pprint import pprint
-
-from django.urls import reverse
-
 from organisations.models import Organisation
-from organisations.tests.common_functions import access_club_menu
+from organisations.tests.common_functions import access_club_menu, club_menu_items
 from tests.test_manager import CobaltTestManager
+
+# TODO: See if these constants can be centrally stored
 
 # State id numbers
 NSW = 3
@@ -32,6 +29,9 @@ class ClubLevelAdmin:
 
     """
 
+    NSW = 3
+    QLD = 5
+
     def __init__(self, manager: CobaltTestManager):
         self.manager = manager
         self.client = self.manager.client
@@ -39,34 +39,51 @@ class ClubLevelAdmin:
         self.betty = self.manager.get_user("101")
         self.colin = self.manager.get_user("102")
         self.debbie = self.manager.get_user("103")
-
-        print("init")
+        self.eric = self.manager.get_user("104")
 
     def a1_access_club_menu(self):
         """Check who can access the club menu"""
 
-        print("running")
-
         club = Organisation.objects.filter(org_id=TRUMPS_ID).first()
 
-        print(club)
+        # Eric - Trumps - No Access
+        access_club_menu(
+            manager=self.manager,
+            user=self.eric,
+            club_id=club.id,
+            expected_club_name=club_names[TRUMPS_ID],
+            test_name=f"Check that Eric can't access the club menu for {club_names[TRUMPS_ID]}",
+            test_description=f"Go to the club menu page for {club_names[TRUMPS_ID]} "
+            f"(org_id={TRUMPS_ID}) as Eric who shouldn't have access.",
+            reverse_result=True,
+        )
 
+        # Debbie - Trumps - Access
         access_club_menu(
             manager=self.manager,
             user=self.debbie,
             club_id=club.id,
-            test_name="ddd",
-            test_description="fff",
+            expected_club_name=club_names[TRUMPS_ID],
+            test_name=f"Check that Debbie can access the club menu for {club_names[TRUMPS_ID]}",
+            test_description=f"Go to the club menu page for {club_names[TRUMPS_ID]} "
+            f"(org_id={TRUMPS_ID}) as Debbie (club secretary)",
         )
 
-        print("b2")
+        # Debbie - Check Tabs
+        expected_tabs = [
+            "id_tab_dashboard",
+            "id_tab_members",
+            "id_tab_congress",
+            "id_tab_results",
+            "id_tab_comms",
+            "id_tab_access",
+            "id_tab_settings",
+        ]
 
-        access_club_menu(
+        club_menu_items(
             manager=self.manager,
-            user=self.debbie,
-            club_id=club.id,
-            test_name="ddd",
-            test_description="fff",
+            expected_tabs=expected_tabs,
+            test_name=f"Check tabs for Debbie for {club_names[TRUMPS_ID]}",
+            test_description=f"Go to the club menu page for {club_names[TRUMPS_ID]} "
+            f"(org_id={TRUMPS_ID}) as Debbie. Check tabs are {expected_tabs}",
         )
-
-        print("back")

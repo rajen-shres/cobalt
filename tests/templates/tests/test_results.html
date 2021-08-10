@@ -21,8 +21,29 @@
         <div class="jumbotron">
             <div class="container">
                 <h1 class="text-center pt-03">Test Results</h1>
+                <h1 class="text-center">
+                    {% if total_passing == total_length %}
+                        <i class="material-icons"
+                            style="color: blue;font-size: 75px;">
+                            check_circle
+                        </i>
 
-                <h4>Table of Contents</h4>
+                    {% else %}
+
+                        <span class="material-icons" style="color: red; font-size: 75px;">
+                            error
+                        </span>
+
+                    {% endif %}
+                </h1>
+
+                <h1 class="text-center">{{ total_passing }}/{{ total_length }}</h1>
+
+                <div class="float-end">
+                    <a href="http://127.0.0.1:8088">Test Site</a>
+                </div>
+
+                <h4 class="pt-4">Table of Contents</h4>
                 <div class="table-responsive col-md-9 mb-3">
                     <table class="table table-striped border-primary table-sm table-bordered">
                         <thead>
@@ -35,8 +56,16 @@
                         <tbody>
                             {% for row in toc %}
                                 <tr>
-                                    <td><a href="#{{ row.calling_class }}">{{ row.calling_class }}</a> - {{ row.calling_class_from }}</td>
-                                    <td><a href="#{{ row.calling_method }}">{{ nice_function_names|cobalt_dict_key:row.calling_method }}</a></td>
+                                    <td>
+                                        {% if row.calling_class %}
+                                            <a href="#{{ row.calling_class }}">{{ row.calling_class }}</a>
+                                            - {{ row.calling_class_from }}
+                                        {% endif %}
+                                    </td>
+                                    <td><a href="#{{ row.calling_method }}">
+                                        {{ nice_function_names|cobalt_dict_key:row.calling_method }}
+                                    </a>
+                                    </td>
                                     <td>{{ row.pass_rate }}</td>
                                 </tr>
                             {% endfor %}
@@ -117,7 +146,7 @@
 
                                                                     {% else %}
 
-                                                                        <span class="material-icons" style="color: #1b1e21">
+                                                                        <span class="material-icons" style="color: red">
                                                                             error
                                                                         </span>
 
