@@ -15,12 +15,19 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
             rel="stylesheet">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+
         <title>Report</title>
     </head>
     <body>
         <div class="jumbotron">
             <div class="container">
                 <h1 class="text-center pt-03">Cobalt Test Results</h1>
+
+                {#  Overall Score  #}
                 <h1 class="text-center">
                     {% if total_passing == total_length %}
                         <i class="material-icons"
@@ -38,6 +45,10 @@
                 </h1>
 
                 <h1 class="text-center">{{ total_passing }}/{{ total_length }}</h1>
+
+                <div class="text-center" style="font-size: 75px; font-family: 'Patrick Hand', cursive;">
+                    {{ total_score }}
+                </div>
 
                 <div class="float-end">
                     <a href="http://127.0.0.1:8088">Test Site</a>

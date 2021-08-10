@@ -17,8 +17,8 @@ setup_test_environment()
 
 # List of tests to run format is "class": "location"
 LIST_OF_TESTS = {
-    "MemberTransfer": "payments.tests.member_actions",
-    "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
+    #   "MemberTransfer": "payments.tests.member_actions",
+    #  "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
     "ClubLevelAdmin": "organisations.tests.club_level_admin",
 }
 
@@ -297,6 +297,24 @@ class CobaltTestManager:
             total_length += length
             total_passing += passing
 
+            score = total_passing / total_length
+
+            if score == 1.0:
+                total_score = "A+"
+            elif score > 0.95:
+                total_score = "A"
+            elif score > 0.9:
+                total_score = "A-"
+            elif score > 0.85:
+                total_score = "B"
+            elif score > 0.8:
+                total_score = "C"
+            elif score > 0.7:
+                total_score = "C-"
+            elif score > 0.6:
+                total_score = "D"
+            else:
+                total_score = "F"
         return render_to_string(
             "tests/test_results.html",
             {
@@ -306,6 +324,7 @@ class CobaltTestManager:
                 "toc": toc,
                 "total_passing": total_passing,
                 "total_length": total_length,
+                "total_score": total_score,
             },
         )
 
