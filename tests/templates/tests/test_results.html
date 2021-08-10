@@ -28,27 +28,33 @@
                 <h1 class="text-center pt-03">Cobalt Test Results</h1>
 
                 {#  Overall Score  #}
-                <h1 class="text-center">
-                    {% if total_passing == total_length %}
-                        <i class="material-icons"
-                            style="color: blue;font-size: 75px;">
-                            check_circle
-                        </i>
+                <div>
+                    <div>
+                        <h1 class="text-center">
+                            {% if total_passing == total_length %}
+                                <i class="material-icons"
+                                    style="color: blue;font-size: 75px;">
+                                    check_circle
+                                </i>
 
-                    {% else %}
+                            {% else %}
 
-                        <span class="material-icons" style="color: red; font-size: 75px;">
-                            error
-                        </span>
+                                <span class="material-icons" style="color: red; font-size: 75px;">
+                                    error
+                                </span>
 
-                    {% endif %}
-                </h1>
+                            {% endif %}
+                        </h1>
+                    </div>
+                    <div class="text-center" style="font-size: 75px; font-family: 'Patrick Hand', cursive;">
+                        {{ total_score }}
+                    </div>
+
+                </div>
+
 
                 <h1 class="text-center">{{ total_passing }}/{{ total_length }}</h1>
 
-                <div class="text-center" style="font-size: 75px; font-family: 'Patrick Hand', cursive;">
-                    {{ total_score }}
-                </div>
 
                 <div class="float-end">
                     <a href="http://127.0.0.1:8088">Test Site</a>
