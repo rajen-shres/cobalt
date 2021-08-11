@@ -40,17 +40,22 @@ else
   ENV=$1   # Passed as parameter
 fi
 
-
 echo "Getting current $ENV branch..."
 
 # get full name of environment e.g. test -> cobalt-test-black
 THISENV=$(eb list | grep cobalt-$ENV | tr \* " ")
 
+echo "EB Name: $THISENV..."
+
 # Get the deployed version on this environment
 APP=$(eb status $THISENV | grep Deploy | awk '{print $3}')
 
+echo "Deployed app: $APP..."
+
 # Get the description from aws cli
 DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP" | grep Description | awk '{print $2}' | tr -d '"' | tr -d ,)
+
+echo "Description: $DESC..."
 
 # Now we should have branch@time - we just want branch
 THISBRANCHLONG=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
@@ -70,8 +75,13 @@ echo "$ENV is running $THISBRANCH. This assumes cgit has been used for deploymen
 echo "Getting $THISBRANCH..."
 git fetch origin $THISBRANCH
 
+# Format the HTML Template
+cp utils/cgit/tools/cgit_template.html /tmp/temp.html
+sed -i -e "s/!!BRANCH!!/$BRANCH/g" /tmp/temp.html
+sed -i -e "s/!!OTHERBRANCH!!/$THISBRANCH/g" /tmp/temp.html
+
 # Now run the diff
-diff2html -s side --su open -- -M $THISBRANCH >/dev/null 2>&1
+git diff -w $THISBRANCH $BRANCH | diff2html -i stdin -s side --su open --htmlWrapperTemplate /tmp/temp.html
 
 # rc=3 is no output - usually because the branch doesn't exist or is the same
 if [ $? -eq 3 ];then

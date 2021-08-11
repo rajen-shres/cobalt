@@ -182,8 +182,8 @@ class ClubLevelAdmin:
         self.manager.save_results(
             status=ok,
             output=output,
-            test_name=f"Debbie deletes Fiona as an admin to Basic RBAC for {club_names[TRUMPS_ID]}",
-            test_description=f"Debbie goes to Access tab for {club_names[TRUMPS_ID]} and deletes Fiona  "
+            test_name=f"Debbie deletes Fiona as an admin from Basic RBAC for {club_names[TRUMPS_ID]}",
+            test_description=f"Debbie goes to Access tab for {club_names[TRUMPS_ID]} and deletes Fiona "
             f"as an Admin using Basic RBAC. We then look for Fiona to "
             f"appear on the page.",
         )
@@ -195,6 +195,6 @@ class ClubLevelAdmin:
 # TODO: Delete users basic
 # TODO: Delete users advanced
 # TODO: Delete admins advanced
-# TODO:
-# TODO:
+# TODO: Check menu item appears properly
+# TODO: Multiple clubs
 #
