@@ -8,7 +8,7 @@
 
     {#    This file uses HTMX. It is the first trial of HTMX in Cobalt     #}
 
-    {% include "utils/generic_user_search_body.html" with search_id=1 include_me=True %}
+    {% include "accounts/user_search_include_htmx.html" with search_id=1 %}
 
     <div class="">
         <div class="card col-md-12 align-content-center">
@@ -91,13 +91,13 @@
 
 {% block footer %}
     {% include "utils/include_htmx.html" %}
-    <script>
-        {% include "utils/generic_user_search_footer.html" with search_id=1 include_me='yes' %}
+    {% include "accounts/user_search_include_js_htmx.html" with search_id=1 include_me='yes' %}
 
-        function cobaltMemberSearchOk() {
+    <script>
+        function cobaltMemberSearchOk(search_id, member_id, member_name) {
             // update club_secretary. Note: the fields are not defined in this file, they are loaded from admin_add_club_ajax.html
-            $('#id_secretary').val(member_id[1]);
-            $('#dummy_name').text(member_name[1]);
+            $('#id_secretary').val(member_id);
+            $('#dummy_name').text(member_name);
 
         }
 

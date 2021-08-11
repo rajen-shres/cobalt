@@ -37,6 +37,8 @@ class OrgForm(forms.ModelForm):
             "postcode",
             "bank_bsb",
             "bank_account",
+            "membership_renewal_date",
+            "membership_part_year_date",
         )
 
         # Make State a choice field
@@ -70,6 +72,11 @@ class OrgForm(forms.ModelForm):
         from .views.general import get_rbac_model_for_state
 
         state = self.cleaned_data["state"]
+
+        # See if this has changed
+        if "state" not in self.changed_data:
+            return state
+
         if not state:
             self.add_error("state", "State cannot be empty")
             return state
@@ -87,17 +94,8 @@ class OrgForm(forms.ModelForm):
             or rbac_user_has_role(self.user, "orgs.admin.edit")
         ):
             self.add_error(
-                "state", "You do not have permissions to create a club in this state."
+                "state",
+                "You do not have permissions to create or edit a club in this state.",
             )
 
         return state
-
-    def clean_org_id(self):
-        """Check that this isn't a duplicate - don't trust client side validation"""
-
-        org_id = self.cleaned_data["org_id"]
-
-        if Organisation.objects.filter(org_id=org_id).exists():
-            self.add_error("org_id", "This organisation is already set up")
-
-        return org_id

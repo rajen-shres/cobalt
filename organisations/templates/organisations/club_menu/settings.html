@@ -4,12 +4,31 @@
     <div class="card-header card-header-primary">
         <h2>Settings</h2>
     </div>
+
+    {% include "accounts/user_search_include_htmx.html" with search_id=11 %}
+
     <div class="card-body">
-        <div id="id_panel_dashboard"
+        <div id="id_panel_settings"
             hx-post="{% url "organisations:club_menu_tab_settings_htmx" %}"
             hx-trigger="tab_load_event"
             hx-indicator=".htmx-indicator"
-            hx-vars="club_id:{{ club.id }}"
+            hx-vars="club_id:{{ club.id }}  "
         ></div>
     </div>
 </div>
+
+
+{% include "accounts/user_search_include_js_htmx.html" with search_id=11 include_me='yes' %}
+
+<script>
+    function cobaltMemberSearchOk(search_id, member_id, member_name) {
+        // update club_secretary. Note: the fields are not defined in this file, they are loaded from admin_add_club_ajax.html
+        $('#id_secretary').val(member_id);
+        $('#club_secretary_dummy_name').text(member_name);
+
+    }
+
+    $(document).ready(function () {
+
+    };
+        </script>

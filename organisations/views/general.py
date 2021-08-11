@@ -42,7 +42,7 @@ def get_rbac_model_for_state(state):
 # TODO: Retire this
 @login_required()
 def org_edit(request, org_id):
-    """Edit details about an organisation
+    """Edit details about an organisation OLD - REMOVE ONCE NEW CLUB ADMIN IS DONE
 
     Args:
         org_id - organisation to edit

@@ -7,19 +7,19 @@
                 <tbody>
                     <tr>
                         <td class="text-left">Total Members</td>
-                        <td class="text-left">{{ member_count|intcomma }}</td>
+                        <td class="text-right">{{ member_count|intcomma }}</td>
                     </tr>
                     <tr>
                         <td class="text-left">Member Changes Last 28 days</td>
-                        <td class="text-left">TBA</td>
+                        <td class="text-right">{{ diff_28_days }}</td>
                     </tr>
                     <tr>
                         <td class="text-left">Staff</td>
-                        <td class="text-left">{{ staff_count|intcomma }}</td>
+                        <td class="text-right">{{ staff_count|intcomma }}</td>
                     </tr>
                     <tr>
                         <td class="text-left">Congresses</td>
-                        <td class="text-left">{{ congress_count|intcomma }}</td>
+                        <td class="text-right">{{ congress_count|intcomma }}</td>
                     </tr>
                 </tbody>
             </table>

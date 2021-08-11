@@ -5,18 +5,24 @@ The entry point is club_menu() which loads the page menu.html
 Menu.html uses HTMX to load the tab pages e.g. tab_dashboard_htmx()
 
 """
+import datetime
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import User
 from events.models import Congress
+from organisations.forms import OrgForm
 from organisations.models import (
     ORGS_RBAC_GROUPS_AND_ROLES,
     Organisation,
-    MemberOrganisation,
+    MembershipType,
+    MemberMembershipType,
 )
 from organisations.views.admin import rbac_get_basic_and_advanced
 from organisations.views.general import get_rbac_model_for_state
@@ -328,8 +334,26 @@ def tab_dashboard_htmx(request):
     if not status:
         return error_page
 
-    # TODO: Add status to query when we change the model for members to have status and dates
-    member_count = MemberOrganisation.objects.filter(organisation=club).count()
+    # Get members active now
+    now = timezone.now()
+    member_count = (
+        MemberMembershipType.objects.filter(membership_type__organisation=club)
+        .filter(start_date__lte=now)
+        .filter(Q(end_date__gte=now) | Q(end_date=None))
+        .count()
+    )
+
+    # Gets members active 28 days ago
+    past = timezone.now() - datetime.timedelta(days=28)
+    member_count_before = (
+        MemberMembershipType.objects.filter(membership_type__organisation=club)
+        .filter(start_date__lte=past)
+        .filter(Q(end_date__gte=past) | Q(end_date=None))
+        .count()
+    )
+
+    diff_28_days = "{0:+d}".format(member_count - member_count_before)
+
     congress_count = Congress.objects.filter(congress_master__org=club).count()
     staff_count = (
         RBACUserGroup.objects.filter(group__rbacgrouprole__model_id=club.id)
@@ -347,6 +371,7 @@ def tab_dashboard_htmx(request):
             "member_count": member_count,
             "congress_count": congress_count,
             "staff_count": staff_count,
+            "diff_28_days": diff_28_days,
         },
     )
 
@@ -432,8 +457,55 @@ def tab_settings_htmx(request):
     if not status:
         return error_page
 
+    message = ""
+
+    # The form handles the RBAC checks
+
+    # This is a POST even the first time so look for "save" to see if this really is a form submit
+    real_post = "Save" in request.POST
+
+    if not real_post:
+        org_form = OrgForm(user=request.user, instance=club)
+    else:
+        org_form = OrgForm(request.POST, user=request.user, instance=club)
+
+        if org_form.is_valid():
+            org = org_form.save(commit=False)
+            org.last_updated_by = request.user
+            org.last_updated = timezone.localtime()
+            org.save()
+
+            # We can't use Django messages as they won't show until the whole page reloads
+            message = "Organisation details updated"
+
+    # secretary is a bit fiddly so we pass as a separate thing
+    secretary_id = org_form["secretary"].value()
+    if secretary_id:
+        secretary_name = User.objects.filter(pk=secretary_id).first()
+    else:
+        secretary_name = ""
+
+    # Check if this user is state or global admin - then they can change the State or org_id
+    rbac_model_for_state = get_rbac_model_for_state(club.state)
+    state_role = "orgs.state.%s.edit" % rbac_model_for_state
+    if rbac_user_has_role(request.user, state_role) or rbac_user_has_role(
+        request.user, "orgs.admin.edit"
+    ):
+        uber_admin = True
+    else:
+        uber_admin = False
+
     return render(
-        request, "organisations/club_menu/tab_settings_htmx.html", {"club": club}
+        request,
+        "organisations/club_menu/tab_settings_htmx.html",
+        {
+            "club": club,
+            "org_form": org_form,
+            "secretary_id": secretary_id,
+            "secretary_name": secretary_name,
+            "uber_admin": uber_admin,
+            "message": message,
+        },
     )
 
 

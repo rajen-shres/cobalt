@@ -20,10 +20,8 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 from django.contrib.auth.views import PasswordResetView
-import ipinfo
 from notifications.views import send_cobalt_email, notifications_in_english, CobaltEmail
 from logs.views import get_client_ip, log_event
-from organisations.models import MemberOrganisation
 from rbac.core import rbac_user_has_role
 from .models import User, TeamMate
 from .tokens import account_activation_token
@@ -247,23 +245,20 @@ def member_detail_m2m_ajax(request):
         Json array: member, clubs,  global org name.
     """
 
-    if request.method == "GET":
-        if "member_id" in request.GET:
-            member_id = request.GET.get("member_id")
-            member = get_object_or_404(User, pk=member_id)
-            clubs = MemberOrganisation.objects.filter(member=member)
-            if request.is_ajax:
-                global_org = settings.GLOBAL_ORG
-                html = render_to_string(
-                    template_name="accounts/member_ajax.html",
-                    context={
-                        "member": member,
-                        "clubs": clubs,
-                        "global_org": global_org,
-                    },
-                )
-                data_dict = {"data": html}
-                return JsonResponse(data=data_dict, safe=False)
+    if request.method == "GET" and "member_id" in request.GET:
+        member_id = request.GET.get("member_id")
+        member = get_object_or_404(User, pk=member_id)
+        if request.is_ajax:
+            global_org = settings.GLOBAL_ORG
+            html = render_to_string(
+                template_name="accounts/member_ajax.html",
+                context={
+                    "member": member,
+                    "global_org": global_org,
+                },
+            )
+            data_dict = {"data": html}
+            return JsonResponse(data=data_dict, safe=False)
     return JsonResponse(data={"error": "Invalid request"})
 
 
@@ -293,14 +288,12 @@ def member_details_ajax(request):
         if "member_id" in request.GET:
             member_id = request.GET.get("member_id")
             member = get_object_or_404(User, pk=member_id)
-            clubs = MemberOrganisation.objects.filter(member=member)
             if request.is_ajax:
                 global_org = settings.GLOBAL_ORG
                 html = render_to_string(
                     template_name="accounts/member_details_ajax.html",
                     context={
                         "member": member,
-                        "clubs": clubs,
                         "global_org": global_org,
                         "search_id": search_id,
                     },

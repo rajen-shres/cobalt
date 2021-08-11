@@ -40,8 +40,8 @@ class Organisation(models.Model):
     They seem to relate to sending letters to people. We keep the Venue address though."""
 
     bsb_regex = RegexValidator(
-        regex=r"^\d{3}-\d{3}$",
-        message="BSB must be entered in the format: '999-999'.",
+        regex=r"^\d{6}$",
+        message="BSB must be exactly 6 numbers long.",
     )
 
     account_regex = RegexValidator(
@@ -56,14 +56,21 @@ class Organisation(models.Model):
         ("Other", "Other"),
     ]
 
+    ORG_STATUS = [
+        ("Open", "Open"),
+        ("Closed", "Closed"),
+    ]
+
     org_id = models.CharField(max_length=4, unique=True)
     """ maps to MPC OrgID """
+
+    status = models.CharField(choices=ORG_STATUS, max_length=6, default="Open")
 
     name = models.CharField(max_length=50)
     """ maps to MPC ClubName """
 
     secretary = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="secretary"
+        User, on_delete=models.PROTECT, related_name="secretary"
     )
     """ maps to MPC ClubSecName, but we need to map this to a Cobalt user so not a CharField """
 
@@ -100,6 +107,15 @@ class Organisation(models.Model):
         null=True,
         validators=[account_regex],
     )
+    membership_renewal_date = models.DateField(
+        "Membership Renewal Date", blank=True, null=True
+    )
+
+    membership_part_year_date = models.DateField(
+        "Membership Part Year Date", blank=True, null=True
+    )
+    """After this date membership discounts for the rest of the year apply"""
+
     last_updated_by = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
@@ -107,7 +123,7 @@ class Organisation(models.Model):
         blank=True,
         related_name="org_last_updated_by",
     )
-    last_updated = models.DateTimeField(default=timezone.now)
+    last_updated = models.DateTimeField(auto_now=True)
 
     @property
     def settlement_fee_percent(self):
@@ -155,11 +171,80 @@ class Organisation(models.Model):
         return self.name
 
 
-class MemberOrganisation(models.Model):
-    member = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    home_club = models.BooleanField(blank=True, null=True)
-    home_state = models.BooleanField(blank=True, null=True)
+class MembershipType(models.Model):
+    """Clubs can have multiple membership types. A member can only belong to one membership type per club"""
+
+    organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT)
+    name = models.CharField("Type of Membership", max_length=20)
+    description = models.TextField(
+        "Description of Membership Type", blank=True, null=True
+    )
+    annual_fee = models.DecimalField("Annual Fee", max_digits=12, decimal_places=2)
+    part_year_fee = models.DecimalField(
+        "Annual Fee", max_digits=12, decimal_places=2, blank=True, null=True
+    )
+    does_not_pay_session_fees = models.BooleanField(
+        "Does Not Pay Session Fees", default=False
+    )
+    does_not_renew = models.BooleanField("Does Not Renew", default=False)
+    last_modified_by = models.ForeignKey(User, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.member.full_name}, member of {self.organisation.name}"
+        return f"{self.organisation} - {self.name}"
+
+
+class MemberMembershipType(models.Model):
+    """This links members to a club membership"""
+
+    TERMINATION_REASON = [
+        ("Cancelled by Member", "Cancelled by Member"),
+        ("Cancelled by Club", "Cancelled by Club"),
+        ("Expired", "Expired"),
+    ]
+
+    member = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name="membership_member"
+    )
+    membership_type = models.ForeignKey(MembershipType, on_delete=models.PROTECT)
+    termination_reason = models.CharField(
+        "Reason for Membership Termination",
+        choices=TERMINATION_REASON,
+        max_length=20,
+        blank=True,
+        null=True,
+    )
+    home_club = models.BooleanField("Is Member's Home Club", default=False)
+    start_date = models.DateField("Started At", auto_now_add=True)
+    end_date = models.DateField("Ends At", blank=True, null=True)
+    last_modified_by = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name="last_modified_by"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def active(self):
+        """Get if this is active or not"""
+        now = timezone.now()
+        if self.start_date > now:
+            return False
+        if self.end_date < now:
+            return False
+        return True
+
+    def __str__(self):
+        return f"{self.member.full_name}, member of {self.membership_type.organisation.name}"
+
+
+class ClubLog(models.Model):
+    """log of things that happen for a Club"""
+
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    actor = models.ForeignKey(User, on_delete=models.CASCADE)
+    action_date = models.DateTimeField(auto_now_add=True)
+    action = models.TextField("Action")
+
+    def __str__(self):
+        return f"{self.organisation} -  {self.actor}"

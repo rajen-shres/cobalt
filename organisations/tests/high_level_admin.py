@@ -321,7 +321,8 @@ class OrgHighLevelAdmin:
             user=self.debbie,
             club_org_id=TRUMPS_ID,
             new_status="Basic",
-            test_name="Check Debbie (club secretary) can change RBAC status to Basic from Advanced for a Club she has RBAC rights to.",
+            test_name="Check Debbie (club secretary) can change RBAC status to Basic from Advanced "
+            "for a Club she has RBAC rights to.",
             test_description=f"""Debbie tries to change RBAC status for {club_names[TRUMPS_ID]}
                                  from Advanced to Basic. As she is the club admin she will have been added to the
                                  RBAC groups now and this should work.""",

@@ -1,20 +1,17 @@
 <div class="card card-profile">
-  <div class="">
+    <div class="">
 
-    <img class="cobalt-rounded" src="/media/{{ member.pic }}" />
-  </div>
-  <div class="card-body">
-    <h3>{{ member.full_name }}</h3>
-    <h4>{{ global_org }} Number: {{ member.system_number }}</h4>
-    {% for club in clubs %}
-    <h4>{{ club.organisation }}</h4>
-    {% endfor %}
-    <p class="card-description">
-      {{ profile.about }}
-    </p>
-    <div class="row justify-content-center">
-      <a href="javascript:void(0)">
-        <p onclick="location.reload(true);">Search again</p>
-      </a>
+        <img class="cobalt-rounded" src="/media/{{ member.pic }}" />
     </div>
-  </div>
+    <div class="card-body">
+        <h3>{{ member.full_name }}</h3>
+        <h4>{{ global_org }} Number: {{ member.system_number }}</h4>
+        <p class="card-description">
+            {{ profile.about }}
+        </p>
+        <div class="row justify-content-center">
+            <a href="javascript:void(0)">
+                <p onclick="location.reload(true);">Search again</p>
+            </a>
+        </div>
+    </div>

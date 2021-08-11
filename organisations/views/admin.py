@@ -38,19 +38,26 @@ def admin_add_club(request):
     form = OrgForm(request.POST or None, user=request.user)
 
     if request.method == "POST" and form.is_valid():
-        org = form.save(commit=False)
-        org.last_updated_by = request.user
-        org.last_updated = timezone.localtime()
-        org.type = "Club"
-        org.save()
-        messages.success(
-            request, f"{org.name} created", extra_tags="cobalt-message-success"
-        )
-        return redirect("organisations:admin_club_rbac", club_id=org.id)
+        # Validate here rather in form as form is shared with edit function
+        if Organisation.objects.filter(org_id=form.cleaned_data["org_id"]).exists():
+            form.add_error("org_id", "This organisation is already set up")
+        else:
+            org = form.save(commit=False)
+            org.last_updated_by = request.user
+            org.last_updated = timezone.localtime()
+            org.type = "Club"
+            org.save()
+            messages.success(
+                request, f"{org.name} created", extra_tags="cobalt-message-success"
+            )
+            return redirect("organisations:admin_club_rbac", club_id=org.id)
 
     # secretary is a bit fiddly so we pass as a separate thing
     secretary_id = form["secretary"].value()
-    secretary_name = User.objects.filter(pk=secretary_id).first()
+    if secretary_id:
+        secretary_name = User.objects.filter(pk=secretary_id).first()
+    else:
+        secretary_name = ""
 
     return render(
         request,
