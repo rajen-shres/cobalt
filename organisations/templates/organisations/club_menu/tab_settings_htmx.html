@@ -10,7 +10,7 @@
         with the Masterpoints Centre. It is better to first change them in the MPC
         and then import the club here.</h4>
 
-    <h3 class="text-danger font-weight-bold" id="settings_message">{{ message }}</h3>
+    <h3 class="text-danger font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
 
     <div class="row">
         {#                secretary           #}
@@ -166,3 +166,13 @@
 <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
 <button class="btn btn-info" onclick="window.location.href='/'; return false;">Cancel</button>
 </form>
+
+<script>
+
+    // Hide the message if the form changes so it is obvious when it comes back again after submission. HTMX is too smooth!
+    $(document).ready(function () {
+        $("input[type='text']").keyup( function() {
+            $('#settings_message').text("");
+        });
+    });
+</script>
