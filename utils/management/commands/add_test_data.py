@@ -23,7 +23,6 @@ from rbac.core import (
 from payments.core import update_account, update_organisation
 from payments.models import StripeTransaction
 from forums.models import Post, Comment1, Comment2, LikePost, LikeComment1, LikeComment2
-from organisations.models import MemberOrganisation
 from rbac.models import RBACModelDefault
 from events.models import Congress, Event, Session
 import random
@@ -47,7 +46,7 @@ class Command(BaseCommand):
         self.id_array = {}
 
     def add_comments(self, post, user_list):
-        """ add comments to a forum post """
+        """add comments to a forum post"""
 
         liker_list = list(set(user_list) - set([post.author]))
         sample_size = random.randrange(int(len(liker_list) * 0.8))
@@ -82,18 +81,18 @@ class Command(BaseCommand):
                     like.save()
 
     def random_paragraphs(self):
-        """ generate a random paragraph """
+        """generate a random paragraph"""
         text = self.gen.paragraph()
         for counter in range(random.randrange(10)):
             text += "\n\n" + self.gen.paragraph()
         return text
 
     def random_sentence(self):
-        """ generate a random sentence """
+        """generate a random sentence"""
         return self.gen.sentence()
 
     def random_paragraphs_with_stuff(self):
-        """ generate a more realistic rich test paragraph with headings and pics """
+        """generate a more realistic rich test paragraph with headings and pics"""
 
         sizes = [
             ("400x500", "400px"),
@@ -182,7 +181,7 @@ class Command(BaseCommand):
         return (app.strip(), model.strip(), data, allow_dupes)
 
     def process_csv(self, csv):
-        """ do the work on the csv data """
+        """do the work on the csv data"""
         app, model, data, allow_dupes = self.parse_csv(csv)
         print(f"App Model is: {app}.{model}\n")
 
