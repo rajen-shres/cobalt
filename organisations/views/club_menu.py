@@ -18,7 +18,7 @@ from django.utils import timezone
 from accounts.models import User
 from cobalt.settings import GLOBAL_MPSERVER
 from events.models import Congress
-from organisations.forms import OrgForm
+from organisations.forms import OrgForm, MembershipTypeForm
 from organisations.models import (
     ORGS_RBAC_GROUPS_AND_ROLES,
     Organisation,
@@ -563,7 +563,11 @@ def tab_settings_membership_htmx(request):
 
 @login_required()
 def club_menu_tab_settings_membership_edit_htmx(request):
-    """Part of the settings tab for membership types to allow user to edit the membership type"""
+    """Part of the settings tab for membership types to allow user to edit the membership type
+
+    When a membership type is clicked on, this code is run and returns a form to edit the
+    details.
+    """
 
     status, error_page, club = _tab_is_okay(request)
     if not status:
@@ -573,12 +577,15 @@ def club_menu_tab_settings_membership_edit_htmx(request):
     membership_type_id = request.POST.get("membership_type_id")
     membership_type = get_object_or_404(MembershipType, pk=membership_type_id)
 
+    form = MembershipTypeForm(instance=membership_type)
+
     return render(
         request,
         "organisations/club_menu/tab_settings_membership_edit_htmx.html",
         {
             "club": club,
             "membership_type": membership_type,
+            "form": form,
         },
     )
 

@@ -181,7 +181,7 @@ class MembershipType(models.Model):
     )
     annual_fee = models.DecimalField("Annual Fee", max_digits=12, decimal_places=2)
     part_year_fee = models.DecimalField(
-        "Annual Fee", max_digits=12, decimal_places=2, blank=True, null=True
+        "Part Year Fee", max_digits=12, decimal_places=2, blank=True, null=True
     )
     does_not_pay_session_fees = models.BooleanField(
         "Does Not Pay Session Fees", default=False

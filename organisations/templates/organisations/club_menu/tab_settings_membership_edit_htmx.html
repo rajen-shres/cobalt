@@ -1,3 +1,14 @@
-
-
-{{ membership_type }}
+<div class="card">
+    <div class="card-header card-header-success">
+        {{ membership_type.name }}
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn btn-success">Save</button>
+            <button class="btn btn-info">Cancel</button>
+            <button class="btn btn-danger">Delete</button>
+        </form>
+    </div>
+</div>

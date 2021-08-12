@@ -8,10 +8,10 @@
     <div class="card">
         <div class="card-header card-header-info">
             <h2>Club Settings</h2>
-            <button class="btn btn-sm btn-secondary"
+            <a class="btn bg-transparent"
                 hx-post="{% url "organisations:club_menu_tab_settings_basic_htmx" %}"
                 hx-indicator=".htmx-indicator"
-                hx-target="#id_settings_form">Club Details</button>
+                hx-target="#id_settings_form">Club Details</a>
             <button class="btn btn-primary">Membership Types</button>
         </div>
 
@@ -20,31 +20,25 @@
             <div class="container">
 
                 <div class="row">
-                    <div class="col-3">
+                    <div class="col-3 mx-0 px-0">
                         <h4 class="text-center">Membership Types</h4>
                         {% for membership_type in membership_types %}
-                            <div class="col-12 d-inline-flex w-100 justify-content-between">
-                                <button class="btn btn-sm bt-success w-100 mx-2"
+                            <div class="col-12 d-inline-flex w-100 mx-0 px-0 justify-content-between">
+                                <button class="btn bt-success w-100 mx-2"
                                     hx-post="{% url "organisations:club_menu_tab_settings_membership_edit_htmx" %}"
                                     hx-indicator=".htmx-indicator"
                                     hx-target="#id_membership_edit"
-                                    hx-params="membership_type_id: {{ membership_type.id }}"
-                                >{{ membership_type.name }}</button>
+                                    hx-vars="membership_type_id:{{ membership_type.id }}"
+                                >{{ membership_type.name }} ({{ membership_type.membermembershiptype_set.all|length }})</button>
                             </div>
                         {% endfor %}
-                    </div>
-                    <div class="col-9">
-                        <div class="card">
-                            <div id="id_membership_edit" class="card-header card-header-warning">
-
-                            </div>
-                            <div class="card-body">
-                                <ul>
-                                    <li>Stuff</li>
-                                </ul>
-                            </div>
+                        <div class="col-12 d-inline-flex w-100 mx-0 px-0 justify-content-between">
+                            <button class="btn btn-sm btn-success w-100 mx-5">Add</button>
                         </div>
                     </div>
+
+                    {# The Membership Type form appears here when an entry is clicked on #}
+                    <div id="id_membership_edit" class="col-9"></div>
                 </div>
             </div>
         </div>

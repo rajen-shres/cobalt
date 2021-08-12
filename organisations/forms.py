@@ -2,7 +2,7 @@ from django import forms
 
 from cobalt.settings import ABF_STATES
 from rbac.core import rbac_user_has_role
-from .models import Organisation
+from .models import Organisation, MembershipType
 
 
 # TODO: Replace when club admin work complete
@@ -99,3 +99,16 @@ class OrgForm(forms.ModelForm):
             )
 
         return state
+
+
+class MembershipTypeForm(forms.ModelForm):
+    class Meta:
+        model = MembershipType
+        fields = (
+            "name",
+            "description",
+            "annual_fee",
+            "part_year_fee",
+            "does_not_pay_session_fees",
+            "does_not_renew",
+        )
