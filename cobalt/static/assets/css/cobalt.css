@@ -6,6 +6,12 @@
   font-size: 18px;
 }
 
+.cobalt-form-warning {
+  color: red;
+  font-style: italic;
+  font-size: 14px;
+}
+
 /* rounded images for profile pics */
 img.cobalt-rounded {
   object-fit: cover;

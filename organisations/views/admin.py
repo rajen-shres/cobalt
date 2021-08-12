@@ -25,6 +25,19 @@ from rbac.core import (
 from rbac.views import rbac_forbidden
 
 
+def get_secretary_from_org_form(org_form):
+    """on org form we have a secretary for the club. We use the Cobalt user search for this so extract
+    details from form"""
+
+    secretary_id = org_form["secretary"].value()
+    if secretary_id:
+        secretary_name = User.objects.filter(pk=secretary_id).first()
+    else:
+        secretary_name = ""
+
+    return secretary_id, secretary_name
+
+
 @login_required()
 def admin_add_club(request):
     """Add a club to the system. For State or ABF Administrators
@@ -52,12 +65,7 @@ def admin_add_club(request):
             )
             return redirect("organisations:admin_club_rbac", club_id=org.id)
 
-    # secretary is a bit fiddly so we pass as a separate thing
-    secretary_id = form["secretary"].value()
-    if secretary_id:
-        secretary_name = User.objects.filter(pk=secretary_id).first()
-    else:
-        secretary_name = ""
+    secretary_id, secretary_name = get_secretary_from_org_form(form)
 
     return render(
         request,

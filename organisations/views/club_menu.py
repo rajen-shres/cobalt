@@ -16,6 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import User
+from cobalt.settings import GLOBAL_MPSERVER
 from events.models import Congress
 from organisations.forms import OrgForm
 from organisations.models import (
@@ -24,8 +25,15 @@ from organisations.models import (
     MembershipType,
     MemberMembershipType,
 )
-from organisations.views.admin import rbac_get_basic_and_advanced
-from organisations.views.general import get_rbac_model_for_state
+from organisations.views.admin import (
+    rbac_get_basic_and_advanced,
+    get_secretary_from_org_form,
+)
+from organisations.views.general import (
+    get_rbac_model_for_state,
+    get_club_data_from_masterpoints_centre,
+    compare_form_with_mpc,
+)
 from payments.core import get_balance_and_recent_trans_org
 from rbac.core import (
     rbac_get_group_by_name,
@@ -41,6 +49,7 @@ from rbac.core import (
 from rbac.models import RBACAdminUserGroup, RBACUserGroup, RBACGroupRole
 
 from rbac.views import rbac_forbidden
+from utils.views import masterpoint_query
 
 
 def _menu_rbac_has_access(club, user):
@@ -248,7 +257,7 @@ def club_menu(request, club_id):
         return rbac_forbidden(request, role)
 
     # Check if we show the finance tab
-    show_finance = rbac_user_has_role(request.user, f"orgs.org.{club.id}.view")
+    show_finance = rbac_user_has_role(request.user, f"orgs.org.{club.id}.edit")
 
     # Check if we show the congress tab
     show_congress = rbac_user_has_role(request.user, f"events.org.{club.id}.edit")
@@ -450,8 +459,8 @@ def tab_results_htmx(request):
 
 
 @login_required()
-def tab_settings_htmx(request):
-    """build the settings tab in club menu"""
+def tab_settings_basic_htmx(request):
+    """build the settings tab in club menu for editing basic details"""
 
     status, error_page, club = _tab_is_okay(request)
     if not status:
@@ -478,12 +487,10 @@ def tab_settings_htmx(request):
             # We can't use Django messages as they won't show until the whole page reloads
             message = "Organisation details updated"
 
+    org_form = compare_form_with_mpc(org_form, club)
+
     # secretary is a bit fiddly so we pass as a separate thing
-    secretary_id = org_form["secretary"].value()
-    if secretary_id:
-        secretary_name = User.objects.filter(pk=secretary_id).first()
-    else:
-        secretary_name = ""
+    secretary_id, secretary_name = get_secretary_from_org_form(org_form)
 
     # Check if this user is state or global admin - then they can change the State or org_id
     rbac_model_for_state = get_rbac_model_for_state(club.state)
@@ -497,7 +504,7 @@ def tab_settings_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/tab_settings_htmx.html",
+        "organisations/club_menu/tab_settings_basic_htmx.html",
         {
             "club": club,
             "org_form": org_form,
@@ -505,6 +512,73 @@ def tab_settings_htmx(request):
             "secretary_name": secretary_name,
             "uber_admin": uber_admin,
             "message": message,
+        },
+    )
+
+
+@login_required()
+def tab_settings_basic_reload_htmx(request):
+    """Reload data from MPC and return the settings basic tab"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    qry = f"{GLOBAL_MPSERVER}/clubDetails/{club.org_id}"
+    data = masterpoint_query(qry)[0]
+
+    club.name = data["ClubName"]
+    club.state = data["VenueState"]
+    club.postcode = data["VenuePostcode"]
+    club.club_email = data["ClubEmail"]
+    club.club_website = data["ClubWebsite"]
+    club.address1 = data["VenueAddress1"]
+    club.address2 = data["VenueAddress2"]
+    club.suburb = data["VenueSuburb"]
+
+    club.save()
+
+    return tab_settings_basic_htmx(request)
+
+
+@login_required()
+def tab_settings_membership_htmx(request):
+    """build the settings tab in club menu for editing membership types"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    membership_types = MembershipType.objects.filter(organisation=club)
+
+    return render(
+        request,
+        "organisations/club_menu/tab_settings_membership_htmx.html",
+        {
+            "club": club,
+            "membership_types": membership_types,
+        },
+    )
+
+
+@login_required()
+def club_menu_tab_settings_membership_edit_htmx(request):
+    """Part of the settings tab for membership types to allow user to edit the membership type"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    # Get membership type id
+    membership_type_id = request.POST.get("membership_type_id")
+    membership_type = get_object_or_404(MembershipType, pk=membership_type_id)
+
+    return render(
+        request,
+        "organisations/club_menu/tab_settings_membership_edit_htmx.html",
+        {
+            "club": club,
+            "membership_type": membership_type,
         },
     )
 

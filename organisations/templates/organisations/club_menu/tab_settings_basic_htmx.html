@@ -1,67 +1,62 @@
 {% load crispy_forms_filters %}
-{# HTMX Calls this to replace the whole form if org_id is provided.. Also provided empty for a new form. #}
-
 {% load cobalt_tags %}
 
-{# anchor for JS to go to after load #}
-<span id="top_of_form"></span>
-
-{% if errors %}
-    <span class="cobalt-form-error">{{ errors }}</span>
-    <a href="{% url "organisations:admin_add_club" %}" class="btn btn-success cobalt-save">Reset</a>
-
-{% else %}
+<form
+    hx-post="{% url "organisations:club_menu_tab_settings_basic_htmx" %}"
+    hx-indicator=".htmx-indicator"
+    id="id_settings_form"
+>
 
     <div class="card">
-        <div class="card-header card-header-danger">
-            <h2>{{ form.name.value|default_if_none:"Add Club" }}</h2>
-            {% if club_number %}
-                <h3>{{ GLOBAL_ORG }} Club Number: {{ club_number }}</h3>
-                <h4>It is not recommended to edit these fields as they will be out of step
-                    with the Masterpoints Centre. It is better to first change them in the MPC
-                    and then import the club here.</h4>
-            {% endif %}
+        <div class="card-header card-header-info">
+            <h2>Club Settings</h2>
+            <button class="btn btn-primary" type="button">Club Details</button>
+            <button class="btn btn-sm btn-secondary"
+                type="button"
+                hx-post="{% url "organisations:club_menu_tab_settings_membership_htmx" %}"
+                hx-indicator=".htmx-indicator"
+                hx-target="#id_settings_form"
+            >Membership Types</button>
         </div>
+
         <div class="card-body">
+            <p class="font-italic">It is not recommended to edit these fields as they will be out of step
+                with the Masterpoints Centre. It is better to first change them in the MPC
+                and then import the club here. However, bank details are fine to edit.</p>
 
-            {# ------ Club Secretary ------- #}
-
-            {% if possible_club_sec_name %}
-
-                <p>Found a club secretary from the Masterpoints Centre: <b>{{ possible_club_sec_name }}</b></p>
-
-                {% if club_secs %}
-                    <p>
-                        Matches within {{ GLOBAL_TITLE }}:
-                        <ul>
-                            {% for club_sec in club_secs %}
-                                <li>{{ club_sec|cobalt_user_link_short }}</li>
-                            {% endfor %}
-                        </ul>
-                    </p>
-                {% else %}
-                    <b>No matches for {{ possible_club_sec_name }} (club secretary) found in {{ GLOBAL_TITLE }}</b>
-                {% endif %}
-
+            {% if org_form.warnings %}
+                <span>This data is out of step with the Masterpoints Centre</span>
+                <button class="btn btn-sm btn-success"
+                    hx-post="{% url "organisations:club_menu_tab_settings_reload_basic_htmx" %}"
+                    hx-indicator=".htmx-indicator"
+                    hx-target="#id_settings_form"
+                >Reload Data from MPC</button>
             {% endif %}
 
-
+            <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
 
             <div class="row">
                 {#                secretary           #}
                 <div class="col-md-6">
                     <div class="form-group">
-                        <b>Club Secretary: </b><span id="dummy_name">{{ secretary_name|default_if_none:"Not Set" }}</span>
+                        <b>Club Secretary: </b><span id="club_secretary_dummy_name">{{ secretary_name|default_if_none:"Not Set" }}</span>
                         <input type="hidden" id="id_secretary" name="secretary" value="{{ secretary_id|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.secretary.errors }}</span>
-                        <button id="id_search_button" type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#userSearchModal1">Edit</button>
+                        <span class="cobalt-form-error">{{ org_form.secretary.errors }}</span>
+                        <button id="id_search_button" type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#userSearchModal11">Edit</button>
                     </div>
                 </div>
                 {#            state         #}
                 <div class="col-md-3">
-                    <div class="form-group">
-                        {{ form.state|as_crispy_field }}
-                    </div>
+                    {% if uber_admin %}
+                        <div class="form-group">
+                            {{ org_form.state|as_crispy_field }}
+                        </div>
+                    {% else %}
+                        <span class="cobalt-form-error">{{ org_form.state.errors }}</span>
+                        <h3>{{ org_form.state.value }}</h3>
+                        <input type="hidden" name="state" value="{{ org_form.state.value }}">
+                    {% endif %}
+
                 </div>
             </div>
 
@@ -79,8 +74,9 @@
                             class="form-control"
                             maxlength="50"
                             required
-                            value="{{ form.name.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.name.errors }}</span>
+                            value="{{ org_form.name.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ org_form.name.errors }}</span>
+                        <span class="cobalt-form-warning">{{ org_form.warnings.name }}</span>
                     </div>
                 </div>
                 {#                org_id         #}
@@ -92,8 +88,9 @@
                             id="id_org_id"
                             class="form-control"
                             required
-                            value="{{ form.org_id.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.org_id.errors }}</span>
+                            {% if not uber_admin %}readonly{% endif %}
+                            value="{{ org_form.org_id.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ org_form.org_id.errors }}</span>
                     </div>
                 </div>
             </div>
@@ -109,8 +106,9 @@
                             id="id_club_email"
                             class="form-control"
                             maxlength="40"
-                            value="{{ form.club_email.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.club_email.errors }}</span>
+                            value="{{ org_form.club_email.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ org_form.club_email.errors }}</span>
+                        <span class="cobalt-form-warning">{{ org_form.warnings.club_email }}</span>
                     </div>
                 </div>
                 {#                website           #}
@@ -122,8 +120,9 @@
                             id="id_club_website"
                             class="form-control"
                             maxlength="100"
-                            value="{{ form.club_website.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.club_website.errors }}</span>
+                            value="{{ org_form.club_website.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ org_form.club_website.errors }}</span>
+                        <span class="cobalt-form-warning">{{ org_form.warnings.club_website }}</span>
                     </div>
                 </div>
             </div>
@@ -138,8 +137,9 @@
                             id="id_address1"
                             class="form-control"
                             maxlength="100"
-                            value="{{ form.address1.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.address1.errors }}</span>
+                            value="{{ org_form.address1.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ org_form.address1.errors }}</span>
+                        <span class="cobalt-form-warning">{{ org_form.warnings.address1 }}</span>
                     </div>
                 </div>
                 {#                suburb           #}
@@ -151,8 +151,9 @@
                             id="id_suburb"
                             class="form-control"
                             maxlength="50"
-                            value="{{ form.suburb.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.suburb.errors }}</span>
+                            value="{{ org_form.suburb.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ org_form.suburb.errors }}</span>
+                        <span class="cobalt-form-warning">{{ org_form.warnings.suburb }}</span>
                     </div>
                 </div>
             </div>
@@ -167,8 +168,9 @@
                             id="id_address2"
                             class="form-control"
                             maxlength="100"
-                            value="{{ form.address2.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.address2.errors }}</span>
+                            value="{{ org_form.address2.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ org_form.address2.errors }}</span>
+                        <span class="cobalt-form-warning">{{ org_form.warnings.address2 }}</span>
                     </div>
                 </div>
 
@@ -181,8 +183,9 @@
                             id="id_postcode"
                             class="form-control"
                             maxlength="10"
-                            value="{{ form.postcode.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.postcode.errors }}</span>
+                            value="{{ org_form.postcode.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ org_form.postcode.errors }}</span>
+                        <span class="cobalt-form-warning">{{ org_form.warnings.postcode }}</span>
                     </div>
                 </div>
             </div>
@@ -197,8 +200,8 @@
                             id="id_bank_bsb"
                             class="form-control"
                             maxlength="7"
-                            value="{{ form.bank_bsb.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.bank_bsb.errors }}</span>
+                            value="{{ org_form.bank_bsb.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ org_form.bank_bsb.errors }}</span>
                     </div>
                 </div>
                 {#                bank_account           #}
@@ -210,12 +213,23 @@
                             id="id_bank_account"
                             class="form-control"
                             maxlength="7"
-                            value="{{ form.bank_account.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.bank_account.errors }}</span>
+                            value="{{ org_form.bank_account.value|default_if_none:"" }}">
+                        <span class="cobalt-form-error">{{ org_form.bank_account.errors }}</span>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-{% endif %}
+            <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
+            <button class="btn btn-info" onclick="window.location.href='/'; return false;">Cancel</button>
+            <div class="font-italic small">last Updated {{ club.last_updated|cobalt_nice_datetime }} by {{ club.last_updated_by.full_name }}</div>
+        </form>
+    </div>
+    <script>
+
+        // Hide the message if the form changes so it is obvious when it comes back again after submission. HTMX is too smooth!
+        $(document).ready(function () {
+            $("input[type='text']").keyup( function() {
+                $('#settings_message').text("");
+            });
+        });
+    </script>

@@ -8,9 +8,12 @@ from accounts.models import User
 from cobalt.settings import GLOBAL_MPSERVER, GLOBAL_TITLE
 from rbac.core import rbac_user_has_role
 from utils.views import masterpoint_query
-from .forms import OrgForm
-from .models import Organisation
-from .views.general import get_rbac_model_for_state
+from organisations.forms import OrgForm
+from organisations.models import Organisation
+from organisations.views.general import (
+    get_rbac_model_for_state,
+    get_club_data_from_masterpoints_centre,
+)
 
 
 @login_required()
@@ -102,29 +105,14 @@ def get_club_details_htmx(request):
     if Organisation.objects.filter(org_id=club_number).exists():
         errors = f"Club already exists in {GLOBAL_TITLE}"
     else:
-        # Try to load data from MP Server
-        qry = f"{GLOBAL_MPSERVER}/clubDetails/{club_number}"
-        club_details = masterpoint_query(qry)
 
-        if len(club_details) > 0:
-            club_details = club_details[0]
+        # Try loading data from MPC
+        data = get_club_data_from_masterpoints_centre(club_number)
 
-        if club_details:
-
-            data = {
-                "name": club_details["ClubName"],
-                "state": club_details["VenueState"],
-                "postcode": club_details["VenuePostcode"],
-                "club_email": club_details["ClubEmail"],
-                "club_website": club_details["ClubWebsite"],
-                "address1": club_details["VenueAddress1"],
-                "address2": club_details["VenueAddress2"],
-                "suburb": club_details["VenueSuburb"],
-                "org_id": club_number,
-            }
+        if data:
 
             # We get a name for club secretary. See if we can find a match
-            possible_club_sec_name = club_details["ClubSecName"].strip()
+            possible_club_sec_name = data["club_secretary"]
 
             # ClubSec can be spaces or empty
             if possible_club_sec_name and len(possible_club_sec_name) > 0:

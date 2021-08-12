@@ -2,10 +2,9 @@
 from django.urls import path
 
 import organisations.views.club_menu
-from .views import club_menu
+from .views import club_menu, ajax
 
 from .views import admin
-from . import ajax
 from .views import general
 
 app_name = "organisations"  # pylint: disable=invalid-name
@@ -128,8 +127,23 @@ urlpatterns = [
         name="club_menu_tab_results_htmx",
     ),
     path(
-        "club-menu/tabs/settings",
-        club_menu.tab_settings_htmx,
-        name="club_menu_tab_settings_htmx",
+        "club-menu/tabs/settings-basic",
+        club_menu.tab_settings_basic_htmx,
+        name="club_menu_tab_settings_basic_htmx",
+    ),
+    path(
+        "club-menu/tabs/settings-basic-reload",
+        club_menu.tab_settings_basic_reload_htmx,
+        name="club_menu_tab_settings_reload_basic_htmx",
+    ),
+    path(
+        "club-menu/tabs/settings-membership",
+        club_menu.tab_settings_membership_htmx,
+        name="club_menu_tab_settings_membership_htmx",
+    ),
+    path(
+        "club-menu/tabs/settings-edit-membership",
+        club_menu.club_menu_tab_settings_membership_edit_htmx,
+        name="club_menu_tab_settings_membership_edit_htmx",
     ),
 ]

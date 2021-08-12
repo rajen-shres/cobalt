@@ -1,0 +1,54 @@
+{% load crispy_forms_filters %}
+{% load cobalt_tags %}
+
+<form
+    id="id_settings_form"
+>
+
+    <div class="card">
+        <div class="card-header card-header-info">
+            <h2>Club Settings</h2>
+            <button class="btn btn-sm btn-secondary"
+                hx-post="{% url "organisations:club_menu_tab_settings_basic_htmx" %}"
+                hx-indicator=".htmx-indicator"
+                hx-target="#id_settings_form">Club Details</button>
+            <button class="btn btn-primary">Membership Types</button>
+        </div>
+
+
+        <div class="card-body">
+            <div class="container">
+
+                <div class="row">
+                    <div class="col-3">
+                        <h4 class="text-center">Membership Types</h4>
+                        {% for membership_type in membership_types %}
+                            <div class="col-12 d-inline-flex w-100 justify-content-between">
+                                <button class="btn btn-sm bt-success w-100 mx-2"
+                                    hx-post="{% url "organisations:club_menu_tab_settings_membership_edit_htmx" %}"
+                                    hx-indicator=".htmx-indicator"
+                                    hx-target="#id_membership_edit"
+                                    hx-params="membership_type_id: {{ membership_type.id }}"
+                                >{{ membership_type.name }}</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-9">
+                        <div class="card">
+                            <div id="id_membership_edit" class="card-header card-header-warning">
+
+                            </div>
+                            <div class="card-body">
+                                <ul>
+                                    <li>Stuff</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</form>
