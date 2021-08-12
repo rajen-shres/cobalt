@@ -1,3 +1,4 @@
+from crispy_forms.helper import FormHelper
 from django import forms
 
 from cobalt.settings import ABF_STATES
@@ -112,3 +113,10 @@ class MembershipTypeForm(forms.ModelForm):
             "does_not_pay_session_fees",
             "does_not_renew",
         )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # {{ form | crispy }} stuffs up checkboxes and {% crispy form %} adds </form>. This prevents this.
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False

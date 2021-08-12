@@ -1,14 +1,24 @@
+{% load crispy_forms_tags %}
 <div class="card">
-    <div class="card-header card-header-success">
-        {{ membership_type.name }}
-    </div>
+    {#    <div class="card-header card-header-success">#}
+    {#        {{ membership_type.name }}#}
+    {#    </div>#}
     <div class="card-body">
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button class="btn btn-success">Save</button>
-            <button class="btn btn-info">Cancel</button>
-            <button class="btn btn-danger">Delete</button>
+        <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
+        <form
+            hx-post="{% url "organisations:club_menu_tab_settings_membership_edit_htmx" %}"
+            hx-indicator=".htmx-indicator"
+            hx-target="#id_membership_edit"
+            hx-vars="membership_type_id:{{ membership_type.id }}"
+        >
+
+            {#            {{ form|crispy }}#}
+
+            {% crispy form %}
+
+            <button type="submit" name="save" class="btn btn-success">Save</button>
+            <button type="reset" class="btn btn-info">Reset</button>
+            <a href="#" class="btn btn-danger">Delete</a>
         </form>
     </div>
 </div>

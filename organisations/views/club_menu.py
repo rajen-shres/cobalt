@@ -361,7 +361,11 @@ def tab_dashboard_htmx(request):
         .count()
     )
 
-    diff_28_days = "{0:+d}".format(member_count - member_count_before)
+    diff = member_count - member_count_before
+    if diff == 0:
+        diff_28_days = "No change"
+    else:
+        diff_28_days = "{0:+d}".format(diff)
 
     congress_count = Congress.objects.filter(congress_master__org=club).count()
     staff_count = (
@@ -577,7 +581,19 @@ def club_menu_tab_settings_membership_edit_htmx(request):
     membership_type_id = request.POST.get("membership_type_id")
     membership_type = get_object_or_404(MembershipType, pk=membership_type_id)
 
-    form = MembershipTypeForm(instance=membership_type)
+    # This is a POST even the first time so look for "save" to see if this really is a form submit
+    real_post = "save" in request.POST
+
+    if not real_post:
+        form = MembershipTypeForm(instance=membership_type)
+    else:
+        form = MembershipTypeForm(request.POST, instance=membership_type)
+
+    message = ""
+
+    if form.is_valid():
+        form.save()
+        message = "Membership Type Updated"
 
     return render(
         request,
@@ -586,6 +602,7 @@ def club_menu_tab_settings_membership_edit_htmx(request):
             "club": club,
             "membership_type": membership_type,
             "form": form,
+            "message": message,
         },
     )
 

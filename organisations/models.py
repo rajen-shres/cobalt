@@ -175,18 +175,20 @@ class MembershipType(models.Model):
     """Clubs can have multiple membership types. A member can only belong to one membership type per club"""
 
     organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT)
-    name = models.CharField("Type of Membership", max_length=20)
-    description = models.TextField(
-        "Description of Membership Type", blank=True, null=True
-    )
+    name = models.CharField("Name of Membership", max_length=20)
+    description = models.TextField("Description", blank=True, null=True)
     annual_fee = models.DecimalField("Annual Fee", max_digits=12, decimal_places=2)
     part_year_fee = models.DecimalField(
-        "Part Year Fee", max_digits=12, decimal_places=2, blank=True, null=True
+        "Part Year Fee (for joining later in year)",
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
     )
     does_not_pay_session_fees = models.BooleanField(
-        "Does Not Pay Session Fees", default=False
+        "Play Normal Sessions for Free", default=False
     )
-    does_not_renew = models.BooleanField("Does Not Renew", default=False)
+    does_not_renew = models.BooleanField("Never Expires", default=False)
     last_modified_by = models.ForeignKey(User, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

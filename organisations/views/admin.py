@@ -4,8 +4,13 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 
 from accounts.models import User
+from cobalt.settings import ABF_USER
 from organisations.forms import OrgForm
-from organisations.models import Organisation, ORGS_RBAC_GROUPS_AND_ROLES
+from organisations.models import (
+    Organisation,
+    ORGS_RBAC_GROUPS_AND_ROLES,
+    MembershipType,
+)
 from organisations.views import general
 from rbac.core import (
     rbac_user_has_role,
@@ -38,6 +43,30 @@ def get_secretary_from_org_form(org_form):
     return secretary_id, secretary_name
 
 
+def _add_club_defaults(club):
+    """Add sensible default values when we create a new club"""
+
+    system = User.objects.get(pk=ABF_USER)
+
+    MembershipType(
+        organisation=club,
+        name="Standard",
+        description="Normal membership type for standard members.",
+        annual_fee=50,
+        part_year_fee=25,
+        last_modified_by=system,
+    ).save()
+    MembershipType(
+        organisation=club,
+        name="Life Member",
+        description="Life Members do not pay annual subscriptions or table fees for club sessions.",
+        annual_fee=0,
+        does_not_renew=True,
+        does_not_pay_session_fees=True,
+        last_modified_by=system,
+    ).save()
+
+
 @login_required()
 def admin_add_club(request):
     """Add a club to the system. For State or ABF Administrators
@@ -60,6 +89,7 @@ def admin_add_club(request):
             org.last_updated = timezone.localtime()
             org.type = "Club"
             org.save()
+            _add_club_defaults(org)
             messages.success(
                 request, f"{org.name} created", extra_tags="cobalt-message-success"
             )
