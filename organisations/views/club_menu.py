@@ -18,7 +18,7 @@ from django.utils import timezone
 from accounts.models import User
 from cobalt.settings import GLOBAL_MPSERVER
 from events.models import Congress
-from organisations.forms import OrgForm, MembershipTypeForm
+from organisations.forms import OrgForm, MembershipTypeForm, OrgDatesForm
 from organisations.models import (
     ORGS_RBAC_GROUPS_AND_ROLES,
     Organisation,
@@ -87,6 +87,22 @@ def _menu_rbac_has_access(club, user):
     return False, club_role
 
 
+def _user_is_uber_admin(club, user):
+    """Check if this user has higher level access - state or global"""
+
+    # check if in State group
+    rbac_model_for_state = get_rbac_model_for_state(club.state)
+    state_role = "orgs.state.%s.edit" % rbac_model_for_state
+    if rbac_user_has_role(user, state_role):
+        return True
+
+    # Check for global role
+    elif rbac_user_has_role(user, "orgs.admin.edit"):
+        return True
+
+    return False
+
+
 def _menu_rbac_advanced_is_admin(club, user):
     """Check if the user is an RBAC admin for this club when using advanced RBAC set up"""
 
@@ -99,17 +115,8 @@ def _menu_rbac_advanced_is_admin(club, user):
     if user in admins:
         return True
 
-    # check if in State group
-    rbac_model_for_state = get_rbac_model_for_state(club.state)
-    state_role = "orgs.state.%s.edit" % rbac_model_for_state
-    if rbac_user_has_role(user, state_role):
-        return True
-
-    # Finally check for global role
-    elif rbac_user_has_role(user, "orgs.admin.edit"):
-        return True
-
-    return False
+    # Check for higher level accees
+    return _user_is_uber_admin(club, user)
 
 
 def access_basic(request, club):  # sourcery skip: list-comprehension
@@ -180,7 +187,6 @@ def access_advanced(request, club, errors={}):
         users = rbac_get_users_in_group(group)
         user_list = []
         for user in users:
-
             # link for HTMX hx_post to go to
             user.hx_post = reverse(
                 "organisations:club_admin_access_advanced_delete_user_htmx",
@@ -256,11 +262,17 @@ def club_menu(request, club_id):
     if not allowed:
         return rbac_forbidden(request, role)
 
-    # Check if we show the finance tab
-    show_finance = rbac_user_has_role(request.user, f"orgs.org.{club.id}.edit")
+    # Reduce database calls
+    uber_admin = _user_is_uber_admin(club, request.user)
 
+    # Check if we show the finance tab
+    show_finance = uber_admin or rbac_user_has_role(
+        request.user, f"orgs.org.{club.id}.edit"
+    )
     # Check if we show the congress tab
-    show_congress = rbac_user_has_role(request.user, f"events.org.{club.id}.edit")
+    show_congress = uber_admin or rbac_user_has_role(
+        request.user, f"events.org.{club.id}.edit"
+    )
 
     # Check if staff member for other clubs - get all from tree that are like "clubs.generated"
     other_club_ids = (
@@ -497,14 +509,7 @@ def tab_settings_basic_htmx(request):
     secretary_id, secretary_name = get_secretary_from_org_form(org_form)
 
     # Check if this user is state or global admin - then they can change the State or org_id
-    rbac_model_for_state = get_rbac_model_for_state(club.state)
-    state_role = "orgs.state.%s.edit" % rbac_model_for_state
-    if rbac_user_has_role(request.user, state_role) or rbac_user_has_role(
-        request.user, "orgs.admin.edit"
-    ):
-        uber_admin = True
-    else:
-        uber_admin = False
+    uber_admin = _user_is_uber_admin(club, request.user)
 
     return render(
         request,
@@ -543,6 +548,44 @@ def tab_settings_basic_reload_htmx(request):
     club.save()
 
     return tab_settings_basic_htmx(request)
+
+
+@login_required()
+def tab_settings_general_htmx(request):
+    """build the settings tab in club menu for editing general details"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    message = ""
+
+    # This is a POST even the first time so look for "save" to see if this really is a form submit
+    real_post = "save" in request.POST
+
+    if not real_post:
+        form = OrgDatesForm(instance=club)
+    else:
+        form = OrgDatesForm(request.POST, instance=club)
+
+        if form.is_valid():
+            org = form.save(commit=False)
+            org.last_updated_by = request.user
+            org.last_updated = timezone.localtime()
+            org.save()
+
+            # We can't use Django messages as they won't show until the whole page reloads
+            message = "Organisation details updated"
+
+    return render(
+        request,
+        "organisations/club_menu/tab_settings_general_htmx.html",
+        {
+            "club": club,
+            "form": form,
+            "message": message,
+        },
+    )
 
 
 @login_required()
@@ -592,7 +635,9 @@ def club_menu_tab_settings_membership_edit_htmx(request):
     message = ""
 
     if form.is_valid():
-        form.save()
+        updated = form.save(commit=False)
+        updated.last_modified_by = request.user
+        updated.save()
         message = "Membership Type Updated"
 
     return render(
@@ -605,6 +650,78 @@ def club_menu_tab_settings_membership_edit_htmx(request):
             "message": message,
         },
     )
+
+
+@login_required()
+def club_menu_tab_settings_membership_add_htmx(request):
+    """Part of the settings tab for membership types to allow user to add a membership type"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    # This is a POST even the first time so look for "save" to see if this really is a form submit
+    real_post = "save" in request.POST
+
+    form = MembershipTypeForm(request.POST) if real_post else MembershipTypeForm()
+    message = ""
+
+    if form.is_valid():
+        membership_type = form.save(commit=False)
+        membership_type.last_modified_by = request.user
+        membership_type.organisation = club
+        membership_type.save()
+        #        message = "Membership Type Added"
+        return tab_settings_membership_htmx(request)
+
+    return render(
+        request,
+        "organisations/club_menu/tab_settings_membership_add_htmx.html",
+        {
+            "club": club,
+            "form": form,
+            "message": message,
+        },
+    )
+
+
+@login_required()
+def club_menu_tab_settings_membership_delete_htmx(request):
+    """Part of the settings tab for membership types to allow user to delete a membership type"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    # Get membership type id
+    membership_type_id = request.POST.get("membership_type_id")
+    membership_type = get_object_or_404(MembershipType, pk=membership_type_id)
+
+    # Check for active members in this membership type
+    now = timezone.now()
+    if (
+        MemberMembershipType.objects.filter(membership_type=membership_type)
+        .filter(start_date__lte=now)
+        .filter(Q(end_date__gte=now) | Q(end_date=None))
+        .exists()
+    ):
+        return HttpResponse(
+            f"<h2 class='text-center'>Cannot Delete {membership_type.name}</h2> "
+            f"<h3 class='text-center'>There Are Active Members Here</h3> "
+            f"<p class='text-center'>Change members membership types first.</p>."
+        )
+
+    # The first time we show a confirmation
+    if "delete" not in request.POST:
+        return render(
+            request,
+            "organisations/club_menu/tab_settings_membership_delete_confirm_htmx.html",
+            {"membership_type": membership_type},
+        )
+    else:
+        membership_type.delete()
+
+    return tab_settings_membership_htmx(request)
 
 
 @login_required()

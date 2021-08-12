@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from accounts.models import User
 from django.utils import timezone
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator
 
 # Variable to control what is expected to be in the RBAC structure for Organisations
 # A management script runs to update RBAC structure for all clubs if a new option is found.
@@ -107,12 +107,33 @@ class Organisation(models.Model):
         null=True,
         validators=[account_regex],
     )
-    membership_renewal_date = models.DateField(
-        "Membership Renewal Date", blank=True, null=True
+    membership_renewal_date_day = models.IntegerField(
+        "Membership Renewal Date - Day",
+        default=1,
+        validators=[MaxValueValidator(31), MinValueValidator(1)],
+        blank=True,
+        null=True,
     )
-
-    membership_part_year_date = models.DateField(
-        "Membership Part Year Date", blank=True, null=True
+    membership_renewal_date_month = models.IntegerField(
+        "Membership Renewal Date - Month",
+        default=1,
+        validators=[MaxValueValidator(12), MinValueValidator(1)],
+        blank=True,
+        null=True,
+    )
+    membership_part_year_date_day = models.IntegerField(
+        "Membership Part Year Date - Day",
+        default=1,
+        validators=[MaxValueValidator(31), MinValueValidator(1)],
+        blank=True,
+        null=True,
+    )
+    membership_part_year_date_month = models.IntegerField(
+        "Membership Part Year Date - Month",
+        default=1,
+        validators=[MaxValueValidator(12), MinValueValidator(1)],
+        blank=True,
+        null=True,
     )
     """After this date membership discounts for the rest of the year apply"""
 

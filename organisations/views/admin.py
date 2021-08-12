@@ -43,23 +43,49 @@ def get_secretary_from_org_form(org_form):
     return secretary_id, secretary_name
 
 
-def _add_club_defaults(club):
+def _add_club_defaults(club: Organisation):
     """Add sensible default values when we create a new club"""
+
+    # Use basic RBAC
+    _admin_club_rbac_add_basic_sub(club)
+
+    # Renewal Dates
+    club.membership_renewal_date_month = 1
+    club.membership_renewal_date_day = 1
+    club.membership_part_year_date_month = 6
+    club.membership_renewal_date_day = 30
+
+    # Membership Types
 
     system = User.objects.get(pk=ABF_USER)
 
     MembershipType(
         organisation=club,
         name="Standard",
-        description="Normal membership type for standard members.",
+        description="Normal membership type for standard members.\n\nThis is the default membership type. "
+        "You can edit the values to suit your club. \n\nThere is a membership fee as well as a "
+        "reduced fee which takes effect part way through the year. Use the General tab to set "
+        "when membership is due and when the reduced fee will start to apply.\n\n"
+        "The checkboxes are generally used for special memberships such as Life Members.",
         annual_fee=50,
         part_year_fee=25,
         last_modified_by=system,
     ).save()
+
     MembershipType(
         organisation=club,
         name="Life Member",
         description="Life Members do not pay annual subscriptions or table fees for club sessions.",
+        annual_fee=0,
+        does_not_renew=True,
+        does_not_pay_session_fees=True,
+        last_modified_by=system,
+    ).save()
+
+    MembershipType(
+        organisation=club,
+        name="Youth",
+        description="Youth players usually pay a reduced membership fee as well as lower table fees.",
         annual_fee=0,
         does_not_renew=True,
         does_not_pay_session_fees=True,
@@ -91,9 +117,11 @@ def admin_add_club(request):
             org.save()
             _add_club_defaults(org)
             messages.success(
-                request, f"{org.name} created", extra_tags="cobalt-message-success"
+                request,
+                f"{org.name} created with standard defaults.",
+                extra_tags="cobalt-message-success",
             )
-            return redirect("organisations:admin_club_rbac", club_id=org.id)
+            return redirect("organisations:club_menu", club_id=org.id)
 
     secretary_id, secretary_name = get_secretary_from_org_form(form)
 

@@ -1,0 +1,60 @@
+<form
+    hx-post="{% url "organisations:club_menu_tab_settings_membership_delete_htmx" %}"
+    hx-indicator=".htmx-indicator"
+    hx-target="#id_settings_form"
+    hx-vars="membership_type_id:{{ membership_type.id }}"
+>
+    <div class="card">
+        <div class="card-header-danger card-header">
+            <h2 class="text-center">Confirm Delete</h2>
+        </div>
+        <div class="card-body text-center">
+            <br>
+            <br>
+            <br>
+            <h3>Delete {{ membership_type.name }}?</h3>
+            <h4>You will lose all membership history</h4>
+            <br>
+            <br>
+            <br>
+            <button type="submit" name="delete" class="btn btn-success">Delete</button>
+            <button
+                class="btn btn-info"
+                hx-post="{% url "organisations:club_menu_tab_settings_membership_edit_htmx" %}"
+                hx-indicator=".htmx-indicator"
+                hx-target="#id_membership_edit"
+                hx-vars="membership_type_id:{{ membership_type.id }}"
+            >Cancel</button>
+        </div>
+    </div>
+</form>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>

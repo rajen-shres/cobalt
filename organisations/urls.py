@@ -137,6 +137,11 @@ urlpatterns = [
         name="club_menu_tab_settings_reload_basic_htmx",
     ),
     path(
+        "club-menu/tabs/settings-general",
+        club_menu.tab_settings_general_htmx,
+        name="club_menu_tab_settings_general_htmx",
+    ),
+    path(
         "club-menu/tabs/settings-membership",
         club_menu.tab_settings_membership_htmx,
         name="club_menu_tab_settings_membership_htmx",
@@ -145,5 +150,15 @@ urlpatterns = [
         "club-menu/tabs/settings-edit-membership",
         club_menu.club_menu_tab_settings_membership_edit_htmx,
         name="club_menu_tab_settings_membership_edit_htmx",
+    ),
+    path(
+        "club-menu/tabs/settings-add-membership",
+        club_menu.club_menu_tab_settings_membership_add_htmx,
+        name="club_menu_tab_settings_membership_add_htmx",
+    ),
+    path(
+        "club-menu/tabs/settings-delete-membership",
+        club_menu.club_menu_tab_settings_membership_delete_htmx,
+        name="club_menu_tab_settings_membership_delete_htmx",
     ),
 ]

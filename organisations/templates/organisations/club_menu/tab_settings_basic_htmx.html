@@ -14,6 +14,13 @@
             <button class="btn bg-transparent"
                 style="outline: 0; outline-offset: 0; box-shadow: none;"
                 type="button"
+                hx-post="{% url "organisations:club_menu_tab_settings_general_htmx" %}"
+                hx-indicator=".htmx-indicator"
+                hx-target="#id_settings_form"
+            >General</button>
+            <button class="btn bg-transparent"
+                style="outline: 0; outline-offset: 0; box-shadow: none;"
+                type="button"
                 hx-post="{% url "organisations:club_menu_tab_settings_membership_htmx" %}"
                 hx-indicator=".htmx-indicator"
                 hx-target="#id_settings_form"
@@ -222,7 +229,7 @@
 
             <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
             <button class="btn btn-info" onclick="window.location.href='/'; return false;">Cancel</button>
-            <div class="font-italic small">last Updated {{ club.last_updated|cobalt_nice_datetime }} by {{ club.last_updated_by.full_name }}</div>
+            <div class="font-italic small">last updated {{ club.last_updated|cobalt_nice_datetime }} by {{ club.last_updated_by.full_name }}</div>
         </form>
     </div>
     <script>

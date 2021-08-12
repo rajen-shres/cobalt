@@ -1,3 +1,5 @@
+import datetime
+
 from crispy_forms.helper import FormHelper
 from django import forms
 
@@ -38,8 +40,6 @@ class OrgForm(forms.ModelForm):
             "postcode",
             "bank_bsb",
             "bank_account",
-            "membership_renewal_date",
-            "membership_part_year_date",
         )
 
         # Make State a choice field
@@ -120,3 +120,40 @@ class MembershipTypeForm(forms.ModelForm):
         # {{ form | crispy }} stuffs up checkboxes and {% crispy form %} adds </form>. This prevents this.
         self.helper = FormHelper(self)
         self.helper.form_tag = False
+
+
+class OrgDatesForm(forms.ModelForm):
+    class Meta:
+        model = Organisation
+        fields = (
+            "membership_renewal_date_day",
+            "membership_renewal_date_month",
+            "membership_part_year_date_day",
+            "membership_part_year_date_month",
+        )
+
+    def clean(self):
+        """custom validation"""
+        cleaned_data = super(OrgDatesForm, self).clean()
+
+        try:
+            datetime.datetime(
+                year=1967,
+                month=cleaned_data["membership_renewal_date_month"],
+                day=cleaned_data["membership_renewal_date_day"],
+            )
+        except ValueError:
+            self.add_error("membership_renewal_date_month", "Invalid date")
+            return
+
+        try:
+            datetime.datetime(
+                year=1967,
+                month=cleaned_data["membership_part_year_date_month"],
+                day=cleaned_data["membership_part_year_date_day"],
+            )
+        except ValueError:
+            self.add_error("membership_part_year_date_month", "Invalid date")
+            return
+
+        return self.cleaned_data

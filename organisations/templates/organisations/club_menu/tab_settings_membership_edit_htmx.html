@@ -1,9 +1,7 @@
+{% load cobalt_tags %}
 {% load crispy_forms_tags %}
 <div class="card">
-    {#    <div class="card-header card-header-success">#}
-    {#        {{ membership_type.name }}#}
-    {#    </div>#}
-    <div class="card-body">
+    <div class="card-body pt-0">
         <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
         <form
             hx-post="{% url "organisations:club_menu_tab_settings_membership_edit_htmx" %}"
@@ -11,14 +9,24 @@
             hx-target="#id_membership_edit"
             hx-vars="membership_type_id:{{ membership_type.id }}"
         >
-
-            {#            {{ form|crispy }}#}
+            <h3 class="text-center">{{ membership_type.name }}</h3>
 
             {% crispy form %}
 
             <button type="submit" name="save" class="btn btn-success">Save</button>
             <button type="reset" class="btn btn-info">Reset</button>
-            <a href="#" class="btn btn-danger">Delete</a>
+            <a href="#"
+                class="btn btn-danger"
+                hx-post="{% url "organisations:club_menu_tab_settings_membership_delete_htmx" %}"
+                hx-indicator=".htmx-indicator"
+                hx-target="#id_membership_edit"
+                hx-vars="membership_type_id:{{ membership_type.id }}"
+            >Delete</a>
         </form>
+        {% if membership_type.last_modified_by %}
+            <div class="font-italic small">last updated {{ membership_type.updated_at|cobalt_nice_datetime }}
+                by {{ membership_type.last_modified_by.full_name }}</div>
+        {% endif %}
+
     </div>
 </div>

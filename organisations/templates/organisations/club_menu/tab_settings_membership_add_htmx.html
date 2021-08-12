@@ -1,0 +1,27 @@
+{% load cobalt_tags %}
+{% load crispy_forms_tags %}
+<div class="card">
+    <div class="card-body pt-0">
+        <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
+        <form
+            hx-post="{% url "organisations:club_menu_tab_settings_membership_add_htmx" %}"
+            hx-indicator=".htmx-indicator"
+            hx-target="#id_settings_form"
+            hx-vars="club_id:{{ club.id }}"
+        >
+
+            {% crispy form %}
+
+            <button type="submit" name="save" class="btn btn-success">Add</button>
+            <button
+                class="btn btn-info"
+                hx-post="{% url "organisations:club_menu_tab_settings_membership_htmx" %}"
+                hx-indicator=".htmx-indicator"
+                hx-target="#id_settings_form"
+                hx-vars="club_id:{{ club.id }}"
+            >Cancel</button>
+        </form>
+
+
+    </div>
+</div>
