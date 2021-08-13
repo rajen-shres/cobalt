@@ -8,7 +8,7 @@ from crispy_forms.helper import FormHelper
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from masterpoints.views import system_number_available
-from .models import User
+from .models import User, UnregisteredUser
 from django.core.exceptions import ValidationError
 
 
@@ -158,4 +158,17 @@ class UserSettingsForm(forms.ModelForm):
             "receive_payments_emails",
             "system_number_search",
             "windows_scrollbar",
+        ]
+
+
+class UnregisteredUserForm(forms.ModelForm):
+    """Form to edit an Unregistered User"""
+
+    class Meta:
+        model = UnregisteredUser
+        fields = [
+            "system_number",
+            "first_name",
+            "last_name",
+            "email",
         ]

@@ -166,4 +166,19 @@ urlpatterns = [
         club_menu.club_menu_tab_settings_membership_delete_htmx,
         name="club_menu_tab_settings_membership_delete_htmx",
     ),
+    path(
+        "club-menu/tabs/members-upload-csv",
+        club_menu.club_menu_tab_members_upload_csv_htmx,
+        name="club_menu_tab_members_upload_csv",
+    ),
+    path(
+        "club-menu/tabs/members-import-mpc",
+        club_menu.club_menu_tab_members_import_mpc_htmx,
+        name="club_menu_tab_members_import_mpc_htmx",
+    ),
+    path(
+        "club-menu/tabs/members-edit-unreg",
+        club_menu.tab_members_un_reg_edit_htmx,
+        name="club_menu_tab_members_un_reg_edit_htmx",
+    ),
 ]

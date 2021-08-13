@@ -1,0 +1,28 @@
+<h2>Edit {{ un_reg }}</h2>
+
+{% load cobalt_tags %}
+{% load crispy_forms_tags %}
+<div class="card">
+    <div class="card-body pt-0">
+        <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
+        <form
+            hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
+            hx-indicator=".htmx-indicator"
+            hx-target="#id_panel_members"
+            hx-vars="club_id:{{ club.id }}, un_reg_id:{{ un_reg.id }}"
+        >
+            <h3 class="text-center">{{ un_reg }}</h3>
+
+            {% crispy user_form %}
+
+            <button type="submit" name="save" class="btn btn-success">Save</button>
+            <button type="reset" class="btn btn-info">Reset</button>
+            <button type="reset" class="btn btn-info">Send Invite to Join {{ GLOBAL_TITLE }}</button>
+        </form>
+        {% if un_reg.last_modified_by %}
+            <div class="font-italic small">last updated {{ un_reg.updated_at|cobalt_nice_datetime }}
+                by {{ un_reg.last_modified_by.full_name }}</div>
+        {% endif %}
+
+    </div>
+</div>

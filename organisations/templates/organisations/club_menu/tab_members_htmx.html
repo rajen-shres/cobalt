@@ -1,1 +1,57 @@
-<h2>Coming Soon</h2>
+<h2>Member Details</h2>
+
+<div class="table-responsive">
+    <div class="container">
+        <div class="row">
+
+            <table class="table table-hover table-condensed col-md-6 col-lg-4">
+                <tbody>
+                    <tr>
+                        <td class="text-left">Total Members</td>
+                        <td class="text-right">{{ total_members }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">Members Signed Up for {{ GLOBAL_TITLE }}</td>
+                        <td class="text-right">{{ cobalt_members.count }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">Unregistered Members</td>
+                        <td class="text-right">{{ unregistered_members.count }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<h3>{{ GLOBAL_TITLE }} Users</h3>
+<ul>
+    {% for cobalt_member in cobalt_members %}
+        <li>{{ cobalt_member }}</li>
+    {% endfor %}
+</ul>
+
+<h3>Unregistered Users</h3>
+<ul>
+    {% for unregistered_member in unregistered_members %}
+        <li><button
+            hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
+            hx-indicator=".htmx-indicator"
+            hx-target="#id_panel_members"
+            hx-vars="club_id:{{ club.id }}, un_reg_id:{{ unregistered_member.id }}"
+        >
+            {{ unregistered_member }}</button></li>
+    {% endfor %}
+</ul>
+
+<button class="btn bg-primary"
+    hx-post="{% url "organisations:club_menu_tab_members_upload_csv" %}"
+    hx-indicator=".htmx-indicator"
+    hx-target="#id_panel_members"
+>Pianola Upload</button>
+
+<button class="btn bg-primary"
+    hx-post="{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}"
+    hx-indicator=".htmx-indicator"
+    hx-target="#id_panel_members"
+>MPC Import</button>

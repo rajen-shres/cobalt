@@ -10,12 +10,13 @@ import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 
-from accounts.models import User
+from accounts.forms import UnregisteredUserForm
+from accounts.models import User, UnregisteredUser
 from cobalt.settings import GLOBAL_MPSERVER
 from events.models import Congress
 from organisations.forms import OrgForm, MembershipTypeForm, OrgDatesForm
@@ -374,11 +375,7 @@ def tab_dashboard_htmx(request):
     )
 
     diff = member_count - member_count_before
-    if diff == 0:
-        diff_28_days = "No change"
-    else:
-        diff_28_days = "{0:+d}".format(diff)
-
+    diff_28_days = "No change" if diff == 0 else "{0:+d}".format(diff)
     congress_count = Congress.objects.filter(congress_master__org=club).count()
     staff_count = (
         RBACUserGroup.objects.filter(group__rbacgrouprole__model_id=club.id)
@@ -456,8 +453,56 @@ def tab_members_htmx(request):
     if not status:
         return error_page
 
+    # Get System Numbers for All Members
+    now = timezone.now()
+    club_system_numbers = (
+        MemberMembershipType.objects.filter(membership_type__organisation=club)
+        .filter(start_date__lte=now)
+        .filter(Q(end_date__gte=now) | Q(end_date=None))
+        .values("system_number")
+    )
+
+    # Get real members
+    cobalt_members = User.objects.filter(
+        system_number__in=club_system_numbers
+    ).order_by("last_name")
+
+    # Get unregistered
+    unregistered_members = UnregisteredUser.objects.filter(
+        system_number__in=club_system_numbers
+    ).order_by("last_name")
+
+    total_members = cobalt_members.count() + unregistered_members.count()
+
     return render(
-        request, "organisations/club_menu/tab_members_htmx.html", {"club": club}
+        request,
+        "organisations/club_menu/tab_members_htmx.html",
+        {
+            "club": club,
+            "cobalt_members": cobalt_members,
+            "unregistered_members": unregistered_members,
+            "total_members": total_members,
+        },
+    )
+
+
+@login_required()
+def tab_members_un_reg_edit_htmx(request):
+    """Edit unregistered member details"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    un_reg_id = request.POST.get("un_reg_id")
+    un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
+
+    user_form = UnregisteredUserForm(instance=un_reg)
+
+    return render(
+        request,
+        "organisations/club_menu/tab_members_un_reg_edit_htmx.html",
+        {"club": club, "un_reg": un_reg, "user_form": user_form},
     )
 
 
@@ -880,3 +925,122 @@ def access_advanced_add_admin_htmx(request):
     rbac_add_user_to_admin_group(user, admin_group)
 
     return access_advanced(request, club)
+
+
+def club_menu_tab_members_upload_csv_htmx(request):
+    """Upload CSV"""
+
+    if request.method == "GET":
+        return render(request, "organisations/club_menu/tab_members_htmx.html")
+    # if not GET, then proceed
+    try:
+        csv_file = request.FILES["csv_file"]
+        if not csv_file.name.endswith(".csv"):
+            messages.error(request, "File is not CSV type")
+        # return HttpResponseRedirect(reverse("organisations:club_menu_tab_members_upload_csv"))
+        # if file is too large, return
+        if csv_file.multiple_chunks():
+            messages.error(
+                request,
+                "Uploaded file is too big (%.2f MB)."
+                % (csv_file.size / (1000 * 1000),),
+            )
+        # return HttpResponseRedirect(reverse("organisations:club_menu_tab_members_upload_csv"))
+
+        file_data = csv_file.read().decode("utf-8")
+
+        # loop over the lines and save them in db. If error , store as string and then display
+        for line in file_data.split("\n"):
+            fields = line.split(",")
+            system_number = fields[1]
+            first_name = fields[5]
+            last_name = fields[6]
+            email = fields[7]
+            print(system_number, first_name, last_name, email)
+
+    except Exception as e:
+        messages.error(request, "Unable to upload file. " + repr(e))
+
+    return render(request, "organisations/club_menu/tab_members_csv_htmx.html")
+
+
+def club_menu_tab_members_import_mpc_htmx(request):
+    """Import Data from MPC"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    # Get members from MPC - we only get hoe club members
+    qry = f"{GLOBAL_MPSERVER}/clubMemberList/{club.org_id}"
+    club_members = masterpoint_query(qry)
+
+    member_data = [
+        {
+            "system_number": club_member["ABFNumber"],
+            "first_name": club_member["GivenNames"],
+            "last_name": club_member["Surname"],
+            "email": club_member["EmailAddress"],
+        }
+        for club_member in club_members
+    ]
+
+    added_users, added_unregistered_users = process_member_import(
+        club, member_data, request.user, "MPC"
+    )
+
+    return HttpResponse(
+        f"<p>added users: {added_users}</p><p>added unregistered users: {added_unregistered_users}</p>"
+    )
+
+
+def process_member_import(
+    club: Organisation, member_data: list, user: User, origin: str
+):
+    """Common function to process a list of members"""
+
+    # We have to add them to a membership type
+    # TODO: make this a choice field
+    default_membership = MembershipType.objects.filter(organisation=club).first()
+
+    # counters
+    added_users = 0
+    added_unregistered_users = 0
+
+    # loop through members
+    for club_member in member_data:
+
+        # See if we have an actual user for this
+        user_match = User.objects.filter(
+            system_number=club_member["system_number"]
+        ).first()
+
+        if user_match:
+            added_users += 1
+        else:
+            added_unregistered_users += 1
+            # See if we have an unregistered user already
+            un_reg = UnregisteredUser.objects.filter(
+                system_number=club_member["system_number"]
+            ).first()
+
+            # Add club email - TODO
+            if not un_reg:
+                # Create a new unregistered user
+                UnregisteredUser(
+                    system_number=club_member["system_number"],
+                    first_name=club_member["first_name"],
+                    last_name=club_member["last_name"],
+                    email=club_member["email"],
+                    origin=origin,
+                    last_updated_by=user,
+                ).save()
+
+        # Add system number to membership type
+        MemberMembershipType(
+            membership_type=default_membership,
+            system_number=club_member["system_number"],
+            last_modified_by=user,
+        ).save()
+
+    return added_users, added_unregistered_users

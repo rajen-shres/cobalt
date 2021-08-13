@@ -6,6 +6,7 @@ from django.core.validators import RegexValidator, MaxValueValidator, MinValueVa
 
 # Variable to control what is expected to be in the RBAC structure for Organisations
 # A management script runs to update RBAC structure for all clubs if a new option is found.
+from cobalt.settings import GLOBAL_ORG
 
 ORGS_RBAC_GROUPS_AND_ROLES = {
     # Conveners for this orgs events
@@ -226,10 +227,12 @@ class MemberMembershipType(models.Model):
         ("Cancelled by Club", "Cancelled by Club"),
         ("Expired", "Expired"),
     ]
-
-    member = models.ForeignKey(
-        User, on_delete=models.PROTECT, related_name="membership_member"
+    system_number = models.IntegerField(
+        "%s Number" % GLOBAL_ORG, blank=True, unique=True
     )
+    # member = models.ForeignKey(
+    #     User, on_delete=models.PROTECT, related_name="membership_member"
+    # )
     membership_type = models.ForeignKey(MembershipType, on_delete=models.PROTECT)
     termination_reason = models.CharField(
         "Reason for Membership Termination",
@@ -258,7 +261,9 @@ class MemberMembershipType(models.Model):
         return True
 
     def __str__(self):
-        return f"{self.member.full_name}, member of {self.membership_type.organisation.name}"
+        return (
+            f"{self.system_number}, member of {self.membership_type.organisation.name}"
+        )
 
 
 class ClubLog(models.Model):

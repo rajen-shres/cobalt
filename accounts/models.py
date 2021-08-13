@@ -26,7 +26,10 @@ class User(AbstractUser):
 
     email = models.EmailField(unique=False)
     system_number = models.IntegerField(
-        "%s Number" % GLOBAL_ORG, blank=True, unique=True
+        "%s Number" % GLOBAL_ORG,
+        blank=True,
+        unique=True,
+        db_index=True,
     )
 
     phone_regex = RegexValidator(
@@ -114,25 +117,45 @@ class User(AbstractUser):
 class UnregisteredUser(models.Model):
     """Represents users who we have only partial information about and who have not registered themselves yet.
     When a User registers, the matching instance of Unregistered User will be removed.
+
+    Email addresses are a touchy subject as some clubs believe they own this information and do not
+    want it shared with other clubs. We protect email address by having another model (UnregisteredUserEmail)
+    that is organisation specific. The email address in this model is from the MPC (considered "public"
+    although it is not shown to anyone), while the other email address is "private" to the club that
+    provided it, but ironically shown to the club that did and editable.
     """
 
     # Import here to avoid circular dependencies
     from organisations.models import Organisation
 
+    ORIGINS = [
+        ("MPC", "Masterpoints Centre Import"),
+        ("Pianola", "Pianola Import"),
+        ("Manual", "Manual Entry"),
+    ]
+
+    system_number = models.IntegerField(
+        "%s Number" % GLOBAL_ORG,
+        unique=True,
+        db_index=True,
+    )
     first_name = models.CharField("First Name", max_length=150, blank=True, null=True)
     last_name = models.CharField("Last Name", max_length=150, blank=True, null=True)
     email = models.EmailField("Email Address", blank=True, null=True)
-    system_number = models.IntegerField("%s Number" % GLOBAL_ORG, unique=True)
+    origin = models.CharField("Origin", choices=ORIGINS, max_length=10)
+    last_updated_by = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name="last_updated"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     last_registration_invite_sent = models.DateTimeField(
         "Last Registration Invite Sent", blank=True, null=True
     )
     last_registration_invite_by_user = models.ForeignKey(
-        User,
-        on_delete=models.PROTECT,
+        User, on_delete=models.PROTECT, blank=True, null=True
     )
     last_registration_invite_by_club = models.ForeignKey(
-        Organisation,
-        on_delete=models.PROTECT,
+        Organisation, on_delete=models.PROTECT, blank=True, null=True
     )
 
     def __str__(self):
