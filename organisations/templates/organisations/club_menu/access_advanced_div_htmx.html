@@ -3,7 +3,7 @@
 
 {% if user_is_admin %}
 
-    You are using the advanced RBAC set up. This gives you separate groups for each function and allows you
+    You are using the advanced Role Based Access Control (RBAC) set up. This gives you separate groups for each function and allows you
     to have separate administrators (able to grant access to others).
 
     <a href="{% url "organisations:admin_club_rbac" club_id=club.id %}">Change RBAC Set Up</a>
