@@ -462,6 +462,19 @@ def tab_members_htmx(request):
 
 
 @login_required()
+def tab_forums_htmx(request):
+    """build the forums tab in club menu"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    return render(
+        request, "organisations/club_menu/tab_forums_htmx.html", {"club": club}
+    )
+
+
+@login_required()
 def tab_results_htmx(request):
     """build the results tab in club menu"""
 

@@ -111,6 +111,34 @@ class User(AbstractUser):
         )
 
 
+class UnregisteredUser(models.Model):
+    """Represents users who we have only partial information about and who have not registered themselves yet.
+    When a User registers, the matching instance of Unregistered User will be removed.
+    """
+
+    # Import here to avoid circular dependencies
+    from organisations.models import Organisation
+
+    first_name = models.CharField("First Name", max_length=150, blank=True, null=True)
+    last_name = models.CharField("Last Name", max_length=150, blank=True, null=True)
+    email = models.EmailField("Email Address", blank=True, null=True)
+    system_number = models.IntegerField("%s Number" % GLOBAL_ORG, unique=True)
+    last_registration_invite_sent = models.DateTimeField(
+        "Last Registration Invite Sent", blank=True, null=True
+    )
+    last_registration_invite_by_user = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+    )
+    last_registration_invite_by_club = models.ForeignKey(
+        Organisation,
+        on_delete=models.PROTECT,
+    )
+
+    def __str__(self):
+        return f"{self.system_number}: {self.first_name} {self.last_name}"
+
+
 class TeamMate(models.Model):
     """link two members together"""
 

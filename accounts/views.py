@@ -22,8 +22,9 @@ from django.http import JsonResponse
 from django.contrib.auth.views import PasswordResetView
 from notifications.views import send_cobalt_email, notifications_in_english, CobaltEmail
 from logs.views import get_client_ip, log_event
+from organisations.views.general import replace_unregistered_user_with_real_user
 from rbac.core import rbac_user_has_role
-from .models import User, TeamMate
+from .models import User, TeamMate, UnregisteredUser
 from .tokens import account_activation_token
 from .forms import (
     UserRegisterForm,
@@ -90,6 +91,25 @@ def _check_duplicate_email(user):
     return others_same_email.exists()
 
 
+def _check_unregistered_user_match(user):
+    """See if there is already a user with this system_id in UnregisteredUser and cut across data"""
+
+    unregistered_user = UnregisteredUser.objects.filter(
+        system_number=user.system_number
+    ).first()
+
+    if not unregistered_user:
+        return
+
+    # Call the callbacks
+
+    # Organisations
+    replace_unregistered_user_with_real_user(unregistered_user, user)
+
+    # Now delete the unregistered user, we don't need it any more
+    unregistered_user.delete()
+
+
 def register(request):
     """User registration form
 
@@ -106,35 +126,35 @@ def register(request):
         HttpResponse
     """
 
-    if request.method == "POST":
-        form = UserRegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False  # not active until email confirmed
-            user.system_number = user.username
-            user.save()
+    form = UserRegisterForm(request.POST or None)
+    if form.is_valid():
+        user = form.save(commit=False)
+        user.is_active = False  # not active until email confirmed
+        user.system_number = user.username
+        user.save()
 
-            _check_duplicate_email(user)
+        _check_duplicate_email(user)
 
-            current_site = get_current_site(request)
-            mail_subject = "Activate your account."
-            message = render_to_string(
-                "accounts/acc_active_email.html",
-                {
-                    "user": user,
-                    "domain": current_site.domain,
-                    "org": settings.GLOBAL_ORG,
-                    "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-                    "token": account_activation_token.make_token(user),
-                },
-            )
-            to_email = form.cleaned_data.get("email")
-            send_cobalt_email(to_email, mail_subject, message)
-            return render(
-                request, "accounts/register_complete.html", {"email_address": to_email}
-            )
-    else:
-        form = UserRegisterForm()
+        current_site = get_current_site(request)
+        mail_subject = "Activate your account."
+        message = render_to_string(
+            "accounts/acc_active_email.html",
+            {
+                "user": user,
+                "domain": current_site.domain,
+                "org": settings.GLOBAL_ORG,
+                "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                "token": account_activation_token.make_token(user),
+            },
+        )
+        to_email = form.cleaned_data.get("email")
+        send_cobalt_email(to_email, mail_subject, message)
+        return render(
+            request, "accounts/register_complete.html", {"email_address": to_email}
+        )
+
+    # Check if we have a matching UnregisteredUser object and copy data across
+    _check_unregistered_user_match(user)
 
     return render(request, "accounts/register.html", {"user_form": form})
 

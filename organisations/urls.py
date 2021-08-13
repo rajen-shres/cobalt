@@ -127,6 +127,11 @@ urlpatterns = [
         name="club_menu_tab_results_htmx",
     ),
     path(
+        "club-menu/tabs/forums",
+        club_menu.tab_forums_htmx,
+        name="club_menu_tab_forums_htmx",
+    ),
+    path(
         "club-menu/tabs/settings-basic",
         club_menu.tab_settings_basic_htmx,
         name="club_menu_tab_settings_basic_htmx",

@@ -34,6 +34,7 @@ Here are links to documents that describe specific modules.
 * :doc:`events_overview`
 * :doc:`notifications_overview`
 * :doc:`rbac_overview`
+* :doc:`accounts_overview`
 * :doc:`rbac_ABF_Roles`
 * :doc:`forums_overview`
 * :doc:`notifications_overview`

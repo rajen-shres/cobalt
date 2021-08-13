@@ -18,8 +18,6 @@ class UserRegisterForm(UserCreationForm):
     email = forms.EmailField()
 
     class Meta:
-        """Meta data"""
-
         model = User
         fields = [
             "username",
@@ -36,12 +34,11 @@ class UserRegisterForm(UserCreationForm):
         """check system_number is valid. Don't rely on client side validation"""
 
         username = self.cleaned_data["username"]
-        if username:
-            if not system_number_available(username):
-                raise forms.ValidationError("Number invalid or in use")
-        else:
+        if not username:
             raise forms.ValidationError("System number missing")
 
+        if not system_number_available(username):
+            raise forms.ValidationError("Number invalid or in use")
         return username
 
 

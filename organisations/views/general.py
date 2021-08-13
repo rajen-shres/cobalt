@@ -6,6 +6,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
+from accounts.models import UnregisteredUser, User
 from cobalt.settings import GLOBAL_MPSERVER
 from organisations.forms import OrgFormOld
 from organisations.models import Organisation
@@ -34,20 +35,22 @@ def compare_form_with_mpc(form, club):
     # Get the data from the MPC
     club_data = get_club_data_from_masterpoints_centre(club.org_id)
 
-    # Add our own fields for warnings to the form
-    form.warnings = {}
+    if club_data:
 
-    for item in [
-        "club_email",
-        "address1",
-        "address2",
-        "postcode",
-        "club_website",
-        "suburb",
-        "name",
-    ]:
-        if form[item].value() != club_data[item]:
-            form.warnings[item] = "Warning: This value doesn't match the MPC"
+        # Add our own fields for warnings to the form
+        form.warnings = {}
+
+        for item in [
+            "club_email",
+            "address1",
+            "address2",
+            "postcode",
+            "club_website",
+            "suburb",
+            "name",
+        ]:
+            if form[item].value() != club_data[item]:
+                form.warnings[item] = "Warning: This value doesn't match the MPC"
 
     return form
 
@@ -157,3 +160,13 @@ def club_staff(user):
         .filter(model="org")
         .first()
     )
+
+
+def replace_unregistered_user_with_real_user(
+    unregistered_user: UnregisteredUser, real_user: User
+):
+    """We don't take any data across from the user, but we do update the links"""
+
+    # Call the callbacks - add later
+    print("Unregistered:", unregistered_user)
+    print("User:", real_user)

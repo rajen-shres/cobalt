@@ -126,3 +126,11 @@ So back on the server side we have:
 
 HTMX on the client side just calls this and replaces the list div with what is
 returned. It is very simple to support and very smooth for the user.
+
+Tips
+----
+
+Avoid loading JavaScript in an HTMX page that gets incorporated in
+an existing page. The results can be variable. Better to load
+static functions in the initial page and call them from the loaded
+page.
