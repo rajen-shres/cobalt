@@ -86,7 +86,7 @@ def _add_club_defaults(club: Organisation):
         organisation=club,
         name="Youth",
         description="Youth players usually pay a reduced membership fee as well as lower table fees.",
-        annual_fee=0,
+        annual_fee=25,
         does_not_renew=True,
         does_not_pay_session_fees=True,
         last_modified_by=system,
