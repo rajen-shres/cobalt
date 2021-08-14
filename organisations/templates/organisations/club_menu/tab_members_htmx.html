@@ -35,14 +35,17 @@
         </tr>
     </thead>
     <tbody>
+
         {% for cobalt_member in cobalt_members %}
             <tr>
                 <td><a href="{% url "accounts:public_profile" pk=cobalt_member.id %}" target="_blank">{{ cobalt_member.first_name }}</a></td>
                 <td><a href="{% url "accounts:public_profile" pk=cobalt_member.id %}" target="_blank">{{ cobalt_member.last_name }}</a></td>
-                <td><a href="{% url "accounts:public_profile" pk=cobalt_member.id %}" target="_blank">{{ cobalt_member.system_number }}</a></td>
+                <td><a href="{% url "accounts:public_profile" pk=cobalt_member
+                    .id %}" target="_blank">{{ cobalt_member.system_number }}</a></td>
             </tr>
         {% endfor %}
     </tbody>
+
 </table>
 
 <h3>Unregistered Users</h3>
