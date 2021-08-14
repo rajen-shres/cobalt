@@ -159,7 +159,12 @@ class UnregisteredUser(models.Model):
     )
 
     def __str__(self):
-        return f"{self.system_number}: {self.first_name} {self.last_name}"
+        return "%s (%s: %s)" % (self.full_name, GLOBAL_ORG, self.system_number)
+
+    @property
+    def full_name(self):
+        """Returns the person's full name."""
+        return "%s %s" % (self.first_name, self.last_name)
 
 
 class TeamMate(models.Model):

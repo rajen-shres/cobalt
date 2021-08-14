@@ -1,7 +1,22 @@
-<h2>Edit {{ un_reg }}</h2>
-
 {% load cobalt_tags %}
 {% load crispy_forms_tags %}
+
+<nav aria-label="breadcrumb" role="navigation">
+    <ol class="breadcrumb bg-light">
+        <li class="breadcrumb-item">
+            <a href=""
+                hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
+                hx-indicator=".htmx-indicator"
+                hx-target="#id_panel_members"
+                hx-vars="club_id:{{ club.id }}"
+            >
+                Members
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Edit Member</li>
+    </ol>
+</nav>
+
 <div class="card">
     <div class="card-body pt-0">
         <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>

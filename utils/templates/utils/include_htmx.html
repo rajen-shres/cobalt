@@ -3,9 +3,33 @@
 {#Include file for HTMX. Loads HTMX library and adds csrf token #}
 
 <script src="{% static "assets/packages/htmx-1.5.0/htmx.js" %}"></script>
+<link rel="stylesheet" href="{% static "assets/packages/growl-notification/colored-theme.min.css" %}">
+<script src="{% static "assets/packages/growl-notification/growl-notification.min.js" %}"></script>
 
 <script>
     document.body.addEventListener('htmx:configRequest', (event) => {
         event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
     });
+
+    htmx.on("htmx:responseError", function(evt) {
+        console.log(evt);
+        GrowlNotification.notify({
+            title: 'The server returned an error',
+            description: 'If this problem continues, please notify support.',
+            {#description: evt.detail.xhr.responseText,#}
+            type: 'error',
+            position: 'top-right',
+            closeTimeout: 5000
+        })
+    })
+    htmx.on("htmx:sendError", function(evt) {
+        GrowlNotification.notify({
+            title: 'Unable to talk to the server at the moment',
+            description: 'If this problem continues, please notify support.',
+            type: 'error',
+            position: 'top-right',
+            closeTimeout: 5000
+        })
+    })
+
 </script>

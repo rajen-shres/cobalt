@@ -227,9 +227,7 @@ class MemberMembershipType(models.Model):
         ("Cancelled by Club", "Cancelled by Club"),
         ("Expired", "Expired"),
     ]
-    system_number = models.IntegerField(
-        "%s Number" % GLOBAL_ORG, blank=True, unique=True
-    )
+    system_number = models.IntegerField("%s Number" % GLOBAL_ORG, blank=True)
     # member = models.ForeignKey(
     #     User, on_delete=models.PROTECT, related_name="membership_member"
     # )
