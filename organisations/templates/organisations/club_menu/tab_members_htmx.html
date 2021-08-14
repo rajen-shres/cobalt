@@ -46,7 +46,7 @@
 </table>
 
 <h3>Unregistered Users</h3>
-<table class="table table-hover">
+<table id="id_member_un_reg_table" class="table table-hover" style="display: none;">
     <thead>
         <tr>
             <th>First Name</th>
@@ -91,4 +91,37 @@
     hx-post="{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}"
     hx-indicator=".htmx-indicator"
     hx-target="#id_panel_members"
+    onClick="this.disabled=true;"
 >MPC Import</button>
+
+<script>
+    $(document).ready( function () {
+
+        // Initialise datatable - only show pagination if more than one page, sort in order, column 0
+
+        $('#id_member_un_reg_table').DataTable();
+
+        {#$('#id_member_un_reg_table').DataTable({#}
+        {#    "order": [[2, "desc"]],#}
+        {#    drawCallback: function (settings) {#}
+        {#        const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');#}
+        {#        pagination.toggle(this.api().page.info().pages > 1);#}
+        {#    }#}
+        {#bAutoWidth: false,#}
+        {#aoColumns: [#}
+        {#    {sWidth: '10%'},#}
+        {#    {sWidth: '10%'},#}
+        {#    {sWidth: '10%'},#}
+        {#    {sWidth: '10%'},#}
+        {#    {sWidth: '10%'},#}
+        {#    {sWidth: '10%'},#}
+        {#    {sWidth: '40%'}#}
+        {#]#}
+        {#});#}
+
+        // Unhide table now. This avoids the flicker
+        $('#id_member_un_reg_table').show();
+
+    });
+
+</script>

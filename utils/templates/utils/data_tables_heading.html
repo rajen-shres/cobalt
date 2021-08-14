@@ -1,0 +1,20 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "assets/packages/datatables.1.10.25/dataTables.bootstrap4.min.css" %}"/>
+<link rel="stylesheet" type="text/css" href="{% static "assets/packages/datatables.1.10.25/responsive.bootstrap4.min.css" %}"/>
+
+{#Remove arrows on tables#}
+
+<style>
+    table.dataTable thead .sorting,
+    table.dataTable thead .sorting_asc,
+    table.dataTable thead .sorting_desc {
+        background : none;
+    }
+</style>
+
+<script type="text/javascript" src="{% static "assets/packages/datatables.1.10.25/jquery.dataTables.min.js" %}"></script>
+<script type="text/javascript" src="{% static "assets/packages/datatables.1.10.25/dataTables.bootstrap4.min.js" %}"></script>
+<script type="text/javascript" src="{% static "assets/packages/datatables.1.10.25/dataTables.responsive.min.js" %}"></script>
+<script type="text/javascript" src="{% static "assets/packages/datatables.1.10.25/responsive.bootstrap4.min.js" %}"></script>
+
+
