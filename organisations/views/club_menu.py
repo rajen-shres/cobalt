@@ -428,6 +428,12 @@ def tab_congress_htmx(request):
     )
 
 
+def get_members_balance(club: Organisation):
+    """Get the total balance for members of this club"""
+
+    return 0.0
+
+
 @login_required()
 def tab_finance_htmx(request):
     """build the finance tab in club menu"""
@@ -438,10 +444,17 @@ def tab_finance_htmx(request):
 
     balance, recent_trans = get_balance_and_recent_trans_org(club)
 
+    members_balance = get_members_balance(club)
+
     return render(
         request,
         "organisations/club_menu/tab_finance_htmx.html",
-        {"club": club, "balance": balance, "recent_trans": recent_trans},
+        {
+            "club": club,
+            "balance": balance,
+            "recent_trans": recent_trans,
+            "members_balance": members_balance,
+        },
     )
 
 
