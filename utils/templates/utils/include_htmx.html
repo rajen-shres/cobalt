@@ -12,11 +12,10 @@
     });
 
     htmx.on("htmx:responseError", function(evt) {
-        console.log(evt);
+        {# TODO: Consider adding a callback to the server - will already be logged on the server side though #}
         GrowlNotification.notify({
             title: 'The server returned an error',
             description: 'If this problem continues, please notify support.',
-            {#description: evt.detail.xhr.responseText,#}
             type: 'error',
             position: 'top-right',
             closeTimeout: 5000

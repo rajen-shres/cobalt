@@ -49,9 +49,11 @@ def compare_form_with_mpc(form, club):
             "suburb",
             "name",
         ]:
-            if form[item].value() != club_data[item]:
-                form.warnings[item] = "Warning: This value doesn't match the MPC"
-
+            try:
+                if form[item].value() != club_data[item]:
+                    form.warnings[item] = "Warning: This value doesn't match the MPC"
+            except KeyError:
+                pass
     return form
 
 

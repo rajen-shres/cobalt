@@ -3,10 +3,12 @@
 
 <div class="card">
     <div class="card-header card-header-danger">
-        <h2>Members - {{ total_members|intcomma }}</h2>
+        <h2>{{ total_members|intcomma }} Members</h2>
         {% include "organisations/club_menu/tab_members_nav_htmx.html" with selected="list" %}
     </div>
     <div class="card-body">
+
+        {{ message|default_if_none:""|safe }}
 
         <div class="card-header card-header-primary py-2 my-2">
             <h3 class="my-0 py-1">{{ GLOBAL_TITLE }} Users ({{ cobalt_members.count|intcomma }})</h3>
@@ -26,7 +28,7 @@
                     </thead>
                     <tbody>
 
-                        {% for cobalt_member in cobalt_members|intcomma %}
+                        {% for cobalt_member in cobalt_members %}
                             <tr>
                                 <td><a href="{% url "accounts:public_profile" pk=cobalt_member.id %}"
                                     target="_blank">{{ cobalt_member.first_name }}</a></td>

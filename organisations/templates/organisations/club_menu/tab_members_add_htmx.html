@@ -3,7 +3,7 @@
 
 <div class="card">
     <div class="card-header card-header-danger">
-        <h2>Members - {{ total_members|intcomma }}</h2>
+        <h2>{{ total_members|intcomma }} Members</h2>
         {% include "organisations/club_menu/tab_members_nav_htmx.html" with selected="add" %}
     </div>
     <div class="card-body">

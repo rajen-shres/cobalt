@@ -36,6 +36,7 @@ from organisations.views.general import (
     compare_form_with_mpc,
 )
 from payments.core import get_balance_and_recent_trans_org
+from payments.models import MemberTransaction
 from rbac.core import (
     rbac_get_group_by_name,
     rbac_get_users_in_group,
@@ -434,7 +435,24 @@ def tab_congress_htmx(request):
 def get_members_balance(club: Organisation):
     """Get the total balance for members of this club"""
 
-    return 0.0
+    member_list = MemberMembershipType.objects.filter(
+        membership_type__organisation=club
+    ).values("system_number")
+
+    member_balances = (
+        MemberTransaction.objects.filter(member__system_number__in=member_list)
+        .filter(balance__gte=0)
+        .order_by("member", "-created_date", "balance")
+        .distinct("member")
+        .values_list("balance")
+    )
+
+    total_balance = 0.0
+
+    for item in member_balances:
+        total_balance += float(item[0])
+
+    return total_balance
 
 
 @login_required()
@@ -462,7 +480,7 @@ def tab_finance_htmx(request):
 
 
 @login_required()
-def tab_members_list_htmx(request):
+def tab_members_list_htmx(request, message=None):
     """build the members tab in club menu"""
 
     status, error_page, club = _tab_is_okay(request)
@@ -498,6 +516,7 @@ def tab_members_list_htmx(request):
             "cobalt_members": cobalt_members,
             "unregistered_members": unregistered_members,
             "total_members": total_members,
+            "message": message,
         },
     )
 
@@ -1025,8 +1044,9 @@ def club_menu_tab_members_import_mpc_htmx(request):
         club, member_data, request.user, "MPC"
     )
 
-    return HttpResponse(
-        f"<p>added users: {added_users}</p><p>added unregistered users: {added_unregistered_users}</p>"
+    return tab_members_list_htmx(
+        request,
+        f"<p>added users: {added_users}</p><p>added unregistered users: {added_unregistered_users}</p>",
     )
 
 
