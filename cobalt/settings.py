@@ -55,7 +55,6 @@ DEBUG = set_value("DEBUG", False)
 ADMINS = [
     ("Mark Guthrie", "m@rkguthrie.com"),
     ("Julian Foster", "julianrfoster@gmail.com"),
-    ("Jane Rasmussen", "jane.rasmussen@abf.com.au"),
 ]
 
 # Fix later
