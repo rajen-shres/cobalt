@@ -116,8 +116,22 @@ def _menu_rbac_advanced_is_admin(club, user):
     if user in admins:
         return True
 
-    # Check for higher level accees
+    # Check for higher level access
     return _user_is_uber_admin(club, user)
+
+
+def _member_count(club, reference_date=None):
+    """Get member count for club with optional ref date"""
+
+    if not reference_date:
+        reference_date = timezone.now()
+
+    return (
+        MemberMembershipType.objects.filter(membership_type__organisation=club)
+        .filter(start_date__lte=reference_date)
+        .filter(Q(end_date__gte=reference_date) | Q(end_date=None))
+        .count()
+    )
 
 
 def access_basic(request, club):  # sourcery skip: list-comprehension
@@ -357,22 +371,11 @@ def tab_dashboard_htmx(request):
         return error_page
 
     # Get members active now
-    now = timezone.now()
-    member_count = (
-        MemberMembershipType.objects.filter(membership_type__organisation=club)
-        .filter(start_date__lte=now)
-        .filter(Q(end_date__gte=now) | Q(end_date=None))
-        .count()
-    )
+    member_count = _member_count(club)
 
     # Gets members active 28 days ago
     past = timezone.now() - datetime.timedelta(days=28)
-    member_count_before = (
-        MemberMembershipType.objects.filter(membership_type__organisation=club)
-        .filter(start_date__lte=past)
-        .filter(Q(end_date__gte=past) | Q(end_date=None))
-        .count()
-    )
+    member_count_before = _member_count(club, past)
 
     diff = member_count - member_count_before
     diff_28_days = "No change" if diff == 0 else "{0:+d}".format(diff)
@@ -459,7 +462,7 @@ def tab_finance_htmx(request):
 
 
 @login_required()
-def tab_members_htmx(request):
+def tab_members_list_htmx(request):
     """build the members tab in club menu"""
 
     status, error_page, club = _tab_is_okay(request)
@@ -489,11 +492,31 @@ def tab_members_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/tab_members_htmx.html",
+        "organisations/club_menu/tab_members_list_htmx.html",
         {
             "club": club,
             "cobalt_members": cobalt_members,
             "unregistered_members": unregistered_members,
+            "total_members": total_members,
+        },
+    )
+
+
+@login_required()
+def tab_members_add_htmx(request):
+    """add members tab"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    total_members = _member_count(club)
+
+    return render(
+        request,
+        "organisations/club_menu/tab_members_add_htmx.html",
+        {
+            "club": club,
             "total_members": total_members,
         },
     )
@@ -944,7 +967,7 @@ def club_menu_tab_members_upload_csv_htmx(request):
     """Upload CSV"""
 
     if request.method == "GET":
-        return render(request, "organisations/club_menu/tab_members_htmx.html")
+        return render(request, "organisations/club_menu/tab_members_list_htmx.html")
     # if not GET, then proceed
     try:
         csv_file = request.FILES["csv_file"]
@@ -1007,6 +1030,29 @@ def club_menu_tab_members_import_mpc_htmx(request):
     )
 
 
+def process_member_import_add_member_to_membership(
+    club: Organisation,
+    club_member: dict,
+    user: User,
+    default_membership: MembershipType,
+):
+    """Sub process to add a member to the member-membership model. Returns 0 if already there or 1"""
+
+    # Check if already there
+    member_membership = MemberMembershipType.objects.filter(
+        system_number=club_member["system_number"]
+    ).filter(membership_type__organisation=club)
+    if member_membership:
+        return 0
+    else:
+        MemberMembershipType(
+            membership_type=default_membership,
+            system_number=club_member["system_number"],
+            last_modified_by=user,
+        ).save()
+        return 1
+
+
 def process_member_import(
     club: Organisation, member_data: list, user: User, origin: str
 ):
@@ -1029,9 +1075,10 @@ def process_member_import(
         ).first()
 
         if user_match:
-            added_users += 1
+            added_users += process_member_import_add_member_to_membership(
+                club, club_member, user, default_membership
+            )
         else:
-            added_unregistered_users += 1
             # See if we have an unregistered user already
             un_reg = UnregisteredUser.objects.filter(
                 system_number=club_member["system_number"]
@@ -1049,11 +1096,8 @@ def process_member_import(
                     last_updated_by=user,
                 ).save()
 
-        # Add system number to membership type
-        MemberMembershipType(
-            membership_type=default_membership,
-            system_number=club_member["system_number"],
-            last_modified_by=user,
-        ).save()
+            added_unregistered_users += process_member_import_add_member_to_membership(
+                club, club_member, user, default_membership
+            )
 
     return added_users, added_unregistered_users

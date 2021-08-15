@@ -1,0 +1,22 @@
+{% load humanize %}
+{% load cobalt_tags %}
+
+<div class="card">
+    <div class="card-header card-header-danger">
+        <h2>Members - {{ total_members|intcomma }}</h2>
+        {% include "organisations/club_menu/tab_members_nav_htmx.html" with selected="add" %}
+    </div>
+    <div class="card-body">
+        <button class="btn bg-primary"
+            hx-post="{% url "organisations:club_menu_tab_members_upload_csv" %}"
+            hx-indicator=".htmx-indicator"
+            hx-target="#id_panel_members"
+        >Pianola Upload</button>
+
+        <button class="btn bg-primary"
+            hx-post="{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}"
+            hx-indicator=".htmx-indicator"
+            hx-target="#id_panel_members"
+            onClick="this.disabled=true;"
+        >MPC Import</button>
+    </div>

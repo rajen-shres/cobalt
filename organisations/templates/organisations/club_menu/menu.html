@@ -165,6 +165,8 @@
                 // allow auto refresh using auto-refresh class
                 // only auto-refresh if another tab could have changed our values
                 if (panel.html().length === 0 || tab.hasClass('auto-refresh')) {
+                    // empty page before we reload
+                    panel.html("Loading...");
                     htmx.trigger(htmx.find(panel_id), "tab_load_event");
                 }
             })

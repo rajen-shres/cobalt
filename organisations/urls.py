@@ -118,8 +118,13 @@ urlpatterns = [
     ),
     path(
         "club-menu/tabs/members",
-        club_menu.tab_members_htmx,
+        club_menu.tab_members_list_htmx,
         name="club_menu_tab_members_htmx",
+    ),
+    path(
+        "club-menu/tabs/members/add",
+        club_menu.tab_members_add_htmx,
+        name="club_menu_tab_members_add_htmx",
     ),
     path(
         "club-menu/tabs/results",
