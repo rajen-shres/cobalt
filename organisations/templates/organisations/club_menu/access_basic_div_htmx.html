@@ -7,6 +7,8 @@ administrator (able to grant access to others). This is the recommended configur
 
 <a href="{% url "organisations:admin_club_rbac" club_id=club.id %}">Change RBAC Set Up</a>
 
+<h3 class="font-weight-bold" style="color: red">{{ message|default_if_none:"" }}</h3>
+
 <h3>Admin Rights</h3>
 
 <ul>

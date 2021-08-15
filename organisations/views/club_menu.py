@@ -135,7 +135,7 @@ def _member_count(club, reference_date=None):
     )
 
 
-def access_basic(request, club):  # sourcery skip: list-comprehension
+def access_basic(request, club, message=None):  # sourcery skip: list-comprehension
     """Do the work for the Access tab on the club menu for basic RBAC."""
 
     group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
@@ -157,7 +157,13 @@ def access_basic(request, club):  # sourcery skip: list-comprehension
     return render(
         request,
         "organisations/club_menu/access_basic.html",
-        {"club": club, "setup": "basic", "users": users, "roles": roles},
+        {
+            "club": club,
+            "setup": "basic",
+            "users": users,
+            "roles": roles,
+            "message": message,
+        },
     )
 
 
@@ -379,7 +385,7 @@ def tab_dashboard_htmx(request):
     member_count_before = _member_count(club, past)
 
     diff = member_count - member_count_before
-    diff_28_days = "No change" if diff == 0 else "{0:+d}".format(diff)
+    diff_28_days = "No change" if diff == 0 else f"{diff:+,}"
     congress_count = Congress.objects.filter(congress_master__org=club).count()
     staff_count = (
         RBACUserGroup.objects.filter(group__rbacgrouprole__model_id=club.id)
@@ -903,6 +909,11 @@ def access_basic_delete_user_htmx(request, club_id, user_id):
         return rbac_forbidden(request, role)
 
     group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
+
+    # Check for last user
+    if rbac_get_users_in_group(group).count() == 1:
+        return access_basic(request, club, "Cannot remove last administrator")
+
     rbac_remove_user_from_group(user, group)
 
     # Also remove admin
@@ -1046,7 +1057,7 @@ def club_menu_tab_members_import_mpc_htmx(request):
 
     return tab_members_list_htmx(
         request,
-        f"<p>added users: {added_users}</p><p>added unregistered users: {added_unregistered_users}</p>",
+        f"<h3>Added users: {added_users}</h3><h3>Added unregistered users: {added_unregistered_users}</h3>",
     )
 
 

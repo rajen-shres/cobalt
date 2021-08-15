@@ -103,3 +103,9 @@ img.cobalt-rounded {
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* turn cursor to wait */
+/* CSS */
+.cursor_wait {
+  cursor: wait
+}

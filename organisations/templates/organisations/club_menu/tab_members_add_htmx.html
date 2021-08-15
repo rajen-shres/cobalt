@@ -1,9 +1,9 @@
 {% load humanize %}
 {% load cobalt_tags %}
 
-<div class="card">
+<div class="card" style="min-height: 800px; height: auto">
     <div class="card-header card-header-danger">
-        <h2>{{ total_members|intcomma }} Members</h2>
+        <h2>{{ total_members|intcomma }} Member{{ total_members|pluralize }}</h2>
         {% include "organisations/club_menu/tab_members_nav_htmx.html" with selected="add" %}
     </div>
     <div class="card-body">
@@ -18,7 +18,7 @@
                             onClick="this.disabled=true;"
                         >Add Manually</button>
                     </td>
-                    <td>
+                    <td class="text-left pl-5">
                         Add member details manually
                     </td>
                 </tr>
@@ -28,10 +28,10 @@
                             hx-post="{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}"
                             hx-indicator=".htmx-indicator"
                             hx-target="#id_panel_members"
-                            onClick="this.disabled=true;"
+                            onClick="$(':button').prop('disabled', true);$('#id_panel_members').addClass('cursor_wait');"
                         >MPC Import</button>
                     </td>
-                    <td>
+                    <td class="text-left pl-5">
                         Import members directly from the Masterpoints Centre
                     </td>
                 </tr>
@@ -43,8 +43,20 @@
                             hx-target="#id_panel_members"
                         >Pianola Upload</button>
                     </td>
-                    <td>
+                    <td class="text-left pl-5">
                         Export your member list from Pianola and upload here
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button class="btn bg-primary btn-block"
+                            hx-post="{% url "organisations:club_menu_tab_members_upload_csv" %}"
+                            hx-indicator=".htmx-indicator"
+                            hx-target="#id_panel_members"
+                        >CSV Upload</button>
+                    </td>
+                    <td class="text-left pl-5">
+                        Upload your member details from a CSV file
                     </td>
                 </tr>
             </tbody>
