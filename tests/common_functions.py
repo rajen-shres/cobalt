@@ -8,7 +8,7 @@ def cobalt_htmx_user_search(
     manager: CobaltTestManager,
     search_button_id: str,
     user_system_id: str,
-    search_id: str = None,
+    search_id="",
 ):
     """Drive Cobalt HTMX user search to add a user
 

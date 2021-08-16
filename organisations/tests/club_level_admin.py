@@ -118,7 +118,7 @@ class ClubLevelAdmin:
             manager=self.manager,
             search_button_id="id_search_button",
             user_system_id="104",
-            search_id=None,
+            search_id="",
         )
 
         # Check Eric is there
@@ -143,7 +143,7 @@ class ClubLevelAdmin:
             manager=self.manager,
             search_button_id="id_search_button",
             user_system_id="105",
-            search_id=None,
+            search_id="",
         )
 
         # Check Fiona is there
@@ -290,6 +290,14 @@ class ClubLevelAdmin:
             search_id="payments_view",
         )
 
+        self.manager.save_results(
+            status=True,
+            test_name="Colin adds Fiona to Payments View",
+            test_description=f"Colin uses the search to add Fiona as an user to payments view "
+            f"for {club_names[SUNSHINE_ID]}",
+            output="This seemed to work. True",
+        )
+
         # Login as Fiona and check tabs
         self.manager.login_test_client(self.manager.fiona)
 
@@ -309,8 +317,8 @@ class ClubLevelAdmin:
             manager=self.manager,
             expected_tabs=expected_tabs,
             test_name=f"Check tabs for Fiona for {club_names[SUNSHINE_ID]}",
-            test_description=f"Go to the club menu page for {club_names[SUNSHINE_ID]} "
-            f"(org_id={SUNSHINE_ID}) as Fiona. Check tabs are {expected_tabs}",
+            test_description=f"Login as Fiona and go to the club menu page for {club_names[SUNSHINE_ID]} "
+            f"(org_id={SUNSHINE_ID})Check tabs are {expected_tabs}",
         )
 
 
