@@ -308,7 +308,9 @@ def _notify_staff_common(
         },
     )
 
-    send_cobalt_email(email, subject, html_msg, member=ticket.assigned_to)
+    send_cobalt_email(
+        ticket.assigned_to.email, subject, html_msg, member=ticket.assigned_to
+    )
 
 
 def _notify_staff_assigned_to_ticket(request, ticket):

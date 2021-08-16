@@ -149,12 +149,13 @@ def register(request):
         )
         to_email = form.cleaned_data.get("email")
         send_cobalt_email(to_email, mail_subject, message)
+
+        # Check if we have a matching UnregisteredUser object and copy data across
+        _check_unregistered_user_match(user)
+
         return render(
             request, "accounts/register_complete.html", {"email_address": to_email}
         )
-
-    # Check if we have a matching UnregisteredUser object and copy data across
-    _check_unregistered_user_match(user)
 
     return render(request, "accounts/register.html", {"user_form": form})
 
