@@ -118,6 +118,7 @@ class ClubLevelAdmin:
             manager=self.manager,
             search_button_id="id_search_button",
             user_system_id="104",
+            search_id=None,
         )
 
         # Check Eric is there
@@ -142,6 +143,7 @@ class ClubLevelAdmin:
             manager=self.manager,
             search_button_id="id_search_button",
             user_system_id="105",
+            search_id=None,
         )
 
         # Check Fiona is there
@@ -283,8 +285,9 @@ class ClubLevelAdmin:
         # Use search to add Fiona
         cobalt_htmx_user_search(
             manager=self.manager,
-            search_button_id="id_access_advanced_add_payments_views",
+            search_button_id="id_access_advanced_add_payments_view",
             user_system_id="105",
+            search_id="payments_view",
         )
 
         # Login as Fiona and check tabs

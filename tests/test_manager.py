@@ -20,7 +20,7 @@ setup_test_environment()
 
 # List of tests to run format is "class": "location"
 LIST_OF_TESTS = {
-    #    "MemberTransfer": "payments.tests.member_actions",
+    "MemberTransfer": "payments.tests.member_actions",
     "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
     "ClubLevelAdmin": "organisations.tests.club_level_admin",
 }

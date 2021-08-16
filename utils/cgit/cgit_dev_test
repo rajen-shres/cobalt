@@ -58,12 +58,13 @@ psql test < ~/test.db >/dev/null
   open . ~/Development/c2/cobalt/utils/cgit/tools/test_manage_short.terminal
   open . ~/Development/c2/cobalt/utils/cgit/tools/test_stripe_short.terminal
 
-  if [ $# -lt 2 ]
-  then
   sleep 3
   echo "Starting..."
+
+  if [ $# -lt 2 ]
+  then
   ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
   else
-    echo "./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true"
+  ./manage.py run_tests --base_url http://127.0.0.1:$PORT
   fi
 fi

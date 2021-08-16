@@ -61,7 +61,7 @@
                             </div>
                             <div class="col-4 form-group text-right">
                                 <button class="btn btn-sm bt-warning"
-                                    id="id_button_system_number_search"
+                                    id="id_button_system_number_search{{ search_id }}"
                                     hx-post="{% url "accounts:system_number_search_htmx" %}"
                                     hx-target="#name-matches{{ search_id }}"
                                     hx-indicator=".htmx-indicator"
