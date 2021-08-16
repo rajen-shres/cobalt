@@ -141,10 +141,10 @@ def set_rbac_status_as_user(
     club = Organisation.objects.filter(org_id=club_org_id).first()
 
     if new_status == "Advanced":
-        url_string = "organisations:admin_club_rbac_add_advanced"
+        url_string = "organisations:admin_club_rbac_convert_basic_to_advanced"
 
     elif new_status == "Basic":
-        url_string = "organisations:admin_club_rbac_add_basic"
+        url_string = "organisations:admin_club_rbac_convert_advanced_to_basic"
 
     url = reverse(url_string, kwargs={"club_id": club.id})
 
@@ -243,11 +243,7 @@ def access_club_menu(
     # Check for club
     ok = club_name[0].text == expected_club_name if len(club_name) > 0 else False
 
-    if reverse_result:
-        new_ok = not ok
-    else:
-        new_ok = ok
-
+    new_ok = not ok if reverse_result else ok
     manager.save_results(
         status=new_ok,
         test_name=test_name,
@@ -316,9 +312,13 @@ def club_menu_go_to_tab(
     """
 
     # Click on tab
-    manager.driver.find_element_by_css_selector(
+    tabs = manager.driver.find_elements_by_css_selector(
         f"#id_tab_{tab} > .material-icons"
-    ).click()
+    )
+    if tabs:
+        tabs[0].click()
+    else:
+        print("ERROR - CANNOT FIND TAB")
 
     # Confirm
     tab_heading = manager.driver.find_elements_by_id("t_tab_heading")
@@ -334,5 +334,43 @@ def club_menu_go_to_tab(
         status=ok,
         test_name=test_name,
         output=f"Clicked on tab {tab}. Checked if t_tab_heading={title}. Actual value: {tab_title}. {ok}.",
+        test_description=test_description,
+    )
+
+
+def access_finance_for_club(
+    manager: CobaltTestManager,
+    club: Organisation,
+    user: User,
+    test_name: str,
+    test_description: str,
+    reverse_result=False,
+):
+    """Common function to move to the Access tab
+
+        Initial Selenium State: On any tab of Club Menu
+        Final Selenium State: On Access tab of Club Menu
+
+    Args:
+        manager: test_manager.Manager object for interacting with system
+        club: club to check for
+        user: User to use for test
+        test_description: long description of test
+        test_name: name of test
+        reverse_result: for tests that should fail
+    """
+
+    url = reverse("payments:statement_org", kwargs={"org_id": club.id})
+
+    response = manager.client.get(url)
+
+    ret = "org" in response.context
+
+    ok = not ret if reverse_result else ret
+
+    manager.save_results(
+        status=ok,
+        test_name=test_name,
+        output=f"Accessed Org Statement for {club} as {user.first_name}. Successful: {ret}. Was this expected: {ok}",
         test_description=test_description,
     )

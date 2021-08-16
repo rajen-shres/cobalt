@@ -7,6 +7,7 @@ from organisations.tests.common_functions import (
     access_club_menu,
     club_menu_items,
     club_menu_go_to_tab,
+    access_finance_for_club,
 )
 from tests.common_functions import cobalt_htmx_user_search
 from tests.test_manager import CobaltTestManager
@@ -82,6 +83,8 @@ class ClubLevelAdmin:
             "id_tab_comms",
             "id_tab_access",
             "id_tab_settings",
+            "id_tab_finance",
+            "id_tab_forums",
         ]
 
         club_menu_items(
@@ -186,6 +189,51 @@ class ClubLevelAdmin:
             test_description=f"Debbie goes to Access tab for {club_names[TRUMPS_ID]} and deletes Fiona "
             f"as an Admin using Basic RBAC. We then look for Fiona to "
             f"appear on the page.",
+        )
+
+        expected_tabs = [
+            "id_tab_dashboard",
+            "id_tab_members",
+            "id_tab_congress",
+            "id_tab_results",
+            "id_tab_comms",
+            "id_tab_access",
+            "id_tab_settings",
+            "id_tab_finance",
+            "id_tab_forums",
+        ]
+
+        club_menu_items(
+            manager=self.manager,
+            expected_tabs=expected_tabs,
+            test_name=f"Check tabs for Eric for {club_names[TRUMPS_ID]}",
+            test_description=f"Go to the club menu page for {club_names[TRUMPS_ID]} "
+            f"(org_id={TRUMPS_ID}) as Eric. Check tabs are {expected_tabs}",
+        )
+
+        # Access Finance info for Trumps as Alan
+
+        trumps = Organisation.objects.filter(org_id=TRUMPS_ID).first()
+
+        access_finance_for_club(
+            manager=self.manager,
+            club=trumps,
+            user=self.manager.colin,
+            test_name=f"Access finance info for {trumps} as Colin",
+            test_description=f"Colin tries to access the club bank statement for {trumps}. This should fail "
+            f"as he doesn't have access to it.",
+            reverse_result=True,
+        )
+        # Access Finance info for Trumps as Eric
+
+        access_finance_for_club(
+            manager=self.manager,
+            club=trumps,
+            user=self.manager.eric,
+            test_name=f"Access finance info for {trumps} as Eric",
+            test_description=f"Eric tries to access the club bank statement for {trumps}. This should work "
+            f"as he has access to it.",
+            reverse_result=False,
         )
 
 

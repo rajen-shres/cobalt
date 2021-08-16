@@ -93,6 +93,8 @@
 	<string>test_stripe</string>
 	<key>rowCount</key>
 	<integer>20</integer>
+	<key>shellExitAction</key>
+	<integer>0</integer>
 	<key>type</key>
 	<string>Window Settings</string>
 </dict>

@@ -51,6 +51,7 @@ class OrgHighLevelAdmin:
         self.betty = self.manager.get_user("101")
         self.colin = self.manager.get_user("102")
         self.debbie = self.manager.get_user("103")
+        self.eric = self.manager.get_user("104")
 
     def a1_admin_add_club(self):
 
@@ -140,6 +141,7 @@ class OrgHighLevelAdmin:
         view_data["org_id"] = SUNSHINE_ID
         view_data["state"] = "QLD"
         view_data["name"] = club_names[SUNSHINE_ID]
+        view_data["secretary"] = self.eric.id
         add_club(self.manager, self.colin, view_data)
 
         # Betty add a club - should fail
@@ -154,66 +156,66 @@ class OrgHighLevelAdmin:
     def a2_admin_change_rbac_configuration(self):
         """Changing RBAC configuration for a club"""
 
-        # Check initial state
-        confirm_club_rbac_status(
-            self.manager,
-            CANBERRA_ID,
-            "Not Set Up",
-            f"Check {club_names[CANBERRA_ID]} not set up",
-            "Before we start, check that RBAC is not set up for this club",
-        )
-        confirm_club_rbac_status(
-            self.manager,
-            TRUMPS_ID,
-            "Not Set Up",
-            f"Check {club_names[TRUMPS_ID]} not set up",
-            "Before we start, check that RBAC is not set up for this club",
-        )
-        confirm_club_rbac_status(
-            self.manager,
-            SUNSHINE_ID,
-            "Not Set Up",
-            f"Check {club_names[SUNSHINE_ID]} not set up",
-            "Before we start, check that RBAC is not set up for this club",
-        )
-
-        # Try some that shouldn't work
-
-        # Betty - Sunshine - Basic = No
-        set_rbac_status_as_user(
-            manager=self.manager,
-            user=self.betty,
-            club_org_id=SUNSHINE_ID,
-            new_status="Basic",
-            test_name="Check Betty can't change RBAC status to Basic for another state's club",
-            test_description=f"""Betty tries to change RBAC status for {club_names[SUNSHINE_ID]}
-                                 from unset to Basic. Should fail.""",
-            reverse_result=True,
-        )
-
-        # Colin - Trumps - Basic = No
-        set_rbac_status_as_user(
-            manager=self.manager,
-            user=self.colin,
-            club_org_id=TRUMPS_ID,
-            new_status="Basic",
-            test_name="Check Colin can't change RBAC status to Basic for another state's club",
-            test_description=f"Colin tries to change RBAC status for {club_names[TRUMPS_ID]} from unset to Basic. Should fail.",
-            reverse_result=True,
-        )
-
-        # Debbie - Canberra - Basic = No
-        set_rbac_status_as_user(
-            manager=self.manager,
-            user=self.debbie,
-            club_org_id=CANBERRA_ID,
-            new_status="Basic",
-            test_name="Check Debbie can't change RBAC status to Basic for a club despite being secretary",
-            test_description=f"""Debbie tries to change RBAC status for {club_names[CANBERRA_ID]}
-                                 from unset to Basic. Should fail. Debbie is the club secretary, but we haven't given
-                                 her any RBAC access yet.""",
-            reverse_result=True,
-        )
+        # # Check initial state
+        # confirm_club_rbac_status(
+        #     self.manager,
+        #     CANBERRA_ID,
+        #     "Not Set Up",
+        #     f"Check {club_names[CANBERRA_ID]} not set up",
+        #     "Before we start, check that RBAC is not set up for this club",
+        # )
+        # confirm_club_rbac_status(
+        #     self.manager,
+        #     TRUMPS_ID,
+        #     "Not Set Up",
+        #     f"Check {club_names[TRUMPS_ID]} not set up",
+        #     "Before we start, check that RBAC is not set up for this club",
+        # )
+        # confirm_club_rbac_status(
+        #     self.manager,
+        #     SUNSHINE_ID,
+        #     "Not Set Up",
+        #     f"Check {club_names[SUNSHINE_ID]} not set up",
+        #     "Before we start, check that RBAC is not set up for this club",
+        # )
+        #
+        # # Try some that shouldn't work
+        #
+        # # Betty - Sunshine - Basic = No
+        # set_rbac_status_as_user(
+        #     manager=self.manager,
+        #     user=self.betty,
+        #     club_org_id=SUNSHINE_ID,
+        #     new_status="Basic",
+        #     test_name="Check Betty can't change RBAC status to Basic for another state's club",
+        #     test_description=f"""Betty tries to change RBAC status for {club_names[SUNSHINE_ID]}
+        #                          from unset to Basic. Should fail.""",
+        #     reverse_result=True,
+        # )
+        #
+        # # Colin - Trumps - Basic = No
+        # set_rbac_status_as_user(
+        #     manager=self.manager,
+        #     user=self.colin,
+        #     club_org_id=TRUMPS_ID,
+        #     new_status="Basic",
+        #     test_name="Check Colin can't change RBAC status to Basic for another state's club",
+        #     test_description=f"Colin tries to change RBAC status for {club_names[TRUMPS_ID]} from unset to Basic. Should fail.",
+        #     reverse_result=True,
+        # )
+        #
+        # # Debbie - Canberra - Basic = No
+        # set_rbac_status_as_user(
+        #     manager=self.manager,
+        #     user=self.debbie,
+        #     club_org_id=CANBERRA_ID,
+        #     new_status="Basic",
+        #     test_name="Check Debbie can't change RBAC status to Basic for a club despite being secretary",
+        #     test_description=f"""Debbie tries to change RBAC status for {club_names[CANBERRA_ID]}
+        #                          from unset to Basic. Should fail. Debbie is the club secretary, but we haven't given
+        #                          her any RBAC access yet.""",
+        #     reverse_result=True,
+        # )
 
         # Betty - Sunshine - Advanced = No
         set_rbac_status_as_user(
@@ -259,7 +261,7 @@ class OrgHighLevelAdmin:
             new_status="Advanced",
             test_name="Check Colin can change RBAC status to Advanced for a Club in his state.",
             test_description=f"""Colin tries to change RBAC status for {club_names[SUNSHINE_ID]}
-                                 from unset to Advanced. Should work.""",
+                                 from Basic to Advanced. Should work.""",
             reverse_result=False,
         )
 
@@ -324,7 +326,21 @@ class OrgHighLevelAdmin:
             test_name="Check Debbie (club secretary) can change RBAC status to Basic from Advanced "
             "for a Club she has RBAC rights to.",
             test_description=f"""Debbie tries to change RBAC status for {club_names[TRUMPS_ID]}
-                                 from Advanced to Basic. As she is the club admin she will have been added to the
+                                 from Advanced to Basic. As she is the club secretary she will have been added to the
                                  RBAC groups now and this should work.""",
             reverse_result=False,
+        )
+
+        # Debbie - Sunshine - To Basic = No
+        change_rbac_status_as_user(
+            manager=self.manager,
+            user=self.debbie,
+            club_org_id=SUNSHINE_ID,
+            new_status="Advanced",
+            test_name="Check Debbie (not club secretary) can't change RBAC status to Advanced from Basic "
+            "for a Club she doesn't have RBAC rights to.",
+            test_description=f"""Debbie tries to change RBAC status for {club_names[SUNSHINE_ID]}
+                                 from Advanced to Basic. As she is not the club secretary(Eric) she will not have
+                                 been added to the RBAC groups now and this should not work.""",
+            reverse_result=True,
         )
