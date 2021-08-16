@@ -42,7 +42,7 @@
                         </div>
                         <span class="cobalt-form-error">{{ errors|cobalt_dict_key:action }}</span>
                         {% include "accounts/user_search_include_htmx.html" with search_id=action include_me='yes' %}
-                        <button type="button" {{ disable_buttons }} class="btn btn-info mt-auto" data-toggle="modal" data-target="#userSearchModal{{ action }}">Add Staff</button>
+                        <button id="id_access_advanced_add_{{ action }} "type="button" {{ disable_buttons }} class="btn btn-info mt-auto" data-toggle="modal" data-target="#userSearchModal{{ action }}">Add Staff</button>
                     </div>
                 </div>
             </div>

@@ -2,6 +2,7 @@
     Common functions for organisations.
 """
 import time
+from pprint import pprint
 
 from django.urls import reverse
 
@@ -348,8 +349,8 @@ def access_finance_for_club(
 ):
     """Common function to move to the Access tab
 
-        Initial Selenium State: On any tab of Club Menu
-        Final Selenium State: On Access tab of Club Menu
+        Initial Selenium State: Doesn't matter
+        Final Selenium State: On Organisation Statement logged in as User
 
     Args:
         manager: test_manager.Manager object for interacting with system
@@ -360,10 +361,16 @@ def access_finance_for_club(
         reverse_result: for tests that should fail
     """
 
+    # Get URL for payments statement for this org
     url = reverse("payments:statement_org", kwargs={"org_id": club.id})
 
+    # login the user
+    manager.login_test_client(user)
+
+    # Get page
     response = manager.client.get(url)
 
+    # Look for Org in context to see if we got there
     ret = "org" in response.context
 
     ok = not ret if reverse_result else ret

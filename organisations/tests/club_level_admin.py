@@ -1,13 +1,16 @@
 import time
 
+from django.urls import reverse
 from selenium.common.exceptions import StaleElementReferenceException
 
+from accounts.tests.common_functions import register_user
 from organisations.models import Organisation
 from organisations.tests.common_functions import (
     access_club_menu,
     club_menu_items,
     club_menu_go_to_tab,
     access_finance_for_club,
+    set_rbac_status_as_user,
 )
 from tests.common_functions import cobalt_htmx_user_search
 from tests.test_manager import CobaltTestManager
@@ -224,6 +227,7 @@ class ClubLevelAdmin:
             f"as he doesn't have access to it.",
             reverse_result=True,
         )
+
         # Access Finance info for Trumps as Eric
 
         access_finance_for_club(
@@ -234,6 +238,76 @@ class ClubLevelAdmin:
             test_description=f"Eric tries to access the club bank statement for {trumps}. This should work "
             f"as he has access to it.",
             reverse_result=False,
+        )
+
+        # Register a user
+        register_user(self.manager, "620254")
+
+    def a3_rbac_advanced_user_admin(self):
+        """user admin tests for advanced RBAC"""
+
+        # Advanced users - check tabs
+        self.manager.login_user(self.manager.colin)
+
+        # We need an advanced RBAC club but stupid Colin changed his, change it back
+        # Colin - Sunshine - Advanced = Yes
+        set_rbac_status_as_user(
+            manager=self.manager,
+            user=self.manager.colin,
+            club_org_id=SUNSHINE_ID,
+            new_status="Advanced",
+            test_name="Re-Check Colin can change RBAC status to Advanced for a Club in his state.",
+            test_description=f"""Colin tries to change RBAC status for {club_names[SUNSHINE_ID]}
+                                 from Basic to Advanced. Should work. We already tested this but we need
+                                 it changed to advanced for the next tests.""",
+            reverse_result=False,
+        )
+
+        # Go to club menu
+        club = Organisation.objects.filter(org_id=SUNSHINE_ID).first()
+        url = self.manager.base_url + reverse(
+            "organisations:club_menu", kwargs={"club_id": club.id}
+        )
+        self.manager.driver.get(url)
+
+        # Go to Access tab
+        club_menu_go_to_tab(
+            manager=self.manager,
+            tab="access",
+            title="Staff Access",
+            test_name=f"Go to Access tab as Colin for {club_names[SUNSHINE_ID]}",
+            test_description="Starting from the dashboard of Club Menu we click on the Access tab "
+            "and confirm that we get there.",
+        )
+
+        # Use search to add Fiona
+        cobalt_htmx_user_search(
+            manager=self.manager,
+            search_button_id="id_access_advanced_add_payments_views",
+            user_system_id="105",
+        )
+
+        # Login as Fiona and check tabs
+        self.manager.login_test_client(self.manager.fiona)
+
+        expected_tabs = [
+            "id_tab_dashboard",
+            "id_tab_members",
+            "id_tab_congress",
+            "id_tab_results",
+            "id_tab_comms",
+            "id_tab_access",
+            "id_tab_settings",
+            "id_tab_finance",
+            "id_tab_forums",
+        ]
+
+        club_menu_items(
+            manager=self.manager,
+            expected_tabs=expected_tabs,
+            test_name=f"Check tabs for Fiona for {club_names[SUNSHINE_ID]}",
+            test_description=f"Go to the club menu page for {club_names[SUNSHINE_ID]} "
+            f"(org_id={SUNSHINE_ID}) as Fiona. Check tabs are {expected_tabs}",
         )
 
 
