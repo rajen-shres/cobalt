@@ -77,7 +77,7 @@
                 </div>
                 <span class="cobalt-form-error">{{ errors.admin }}</span>
                 {% include "accounts/user_search_include_htmx.html" with search_id="admin" %}
-                <button type="button" {{ disable_buttons }} class="btn btn-warning mt-auto" data-toggle="modal" data-target="#userSearchModaladmin">Add Administrator</button>
+                <button type="button" id="id_add_administrator" {{ disable_buttons }} class="btn btn-warning mt-auto" data-toggle="modal" data-target="#userSearchModaladmin">Add Administrator</button>
             </div>
         </div>
     </div>

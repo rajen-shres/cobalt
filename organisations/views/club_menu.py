@@ -289,7 +289,7 @@ def club_menu(request, club_id):
 
     # Check if we show the finance tab
     show_finance = uber_admin or rbac_user_has_role(
-        request.user, f"orgs.org.{club.id}.edit"
+        request.user, f"payments.manage.{club.id}.view"
     )
     # Check if we show the congress tab
     show_congress = uber_admin or rbac_user_has_role(

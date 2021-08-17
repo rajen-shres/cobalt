@@ -20,9 +20,10 @@ setup_test_environment()
 
 # List of tests to run format is "class": "location"
 LIST_OF_TESTS = {
-    "MemberTransfer": "payments.tests.member_actions",
+    #    "MemberTransfer": "payments.tests.member_actions",
     "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
     "ClubLevelAdmin": "organisations.tests.club_level_admin",
+    "ClubSettings": "organisations.tests.club_settings",
 }
 
 
@@ -72,6 +73,11 @@ class CobaltTestManager:
         self.debbie = self.get_user("103")
         self.eric = self.get_user("104")
         self.fiona = self.get_user("105")
+        self.gary = self.get_user("106")
+        self.heidi = self.get_user("107")
+        self.iain = self.get_user("108")
+        self.janet = self.get_user("109")
+        self.keith = self.get_user("110")
 
         # First user - Alan Admin
         self.test_user = self.alan

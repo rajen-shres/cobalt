@@ -11,6 +11,7 @@ from organisations.tests.common_functions import (
     club_menu_go_to_tab,
     access_finance_for_club,
     set_rbac_status_as_user,
+    login_and_go_to_club_menu,
 )
 from tests.common_functions import cobalt_htmx_user_search
 from tests.test_manager import CobaltTestManager
@@ -282,7 +283,7 @@ class ClubLevelAdmin:
             "and confirm that we get there.",
         )
 
-        # Use search to add Fiona
+        # Use search to add Fiona as Payments
         cobalt_htmx_user_search(
             manager=self.manager,
             search_button_id="id_access_advanced_add_payments_view",
@@ -293,7 +294,39 @@ class ClubLevelAdmin:
         self.manager.save_results(
             status=True,
             test_name="Colin adds Fiona to Payments View",
-            test_description=f"Colin uses the search to add Fiona as an user to payments view "
+            test_description=f"Colin uses the search to add Fiona as a user to payments view "
+            f"for {club_names[SUNSHINE_ID]}",
+            output="This seemed to work. True",
+        )
+
+        # Use search to add Gary as Convener
+        cobalt_htmx_user_search(
+            manager=self.manager,
+            search_button_id="id_access_advanced_add_conveners",
+            user_system_id="106",
+            search_id="conveners",
+        )
+
+        self.manager.save_results(
+            status=True,
+            test_name="Colin adds Gary to Conveners",
+            test_description=f"Colin uses the search to add Gary as a user to conveners "
+            f"for {club_names[SUNSHINE_ID]}",
+            output="This seemed to work. True",
+        )
+
+        # Use search to add Heidi as Admin
+        cobalt_htmx_user_search(
+            manager=self.manager,
+            search_button_id="id_add_administrator",
+            user_system_id="108",
+            search_id="admin",
+        )
+
+        self.manager.save_results(
+            status=True,
+            test_name="Colin adds Heidi as an Administrator",
+            test_description=f"Colin uses the search to add Heidi as an Administrator "
             f"for {club_names[SUNSHINE_ID]}",
             output="This seemed to work. True",
         )
@@ -318,16 +351,71 @@ class ClubLevelAdmin:
             expected_tabs=expected_tabs,
             test_name=f"Check tabs for Fiona for {club_names[SUNSHINE_ID]}",
             test_description=f"Login as Fiona and go to the club menu page for {club_names[SUNSHINE_ID]} "
-            f"(org_id={SUNSHINE_ID})Check tabs are {expected_tabs}",
+            f"(org_id={SUNSHINE_ID}). Check tabs are {expected_tabs}",
+        )
+
+        # Login as Gary and check tabs
+        login_and_go_to_club_menu(
+            manager=self.manager,
+            org_id=SUNSHINE_ID,
+            user=self.manager.gary,
+            test_description="Login as Gary and go to club menu",
+            test_name="Login as Gary and go to club menu",
+            reverse_result=False,
+        )
+
+        expected_tabs = [
+            "id_tab_dashboard",
+            "id_tab_members",
+            "id_tab_congress",
+            "id_tab_results",
+            "id_tab_comms",
+            "id_tab_access",
+            "id_tab_settings",
+            "id_tab_forums",
+        ]
+
+        club_menu_items(
+            manager=self.manager,
+            expected_tabs=expected_tabs,
+            test_name=f"Check tabs for Gary for {club_names[SUNSHINE_ID]}",
+            test_description=f"Login as Gary and go to the club menu page for {club_names[SUNSHINE_ID]} "
+            f"(org_id={SUNSHINE_ID}). Check tabs are {expected_tabs}. Should not have payments.",
+        )
+
+        # Login as Heidi (not admin) and see if we have admin rights
+        login_and_go_to_club_menu(
+            manager=self.manager,
+            org_id=SUNSHINE_ID,
+            user=self.manager.heidi,
+            test_description="Login as Heidi and go to club menu",
+            test_name="Login as Heidi and go to club menu",
+            reverse_result=False,
+        )
+
+        # Go to Access tab
+        club_menu_go_to_tab(
+            manager=self.manager,
+            tab="access",
+            title="Staff Access",
+            test_name=f"Go to Access tab as Heidi for {club_names[SUNSHINE_ID]}",
+            test_description="Starting from the dashboard of Club Menu we click on the Access tab "
+            "and confirm that we get there.",
+        )
+
+        # Check if we can click on the admin
+        if self.manager.selenium_wait_for("id_add_administrator").is_enabled():
+            ok = False
+        else:
+            ok = True
+
+        self.manager.save_results(
+            status=ok,
+            test_name="Check if Heidi (no-admin) is an admin",
+            test_description=f"Heidi goes to the the access tab to see if the Add Administrator button is available. "
+            f"for {club_names[SUNSHINE_ID]}",
+            output=f"Expected: Not available. Status: {ok}",
         )
 
 
-# TODO: Check adding users basic (before and after access check)
-# TODO: Advanced - check only the right tabs are added
-# TODO: Check calling add view directly
-# TODO: Delete users basic
-# TODO: Delete users advanced
-# TODO: Delete admins advanced
-# TODO: Check menu item appears properly
-# TODO: Multiple clubs
 #

@@ -339,6 +339,57 @@ def club_menu_go_to_tab(
     )
 
 
+def login_and_go_to_club_menu(
+    manager: CobaltTestManager,
+    org_id: int,
+    user: User,
+    test_description: str,
+    test_name: str,
+    reverse_result: bool,
+):
+    """Login and got to the club menu
+
+        Initial Selenium State: Doesn't matter
+        Final Selenium State: On Club Menu logged in as User (if allowed)
+
+    Args:
+        manager: test_manager.Manager object for interacting with system
+        org_id: club to check for
+        user: User to use for test
+        test_description: long description of test
+        test_name: name of test
+        reverse_result: for tests that should fail
+    """
+    # Login as user
+    manager.login_selenium_user(manager.gary)
+
+    # Go to club menu
+    club = Organisation.objects.filter(org_id=org_id).first()
+    url = manager.base_url + reverse(
+        "organisations:club_menu", kwargs={"club_id": club.id}
+    )
+    manager.driver.get(url)
+
+    club_name = manager.driver.find_elements_by_id("t_club_name")
+
+    if club_name:
+        title = club_name[0].text
+        ok = True
+    else:
+        title = "Not found"
+        ok = False
+
+    real_ok = ok != reverse_result
+
+    manager.save_results(
+        status=real_ok,
+        test_name=test_name,
+        output=f"Logged in as {user.first_name}. Went to club menu and looked for club name. Got: {title}. "
+        f"Outcome:{ok}. Expected outcome: {not reverse_result}.",
+        test_description=test_description,
+    )
+
+
 def access_finance_for_club(
     manager: CobaltTestManager,
     club: Organisation,
