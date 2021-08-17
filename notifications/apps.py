@@ -35,5 +35,11 @@ class NotificationsConfig(AppConfig):
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
 
             print("Aardvark send_received", flush=True)
+            print("sender")
             print(sender, flush=True)
+            print("mail_obj")
             print(mail_obj, flush=True)
+            print("send_obj")
+            print(send_obj, flush=True)
+            print("raw message")
+            print(raw_message)
