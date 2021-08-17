@@ -8,9 +8,11 @@ app_name = "notifications"  # pylint: disable=invalid-name
 
 urlpatterns = [
     path(
-        "ses/event-webhook/", SESEventWebhookView.as_view(), name="handle-event-webhook"
+        "ses/event-webhook2/",
+        SESEventWebhookView.as_view(),
+        name="handle-event-webhook",
     ),
-    path("ses/event-webhook2/", views.ses_webhook, name="ses"),
+    path("ses/event-webhook/", views.ses_webhook, name="ses"),
     path("", views.homepage, name="homepage"),
     path("passthrough/<int:id>/", views.passthrough, name="passthrough"),
     path("deleteall", views.deleteall, name="deleteall"),
