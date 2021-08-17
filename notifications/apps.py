@@ -27,3 +27,13 @@ class NotificationsConfig(AppConfig):
         except (psycopg2.errors.UndefinedTable, ProgrammingError):
             # Should only happen if this a clean install (dev, test, UAT). Reasonably safe to ignore.
             pass
+
+        from django.dispatch import receiver
+        from django_ses.signals import send_received
+
+        @receiver(send_received)
+        def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
+
+            print("Aardvark send_received", flush=True)
+            print(sender, flush=True)
+            print(mail_obj, flush=True)
