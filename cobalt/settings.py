@@ -83,6 +83,10 @@ STRIPE_PUBLISHABLE_KEY = set_value("STRIPE_PUBLISHABLE_KEY")
 # aws
 AWS_ACCESS_KEY_ID = set_value("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = set_value("AWS_SECRET_ACCESS_KEY")
+AWS_REGION_NAME = set_value("AWS_REGION_NAME")
+AWS_SES_REGION_NAME = AWS_REGION_NAME
+AWS_SES_REGION_ENDPOINT = set_value("AWS_SES_REGION_ENDPOINT")
+AWS_SES_CONFIGURATION_SET = set_value("AWS_SES_CONFIGURATION_SET")
 
 # our logical hostname (dev, test, uat, prod)
 COBALT_HOSTNAME = set_value("COBALT_HOSTNAME", "127.0.0.1:8000")
@@ -154,7 +158,6 @@ if os.name == "posix":
 #########################################
 # Common settings for all environments  #
 #########################################
-AWS_REGION_NAME = "ap-southeast-2"
 
 INSTALLED_APPS = [
     "calendar_app",
@@ -189,6 +192,7 @@ INSTALLED_APPS = [
     "widget_tweaks",
     "django_extensions",
     "django.contrib.admindocs",
+    "post_office",
 ]
 
 MIDDLEWARE = [
@@ -239,7 +243,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = "post_office.EmailBackend"
+
+POST_OFFICE = {
+    "BACKENDS": {
+        "default": "django_ses.SESBackend",
+    },
+    "DEFAULT_PRIORITY": "now",
+}
+
+
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 
