@@ -251,6 +251,7 @@ POST_OFFICE = {
         "default": "django_ses.SESBackend",
     },
     "DEFAULT_PRIORITY": "now",
+    "MESSAGE_ID_ENABLED": True,
 }
 
 
