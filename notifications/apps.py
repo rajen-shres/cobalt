@@ -41,5 +41,5 @@ class NotificationsConfig(AppConfig):
             print(mail_obj, flush=True)
             print("send_obj")
             print(send_obj, flush=True)
-            print("raw message")
-            print(raw_message)
+            print("raw message", flush=True)
+            print(raw_message, flush=True)

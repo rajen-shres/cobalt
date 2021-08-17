@@ -193,6 +193,7 @@ INSTALLED_APPS = [
     "django_extensions",
     "django.contrib.admindocs",
     "post_office",
+    "django_ses",
 ]
 
 MIDDLEWARE = [
