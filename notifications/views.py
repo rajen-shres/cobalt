@@ -772,9 +772,9 @@ def watch_emails(request, batch_id):
 
 @csrf_exempt
 def ses_webhook(request):
-    print("aardvark")
+    print("aardvark", flush=True)
 
     if request.method == "POST":
-        print(request.POST)
+        print(request.POST, flush=True)
 
     return HttpResponse()
