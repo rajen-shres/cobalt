@@ -16,11 +16,13 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.db import connection, transaction
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
+from django.views.decorators.csrf import csrf_exempt
 
 from accounts.models import User
 from cobalt.settings import (
@@ -766,3 +768,10 @@ def watch_emails(request, batch_id):
             "show_details": show_details,
         },
     )
+
+
+@csrf_exempt()
+def ses_webhook(request):
+    print(request.POST)
+
+    return HttpResponse()
