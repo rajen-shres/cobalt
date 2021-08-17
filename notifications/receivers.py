@@ -3,6 +3,29 @@ from django.dispatch import receiver
 from django_ses.signals import delivery_received
 from django_ses.signals import open_received
 from django_ses.signals import click_received
+from django_ses.signals import bounce_received
+from django_ses.signals import complaint_received
+
+
+@receiver(bounce_received)
+def bounce_handler(sender, mail_obj, bounce_obj, raw_message, *args, **kwargs):
+    # message_id = mail_obj["messageId"]
+    # recipient_list = mail_obj["destination"]
+    print("This is bounce email object")
+    print(mail_obj)
+    with open("/tmp/email.txt", "a") as fhandle:
+        fhandle.write("bounce\n")
+
+
+@receiver(complaint_received)
+def complaint_handler(sender, mail_obj, complaint_obj, raw_message, *args, **kwargs):
+
+    with open("/tmp/email.txt", "a") as fhandle:
+        fhandle.write("complaint\n")
+
+        print("Aardvark complaint_received", flush=True)
+        print(sender, flush=True)
+        print(mail_obj, flush=True)
 
 
 @receiver(send_received)
