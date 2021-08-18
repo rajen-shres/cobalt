@@ -87,6 +87,9 @@ AWS_REGION_NAME = set_value("AWS_REGION_NAME")
 AWS_SES_REGION_NAME = AWS_REGION_NAME
 AWS_SES_REGION_ENDPOINT = set_value("AWS_SES_REGION_ENDPOINT")
 AWS_SES_CONFIGURATION_SET = set_value("AWS_SES_CONFIGURATION_SET")
+# Set this to false so we don't need to install m2crypto which needs OS installs to work
+# Not verifying the certificate is lower risk than having
+AWS_SES_VERIFY_EVENT_SIGNATURES = False
 
 # our logical hostname (dev, test, uat, prod)
 COBALT_HOSTNAME = set_value("COBALT_HOSTNAME", "127.0.0.1:8000")
