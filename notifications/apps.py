@@ -57,7 +57,7 @@ class NotificationsConfig(AppConfig):
             return None
 
         @receiver(send_received)
-        def send_handler(sender, mail_obj, other_obj, raw_message, *args, **kwargs):
+        def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
 
             mail_id = _get_email_id(mail_obj)
@@ -74,7 +74,9 @@ class NotificationsConfig(AppConfig):
             snooper.save()
 
         @receiver(delivery_received)
-        def delivery_handler(sender, mail_obj, other_obj, raw_message, *args, **kwargs):
+        def delivery_handler(
+            sender, mail_obj, delivery_obj, raw_message, *args, **kwargs
+        ):
             """Handle SES incoming info"""
 
             mail_id = _get_email_id(mail_obj)
@@ -91,7 +93,7 @@ class NotificationsConfig(AppConfig):
             snooper.save()
 
         @receiver(open_received)
-        def open_handler(sender, mail_obj, other_obj, raw_message, *args, **kwargs):
+        def open_handler(sender, mail_obj, open_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
 
             mail_id = _get_email_id(mail_obj)
@@ -108,7 +110,7 @@ class NotificationsConfig(AppConfig):
             snooper.save()
 
         @receiver(click_received)
-        def click_handler(sender, mail_obj, other_obj, raw_message, *args, **kwargs):
+        def click_handler(sender, mail_obj, click_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
 
             mail_id = _get_email_id(mail_obj)
@@ -125,7 +127,7 @@ class NotificationsConfig(AppConfig):
             snooper.save()
 
         @receiver(bounce_received)
-        def bounce_handler(sender, mail_obj, other_obj, raw_message, *args, **kwargs):
+        def bounce_handler(sender, mail_obj, bounce_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
 
             mail_id = _get_email_id(mail_obj)
@@ -136,7 +138,7 @@ class NotificationsConfig(AppConfig):
 
         @receiver(complaint_received)
         def complaint_handler(
-            sender, mail_obj, other_obj, raw_message, *args, **kwargs
+            sender, mail_obj, complaint_obj, raw_message, *args, **kwargs
         ):
             """Handle SES incoming info"""
 
