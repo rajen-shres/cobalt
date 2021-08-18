@@ -35,14 +35,18 @@ class NotificationsConfig(AppConfig):
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
 
             print("Aardvark send_received", flush=True)
+            # Get headers from mail_obj - headers is a list of headers
             headers = mail_obj["headers"]
             print("Headers\n", headers, flush=True)
+
+            # Get the mail_id from the headers
             mail_id = None
             for header in headers:
                 if header["name"] == "COBALT_ID":
                     mail_id = header["value"]
                     break
-            print("Mail ID:", mail_id, flush=True)
+
+            print("\n\nMail ID:", mail_id, flush=True)
 
             #            dict(email_message)
 
