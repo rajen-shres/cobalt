@@ -5,6 +5,7 @@ from .models import (
     Email,
     EmailArchive,
     EmailThread,
+    Snooper,
 )
 
 
@@ -22,3 +23,4 @@ admin.site.register(NotificationMapping, NotificationMappingAdmin)
 admin.site.register(Email)
 admin.site.register(EmailArchive)
 admin.site.register(EmailThread)
+admin.site.register(Snooper)
