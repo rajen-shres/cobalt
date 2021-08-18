@@ -1,6 +1,9 @@
+from datetime import time
+
 import psycopg2
 from django.apps import AppConfig
 from django.db import ProgrammingError
+from django.utils import timezone
 
 
 class NotificationsConfig(AppConfig):
@@ -15,6 +18,10 @@ class NotificationsConfig(AppConfig):
         For more information look in the docs at notifications_overview
 
         """
+        from django.dispatch import receiver
+        from django_ses.signals import send_received
+        from notifications.models import Snooper
+        from post_office.models import Email as PostOfficeEmail
 
         # Can't import at top of file - Django won't be ready yet
         # Also if this is a clean install migrate won't have been run so catch an error and ignore
@@ -28,35 +35,35 @@ class NotificationsConfig(AppConfig):
             # Should only happen if this a clean install (dev, test, UAT). Reasonably safe to ignore.
             pass
 
-        from django.dispatch import receiver
-        from django_ses.signals import send_received
+        def _get_email_id(mail_obj):
+            """Utility to get our email id from the mail object. We plant this mail id in the header
+            on the way out"""
+
+            # Get headers from mail_obj - headers is a list of headers
+            headers = mail_obj["headers"]
+
+            # Get the mail_id from the headers
+            for header in headers:
+                if header["name"] == "COBALT_ID":
+                    return header["value"]
+
+            return None
 
         @receiver(send_received)
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
+            """Handle SES incoming info"""
 
-            print("Aardvark send_received", flush=True)
-            # Get headers from mail_obj - headers is a list of headers
-            headers = mail_obj["headers"]
-            print("Headers\n", headers, flush=True)
+            print("send_received", flush=True)
 
-            # Get the mail_id from the headers
-            mail_id = None
-            for header in headers:
-                if header["name"] == "COBALT_ID":
-                    mail_id = header["value"]
-                    break
+            mail_id = _get_email_id(mail_obj)
+            if not mail_id:
+                return
 
             print("\n\nMail ID:", mail_id, flush=True)
 
-            #            dict(email_message)
-
-            #            email_id = headers["COBALT_ID"]
-            #           print("Found Email ID:", email_id, flush=True)
-            # print("sender")
-            # print(sender, flush=True)
-            # print("mail_obj")
-            # print(mail_obj, flush=True)
-            # print("send_obj")
-            # print(send_obj, flush=True)
-            # print("raw message", flush=True)
-            # print(raw_message, flush=True)
+            post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
+            snooper = Snooper.objects.filter(
+                post_office_email=post_office_email
+            ).first()
+            snooper.ses_sent_at = timezone.now()
+            snooper.save()

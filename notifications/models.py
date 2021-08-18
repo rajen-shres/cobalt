@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+from post_office.models import Email as PostOfficeEmail
 
 
 class InAppNotification(models.Model):
@@ -106,3 +107,14 @@ class EmailThread(models.Model):
     """Used to keep track of running threads"""
 
     created_date = models.DateTimeField("Create Date", default=timezone.now)
+
+
+class Snooper(models.Model):
+    """Stores information from AWS SES about activity with Email"""
+
+    post_office_email = models.ForeignKey(PostOfficeEmail, on_delete=models.CASCADE)
+    """Link to the email in Django Post Office"""
+    ses_sent_at = models.DateTimeField("Sent At", blank=True, null=True)
+    ses_delivered_at = models.DateTimeField("Delivered At", blank=True, null=True)
+    ses_opened_at = models.DateTimeField("Opened At", blank=True, null=True)
+    ses_clicked_at = models.DateTimeField("Clicked At", blank=True, null=True)
