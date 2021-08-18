@@ -37,19 +37,22 @@ class NotificationsConfig(AppConfig):
             print("Aardvark send_received", flush=True)
             headers = mail_obj["headers"]
             print("Headers\n", headers, flush=True)
-            from email.parser import HeaderParser
+            mail_id = None
+            for header in headers:
+                if header["name"] == "COBALT_ID":
+                    mail_id = header["value"]
+                    break
+            print("Mail ID:", mail_id, flush=True)
 
-            email_message = HeaderParser().parsestr(headers)
-            print("email message headers:", email_message, flush=True)
             #            dict(email_message)
 
             #            email_id = headers["COBALT_ID"]
             #           print("Found Email ID:", email_id, flush=True)
-            print("sender")
-            print(sender, flush=True)
-            print("mail_obj")
-            print(mail_obj, flush=True)
-            print("send_obj")
-            print(send_obj, flush=True)
-            print("raw message", flush=True)
-            print(raw_message, flush=True)
+            # print("sender")
+            # print(sender, flush=True)
+            # print("mail_obj")
+            # print(mail_obj, flush=True)
+            # print("send_obj")
+            # print(send_obj, flush=True)
+            # print("raw message", flush=True)
+            # print(raw_message, flush=True)
