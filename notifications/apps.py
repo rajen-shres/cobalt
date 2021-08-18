@@ -102,12 +102,15 @@ class NotificationsConfig(AppConfig):
 
             print("\n\nopen: Mail ID:", mail_id, flush=True)
 
-            post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
-            snooper = Snooper.objects.filter(
-                post_office_email=post_office_email
-            ).first()
-            snooper.ses_opened_at = timezone.now()
-            snooper.save()
+            try:
+                post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
+                snooper = Snooper.objects.filter(
+                    post_office_email=post_office_email
+                ).first()
+                snooper.ses_opened_at = timezone.now()
+                snooper.save()
+            except AttributeError:
+                pass
 
         @receiver(click_received)
         def click_handler(sender, mail_obj, click_obj, raw_message, *args, **kwargs):
