@@ -66,12 +66,15 @@ class NotificationsConfig(AppConfig):
 
             print("\n\nSend: Mail ID:", mail_id, flush=True)
 
-            post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
-            snooper = Snooper.objects.filter(
-                post_office_email=post_office_email
-            ).first()
-            snooper.ses_sent_at = timezone.now()
-            snooper.save()
+            try:
+                post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
+                snooper = Snooper.objects.filter(
+                    post_office_email=post_office_email
+                ).first()
+                snooper.ses_sent_at = timezone.now()
+                snooper.save()
+            except AttributeError:
+                pass
 
         @receiver(delivery_received)
         def delivery_handler(
@@ -85,12 +88,15 @@ class NotificationsConfig(AppConfig):
 
             print("\n\ndelivery: Mail ID:", mail_id, flush=True)
 
-            post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
-            snooper = Snooper.objects.filter(
-                post_office_email=post_office_email
-            ).first()
-            snooper.ses_delivered_at = timezone.now()
-            snooper.save()
+            try:
+                post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
+                snooper = Snooper.objects.filter(
+                    post_office_email=post_office_email
+                ).first()
+                snooper.ses_delivered_at = timezone.now()
+                snooper.save()
+            except AttributeError:
+                pass
 
         @receiver(open_received)
         def open_handler(sender, mail_obj, open_obj, raw_message, *args, **kwargs):
@@ -122,12 +128,15 @@ class NotificationsConfig(AppConfig):
 
             print("\n\nclick: Mail ID:", mail_id, flush=True)
 
-            post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
-            snooper = Snooper.objects.filter(
-                post_office_email=post_office_email
-            ).first()
-            snooper.ses_clicked_at = timezone.now()
-            snooper.save()
+            try:
+                post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
+                snooper = Snooper.objects.filter(
+                    post_office_email=post_office_email
+                ).first()
+                snooper.ses_clicked_at = timezone.now()
+                snooper.save()
+            except AttributeError:
+                pass
 
         @receiver(bounce_received)
         def bounce_handler(sender, mail_obj, bounce_obj, raw_message, *args, **kwargs):
