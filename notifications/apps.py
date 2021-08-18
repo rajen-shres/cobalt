@@ -19,7 +19,14 @@ class NotificationsConfig(AppConfig):
 
         """
         from django.dispatch import receiver
-        from django_ses.signals import send_received
+        from django_ses.signals import (
+            send_received,
+            delivery_received,
+            open_received,
+            click_received,
+            bounce_received,
+            complaint_received,
+        )
         from notifications.models import Snooper
         from post_office.models import Email as PostOfficeEmail
 
@@ -50,16 +57,14 @@ class NotificationsConfig(AppConfig):
             return None
 
         @receiver(send_received)
-        def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
+        def send_handler(sender, mail_obj, other_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
-
-            print("send_received", flush=True)
 
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
                 return
 
-            print("\n\nMail ID:", mail_id, flush=True)
+            print("\n\nSend: Mail ID:", mail_id, flush=True)
 
             post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
             snooper = Snooper.objects.filter(
@@ -67,3 +72,76 @@ class NotificationsConfig(AppConfig):
             ).first()
             snooper.ses_sent_at = timezone.now()
             snooper.save()
+
+        @receiver(delivery_received)
+        def delivery_handler(sender, mail_obj, other_obj, raw_message, *args, **kwargs):
+            """Handle SES incoming info"""
+
+            mail_id = _get_email_id(mail_obj)
+            if not mail_id:
+                return
+
+            print("\n\ndelivery: Mail ID:", mail_id, flush=True)
+
+            post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
+            snooper = Snooper.objects.filter(
+                post_office_email=post_office_email
+            ).first()
+            snooper.ses_delivered_at = timezone.now()
+            snooper.save()
+
+        @receiver(open_received)
+        def open_handler(sender, mail_obj, other_obj, raw_message, *args, **kwargs):
+            """Handle SES incoming info"""
+
+            mail_id = _get_email_id(mail_obj)
+            if not mail_id:
+                return
+
+            print("\n\nopen: Mail ID:", mail_id, flush=True)
+
+            post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
+            snooper = Snooper.objects.filter(
+                post_office_email=post_office_email
+            ).first()
+            snooper.ses_opened_at = timezone.now()
+            snooper.save()
+
+        @receiver(click_received)
+        def click_handler(sender, mail_obj, other_obj, raw_message, *args, **kwargs):
+            """Handle SES incoming info"""
+
+            mail_id = _get_email_id(mail_obj)
+            if not mail_id:
+                return
+
+            print("\n\nclick: Mail ID:", mail_id, flush=True)
+
+            post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
+            snooper = Snooper.objects.filter(
+                post_office_email=post_office_email
+            ).first()
+            snooper.ses_clicked_at = timezone.now()
+            snooper.save()
+
+        @receiver(bounce_received)
+        def bounce_handler(sender, mail_obj, other_obj, raw_message, *args, **kwargs):
+            """Handle SES incoming info"""
+
+            mail_id = _get_email_id(mail_obj)
+            if not mail_id:
+                return
+
+            print("\n\nBOUNCE: Mail ID:", mail_id, flush=True)
+
+        @receiver(complaint_received)
+        def complaint_handler(
+            sender, mail_obj, other_obj, raw_message, *args, **kwargs
+        ):
+            """Handle SES incoming info"""
+
+            mail_id = _get_email_id(mail_obj)
+            if not mail_id:
+                return
+
+            print("\n\nCOMPLAINT: Mail ID:", mail_id, flush=True)
