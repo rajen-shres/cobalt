@@ -35,6 +35,9 @@ class NotificationsConfig(AppConfig):
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
 
             print("Aardvark send_received", flush=True)
+            headers = mail_obj["headers"][0]
+            email_id = headers["COBALT_ID"]
+            print("Found Email ID:", email_id, flush=True)
             print("sender")
             print(sender, flush=True)
             print("mail_obj")
