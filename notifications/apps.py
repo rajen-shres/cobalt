@@ -62,6 +62,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
+                print("SENT: Unknown email without id:", flush=True)
                 return
 
             print("\n\nSend: Mail ID:", mail_id, flush=True)
@@ -74,6 +75,7 @@ class NotificationsConfig(AppConfig):
                 snooper.ses_sent_at = timezone.now()
                 snooper.save()
             except AttributeError:
+                print("SENT: Error. email with id:", mail_id, flush=True)
                 pass
 
         @receiver(delivery_received)
@@ -84,6 +86,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
+                print("DELIVER: Unknown email without id", flush=True)
                 return
 
             print("\n\ndelivery: Mail ID:", mail_id, flush=True)
@@ -96,6 +99,7 @@ class NotificationsConfig(AppConfig):
                 snooper.ses_delivered_at = timezone.now()
                 snooper.save()
             except AttributeError:
+                print("DELIVER: Error. email with id:", mail_id, flush=True)
                 pass
 
         @receiver(open_received)
@@ -104,6 +108,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
+                print("OPEN: Unknown email without id", flush=True)
                 return
 
             print("\n\nopen: Mail ID:", mail_id, flush=True)
@@ -116,6 +121,7 @@ class NotificationsConfig(AppConfig):
                 snooper.ses_opened_at = timezone.now()
                 snooper.save()
             except AttributeError:
+                print("OPEN: Error. email with id:", mail_id, flush=True)
                 pass
 
         @receiver(click_received)
@@ -124,6 +130,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
+                print("CLICK: Unknown email without id", flush=True)
                 return
 
             print("\n\nclick: Mail ID:", mail_id, flush=True)
@@ -136,6 +143,7 @@ class NotificationsConfig(AppConfig):
                 snooper.ses_clicked_at = timezone.now()
                 snooper.save()
             except AttributeError:
+                print("CLICK: Error. email with id:", mail_id, flush=True)
                 pass
 
         @receiver(bounce_received)
