@@ -63,7 +63,7 @@ class NotificationsConfig(AppConfig):
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
                 print("SENT: Unknown email without id:", flush=True)
-                print(mail_obj)
+                print(mail_obj, flush=True)
                 return
 
             print("\n\nSend: Mail ID:", mail_id, flush=True)
