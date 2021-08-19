@@ -217,16 +217,6 @@ def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
 
     Snooper(post_office_email=this_mail).save()
 
-    # email = CobaltEmail()
-    # email.queue_email(
-    #     to_address=to_address,
-    #     subject=subject,
-    #     message=message,
-    #     member=member,
-    #     reply_to=reply_to,
-    # )
-    # email.send()
-
 
 def send_cobalt_bulk_email(bcc_addresses, subject, message, reply_to=""):
     """Sends the same message to multiple people.

@@ -74,6 +74,8 @@ class NotificationsConfig(AppConfig):
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
 
+            print(mail_obj, flush=True)
+
             mail_id, cobalt_env = _get_email_id(mail_obj)
             if cobalt_env != COBALT_HOSTNAME:
                 logger.info(f"Message is not for this environment: {cobalt_env}")
