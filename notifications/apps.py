@@ -33,14 +33,14 @@ class NotificationsConfig(AppConfig):
         # Can't import at top of file - Django won't be ready yet
         # Also if this is a clean install migrate won't have been run so catch an error and ignore
 
-        try:
-            from .models import EmailThread
-
-            EmailThread.objects.all().delete()
-
-        except (psycopg2.errors.UndefinedTable, ProgrammingError):
-            # Should only happen if this a clean install (dev, test, UAT). Reasonably safe to ignore.
-            pass
+        # try:
+        #     from .models import EmailThread
+        #
+        #     EmailThread.objects.all().delete()
+        #
+        # except (psycopg2.errors.UndefinedTable, ProgrammingError):
+        #     # Should only happen if this a clean install (dev, test, UAT). Reasonably safe to ignore.
+        #     pass
 
         def _get_email_id(mail_obj):
             """Utility to get our email id from the mail object. We plant this mail id in the header
@@ -63,6 +63,7 @@ class NotificationsConfig(AppConfig):
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
                 print("SENT: Unknown email without id:", flush=True)
+                print(mail_obj)
                 return
 
             print("\n\nSend: Mail ID:", mail_id, flush=True)

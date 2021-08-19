@@ -43,7 +43,8 @@ from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
 from .forms import EmailContactForm
-from .models import InAppNotification, NotificationMapping, Email, EmailThread
+from .models import InAppNotification, NotificationMapping, Email, EmailThread, Snooper
+from post_office import mail as po_email
 
 # Max no of emails to send in a batch
 MAX_EMAILS = 45
@@ -199,15 +200,32 @@ def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
         Nothing
     """
 
-    email = CobaltEmail()
-    email.queue_email(
-        to_address=to_address,
+    plain_msg = strip_tags(message)
+
+    this_mail = po_email.create(
+        sender=DEFAULT_FROM_EMAIL,
+        recipients=[to_address],
         subject=subject,
-        message=message,
-        member=member,
-        reply_to=reply_to,
+        message=plain_msg,
+        html_message=message,
+        priority="now",
     )
-    email.send()
+
+    this_mail.headers = {"COBALT_ID": this_mail.id}
+
+    this_mail.dispatch()
+
+    Snooper(post_office_email=this_mail).save()
+
+    # email = CobaltEmail()
+    # email.queue_email(
+    #     to_address=to_address,
+    #     subject=subject,
+    #     message=message,
+    #     member=member,
+    #     reply_to=reply_to,
+    # )
+    # email.send()
 
 
 def send_cobalt_bulk_email(bcc_addresses, subject, message, reply_to=""):
