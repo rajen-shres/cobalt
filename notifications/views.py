@@ -211,11 +211,7 @@ def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
         priority="now",
     )
 
-    this_mail.headers = {"COBALT_ID": this_mail.id, "COBALT_ENV": COBALT_HOSTNAME}
-
     this_mail.dispatch()
-
-    Snooper(post_office_email=this_mail).save()
 
 
 def send_cobalt_bulk_email(bcc_addresses, subject, message, reply_to=""):

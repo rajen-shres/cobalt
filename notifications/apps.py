@@ -82,7 +82,7 @@ class NotificationsConfig(AppConfig):
 
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
-                snooper = Snooper.objects.filter(
+                snooper = Snooper.objects.get_or_create(
                     post_office_email=post_office_email
                 ).first()
                 snooper.ses_delivered_at = timezone.now()
