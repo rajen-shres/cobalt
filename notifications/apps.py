@@ -5,6 +5,8 @@ from django.apps import AppConfig
 from django.db import ProgrammingError
 from django.utils import timezone
 
+from cobalt.settings import COBALT_HOSTNAME
+
 
 class NotificationsConfig(AppConfig):
     name = "notifications"
@@ -50,11 +52,16 @@ class NotificationsConfig(AppConfig):
             headers = mail_obj["headers"]
 
             # Get the mail_id from the headers
+            email_id = None
+            cobalt_env = None
+
             for header in headers:
                 if header["name"] == "COBALT_ID":
-                    return header["value"]
+                    email_id = header["value"]
+                if header["name"] == "COBALT_ENV":
+                    cobalt_env = header["value"]
 
-            return None
+            return email_id, cobalt_env
 
         def _no_header_id(mail_obj, origin):
             """Handle emails without our header id being present"""
@@ -75,7 +82,11 @@ class NotificationsConfig(AppConfig):
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
 
-            mail_id = _get_email_id(mail_obj)
+            mail_id, cobalt_env = _get_email_id(mail_obj)
+            if cobalt_env != COBALT_HOSTNAME:
+                print("Message is not for this environment")
+                return
+
             if not mail_id:
                 _no_header_id(mail_obj, "SEND")
                 return
