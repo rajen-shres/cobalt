@@ -76,7 +76,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id, cobalt_env = _get_email_id(mail_obj)
             if cobalt_env != COBALT_HOSTNAME:
-                logger.info("Message is not for this environment:", cobalt_env)
+                logger.info(f"Message is not for this environment: {cobalt_env}")
                 return
 
             if not mail_id:
@@ -103,7 +103,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id, cobalt_env = _get_email_id(mail_obj)
             if cobalt_env != COBALT_HOSTNAME:
-                logger.info("Message is not for this environment:", cobalt_env)
+                logger.info(f"Message is not for this environment: {cobalt_env}")
                 return
 
             if not mail_id:
@@ -128,7 +128,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id, cobalt_env = _get_email_id(mail_obj)
             if cobalt_env != COBALT_HOSTNAME:
-                logger.info("Message is not for this environment:", cobalt_env)
+                logger.info(f"Message is not for this environment: {cobalt_env}")
                 return
 
             if not mail_id:
@@ -178,7 +178,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id, cobalt_env = _get_email_id(mail_obj)
             if cobalt_env != COBALT_HOSTNAME:
-                logger.info("Message is not for this environment:", cobalt_env)
+                logger.info(f"Message is not for this environment: {cobalt_env}")
                 return
 
             if not mail_id:
@@ -195,7 +195,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id, cobalt_env = _get_email_id(mail_obj)
             if cobalt_env != COBALT_HOSTNAME:
-                logger.info("Message is not for this environment:", cobalt_env)
+                logger.info(f"Message is not for this environment: {cobalt_env}")
                 return
 
             if not mail_id:
