@@ -41,11 +41,11 @@
                                     <tr>
                                 {% endif %}
                                 {#                <td class="text-left">{{ thing.created_date|cobalt_nice_datetime }}</td>#}
-                                <td class="text-left">{{ thing.post_office_email.status }}</td>
+                                <td class="text-left">{{ thing.post_office_email.get_status_display }}</td>
                                 <td class="text-left">{{ thing.post_office_email.get_priority_display }}</td>
-                                {#                <td class="text-left" data-toggle="tooltip" title="{{ thing.recipient }}">{{ thing.recipient|cobalt_hide_email }}</td>#}
+                                <td class="text-left" data-toggle="tooltip" title="{{ thing.post_office_email.email_to }}">{{ thing.post_office_email.email_to|cobalt_hide_email }}</td>
                                 {#                <td class="text-left">{{ thing.member.full_name|default_if_none:"-" }}</td>#}
-                                {#                <td class="text-left">{{ thing.subject }}</td>#}
+                                <td class="text-left">{{ thing.post_office_email.subject }}</td>
                                 <td><a onClick='showEmail({{ thing.id }})'
                                     class="btn btn-sm btn-info">View</a>
                                 </td>
