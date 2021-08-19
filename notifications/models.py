@@ -116,5 +116,7 @@ class Snooper(models.Model):
     """Link to the email in Django Post Office"""
     ses_sent_at = models.DateTimeField("Sent At", blank=True, null=True)
     ses_delivered_at = models.DateTimeField("Delivered At", blank=True, null=True)
-    ses_opened_at = models.DateTimeField("Opened At", blank=True, null=True)
-    ses_clicked_at = models.DateTimeField("Clicked At", blank=True, null=True)
+    ses_last_opened_at = models.DateTimeField("Last Opened At", blank=True, null=True)
+    ses_open_count = models.IntegerField("Open Count", default=0)
+    ses_last_clicked_at = models.DateTimeField("Last Clicked At", blank=True, null=True)
+    ses_clicked_count = models.IntegerField("Clicked Count", default=0)

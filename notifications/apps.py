@@ -100,7 +100,8 @@ class NotificationsConfig(AppConfig):
                 snooper = Snooper.objects.filter(
                     post_office_email=post_office_email
                 ).first()
-                snooper.ses_opened_at = timezone.now()
+                snooper.ses_last_opened_at = timezone.now()
+                snooper.ses_open_count += 1
                 snooper.save()
             except AttributeError:
                 logger.info(f"OPEN: No matching message found for :{message_id}")
@@ -118,7 +119,8 @@ class NotificationsConfig(AppConfig):
                 snooper = Snooper.objects.filter(
                     post_office_email=post_office_email
                 ).first()
-                snooper.ses_clicked_at = timezone.now()
+                snooper.ses_last_clicked_at = timezone.now()
+                snooper.ses_clicked_count += 1
                 snooper.save()
             except AttributeError:
                 logger.info(f"CLICK: No matching message found for :{message_id}")
