@@ -211,7 +211,7 @@ def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
         priority="now",
     )
 
-    this_mail.headers = {"COBALT_ID": this_mail.id, "COBALT_ENV": COBALT_HOSTNAME + "f"}
+    this_mail.headers = {"COBALT_ID": this_mail.id, "COBALT_ENV": COBALT_HOSTNAME}
 
     this_mail.dispatch()
 
