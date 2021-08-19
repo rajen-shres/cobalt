@@ -528,11 +528,14 @@ def profile(request):
 
     if request.method == "POST" and form.is_valid():
 
+        print(form.cleaned_data["dob"])
+
         form.save()
         if "email" in form.changed_data and _check_duplicate_email(request.user):
             messages.warning(
                 request,
-                "This email is also being used by another member. This is allowed, but please check the name on the email to see who it was intended for.",
+                "This email is also being used by another member. This is allowed, but please check the "
+                "name on the email to see who it was intended for.",
                 extra_tags="cobalt-message-warning",
             )
 

@@ -68,6 +68,8 @@ class UserUpdateForm(forms.ModelForm):
 
     def clean_dob(self):
         dob = self.cleaned_data["dob"]
+        if "dob" in self.changed_data and not dob:
+            self.add_error("dob", "Date of birth is invalid.")
         if dob is None:
             return None
         if dob > datetime.datetime.today().date():
