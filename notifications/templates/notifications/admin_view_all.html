@@ -42,7 +42,7 @@
                                 {% endif %}
                                 {#                <td class="text-left">{{ thing.created_date|cobalt_nice_datetime }}</td>#}
                                 <td class="text-left">{{ thing.post_office_email.status }}</td>
-                                <td class="text-left">{{ get_thing.post_office_email.priority_display }}</td>
+                                <td class="text-left">{{ thing.post_office_email.get_priority_display }}</td>
                                 {#                <td class="text-left" data-toggle="tooltip" title="{{ thing.recipient }}">{{ thing.recipient|cobalt_hide_email }}</td>#}
                                 {#                <td class="text-left">{{ thing.member.full_name|default_if_none:"-" }}</td>#}
                                 {#                <td class="text-left">{{ thing.subject }}</td>#}
