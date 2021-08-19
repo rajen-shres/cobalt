@@ -665,7 +665,7 @@ def admin_view_all(request):
         return rbac_forbidden(request, role)
 
     #    emails = Email.objects.all().order_by("-pk")
-    emails = Snooper.objects.all().order_by("-pk")
+    emails = Snooper.objects.all().select_related("post_office_email").order_by("-pk")
     things = cobalt_paginator(request, emails)
 
     return render(request, "notifications/admin_view_all.html", {"things": things})
