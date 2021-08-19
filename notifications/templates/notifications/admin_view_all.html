@@ -3,74 +3,75 @@
 {% block title %} - Notifications Emails{% endblock %}
 {% block content %}
 
-<div class="jumbotron">
-  <div class="card col-lg-10 mx-auto">
-    <div class="card-header card-header-warning">
-      <h1>
-        <div class="d-flex justify-content-between">
-          <div>
-          System Generated Emails
-          </div>
-          <div>
-            <i class="material-icons" id="icon" style="font-size:60px;">email</i>
-          </div>
-      </h1>
+    <div class="jumbotron">
+        <div class="card col-lg-10 mx-auto">
+            <div class="card-header card-header-warning">
+                <h1>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            System Generated Emails
+                        </div>
+                        <div>
+                            <i class="material-icons" id="icon" style="font-size:60px;">email</i>
+                        </div>
+                    </h1>
 
-    </div>
-    <div class = "card-body">
-    </div>
-    <div class="card-body table-responsive">
+                </div>
+                <div class = "card-body">
+                </div>
+                <div class="card-body table-responsive">
 
 
-        <table class="table table-hover table-condensed">
-          <thead class="text-info">
-            <tr>
-              <th class="text-left">Date</th>
-              <th class="text-left">Status</th>
-              <th class="text-left">Sent To</th>
-              <th class="text-left">Member</th>
-              <th class="text-left">Subject</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for thing in things %}
-              {% if thing.status == "Queued" %}
-              <tr class="bg-danger">
-              {% else %}
-              <tr>
-              {% endif %}
-                <td class="text-left">{{ thing.created_date|cobalt_nice_datetime }}</td>
-                <td class="text-left">{{ thing.status }}</td>
-                <td class="text-left" data-toggle="tooltip" title="{{ thing.recipient }}">{{ thing.recipient|cobalt_hide_email }}</td>
-                <td class="text-left">{{ thing.member.full_name|default_if_none:"-" }}</td>
-                <td class="text-left">{{ thing.subject }}</td>
-                <td><a onClick='showEmail({{ thing.id }})'
-                  class="btn btn-sm btn-info">View</a>
-                </td>
-              </tr>
-            {% endfor %}
+                    <table class="table table-hover table-condensed">
+                        <thead class="text-info">
+                            <tr>
+                                <th class="text-left">Date</th>
+                                <th class="text-left">Status</th>
+                                <th class="text-left">Sent To</th>
+                                <th class="text-left">Member</th>
+                                <th class="text-left">Subject</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for thing in things %}
+                                {% if thing.status == "Queued" %}
+                                    <tr class="bg-danger">
+                                {% else %}
+                                    <tr>
+                                {% endif %}
+                                {#                <td class="text-left">{{ thing.created_date|cobalt_nice_datetime }}</td>#}
+                                <td class="text-left">{{ thing.post_office_email.status }}</td>
+                                <td class="text-left">{{ thing.post_office_email.priority }}</td>
+                                {#                <td class="text-left" data-toggle="tooltip" title="{{ thing.recipient }}">{{ thing.recipient|cobalt_hide_email }}</td>#}
+                                {#                <td class="text-left">{{ thing.member.full_name|default_if_none:"-" }}</td>#}
+                                {#                <td class="text-left">{{ thing.subject }}</td>#}
+                                <td><a onClick='showEmail({{ thing.id }})'
+                                    class="btn btn-sm btn-info">View</a>
+                                </td>
+                                </tr>
+                            {% endfor %}
 
-          </tbody>
-        </table>
-    </div>
-  </div>
-  {% include 'utils/pagination_footer.html' %}
-</div>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% include 'utils/pagination_footer.html' %}
+        </div>
 
 {% endblock %}
 
 {% block footer %}
-<script>
+    <script>
 
-  function showEmail(id) {
-    var newWin = window.open('{% url "notifications:admin_view_email" %}/' + id, 'email', 'width=1000,height=1500');
-  }
+        function showEmail(id) {
+            var newWin = window.open('{% url "notifications:admin_view_email" %}/' + id, 'email', 'width=1000,height=1500');
+        }
 
-  $(document).ready(function() {
-    // initialise tooltips
-    $('[data-toggle="tooltip"]').tooltip()
+        $(document).ready(function() {
+            // initialise tooltips
+            $('[data-toggle="tooltip"]').tooltip()
 
-});
-</script>
+        });
+    </script>
 {% endblock %}
