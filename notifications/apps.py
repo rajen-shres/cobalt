@@ -61,7 +61,9 @@ class NotificationsConfig(AppConfig):
             logger.info(f"SENT: Received Message-ID: {message_id}")
 
             post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
-            snooper = Snooper.objects.get_or_create(post_office_email=post_office_email)
+            snooper, _ = Snooper.objects.get_or_create(
+                post_office_email=post_office_email
+            )
             snooper.ses_sent_at = timezone.now()
             snooper.save()
 
@@ -77,7 +79,7 @@ class NotificationsConfig(AppConfig):
 
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
-                snooper = Snooper.objects.get_or_create(
+                snooper, _ = Snooper.objects.get_or_create(
                     post_office_email=post_office_email
                 )
                 snooper.ses_delivered_at = timezone.now()
