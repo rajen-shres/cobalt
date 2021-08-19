@@ -202,7 +202,7 @@ def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
 
     plain_msg = strip_tags(message)
 
-    this_mail = po_email.create(
+    po_email.send(
         sender=DEFAULT_FROM_EMAIL,
         recipients=[to_address],
         subject=subject,
@@ -210,8 +210,6 @@ def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
         html_message=message,
         priority="now",
     )
-
-    this_mail.dispatch()
 
 
 def send_cobalt_bulk_email(bcc_addresses, subject, message, reply_to=""):
