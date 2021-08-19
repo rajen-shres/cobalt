@@ -60,15 +60,10 @@ class NotificationsConfig(AppConfig):
 
             logger.info(f"SENT: Received Message-ID: {message_id}")
 
-            try:
-                post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
-                snooper = Snooper.objects.get_or_create(
-                    post_office_email=post_office_email
-                )
-                snooper.ses_sent_at = timezone.now()
-                snooper.save()
-            except AttributeError:
-                logger.info(f"SENT: No matching message found for :{message_id}")
+            post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
+            snooper = Snooper.objects.get_or_create(post_office_email=post_office_email)
+            snooper.ses_sent_at = timezone.now()
+            snooper.save()
 
         @receiver(delivery_received)
         def delivery_handler(
