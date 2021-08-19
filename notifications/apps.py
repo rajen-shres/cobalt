@@ -56,17 +56,28 @@ class NotificationsConfig(AppConfig):
 
             return None
 
+        def _no_header_id(mail_obj, origin):
+            """Handle emails without our header id being present"""
+
+            print(
+                f"{origin}: Unknown email without id. Details follow if available.",
+                flush=True,
+            )
+            try:
+                print(
+                    f"{mail_obj['destination']} - {mail_obj['commonHeaders']['subject']}",
+                    flush=True,
+                )
+            except KeyError:
+                print("Details not found", flush=True)
+
         @receiver(send_received)
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
 
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
-                print("SENT: Unknown email without id:", flush=True)
-                print(
-                    f"{mail_obj['destination']} - {mail_obj['commonHeaders']['subject']}",
-                    flush=True,
-                )
+                _no_header_id(mail_obj, "SEND")
                 return
 
             print("\n\nSend: Mail ID:", mail_id, flush=True)
@@ -90,7 +101,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
-                print("DELIVER: Unknown email without id", flush=True)
+                _no_header_id(mail_obj, "DELIVERY")
                 return
 
             print("\n\ndelivery: Mail ID:", mail_id, flush=True)
@@ -112,7 +123,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
-                print("OPEN: Unknown email without id", flush=True)
+                _no_header_id(mail_obj, "OPEN")
                 return
 
             print("\n\nopen: Mail ID:", mail_id, flush=True)
@@ -134,7 +145,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
-                print("CLICK: Unknown email without id", flush=True)
+                _no_header_id(mail_obj, "CLICK")
                 return
 
             print("\n\nclick: Mail ID:", mail_id, flush=True)
@@ -156,6 +167,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
+                _no_header_id(mail_obj, "BOUNCE")
                 return
 
             print("\n\nBOUNCE: Mail ID:", mail_id, flush=True)
@@ -168,6 +180,7 @@ class NotificationsConfig(AppConfig):
 
             mail_id = _get_email_id(mail_obj)
             if not mail_id:
+                _no_header_id(mail_obj, "COMPLAINT")
                 return
 
             print("\n\nCOMPLAINT: Mail ID:", mail_id, flush=True)
