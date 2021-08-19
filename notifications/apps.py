@@ -38,37 +38,17 @@ class NotificationsConfig(AppConfig):
         from notifications.models import Snooper
         from post_office.models import Email as PostOfficeEmail
 
-        def _get_email_id(mail_obj):
-            """Utility to get our email id from the mail object. We plant this mail id in the header
-            on the way out"""
+        def _get_message_id(mail_obj):
+            """Utility to get the message_id from the message"""
 
             # Get headers from mail_obj - headers is a list of headers
             headers = mail_obj["headers"]
 
-            # Get the mail_id from the headers
-            email_id = None
-            cobalt_env = None
-
             for header in headers:
-                if header["name"] == "COBALT_ID":
-                    email_id = header["value"]
-                if header["name"] == "COBALT_ENV":
-                    cobalt_env = header["value"]
+                if header["name"] == "Message-ID":
+                    return header["value"]
 
-            return email_id, cobalt_env
-
-        def _no_header_id(mail_obj, origin):
-            """Handle emails without our header id being present"""
-
-            logger.info(
-                f"{origin}: Unknown email without id. Details follow if available."
-            )
-            try:
-                logger.info(
-                    f"{mail_obj['destination']} - {mail_obj['commonHeaders']['subject']}",
-                )
-            except KeyError:
-                logger.info("Details not found")
+            return None
 
         @receiver(send_received)
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
@@ -76,26 +56,19 @@ class NotificationsConfig(AppConfig):
 
             print(mail_obj, flush=True)
 
-            mail_id, cobalt_env = _get_email_id(mail_obj)
-            if cobalt_env != COBALT_HOSTNAME:
-                logger.info(f"Message is not for this environment: {cobalt_env}")
-                return
+            message_id = _get_message_id(mail_obj)
 
-            if not mail_id:
-                _no_header_id(mail_obj, "SEND")
-                return
-
-            logger.info(f"Send: Mail ID: {mail_id}")
+            logger.info(f"SENT: Received Message-ID: {message_id}")
 
             try:
-                post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
+                post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
                 snooper = Snooper.objects.filter(
                     post_office_email=post_office_email
                 ).first()
                 snooper.ses_sent_at = timezone.now()
                 snooper.save()
             except AttributeError:
-                logger.info("SENT: Error. email with id:", mail_id)
+                logger.info(f"SENT: No matching message found for :{message_id}")
 
         @receiver(delivery_received)
         def delivery_handler(
@@ -103,91 +76,70 @@ class NotificationsConfig(AppConfig):
         ):
             """Handle SES incoming info"""
 
-            mail_id, cobalt_env = _get_email_id(mail_obj)
-            if cobalt_env != COBALT_HOSTNAME:
-                logger.info(f"Message is not for this environment: {cobalt_env}")
-                return
+            message_id = _get_message_id(mail_obj)
 
-            if not mail_id:
-                _no_header_id(mail_obj, "DELIVERY")
-                return
-
-            logger.info(f"delivery: Mail ID: {mail_id}")
+            logger.info(f"DELIVER: Received Message-ID: {message_id}")
 
             try:
-                post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
+                post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
                 snooper = Snooper.objects.filter(
                     post_office_email=post_office_email
                 ).first()
                 snooper.ses_delivered_at = timezone.now()
                 snooper.save()
             except AttributeError:
-                logger.info("DELIVER: Error. email with id:", mail_id)
+                logger.info(f"DELIVER: No matching message found for :{message_id}")
 
         @receiver(open_received)
         def open_handler(sender, mail_obj, open_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
 
-            mail_id, cobalt_env = _get_email_id(mail_obj)
-            if cobalt_env != COBALT_HOSTNAME:
-                logger.info(f"Message is not for this environment: {cobalt_env}")
-                return
+            message_id = _get_message_id(mail_obj)
 
-            if not mail_id:
-                _no_header_id(mail_obj, "OPEN")
-                return
-
-            logger.info(f"open: Mail ID: {mail_id}")
+            logger.info(f"OPEN: Received Message-ID: {message_id}")
 
             try:
-                post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
+                post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
                 snooper = Snooper.objects.filter(
                     post_office_email=post_office_email
                 ).first()
                 snooper.ses_opened_at = timezone.now()
                 snooper.save()
             except AttributeError:
-                logger.info(f"OPEN: Error. email with id:{mail_id}")
+                logger.info(f"OPEN: No matching message found for :{message_id}")
 
         @receiver(click_received)
         def click_handler(sender, mail_obj, click_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
 
-            mail_id, cobalt_env = _get_email_id(mail_obj)
-            if cobalt_env != COBALT_HOSTNAME:
-                logger.info(f"Message is not for this environment: {cobalt_env}")
-                return
+            message_id = _get_message_id(mail_obj)
 
-            if not mail_id:
-                _no_header_id(mail_obj, "CLICK")
-                return
-
-            logger.info(f"click: Mail ID: {mail_id}")
+            logger.info(f"CLICK: Received Message-ID: {message_id}")
 
             try:
-                post_office_email = PostOfficeEmail.objects.get(pk=mail_id)
+                post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
                 snooper = Snooper.objects.filter(
                     post_office_email=post_office_email
                 ).first()
                 snooper.ses_clicked_at = timezone.now()
                 snooper.save()
             except AttributeError:
-                logger.info(f"CLICK: Error. email with id: {mail_id}")
+                logger.info(f"CLICK: No matching message found for :{message_id}")
 
         @receiver(bounce_received)
         def bounce_handler(sender, mail_obj, bounce_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
 
-            mail_id, cobalt_env = _get_email_id(mail_obj)
-            if cobalt_env != COBALT_HOSTNAME:
-                logger.info(f"Message is not for this environment: {cobalt_env}")
-                return
+            message_id = _get_message_id(mail_obj)
 
-            if not mail_id:
-                _no_header_id(mail_obj, "BOUNCE")
-                return
+            logger.info(f"BOUNCE: Received Message-ID: {message_id}")
+            logger.error("Email Bounced")
 
-            logger.info(f"BOUNCE: Mail ID: {mail_id}")
+            try:
+                post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
+                logger.error(f"ID: {post_office_email.id}")
+            except AttributeError:
+                logger.info(f"BOUNCE: No matching message found for :{message_id}")
 
         @receiver(complaint_received)
         def complaint_handler(
@@ -195,13 +147,13 @@ class NotificationsConfig(AppConfig):
         ):
             """Handle SES incoming info"""
 
-            mail_id, cobalt_env = _get_email_id(mail_obj)
-            if cobalt_env != COBALT_HOSTNAME:
-                logger.info(f"Message is not for this environment: {cobalt_env}")
-                return
+            message_id = _get_message_id(mail_obj)
 
-            if not mail_id:
-                _no_header_id(mail_obj, "COMPLAINT")
-                return
+            logger.info(f"COMPLAINT: Received Message-ID: {message_id}")
+            logger.error("Email Complaint")
 
-            logger.info(f"COMPLAINT: Mail ID: {mail_id}")
+            try:
+                post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
+                logger.error(f"ID: {post_office_email.id}")
+            except AttributeError:
+                logger.info(f"COMPLAINT: No matching message found for :{message_id}")
