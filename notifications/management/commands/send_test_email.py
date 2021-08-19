@@ -17,7 +17,7 @@ class Command(BaseCommand):
             priority="now",
         )
 
-        this_mail.headers = {"COBALT_ID": this_mail.id}
+        #    this_mail.headers = {"COBALT_ID": this_mail.id}
 
         this_mail.dispatch()
 
