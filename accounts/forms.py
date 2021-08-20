@@ -65,11 +65,20 @@ class UserUpdateForm(forms.ModelForm):
         super(UserUpdateForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_show_labels = False
+        self.old_dob = kwargs["instance"].dob
+        print("old DOB:", self.old_dob)
 
     def clean_dob(self):
+        # DOB will be None if invalid data was entered. We can only really fix this
+        # with some JavaScript code or by making DOB required. This works for all
+        # cases except when an invalid date is entered along with other valid data
+        if not self.changed_data:
+            # No changes detected but form was submitted - will be due to an invalid date
+            return self._clean_dob_sub("Date of birth was invalid. Try again.")
+
         dob = self.cleaned_data["dob"]
         if "dob" in self.changed_data and not dob:
-            self.add_error("dob", "Date of birth is invalid.")
+            return self._clean_dob_sub("Date of birth was invalid.")
         if dob is None:
             return None
         if dob > datetime.datetime.today().date():
@@ -78,6 +87,13 @@ class UserUpdateForm(forms.ModelForm):
         if dob.year < 1900:
             self.add_error("dob", "Date of birth must be after 1900.")
         return dob
+
+    def _clean_dob_sub(self, error):
+
+        self.add_error("dob", error)
+        self.data = self.data.copy()
+        self.data["dob"] = self.old_dob
+        return self.old_dob
 
     def clean_mobile(self):
         """
