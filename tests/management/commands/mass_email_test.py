@@ -6,8 +6,8 @@ from cobalt.settings import COBALT_HOSTNAME
 
 EMAIL_BASE = "test_"
 EMAIL_DOMAIN = "@gu3.com.au"
-TEST_SIZE = 100
-START_NUM = 8000000
+TEST_SIZE = 2000
+START_NUM = 8100000
 CONTENT = (
     "I am a big test email to mimic production. Most of my size comes from the template"
 )
