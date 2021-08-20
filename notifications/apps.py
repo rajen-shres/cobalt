@@ -54,8 +54,6 @@ class NotificationsConfig(AppConfig):
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
 
-            print(mail_obj, flush=True)
-
             message_id = _get_message_id(mail_obj)
 
             logger.info(f"SENT: Received Message-ID: {message_id}")

@@ -4,10 +4,10 @@ from django.core.management.base import BaseCommand
 from accounts.models import User
 from cobalt.settings import COBALT_HOSTNAME
 
-EMAIL_BASE = "test_"
+EMAIL_BASE = "testa_"
 EMAIL_DOMAIN = "@gu3.com.au"
 TEST_SIZE = 2000
-START_NUM = 8100000
+START_NUM = 8200000
 CONTENT = (
     "I am a big test email to mimic production. Most of my size comes from the template"
 )
