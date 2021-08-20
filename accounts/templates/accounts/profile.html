@@ -60,7 +60,8 @@
                                         Date of Birth
                                         <div id="div_id_dob" class="form-group">
                                             <div class="">
-                                                <input type="date" name="dob" value=
+                                                <input type="date" name="dob" min="1900-01-01"
+                                                    value=
 
                                                     {# We get a str back if the form is invalid, can't work out why. Work around. #}
 
@@ -69,6 +70,7 @@
                                                     {% else %}
                                                         "{{ form.dob.value }}"
                                                     {% endif %}
+
                                                     class="dateinput form-control profile_form_element" id="id_dob">
                                             </div>
                                             <span class="cobalt-form-error" id="id_dob_errors">{{ form.dob.errors|striptags }}</span>
