@@ -32,5 +32,9 @@
     </table>
 
     <hr>
-    {{ email.html_message|safe}}
+    {% if email.html_message %}
+        {{ email.html_message|safe}}
+    {% else %}
+        {{ email.message }}
+    {% endif %}
 {% endblock %}
