@@ -27,28 +27,40 @@
                             <tr>
                                 <th class="text-left">Date</th>
                                 <th class="text-left">Status</th>
-                                <th class="text-left">Sent To</th>
-                                <th class="text-left">Member</th>
+                                <th class="text-left">Sent To (first name in list)</th>
                                 <th class="text-left">Subject</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for thing in things %}
-                                {% if thing.status == "Queued" %}
-                                    <tr class="bg-danger">
-                                {% else %}
-                                    <tr>
-                                {% endif %}
-                                {#                <td class="text-left">{{ thing.created_date|cobalt_nice_datetime }}</td>#}
-                                <td class="text-left">{{ thing.post_office_email.get_status_display }}</td>
-                                <td class="text-left">{{ thing.post_office_email.get_priority_display }}</td>
-                                <td class="text-left" data-toggle="tooltip" title="{{ thing.post_office_email.email_to }}">{{ thing.post_office_email.email_to|cobalt_hide_email }}</td>
-                                {#                <td class="text-left">{{ thing.member.full_name|default_if_none:"-" }}</td>#}
-                                <td class="text-left">{{ thing.post_office_email.subject }}</td>
-                                <td><a onClick='showEmail({{ thing.id }})'
-                                    class="btn btn-sm btn-info">View</a>
-                                </td>
+                                <tr>
+                                    <td class="text-left">{{ thing.snooper.ses_sent_at|cobalt_nice_datetime }}</td>
+
+                                    {# show real status #}
+                                    <td class="text-left">
+                                        {% if thing.status != 0 %}
+                                            {{ thing.get_status_display }}
+                                        {% else %}
+                                            {% if thing.snooper.ses_clicked_at %}
+                                                Clicked
+                                            {% elif thing.snooper.ses_opened_at %}
+                                                Opened
+                                            {% elif thing.snooper.ses_delivered_at %}
+                                                Delivered
+                                            {% elif thing.snooper.ses_sent_at %}
+                                                Sent
+                                            {% else %}
+                                                Unknown
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="text-left" data-toggle="tooltip" title="{{ thing.to.0 }}">{{ thing.to.0|cobalt_hide_email }}</td>
+                                    <td class="text-left">{{ thing.subject }}</td>
+                                    <td><a onClick='showEmail({{ thing.id }})'
+                                        class="btn btn-sm btn-info">View</a>
+                                    </td>
                                 </tr>
                             {% endfor %}
 

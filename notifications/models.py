@@ -112,7 +112,11 @@ class EmailThread(models.Model):
 class Snooper(models.Model):
     """Stores information from AWS SES about activity with Email"""
 
-    post_office_email = models.ForeignKey(PostOfficeEmail, on_delete=models.CASCADE)
+    post_office_email = models.OneToOneField(
+        PostOfficeEmail,
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
     """Link to the email in Django Post Office"""
     ses_sent_at = models.DateTimeField("Sent At", blank=True, null=True)
     ses_delivered_at = models.DateTimeField("Delivered At", blank=True, null=True)

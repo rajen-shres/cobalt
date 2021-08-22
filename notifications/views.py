@@ -45,6 +45,7 @@ from utils.utils import cobalt_paginator
 from .forms import EmailContactForm
 from .models import InAppNotification, NotificationMapping, Email, EmailThread, Snooper
 from post_office import mail as po_email
+from post_office.models import Email as PostOfficeEmail
 
 # Max no of emails to send in a batch
 MAX_EMAILS = 45
@@ -656,7 +657,7 @@ def notifications_in_english(member):
 
 
 @login_required()
-def admin_view_all(request):
+def admin_view_all_emails(request):
     """Show email notifications for administrators"""
 
     # check access
@@ -664,11 +665,12 @@ def admin_view_all(request):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
-    #    emails = Email.objects.all().order_by("-pk")
-    emails = Snooper.objects.all().select_related("post_office_email").order_by("-pk")
+    emails = PostOfficeEmail.objects.all().select_related("snooper").order_by("-pk")
     things = cobalt_paginator(request, emails)
 
-    return render(request, "notifications/admin_view_all.html", {"things": things})
+    return render(
+        request, "notifications/admin_view_all_emails.html", {"things": things}
+    )
 
 
 @login_required()
@@ -680,7 +682,7 @@ def admin_view_email(request, email_id):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
-    email = get_object_or_404(Email, pk=email_id)
+    email = get_object_or_404(PostOfficeEmail, pk=email_id)
 
     return render(request, "notifications/admin_view_email.html", {"email": email})
 
