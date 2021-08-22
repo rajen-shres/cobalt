@@ -139,6 +139,12 @@ class NotificationsConfig(AppConfig):
             logger.info(f"BOUNCE: Received Message-ID: {message_id}")
             logger.error("Email Bounced")
 
+            print("\n\nmail obj")
+            print(mail_obj)
+
+            print("\n\nbounce obj")
+            print(bounce_obj)
+
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
                 logger.error(f"ID: {post_office_email.id}")
