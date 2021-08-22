@@ -2,8 +2,6 @@ from django.apps import AppConfig
 from django.utils import timezone
 import logging
 
-from cobalt.settings import COBALT_HOSTNAME
-
 logger = logging.getLogger("cobalt")
 
 
@@ -37,6 +35,7 @@ class NotificationsConfig(AppConfig):
         )
         from notifications.models import Snooper
         from post_office.models import Email as PostOfficeEmail
+        from logs.views import log_event
 
         def _get_message_id(mail_obj):
             """Utility to get the message_id from the message"""
@@ -139,11 +138,29 @@ class NotificationsConfig(AppConfig):
             logger.info(f"BOUNCE: Received Message-ID: {message_id}")
             logger.error("Email Bounced")
 
-            print("\n\nmail obj", flush=True)
-            print(mail_obj, flush=True)
+            # print("\n\nmail obj", flush=True)
+            # print(mail_obj, flush=True)
+            #
+            # print("\n\nbounce obj", flush=True)
+            # print(bounce_obj, flush=True)
 
-            print("\n\nbounce obj", flush=True)
-            print(bounce_obj, flush=True)
+            message = f"Bounce received: bounce type: {bounce_obj['bounceType']}, bounce sub-type: {bounce_obj['bounceSubType']} bounced_recipients: {bounce_obj['bouncedRecipients']}"
+
+            print(message, flush=True)
+
+            # log_event(
+            #     user=None,
+            #     severity="CRITICAL",
+            #     source="Notifications",
+            #     sub_source="Email",
+            #     message=message,
+            # )
+
+            # {'feedbackId': '0108017b6c09e065-31d447db-8629-4048-87a4-ce99d47eadc3-000000', 'bounceType': 'Permanent',
+            #  'bounceSubType': 'General', 'bouncedRecipients': [
+            #     {'emailAddress': 'bounce@simulator.amazonses.com', 'action': 'failed', 'status': '5.1.1',
+            #      'diagnosticCode': 'smtp; 550 5.1.1 user unknown'}], 'timestamp': '2021-08-22T04:06:31.863Z',
+            #  'reportingMTA': 'dns; b232-5.smtp-out.ap-southeast-2.amazonses.com'}
 
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
