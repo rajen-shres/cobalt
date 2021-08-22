@@ -148,13 +148,13 @@ class NotificationsConfig(AppConfig):
 
             print(message, flush=True)
 
-            # log_event(
-            #     user=None,
-            #     severity="CRITICAL",
-            #     source="Notifications",
-            #     sub_source="Email",
-            #     message=message,
-            # )
+            log_event(
+                user=None,
+                severity="CRITICAL",
+                source="Notifications",
+                sub_source="Email",
+                message=message,
+            )
 
             # {'feedbackId': '0108017b6c09e065-31d447db-8629-4048-87a4-ce99d47eadc3-000000', 'bounceType': 'Permanent',
             #  'bounceSubType': 'General', 'bouncedRecipients': [
