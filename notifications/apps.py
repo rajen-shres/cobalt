@@ -37,7 +37,6 @@ class NotificationsConfig(AppConfig):
         )
         from notifications.models import Snooper
         from post_office.models import Email as PostOfficeEmail
-        from post_office.models.Email import DoesNotExist
 
         def _get_message_id(mail_obj):
             """Utility to get the message_id from the message"""
@@ -66,7 +65,7 @@ class NotificationsConfig(AppConfig):
                 )
                 snooper.ses_sent_at = timezone.now()
                 snooper.save()
-            except (AttributeError, DoesNotExist):
+            except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"SENT: No matching message found for :{message_id}")
 
         @receiver(delivery_received)
@@ -86,7 +85,7 @@ class NotificationsConfig(AppConfig):
                 )
                 snooper.ses_delivered_at = timezone.now()
                 snooper.save()
-            except (AttributeError, DoesNotExist):
+            except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"DELIVER: No matching message found for :{message_id}")
 
         @receiver(open_received)
@@ -105,7 +104,7 @@ class NotificationsConfig(AppConfig):
                 snooper.ses_last_opened_at = timezone.now()
                 snooper.ses_open_count += 1
                 snooper.save()
-            except (AttributeError, DoesNotExist):
+            except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"OPEN: No matching message found for :{message_id}")
 
         @receiver(click_received)
@@ -124,7 +123,7 @@ class NotificationsConfig(AppConfig):
                 snooper.ses_last_clicked_at = timezone.now()
                 snooper.ses_clicked_count += 1
                 snooper.save()
-            except (AttributeError, DoesNotExist):
+            except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"CLICK: No matching message found for :{message_id}")
 
         @receiver(bounce_received)
@@ -139,7 +138,7 @@ class NotificationsConfig(AppConfig):
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
                 logger.error(f"ID: {post_office_email.id}")
-            except (AttributeError, DoesNotExist):
+            except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"BOUNCE: No matching message found for :{message_id}")
 
         @receiver(complaint_received)
@@ -156,5 +155,5 @@ class NotificationsConfig(AppConfig):
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
                 logger.error(f"ID: {post_office_email.id}")
-            except (AttributeError, DoesNotExist):
+            except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"COMPLAINT: No matching message found for :{message_id}")
