@@ -1,13 +1,14 @@
 
 {% load cobalt_tags %}
 {% block content %}
-    <h1>{{ email.subject }}</h1>
-    <h2><center>To:
+    <h1 class="text-center">{{ email.subject }}</h1>
+    <h2 class="text-center">To:
         {% for sent_to in email.to %}
             {{ sent_to }}&nbsp;
         {% endfor %}
-    </center></h2>
-    <center>Date Sent: <i>{{ email.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"Not Sent" }}</i></center>
+    </h2>
+    <p class="text-center">
+        Date Sent: <i>{{ email.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"Not Sent" }}</i></p>
     <hr>
     {{ email.html_message|safe}}
 {% endblock %}
