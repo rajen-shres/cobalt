@@ -1,14 +1,36 @@
 
 {% load cobalt_tags %}
 {% block content %}
-    <h1 class="text-center">{{ email.subject }}</h1>
-    <h2 class="text-center">To:
+    <h1>{{ email.subject }}</h1>
+    <h2 style="padding: 10px">To:
         {% for sent_to in email.to %}
             {{ sent_to }}&nbsp;
         {% endfor %}
     </h2>
-    <p class="text-center">
+    <p style="padding: 10px">
         Date Sent: <i>{{ email.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"Not Sent" }}</i></p>
+
+    <table>
+        <tr>
+            <td>Sent</td>
+            <td>{{ email.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"" }}</td>
+        </tr>
+        <tr>
+            <td>Delivered</td>
+            <td>{{ email.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"" }}</td>
+        </tr>
+        <tr>
+            <td>Opened</td>
+            <td>{{ email.snooper.ses_open_count }} time{{ email.snooper.ses_open_count|pluralize }}.
+                Last opened: {{ email.snooper.ses_last_opened_at|cobalt_nice_datetime|default_if_none:"Never" }}</td>
+        </tr>
+        <tr>
+            <td>Clicked</td>
+            <td>{{ email.snooper.ses_clicked_count }} time{{ email.snooper.ses_clicked_count|pluralize }}.
+                Last opened: {{ email.snooper.ses_last_clicked_at|cobalt_nice_datetime|default_if_none:"Never" }}</td>
+        </tr>
+    </table>
+
     <hr>
     {{ email.html_message|safe}}
 {% endblock %}
