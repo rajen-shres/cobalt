@@ -65,6 +65,7 @@ class NotificationsConfig(AppConfig):
                 )
                 snooper.ses_sent_at = timezone.now()
                 snooper.save()
+                logger.info(f"SENT: Processed Message-ID: {message_id}")
             except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"SENT: No matching message found for :{message_id}")
 
@@ -85,6 +86,7 @@ class NotificationsConfig(AppConfig):
                 )
                 snooper.ses_delivered_at = timezone.now()
                 snooper.save()
+                logger.info(f"DELIVER: Processed Message-ID: {message_id}")
             except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"DELIVER: No matching message found for :{message_id}")
 
@@ -104,6 +106,7 @@ class NotificationsConfig(AppConfig):
                 snooper.ses_last_opened_at = timezone.now()
                 snooper.ses_open_count += 1
                 snooper.save()
+                logger.info(f"OPEN: Processed Message-ID: {message_id}")
             except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"OPEN: No matching message found for :{message_id}")
 
@@ -123,6 +126,7 @@ class NotificationsConfig(AppConfig):
                 snooper.ses_last_clicked_at = timezone.now()
                 snooper.ses_clicked_count += 1
                 snooper.save()
+                logger.info(f"CLICK: Processed Message-ID: {message_id}")
             except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"CLICK: No matching message found for :{message_id}")
 
