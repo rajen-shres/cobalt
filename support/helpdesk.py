@@ -20,6 +20,7 @@ from cobalt.settings import (
     SUMMERNOTE_CONFIG,
     RBAC_HELPDESK_GROUP,
     TIME_ZONE,
+    ABF_USER,
 )
 from notifications.views import send_cobalt_email, CobaltEmail
 from rbac.core import (
@@ -93,9 +94,7 @@ def _email_table(ticket, full_name):
             """
 
 
-def _notify_user_common(
-    request, ticket, subject, email_ticket_msg, email_ticket_footer=""
-):
+def _notify_user_common(ticket, subject, email_ticket_msg, email_ticket_footer=""):
     """Common parts of notifying a user"""
 
     first_name, email, full_name = _get_user_details_from_ticket(ticket)
@@ -127,19 +126,19 @@ def notify_user_new_ticket_by_form(request, ticket):
         "You will be notified via email when the status of this ticket changes.<br><br>"
     )
 
-    _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
+    _notify_user_common(ticket, subject, email_ticket_msg, email_ticket_footer)
 
 
-def _notify_user_new_ticket_by_staff(request, ticket):
+def _notify_user_new_ticket_by_staff(staff_name, ticket):
     """Notify a user when a new ticket is raised by staff"""
 
     subject = f"Support Ticket Raised #{ticket.id}"
-    email_ticket_msg = f"{request.user.full_name} has created a support ticket for you."
+    email_ticket_msg = f"{staff_name} has created a support ticket for you."
     email_ticket_footer = (
         "You will be notified via email when the status of this ticket changes.<br><br>"
     )
 
-    _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
+    _notify_user_common(ticket, subject, email_ticket_msg, email_ticket_footer)
 
 
 def _notify_user_updated_ticket(request, ticket, comment):
@@ -150,7 +149,7 @@ def _notify_user_updated_ticket(request, ticket, comment):
     email_ticket_footer = f"""<h2>Last Comment</h2>{comment}<br><br>
         You will be notified via email when the status of this ticket changes.<br><br>"""
 
-    _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
+    _notify_user_common(ticket, subject, email_ticket_msg, email_ticket_footer)
 
 
 def _notify_user_reopened_ticket(request, ticket):
@@ -162,7 +161,7 @@ def _notify_user_reopened_ticket(request, ticket):
     )
     email_ticket_footer = "<br><br>You will be notified via email when the status of this ticket changes.<br><br>"
 
-    _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
+    _notify_user_common(ticket, subject, email_ticket_msg, email_ticket_footer)
 
 
 def _notify_user_resolved_ticket(request, ticket, text):
@@ -182,10 +181,10 @@ def _notify_user_resolved_ticket(request, ticket, text):
                     Please contact us again if you are still having issues.
                     <br><br>"""
 
-    _notify_user_common(request, ticket, subject, email_ticket_msg, email_ticket_footer)
+    _notify_user_common(ticket, subject, email_ticket_msg, email_ticket_footer)
 
 
-def _notify_group_common(request, ticket, subject, email_ticket_msg, exclude=None):
+def _notify_group_common(ticket, subject, email_ticket_msg, exclude=None):
     """Common shared code for notifying the group"""
 
     first_name, email, full_name = _get_user_details_from_ticket(ticket)
@@ -197,10 +196,6 @@ def _notify_group_common(request, ticket, subject, email_ticket_msg, exclude=Non
     recipients = NotifyUserByType.objects.filter(
         incident_type__in=["All", ticket.incident_type]
     )
-
-    print("Recipients\n---------")
-    print(recipients)
-    print(exclude)
 
     email_sender = CobaltEmail()
 
@@ -234,19 +229,17 @@ def notify_group_new_ticket(request, ticket):
     subject = f"Support Ticket Raised - Unassigned #{ticket.id}"
     email_ticket_msg = f"{full_name} has created a support ticket."
 
-    _notify_group_common(request, ticket, subject, email_ticket_msg)
+    _notify_group_common(ticket, subject, email_ticket_msg)
 
 
-def notify_group_new_ticket_by_staff(request, ticket):
+def notify_group_new_ticket_by_staff(staff_name, ticket, exclude=None):
     """Notify staff when a new ticket is raised by a staff member. Don't notify the person who raised it"""
 
     first_name, email, full_name = _get_user_details_from_ticket(ticket)
     subject = f"Support Ticket Raised - Unassigned #{ticket.id}"
-    email_ticket_msg = f"{request.user.full_name} has created a support ticket for {full_name}. This ticket is unassigned."
+    email_ticket_msg = f"{staff_name} has created a support ticket for {full_name}. This ticket is unassigned."
 
-    _notify_group_common(
-        request, ticket, subject, email_ticket_msg, exclude=request.user
-    )
+    _notify_group_common(ticket, subject, email_ticket_msg, exclude=exclude)
 
 
 def _notify_group_update_to_unassigned_ticket(request, ticket, reply):
@@ -257,7 +250,7 @@ def _notify_group_update_to_unassigned_ticket(request, ticket, reply):
         f"{request.user.full_name} has updated an unassigned support ticket:<br>{reply}"
     )
 
-    _notify_group_common(request, ticket, subject, email_ticket_msg)
+    _notify_group_common(ticket, subject, email_ticket_msg)
 
 
 def _notify_group_user_closed_unassigned_ticket(request, ticket, reply):
@@ -268,7 +261,7 @@ def _notify_group_user_closed_unassigned_ticket(request, ticket, reply):
         f"{request.user.full_name} has closed an unassigned support ticket:<br>{reply}"
     )
 
-    _notify_group_common(request, ticket, subject, email_ticket_msg)
+    _notify_group_common(ticket, subject, email_ticket_msg)
 
 
 def _notify_group_unassigned_ticket(request, ticket):
@@ -277,7 +270,7 @@ def _notify_group_unassigned_ticket(request, ticket):
     subject = f"Support Ticket Unassigned #{ticket.id}"
     email_ticket_msg = f"{request.user.full_name} has unassigned a support ticket."
 
-    _notify_group_common(request, ticket, subject, email_ticket_msg)
+    _notify_group_common(ticket, subject, email_ticket_msg)
 
 
 def _notify_staff_common(
@@ -313,11 +306,11 @@ def _notify_staff_common(
     )
 
 
-def _notify_staff_assigned_to_ticket(request, ticket):
+def _notify_staff_assigned_to_ticket(staff_name, ticket):
     """Notify a staff member when a ticket is assigned to them"""
 
     subject = f"Support Ticket Assigned to You - #{ticket.id}"
-    email_ticket_msg = f"{request.user.full_name} has assigned a support ticket to you."
+    email_ticket_msg = f"{staff_name} has assigned a support ticket to you."
     _notify_staff_common(ticket, subject, email_ticket_msg)
 
 
@@ -367,11 +360,13 @@ def create_ticket(request):
         ticket = form.save()
 
         # Notify the user
-        _notify_user_new_ticket_by_staff(request, ticket)
+        _notify_user_new_ticket_by_staff(request.user.full_name, ticket)
 
         # if unassigned, notify everyone
         if ticket.status == "Unassigned":
-            notify_group_new_ticket_by_staff(request, ticket)
+            notify_group_new_ticket_by_staff(
+                request.user.full_name, ticket, exclude=request.user
+            )
 
         else:
             IncidentLineItem(
@@ -381,7 +376,7 @@ def create_ticket(request):
 
             # If assigned to someone else, notify them
             if ticket.assigned_to != request.user:
-                _notify_staff_assigned_to_ticket(request, ticket)
+                _notify_staff_assigned_to_ticket(request.user.full_name, ticket)
 
         messages.success(
             request,
@@ -557,7 +552,7 @@ def edit_ticket(request, ticket_id):
                     ).save()
                 else:  # assigned to someone
                     if ticket.assigned_to != request.user:  # Let them know
-                        _notify_staff_assigned_to_ticket(request, ticket)
+                        _notify_staff_assigned_to_ticket(request.user.full_name, ticket)
                     _notify_user_updated_ticket(
                         request,
                         ticket,
@@ -950,3 +945,44 @@ def helpdesk_delete_staff_ajax(request):
 
         response_data = {"message": "Success"}
         return JsonResponse({"data": response_data})
+
+
+def create_ticket_api(
+    title,
+    description=None,
+    reported_by_user: User = None,
+    status="Unassigned",
+    severity="Medium",
+    incident_type="Other",
+    assigned_to=None,
+):
+    """API for other parts of the system to raise a ticket"""
+
+    if not reported_by_user:
+        reported_by_user = User.objects.get(pk=ABF_USER)
+
+    ticket = Incident(
+        reported_by_user=reported_by_user,
+        title=title,
+        description=description,
+        severity=severity,
+        incident_type=incident_type,
+        assigned_to=assigned_to,
+    ).save()
+
+    IncidentLineItem(
+        incident=ticket,
+        description="Ticket raised by the system.",
+    ).save()
+
+    # Notify the user if there is one
+    if reported_by_user.id != ABF_USER:
+        _notify_user_new_ticket_by_staff("The System", ticket)
+
+    # Notify the assignee if there is one
+    if assigned_to:
+        _notify_staff_assigned_to_ticket("The System", ticket)
+
+    # if unassigned, notify everyone
+    if ticket.status == "Unassigned":
+        notify_group_new_ticket_by_staff("The System", ticket)
