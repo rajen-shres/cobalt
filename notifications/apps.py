@@ -44,6 +44,8 @@ class NotificationsConfig(AppConfig):
         def _get_message_id(mail_obj):
             """Utility to get the message_id from the message"""
 
+            logger.info("get message id")
+
             # Get headers from mail_obj - headers is a list of headers
             headers = mail_obj["headers"]
 
@@ -56,6 +58,8 @@ class NotificationsConfig(AppConfig):
         @receiver(send_received)
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
+
+            logger.info("inside send handler")
 
             message_id = _get_message_id(mail_obj)
 
