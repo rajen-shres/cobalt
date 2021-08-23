@@ -4,6 +4,8 @@ import logging
 
 logger = logging.getLogger("cobalt")
 
+logger.info("something")
+
 
 class NotificationsConfig(AppConfig):
     name = "notifications"
@@ -36,6 +38,8 @@ class NotificationsConfig(AppConfig):
         from notifications.models import Snooper
         from post_office.models import Email as PostOfficeEmail
         from logs.views import log_event
+
+        logger.info("inside")
 
         def _get_message_id(mail_obj):
             """Utility to get the message_id from the message"""
