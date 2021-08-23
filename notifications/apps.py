@@ -65,6 +65,8 @@ class NotificationsConfig(AppConfig):
 
             logger.info(f"SENT: Received Message-ID: {message_id}")
 
+            print("--- > Inside send_handler", flush=True)
+
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
                 snooper, _ = Snooper.objects.get_or_create(
