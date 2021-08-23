@@ -38,6 +38,7 @@ class NotificationsConfig(AppConfig):
         from notifications.models import Snooper
         from post_office.models import Email as PostOfficeEmail
         from logs.views import log_event
+        from django.utils.inspect import func_accepts_kwargs
 
         logger.info("inside")
 
@@ -195,3 +196,4 @@ class NotificationsConfig(AppConfig):
                 logger.info(f"COMPLAINT: No matching message found for :{message_id}")
 
         send_received.connect(send_handler)
+        func_accepts_kwargs(send_handler)
