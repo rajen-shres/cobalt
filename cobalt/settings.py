@@ -469,5 +469,10 @@ LOGGING = {
             "level": "DEBUG",
             "propagate": True,
         },
+        "django_ses": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
     },
 }
