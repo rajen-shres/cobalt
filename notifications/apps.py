@@ -55,7 +55,6 @@ class NotificationsConfig(AppConfig):
 
             return None
 
-        @receiver(send_received)
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
             """Handle SES incoming info"""
 
@@ -194,3 +193,5 @@ class NotificationsConfig(AppConfig):
                 logger.error(f"ID: {post_office_email.id}")
             except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"COMPLAINT: No matching message found for :{message_id}")
+
+        send_received.connect(send_handler)
