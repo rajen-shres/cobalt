@@ -17,7 +17,7 @@
         </tr>
         <tr>
             <td>Delivered</td>
-            <td>{{ email.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"" }}</td>
+            <td>{{ email.snooper.ses_delivered_at|cobalt_nice_datetime|default_if_none:"" }}</td>
         </tr>
         <tr>
             <td>Opened</td>
