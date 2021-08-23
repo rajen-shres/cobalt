@@ -55,7 +55,7 @@ class NotificationsConfig(AppConfig):
 
             return None
 
-        def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
+        def send_handler(sender, mail_obj, send_obj, raw_message, *args):
             """Handle SES incoming info"""
 
             logger.info("inside send handler")
