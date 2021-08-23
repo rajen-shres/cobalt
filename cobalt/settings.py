@@ -465,7 +465,7 @@ LOGGING = {
     },
     "loggers": {
         "cobalt": {
-            "handlers": ["console"],
+            "handlers": ["console", "file"],
             "level": "DEBUG",
             "propagate": True,
         },
