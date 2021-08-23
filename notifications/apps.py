@@ -2,9 +2,14 @@ from django.apps import AppConfig
 from django.utils import timezone
 import logging
 
-logger = logging.getLogger("cobalt")
+# TODO: This code always makes me want to take a shower after I look at it.
+# TODO: I'm not going to fix it. I'm just going to have a shower.
+#
+# This uses the ready() function of AppConfig to register to handle signals for Django SES.
+# It has to do this because we need Django to be ready before we can register them.
+#
 
-logger.info("something")
+logger = logging.getLogger("cobalt")
 
 
 class NotificationsConfig(AppConfig):
@@ -16,10 +21,6 @@ class NotificationsConfig(AppConfig):
         For more information look in the docs at notifications_overview
 
         This handles the signals from django-ses when notifications are received from SES.
-
-        We expect to find two header items that are attached when we sent:
-            COBALT_ID - pk of the Django Post Office email
-            COBALT_ENV - environment (test, uat, prod)
 
         BE CAREFUL!!! This can impact production, it is the only part of Cobalt that is
                       shared between all environments.
@@ -197,3 +198,4 @@ class NotificationsConfig(AppConfig):
 
         send_received.connect(send_handler)
         func_accepts_kwargs(send_handler)
+        func_accepts_kwargs(delivery_handler)
