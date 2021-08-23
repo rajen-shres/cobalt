@@ -458,6 +458,10 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
         },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "/var/log/cobalt.log",
+        },
     },
     "loggers": {
         "cobalt": {
