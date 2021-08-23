@@ -8,6 +8,16 @@ import logging
 # This uses the ready() function of AppConfig to register to handle signals for Django SES.
 # It has to do this because we need Django to be ready before we can register them.
 #
+# Signals are a bit of a nasty way to do things but are the only way to get notified by
+# Django SES that we have an incoming event to handle.
+#
+# There is one handler per event - send, deliver, open, click, bounce, complaint
+#
+# There is a weird problem where it won't work unless DEBUG is on. It seems that within Django
+# in dispatch/dispatcher.py in the function connect, if DEBUG is true then it tries to check that
+# the receiver (us) accepts **kwargs (we do). Without this check Django SES doesn't call us.
+# To get around this, we call the same function that connect calls - func_accepts_kwargs once
+# for each receiving function.
 
 logger = logging.getLogger("cobalt")
 
@@ -41,12 +51,8 @@ class NotificationsConfig(AppConfig):
         from logs.views import log_event
         from django.utils.inspect import func_accepts_kwargs
 
-        logger.info("inside")
-
         def _get_message_id(mail_obj):
             """Utility to get the message_id from the message"""
-
-            logger.info("get message id")
 
             # Get headers from mail_obj - headers is a list of headers
             headers = mail_obj["headers"]
@@ -57,16 +63,15 @@ class NotificationsConfig(AppConfig):
 
             return None
 
+        @receiver(send_received)
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
-            """Handle SES incoming info"""
+            """Handle SES incoming info. Not that none of these will work without the calls at the bottom"""
 
             logger.info("inside send handler")
 
             message_id = _get_message_id(mail_obj)
 
             logger.info(f"SENT: Received Message-ID: {message_id}")
-
-            print("--- > Inside send_handler", flush=True)
 
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
@@ -149,12 +154,6 @@ class NotificationsConfig(AppConfig):
             logger.info(f"BOUNCE: Received Message-ID: {message_id}")
             logger.error("Email Bounced")
 
-            # print("\n\nmail obj", flush=True)
-            # print(mail_obj, flush=True)
-            #
-            # print("\n\nbounce obj", flush=True)
-            # print(bounce_obj, flush=True)
-
             message = f"Bounce received: bounce type: {bounce_obj['bounceType']}, bounce sub-type: {bounce_obj['bounceSubType']} bounced_recipients: {bounce_obj['bouncedRecipients']}"
 
             print(message, flush=True)
@@ -166,12 +165,6 @@ class NotificationsConfig(AppConfig):
                 sub_source="Email",
                 message=message,
             )
-
-            # {'feedbackId': '0108017b6c09e065-31d447db-8629-4048-87a4-ce99d47eadc3-000000', 'bounceType': 'Permanent',
-            #  'bounceSubType': 'General', 'bouncedRecipients': [
-            #     {'emailAddress': 'bounce@simulator.amazonses.com', 'action': 'failed', 'status': '5.1.1',
-            #      'diagnosticCode': 'smtp; 550 5.1.1 user unknown'}], 'timestamp': '2021-08-22T04:06:31.863Z',
-            #  'reportingMTA': 'dns; b232-5.smtp-out.ap-southeast-2.amazonses.com'}
 
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
@@ -196,6 +189,11 @@ class NotificationsConfig(AppConfig):
             except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"COMPLAINT: No matching message found for :{message_id}")
 
+        # See comments at the top of the file about this
         send_received.connect(send_handler)
         func_accepts_kwargs(send_handler)
         func_accepts_kwargs(delivery_handler)
+        func_accepts_kwargs(open_handler)
+        func_accepts_kwargs(click_handler)
+        func_accepts_kwargs(bounce_handler)
+        func_accepts_kwargs(complaint_handler)
