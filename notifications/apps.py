@@ -49,6 +49,7 @@ class NotificationsConfig(AppConfig):
         from post_office.models import Email as PostOfficeEmail
         from logs.views import log_event
         from django.utils.inspect import func_accepts_kwargs
+        from support.helpdesk import create_ticket_api
 
         def _get_message_id(mail_obj):
             """Utility to get the message_id from the message"""
@@ -149,12 +150,20 @@ class NotificationsConfig(AppConfig):
             message_id = _get_message_id(mail_obj)
 
             logger.info(f"BOUNCE: Received Message-ID: {message_id}")
-            logger.error("Email Bounced")
+
+            try:
+                post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
+                our_id = post_office_email.id
+                logger.error(f"ID: {post_office_email.id}")
+            except (AttributeError, PostOfficeEmail.DoesNotExist):
+                logger.info(f"BOUNCE: No matching message found for :{message_id}")
+                our_id = None
 
             message = f"Bounce received: bounce type: {bounce_obj['bounceType']}, bounce sub-type: {bounce_obj['bounceSubType']} bounced_recipients: {bounce_obj['bouncedRecipients']}"
 
-            print(message, flush=True)
+            logger.error(message)
 
+            # log event
             log_event(
                 user=None,
                 severity="CRITICAL",
@@ -163,11 +172,16 @@ class NotificationsConfig(AppConfig):
                 message=message,
             )
 
-            try:
-                post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
-                logger.error(f"ID: {post_office_email.id}")
-            except (AttributeError, PostOfficeEmail.DoesNotExist):
-                logger.info(f"BOUNCE: No matching message found for :{message_id}")
+            # Raise a ticket
+            create_ticket_api(
+                title=f"Email Bounce from {bounce_obj['bouncedRecipients']}",
+                description=f"Email Bounce Received.\n\n"
+                f"bounce type: {bounce_obj['bounceType']}\n"
+                f"bounce sub-type: {bounce_obj['bounceSubType']}\n"
+                f"Message ID: {message_id}\n"
+                f"Our Post Office ID: {our_id}\n"
+                f" bounced_recipients: {bounce_obj['bouncedRecipients']}\n\nPlease investigate.",
+            )
 
         @receiver(complaint_received)
         def complaint_handler(
