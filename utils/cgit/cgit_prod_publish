@@ -83,6 +83,15 @@ if [ $? -ne 0 ];then
 fi
 
 echo ""
+echo "Pushing develop..."
+echo ""
+
+git push origin master
+if [ $? -ne 0 ];then
+ exit 1
+fi
+
+echo ""
 echo "Checking out master branch..."
 echo ""
 

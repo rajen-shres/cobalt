@@ -76,7 +76,7 @@ echo "Getting $THISBRANCH..."
 git fetch origin $THISBRANCH
 
 # Format the HTML Template
-cp utils/cgit/tools/cgit_template.html /tmp/temp.html
+cp /usr/local/bin/cgit_template.html /tmp/temp.html
 sed -i -e "s/!!BRANCH!!/$BRANCH/g" /tmp/temp.html
 sed -i -e "s/!!OTHERBRANCH!!/$THISBRANCH/g" /tmp/temp.html
 

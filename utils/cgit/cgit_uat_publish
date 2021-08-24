@@ -19,14 +19,6 @@ echo "$RELEASE"
 echo ""
 echo "Switching to develop branch..."
 echo ""
-git pull origin develop
-if [ $? -ne 0 ];then
-   exit 1
-fi
-
-echo ""
-echo "Checking out develop branch..."
-echo ""
 
 git checkout develop
 if [ $? -ne 0 ];then
@@ -34,12 +26,11 @@ if [ $? -ne 0 ];then
 fi
 
 echo ""
-echo "Pulling latest develop branch (should be up to date already)..."
+echo "Ensuring develop branch is up to date..."
 echo ""
-
 git pull origin develop
 if [ $? -ne 0 ];then
-  exit 1
+   exit 1
 fi
 
 echo ""

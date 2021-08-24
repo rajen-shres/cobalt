@@ -89,3 +89,4 @@ echo "Deleting branch $BRANCH..."
 echo ""
 
 git branch -d $BRANCH
+git push -d origin $BRANCH
