@@ -27,6 +27,7 @@ Here are pages that describe things relevant to Cobalt in general:
 * :doc:`security_overview`
 * :doc:`testing_overview`
 * :doc:`test_data_overview`
+* :doc:`aws_overview`
 
 Here are links to documents that describe specific modules.
 
@@ -37,7 +38,6 @@ Here are links to documents that describe specific modules.
 * :doc:`accounts_overview`
 * :doc:`rbac_ABF_Roles`
 * :doc:`forums_overview`
-* :doc:`notifications_overview`
 * :doc:`utilities_overview`
 * :doc:`support_overview`
 

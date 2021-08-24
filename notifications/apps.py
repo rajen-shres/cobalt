@@ -4,25 +4,27 @@ import logging
 
 # TODO: This code always makes me want to take a shower after I look at it.
 # TODO: I'm not going to fix it. I'm just going to have a shower.
-#
-# This uses the ready() function of AppConfig to register to handle signals for Django SES.
-# It has to do this because we need Django to be ready before we can register them.
-#
-# Signals are a bit of a nasty way to do things but are the only way to get notified by
-# Django SES that we have an incoming event to handle.
-#
-# There is one handler per event - send, deliver, open, click, bounce, complaint
-#
-# There is a weird problem where it won't work unless DEBUG is on. It seems that within Django
-# in dispatch/dispatcher.py in the function connect, if DEBUG is true then it tries to check that
-# the receiver (us) accepts **kwargs (we do). Without this check Django SES doesn't call us.
-# To get around this, we call the same function that connect calls - func_accepts_kwargs once
-# for each receiving function.
 
 logger = logging.getLogger("cobalt")
 
 
 class NotificationsConfig(AppConfig):
+    """
+    This uses the ready() function of AppConfig to register to handle signals for Django SES.
+    It has to do this because we need Django to be ready before we can register them.
+
+    Signals are a bit of a nasty way to do things but are the only way to get notified by
+    Django SES that we have an incoming event to handle.
+
+    There is one handler per event - send, deliver, open, click, bounce, complaint
+
+    There is a weird problem where it won't work unless DEBUG is on. It seems that within Django
+    in dispatch/dispatcher.py in the function connect, if DEBUG is true then it tries to check that
+    the receiver (us) accepts **kwargs (we do). Without this check Django SES doesn't call us.
+    To get around this, we call the same function that connect calls - func_accepts_kwargs once
+    for each receiving function.
+    """
+
     name = "notifications"
 
     def ready(self):
@@ -31,9 +33,6 @@ class NotificationsConfig(AppConfig):
         For more information look in the docs at notifications_overview
 
         This handles the signals from django-ses when notifications are received from SES.
-
-        BE CAREFUL!!! This can impact production, it is the only part of Cobalt that is
-                      shared between all environments.
 
         """
         # Can't import at top of file - Django won't be ready yet

@@ -6,7 +6,7 @@
  :alt: Cobalt Chemical Symbol
 
 
-Design Overviews
+Design Overview
 ===============
 
 HTMX

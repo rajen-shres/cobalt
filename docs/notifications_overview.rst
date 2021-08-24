@@ -5,6 +5,10 @@
  :width: 300
  :alt: Cobalt Chemical Symbol
 
+.. note::
+   This documentation needs a refresh. The email part needs
+   updated with examples and the rest needs to be tighter.
+
 Notifications Overview
 ======================
 
@@ -78,8 +82,8 @@ an internal notification message.
 If you don't want the internal notification then you can call the sending
 functions directly.
 
-* :func:`notifications.cviews.send_cobalt_email` - sends an email.
-* :func:`notifications.cviews.send_cobalt_sms` - sends an sms.
+* :func:`notifications.views.send_cobalt_email` - sends an email.
+* :func:`notifications.views.send_cobalt_sms` - sends an sms.
 
 It is recommended that you do this rather than sending messages directly
 so we can have a single point to maintain.
@@ -129,18 +133,36 @@ an event, then they will be notified.
 Email
 =====
 
-The email set up is not trivial and worth understanding before you
-dive into the code. We use a queue and send approach to email.
-This is to address a few technical issues which are also worth
-understanding, not just to see why this soultion was required but
-also in case the situation changes or someone else has a better idea
-of how to address this.
+Email is a core function of Cobalt. We use email as our main method of communication.
+Django can send emails through SMTP to any compliant email gateway. The Django email
+backend is also swappable.
+
+We use two packages to help us with this:
+
+* **Django Post-Office** (https://pypi.org/project/django-post-office/) installs as a replacement email backend and handles secure delivery and bulk emails. It actually uses any other email backend to do the sending so you can use this without relying on AWS SES.
+* **Django SES** (https://github.com/django-ses/django-ses) is a replacement email backend that tightly integrates with SES. You can send emails using SES simply through SMTP but Django SES can also receive status updates.
+
+.. image:: images/email-infra.png
+ :width: 900
+ :alt: diagram
+
+When Cobalt sends an email it goes through Django Post Office which actually uses Django SES to
+do the sending. Django Post Office handles templates and queuing as well as general orchestration
+of emails. Django SES uses BOTO3 rather than SMTP which is more efficient.
+
+After that AWS SES is responsible for sending the email. SES notifies Simple Notification
+Service (SNS) when a message changes state and that in turn notifies us through Django SES.
+
+Django SES emits signals for the events that it receives which we pick up through apps.py.
+See :func:`notifications.apps.NotificationsConfig`.
+
+This updates the Snooper model: :func:`notifications.models.Snooper` which has a one-to-one
+relationship with the Django Post Office Email object.
 
 Usage
 -----
 
-The rest of this section explains why and how things work. If you
-just want to send emails you can do the following::
+Examples::
 
     # Send single email
     from notifications.views import send_cobalt_email
@@ -168,80 +190,3 @@ just want to send emails you can do the following::
         reply_to="me@d.com",
     )
 
-Requirements
-------------
-
-We need to be able to send a lot of the same emails to a group of
-people (e.g. newsletters), and we also need to be able to send customised emails to
-potentially large groups of people (e.g. statements).
-
-Problems and Attempted Solutions
---------------------------------
-
-The initial approach was just to send single emails in a loop.
-This worked fine for most of the time, but occasionally the SMTP
-server is slow to respond and the the user is faced with a hung
-screen or a timeout.
-
-The next approach was to start a thread to send the email and to
-return immediately to the user. This works fine until a large
-number of concurrent messages are sent and then we hit some sort
-of thread limit on the server and emails do not get sent. This
-one thread to one email approach was never going to be scalable.
-
-For bulk emails, we greatly reduce the number of emails sent by
-using the BCC field. Again, there is a limit here which depends upon
-the SMTP provider but AWS limit it to 50 so we can send out our email
-multiple times to 50 people at a time until it is sent. This uses
-the function send_cobalt_bulk_email. This has one thread per
-bulk email request which is scalable as they are rare. However,
-this doesn't work at all for custom emails.
-
-One further problem with using threads is that if Django is
-restarted I do not believe that it will wait for these threads
-to finish (very hard to test though). So we have the possibility that
-a big mail out is happening at the time of a restart and the
-emails do not get sent. We won't lose them, but they will sit in
-the email table with a status of "Queued".
-
-Current Solution
-----------------
-
-We use the send_cobalt_bulk_email solution described above for
-genuine mass emails which are not customised.
-
-For other use cases we have a queue and send approach. This moves
-some of the logic back to the calling modules, but not very much.
-
-To use it, do the following::
-
-    from notifications.views import CobaltEmail
-
-    email_sender = CobaltEmail()
-    email_sender.queue_email("a@b.com", "Subject", "<h1>Hello</h1>")
-    email_sender.queue_email("b@c.com", "Welcome", "<h1>Hi</h1>")
-    email_sender.send()
-
-How It Works
-------------
-
-Queuing an email will write it to the email table with a status of
-"Queued".
-
-Sending it will start a new thread (immediate return to the calling
-program) which checks if the maximum number of allowed concurrent
-email threads has been reached and if not it will start another one.
-
-We also follow up with a cron job that calls a management function
-to check for any stale messages and send them. In the event of the
-threads being used up, the cronjob will ensure that the emails
-are still send after a little delay.
-
-At start up, the notifications module clears any recorded email
-threads that are in the EmailThread table, in case they are left
-behind from an interrupted restart (see notifications/apps.py).
-
-We should never get a thread left in the list after it has finished
-because the try: finally: block in the send code ensures that
-even there are logic errors, the entry will be deleted (but you
-never know!).
