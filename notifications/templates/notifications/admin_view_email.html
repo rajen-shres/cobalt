@@ -35,6 +35,8 @@
     {% if email.html_message %}
         {{ email.html_message|safe}}
     {% else %}
+        <pre>
         {{ email.message }}
+        </pre>
     {% endif %}
 {% endblock %}
