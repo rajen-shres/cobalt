@@ -16,6 +16,8 @@ AWS Simple Email Service (SES)
 ------------------------------
 
 We use SES in order to send emails and to get notifications back about status.
+You can find the main documentation here: :doc:`notifications_overview`. This
+describe the AWS set up.
 
 Introduction
 ^^^^^^^^^^^^
@@ -37,7 +39,7 @@ For the ABF version of Cobalt we are basically tied into Amazon SES
 We use two packages to help us with this:
 
 * **Django Post-Office** (https://pypi.org/project/django-post-office/) installs as a replacement email backend and handles secure delivery and bulk emails. It actually uses any other email backend to do the sending so you can use this without relying on AWS SES.
-* **Django SES** (https://github.com/django-ses/django-ses) is a replacement email backend that tightly integrates with SES. You can send emails using SES simply through SMTP but Django SES has more features.
+* **Django SES** (https://github.com/django-ses/django-ses) is a replacement email backend that tightly integrates with SES. You can send emails using SES simply through SMTP but Django SES uses BOTO3 which is more efficient and can receive status updates back from SES.
 
 Environments
 ^^^^^^^^^^^^
@@ -48,79 +50,43 @@ from SES is not possible in Development. To do any significant work in Developme
 recommended that you run up a temporary server on the Internet to use as a development machine.
 
 AWS Set Up
+----------
 
 You need a basic AWS set up to start with and you need SES enabled. This is already well documented.
 If you can get to the point where you can send email from your Cobalt system (or anything else)
-using SMTP then that is fine.
+using SMTP then that is a fine starting point for this.
 
 Add a Configuration Set
+^^^^^^^^^^^^^^^^^^^^^^^
 
-Create Configuration Set - call it what you like e.g. Cobalt
+#. Create a Configuration Set - name it after the environment e.g. cobalt-test
+#. Add Destination - SNS
+#. Create new SNS Topic - again name it after the environment
+#. Select all event types (except Rendering Failure).
+#. Use the AWS domain for click and open tracking
+#. Now go to SNS and find you topic
+#. Add a subscriber and choose HTTPS with the Django URL, e.g. https://test.myabf.com.au/notifications/ses/event-webhook/
+#. Django SES will handle the subscription request and this will now be set up
+#. Add environment variables for your Cobalt system. You will need: AWS_SES_REGION_NAME, AWS_SES_REGION_ENDPOINT and AWS_SES_CONFIGURATION_SET as well as the AWS credentials.
 
-Click on it to edit
+Things to Watch Out For
+^^^^^^^^^^^^^^^^^^^^^^^
 
-Add Destination - Cloudwatch
+Django SES comes with the ability to check that the certificate is valid when we receive
+a call from AWS SES. This is the default behaviour and requires m2crypto to be installed.
+For Python 3 you can't easily install m2crypto using pip and the work around is to install
+it into the OS. The package is old and the install is fiddly. We decided that it was less
+risk not to check the certificate than to open ourselves to problems with newer OS versions
+that would stop the whole of Cobalt from installing. It would be possible for someone to
+fake an email being opened but the impact of that is very small.
 
-Now call it Cobalt and select all event types (except Rendering Failure).
-Use your own domain for open and click tracking. Don’t add a sub-domain
+To disable the need for m2crypto we set::
 
-Set the Value Source Type to “Message Tag” and the Dimension Name to
-“ses:configuration-set” and the Default Value to “Cobalt”.
+    AWS_SES_VERIFY_EVENT_SIGNATURES = False
 
-Notifications
+In order to successful receive signals from Django SES when DEBUG is False, we need to call::
 
-Go to the SES main panel and choose your domain.
+    func_accepts_kwargs()
 
-Expand Notifications and click Edit Configuration
-
-Click on Click here to create a new Amazon SNS topic
-
-Call it cobalt_bounces (same for display name)
-
-Create anther one called cobalt_complaints
-
-Set the SNS Topic Configuration to point to these. Leave Deliveries blank.
-
-Django Set Up
-
-This is already done and in the code, but for completeness:
-
-pip install django-post-office
-
-pip install django-ses
-
-Add post_office to your INSTALLED_APPS
-
-./manage.py migrate
-
-Edit settings.py
-
-EMAIL_BACKEND = 'post_office.EmailBackend'
-
-POST_OFFICE = {
-    'BACKENDS': {
-        'default': 'django_ses.SESBackend',
-    },
-    'DEFAULT_PRIORITY': 'now',
-}
-AWS_SES_REGION_NAME = env('AWS_SES_REGION_NAME', default='us-east-1')
-AWS_SES_REGION_ENDPOINT = env('AWS_SES_REGION_ENDPOINT', default='email.us-east-1.amazonaws.com')
-AWS_SES_CONFIGURATION_SET = env('AWS_SES_CONFIGURATION_SET', default=None)
-
-AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY where already there but need AmazonSESFullAccess
-
-You should now be able to send emails as normal.
-
-Add a path to notifications URLs for the callback from AWS. See Django SES docs for this (also in the code).
-
-Configure Callback in AWS SES
-
-Create a subscription in SNS (not SES)
-
-On Lightsail - sudo apt-get install libssl-dev swig python3-dev gcc
-
-then m2crypto will pip install
-
-On Test:
-
-yum install openssl-devel
+This is strange as it shouldn't actually change anything. Check the code
+in :func:`notifications.apps.NotificationsConfig` for more details.
