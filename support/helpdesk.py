@@ -971,10 +971,10 @@ def create_ticket_api(
         status=status,
     ).save()
 
-    IncidentLineItem(
-        incident=ticket,
-        description="Ticket raised by the system.",
-    ).save()
+    # IncidentLineItem(
+    #     incident=ticket,
+    #     description="Ticket raised by the system.",
+    # ).save()
 
     # Notify the user if there is one
     if reported_by_user.id != ABF_USER:
