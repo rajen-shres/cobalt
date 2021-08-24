@@ -151,6 +151,8 @@ class NotificationsConfig(AppConfig):
 
             logger.info(f"BOUNCE: Received Message-ID: {message_id}")
 
+            print(bounce_obj, flush=True)
+
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
                 #               our_id = post_office_email.id
