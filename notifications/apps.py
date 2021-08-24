@@ -153,11 +153,11 @@ class NotificationsConfig(AppConfig):
 
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
-                our_id = post_office_email.id
+                #               our_id = post_office_email.id
                 logger.error(f"ID: {post_office_email.id}")
             except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"BOUNCE: No matching message found for :{message_id}")
-                our_id = None
+            #               our_id = None
 
             message = f"Bounce received: bounce type: {bounce_obj['bounceType']}, bounce sub-type: {bounce_obj['bounceSubType']} bounced_recipients: {bounce_obj['bouncedRecipients']}"
 
@@ -172,16 +172,19 @@ class NotificationsConfig(AppConfig):
                 message=message,
             )
 
-            # Raise a ticket
-            create_ticket_api(
-                title=f"Email Bounce from {bounce_obj['bouncedRecipients']}"[:79],
-                description=f"Email Bounce Received.\n\n"
-                f"bounce type: {bounce_obj['bounceType']}\n"
-                f"bounce sub-type: {bounce_obj['bounceSubType']}\n"
-                f"Message ID: {message_id}\n"
-                f"Our Post Office ID: {our_id}\n"
-                f" bounced_recipients: {bounce_obj['bouncedRecipients']}\n\nPlease investigate.",
-            )
+            # This is commented out for now at least. If we get a bounce from a support email
+            # This will loop forever
+
+            # # Raise a ticket
+            # create_ticket_api(
+            #     title=f"Email Bounce from {bounce_obj['bouncedRecipients']}"[:79],
+            #     description=f"Email Bounce Received.\n\n"
+            #     f"bounce type: {bounce_obj['bounceType']}\n"
+            #     f"bounce sub-type: {bounce_obj['bounceSubType']}\n"
+            #     f"Message ID: {message_id}\n"
+            #     f"Our Post Office ID: {our_id}\n"
+            #     f" bounced_recipients: {bounce_obj['bouncedRecipients']}\n\nPlease investigate.",
+            # )
 
         @receiver(complaint_received)
         def complaint_handler(
