@@ -969,7 +969,11 @@ def create_ticket_api(
         incident_type=incident_type,
         assigned_to=assigned_to,
         status=status,
-    ).save()
+    )
+
+    ticket.save()
+
+    print(ticket)
 
     # IncidentLineItem(
     #     incident=ticket,
