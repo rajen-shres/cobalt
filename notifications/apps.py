@@ -174,7 +174,7 @@ class NotificationsConfig(AppConfig):
 
             # Raise a ticket
             create_ticket_api(
-                title=f"Email Bounce from {bounce_obj['bouncedRecipients']}"[:80],
+                title=f"Email Bounce from {bounce_obj['bouncedRecipients']}"[:79],
                 description=f"Email Bounce Received.\n\n"
                 f"bounce type: {bounce_obj['bounceType']}\n"
                 f"bounce sub-type: {bounce_obj['bounceSubType']}\n"
