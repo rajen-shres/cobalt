@@ -1,32 +1,26 @@
 {% load cobalt_tags %}
 {% load crispy_forms_tags %}
 
-<nav aria-label="breadcrumb" role="navigation">
-    <ol class="breadcrumb bg-light">
-        <li class="breadcrumb-item">
-            <a href=""
-                hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
-                hx-indicator=".htmx-indicator"
-                hx-target="#id_panel_members"
-                hx-vars="club_id:{{ club.id }}"
-            >
-                Members
-            </a>
-        </li>
-        <li class="breadcrumb-item active" aria-current="page">Edit Member</li>
-    </ol>
-</nav>
-
-<div class="card">
+<div class="card col-md-6">
+    <div class="card-header card-header-rose">
+        <h2 class="text-center">{{ un_reg }}</h2>
+        <h3>
+            {% if member_details.home_club %}
+                This is {{ un_reg.first_name }}'s home club
+            {% else %}
+                This is NOT {{ un_reg.first_name }}'s home club
+            {% endif %}
+        </h3>
+    </div>
     <div class="card-body pt-0">
         <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
+
         <form
             hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
             hx-indicator=".htmx-indicator"
             hx-target="#id_panel_members"
             hx-vars="club_id:{{ club.id }}, un_reg_id:{{ un_reg.id }}"
         >
-            <h3 class="text-center">{{ un_reg }}</h3>
 
             {% crispy user_form %}
 

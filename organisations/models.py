@@ -228,9 +228,6 @@ class MemberMembershipType(models.Model):
         ("Expired", "Expired"),
     ]
     system_number = models.IntegerField("%s Number" % GLOBAL_ORG, blank=True)
-    # member = models.ForeignKey(
-    #     User, on_delete=models.PROTECT, related_name="membership_member"
-    # )
     membership_type = models.ForeignKey(MembershipType, on_delete=models.PROTECT)
     termination_reason = models.CharField(
         "Reason for Membership Termination",

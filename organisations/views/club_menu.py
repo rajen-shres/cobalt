@@ -516,7 +516,7 @@ def tab_members_list_htmx(request, message=None):
 
     return render(
         request,
-        "organisations/club_menu/tab_members_list_htmx.html",
+        "organisations/club_menu/members/list_htmx.html",
         {
             "club": club,
             "cobalt_members": cobalt_members,
@@ -539,7 +539,7 @@ def tab_members_add_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/tab_members_add_htmx.html",
+        "organisations/club_menu/members/add_htmx.html",
         {
             "club": club,
             "total_members": total_members,
@@ -560,10 +560,19 @@ def tab_members_un_reg_edit_htmx(request):
 
     user_form = UnregisteredUserForm(instance=un_reg)
 
+    member_details = MemberMembershipType.objects.filter(
+        system_number=un_reg.system_number
+    ).first()
+
     return render(
         request,
-        "organisations/club_menu/tab_members_un_reg_edit_htmx.html",
-        {"club": club, "un_reg": un_reg, "user_form": user_form},
+        "organisations/club_menu/members/un_reg_edit_htmx.html",
+        {
+            "club": club,
+            "un_reg": un_reg,
+            "user_form": user_form,
+            "member_details": member_details,
+        },
     )
 
 
@@ -997,7 +1006,7 @@ def club_menu_tab_members_upload_csv_htmx(request):
     """Upload CSV"""
 
     if request.method == "GET":
-        return render(request, "organisations/club_menu/tab_members_list_htmx.html")
+        return render(request, "organisations/club_menu/members/list_htmx.html")
     # if not GET, then proceed
     try:
         csv_file = request.FILES["csv_file"]
@@ -1027,7 +1036,7 @@ def club_menu_tab_members_upload_csv_htmx(request):
     except Exception as e:
         messages.error(request, "Unable to upload file. " + repr(e))
 
-    return render(request, "organisations/club_menu/tab_members_csv_htmx.html")
+    return render(request, "organisations/club_menu/members/csv_htmx.html")
 
 
 def club_menu_tab_members_import_mpc_htmx(request):
@@ -1037,7 +1046,7 @@ def club_menu_tab_members_import_mpc_htmx(request):
     if not status:
         return error_page
 
-    # Get members from MPC - we only get hoe club members
+    # Get home club members from MPC
     qry = f"{GLOBAL_MPSERVER}/clubMemberList/{club.org_id}"
     club_members = masterpoint_query(qry)
 
@@ -1051,13 +1060,53 @@ def club_menu_tab_members_import_mpc_htmx(request):
         for club_member in club_members
     ]
 
-    added_users, added_unregistered_users = process_member_import(
+    home_added_users, home_added_unregistered_users = process_member_import(
+        club, member_data, request.user, "MPC"
+    )
+
+    # Get Alternate (non-home) club members from MPC
+    qry = f"{GLOBAL_MPSERVER}/clubAltMemberList/{club.org_id}"
+    club_members = masterpoint_query(qry)
+
+    member_data = [
+        {
+            "system_number": club_member["ABFNumber"],
+            "first_name": club_member["GivenNames"],
+            "last_name": club_member["Surname"],
+            "email": club_member["EmailAddress"],
+        }
+        for club_member in club_members
+    ]
+
+    alt_added_users, alt_added_unregistered_users = process_member_import(
         club, member_data, request.user, "MPC"
     )
 
     return tab_members_list_htmx(
         request,
-        f"<h3>Added users: {added_users}</h3><h3>Added unregistered users: {added_unregistered_users}</h3>",
+        f"""<h3>Import Results</h3>
+            <div class="col-md-6">
+            <table class="table table-condensed">
+            <tr>
+                <td>&nbsp;</td>
+                <td class="font-weight-bold" colspan="2">My ABF Status</td>
+            </tr>
+                <td>&nbsp;</td>
+                <td class="font-weight-bold">Registered</td>
+                <td class="font-weight-bold">Un-Registered</td>
+            </tr>
+            <tr>
+                <td class="font-weight-bold">Home Members</td>
+                <td>{home_added_users}</td>
+                <td>{home_added_unregistered_users}</td>
+            </tr>
+            <tr>
+                <td class="font-weight-bold">Non Home Members</td>
+                <td>{alt_added_users}</td>
+                <td>{alt_added_unregistered_users}</td>
+            </tr>
+            </table>
+            </div>""",
     )
 
 
@@ -1066,26 +1115,36 @@ def process_member_import_add_member_to_membership(
     club_member: dict,
     user: User,
     default_membership: MembershipType,
+    home_club: bool = False,
 ):
     """Sub process to add a member to the member-membership model. Returns 0 if already there or 1"""
 
     # Check if already there
-    member_membership = MemberMembershipType.objects.filter(
-        system_number=club_member["system_number"]
-    ).filter(membership_type__organisation=club)
+    member_membership = (
+        MemberMembershipType.objects.filter(system_number=club_member["system_number"])
+        .filter(membership_type__organisation=club)
+        .first()
+    )
     if member_membership:
+        # Update home club in case it has changed
+        member_membership.home_club = home_club
+        member_membership.save()
         return 0
-    else:
-        MemberMembershipType(
-            membership_type=default_membership,
-            system_number=club_member["system_number"],
-            last_modified_by=user,
-        ).save()
-        return 1
+    MemberMembershipType(
+        membership_type=default_membership,
+        system_number=club_member["system_number"],
+        last_modified_by=user,
+        home_club=home_club,
+    ).save()
+    return 1
 
 
 def process_member_import(
-    club: Organisation, member_data: list, user: User, origin: str
+    club: Organisation,
+    member_data: list,
+    user: User,
+    origin: str,
+    home_club: bool = False,
 ):
     """Common function to process a list of members"""
 
@@ -1107,7 +1166,7 @@ def process_member_import(
 
         if user_match:
             added_users += process_member_import_add_member_to_membership(
-                club, club_member, user, default_membership
+                club, club_member, user, default_membership, home_club
             )
         else:
             # See if we have an unregistered user already
@@ -1128,7 +1187,7 @@ def process_member_import(
                 ).save()
 
             added_unregistered_users += process_member_import_add_member_to_membership(
-                club, club_member, user, default_membership
+                club, club_member, user, default_membership, home_club
             )
 
     return added_users, added_unregistered_users
