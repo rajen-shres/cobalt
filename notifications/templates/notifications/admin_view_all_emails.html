@@ -43,7 +43,11 @@
                                             {{ thing.get_status_display }}
                                         {% else %}
                                             {% if thing.snooper.ses_bounce_reason %}
-                                                Bounced
+                                                {% if thing.snooper.ses_bounce_reason == "Permanent: General" %}
+                                                    Hard Bounced
+                                                {% else %}
+                                                    Soft Bounced
+                                                {% endif %}
                                             {% elif thing.snooper.ses_clicked_at %}
                                                 Clicked
                                             {% elif thing.snooper.ses_opened_at %}
