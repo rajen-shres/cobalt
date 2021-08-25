@@ -179,20 +179,6 @@ class NotificationsConfig(AppConfig):
                     message=message,
                 )
 
-            # This is commented out for now at least. If we get a bounce from a support email
-            # This will loop forever
-
-            # # Raise a ticket
-            # create_ticket_api(
-            #     title=f"Email Bounce from {bounce_obj['bouncedRecipients']}"[:79],
-            #     description=f"Email Bounce Received.\n\n"
-            #     f"bounce type: {bounce_obj['bounceType']}\n"
-            #     f"bounce sub-type: {bounce_obj['bounceSubType']}\n"
-            #     f"Message ID: {message_id}\n"
-            #     f"Our Post Office ID: {our_id}\n"
-            #     f" bounced_recipients: {bounce_obj['bouncedRecipients']}\n\nPlease investigate.",
-            # )
-
         @receiver(complaint_received)
         def complaint_handler(
             sender, mail_obj, complaint_obj, raw_message, *args, **kwargs
@@ -209,6 +195,13 @@ class NotificationsConfig(AppConfig):
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
                 logger.error(f"ID: {post_office_email.id}")
+                log_event(
+                    user=None,
+                    severity="CRITICAL",
+                    source="Notifications",
+                    sub_source="Email",
+                    message=f"{complaint_obj}",
+                )
             except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"COMPLAINT: No matching message found for :{message_id}")
 
