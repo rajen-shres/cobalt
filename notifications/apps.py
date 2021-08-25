@@ -151,28 +151,25 @@ class NotificationsConfig(AppConfig):
 
             logger.info(f"BOUNCE: Received Message-ID: {message_id}")
 
-            print(bounce_obj, flush=True)
-
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
-                #               our_id = post_office_email.id
                 logger.error(f"ID: {post_office_email.id}")
             except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"BOUNCE: No matching message found for :{message_id}")
-            #               our_id = None
 
             message = f"Bounce received: bounce type: {bounce_obj['bounceType']}, bounce sub-type: {bounce_obj['bounceSubType']} bounced_recipients: {bounce_obj['bouncedRecipients']}"
 
             logger.error(message)
 
-            # log event
-            log_event(
-                user=None,
-                severity="CRITICAL",
-                source="Notifications",
-                sub_source="Email",
-                message=message,
-            )
+            # log event if this is a bad bounce. Out of Office for example will generate a bounce
+            if bounce_obj["bounceType"] == "Permanent":
+                log_event(
+                    user=None,
+                    severity="CRITICAL",
+                    source="Notifications",
+                    sub_source="Email",
+                    message=message,
+                )
 
             # This is commented out for now at least. If we get a bounce from a support email
             # This will loop forever
