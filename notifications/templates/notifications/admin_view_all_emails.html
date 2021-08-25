@@ -42,7 +42,9 @@
                                         {% if thing.status != 0 %}
                                             {{ thing.get_status_display }}
                                         {% else %}
-                                            {% if thing.snooper.ses_clicked_at %}
+                                            {% if thing.snooper.ses_bounce_reason %}
+                                                Bounced
+                                            {% elif thing.snooper.ses_clicked_at %}
                                                 Clicked
                                             {% elif thing.snooper.ses_opened_at %}
                                                 Opened
