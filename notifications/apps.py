@@ -175,7 +175,7 @@ class NotificationsConfig(AppConfig):
                     user=None,
                     severity="CRITICAL",
                     source="Notifications",
-                    sub_source="Email",
+                    sub_source="Email-Bounce",
                     message=message,
                 )
 
@@ -199,7 +199,7 @@ class NotificationsConfig(AppConfig):
                     user=None,
                     severity="CRITICAL",
                     source="Notifications",
-                    sub_source="Email",
+                    sub_source="Email-Complaint",
                     message=f"{complaint_obj}",
                 )
             except (AttributeError, PostOfficeEmail.DoesNotExist):
