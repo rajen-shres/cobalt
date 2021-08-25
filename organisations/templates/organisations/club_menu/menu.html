@@ -6,6 +6,15 @@
 
 {% block header %}
     {% include "utils/data_tables_heading.html" %}
+    <style>
+        .htmx-request .btn {
+            display: none;
+        }
+        .htmx-request.btn {
+            display: none;
+        }
+
+    </style>
 {% endblock header %}
 {% block content %}
 
@@ -92,7 +101,7 @@
                 </ul>
                 <div class='justify-content-center text-center'>
                     <span class="htmx-indicator">
-                        <img src="{% static "assets/img/spinners/bars.svg" %}"/>
+                        <img style="width: 40px" src="{% static "assets/img/spinners/bars.svg" %}"/>
                     </span>
                 </div>
 
@@ -168,6 +177,15 @@
 
             // first time load the active tab
             htmx.trigger(htmx.find("#id_panel_dashboard"), "tab_load_event");
+
         });
+
+        // any time a button of class enter-button is pressed, hide all of them in that div
+        function disable_buttons(e){
+            console.log("inside")
+            $('.btn').each(function(i, obj){
+                $(this).prop('disabled', true);
+            })
+        }
     </script>
 {% endblock footer %}

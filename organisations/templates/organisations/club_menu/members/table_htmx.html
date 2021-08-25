@@ -1,0 +1,29 @@
+<div class="card col-md-10 col-lg-6 mx-auto">
+    <div class="card-header card-header-warning">
+        <h3>Import Results</h3>
+    </div>
+    <div class="card-body">
+        <table class="table table-condensed">
+            <tr>
+                <td>&nbsp;</td>
+                <td class="font-weight-bold" colspan="2">My ABF Status</td>
+            </tr>
+            <td>&nbsp;</td>
+            <td class="font-weight-bold">Registered</td>
+            <td class="font-weight-bold">Un-Registered</td>
+        </tr>
+        <tr>
+            <td class="font-weight-bold">Home Members</td>
+            <td>{{ home_added_users }}</td>
+            <td>{{ home_added_unregistered_users }}</td>
+        </tr>
+        <tr>
+            <td class="font-weight-bold">Non Home Members</td>
+            <td>{{ alt_added_users }}</td>
+            <td>{{ alt_added_unregistered_users }}</td>
+        </tr>
+    </table>
+
+</div>
+</div>
+

@@ -13,9 +13,8 @@
                     <td>
                         <button class="btn bg-primary btn-block"
                             hx-post="{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}"
-                            hx-indicator=".htmx-indicator"
                             hx-target="#id_member_add_tab"
-                            onClick="this.disabled=true;"
+                            onClick="disable_buttons();"
                         >Add Manually</button>
                     </td>
                     <td class="text-left pl-5">
@@ -26,9 +25,8 @@
                     <td>
                         <button class="btn bg-primary btn-block"
                             hx-post="{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}"
-                            hx-indicator=".htmx-indicator"
                             hx-target="#id_panel_members"
-                            onClick="$(':button').prop('disabled', true);$('#id_panel_members').addClass('cursor_wait');"
+                            onClick="disable_buttons();"
                         >MPC Import</button>
                     </td>
                     <td class="text-left pl-5">
@@ -39,8 +37,7 @@
                     <td>
                         <button class="btn bg-primary btn-block"
                             hx-post="{% url "organisations:club_menu_tab_members_upload_csv" %}"
-                            hx-indicator=".htmx-indicator"
-                            hx-target="#id_panel_members"
+                            hx-target="#id_member_add_tab"
                         >Pianola Upload</button>
                     </td>
                     <td class="text-left pl-5">
@@ -51,8 +48,8 @@
                     <td>
                         <button class="btn bg-primary btn-block"
                             hx-post="{% url "organisations:club_menu_tab_members_upload_csv" %}"
-                            hx-indicator=".htmx-indicator"
                             hx-target="#id_panel_members"
+                            onClick="disable_buttons();"
                         >CSV Upload</button>
                     </td>
                     <td class="text-left pl-5">

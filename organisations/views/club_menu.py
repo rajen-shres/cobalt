@@ -5,6 +5,8 @@ The entry point is club_menu() which loads the page menu.html
 Menu.html uses HTMX to load the tab pages e.g. tab_dashboard_htmx()
 
 """
+import codecs
+import csv
 import datetime
 
 from django.contrib import messages
@@ -12,6 +14,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
+from django.template import Context
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 
@@ -1005,38 +1009,60 @@ def access_advanced_add_admin_htmx(request):
 def club_menu_tab_members_upload_csv_htmx(request):
     """Upload CSV"""
 
-    if request.method == "GET":
-        return render(request, "organisations/club_menu/members/list_htmx.html")
-    # if not GET, then proceed
-    try:
-        csv_file = request.FILES["csv_file"]
-        if not csv_file.name.endswith(".csv"):
-            messages.error(request, "File is not CSV type")
-        # return HttpResponseRedirect(reverse("organisations:club_menu_tab_members_upload_csv"))
-        # if file is too large, return
-        if csv_file.multiple_chunks():
-            messages.error(
-                request,
-                "Uploaded file is too big (%.2f MB)."
-                % (csv_file.size / (1000 * 1000),),
-            )
-        # return HttpResponseRedirect(reverse("organisations:club_menu_tab_members_upload_csv"))
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
 
-        file_data = csv_file.read().decode("utf-8")
+    if not request.FILES:
+        return render(request, "organisations/club_menu/members/csv_htmx.html")
 
-        # loop over the lines and save them in db. If error , store as string and then display
-        for line in file_data.split("\n"):
-            fields = line.split(",")
-            system_number = fields[1]
-            first_name = fields[5]
-            last_name = fields[6]
-            email = fields[7]
-            print(system_number, first_name, last_name, email)
+    # Get file
+    csv_file = request.FILES["file"]
 
-    except Exception as e:
-        messages.error(request, "Unable to upload file. " + repr(e))
+    # get CSV reader (convert bytes to strings)
+    csv_data = csv.reader(codecs.iterdecode(csv_file, "utf-8"))
 
-    return render(request, "organisations/club_menu/members/csv_htmx.html")
+    # skip header
+    next(csv_data, None)
+
+    # Process data
+    member_data = []
+
+    for club_member in csv_data:
+        system_number = club_member[1].strip()
+
+        try:
+            system_number = int(system_number)
+        except ValueError:
+            continue
+
+        # Skip visitors, at least for now
+        if club_member[21].find("Visitor") >= 0:
+            continue
+        item = {
+            "system_number": system_number,
+            "first_name": club_member[5],
+            "last_name": club_member[6],
+            "email": club_member[7],
+        }
+        member_data.append(item)
+
+    home_added_users, home_added_unregistered_users = process_member_import(
+        club, member_data, request.user, "Pianola"
+    )
+
+    # Build results table
+    table = render_to_string(
+        "organisations/club_menu/members/table_htmx.html",
+        {
+            "home_added_users": home_added_users,
+            "home_added_unregistered_users": home_added_unregistered_users,
+            "alt_added_users": 0,
+            "alt_added_unregistered_users": 0,
+        },
+    )
+
+    return tab_members_list_htmx(request, table)
 
 
 def club_menu_tab_members_import_mpc_htmx(request):
@@ -1082,32 +1108,18 @@ def club_menu_tab_members_import_mpc_htmx(request):
         club, member_data, request.user, "MPC"
     )
 
-    return tab_members_list_htmx(
-        request,
-        f"""<h3>Import Results</h3>
-            <div class="col-md-6">
-            <table class="table table-condensed">
-            <tr>
-                <td>&nbsp;</td>
-                <td class="font-weight-bold" colspan="2">My ABF Status</td>
-            </tr>
-                <td>&nbsp;</td>
-                <td class="font-weight-bold">Registered</td>
-                <td class="font-weight-bold">Un-Registered</td>
-            </tr>
-            <tr>
-                <td class="font-weight-bold">Home Members</td>
-                <td>{home_added_users}</td>
-                <td>{home_added_unregistered_users}</td>
-            </tr>
-            <tr>
-                <td class="font-weight-bold">Non Home Members</td>
-                <td>{alt_added_users}</td>
-                <td>{alt_added_unregistered_users}</td>
-            </tr>
-            </table>
-            </div>""",
+    # Build results table
+    table = render_to_string(
+        "organisations/club_menu/members/table_htmx.html",
+        {
+            "home_added_users": home_added_users,
+            "home_added_unregistered_users": home_added_unregistered_users,
+            "alt_added_users": alt_added_users,
+            "alt_added_unregistered_users": alt_added_unregistered_users,
+        },
     )
+
+    return tab_members_list_htmx(request, table)
 
 
 def process_member_import_add_member_to_membership(

@@ -1,44 +1,57 @@
-{#<form action="{% url "organisations:club_menu_tab_members_upload_csv" %}" method="POST" enctype="multipart/form-data" class="form-horizontal">#}
-{#{% csrf_token %}#}
-{#<div class="form-group">#}
-{#    <label for="name" class="col-md-3 col-sm-3 col-xs-12 control-label">File: </label>#}
-{#    <div class="col-md-8">#}
-{#        <input type="file" name="csv_file" id="csv_file" required="True" class="form-control">#}
-{#    </div>#}
-{#</div>#}
-{#<div class="form-group">#}
-{#    <div class="col-md-3 col-sm-3 col-xs-12 col-md-offset-3" style="margin-bottom:10px;">#}
-{#         <button class="btn btn-primary"> <span class="glyphicon glyphicon-upload" style="margin-right:5px;"></span>Upload </button>#}
-{#    </div>#}
-{#</div>#}
-{#</form>#}
+<h3 class="text-center">Export your member file from Pianola and you can use this page to import to {{ GLOBAL_TITLE }}</h3>
 
+<h4 class="text-center">This can take a little while to process, please be patient.</h4>
 
+<div class="mx-auto text-center">
+    <form id='form'
+        hx-encoding='multipart/form-data'
+        hx-post='{% url "organisations:club_menu_tab_members_upload_csv" %}'
+        hx-target='#id_panel_members'
+    >
+        <style>
+            input[type="file"] {
+                display: none;
+            }
+            .custom-file-upload {
+                border: 1px solid #ccc;
+                display: inline-block;
+                padding: 6px 12px;
+                cursor: pointer;
+            }
+        </style>
 
-<form id='form' hx-encoding='multipart/form-data' hx-post='{% url "organisations:club_menu_tab_members_upload_csv" %}'>
-    <h3>Pianola File Upload</h3>
+        <br>
 
-    <style>
-        input[type="file"] {
-            display: none;
-        }
-        {#            .custom-file-upload {#}
-        {#    border: 1px solid #ccc;#}
-        {#    display: inline-block;#}
-        {#    padding: 6px 12px;#}
-        {#    cursor: pointer;#}
-        {#}#}
-    </style>
-    <label for="file-upload" class="btn btn-sm btn-info">
-        Choose File
-    </label>
-    <input type='file' id="file-upload" name='csv_file' class="form-control btn-primary">
+        <label id="label-for-file-upload" for="file-upload" class="btn btn-sm btn-info">
+            Choose File
+        </label>
+        <input type='file'
+            accept=".csv"
+            name='file'
+            id="file-upload"
+            class="form-control"
+            onchange="$('#upload_pianola').show();"
+        >
+        <br>
+        <button id="upload_pianola"
+            style="display:none;"
+            class="btn btn-sm btn-success"
+            onclick="$('#upload_pianola_msg').show();
+            $('#upload_pianola').hide();
+            $('#file-upload').hide();
+            $('#label-for-file-upload').hide();"
+        >Upload
+        </button>
 
+        <br>
+        <progress id='progress' value='0' max='100'></progress>
 
+        <div id="upload_pianola_msg" style="display: none">
+            Working...
+        </div>
+    </form>
+</div>
 
-
-
-</form>
 <script>
     htmx.on('#form', 'htmx:xhr:progress', function(evt) {
         htmx.find('#progress').setAttribute('value', evt.detail.loaded/evt.detail.total * 100)
