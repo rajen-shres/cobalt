@@ -34,7 +34,7 @@
             <tr>
                 <td>Bounced</td>
                 <td>{{ email.snooper.ses_bounce_reason }}
-                    {{ email.snooper.ses_last_bounced_at|cobalt_nice_datetime }}</td>
+                    {{ email.snooper.ses_last_bounce_at|cobalt_nice_datetime }}</td>
             </tr>
         {% endif %}
     </table>
