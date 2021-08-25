@@ -124,3 +124,5 @@ class Snooper(models.Model):
     ses_open_count = models.IntegerField("Open Count", default=0)
     ses_last_clicked_at = models.DateTimeField("Last Clicked At", blank=True, null=True)
     ses_clicked_count = models.IntegerField("Clicked Count", default=0)
+    ses_last_bounce_at = models.DateTimeField("Last Bounce At", blank=True, null=True)
+    ses_bounce_reason = models.TextField("Bounce Reason", blank=True, null=True)

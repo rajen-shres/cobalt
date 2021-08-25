@@ -113,9 +113,9 @@ class NotificationsConfig(AppConfig):
 
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
-                snooper = Snooper.objects.filter(
+                snooper, _ = Snooper.objects.get_or_create(
                     post_office_email=post_office_email
-                ).first()
+                )
                 snooper.ses_last_opened_at = timezone.now()
                 snooper.ses_open_count += 1
                 snooper.save()
@@ -133,9 +133,9 @@ class NotificationsConfig(AppConfig):
 
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
-                snooper = Snooper.objects.filter(
+                snooper, _ = Snooper.objects.get_or_create(
                     post_office_email=post_office_email
-                ).first()
+                )
                 snooper.ses_last_clicked_at = timezone.now()
                 snooper.ses_clicked_count += 1
                 snooper.save()
@@ -153,7 +153,15 @@ class NotificationsConfig(AppConfig):
 
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
-                logger.error(f"ID: {post_office_email.id}")
+                snooper, _ = Snooper.objects.get_or_create(
+                    post_office_email=post_office_email
+                )
+                snooper.ses_last_bounce_at = timezone.now()
+                snooper.ses_bounce_reason = (
+                    f"{bounce_obj['bounceType']}: {bounce_obj['bounceSubType']}"
+                )
+                snooper.save()
+                logger.info(f"BOUNCE: Processed Message-ID: {message_id}")
             except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"BOUNCE: No matching message found for :{message_id}")
 
