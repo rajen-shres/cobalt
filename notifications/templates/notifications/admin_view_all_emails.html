@@ -44,9 +44,9 @@
                                         {% else %}
                                             {% if thing.snooper.ses_bounce_reason %}
                                                 {% if thing.snooper.ses_bounce_reason == "Permanent: General" %}
-                                                    Hard Bounced
+                                                    Hard Bounce
                                                 {% else %}
-                                                    Soft Bounced
+                                                    Soft Bounce
                                                 {% endif %}
                                             {% elif thing.snooper.ses_clicked_at %}
                                                 Clicked
