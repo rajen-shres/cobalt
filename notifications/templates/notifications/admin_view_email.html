@@ -29,6 +29,14 @@
             <td>{{ email.snooper.ses_clicked_count }} time{{ email.snooper.ses_clicked_count|pluralize }}.
                 Last clicked: {{ email.snooper.ses_last_clicked_at|cobalt_nice_datetime|default_if_none:"Never" }}</td>
         </tr>
+
+        {% if email.snooper.ses_bounce_reason %}
+            <tr>
+                <td>Bounced</td>
+                <td>{{ email.snooper.ses_bounce_reason }}
+                    {{ email.snooper.ses_last_bounced_at|cobalt_nice_datetime }}</td>
+            </tr>
+        {% endif %}
     </table>
 
     <hr>
