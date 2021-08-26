@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Organisation, MemberMembershipType, MembershipType, ClubLog
+from .models import (
+    Organisation,
+    MemberMembershipType,
+    MembershipType,
+    ClubLog,
+    MemberClubEmail,
+)
 
 
 class OrganisationAdmin(admin.ModelAdmin):
@@ -9,4 +15,5 @@ class OrganisationAdmin(admin.ModelAdmin):
 admin.site.register(Organisation, OrganisationAdmin)
 admin.site.register(MemberMembershipType)
 admin.site.register(MembershipType)
+admin.site.register(MemberClubEmail)
 admin.site.register(ClubLog)

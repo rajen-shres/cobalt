@@ -8,6 +8,7 @@ Menu.html uses HTMX to load the tab pages e.g. tab_dashboard_htmx()
 import codecs
 import csv
 import datetime
+from copy import copy
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -21,14 +22,21 @@ from django.utils import timezone
 
 from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser
+from accounts.views import check_system_number
 from cobalt.settings import GLOBAL_MPSERVER
 from events.models import Congress
-from organisations.forms import OrgForm, MembershipTypeForm, OrgDatesForm
+from organisations.forms import (
+    OrgForm,
+    MembershipTypeForm,
+    OrgDatesForm,
+    MemberClubEmailForm,
+)
 from organisations.models import (
     ORGS_RBAC_GROUPS_AND_ROLES,
     Organisation,
     MembershipType,
     MemberMembershipType,
+    MemberClubEmail,
 )
 from organisations.views.admin import (
     rbac_get_basic_and_advanced,
@@ -561,12 +569,62 @@ def tab_members_un_reg_edit_htmx(request):
 
     un_reg_id = request.POST.get("un_reg_id")
     un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
-
-    user_form = UnregisteredUserForm(instance=un_reg)
+    # for later
+    old_system_number = copy(un_reg.system_number)
 
     member_details = MemberMembershipType.objects.filter(
         system_number=un_reg.system_number
     ).first()
+    message = ""
+
+    if "save" in request.POST:
+        user_form = UnregisteredUserForm(request.POST, instance=un_reg)
+        club_email_form = MemberClubEmailForm(request.POST, prefix="club")
+
+        # Assume the worst
+        message = "Errors found on Form"
+
+        if user_form.is_valid():
+            new_un_reg = user_form.save()
+            message = "Data Saved"
+
+            if "system_number" in user_form.changed_data:
+                # We have updated the un_reg user, but we need to also change club email addresses,
+                # and not just for this club
+                for email_match in MemberClubEmail.objects.filter(
+                    system_number=old_system_number
+                ):
+                    email_match.system_number = new_un_reg.system_number
+                    email_match.save()
+                # reload un_reg
+                un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
+
+                # We also need to change club memberships
+                for member_match in MemberMembershipType.objects.filter(
+                    system_number=old_system_number
+                ):
+                    member_match.system_number = new_un_reg.system_number
+                    member_match.save()
+
+        if club_email_form.is_valid():
+            club_email = club_email_form.cleaned_data["email"]
+            club_email_entry, _ = MemberClubEmail.objects.get_or_create(
+                organisation=club, system_number=un_reg.system_number
+            )
+            club_email_entry.email = club_email
+            club_email_entry.save()
+            message = "Data Saved"
+
+    else:
+        club_email_entry = MemberClubEmail.objects.filter(
+            organisation=club, system_number=un_reg.system_number
+        ).first()
+        user_form = UnregisteredUserForm(instance=un_reg)
+        club_email_form = MemberClubEmailForm(prefix="club")
+
+        # Set initial value for email if record exists
+        if club_email_entry:
+            club_email_form.initial["email"] = club_email_entry.email
 
     return render(
         request,
@@ -575,7 +633,9 @@ def tab_members_un_reg_edit_htmx(request):
             "club": club,
             "un_reg": un_reg,
             "user_form": user_form,
+            "club_email_form": club_email_form,
             "member_details": member_details,
+            "message": message,
         },
     )
 
@@ -1048,7 +1108,12 @@ def club_menu_tab_members_upload_csv_htmx(request):
         member_data.append(item)
 
     home_added_users, home_added_unregistered_users = process_member_import(
-        club, member_data, request.user, "Pianola"
+        club=club,
+        member_data=member_data,
+        user=request.user,
+        origin="Pianola",
+        home_club=True,
+        club_specific_email=True,
     )
 
     # Build results table
@@ -1066,7 +1131,16 @@ def club_menu_tab_members_upload_csv_htmx(request):
 
 
 def club_menu_tab_members_import_mpc_htmx(request):
-    """Import Data from MPC"""
+    """Import Data from the Masterpoints Centre.
+
+    We connect directly to the MPC to get members for this club.
+
+    Members can be home members or alternate members (members of the club but this
+    isn't their home club so ABF and State fees are not charged for them.
+
+    There is no visitor information in the MPC, that happens at the club level.
+
+    """
 
     status, error_page, club = _tab_is_okay(request)
     if not status:
@@ -1129,7 +1203,8 @@ def process_member_import_add_member_to_membership(
     default_membership: MembershipType,
     home_club: bool = False,
 ):
-    """Sub process to add a member to the member-membership model. Returns 0 if already there or 1"""
+    """Sub process to add a member to the member-membership model. Returns 0 if already there
+    or 1 for counting purposes"""
 
     # Check if already there
     member_membership = (
@@ -1157,8 +1232,19 @@ def process_member_import(
     user: User,
     origin: str,
     home_club: bool = False,
+    club_specific_email: bool = False,
 ):
-    """Common function to process a list of members"""
+    """Common function to process a list of members
+
+    Args:
+        club_specific_email: Is this email specific to this club? True for 'club' sources like Pianola, False for MPC
+        home_club: Is this the home club for this user
+        origin: Where did we get this data from?
+        user: Logged in user who is making this change
+        member_data: list of data
+        club: Club object
+
+    """
 
     # We have to add them to a membership type
     # TODO: make this a choice field
@@ -1186,16 +1272,34 @@ def process_member_import(
                 system_number=club_member["system_number"]
             ).first()
 
-            # Add club email - TODO
             if not un_reg:
                 # Create a new unregistered user
+
+                # Check if this email should be added to user or just this club
+                email = None if club_specific_email else club_member["email"]
+
                 UnregisteredUser(
                     system_number=club_member["system_number"],
                     first_name=club_member["first_name"],
                     last_name=club_member["last_name"],
-                    email=club_member["email"],
+                    email=email,
                     origin=origin,
                     last_updated_by=user,
+                    added_by_club=club,
+                ).save()
+
+            # add to club email list if required - don't override if already present
+            if (
+                club_specific_email
+                and not MemberClubEmail.objects.filter(
+                    organisation=club,
+                    system_number=club_member["system_number"],
+                ).exists()
+            ):
+                MemberClubEmail(
+                    organisation=club,
+                    system_number=club_member["system_number"],
+                    email=club_member["email"],
                 ).save()
 
             added_unregistered_users += process_member_import_add_member_to_membership(

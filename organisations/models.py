@@ -131,7 +131,7 @@ class Organisation(models.Model):
     )
     membership_part_year_date_month = models.IntegerField(
         "Membership Part Year Date - Month",
-        default=1,
+        default=7,
         validators=[MaxValueValidator(12), MinValueValidator(1)],
         blank=True,
         null=True,
@@ -271,3 +271,27 @@ class ClubLog(models.Model):
 
     def __str__(self):
         return f"{self.organisation} -  {self.actor}"
+
+
+class MemberClubEmail(models.Model):
+    """This is used for people who are NOT signed yp to Cobalt. This is for Clubs to keep track of
+    the email addresses of their members. Email addresses are an emotive topic in Australian bridge
+    with clubs often refusing to share their email lists with others (including State bodies and the ABF)
+    for fear that their rivals will get hold of their member's contact details and lure them away.
+
+    For this reason and partly just for privacy, we consider any email address that we got from the
+    Masterpoints Centre to be 'official' but don't show it to the club admins, but allow a club to
+    override the email address (or enter it if missing) for any member that they have.
+
+    Once a user signs up for Cobalt this is no longer required and the user themselves can manage
+    their own contact details."""
+
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    system_number = models.IntegerField("%s Number" % GLOBAL_ORG)
+    email = models.EmailField("Email for your club only", unique=False)
+
+    class Meta:
+        unique_together = ("organisation", "system_number")
+
+    def __str__(self):
+        return f"{self.organisation} - {self.email}"

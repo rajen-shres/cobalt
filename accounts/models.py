@@ -141,7 +141,9 @@ class UnregisteredUser(models.Model):
     )
     first_name = models.CharField("First Name", max_length=150, blank=True, null=True)
     last_name = models.CharField("Last Name", max_length=150, blank=True, null=True)
-    email = models.EmailField("Email Address", blank=True, null=True)
+    email = models.EmailField(
+        "Email Address (accessible by all clubs)", blank=True, null=True
+    )
     origin = models.CharField("Origin", choices=ORIGINS, max_length=10)
     last_updated_by = models.ForeignKey(
         User, on_delete=models.PROTECT, related_name="last_updated"
@@ -155,7 +157,18 @@ class UnregisteredUser(models.Model):
         User, on_delete=models.PROTECT, blank=True, null=True
     )
     last_registration_invite_by_club = models.ForeignKey(
-        Organisation, on_delete=models.PROTECT, blank=True, null=True
+        Organisation,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="last_registration_invite_by_club",
+    )
+    added_by_club = models.ForeignKey(
+        Organisation,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="added_by_club",
     )
 
     def __str__(self):

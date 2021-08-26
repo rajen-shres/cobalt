@@ -49,14 +49,7 @@ def _add_club_defaults(club: Organisation):
     # Use basic RBAC
     _admin_club_rbac_add_basic_sub(club)
 
-    # Renewal Dates
-    club.membership_renewal_date_month = 1
-    club.membership_renewal_date_day = 1
-    club.membership_part_year_date_month = 6
-    club.membership_renewal_date_day = 30
-
     # Membership Types
-
     system = User.objects.get(pk=ABF_USER)
 
     MembershipType(

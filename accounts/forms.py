@@ -11,6 +11,8 @@ from masterpoints.views import system_number_available
 from .models import User, UnregisteredUser
 from django.core.exceptions import ValidationError
 
+import accounts.views as accounts_views
+
 
 class UserRegisterForm(UserCreationForm):
     """User Registration"""
@@ -190,3 +192,18 @@ class UnregisteredUserForm(forms.ModelForm):
             "last_name",
             "email",
         ]
+
+    def clean_system_number(self):
+
+        system_number = self.cleaned_data["system_number"]
+
+        is_valid, is_member, is_un_reg = accounts_views.check_system_number(
+            system_number
+        )
+
+        if not is_valid:
+            raise forms.ValidationError("System number invalid")
+        if is_member:
+            raise forms.ValidationError("System number in use for a registered member")
+
+        return system_number

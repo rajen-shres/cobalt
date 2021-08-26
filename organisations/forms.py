@@ -5,7 +5,7 @@ from django import forms
 
 from cobalt.settings import ABF_STATES
 from rbac.core import rbac_user_has_role
-from .models import Organisation, MembershipType
+from .models import Organisation, MembershipType, MemberClubEmail
 
 
 # TODO: Replace when club admin work complete
@@ -136,6 +136,7 @@ class OrgDatesForm(forms.ModelForm):
         """custom validation"""
         cleaned_data = super(OrgDatesForm, self).clean()
 
+        # Test for a valid month and day (Feb 29th will always fail)
         try:
             datetime.datetime(
                 year=1967,
@@ -157,3 +158,8 @@ class OrgDatesForm(forms.ModelForm):
             return
 
         return self.cleaned_data
+
+
+class MemberClubEmailForm(forms.Form):
+
+    email = forms.EmailField(label="Club email address (private)", required=False)
