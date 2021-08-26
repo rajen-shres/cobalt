@@ -1,0 +1,75 @@
+{% load crispy_forms_filters %}
+{% load cobalt_tags %}
+{% load crispy_forms_tags %}
+
+<div class="card col-md-6">
+    <div class="card-header card-header-rose">
+        <h2 class="text-center">Add Member</h2>
+
+    </div>
+
+    <form
+        hx-post="{% url "organisations:club_menu_tab_members_add_member_htmx" %}"
+        hx-target="#id_member_add_tab"
+        hx-vars="club_id:{{ club.id }}"
+    >
+        <form>
+            <div id="member_add_search">
+
+                <div class="container">
+                    <div id="cobalt-search{{ search_id }}" class="row justify-content-center">
+
+                        <div class="col-12 form-group">
+                            <label for="id_lastname{{ search_id }}" id="id_label_lastname{{ search_id }}" class="bmd-label-static">Last Name
+                            </label>
+
+                            <input type="text"
+                                class="form-control modal-input"
+                                name="last_name_search"
+                                id="id_last_name_search{{ search_id }}"
+                                hx-post="{% url "accounts:member_search_htmx" %}"
+                                hx-trigger="keyup changed delay:100ms"
+                                hx-target="#name-matches{{ search_id }}"
+                            >
+                        </div>
+                        <div class="col-12 form-group">
+                            <label for="id_lastname{{ search_id }}" id="id_label_lastname{{ search_id }}" class="bmd-label-static">First Name
+                            </label>
+
+                            <input type="text"
+                                class="form-control modal-input"
+                                name="first_name_search"
+                                id="id_first_name_search{{ search_id }}"
+                                hx-post="{% url "accounts:member_search_htmx" %}"
+                                hx-trigger="keyup changed delay:100ms"
+                                hx-target="#name-matches{{ search_id }}"
+                            >
+                        </div>
+                        {% if request.user.system_number_search %}
+                            <div class="col-8 form-group" style="margin-top: 0 !important;">
+                                <label for="id_system_number{{ search_id }}" id="id_label_system_number{{ search_id }}" class="bmd-label-static">{{ GLOBAL_ORG }} Number</label>
+                                <input type="number" class="form-control modal-input" id="id_system_number{{ search_id }}" name="system_number_search" value="">
+                            </div>
+                            <div class="col-4 form-group text-right">
+                                <button class="btn btn-sm bt-warning"
+                                    id="id_button_system_number_search{{ search_id }}"
+                                    hx-post="{% url "accounts:system_number_search_htmx" %}"
+                                    hx-target="#name-matches{{ search_id }}"
+
+                                >Lookup Number</button>
+                            </div>
+                            <div class="name-match" id="name-matches{{ search_id }}">
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </form>
+
+        <button type="submit" name="save" class="btn btn-success">Save</button>
+        <button type="reset" class="btn btn-info">Reset</button>
+    </form>
+
+</div>
+

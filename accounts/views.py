@@ -922,6 +922,9 @@ def member_search_htmx(request):
     last_name_search = request.POST.get("last_name_search")
     first_name_search = request.POST.get("first_name_search")
 
+    print("last", last_name_search)
+    print("first", first_name_search)
+
     # If user enters data and then deletes it we can get nothing through - ignore
     if not last_name_search and not first_name_search:
         return HttpResponse("")
@@ -971,6 +974,8 @@ def system_number_search_htmx(request):
 
     # Get partial first name to search for from form
     system_number = request.POST.get("system_number_search")
+
+    print("sys num", system_number)
 
     if system_number == "":
         return HttpResponse(

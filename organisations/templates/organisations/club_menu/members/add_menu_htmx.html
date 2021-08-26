@@ -12,9 +12,9 @@
                 <tr>
                     <td>
                         <button class="btn bg-primary btn-block"
-                            hx-post="{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}"
+                            hx-post="{% url "organisations:club_menu_tab_members_add_member_htmx" %}"
                             hx-target="#id_member_add_tab"
-                            onClick="disable_buttons();"
+                            hx-vars="club_id:{{ club.id }}"
                         >Add Manually</button>
                     </td>
                     <td class="text-left pl-5">
