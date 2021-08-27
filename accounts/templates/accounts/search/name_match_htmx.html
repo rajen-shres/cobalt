@@ -1,0 +1,32 @@
+<div class="card card-profile px-5">
+    <div class="card-body">
+        <img class="cobalt-rounded" src="/media/{{ member.pic }}" />
+        <h3>{{ member.full_name }}</h3>
+        <h4>{{ GLOBAL_ORG }} Number: {{ member.system_number }}</h4>
+        {% for club in clubs %}
+            <h4>{{ club.organisation }}</h4>
+        {% endfor %}
+    </div>
+
+
+    <div class="row justify-content-center">
+        <button id="id_cobalt_search_ok{{ search_id }}"
+            class="btn btn-sm btn-success"
+            {# must close modal or HTMX will hang the page #}
+            onclick="$('.modal').modal('hide');"
+            hx-post="{% url "accounts:member_match_summary_htmx" %}"
+            hx-target="#htmx_search_out_boundary{{ search_id }}"
+            hx-vars="user_id_field:'{{ user_id_field }}', member_id:{{ member.id }}, search_id:'{{ search_id }}'{% if include_me %}, include_me:'yes'{% endif %}"
+        >
+            Ok
+        </button>
+        <button id="id_cobalt_search_cancel{{ search_id }}"
+            onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
+            class="search-cancel btn btn-sm btn-secondary"
+        >
+            Cancel
+        </button>
+
+    </div>
+</div>
+

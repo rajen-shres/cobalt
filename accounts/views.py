@@ -20,6 +20,8 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 from django.contrib.auth.views import PasswordResetView
+from django.views.decorators.http import require_POST
+
 from notifications.views import send_cobalt_email, notifications_in_english, CobaltEmail
 from logs.views import get_client_ip, log_event
 from organisations.views.general import replace_unregistered_user_with_real_user
@@ -484,31 +486,31 @@ def system_number_search_ajax(request):
         HttpResponse - either a message or a list of users in HTML format.
     """
 
-    if request.method == "GET":
-        exclude_list = [request.user.system_number, RBAC_EVERYONE, TBA_PLAYER]
+    if request.method != "GET":
+        return JsonResponse(data={"error": "Invalid request"})
 
-        if "system_number" in request.GET:
-            system_number = request.GET.get("system_number")
-            member = User.objects.filter(system_number=system_number).first()
-        else:
-            system_number = None
-            member = None
+    exclude_list = [request.user.system_number, RBAC_EVERYONE, TBA_PLAYER]
 
-        if member and member.system_number not in exclude_list:
-            status = "Success"
-            msg = "Found member"
-            member_id = member.id
-        else:
-            status = "Not Found"
-            msg = f"No matches found for that {GLOBAL_ORG} number"
-            member_id = 0
+    if "system_number" in request.GET:
+        system_number = request.GET.get("system_number")
+        member = User.objects.filter(system_number=system_number).first()
+    else:
+        system_number = None
+        member = None
 
-        data = {"member_id": member_id, "status": status, "msg": msg}
+    if member and member.system_number not in exclude_list:
+        status = "Success"
+        msg = "Found member"
+        member_id = member.id
+    else:
+        status = "Not Found"
+        msg = f"No matches found for that {GLOBAL_ORG} number"
+        member_id = 0
 
-        data_dict = {"data": data}
-        return JsonResponse(data=data_dict, safe=False)
+    data = {"member_id": member_id, "status": status, "msg": msg}
 
-    return JsonResponse(data={"error": "Invalid request"})
+    data_dict = {"data": data}
+    return JsonResponse(data=data_dict, safe=False)
 
 
 @login_required
@@ -745,8 +747,7 @@ def add_team_mate_ajax(request):
     else:
         msg = "Invalid request"
 
-    response_data = {}
-    response_data["message"] = msg
+    response_data = {"message": msg}
     return JsonResponse({"data": response_data})
 
 
@@ -799,9 +800,7 @@ def toggle_team_mate_ajax(request):
     else:
         msg = "Invalid request"
 
-    response_data = {}
-    response_data["message"] = msg
-    response_data["first_name"] = team_mate.team_mate.first_name
+    response_data = {"message": msg, "first_name": team_mate.team_mate.first_name}
     return JsonResponse({"data": response_data})
 
 
@@ -909,24 +908,27 @@ def _get_exclude_list_for_search(request):
 
 
 @login_required()
+@require_POST
 def member_search_htmx(request):
-    """Search on user first and last name
+    """Search on user first and last name.
+
+    The goal of the member search is to finally replace the included search with a hidden user_id input field,
+    the users name and a button to search again.
 
     All parameters are passed through in the request:
 
-    search_id: optional identifier, required there are multiple user searches on same page, must be unique
-               but can be anything. Gets appended to any DOM objects that should be unique on the page
-    result_prefix : at the end, if we find a matching user we will create an element for the user_id and
-                    an element for the user name to display. The result prefix
-
+    search_id:     optional identifier, required if there are multiple user searches on same page, must be unique
+                   but can be anything. Gets appended to any DOM objects that should be unique on the page. This is
+                   also used as the prefix for the final user_id field if user_id_field is not specified.
+    user_id_field: Optional. At the end, if we find a matching user we will create an element for the user_id and
+                   an element for the user name to display. The user_id_field will be used as the name of the
+                   user_id input. If not specified then member{search_id} is used.
+    include_me:    Flag to include the logged in user in the search. Default is no.
     """
 
-    if request.method != "POST":
-        return HttpResponse("Error")
-
-    # Get search id
+    # Get parameters
     search_id = request.POST.get("search_id", "")
-
+    user_id_field = request.POST.get("user_id_field", "")
     # Get partial first name to search for from form
     last_name_search = request.POST.get("last_name_search")
     first_name_search = request.POST.get("first_name_search")
@@ -961,27 +963,27 @@ def member_search_htmx(request):
 
     return render(
         request,
-        "accounts/member_search_htmx.html",
+        "accounts/search/member_search_htmx.html",
         {
             "name_list": name_list,
             "more_data": more_data,
             "search_id": search_id,
+            "user_id_field": user_id_field,
             "include_me": include_me,
         },
     )
 
 
 @login_required()
+@require_POST
 def system_number_search_htmx(request):
     """Search on system number"""
 
-    if request.method != "POST":
-        return HttpResponse("Error")
-
+    # Get parameters
+    search_id = request.POST.get("search_id", "")
+    user_id_field = request.POST.get("user_id_field", "")
     # Get partial first name to search for from form
     system_number = request.POST.get("system_number_search")
-
-    print("sys num", system_number)
 
     if system_number == "":
         return HttpResponse(
@@ -993,7 +995,7 @@ def system_number_search_htmx(request):
     print(search_id)
 
     # ignore system accounts
-    _, exclude_list = _get_exclude_list_for_search(request)
+    include_me, exclude_list = _get_exclude_list_for_search(request)
 
     member = (
         User.objects.filter(system_number=system_number)
@@ -1004,38 +1006,71 @@ def system_number_search_htmx(request):
     if member:
         return render(
             request,
-            "accounts/name_match_htmx.html",
-            {"member": member, "search_id": search_id},
+            "accounts/search/name_match_htmx.html",
+            {
+                "member": member,
+                "search_id": search_id,
+                "user_id_field": user_id_field,
+                "include_me": include_me,
+            },
         )
     else:
         return HttpResponse("No match found")
 
 
 @login_required()
+@require_POST
 def member_match_htmx(request):
     """show member details when a user picks from the list of matches"""
 
-    if request.method != "POST":
-        return HttpResponse("Error")
-
+    # Get parameters
     member_id = request.POST.get("member_id")
-
-    # Get search id
     search_id = request.POST.get("search_id", "")
+    user_id_field = request.POST.get("user_id_field", "")
 
     # ignore system accounts
-    _, exclude_list = _get_exclude_list_for_search(request)
+    include_me, exclude_list = _get_exclude_list_for_search(request)
 
     member = User.objects.filter(pk=member_id).exclude(pk__in=exclude_list).first()
 
     if member:
         return render(
             request,
-            "accounts/name_match_htmx.html",
-            {"member": member, "search_id": search_id},
+            "accounts/search/name_match_htmx.html",
+            {
+                "member": member,
+                "search_id": search_id,
+                "user_id_field": user_id_field,
+                "include_me": include_me,
+            },
         )
     else:
         return HttpResponse("No match found")
+
+
+@login_required()
+@require_POST
+def member_match_summary_htmx(request):
+    """show outcome from search"""
+
+    # Get parameters
+    member_id = request.POST.get("member_id")
+    search_id = request.POST.get("search_id", "")
+    user_id_field = request.POST.get("user_id_field", "")
+    include_me = bool(request.POST.get("include_me"))
+
+    member = get_object_or_404(User, pk=member_id)
+
+    return render(
+        request,
+        "accounts/search/name_match_summary_htmx.html",
+        {
+            "member": member,
+            "search_id": search_id,
+            "user_id_field": user_id_field,
+            "include_me": include_me,
+        },
+    )
 
 
 def check_system_number(system_number):

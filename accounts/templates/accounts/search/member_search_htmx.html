@@ -2,12 +2,11 @@
 
 <ul>
     {% for name in name_list %}
-        <li class="cobalt-button-as-link gotothing"
+        <li class="cobalt-button-as-link"
             hx-post="{% url "accounts:member_match_htmx" %}"
             hx-target="#name-matches{{ search_id }}"
-            hx-indicator=".htmx-indicator"
-            {# add search id to hx-vars if it is set, or ignore #}
-            hx-vars="member_id:{{ name.id }}{% if search_id  %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
+            {# add parameters to hx-vars #}
+            hx-vars="user_id_field:'{{ user_id_field }}', member_id:{{ name.id }}, search_id:'{{ search_id }}'{% if include_me %}, include_me:'yes'{% endif %}"
         >{{ name }}</li>
     {% empty %}
         <h4>No Matches</h4>

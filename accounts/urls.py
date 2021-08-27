@@ -40,4 +40,9 @@ urlpatterns = [
         name="system_number_search_htmx",
     ),
     path("search/member-match", views.member_match_htmx, name="member_match_htmx"),
+    path(
+        "search/member-match-summary",
+        views.member_match_summary_htmx,
+        name="member_match_summary_htmx",
+    ),
 ]

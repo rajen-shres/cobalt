@@ -30,6 +30,7 @@ from organisations.forms import (
     MembershipTypeForm,
     OrgDatesForm,
     MemberClubEmailForm,
+    UserMembershipForm,
 )
 from organisations.models import (
     ORGS_RBAC_GROUPS_AND_ROLES,
@@ -642,66 +643,37 @@ def tab_members_un_reg_edit_htmx(request):
 
 @login_required()
 def tab_members_add_member_htmx(request):
-    """Edit unregistered member details"""
+    """Add a club member manually"""
 
     status, error_page, club = _tab_is_okay(request)
     if not status:
         return error_page
 
-    # message = "nah"
-    #
-    # if "save" in request.POST:
-    #     user_form = UnregisteredUserForm(request.POST, instance=un_reg)
-    #     club_email_form = MemberClubEmailForm(request.POST, prefix="club")
-    #
-    #     # Assume the worst
-    #     message = "Errors found on Form"
-    #
-    #     if user_form.is_valid():
-    #         new_un_reg = user_form.save()
-    #         message = "Data Saved"
-    #
-    #         if "system_number" in user_form.changed_data:
-    #             # We have updated the un_reg user, but we need to also change club email addresses,
-    #             # and not just for this club
-    #             for email_match in MemberClubEmail.objects.filter(
-    #                 system_number=old_system_number
-    #             ):
-    #                 email_match.system_number = new_un_reg.system_number
-    #                 email_match.save()
-    #             # reload un_reg
-    #             un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
-    #
-    #             # We also need to change club memberships
-    #             for member_match in MemberMembershipType.objects.filter(
-    #                 system_number=old_system_number
-    #             ):
-    #                 member_match.system_number = new_un_reg.system_number
-    #                 member_match.save()
-    #
-    #     if club_email_form.is_valid():
-    #         club_email = club_email_form.cleaned_data["email"]
-    #         club_email_entry, _ = MemberClubEmail.objects.get_or_create(
-    #             organisation=club, system_number=un_reg.system_number
-    #         )
-    #         club_email_entry.email = club_email
-    #         club_email_entry.save()
-    #         message = "Data Saved"
-    #
-    # else:
-    #     user_form = UnregisteredUserForm()
-    #     club_email_form = MemberClubEmailForm(prefix="club")
-    #
-    # return render(
-    #     request,
-    #     "organisations/club_menu/members/add_member_htmx.html",
-    #     {
-    #         "club": club,
-    #         "user_form": user_form,
-    #         "club_email_form": club_email_form,
-    #         "message": message,
-    #     },
-    # )
+    form = UserMembershipForm(request.POST or None)
+
+    # Get membership type drop down
+    membership_types = MembershipType.objects.filter(organisation=club).values_list(
+        "name"
+    )
+    choices = [
+        (membership_type[0], membership_type[0]) for membership_type in membership_types
+    ]
+    form.fields["membership_type"].choices = choices
+
+    if "save" in request.POST and form.is_valid():
+        member_id = form.cleaned_data["member"]
+        membership_type = form.cleaned_data["membership_type"]
+        print(member_id)
+        print(membership_type)
+
+    return render(
+        request,
+        "organisations/club_menu/members/add_member_htmx.html",
+        {
+            "club": club,
+            "form": form,
+        },
+    )
 
 
 @login_required()

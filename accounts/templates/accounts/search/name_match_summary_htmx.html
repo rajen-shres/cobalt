@@ -1,0 +1,28 @@
+<div id="search_again_hidden{{ search_id }}" style="display: none">
+    {% include "accounts/search/user_search_include_htmx.html" %}
+</div>
+
+<input type="hidden"
+    id="summary_member_id{{ search_id }}"
+    value="{{ member.id }}"
+    {% if user_id_field %}
+        name="{{ user_id_field }}"
+    {% else %}
+        name="member{{ search_id }}"
+    {% endif %}
+>
+{{ member }}
+Name is
+{% if user_id_field %}
+    name="{{ user_id_field }}"
+{% else %}
+    name="member{{ search_id }}"
+{% endif %}
+
+<button
+    class="btn btn-sm btn-success"
+    onclick="$('#search_again_hidden{{ search_id }}').show()"
+>Search Again
+</button>
+
+
