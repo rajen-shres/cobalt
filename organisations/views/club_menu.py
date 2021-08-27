@@ -1281,6 +1281,7 @@ def process_member_import_add_member_to_membership(
         member_membership.home_club = home_club
         member_membership.save()
         return 0
+
     MemberMembershipType(
         membership_type=default_membership,
         system_number=club_member["system_number"],

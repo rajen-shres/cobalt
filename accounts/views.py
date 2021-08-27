@@ -910,7 +910,16 @@ def _get_exclude_list_for_search(request):
 
 @login_required()
 def member_search_htmx(request):
-    """Search on user first and last name"""
+    """Search on user first and last name
+
+    All parameters are passed through in the request:
+
+    search_id: optional identifier, required there are multiple user searches on same page, must be unique
+               but can be anything. Gets appended to any DOM objects that should be unique on the page
+    result_prefix : at the end, if we find a matching user we will create an element for the user_id and
+                    an element for the user name to display. The result prefix
+
+    """
 
     if request.method != "POST":
         return HttpResponse("Error")
@@ -921,9 +930,6 @@ def member_search_htmx(request):
     # Get partial first name to search for from form
     last_name_search = request.POST.get("last_name_search")
     first_name_search = request.POST.get("first_name_search")
-
-    print("last", last_name_search)
-    print("first", first_name_search)
 
     # If user enters data and then deletes it we can get nothing through - ignore
     if not last_name_search and not first_name_search:
