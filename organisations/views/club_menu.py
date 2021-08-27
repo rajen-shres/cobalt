@@ -660,11 +660,27 @@ def tab_members_add_member_htmx(request):
     ]
     form.fields["membership_type"].choices = choices
 
+    print(form.home_club)
+
     if "save" in request.POST and form.is_valid():
         member_id = form.cleaned_data["member"]
-        membership_type = form.cleaned_data["membership_type"]
-        print(member_id)
-        print(membership_type)
+        membership_type_id = form.cleaned_data["membership_type"]
+        home_club = form.cleaned_data["home_club"]
+
+        print(home_club)
+        member = get_object_or_404(User, pk=member_id)
+        membership_type = MembershipType(pk=membership_type_id)
+        if MemberMembershipType.objects.filter(
+            system_number=member.system_number, membership_type__organisation=club
+        ).exists():
+            form.add_error("member", "Already a member of this club")
+        else:
+            MemberMembershipType(
+                system_number=member.system_number,
+                membership_type=membership_type,
+                last_modified_by=request.user,
+                home_club=home_club,
+            ).save()
 
     return render(
         request,

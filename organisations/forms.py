@@ -171,3 +171,4 @@ class UserMembershipForm(forms.Form):
 
     member = forms.IntegerField()
     membership_type = forms.ChoiceField()
+    home_club = forms.BooleanField()

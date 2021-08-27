@@ -530,8 +530,6 @@ def profile(request):
 
     if request.method == "POST" and form.is_valid():
 
-        print(form.cleaned_data["dob"])
-
         form.save()
         if "email" in form.changed_data and _check_duplicate_email(request.user):
             messages.warning(
@@ -932,9 +930,6 @@ def member_search_htmx(request):
     user_id_field = request.POST.get("user_id_field", "")
     callback = request.POST.get("callback", "")
 
-    print("member search")
-    print("callback", callback)
-
     # Get partial first name to search for from form
     last_name_search = request.POST.get("last_name_search")
     first_name_search = request.POST.get("first_name_search")
@@ -1033,9 +1028,6 @@ def member_match_htmx(request):
     search_id = request.POST.get("search_id", "")
     user_id_field = request.POST.get("user_id_field", "")
     callback = request.POST.get("callback", "")
-
-    print("member match")
-    print("callback", callback)
 
     # ignore system accounts
     include_me, exclude_list = _get_exclude_list_for_search(request)

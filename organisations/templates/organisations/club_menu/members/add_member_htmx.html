@@ -8,50 +8,50 @@
 
     </div>
 
-    <form
-        hx-post="{% url "organisations:club_menu_tab_members_add_member_htmx" %}"
-        hx-target="#id_member_add_tab"
-        hx-vars="club_id:{{ club.id }}"
-    >
+    <div class="card-body">
 
-        <div class="card col-md-8">
-            <div class="card-header-info card-header">
-                <h3>Search</h3>
+
+        <form
+            hx-post="{% url "organisations:club_menu_tab_members_add_member_htmx" %}"
+            hx-target="#id_member_add_tab"
+            hx-vars="club_id:{{ club.id }}"
+        >
+            <span class="cobalt-form-error">{{ form.errors }}</span>
+
+            <div id="member_add_search">
+                {% include 'accounts/search/user_search_include_htmx.html' with search_id="add_member" include_me='Yes' %}
+                <button type="button" id="id_add_member_item" class="btn btn-warning mt-auto" data-toggle="modal" data-target="#userSearchModaladd_member">Search</button>
             </div>
-            <div class="card-body">
-                <div id="member_add_search">
 
-                    {% include 'accounts/search/user_search_include_htmx.html' with search_id="add_member" include_me='Yes' %}
-                    <button type="button" id="id_add_member_item" class="btn btn-warning mt-auto" data-toggle="modal" data-target="#userSearchModaladd_member">Search</button>
+            <div id="div_id_membership_type" class="form-group row">
+                <div class="col-6">
+                    <label for="id_membership_type" class="bmd-label-static">
+                        Membership type
+                    </label>
+                </div>
 
-
-
+                <div class="col-6">
+                    <select name="membership_type" class="select form-control" id="id_membership_type">
+                        {% for option in form.membership_type.field.choices %}
+                            <h1>{{ option }}</h1>
+                            <option value="{{ option.0 }}">{{ option.1 }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
             </div>
-        </div>
 
+            <div class="form-group row">
+                <input id="id_home_club" type="checkbox" name="home_club" {% if form.home_club.value %}Checked{% endif %}">
+                <label for="id_home_club" style="color: black">&nbsp;Home Club</label><br>
 
-        <div id="div_id_membership_type" class="form-group row">
-            <div class="col-6">
-                <label for="id_membership_type" class="bmd-label-static">
-                    Membership type
-                </label>
             </div>
 
-            <div class="col-6">
-                <select name="membership_type" class="select form-control" id="id_membership_type">
-                    {% for option in form.membership_type.field.choices %}
-                        <h1>{{ option }}</h1>
-                        <option value="{{ option.0 }}">{{ option.1 }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
 
+            <button type="submit" name="save" class="btn btn-success">Save</button>
+            <button type="reset" class="btn btn-info">Reset</button>
+        </form>
 
-        <button type="submit" name="save" class="btn btn-success">Save</button>
-        <button type="reset" class="btn btn-info">Reset</button>
-    </form>
-
+    </div>
 </div>
+
 
