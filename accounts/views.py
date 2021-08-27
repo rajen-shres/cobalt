@@ -924,11 +924,17 @@ def member_search_htmx(request):
                    an element for the user name to display. The user_id_field will be used as the name of the
                    user_id input. If not specified then member{search_id} is used.
     include_me:    Flag to include the logged in user in the search. Default is no.
+    callback:      Optional. If provided then this will be called when a member is picked.
     """
 
     # Get parameters
     search_id = request.POST.get("search_id", "")
     user_id_field = request.POST.get("user_id_field", "")
+    callback = request.POST.get("callback", "")
+
+    print("member search")
+    print("callback", callback)
+
     # Get partial first name to search for from form
     last_name_search = request.POST.get("last_name_search")
     first_name_search = request.POST.get("first_name_search")
@@ -970,6 +976,7 @@ def member_search_htmx(request):
             "search_id": search_id,
             "user_id_field": user_id_field,
             "include_me": include_me,
+            "callback": callback,
         },
     )
 
@@ -982,6 +989,7 @@ def system_number_search_htmx(request):
     # Get parameters
     search_id = request.POST.get("search_id", "")
     user_id_field = request.POST.get("user_id_field", "")
+    callback = request.POST.get("callback", "")
     # Get partial first name to search for from form
     system_number = request.POST.get("system_number_search")
 
@@ -989,10 +997,6 @@ def system_number_search_htmx(request):
         return HttpResponse(
             "<span class='cobalt-form-error''>Enter a number to look up, or type in the name fields</span>"
         )
-
-    # Get search id
-    search_id = request.POST.get("search_id", "")
-    print(search_id)
 
     # ignore system accounts
     include_me, exclude_list = _get_exclude_list_for_search(request)
@@ -1012,6 +1016,7 @@ def system_number_search_htmx(request):
                 "search_id": search_id,
                 "user_id_field": user_id_field,
                 "include_me": include_me,
+                "callback": callback,
             },
         )
     else:
@@ -1027,6 +1032,10 @@ def member_match_htmx(request):
     member_id = request.POST.get("member_id")
     search_id = request.POST.get("search_id", "")
     user_id_field = request.POST.get("user_id_field", "")
+    callback = request.POST.get("callback", "")
+
+    print("member match")
+    print("callback", callback)
 
     # ignore system accounts
     include_me, exclude_list = _get_exclude_list_for_search(request)
@@ -1042,6 +1051,7 @@ def member_match_htmx(request):
                 "search_id": search_id,
                 "user_id_field": user_id_field,
                 "include_me": include_me,
+                "callback": callback,
             },
         )
     else:

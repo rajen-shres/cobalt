@@ -10,7 +10,6 @@
         <div class="col-12 form-group">
             <label for="id_lastname{{ search_id }}" id="id_label_lastname{{ search_id }}" class="bmd-label-static">Last Name
             </label>
-
             <input type="text"
                 class="form-control modal-input"
                 name="last_name_search"
@@ -18,8 +17,11 @@
                 hx-post="{% url "accounts:member_search_htmx" %}"
                 hx-trigger="keyup changed delay:100ms"
                 hx-target="#name-matches{{ search_id }}"
-                {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
-                hx-vars="user_id_field:'{{ user_id_field }}', search_id:'{{ search_id }}'{% if include_me %}, include_me:'yes'{% endif %}"
+                hx-vars="user_id_field:'{{ user_id_field }}',
+                search_id:'{{ search_id }}'
+                {% if callback %}, callback:'{{ callback }}'{% endif %}
+                {% if include_me %}, include_me:'yes'{% endif %}
+                "
             >
         </div>
         <div class="col-12 form-group">
@@ -33,9 +35,11 @@
                 hx-post="{% url "accounts:member_search_htmx" %}"
                 hx-trigger="keyup changed delay:100ms"
                 hx-target="#name-matches{{ search_id }}"
-                {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
-                hx-vars="last_name_search:getLastName('{{ search_id }}'){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
-            >
+                hx-vars="user_id_field:'{{ user_id_field }}',
+                search_id:'{{ search_id }}'
+                {% if callback %}, callback:'{{ callback }}'{% endif %}
+                {% if include_me %}, include_me:'yes'{% endif %}
+                "            >
         </div>
         {% if request.user.system_number_search %}
             <div class="col-8 form-group" style="margin-top: 0 !important;">

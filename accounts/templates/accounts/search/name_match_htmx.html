@@ -13,10 +13,18 @@
         <button id="id_cobalt_search_ok{{ search_id }}"
             class="btn btn-sm btn-success"
             {# must close modal or HTMX will hang the page #}
-            onclick="$('.modal').modal('hide');"
-            hx-post="{% url "accounts:member_match_summary_htmx" %}"
-            hx-target="#htmx_search_out_boundary{{ search_id }}"
-            hx-vars="user_id_field:'{{ user_id_field }}', member_id:{{ member.id }}, search_id:'{{ search_id }}'{% if include_me %}, include_me:'yes'{% endif %}"
+            {% if callback %}
+                onclick="$('.modal').modal('hide'); {{ callback }}('{{ search_id }}', {{ member.id }}, '{{ member.full_name }}');"
+            {% else %}
+                onclick="$('.modal').modal('hide');"
+                hx-post="{% url "accounts:member_match_summary_htmx" %}"
+                hx-target="#htmx_search_out_boundary{{ search_id }}"
+                hx-vars="user_id_field:'{{ user_id_field }}',
+                member_id:{{ member.id }},
+                search_id:'{{ search_id }}'
+                {% if include_me %}, include_me:'yes'{% endif %}
+                "
+            {% endif %}
         >
             Ok
         </button>
