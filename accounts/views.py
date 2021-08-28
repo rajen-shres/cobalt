@@ -1077,7 +1077,7 @@ def member_match_summary_htmx(request):
 
 def check_system_number(system_number):
     """Check if system number is valid and also if it is registered already in Cobalt, either as a member or as an
-    unregistered user.
+    unregistered user
 
     Args:
         system_number (int): number to check
