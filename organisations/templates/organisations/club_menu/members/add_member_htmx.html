@@ -10,17 +10,38 @@
 
     <div class="card-body">
 
+        <h3 class="text-info font-weight-bold settings_message" id="user_add_message">{{ message| default_if_none:"" }}</h3>
 
         <form
             hx-post="{% url "organisations:club_menu_tab_members_add_member_htmx" %}"
             hx-target="#id_member_add_tab"
             hx-vars="club_id:{{ club.id }}"
         >
-            <span class="cobalt-form-error">{{ form.errors }}</span>
 
             <div id="member_add_search">
-                {% include 'accounts/search/user_search_include_htmx.html' with search_id="add_member" include_me='Yes' %}
-                <button type="button" id="id_add_member_item" class="btn btn-warning mt-auto" data-toggle="modal" data-target="#userSearchModaladd_member">Search</button>
+                {% include 'accounts/search/user_search_include_htmx.html' with search_id="add_member" include_me='Yes' callback='addMemberSearch' %}
+                <span id="add_member_name" class="font-weight-bold">Click to Search</span>
+                <input type="hidden" id="id_member" name="member">
+                <button type="button"
+                    id="id_add_member_item"
+                    class="btn btn-sm btn-warning mt-auto"
+                    data-toggle="modal"
+                    data-target="#userSearchModaladd_member"
+                >
+                    Search
+                </button>
+                <p class="pt-3">Can't find the person you want? Click here to add an
+                    <button class="btn btn-sm btn-primary"
+                        hx-post="{% url "organisations:club_menu_tab_members_add_un_reg_htmx" %}"
+                        hx-target="#id_member_add_tab"
+                        hx-vars="club_id:{{ club.id }}"
+                    >
+                        unregistered user
+                    </button>
+                    (someone who hasn't yet signed up for {{ GLOBAL_TITLE }})
+                </p>
+                <span class="cobalt-form-error">{{ form.member.errors|striptags }}</span>
+
             </div>
 
             <div id="div_id_membership_type" class="form-group row">
@@ -49,9 +70,19 @@
 
             <button type="submit" name="save" class="btn btn-success">Save</button>
             <button type="reset" class="btn btn-info">Reset</button>
+
+
+
         </form>
 
     </div>
 </div>
 
+<script>
+    function addMemberSearch(search_id, user_id, user_name){
+        $('#add_member_name').text(user_name);
+        $('#id_member').val(user_id);
+        htmx.process(document.body);
+    }
+</script>
 

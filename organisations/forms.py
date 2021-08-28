@@ -3,9 +3,10 @@ import datetime
 from crispy_forms.helper import FormHelper
 from django import forms
 
+from accounts.models import User, UnregisteredUser
 from cobalt.settings import ABF_STATES
 from rbac.core import rbac_user_has_role
-from .models import Organisation, MembershipType, MemberClubEmail
+from .models import Organisation, MembershipType, MemberClubEmail, MemberMembershipType
 
 
 # TODO: Replace when club admin work complete
@@ -171,4 +172,82 @@ class UserMembershipForm(forms.Form):
 
     member = forms.IntegerField()
     membership_type = forms.ChoiceField()
-    home_club = forms.BooleanField()
+    home_club = forms.BooleanField(initial=True, required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        super(UserMembershipForm, self).__init__(*args, **kwargs)
+
+        # Get membership type drop down
+        membership_types = MembershipType.objects.filter(
+            organisation=self.club
+        ).values_list("id", "name")
+        choices = [
+            (membership_type[0], membership_type[1])
+            for membership_type in membership_types
+        ]
+        self.fields["membership_type"].choices = choices
+
+    def clean_home_club(self):
+        """Check that this user doesn't already have a home club"""
+
+        home_club = self.cleaned_data["home_club"]
+        member_id = self.cleaned_data["member"]
+        member = User.objects.get(pk=member_id)
+
+        if home_club:
+            other_club = (
+                MemberMembershipType.objects.filter(system_number=member.system_number)
+                .filter(home_club=True)
+                .first()
+            )
+            if other_club:
+                self.add_error(
+                    "member",
+                    f"{member.full_name} already has {other_club.membership_type.organisation} as their home club",
+                )
+
+        return home_club
+
+
+class UnRegMembershipForm(forms.Form):
+    """Form for getting an unregistered user and a membership type"""
+
+    member = forms.IntegerField()
+    membership_type = forms.ChoiceField()
+    home_club = forms.BooleanField(initial=True, required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        super(UnRegMembershipForm, self).__init__(*args, **kwargs)
+
+        # Get membership type drop down
+        membership_types = MembershipType.objects.filter(
+            organisation=self.club
+        ).values_list("id", "name")
+        choices = [
+            (membership_type[0], membership_type[1])
+            for membership_type in membership_types
+        ]
+        self.fields["membership_type"].choices = choices
+
+    def clean_home_club(self):
+        """Check that this user doesn't already have a home club"""
+
+        home_club = self.cleaned_data["home_club"]
+        un_reg_id = self.cleaned_data["member"]
+        un_reg = UnregisteredUser.objects.get(pk=un_reg_id)
+
+        if home_club:
+            other_club = (
+                MemberMembershipType.objects.filter(system_number=un_reg.system_number)
+                .filter(home_club=True)
+                .first()
+            )
+            if other_club:
+                self.add_error(
+                    "member",
+                    f"{un_reg.full_name} already has {other_club.membership_type.organisation} as their home club",
+                )
+
+        return home_club
