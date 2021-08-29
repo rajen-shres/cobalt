@@ -251,6 +251,30 @@
                                                         View Stripe Transactions
                                                     </td>
                                                 </tr>
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:admin_payments_static" %}">Settings</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Global payments settings
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:settlement" %}">Settlement</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Record payments to organisations
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:admin_stripe_rec" %}">Stripe Reconciliation</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Reconcile Stripe data with {{ GLOBAL_TITLE }}
+                                                    </td>
+                                                </tr>
                                                 </tbody>
                                                 </table>
 
@@ -277,7 +301,7 @@
                                                             <a class="btn btn-sm btn-info btn-block" href="{% url "rbac:tree_screen" %}">View The Whole Tree</a>
                                                         </td>
                                                         <td class="text-left pl-5">
-                                                            View entire RBAC (Normal) Tree
+                                                            View entire RBAC (normal) tree
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -292,7 +316,7 @@
                                                             <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:rbac_admin" %}">View Your Admin Access</a>
                                                         </td>
                                                         <td class="text-left pl-5">
-                                                            Show your RBAC Admin groups and roles
+                                                            Show your RBAC admin groups and roles
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -300,7 +324,7 @@
                                                             <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:admin_tree_screen" %}">View The Whole Admin Tree</a>
                                                         </td>
                                                         <td class="text-left pl-5">
-                                                            View entire RBAC Admin Tree
+                                                            View entire RBAC admin tree
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -338,7 +362,7 @@
                                                             <a class="btn btn-sm btn-danger btn-block" href="{% url "rbac:admin_group_create" %}">Create A New Admin Group</a>
                                                         </td>
                                                         <td class="text-left pl-5">
-                                                            Add an Admin Group to the admin tree
+                                                            Add an admin group to the admin tree
                                                         </td>
                                                     </tr>
                                                 </tbody>

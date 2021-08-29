@@ -220,40 +220,39 @@ def generic_tree_builder(groups, detail_link=None, html_type="href"):
         this_level = ".".join(key.split(".")[:-1])  # eg we are a.b.c level=a.b
 
         # are we at the top?
-        if len(depth) == 0:
+        if not depth:
             depth.append(this_level)
 
-        # at the same level?
         elif this_level == depth[-1]:
             pass
 
-        # gone down?
         elif this_level.find(depth[-1]) == 0:
             depth.append(this_level)
 
-        # gone up? If so how far?
         else:
-            while len(depth) > 0:
+            while depth:
                 if depth[-1] == this_level:
                     break
-                else:
-                    depth = depth[:-1]
-                    html_tree += "</ul>\n"
+                depth = depth[:-1]
+                html_tree += "</ul>\n"
 
         # now process line
         last_part = key.split(".")[-1]
         if isinstance(value[0], int):
-            if html_type == "href":
-                html_tree += "<li><a href='%s%s/'>%s (%s)</a></li>\n" % (
-                    detail_link,
-                    value[0],
-                    last_part,
-                    items_description[value[0]],
-                )
-            elif html_type == "button":
+            if html_type == "button":
                 html_tree += (
                     "<li>%s (%s) <button value='%s' class='tree-btn cobalt-rbac-tree btn btn-sm btn-primary'>Use</button></li>\n"
                     % (last_part, items_description[value[0]], key)
+                )
+            elif html_type == "href":
+                html_tree += (
+                    "<li><a href='%s%s/' target='_blank'>%s (%s)</a></li>\n"
+                    % (
+                        detail_link,
+                        value[0],
+                        last_part,
+                        items_description[value[0]],
+                    )
                 )
         else:
             html_tree += (
@@ -342,10 +341,7 @@ def admin_group_view(request, group_id):
     roles = RBACAdminGroupRole.objects.filter(group=group)
     trees = RBACAdminTree.objects.filter(group=group)
     user_list = users.values_list("member", flat=True)
-    if request.user.id in user_list:
-        is_admin = True
-    else:
-        is_admin = False
+    is_admin = request.user.id in user_list
     return render(
         request,
         "rbac/admin_group_view.html",
@@ -382,18 +378,19 @@ def admin_group_delete(request, group_id):
     """view to delete an admin group"""
 
     group = get_object_or_404(RBACAdminGroup, pk=group_id)
+
     if not rbac_user_is_group_admin(request.user, group):
         return HttpResponse("You are not an admin for this group")
-    else:
-        if request.method == "POST":
-            group.delete()
-            messages.success(
-                request,
-                "Admin Group successfully deleted.",
-                extra_tags="cobalt-message-success",
-            )
-            return redirect("rbac:access_screen")
-        return render(request, "rbac/admin_group_delete.html", {"group": group})
+
+    if request.method == "POST":
+        group.delete()
+        messages.success(
+            request,
+            "Admin Group successfully deleted.",
+            extra_tags="cobalt-message-success",
+        )
+        return redirect("rbac:access_screen")
+    return render(request, "rbac/admin_group_delete.html", {"group": group})
 
 
 @login_required
