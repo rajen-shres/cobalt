@@ -7,6 +7,8 @@ import datetime
 from crispy_forms.helper import FormHelper
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+
+from cobalt.settings import GLOBAL_ORG
 from masterpoints.views import system_number_available
 from .models import User, UnregisteredUser
 from django.core.exceptions import ValidationError
@@ -184,14 +186,29 @@ class UserSettingsForm(forms.ModelForm):
 class UnregisteredUserForm(forms.ModelForm):
     """Form to edit an Unregistered User"""
 
+    system_number = forms.IntegerField(label=f"{GLOBAL_ORG} Number")
+    """this is a non-model field to avoid the dupe checking"""
+
     class Meta:
         model = UnregisteredUser
         fields = [
-            "system_number",
+            #       "system_number",
             "first_name",
             "last_name",
             "email",
         ]
+
+    field_order = [
+        "system_number",
+        "first_name",
+        "last_name",
+        "email",
+    ]
+
+    def __init__(self, *args, **kwargs):
+        # For adding a user it is okay if they are already registered, we handle this in the view
+        self.allow_registered_users = kwargs.pop("allow_registered_users", False)
+        super(UnregisteredUserForm, self).__init__(*args, **kwargs)
 
     def clean_system_number(self):
 
@@ -203,7 +220,7 @@ class UnregisteredUserForm(forms.ModelForm):
 
         if not is_valid:
             raise forms.ValidationError("System number invalid")
-        if is_member:
+        if not self.allow_registered_users and is_member:
             raise forms.ValidationError("System number in use for a registered member")
 
         return system_number

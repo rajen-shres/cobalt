@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# Run tests on local machine
+
+# Call with any parameter for short version
+
+# Variables
+PORT=8088
+export RDS_DB_NAME=test
+export DUMMY_DATA_COUNT=1
+
+# Kill manage.py if running
+lsof -i tcp:$PORT | awk 'NR!=1 {print $2}' | xargs kill
+
+# Kill stripe if running
+pkill -TERM -f stripe
+
+# Kill old chromedrivers
+pkill -TERM -f chromedriver
+
+# Rebuild database
+cat << EOF > /tmp/drop_db
+\c postgres
+drop database IF EXISTS $RDS_DB_NAME;
+create database $RDS_DB_NAME with owner cobalt;
+EOF
+
+./manage.py dbshell </tmp/drop_db
+
+if [ $# -lt 1 ]
+ then
+  echo "Full rebuild..."
+
+  # For build server use:
+  # sudo su - postgres -c "psql </tmp/drop_db"
+
+  # include scripts
+  utils/aws/rebuild_test_database_subcommands.sh
+
+  # Dump database for quick access
+  pg_dump test > ~/test.db
+
+#  open . ~/Development/c2/cobalt/utils/cgit/tools/test_manage.terminal
+#  open . ~/Development/c2/cobalt/utils/cgit/tools/test_stripe.terminal
+
+  read -p "Press key to continue..." -n1 -s
+  echo ""
+  echo ""
+  echo "Starting tests"
+  ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
+
+else
+
+echo "Short Version..."
+
+psql test < ~/test.db >/dev/null
+
+  ~/Development/c2/cobalt/utils/cgit/tools/test_manage_short.sh &
+  ~/Development/c2/cobalt/utils/cgit/tools/test_stripe_short.sh &
+
+  sleep 3
+  echo "Starting..."
+
+  if [ $# -lt 2 ]
+  then
+  ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
+  else
+  ./manage.py run_tests --base_url http://127.0.0.1:$PORT
+  fi
+fi

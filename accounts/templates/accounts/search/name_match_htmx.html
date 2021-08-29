@@ -14,9 +14,9 @@
             class="btn btn-sm btn-success"
             {# must close modal or HTMX will hang the page #}
             {% if callback %}
-                onclick="$('.modal').modal('hide'); {{ callback }}('{{ search_id }}', {{ member.id }}, '{{ member.full_name }}');"
+                onclick="$('.modal').modal('hide'); {{ callback }}('{{ search_id }}', {{ member.id }}, '{{ member.full_name }}'); return false;"
             {% else %}
-                onclick="$('.modal').modal('hide');"
+                onclick="$('.modal').modal('hide'); return false;"
                 hx-post="{% url "accounts:member_match_summary_htmx" %}"
                 hx-target="#htmx_search_out_boundary{{ search_id }}"
                 hx-vars="user_id_field:'{{ user_id_field }}',

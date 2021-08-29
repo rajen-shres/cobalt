@@ -8,7 +8,7 @@
     </div>
     <div class="card-body" id="id_member_list_tab">
 
-        {{ message|default_if_none:""|safe }}
+        <h3 class="text-info font-weight-bold settings_message" id="user_list_message">{{ message| default_if_none:"" }}</h3>
 
         <div class="card">
             <div class="card-header card-header-primary py-2 my-2">
