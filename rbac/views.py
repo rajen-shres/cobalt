@@ -31,7 +31,7 @@ from .core import (
     rbac_admin_tree_access,
     rbac_user_has_any_model,
 )
-from cobalt.settings import TIME_ZONE
+from cobalt.settings import TIME_ZONE, COBALT_HOSTNAME
 from .forms import AddGroup
 from django.contrib import messages
 from django.utils import timezone
@@ -87,6 +87,42 @@ def main_admin_screen(request):
             "events_site_admin": events_site_admin,
             "email_site_admin": email_site_admin,
             "orgs_site_admin": orgs_site_admin,
+            "build_date": build_date,
+        },
+    )
+
+
+@login_required
+def admin_menu(request):
+    """Shows the main admin screen - maybe shouldn't live in RBAC"""
+
+    payments_admin = rbac_user_role_list(request.user, "payments", "manage")
+    org_list = [item[0] for item in payments_admin]
+    orgs = Organisation.objects.filter(pk__in=org_list)
+    payments_site_admin = rbac_user_has_role(request.user, "payments.global.view")
+    events_site_admin = rbac_user_has_role(request.user, "events.global.edit")
+    email_site_admin = rbac_user_has_role(request.user, "notifications.admin.view")
+    orgs_site_admin = rbac_user_has_role(
+        request.user, "orgs.admin.edit"
+    ) or rbac_user_has_any_model(request.user, "orgs", "state")
+    development_admin = COBALT_HOSTNAME not in ["myabf.com.au", "www.myabf.com.au"]
+
+    # Get build time of this release
+    tz = pytz.timezone(TIME_ZONE)
+    stat_time = os.stat("__init__.py").st_mtime
+    utc_build_date = datetime.datetime.fromtimestamp(stat_time)
+    build_date = tz.localize(utc_build_date)
+
+    return render(
+        request,
+        "rbac/admin_menu.html",
+        {
+            "payments_admin": orgs,
+            "payments_site_admin": payments_site_admin,
+            "events_site_admin": events_site_admin,
+            "email_site_admin": email_site_admin,
+            "orgs_site_admin": orgs_site_admin,
+            "development_admin": development_admin,
             "build_date": build_date,
         },
     )

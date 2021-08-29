@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load cobalt_tags %}
+{% block title %}- Admin Menu{% endblock %}
+{% block content %}
+
+    <h1 class="text-center"><span class="text-primary" style="font-size: 50px;">&spades;</span> Admin Menu <span class="text-danger" style="font-size: 50px;">&spades;</span></h1>
+    <h3 class="text-center">Cobalt Version:
+        {% if request.META.HTTP_HOST == GLOBAL_TEST %}
+            [Test has no versioning]
+        {% else %}
+            {{ COBALT_VERSION }}
+        {% endif %}
+    </h3>
+    <h4 class="text-center">
+        Build date: {{ build_date|cobalt_nice_datetime }}
+    </h4>
+    <div class="card-body">
+        <div class="card">
+            <div class="card-header card-header-secondary">
+                <ul id="id_menu" class="nav nav-pills nav-pills-icons nav-pills-warning" role="tablist">
+                    <li class="nav-item">
+                        <a id="id_tab_dashboard" class="nav-link active auto-refresh" href="#general" role="tab" data-toggle="tab">
+                            <i class="material-icons">list</i>
+                            General
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a id="id_tab_members" class="nav-link auto-refresh" href="#forums" role="tab" data-toggle="tab">
+                            <i class="material-icons">chat</i>
+                            Forums
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a id="id_tab_congress" class="nav-link" href="#orgs" role="tab" data-toggle="tab">
+                            <i class="material-icons">corporate_fare</i>
+                            Organisations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a id="id_tab_congress" class="nav-link" href="#payments" role="tab" data-toggle="tab">
+                            <i class="material-icons">account_balance</i>
+                            Payments
+                        </a>
+                    </li>
+
+                    {% if events_site_admin %}
+                        <li class="nav-item">
+                            <a id="id_tab_forums" class="nav-link" href="#events" role="tab" data-toggle="tab">
+                                <i class="material-icons">book_online</i>
+                                Events
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% if email_site_admin %}
+                        <li class="nav-item">
+                            <a id="id_tab_forums" class="nav-link" href="#email" role="tab" data-toggle="tab">
+                                <i class="material-icons">email</i>
+                                Email
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a id="id_tab_results" class="nav-link" href="#rbac" role="tab" data-toggle="tab">
+                            <i class="material-icons">lock</i>
+                            RBAC
+                        </a>
+                    </li>
+                    {% if development_admin %}
+                        <li class="nav-item">
+                            <a id="id_tab_results" class="nav-link" href="#dev" role="tab" data-toggle="tab">
+                                <i class="material-icons">code</i>
+                                Development
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
+            </div>
+            <div class="card-body" style="min-height: 500px;">
+                <div class="tab-content tab-space">
+                    <div class="tab-pane active" id="general">
+                        <ul>
+                            <li><a href="/admin">Django Admin Pages</a>
+                                <li><a href="{% url "utils:status" %} ">System Status</a></li>
+                                <li><a href="/utils/batch">Batch Job Status</a></li>
+                                <li><a href="/logs">System Logs</a>
+                                    <li><a href="{% url "utils:user_activity" %}">User Activity</a></li>
+                                    <li><a href="{% url "accounts:user_signed_up_list" %}">User Sign Ups</a></li>
+
+                                </ul>
+                            </div>
+                            <div class="tab-pane" id="forums">
+                                <ul>
+                                    <li><a href="/forums/forum/create">Add Forum</a></li>
+                                </ul>
+                            </div>
+                            <div class="tab-pane" id="orgs">
+
+                                <ul>
+                                    <li><a href="{% url "organisations:admin_list_clubs" %}">List Clubs</a></li>
+                                    {% if orgs_site_admin %}
+                                        <li><a href="{% url "organisations:admin_add_club" %}">Add Club</a></li>
+                                    {% endif %}
+                                </ul>
+
+                            </div>
+                            <div class="tab-pane" id="events">
+                                <ul>
+                                    <li><a href="{% url "events:global_admin_congress_masters" %}">Manage Congress Masters</a></li>
+                                </ul>
+                            </div>
+                            <div class="tab-pane" id="payments">
+                                <ul>
+                                    {% for org in payments_admin %}
+                                        <li><a href="{% url "payments:statement_org" org_id=org.id %}">{{org}}</a></li>
+                                    {% endfor %}
+                                </ul>
+                                {% if payments_site_admin %}
+                                    <ul>
+                                        <li><a href="{% url "payments:statement_admin_summary" %}">{{ GLOBAL_ORG}} Payments</a></li>
+                                        <li><a href="{% url "payments:stripe_pending" %}">Stripe Transactions</a></li>
+                                    </ul>
+                                {% endif %}
+
+                            </div>
+                            <div class="tab-pane" id="rbac">
+                                <h3>User</h3>
+                                <ul>
+                                    <li><a href="{% url "rbac:view_screen" %}">View Your Access</a></li>
+                                    <li><a href="{% url "rbac:tree_screen" %}">View The Whole Tree</a>
+                                    </ul>
+                                    <h3>Admin</h3>
+                                    <ul>
+                                        <li><a href="{% url "rbac:rbac_admin" %}">View Your Admin Access</a></li>
+                                        <li><a href="{% url "rbac:admin_tree_screen" %}">View The Whole Admin Tree</a></li>
+                                        <li><a href="{% url "rbac:role_view_screen" %}">View All Models and Roles</a></li>
+                                        <li><a href="{% url "rbac:group_create" %}">Create A New Group</a></li>
+                                        <li><a href="{% url "rbac:rbac_tests" %}">Tests</a></li>
+                                    </ul>
+                                    <h3>Admin of Admin</h3>
+                                    <ul>
+                                        <li><a href="{% url "rbac:admin_group_create" %}">Create A New Admin Group</a></li>
+                                    </ul>
+
+                                </div>
+
+                                <div class="tab-pane" id="dev">
+
+                                    {% if user.is_superuser %}
+                                        <li><a href="{% url "support:non_production_email_changer" %}">Non-production Email
+                                            Changer</a></li>
+                                    {% endif %}
+
+
+                                </div>
+                                <div class="tab-pane" id="email">
+                                    <ul>
+                                        <li><a href="{% url "notifications:admin_view_all" %} ">View Emails</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+{% endblock content %}
