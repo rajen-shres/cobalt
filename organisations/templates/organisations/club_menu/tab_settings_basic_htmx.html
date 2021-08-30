@@ -57,15 +57,12 @@
                 </div>
                 {#            state         #}
                 <div class="col-md-3">
-                    {% if uber_admin %}
-                        <div class="form-group">
-                            {{ org_form.state|as_crispy_field }}
-                        </div>
-                    {% else %}
-                        <span class="cobalt-form-error">{{ org_form.state.errors }}</span>
-                        <h3>{{ org_form.state.value }}</h3>
-                        <input type="hidden" name="state" value="{{ org_form.state.value }}">
-                    {% endif %}
+
+
+                    <span class="cobalt-form-error">{{ org_form.state.errors }}</span>
+                    <h3>{{ org_form.state.value }}</h3>
+                    <input type="hidden" name="state" value="{{ org_form.state.value }}">
+
 
                 </div>
             </div>
@@ -230,7 +227,7 @@
             </div>
 
             <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
-            <button class="btn btn-info" onclick="window.location.href='/'; return false;">Cancel</button>
+            <button class="btn btn-info" type=""reset">Reset</button>
             <div class="font-italic small">last updated {{ club.last_updated|cobalt_nice_datetime }} by {{ club.last_updated_by.full_name }}</div>
         </form>
     </div>

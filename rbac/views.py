@@ -630,18 +630,15 @@ def rbac_tests(request):
             (everything, ans) = rbac_user_allowed_for_model(user, app, model, action)
             if everything:
                 ans = "Allowed for all models"
-            else:
-                if not ans:
-                    ans = "Nothing found."
+            elif not ans:
+                ans = "Nothing found."
             last_query = "User Allowed for Model"
             model = text
 
         if "get_users_with_role" in request.POST:
             users = rbac_get_users_with_role(text)
             if users:
-                ans = ""
-                for user_inst in users:
-                    ans += "%s\n" % user_inst
+                ans = "".join("%s\n" % user_inst for user_inst in users)
             else:
                 ans = "Nothing found"
             last_query = "Get Users With Role"
@@ -659,9 +656,7 @@ def rbac_tests(request):
             ).first()
             if group:
                 admins = rbac_get_admins_for_group(group)
-                ans = ""
-                for admin in admins:
-                    ans += "%s\n" % admin.member
+                ans = "".join("%s\n" % admin.member for admin in admins)
             else:
                 ans = "Group not found"
             group = text
@@ -726,7 +721,7 @@ def rbac_tests(request):
         request,
         "rbac/tests.html",
         {
-            "ans": ans,
+            "ans": ans_swal,
             "ans_swal": ans_swal,
             "member_id": userid,
             "text": text,
