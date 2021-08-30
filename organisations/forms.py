@@ -88,7 +88,7 @@ class OrgForm(forms.ModelForm):
         rbac_model_for_state = get_rbac_model_for_state(state)
 
         if not rbac_model_for_state:
-            self.add_error("state", "No RBAC model found for this state.")
+            self.add_error("state", "No state body found for this state.")
             return state
 
         # Check access - state or admin both work
