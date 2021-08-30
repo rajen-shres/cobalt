@@ -30,16 +30,6 @@
                 >
                     Search
                 </button>
-                <p class="pt-3">Can't find the person you want? Click here to add an
-                    <button class="btn btn-sm btn-primary"
-                        hx-post="{% url "organisations:club_menu_tab_members_add_un_reg_htmx" %}"
-                        hx-target="#id_member_add_tab"
-                        hx-vars="club_id:{{ club.id }}"
-                    >
-                        unregistered user
-                    </button>
-                    (someone who hasn't yet signed up for {{ GLOBAL_TITLE }})
-                </p>
                 <span class="cobalt-form-error">{{ form.member.errors|striptags }}</span>
 
             </div>
@@ -71,7 +61,17 @@
             <button type="submit" name="save" class="btn btn-success">Save</button>
             <button type="reset" class="btn btn-info">Reset</button>
 
-
+            <hr>
+            <p class="">Can't find the person you want? You can add an
+                <button class="btn btn-sm btn-outline-secondary"
+                    hx-post="{% url "organisations:club_menu_tab_members_add_un_reg_htmx" %}"
+                    hx-target="#id_member_add_tab"
+                    hx-vars="club_id:{{ club.id }}"
+                >
+                    unregistered user
+                </button>
+                (someone who hasn't yet signed up for {{ GLOBAL_TITLE }})
+            </p>
 
         </form>
 

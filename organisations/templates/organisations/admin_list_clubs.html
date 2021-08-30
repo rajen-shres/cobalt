@@ -30,8 +30,6 @@
                                     <td class="text-left">{{ club.name }}</td>
                                     <td class="text-left">{{ club.secretary|default_if_none:"-" }}</td>
                                     <td>
-                                        <a href="{% url "organisations:admin_club_rbac" club_id=club.id %}"
-                                            class="btn btn-sm btn-rose">RBAC</a>
                                         <a href="{% url "organisations:club_menu" club_id=club.id %}"
                                             class="btn btn-sm btn-info">Club Menu</a>
                                     </td>

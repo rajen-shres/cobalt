@@ -2,12 +2,13 @@
 {% load cobalt_tags %}
 {% load crispy_forms_tags %}
 
-<div class="card col-md-6">
+<div class="card col-md-9 col-lg-6">
     <div class="card-header card-header-rose">
         <h2 class="text-center">{{ un_reg }}</h2>
         <h3 class="text-center">
             Add Unregistered Member
         </h3>
+        <p class="text-center">Here you can add a member who has not yet registered for {{ GLOBAL_TITLE }}</p>
     </div>
     <div class="card-body pt-0">
 
@@ -28,8 +29,13 @@
 
             <span id="username_error" class="cobalt-form-error"></span>
 
-            {{ user_form | crispy }}
-            {{ club_email_form | crispy }}
+            {{ form.system_number | as_crispy_field }}
+            {{ form.first_name | as_crispy_field }}
+            {{ form.last_name | as_crispy_field }}
+            {{ form.mpc_email | as_crispy_field }}
+            {{ form.club_email | as_crispy_field }}
+
+            {#        Cripsy forms stuff up these fields#}
 
             <div id="div_id_membership_type" class="form-group row">
                 <div class="col-6">
@@ -39,8 +45,9 @@
                 </div>
 
                 <div class="col-6">
+                    <span class="cobalt-form-error">{{ form.membership_type.errors|striptags }}</span>
                     <select name="membership_type" class="select form-control" id="id_membership_type">
-                        {% for option in membership_form.membership_type.field.choices %}
+                        {% for option in form.membership_type.field.choices %}
                             <h1>{{ option }}</h1>
                             <option value="{{ option.0 }}">{{ option.1 }}</option>
                         {% endfor %}
@@ -49,7 +56,8 @@
             </div>
 
             <div class="form-group row">
-                <input id="id_home_club" type="checkbox" name="home_club" {% if membership_form.home_club.value %}Checked{% endif %}">
+                <span class="cobalt-form-error">{{ form.home_club.errors|striptags }}</span>
+                <input id="id_home_club" type="checkbox" name="home_club" {% if form.home_club.value %}Checked{% endif %}">
                 <label for="id_home_club" style="color: black">&nbsp;Home Club</label><br>
 
             </div>
@@ -67,16 +75,16 @@
 
         function getPlayerName() {
 
-            var username = document.getElementById('id_system_number')
-            var fname = document.getElementById('id_first_name')
-            var lname = document.getElementById('id_last_name')
-            var err = document.getElementById('username_error')
+            const username = document.getElementById('id_system_number');
+            const fname = document.getElementById('id_first_name');
+            const lname = document.getElementById('id_last_name');
+            const err = document.getElementById('username_error');
 
             err.innerHTML = "";
 
             var trimmed_username = username.value.replace(/^\s+|\s+$/g, '');
 
-            if (trimmed_username == '') {
+            if (trimmed_username === '') {
                 return;
             }
 
@@ -87,12 +95,12 @@
                 context: document.body,
                 success: function(txt) {
 
-                    var res = txt.split(" ");
-                    if (res.length == 2) {
+                    const res = txt.split(" ");
+                    if (res.length === 2) {
                         fname.value = res[0];
                         lname.value = res[1];
                     }
-                    var n = txt.search("Error");
+                    const n = txt.search("Error");
                     if (n >= 0) {
                         username.focus();
                         err.innerHTML = txt;
@@ -102,13 +110,10 @@
             });
         }
 
-        jQuery('#id_system_number').on('change', function(e) {
+        jQuery('#id_system_number').on('change blur', function(e) {
             getPlayerName();
         });
 
-        jQuery('#id_system_number').on('blur', function(e) {
-            getPlayerName();
-        });
     });
 
 </script>

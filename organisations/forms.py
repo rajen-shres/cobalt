@@ -4,6 +4,7 @@ from crispy_forms.helper import FormHelper
 from django import forms
 
 from accounts.models import User, UnregisteredUser
+import accounts.views as accounts_views
 from cobalt.settings import ABF_STATES
 from rbac.core import rbac_user_has_role
 from .models import Organisation, MembershipType, MemberClubEmail, MemberMembershipType
@@ -210,16 +211,22 @@ class UserMembershipForm(forms.Form):
         return home_club
 
 
-class UnRegMembershipForm(forms.Form):
-    """Form for getting an unregistered user and a membership type"""
+class UnregisteredUserAddForm(forms.Form):
+    """Form for adding an unregistered user along with the email, home club and membership type"""
 
-    member = forms.IntegerField()
+    system_number = forms.IntegerField()
+    first_name = forms.CharField(max_length=150)
+    last_name = forms.CharField(max_length=150)
+    mpc_email = forms.EmailField(
+        label="Email Address (accessible by all clubs)", required=False
+    )
+    club_email = forms.EmailField(label="Club email address (private)", required=False)
     membership_type = forms.ChoiceField()
     home_club = forms.BooleanField(initial=True, required=False)
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
-        super(UnRegMembershipForm, self).__init__(*args, **kwargs)
+        super(UnregisteredUserAddForm, self).__init__(*args, **kwargs)
 
         # Get membership type drop down
         membership_types = MembershipType.objects.filter(
@@ -231,23 +238,32 @@ class UnRegMembershipForm(forms.Form):
         ]
         self.fields["membership_type"].choices = choices
 
-    def clean_home_club(self):
-        """Check that this user doesn't already have a home club"""
+    def clean_system_number(self):
+        system_number = self.cleaned_data["system_number"]
 
-        home_club = self.cleaned_data["home_club"]
-        un_reg_id = self.cleaned_data["member"]
-        un_reg = UnregisteredUser.objects.get(pk=un_reg_id)
+        is_valid, is_member, _ = accounts_views.check_system_number(system_number)
 
-        if home_club:
-            other_club = (
-                MemberMembershipType.objects.filter(system_number=un_reg.system_number)
-                .filter(home_club=True)
-                .first()
+        if not is_valid:
+            self.add_error("system_number", "Invalid number")
+        if is_member:
+            self.add_error(
+                "system_number",
+                "This user is already registered. You can add them as a member, not an unregistered member",
             )
-            if other_club:
-                self.add_error(
-                    "member",
-                    f"{un_reg.full_name} already has {other_club.membership_type.organisation} as their home club",
-                )
 
+        return system_number
+
+    def clean_home_club(self):
+        """Users can only have one home club"""
+        home_club = self.cleaned_data["home_club"]
+        system_number = self.cleaned_data["system_number"]
+
+        if (
+            home_club
+            and MemberMembershipType.objects.filter(system_number=system_number)
+            .filter(home_club=True)
+            .exclude(membership_type__organisation=self.club)
+            .exists()
+        ):
+            self.add_error("home_club", "User already has a home club")
         return home_club

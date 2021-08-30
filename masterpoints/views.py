@@ -381,13 +381,43 @@ def user_summary(system_number):
     summary = r[0]
 
     # Set active to a boolean
-    if summary["IsActive"] == "Y":
-        summary["IsActive"] = True
-    else:
-        summary["IsActive"] = False
-
+    summary["IsActive"] = summary["IsActive"] == "Y"
     # Get home club name
     qry = "%s/club/%s" % (GLOBAL_MPSERVER, summary["HomeClubID"])
     summary["home_club"] = requests.get(qry).json()[0]["ClubName"]
 
     return summary
+
+
+def get_abf_checksum(abf_raw: int) -> int:
+    """Calculate the checksum for an ABF number given the raw number without the checksum
+
+    Formula is:
+
+    convert to 6 digit with trailing 0, e.g. 62024 becomes 062024
+    total is 0th place x 7, 1st place x 6, 2nd place x 5 etc
+    result = total mod 11
+    if result = 0 checksum = 0
+    else checksum = 11 - (result mod 11)
+
+    """
+
+    abf_string = f"{abf_raw:06d}"
+
+    total = sum(int(val) * (7 - index) for index, val in enumerate(abf_string))
+
+    if total == 0:
+        return 0
+
+    else:
+        return 11 - (total % 11)
+
+
+def abf_checksum_is_valid(abf_number: int) -> bool:
+    """Takes an ABF number and confirms the number has a valid checksum. Doesn't check with the MPC to
+    see if this is a valid number (not inactive, actually registered etc)."""
+
+    this_checksum = abf_number % 10  # last digit
+    true_checksum = get_abf_checksum(abf_number // 10)  # not last digit
+
+    return this_checksum == true_checksum

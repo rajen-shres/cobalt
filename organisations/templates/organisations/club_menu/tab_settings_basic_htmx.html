@@ -47,8 +47,10 @@
                 {#                secretary           #}
                 <div class="col-md-6">
                     <div class="form-group">
-                        <b>Club Secretary: </b><span id="club_secretary_dummy_name">{{ secretary_name|default_if_none:"Not Set" }}</span>
+                        <b>Club Secretary: </b><span class="font-weight-bold" id="club_secretary_dummy_name">{{ secretary_name|default_if_none:"Not Set" }}</span>
+
                         <input type="hidden" id="id_secretary" name="secretary" value="{{ secretary_id|default_if_none:"" }}">
+
                         <span class="cobalt-form-error">{{ org_form.secretary.errors }}</span>
                         <button id="id_search_button" type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#userSearchModal11">Edit</button>
                     </div>

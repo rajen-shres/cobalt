@@ -10,12 +10,10 @@ import csv
 import datetime
 from copy import copy
 
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
-from django.template import Context
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -23,7 +21,6 @@ from django.views.decorators.http import require_POST
 
 from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser
-from accounts.views import check_system_number
 from cobalt.settings import GLOBAL_MPSERVER
 from events.models import Congress
 from organisations.forms import (
@@ -32,7 +29,7 @@ from organisations.forms import (
     OrgDatesForm,
     MemberClubEmailForm,
     UserMembershipForm,
-    UnRegMembershipForm,
+    UnregisteredUserAddForm,
 )
 from organisations.models import (
     ORGS_RBAC_GROUPS_AND_ROLES,
@@ -47,7 +44,6 @@ from organisations.views.admin import (
 )
 from organisations.views.general import (
     get_rbac_model_for_state,
-    get_club_data_from_masterpoints_centre,
     compare_form_with_mpc,
 )
 from payments.core import get_balance_and_recent_trans_org
@@ -64,7 +60,6 @@ from rbac.core import (
     rbac_add_user_to_admin_group,
 )
 from rbac.models import RBACAdminUserGroup, RBACUserGroup, RBACGroupRole
-
 from rbac.views import rbac_forbidden
 from utils.views import masterpoint_query
 
@@ -698,7 +693,7 @@ def tab_members_add_member_htmx(request):
 @login_required()
 @require_POST
 def tab_members_add_un_reg_htmx(request):
-    """Add a club un registered user manually"""
+    """Add a club unregistered user manually"""
 
     status, error_page, club = _tab_is_okay(request)
     if not status:
@@ -707,78 +702,70 @@ def tab_members_add_un_reg_htmx(request):
     message = ""
 
     if "save" in request.POST:
-        user_form = UnregisteredUserForm(request.POST, allow_registered_users=True)
-        club_email_form = MemberClubEmailForm(request.POST, prefix="club")
+
+        form = UnregisteredUserAddForm(request.POST, club=club)
 
         # Assume the worst
         message = "Errors found on Form"
 
-        if user_form.is_valid():
+        # Set up to rollback if we fail
+        #    point_in_time = transaction.savepoint()
+
+        if form.is_valid():
             # User may already be registered, the form will allow this
-            new_member = UnregisteredUser.objects.filter(
-                system_number=user_form.cleaned_data["system_number"],
-            ).first()
-            if new_member:
+            if UnregisteredUser.objects.filter(
+                system_number=form.cleaned_data["system_number"],
+            ).exists():
                 message = "User already existed."  # don't change the fields
             else:
-                new_member = UnregisteredUser(
-                    system_number=user_form.cleaned_data["system_number"],
+                UnregisteredUser(
+                    system_number=form.cleaned_data["system_number"],
                     last_updated_by=request.user,
-                    last_name=user_form.cleaned_data["last_name"],
-                    first_name=user_form.cleaned_data["first_name"],
-                    email=user_form.cleaned_data["email"],
+                    last_name=form.cleaned_data["last_name"],
+                    first_name=form.cleaned_data["first_name"],
+                    email=form.cleaned_data["mpc_email"],
                     origin="Manual",
                     added_by_club=club,
-                )
-                new_member.save()
+                ).save()
                 message = "User added."
 
-            # membership form couldn't have the user at it didn't exist yet, add now
-            changed_data = dict(request.POST)
-            changed_data["member"] = new_member.id
-            membership_form = UnRegMembershipForm(changed_data, club=club)
-
-            if membership_form.is_valid():
-
-                # Add to club
+            # Add to club
+            if MemberMembershipType.objects.filter(
+                system_number=form.cleaned_data["system_number"],
+                membership_type__organisation=club,
+            ).exists():
+                message += " Already a member of club."
+            else:
                 MemberMembershipType.objects.get_or_create(
-                    system_number=user_form.cleaned_data["system_number"],
-                    membership_type_id=membership_form.cleaned_data["membership_type"],
-                    home_club=membership_form.cleaned_data["home_club"],
+                    system_number=form.cleaned_data["system_number"],
+                    membership_type_id=form.cleaned_data["membership_type"],
+                    home_club=form.cleaned_data["home_club"],
+                    last_modified_by=request.user,
                 )
-
                 message += " Club membership added."
 
-            # only add email if we managed to add the user
-            if club_email_form.is_valid():
-                club_email = club_email_form.cleaned_data["email"]
-                if club_email:
-                    club_email_entry, _ = MemberClubEmail.objects.get_or_create(
-                        organisation=club, system_number=new_member.system_number
-                    )
-                    club_email_entry.email = club_email
-                    club_email_entry.save()
-                    message += " Club specific email added."
+            # Add email
+            club_email = form.cleaned_data["club_email"]
+            if club_email:
+                club_email_entry, _ = MemberClubEmail.objects.get_or_create(
+                    organisation=club, system_number=form.cleaned_data["system_number"]
+                )
+                club_email_entry.email = club_email
+                club_email_entry.save()
+                message += " Club specific email added."
 
-            # return success message, errors go down a different path
-            return HttpResponse(message)
-
-        else:
-            membership_form = UnRegMembershipForm(prefix="membership", club=club)
+            # return blank form to add another
+            form = UnregisteredUserAddForm(club=club)
 
     else:
-        user_form = UnregisteredUserForm(allow_registered_users=True)
-        club_email_form = MemberClubEmailForm(prefix="club")
-        membership_form = UnRegMembershipForm(prefix="membership", club=club)
+        form = UnregisteredUserAddForm(club=club)
 
     return render(
         request,
         "organisations/club_menu/members/un_reg_add_htmx.html",
         {
             "club": club,
-            "user_form": user_form,
-            "club_email_form": club_email_form,
-            "membership_form": membership_form,
+            "form": form,
             "message": message,
         },
     )
