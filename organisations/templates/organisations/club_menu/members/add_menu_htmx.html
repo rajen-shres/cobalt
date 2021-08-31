@@ -50,22 +50,10 @@
                         <button class="btn bg-primary btn-block"
                             hx-post="{% url "organisations:club_menu_tab_members_upload_csv" %}"
                             hx-target="#id_member_add_tab"
-                        >Pianola Upload</button>
-                    </td>
-                    <td class="text-left pl-5">
-                        Export your member list from Pianola and upload here
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <button class="btn bg-primary btn-block"
-                            hx-post="{% url "organisations:club_menu_tab_members_upload_csv" %}"
-                            hx-target="#id_panel_members"
-                            onClick="disable_buttons();"
                         >CSV Upload</button>
                     </td>
                     <td class="text-left pl-5">
-                        Upload your member details from a CSV file
+                        Upload your membership list in various formats
                     </td>
                 </tr>
             </tbody>

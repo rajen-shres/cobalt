@@ -267,3 +267,30 @@ class UnregisteredUserAddForm(forms.Form):
         ):
             self.add_error("home_club", "User already has a home club")
         return home_club
+
+
+class CSVUploadForm(forms.Form):
+    """Form for uploading a CSV to load unregistered members"""
+
+    membership_type = forms.ChoiceField()
+    home_club = forms.BooleanField(initial=True, required=False)
+    file_type = forms.ChoiceField(
+        choices=[
+            ("CSV", "Generic CSV"),
+            ("Pianola", "Pianola Export"),
+        ]
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        super(CSVUploadForm, self).__init__(*args, **kwargs)
+
+        # Get membership type drop down
+        membership_types = MembershipType.objects.filter(
+            organisation=self.club
+        ).values_list("id", "name")
+        choices = [
+            (membership_type[0], membership_type[1])
+            for membership_type in membership_types
+        ]
+        self.fields["membership_type"].choices = choices

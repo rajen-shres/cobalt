@@ -30,6 +30,7 @@ from organisations.forms import (
     MemberClubEmailForm,
     UserMembershipForm,
     UnregisteredUserAddForm,
+    CSVUploadForm,
 )
 from organisations.models import (
     ORGS_RBAC_GROUPS_AND_ROLES,
@@ -1204,11 +1205,23 @@ def club_menu_tab_members_upload_csv_htmx(request):
     if not status:
         return error_page
 
+    # no files - show form
     if not request.FILES:
-        return render(request, "organisations/club_menu/members/csv_htmx.html")
+        form = CSVUploadForm(club=club)
+        return render(
+            request, "organisations/club_menu/members/csv_htmx.html", {"form": form}
+        )
 
-    # Get file
+    form = CSVUploadForm(request.POST, club=club)
+    form.is_valid()
+
+    # Get params
     csv_file = request.FILES["file"]
+    file_type = form.cleaned_data["file_type"]
+    membership_type = form.cleaned_data["membership_type"]
+    home_club = form.cleaned_data["home_club"]
+
+    default_membership = get_object_or_404(MembershipType, pk=membership_type)
 
     # get CSV reader (convert bytes to strings)
     csv_data = csv.reader(codecs.iterdecode(csv_file, "utf-8"))
@@ -1242,8 +1255,9 @@ def club_menu_tab_members_upload_csv_htmx(request):
         club=club,
         member_data=member_data,
         user=request.user,
-        origin="Pianola",
-        home_club=True,
+        origin=file_type,
+        default_membership=default_membership,
+        home_club=home_club,
         club_specific_email=True,
     )
 
@@ -1363,12 +1377,14 @@ def process_member_import(
     member_data: list,
     user: User,
     origin: str,
+    default_membership: MembershipType,
     home_club: bool = False,
     club_specific_email: bool = False,
 ):
     """Common function to process a list of members
 
     Args:
+        default_membership: Which membership to add this user to
         club_specific_email: Is this email specific to this club? True for 'club' sources like Pianola, False for MPC
         home_club: Is this the home club for this user
         origin: Where did we get this data from?
@@ -1377,10 +1393,6 @@ def process_member_import(
         club: Club object
 
     """
-
-    # We have to add them to a membership type
-    # TODO: make this a choice field
-    default_membership = MembershipType.objects.filter(organisation=club).first()
 
     # counters
     added_users = 0

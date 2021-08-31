@@ -131,6 +131,7 @@ class UnregisteredUser(models.Model):
     ORIGINS = [
         ("MPC", "Masterpoints Centre Import"),
         ("Pianola", "Pianola Import"),
+        ("CSV", "CSV Import"),
         ("Manual", "Manual Entry"),
     ]
 
