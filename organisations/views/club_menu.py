@@ -11,7 +11,8 @@ import datetime
 from copy import copy
 
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.core.validators import validate_email
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -22,8 +23,10 @@ from django.views.decorators.http import require_POST
 
 from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser
-from cobalt.settings import GLOBAL_MPSERVER
+from accounts.views import check_system_number
+from cobalt.settings import GLOBAL_MPSERVER, GLOBAL_TITLE, GLOBAL_ORG
 from events.models import Congress
+from masterpoints.views import abf_checksum_is_valid
 from organisations.forms import (
     OrgForm,
     MembershipTypeForm,
@@ -1245,28 +1248,22 @@ def _club_menu_tab_members_upload_csv_pianola(club_member):
 
     Returns:
         Bool: True for success, False for failure
+        error: message describing error (if there was one)
         item: dict with formatted values
 
     """
 
-    system_number = club_member[1].strip()
-
-    try:
-        system_number = int(system_number)
-    except ValueError:
-        return False, None
-
     # Skip visitors, at least for now
     if club_member[21].find("Visitor") >= 0:
-        return False, None
+        return False, f"{club_member[1]} - skipped visitor", None
     item = {
-        "system_number": system_number,
+        "system_number": club_member[1],
         "first_name": club_member[5],
         "last_name": club_member[6],
         "email": club_member[7],
     }
 
-    return True, item
+    return True, None, item
 
 
 def _club_menu_tab_members_upload_csv_generic(club_member):
@@ -1277,25 +1274,73 @@ def _club_menu_tab_members_upload_csv_generic(club_member):
 
     Returns:
         Bool: True for success, False for failure
+        error: message describing error (if there was one)
         item: dict with formatted values
 
     """
 
-    system_number = club_member[0].strip()
-
-    try:
-        system_number = int(system_number)
-    except ValueError:
-        return False, None
-
     item = {
-        "system_number": system_number,
+        "system_number": club_member[0],
         "first_name": club_member[1],
         "last_name": club_member[2],
         "email": club_member[3],
     }
 
-    return True, item
+    return True, None, item
+
+
+def _club_menu_tab_members_upload_csv_common(item):
+    """Common checks for all formats
+
+    Args:
+        item: dict
+
+    Returns:
+        Bool: True for success, False for failure
+        error: message describing error (if there was one)
+        item: dict with formatted values
+
+    """
+
+    system_number = item["system_number"]
+    first_name = item["first_name"]
+    last_name = item["last_name"]
+    email = item["email"]
+
+    system_number = system_number.strip()
+
+    try:
+        system_number = int(system_number)
+    except ValueError:
+        return False, f"{system_number} - invalid {GLOBAL_ORG} Number", None
+
+    # Basic validation
+
+    # TODO: Checking with MPC is too slow. We just validate the checksum
+    #  if not check_system_number(system_number):
+    if not abf_checksum_is_valid(system_number):
+        return False, f"{system_number} - invalid {GLOBAL_ORG} Number", None
+
+    if len(first_name) < 1:
+        return False, f"{system_number} - First name missing", None
+
+    if len(last_name) < 1:
+        return False, f"{system_number} - Last name missing", None
+
+    if email:
+        try:
+            validate_email(email)
+        except ValidationError:
+            return False, f"{system_number} - Invalid email {email}", None
+
+    item = {
+        "system_number": system_number,
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
+    }
+
+    return True, None, item
 
 
 def club_menu_tab_members_upload_csv_htmx(request):
@@ -1314,6 +1359,7 @@ def club_menu_tab_members_upload_csv_htmx(request):
 
     form = CSVUploadForm(request.POST, club=club)
     form.is_valid()
+    csv_errors = []
 
     # Get params
     csv_file = request.FILES["file"]
@@ -1334,14 +1380,23 @@ def club_menu_tab_members_upload_csv_htmx(request):
 
     for club_member in csv_data:
 
+        # Specific formatting and tests by format
         if file_type == "Pianola":
-            rc, item = _club_menu_tab_members_upload_csv_pianola(club_member)
+            rc, error, item = _club_menu_tab_members_upload_csv_pianola(club_member)
         elif file_type == "CSV":
-            rc, item = _club_menu_tab_members_upload_csv_generic(club_member)
+            rc, error, item = _club_menu_tab_members_upload_csv_generic(club_member)
         else:
             raise ImproperlyConfigured
 
         if not rc:
+            csv_errors.append(error)
+            continue
+
+        # Common checks
+        rc, error, item = _club_menu_tab_members_upload_csv_common(item)
+
+        if not rc:
+            csv_errors.append(error)
             continue
 
         member_data.append(item)
@@ -1362,7 +1417,7 @@ def club_menu_tab_members_upload_csv_htmx(request):
         {
             "added_users": added_users,
             "added_unregistered_users": added_unregistered_users,
-            "errors": errors,
+            "errors": errors + csv_errors,
         },
     )
 

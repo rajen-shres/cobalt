@@ -406,11 +406,15 @@ def get_abf_checksum(abf_raw: int) -> int:
 
     total = sum(int(val) * (7 - index) for index, val in enumerate(abf_string))
 
-    if total == 0:
+    mod = total % 11
+
+    if mod == 0:
         return 0
 
-    else:
-        return 11 - (total % 11)
+    if mod == 1:
+        return 1
+
+    return 11 - mod
 
 
 def abf_checksum_is_valid(abf_number: int) -> bool:
