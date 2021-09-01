@@ -1,145 +1,35 @@
-{% load crispy_forms_filters %}
+<h3 class="text-center">Import data from the Masterpoints Centre into {{ GLOBAL_TITLE }}</h3>
 
-<style>
-    input[type="file"] {
-        display: none;
-    }
-    .custom-file-upload {
-        border: 1px solid #ccc;
-        display: inline-block;
-        padding: 6px 12px;
-        cursor: pointer;
-    }
-</style>
+<form
+    hx-post='{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}'
+    hx-target='#id_panel_members'
+    hx-vars="club_id:{{ club.id }}"
+>
 
-<h3 class="text-center">Use this page to import your member list into {{ GLOBAL_TITLE }}</h3>
-
-<h4 class="text-center">This can take a little while to process, please be patient.</h4>
-<hr>
-<div class="container">
-    <div class="row">
-        <div class="col-6">
-
-            <div class="container">
-
-                <div class="row">
-                    <form id='form'
-                        hx-encoding='multipart/form-data'
-                        hx-post='{% url "organisations:club_menu_tab_members_upload_csv" %}'
-                        hx-target='#id_panel_members'
-                    >
-
-                        <div id="div_id_file_type" class="form-group row">
-                            <div class="col-6 text-right">
-                                <label for="id_file_type" class="bmd-label-static">
-                                    File Type
-                                </label>
-                            </div>
-
-                            <div class="">
-                                <span class="cobalt-form-error">{{ form.file_type.errors|striptags }}</span>
-                                <select name="file_type" class="select form-control" id="id_file_type">
-                                    {% for option in form.file_type.field.choices %}
-                                        <h1>{{ option }}</h1>
-                                        <option value="{{ option.0 }}">{{ option.1 }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div id="div_id_membership_type" class="form-group row">
-                            <div class="col-6 text-right">
-                                <label for="id_membership_type" class="bmd-label-static">
-                                    Membership Type
-                                </label>
-                            </div>
-
-                            <div>
-                                <span class="cobalt-form-error">{{ form.membership_type.errors|striptags }}</span>
-                                <select name="membership_type" class="select form-control" id="id_membership_type">
-                                    {% for option in form.membership_type.field.choices %}
-                                        <h1>{{ option }}</h1>
-                                        <option value="{{ option.0 }}">{{ option.1 }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <div class="col-6 text-right">
-                                <label for="id_home_club">Mark as Home Club if possible</label><br>
-                            </div>
-
-                            <div class="col-6 text-left">
-                                <span class="cobalt-form-error">{{ form.home_club.errors|striptags }}</span>
-                                <input id="id_home_club" type="checkbox" name="home_club" {% if form.home_club.value %}Checked{% endif %}">
-
-                            </div>
-                        </div>
-
-                        <input type='file'
-                            accept=".csv"
-                            name='file'
-                            id="file-upload"
-                            class="form-control"
-                            onchange="$('#upload_pianola').show();"
-                        >
-                        <br>
-                        <button id="upload_pianola"
-                            style="display:none;"
-                            class="btn btn-sm btn-success"
-                            onclick="$('#upload_pianola_msg').show();
-                            $('#upload_pianola').hide();
-                            $('#file-upload').hide();
-                            $('#label-for-file-upload').hide();"
-                        >Upload
-                        </button>
-
-                        <br>
-                        <progress id='progress' value='0' max='100'></progress>
-
-                        <div id="upload_pianola_msg" style="display: none">
-                            Working...
-                        </div>
-                    </form>
-                </div>
+    <div id="div_id_membership_type" class="form-group">
+        <div class="row">
+            <div class="col-4">
+                <label for="id_membership_type" class="bmd-label-static">
+                    Membership Type
+                </label>
             </div>
 
+            <div class="col-4">
+                <span class="cobalt-form-error">{{ form.membership_type.errors|striptags }}</span>
+                <select name="membership_type" class="select form-control" id="id_membership_type">
+                    {% for option in form.membership_type.field.choices %}
+                        <h1>{{ option }}</h1>
+                        <option value="{{ option.0 }}">{{ option.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
-        <div id="id_csv_types_description" class="col-6">
-            <h3>Generic CSV</h3>
-            <p>You can upload any data in our generic CSV format. The file needs to have comma-separated
-                values (CSV) with the following format:
-            </p>
-            <code>{{ GLOBAL_ORG }} Number, First Name, Last Name, Email Address</code>
-            <br>
-            <br>
-            <p>A header row is expected, you will lose the first row of data if you do not have one.</p>
-            <p>The email address is optional.</p>
-        </div>
-
-
     </div>
-</div>
+    <div class="text-center">
+        <button type="submit" name="save" class="btn btn-success">Import</button>
+    </div>
+</form>
 
 
-<script>
-    htmx.on('#form', 'htmx:xhr:progress', function(evt) {
-        htmx.find('#progress').setAttribute('value', evt.detail.loaded/evt.detail.total * 100)
-    });
-    $('#id_file_type').on('change', function (){
-        if (this.value === "Pianola") {
-            $('#id_csv_types_description').html("<h3>Pianola Export Format</h3><p>You can export data from Pianola. " +
-                "Go to <b>Administration</b>, then <b>Members</b> and click on <b>Export</b>. Use the 'Export to CSV' option." +
-                "use the saved file to upload here.</p>");
-        }
-        if (this.value === "CSV") {
-            $('#id_csv_types_description').html("<h3>Generic CSV</h3><p>You can upload any data in our generic CSV format. " +
-                "The file needs to have comma-separated values (CSV) with the following format:</p>" +
-                "<code>{{ GLOBAL_ORG }} Number, First Name, Last Name, Email Address</code><br><br>" +
-                "<p>A header row is expected, you will lose the first row if data of you do not have one.</p>" +
-                "<p>The email address is optional.</p>");
-        }
 
-    });
-</script>
+

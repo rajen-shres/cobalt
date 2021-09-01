@@ -31,6 +31,7 @@ from organisations.forms import (
     UserMembershipForm,
     UnregisteredUserAddForm,
     CSVUploadForm,
+    MPCForm,
 )
 from organisations.models import (
     ORGS_RBAC_GROUPS_AND_ROLES,
@@ -1291,6 +1292,20 @@ def club_menu_tab_members_import_mpc_htmx(request):
     if not status:
         return error_page
 
+    if "save" not in request.POST:
+        form = CSVUploadForm(club=club)
+        return render(
+            request,
+            "organisations/club_menu/members/mpc_htmx.html",
+            {"form": form, "club": club},
+        )
+
+    form = MPCForm(request.POST, club=club)
+    form.is_valid()
+
+    membership_type = form.cleaned_data["membership_type"]
+    default_membership = get_object_or_404(MembershipType, pk=membership_type)
+
     # Get home club members from MPC
     qry = f"{GLOBAL_MPSERVER}/clubMemberList/{club.org_id}"
     club_members = masterpoint_query(qry)
@@ -1306,7 +1321,13 @@ def club_menu_tab_members_import_mpc_htmx(request):
     ]
 
     home_added_users, home_added_unregistered_users = process_member_import(
-        club, member_data, request.user, "MPC"
+        club=club,
+        member_data=member_data,
+        user=request.user,
+        origin="MPC",
+        default_membership=default_membership,
+        club_specific_email=False,
+        home_club=True,
     )
 
     # Get Alternate (non-home) club members from MPC
@@ -1324,7 +1345,13 @@ def club_menu_tab_members_import_mpc_htmx(request):
     ]
 
     alt_added_users, alt_added_unregistered_users = process_member_import(
-        club, member_data, request.user, "MPC"
+        club=club,
+        member_data=member_data,
+        user=request.user,
+        origin="MPC",
+        default_membership=default_membership,
+        club_specific_email=False,
+        home_club=False,
     )
 
     # Build results table

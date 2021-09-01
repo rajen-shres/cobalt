@@ -10,6 +10,20 @@ from rbac.core import rbac_user_has_role
 from .models import Organisation, MembershipType, MemberClubEmail, MemberMembershipType
 
 
+def membership_type_choices(club):
+    """Return membership choices for a club"""
+
+    # Get membership type drop down
+    membership_types = (
+        MembershipType.objects.filter(organisation=club)
+        .order_by("pk")
+        .values_list("id", "name")
+    )
+    return [
+        (membership_type[0], membership_type[1]) for membership_type in membership_types
+    ]
+
+
 # TODO: Replace when club admin work complete
 class OrgFormOld(forms.ModelForm):
     class Meta:
@@ -178,16 +192,7 @@ class UserMembershipForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
         super(UserMembershipForm, self).__init__(*args, **kwargs)
-
-        # Get membership type drop down
-        membership_types = MembershipType.objects.filter(
-            organisation=self.club
-        ).values_list("id", "name")
-        choices = [
-            (membership_type[0], membership_type[1])
-            for membership_type in membership_types
-        ]
-        self.fields["membership_type"].choices = choices
+        self.fields["membership_type"].choices = membership_type_choices(self.club)
 
     def clean_home_club(self):
         """Check that this user doesn't already have a home club"""
@@ -227,16 +232,7 @@ class UnregisteredUserAddForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
         super(UnregisteredUserAddForm, self).__init__(*args, **kwargs)
-
-        # Get membership type drop down
-        membership_types = MembershipType.objects.filter(
-            organisation=self.club
-        ).values_list("id", "name")
-        choices = [
-            (membership_type[0], membership_type[1])
-            for membership_type in membership_types
-        ]
-        self.fields["membership_type"].choices = choices
+        self.fields["membership_type"].choices = membership_type_choices(self.club)
 
     def clean_system_number(self):
         system_number = self.cleaned_data["system_number"]
@@ -284,13 +280,15 @@ class CSVUploadForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
         super(CSVUploadForm, self).__init__(*args, **kwargs)
+        self.fields["membership_type"].choices = membership_type_choices(self.club)
 
-        # Get membership type drop down
-        membership_types = MembershipType.objects.filter(
-            organisation=self.club
-        ).values_list("id", "name")
-        choices = [
-            (membership_type[0], membership_type[1])
-            for membership_type in membership_types
-        ]
-        self.fields["membership_type"].choices = choices
+
+class MPCForm(forms.Form):
+    """Form for uploading a CSV to load unregistered members"""
+
+    membership_type = forms.ChoiceField()
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        super(MPCForm, self).__init__(*args, **kwargs)
+        self.fields["membership_type"].choices = membership_type_choices(self.club)

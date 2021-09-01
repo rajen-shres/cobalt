@@ -2,7 +2,7 @@
 {% load cobalt_tags %}
 {% load crispy_forms_tags %}
 
-<div class="card col-md-6">
+<div class="card col-md-8">
     <div class="card-header card-header-rose">
         <h2 class="text-center">{{ un_reg }}</h2>
         <h3 class="text-center">
@@ -40,8 +40,11 @@
             {{ club_email_form | crispy }}
 
             <button type="submit" name="save" class="btn btn-success">Save</button>
-            <button type="reset" class="btn btn-info">Reset</button>
-            <button type="reset" class="btn btn-info">Send Invite to Join {{ GLOBAL_TITLE }}</button>
+
+            {% include "utils/htmx_confirm_modal.html" with id=un_reg.id delete_item=unreg.first_name hx_target="#id_panel_members" hx_post="/later" %}
+            <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal{{ un_reg.id }}">Delete</button>
+
+            <button class="btn btn-info">Send Invite to Join {{ GLOBAL_TITLE }}</button>
         </form>
 
         <p class="my-0 font-italic small">Origin: {{ un_reg.origin }}</p>
