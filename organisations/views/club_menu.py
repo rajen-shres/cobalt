@@ -11,6 +11,7 @@ import datetime
 from copy import copy
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -560,6 +561,37 @@ def tab_members_add_htmx(request):
 
 
 @login_required()
+def tab_member_delete_un_reg_htmx(request, club_id, un_reg_id):
+    """Remove an unregistered user from club membership"""
+
+    club = get_object_or_404(Organisation, pk=club_id)
+    un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
+
+    # Check security
+    allowed, role = _menu_rbac_has_access(club, request.user)
+    if not allowed:
+        return rbac_forbidden(request, role)
+
+    # Memberships are coming later. For now we treat as basically binary - they start on the date they are
+    # entered and we assume only one without checking
+    now = timezone.now()
+    memberships = (
+        MemberMembershipType.objects.filter(start_date__lte=now)
+        .filter(Q(end_date__gte=now) | Q(end_date=None))
+        .filter(system_number=un_reg.system_number)
+    )
+
+    # Should only be one but not enforced at database level so close any that match to be safe
+    for membership in memberships:
+        membership.last_modified_by = request.user
+        membership.termination_reason = "Cancelled by Club"
+        membership.end_date = now - datetime.timedelta(days=1)
+        membership.save()
+
+    return tab_members_list_htmx(request, f"{un_reg.full_name} membership deleted.")
+
+
+@login_required()
 def tab_members_un_reg_edit_htmx(request):
     """Edit unregistered member details"""
 
@@ -626,6 +658,11 @@ def tab_members_un_reg_edit_htmx(request):
         if club_email_entry:
             club_email_form.initial["email"] = club_email_entry.email
 
+    hx_delete = reverse(
+        "organisations:club_menu_tab_member_delete_un_reg_htmx",
+        kwargs={"club_id": club.id, "un_reg_id": un_reg.id},
+    )
+
     return render(
         request,
         "organisations/club_menu/members/un_reg_edit_htmx.html",
@@ -635,6 +672,7 @@ def tab_members_un_reg_edit_htmx(request):
             "user_form": user_form,
             "club_email_form": club_email_form,
             "member_details": member_details,
+            "hx_delete": hx_delete,
             "message": message,
         },
     )
@@ -1199,6 +1237,67 @@ def access_advanced_add_admin_htmx(request):
     return access_advanced(request, club)
 
 
+def _club_menu_tab_members_upload_csv_pianola(club_member):
+    """Pianola specific formatting for CSV files
+
+    Args:
+        club_member: list (a row from spreadsheet)
+
+    Returns:
+        Bool: True for success, False for failure
+        item: dict with formatted values
+
+    """
+
+    system_number = club_member[1].strip()
+
+    try:
+        system_number = int(system_number)
+    except ValueError:
+        return False, None
+
+    # Skip visitors, at least for now
+    if club_member[21].find("Visitor") >= 0:
+        return False, None
+    item = {
+        "system_number": system_number,
+        "first_name": club_member[5],
+        "last_name": club_member[6],
+        "email": club_member[7],
+    }
+
+    return True, item
+
+
+def _club_menu_tab_members_upload_csv_generic(club_member):
+    """formatting for Generic CSV files
+
+    Args:
+        club_member: list (a row from spreadsheet)
+
+    Returns:
+        Bool: True for success, False for failure
+        item: dict with formatted values
+
+    """
+
+    system_number = club_member[0].strip()
+
+    try:
+        system_number = int(system_number)
+    except ValueError:
+        return False, None
+
+    item = {
+        "system_number": system_number,
+        "first_name": club_member[1],
+        "last_name": club_member[2],
+        "email": club_member[3],
+    }
+
+    return True, item
+
+
 def club_menu_tab_members_upload_csv_htmx(request):
     """Upload CSV"""
 
@@ -1234,25 +1333,20 @@ def club_menu_tab_members_upload_csv_htmx(request):
     member_data = []
 
     for club_member in csv_data:
-        system_number = club_member[1].strip()
 
-        try:
-            system_number = int(system_number)
-        except ValueError:
+        if file_type == "Pianola":
+            rc, item = _club_menu_tab_members_upload_csv_pianola(club_member)
+        elif file_type == "CSV":
+            rc, item = _club_menu_tab_members_upload_csv_generic(club_member)
+        else:
+            raise ImproperlyConfigured
+
+        if not rc:
             continue
 
-        # Skip visitors, at least for now
-        if club_member[21].find("Visitor") >= 0:
-            continue
-        item = {
-            "system_number": system_number,
-            "first_name": club_member[5],
-            "last_name": club_member[6],
-            "email": club_member[7],
-        }
         member_data.append(item)
 
-    home_added_users, home_added_unregistered_users = process_member_import(
+    added_users, added_unregistered_users, errors = process_member_import(
         club=club,
         member_data=member_data,
         user=request.user,
@@ -1266,10 +1360,9 @@ def club_menu_tab_members_upload_csv_htmx(request):
     table = render_to_string(
         "organisations/club_menu/members/table_htmx.html",
         {
-            "home_added_users": home_added_users,
-            "home_added_unregistered_users": home_added_unregistered_users,
-            "alt_added_users": 0,
-            "alt_added_unregistered_users": 0,
+            "added_users": added_users,
+            "added_unregistered_users": added_unregistered_users,
+            "errors": errors,
         },
     )
 
@@ -1320,7 +1413,11 @@ def club_menu_tab_members_import_mpc_htmx(request):
         for club_member in club_members
     ]
 
-    home_added_users, home_added_unregistered_users = process_member_import(
+    (
+        home_added_users,
+        home_added_unregistered_users,
+        home_errors,
+    ) = process_member_import(
         club=club,
         member_data=member_data,
         user=request.user,
@@ -1344,7 +1441,7 @@ def club_menu_tab_members_import_mpc_htmx(request):
         for club_member in club_members
     ]
 
-    alt_added_users, alt_added_unregistered_users = process_member_import(
+    alt_added_users, alt_added_unregistered_users, away_errors = process_member_import(
         club=club,
         member_data=member_data,
         user=request.user,
@@ -1354,14 +1451,17 @@ def club_menu_tab_members_import_mpc_htmx(request):
         home_club=False,
     )
 
+    errors = home_errors + away_errors
+    registered_added = home_added_users + alt_added_users
+    unregistered_added = home_added_unregistered_users + alt_added_unregistered_users
+
     # Build results table
     table = render_to_string(
         "organisations/club_menu/members/table_htmx.html",
         {
-            "home_added_users": home_added_users,
-            "home_added_unregistered_users": home_added_unregistered_users,
-            "alt_added_users": alt_added_users,
-            "alt_added_unregistered_users": alt_added_unregistered_users,
+            "added_users": registered_added,
+            "added_unregistered_users": unregistered_added,
+            "errors": errors,
         },
     )
 
@@ -1376,19 +1476,64 @@ def process_member_import_add_member_to_membership(
     home_club: bool = False,
 ):
     """Sub process to add a member to the member-membership model. Returns 0 if already there
-    or 1 for counting purposes"""
+    or 1 for counting purposes, plus an error or warning if one is found"""
+
+    error = None
+    now = timezone.now()
+    name = f"{club_member['system_number']} - {club_member['first_name']} {club_member['last_name']}"
+
+    print(now)
 
     # Check if already there
     member_membership = (
         MemberMembershipType.objects.filter(system_number=club_member["system_number"])
         .filter(membership_type__organisation=club)
+        .filter(start_date__lte=now)
+        .filter(Q(end_date__gte=now) | Q(end_date=None))
         .first()
     )
+    print("got member_membership", member_membership)
+
     if member_membership:
-        # Update home club in case it has changed
-        member_membership.home_club = home_club
-        member_membership.save()
-        return 0
+        # check for other home clubs
+        other_home_club = (
+            MemberMembershipType.objects.filter(
+                system_number=club_member["system_number"]
+            )
+            .exclude(membership_type__organisation=club)
+            .filter(start_date__lte=now)
+            .filter(Q(end_date__gte=now) | Q(end_date=None))
+            .exists()
+        )
+
+        error = f"{name} - Already a member"
+
+        print("Got other home club", other_home_club)
+
+        print("home club", home_club)
+
+        if other_home_club and home_club:
+            error = f"{name} - Already a member and has a different home club"
+        elif home_club:
+            member_membership.home_club = home_club
+            member_membership.save()
+        return 0, error
+
+    # check for other home clubs before setting this as the users home club
+    other_home_club = (
+        MemberMembershipType.objects.filter(system_number=club_member["system_number"])
+        .filter(start_date__lte=now)
+        .filter(Q(end_date__gte=now) | Q(end_date=None))
+        .exists()
+    )
+
+    print("Got other home club 2 ", other_home_club)
+
+    print("home club", home_club)
+
+    if home_club and other_home_club:
+        error = f"{name} - Added but already has a home club"
+        home_club = False
 
     MemberMembershipType(
         membership_type=default_membership,
@@ -1396,7 +1541,7 @@ def process_member_import_add_member_to_membership(
         last_modified_by=user,
         home_club=home_club,
     ).save()
-    return 1
+    return 1, error
 
 
 def process_member_import(
@@ -1424,6 +1569,7 @@ def process_member_import(
     # counters
     added_users = 0
     added_unregistered_users = 0
+    errors = []
 
     # loop through members
     for club_member in member_data:
@@ -1434,9 +1580,12 @@ def process_member_import(
         ).first()
 
         if user_match:
-            added_users += process_member_import_add_member_to_membership(
+            added, error = process_member_import_add_member_to_membership(
                 club, club_member, user, default_membership, home_club
             )
+            added_users += added
+            if error:
+                errors.append(error)
         else:
             # See if we have an unregistered user already
             un_reg = UnregisteredUser.objects.filter(
@@ -1473,8 +1622,12 @@ def process_member_import(
                     email=club_member["email"],
                 ).save()
 
-            added_unregistered_users += process_member_import_add_member_to_membership(
+            added, error = process_member_import_add_member_to_membership(
                 club, club_member, user, default_membership, home_club
             )
 
-    return added_users, added_unregistered_users
+            added_unregistered_users += added
+            if error:
+                errors.append(error)
+
+    return added_users, added_unregistered_users, errors

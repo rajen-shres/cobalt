@@ -41,8 +41,9 @@
 
             <button type="submit" name="save" class="btn btn-success">Save</button>
 
-            {% include "utils/htmx_confirm_modal.html" with id=un_reg.id delete_item=unreg.first_name hx_target="#id_panel_members" hx_post="/later" %}
-            <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal{{ un_reg.id }}">Delete</button>
+            {% include "utils/htmx_confirm_modal.html" with id="undel" delete_item=un_reg.first_name hx_target="#id_panel_members" hx_post=hx_delete %}
+            <button id="id_delete_user_1" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModalundel">Cancel Membership</button>
+
 
             <button class="btn btn-info">Send Invite to Join {{ GLOBAL_TITLE }}</button>
         </form>
