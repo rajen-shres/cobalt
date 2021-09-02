@@ -49,7 +49,15 @@
                 hx-post="{% url "organisations:club_menu_tab_members_invite_user_to_join_htmx" %}"
                 hx-target="#id_member_list_tab"
                 hx-vars="club_id:{{ club.id }}, un_reg_id:{{ un_reg.id }}"
-                class="btn btn-info">Send Invite to Join {{ GLOBAL_TITLE }}</button>
+                class="btn btn-info"
+                onclick="GrowlNotification.notify({
+                title: 'Sending invite...',
+                description: 'Sending invite to {{ un_reg.first_name }}.',
+                type: 'success',
+                position: 'top-right',
+                closeTimeout: 2000})"
+            >Send Invite to Join {{ GLOBAL_TITLE }}
+            </button>
         </form>
 
         <p class="my-0 font-italic small">Origin: {{ un_reg.origin }}</p>

@@ -7,473 +7,473 @@
 {% block headerjs %}
 
 
-<!-- The js libraries are a problem for Summernote so we override them here -->
+    <!-- The js libraries are a problem for Summernote so we override them here -->
 
-<script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
-<script src="{% static "assets/js/core/popper.min.js" %}"></script>
-<link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
-<script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
-<link rel="stylesheet" href="{% static "assets/css/bootstrap.4.0.0.min.css" %}">
-{% if not request.user.windows_scrollbar %}
-<script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
-{% endif %}
+    <script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
+    <script src="{% static "assets/js/core/popper.min.js" %}"></script>
+    <link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
+    <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
+    <link rel="stylesheet" href="{% static "assets/css/bootstrap.4.0.0.min.css" %}">
+    {% if not request.user.windows_scrollbar %}
+        <script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
+    {% endif %}
 
 
 
-<!-- Other libraries needed for this page -->
-<script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
-<script src="{% static "assets/js/core/jquery.cookie.min.js" %}"></script>
+    <!-- Other libraries needed for this page -->
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+    <script src="{% static "assets/js/core/jquery.cookie.min.js" %}"></script>
 
-<style>
-  .cobalt-min-width-100 {
-    min-width: 100%;
-  }
-</style>
+    <style>
+        .cobalt-min-width-100 {
+            min-width: 100%;
+        }
+    </style>
 {% endblock %}
 {% block content %}
 
-<!-- Instead of using {{ form.media }} we hardcode the static files here
+    <!-- Instead of using {{ form.media }} we hardcode the static files here
      so we can control the version that we use. Django-summernote comes with
      an older version of summernote that has some bugs especially relating
      to how it shakes when it is slowly scrolled. We point to a newer
      version of summernote and it fixes the problem. -->
 
-<link href="{% static "forums/summernote/summernote-bs4.css" %}" type="text/css" media="all" rel="stylesheet">
-<link href="{% static "forums/summernote/django_summernote.css" %}" type="text/css" media="all" rel="stylesheet">
-<script type="text/javascript" src="{% static "forums/summernote/jquery.ui.widget.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/jquery.iframe-transport.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/jquery.fileupload.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/summernote-bs4.min.js" %}"></script>
-<script type="text/javascript" src="{% static "forums/summernote/ResizeSensor.js" %}"></script>
+    <link href="{% static "forums/summernote/summernote-bs4.css" %}" type="text/css" media="all" rel="stylesheet">
+    <link href="{% static "forums/summernote/django_summernote.css" %}" type="text/css" media="all" rel="stylesheet">
+    <script type="text/javascript" src="{% static "forums/summernote/jquery.ui.widget.js" %}"></script>
+    <script type="text/javascript" src="{% static "forums/summernote/jquery.iframe-transport.js" %}"></script>
+    <script type="text/javascript" src="{% static "forums/summernote/jquery.fileupload.js" %}"></script>
+    <script type="text/javascript" src="{% static "forums/summernote/summernote-bs4.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "forums/summernote/ResizeSensor.js" %}"></script>
 
 
-<!-- Post -->
+    <!-- Post -->
 
-<div class="card card-nav-tabs">
-  <div class="card-header card-header-warning">
-    <h1>{{ post.title }}</h1>
-    <a href="{% url 'accounts:public_profile' pk=post.author.pk %}">
-      <img width="50px" class="cobalt-rounded float-left" src="/media/{{ post.author.pic }}" style="margin-right: 5px;" />
-      <h4>{{ post.author.full_name }}</h4>
-    </a>
-    <div class="card-title d-flex justify-content-between">
-      <div>
-        {{ post.created_date|cobalt_nice_datetime }}
-      </div>
-      <div>
-        Forum: {{ post.forum.title }}
-      </div>
-    </div>
-  </div>
-  <div class="card-body">
-    <p class="card-text">{{ post.text|safe }}</p>
-    <span class="float-left">
-      <a href="javascript:void(0);" id="cobalt_report_{{ post.id }}" class="cobalt-report">Report</a>
-    </span>
-    <span class="float-right">
-      {{ total_comments }} <i class="material-icons">comment</i>
-      <span id="cobalt_post_likes">{{ post_likes.count }}</span> <i class="material-icons">thumb_up</i>
-      <a href="javascript:void(0);" id="cobalt_like_post">Like</a>
-    </span>
-  </div>
-</div>
-
-{% if post.last_change_date %}
-<p style="font-size: 12px;"><i>{{ user.first_name }} edited this on {{ post.last_change_date|cobalt_nice_datetime }}</i></p>
-{% endif %}
-<!-- End post -->
-
-{% if following %}
-<button class="btn btn-success btn-sm" id="cobalt-follow">Un-follow</button>
-{% else %}
-<button class="btn btn-default btn-sm" id="cobalt-follow">Follow</button>
-{% endif %}
-
-{% if post.author == user %}
-<a href="{% url "forums:post_edit" post_id=post.id %}" class="btn btn-info btn-sm">Edit Your Post</a>
-{% elif is_moderator %}
-<a href="{% url "forums:post_edit" post_id=post.id %}" class="btn btn-danger btn-sm">Moderate</a>
-<a href="{% url "forums:block_user" user_id=post.author.id forum_id=post.forum.id %}" class="btn btn-danger btn-sm">Block User</a><br>
-{% endif %}
-
-<br>
-<br>
-{% if total_comments == 0 %}
-<h5>Be the first to comment</h5>
-{% else %}
-<h5>Comments</h5>
-{% endif %}
-{% for c1 in comments1 %}
-
-<!-- Comment1  -->
-
-<div id="target_{{ c1.id }}" class="card card-nav-tabs mb-0">
-  <div class="card-body">
-    <div class=" justify-content-between">
-      <a href="{% url 'accounts:public_profile' pk=c1.author.pk %}">
-        <div>
-          <img width="50px" class="cobalt-rounded float-left" src="/media/{{ c1.author.pic }}" />
-          <h5 id="c1-{{ c1.id }}">{{ c1.author.full_name }}</h5>
-        </div>
-      </a>
-      <div>
-        {{ c1.created_date|cobalt_nice_datetime }}
-      </div>
-    </div>
-    <div>
-      <br>
-      {{ c1.text|linebreaks }}
-    </div>
-    <span class="float-left">
-      <a href="javascript:void(0);" id="cobalt_report_{{ post.id }}_{{ c1.id }}" class="cobalt-report">Report</a>
-    </span>
-    <div class="float-right">
-      {{ c1.c2|length }} <i class="material-icons">comment</i>
-      <span id="cobalt_c1_likes_{{ c1.id }}">{{ c1.c1_likes }}</span> <i class="material-icons">thumb_up</i>
-      <a href="javascript:void(0);" class="cobalt_like_c1_class" id="cobalt_like_c1_{{ c1.id }}">Like</a>
-    </div>
-    {% if c1.author == user %}
-    <br><a href="{% url "forums:comment1_edit" comment_id=c1.id %}" class="btn btn-info btn-sm">Edit Comment</a>
-    {% elif is_moderator %}
-    <br><a href="{% url "forums:comment1_edit" comment_id=c1.id %}" class="btn btn-danger btn-sm">Moderate</a>
-    <a href="{% url "forums:block_user" user_id=c1.author.id forum_id=post.forum.id %}" class="btn btn-danger btn-sm">Block User</a><br>
-    {% endif %}
-  </div>
-</div>
-{% if c1.last_changed_by %}
-<p class="m-2" style="font-size: 12px;"><i>{{ c1.last_changed_by }} edited this on {{ c1.last_change_date|cobalt_nice_datetime }}</i></p>
-{% endif %}
-
-<!-- end Comment 1 -->
-
-<!-- Comment 2 -->
-<div class="row">
-  <div class="col-1"></div>
-  <div class="col-11">
-
-    {% for c2 in c1.c2 %}
-
-    <div id="target_{{ c1.id }}_{{ c2.id }}" class="card card-nav-tabs m-2">
-      <div class="card-body bg-light">
-        <div class=" justify-content-between">
-          <a href="{% url 'accounts:public_profile' pk=c2.author.pk %}">
-            <div>
-              <img width="50px" class="cobalt-rounded float-left" src="/media/{{ c2.author.pic }}" />
-              <h5 id="c2-{{ c2.id }}">{{ c2.author.full_name }}</h5>
+    <div class="card card-nav-tabs">
+        <div class="card-header card-header-warning">
+            <h1>{{ post.title }}</h1>
+            <a href="{% url 'accounts:public_profile' pk=post.author.pk %}">
+                <img width="50px" class="cobalt-rounded float-left" src="/media/{{ post.author.pic }}" style="margin-right: 5px;" />
+                <h4>{{ post.author.full_name }}</h4>
+            </a>
+            <div class="card-title d-flex justify-content-between">
+                <div>
+                    {{ post.created_date|cobalt_nice_datetime }}
+                </div>
+                <div>
+                    Forum: {{ post.forum.title }}
+                </div>
             </div>
-          </a>
-          <div>
-            {{ c2.created_date|cobalt_nice_datetime }}
-          </div>
         </div>
-        <div>
-          <br>
-          {{ c2.text|linebreaks }}
+        <div class="card-body">
+            <p class="card-text">{{ post.text|safe }}</p>
+            <span class="float-left">
+                <a href="javascript:void(0);" id="cobalt_report_{{ post.id }}" class="cobalt-report">Report</a>
+            </span>
+            <span class="float-right">
+                {{ total_comments }} <i class="material-icons">comment</i>
+                <span id="cobalt_post_likes">{{ post_likes.count }}</span> <i class="material-icons">thumb_up</i>
+                <a href="javascript:void(0);" id="cobalt_like_post">Like</a>
+            </span>
         </div>
-        <span class="float-left">
-        <a href="javascript:void(0);" id="cobalt_report_{{ post.id }}_{{ c1.id }}_{{ c2.id }}" class="cobalt-report">Report</a>
-        </span>
-        <div class="float-right">
-          <span id="cobalt_c2_likes_{{ c2.id }}">{{ c2.c2_likes }}</span> <i class="material-icons">thumb_up</i>
-          <a href="javascript:void(0);" class="cobalt_like_c2_class" id="cobalt_like_c2_{{ c2.id }}">Like</a>
+    </div>
+
+    {% if post.last_change_date %}
+        <p style="font-size: 12px;"><i>{{ post.author.first_name }} edited this on {{ post.last_change_date|cobalt_nice_datetime }}</i></p>
+    {% endif %}
+    <!-- End post -->
+
+    {% if following %}
+        <button class="btn btn-success btn-sm" id="cobalt-follow">Un-follow</button>
+    {% else %}
+        <button class="btn btn-default btn-sm" id="cobalt-follow">Follow</button>
+    {% endif %}
+
+    {% if post.author == user %}
+        <a href="{% url "forums:post_edit" post_id=post.id %}" class="btn btn-info btn-sm">Edit Your Post</a>
+    {% elif is_moderator %}
+        <a href="{% url "forums:post_edit" post_id=post.id %}" class="btn btn-danger btn-sm">Moderate</a>
+        <a href="{% url "forums:block_user" user_id=post.author.id forum_id=post.forum.id %}" class="btn btn-danger btn-sm">Block User</a><br>
+    {% endif %}
+
+    <br>
+    <br>
+    {% if total_comments == 0 %}
+        <h5>Be the first to comment</h5>
+    {% else %}
+        <h5>Comments</h5>
+    {% endif %}
+    {% for c1 in comments1 %}
+
+        <!-- Comment1  -->
+
+        <div id="target_{{ c1.id }}" class="card card-nav-tabs mb-0">
+            <div class="card-body">
+                <div class=" justify-content-between">
+                    <a href="{% url 'accounts:public_profile' pk=c1.author.pk %}">
+                        <div>
+                            <img width="50px" class="cobalt-rounded float-left" src="/media/{{ c1.author.pic }}" />
+                            <h5 id="c1-{{ c1.id }}">{{ c1.author.full_name }}</h5>
+                        </div>
+                    </a>
+                    <div>
+                        {{ c1.created_date|cobalt_nice_datetime }}
+                    </div>
+                </div>
+                <div>
+                    <br>
+                    {{ c1.text|linebreaks }}
+                </div>
+                <span class="float-left">
+                    <a href="javascript:void(0);" id="cobalt_report_{{ post.id }}_{{ c1.id }}" class="cobalt-report">Report</a>
+                </span>
+                <div class="float-right">
+                    {{ c1.c2|length }} <i class="material-icons">comment</i>
+                    <span id="cobalt_c1_likes_{{ c1.id }}">{{ c1.c1_likes }}</span> <i class="material-icons">thumb_up</i>
+                    <a href="javascript:void(0);" class="cobalt_like_c1_class" id="cobalt_like_c1_{{ c1.id }}">Like</a>
+                </div>
+                {% if c1.author == user %}
+                    <br><a href="{% url "forums:comment1_edit" comment_id=c1.id %}" class="btn btn-info btn-sm">Edit Comment</a>
+                {% elif is_moderator %}
+                    <br><a href="{% url "forums:comment1_edit" comment_id=c1.id %}" class="btn btn-danger btn-sm">Moderate</a>
+                    <a href="{% url "forums:block_user" user_id=c1.author.id forum_id=post.forum.id %}" class="btn btn-danger btn-sm">Block User</a><br>
+                {% endif %}
+            </div>
         </div>
-        {% if c2.author == user %}
-        <br><a href="{% url "forums:comment2_edit" comment_id=c2.id %}" class="btn btn-info btn-sm">Edit Comment</a>
-        {% elif is_moderator %}
-        <br><a href="{% url "forums:comment2_edit" comment_id=c2.id %}" class="btn btn-danger btn-sm">Moderate</a>
-        <a href="{% url "forums:block_user" user_id=c2.author.id forum_id=post.forum.id %}" class="btn btn-danger btn-sm">Block User</a><br>
+        {% if c1.last_changed_by %}
+            <p class="m-2" style="font-size: 12px;"><i>{{ c1.last_changed_by }} edited this on {{ c1.last_change_date|cobalt_nice_datetime }}</i></p>
         {% endif %}
 
-      </div>
-    </div>
-    {% if c2.last_changed_by %}
-    <p class="m-0 p-0" style="font-size: 12px;"><i>{{ c2.last_changed_by }} edited this on {{ c2.last_change_date|cobalt_nice_datetime }}</i></p>
-    {% endif %}
+        <!-- end Comment 1 -->
+
+        <!-- Comment 2 -->
+        <div class="row">
+            <div class="col-1"></div>
+            <div class="col-11">
+
+                {% for c2 in c1.c2 %}
+
+                    <div id="target_{{ c1.id }}_{{ c2.id }}" class="card card-nav-tabs m-2">
+                        <div class="card-body bg-light">
+                            <div class=" justify-content-between">
+                                <a href="{% url 'accounts:public_profile' pk=c2.author.pk %}">
+                                    <div>
+                                        <img width="50px" class="cobalt-rounded float-left" src="/media/{{ c2.author.pic }}" />
+                                        <h5 id="c2-{{ c2.id }}">{{ c2.author.full_name }}</h5>
+                                    </div>
+                                </a>
+                                <div>
+                                    {{ c2.created_date|cobalt_nice_datetime }}
+                                </div>
+                            </div>
+                            <div>
+                                <br>
+                                {{ c2.text|linebreaks }}
+                            </div>
+                            <span class="float-left">
+                                <a href="javascript:void(0);" id="cobalt_report_{{ post.id }}_{{ c1.id }}_{{ c2.id }}" class="cobalt-report">Report</a>
+                            </span>
+                            <div class="float-right">
+                                <span id="cobalt_c2_likes_{{ c2.id }}">{{ c2.c2_likes }}</span> <i class="material-icons">thumb_up</i>
+                                <a href="javascript:void(0);" class="cobalt_like_c2_class" id="cobalt_like_c2_{{ c2.id }}">Like</a>
+                            </div>
+                            {% if c2.author == user %}
+                                <br><a href="{% url "forums:comment2_edit" comment_id=c2.id %}" class="btn btn-info btn-sm">Edit Comment</a>
+                            {% elif is_moderator %}
+                                <br><a href="{% url "forums:comment2_edit" comment_id=c2.id %}" class="btn btn-danger btn-sm">Moderate</a>
+                                <a href="{% url "forums:block_user" user_id=c2.author.id forum_id=post.forum.id %}" class="btn btn-danger btn-sm">Block User</a><br>
+                            {% endif %}
+
+                        </div>
+                    </div>
+                    {% if c2.last_changed_by %}
+                        <p class="m-0 p-0" style="font-size: 12px;"><i>{{ c2.last_changed_by }} edited this on {{ c2.last_change_date|cobalt_nice_datetime }}</i></p>
+                    {% endif %}
+                {% endfor %}
+
+            </div>
+        </div>
+
+
+
+        <a href="javascript:void(0);">
+            <p class="cobalt-open-reply" id="cobalt-click-{{ c1.id }}">Reply to this thread</p>
+        </a>
+        <div id="cobalt-thread-{{ c1.id }}" class="d-none">
+            <form method="POST" class="post-form">{% csrf_token %}
+                <input type="hidden" id="id_post" name="post" value="{{ post.id }}">
+                <input type="hidden" id="id_comment1" name="comment1" value="{{ c1.id }}">
+                {{ form2.text|as_crispy_field }}
+                <div class="row">
+                    <button type="submit" name="submit-c2" class="save btn btn-default cobalt-save">Publish</button>
+                </div>
+            </form>
+        </div>
     {% endfor %}
 
-  </div>
-</div>
+    <!-- End Comment 2 -->
 
+    <!-- Reply -->
+    <hr>
+    <h5 id="cobalt-post-comment">{{ total_comments }} comment{{ total_comments|pluralize }} so far. Want to add yours?</h5>
 
+    <form method="POST" class="post-form">{% csrf_token %}
+        <input type="hidden" id="id_post" name="post" value="{{ post.id }}">
+        {{ form.text|as_crispy_field }}
+        <button type="submit" name="submit-c1" class="save btn btn-success btn-sm cobalt-save">Reply to Post</button>
+    </form>
 
-<a href="javascript:void(0);">
-  <p class="cobalt-open-reply" id="cobalt-click-{{ c1.id }}">Reply to this thread</p>
-</a>
-<div id="cobalt-thread-{{ c1.id }}" class="d-none">
-  <form method="POST" class="post-form">{% csrf_token %}
-    <input type="hidden" id="id_post" name="post" value="{{ post.id }}">
-    <input type="hidden" id="id_comment1" name="comment1" value="{{ c1.id }}">
-    {{ form2.text|as_crispy_field }}
-    <div class="row">
-      <button type="submit" name="submit-c2" class="save btn btn-default cobalt-save">Publish</button>
-    </div>
-  </form>
-</div>
-{% endfor %}
+    <script>
+        // reveal reply form if user clicks on Reply, hide it if they click again
 
-<!-- End Comment 2 -->
+        jQuery(document).ready(function() {
+            $(".cobalt-open-reply").on('click', function(event) {
 
-<!-- Reply -->
-<hr>
-<h5 id="cobalt-post-comment">{{ total_comments }} comment{{ total_comments|pluralize }} so far. Want to add yours?</h5>
+                // stop event spreading
+                event.stopPropagation();
+                event.stopImmediatePropagation();
 
-<form method="POST" class="post-form">{% csrf_token %}
-  <input type="hidden" id="id_post" name="post" value="{{ post.id }}">
-  {{ form.text|as_crispy_field }}
-  <button type="submit" name="submit-c1" class="save btn btn-success btn-sm cobalt-save">Reply to Post</button>
-</form>
+                // Change the clicked on text
+                var textid = $("#" + event.target.id)
+                if (textid.text() == "Reply to this thread") {
+                    textid.text("Close");
+                } else {
+                    textid.text("Reply to this thread");
+                }
 
-<script>
-  // reveal reply form if user clicks on Reply, hide it if they click again
-
-  jQuery(document).ready(function() {
-    $(".cobalt-open-reply").on('click', function(event) {
-
-      // stop event spreading
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-
-      // Change the clicked on text
-      var textid = $("#" + event.target.id)
-      if (textid.text() == "Reply to this thread") {
-        textid.text("Close");
-      } else {
-        textid.text("Reply to this thread");
-      }
-
-      // toggle visibility
-      var id = event.target.id.replace("cobalt-click", "cobalt-thread");
-      $('#' + id).toggleClass('d-block d-none');
-// set focus
-      $('#' + id).find('.cobalt-textarea').focus();
-    });
-
-    function likePost() {
-      $.ajax({
-        url: "/forums/post/like-post/{{ post.id }}/",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
-        },
-        type: "post",
-        success: function(response) {
-          if (response == "ok") {
-            var likecount = $("#cobalt_post_likes");
-            var newcount = parseInt(likecount.text()) + 1;
-            likecount.text(newcount);
-            swal.fire({
-              title: "Post Liked",
-              html: "Thank you for liking this.",
-              icon: "success",
+                // toggle visibility
+                var id = event.target.id.replace("cobalt-click", "cobalt-thread");
+                $('#' + id).toggleClass('d-block d-none');
+                // set focus
+                $('#' + id).find('.cobalt-textarea').focus();
             });
-          } else {
-            swal.fire({
-              title: "Post Already Liked",
-              html: "You have already liked this post.",
-              icon: "error",
-            });
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(textStatus, errorThrown);
-        }
-      });
-    }
 
-
-    function likeC1(e) {
-      var id = event.target.id.replace("cobalt_like_c1_", "");
-
-      $.ajax({
-        url: "/forums/post/like-comment1/" + id + "/",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
-        },
-        type: "post",
-        success: function(response) {
-          if (response == "ok") {
-            var likecount = $("#cobalt_c1_likes_" + id);
-            var newcount = parseInt(likecount.text()) + 1;
-            likecount.text(newcount);
-            swal.fire({
-              title: "Post Liked",
-              html: "Thank you for liking this.",
-              icon: "success",
-            });
-          } else {
-            swal.fire({
-              title: "Post Already Liked",
-              html: "You have already liked this post.",
-              icon: "error",
-            });
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(textStatus, errorThrown);
-        }
-      });
-    }
-
-    function likeC2(e) {
-      var id = event.target.id.replace("cobalt_like_c2_", "");
-
-      $.ajax({
-        url: "/forums/post/like-comment2/" + id + "/",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
-        },
-        type: "post",
-        success: function(response) {
-          if (response == "ok") {
-            var likecount = $("#cobalt_c2_likes_" + id);
-            var newcount = parseInt(likecount.text()) + 1;
-            likecount.text(newcount);
-            swal.fire({
-              title: "Post Liked",
-              html: "Thank you for liking this.",
-              icon: "success",
-            });
-          } else {
-            swal.fire({
-              title: "Post Already Liked",
-              html: "You have already liked this post.",
-              icon: "error",
-            });
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(textStatus, errorThrown);
-        }
-      });
-    }
-
-// report a post or comment to a moderator
-    function reportAbuse(text_type, id) {
-
-      Swal.fire({
-        title: 'Report This To A Moderator as Offensive',
-        input: 'textarea',
-        inputPlaceholder: 'Reason...',
-        inputAttributes: {
-          'aria-label': 'Reason'
-        },
-        showCancelButton: true
-      }).then(function(result) {
-        if (result.value) {
-          var url = "{% url "forums:report_abuse" %}";
-          var serializedData = {
-            "text_type": text_type,
-            "id": id,
-            "reason": result.value
-          };
-
-          $.ajax({
-            url: url,
-            headers: {
-              "Content-Type": "application/json",
-              "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
-            },
-            type: "post",
-            data: JSON.stringify(serializedData),
-            dataType: "json",
-            success: function(response) {
-              swal.fire({
-                title: "Moderators have been notified",
-                html: response.message,
-                icon: "success",
-              });
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(textStatus, errorThrown);
+            function likePost() {
+                $.ajax({
+                    url: "/forums/post/like-post/{{ post.id }}/",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
+                    },
+                    type: "post",
+                    success: function(response) {
+                        if (response == "ok") {
+                            var likecount = $("#cobalt_post_likes");
+                            var newcount = parseInt(likecount.text()) + 1;
+                            likecount.text(newcount);
+                            swal.fire({
+                                title: "Post Liked",
+                                html: "Thank you for liking this.",
+                                icon: "success",
+                            });
+                        } else {
+                            swal.fire({
+                                title: "Post Already Liked",
+                                html: "You have already liked this post.",
+                                icon: "error",
+                            });
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.log(textStatus, errorThrown);
+                    }
+                });
             }
-          });
-        } else {
-          swal.fire("Report cancelled.");
-        }
-      })
-    }
-
-    function followpost(e) {
-      if ($("#cobalt-follow").text() == "Follow") {
-
-        var url = "/forums/post/follow/{{ post.id }}/";
-        $("#cobalt-follow").html("Un-Follow");
-        $("#cobalt-follow").toggleClass('btn-default btn-info');
-      } else {
-        var url = "/forums/post/unfollow/{{ post.id }}/";
-        $("#cobalt-follow").html("Follow");
-        $("#cobalt-follow").toggleClass('btn-info btn-default');
-      }
-
-      $.ajax({
-        url: url,
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
-        },
-        type: "post",
-        success: function(response) {
-          swal.fire({
-            title: "Post Notifications",
-            html: response,
-            icon: "success",
-          });
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(textStatus, errorThrown);
-        }
-      });
-    }
-
-    jQuery('#cobalt_like_post').on('click', function(e) {
-      likePost();
-    });
-
-    jQuery('.cobalt_like_c1_class').on('click', function(e) {
-      // stop event spreading
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-      likeC1(e);
-    });
-
-    jQuery('.cobalt_like_c2_class').on('click', function(e) {
-      // stop event spreading
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-      likeC2(e);
-    });
-
-    jQuery('#cobalt-follow').on('click', function(e) {
-      followpost(e);
-    });
-
-// report buttons
-    jQuery('.cobalt-report').on('click', function(e) {
-
-      // find out what called us and its id
-      var ids = event.target.id.split("_");
-
-      if (ids.length == 3){
-        // Post
-        var text_type = "Post";
-        var id = ids[2];
-      } else if (ids.length == 4){
-        // C1
-        var text_type = "C1";
-        var id = ids[3];
-      } else if (ids.length == 5){
-        // C2
-        var text_type = "C2";
-        var id = ids[4];
-      }
-
-      reportAbuse(text_type, id);
-    });
 
 
-  })
-</script>
+            function likeC1(e) {
+                var id = event.target.id.replace("cobalt_like_c1_", "");
+
+                $.ajax({
+                    url: "/forums/post/like-comment1/" + id + "/",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
+                    },
+                    type: "post",
+                    success: function(response) {
+                        if (response == "ok") {
+                            var likecount = $("#cobalt_c1_likes_" + id);
+                            var newcount = parseInt(likecount.text()) + 1;
+                            likecount.text(newcount);
+                            swal.fire({
+                                title: "Post Liked",
+                                html: "Thank you for liking this.",
+                                icon: "success",
+                            });
+                        } else {
+                            swal.fire({
+                                title: "Post Already Liked",
+                                html: "You have already liked this post.",
+                                icon: "error",
+                            });
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.log(textStatus, errorThrown);
+                    }
+                });
+            }
+
+            function likeC2(e) {
+                var id = event.target.id.replace("cobalt_like_c2_", "");
+
+                $.ajax({
+                    url: "/forums/post/like-comment2/" + id + "/",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
+                    },
+                    type: "post",
+                    success: function(response) {
+                        if (response == "ok") {
+                            var likecount = $("#cobalt_c2_likes_" + id);
+                            var newcount = parseInt(likecount.text()) + 1;
+                            likecount.text(newcount);
+                            swal.fire({
+                                title: "Post Liked",
+                                html: "Thank you for liking this.",
+                                icon: "success",
+                            });
+                        } else {
+                            swal.fire({
+                                title: "Post Already Liked",
+                                html: "You have already liked this post.",
+                                icon: "error",
+                            });
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.log(textStatus, errorThrown);
+                    }
+                });
+            }
+
+            // report a post or comment to a moderator
+            function reportAbuse(text_type, id) {
+
+                Swal.fire({
+                    title: 'Report This To A Moderator as Offensive',
+                    input: 'textarea',
+                    inputPlaceholder: 'Reason...',
+                    inputAttributes: {
+                        'aria-label': 'Reason'
+                    },
+                    showCancelButton: true
+                }).then(function(result) {
+                    if (result.value) {
+                        var url = "{% url "forums:report_abuse" %}";
+                        var serializedData = {
+                            "text_type": text_type,
+                            "id": id,
+                            "reason": result.value
+                        };
+
+                        $.ajax({
+                            url: url,
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
+                            },
+                            type: "post",
+                            data: JSON.stringify(serializedData),
+                            dataType: "json",
+                            success: function(response) {
+                                swal.fire({
+                                    title: "Moderators have been notified",
+                                    html: response.message,
+                                    icon: "success",
+                                });
+                            },
+                            error: function(jqXHR, textStatus, errorThrown) {
+                                console.log(textStatus, errorThrown);
+                            }
+                        });
+                    } else {
+                        swal.fire("Report cancelled.");
+                    }
+                })
+            }
+
+            function followpost(e) {
+                if ($("#cobalt-follow").text() == "Follow") {
+
+                    var url = "/forums/post/follow/{{ post.id }}/";
+                    $("#cobalt-follow").html("Un-Follow");
+                    $("#cobalt-follow").toggleClass('btn-default btn-info');
+                } else {
+                    var url = "/forums/post/unfollow/{{ post.id }}/";
+                    $("#cobalt-follow").html("Follow");
+                    $("#cobalt-follow").toggleClass('btn-info btn-default');
+                }
+
+                $.ajax({
+                    url: url,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
+                    },
+                    type: "post",
+                    success: function(response) {
+                        swal.fire({
+                            title: "Post Notifications",
+                            html: response,
+                            icon: "success",
+                        });
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.log(textStatus, errorThrown);
+                    }
+                });
+            }
+
+            jQuery('#cobalt_like_post').on('click', function(e) {
+                likePost();
+            });
+
+            jQuery('.cobalt_like_c1_class').on('click', function(e) {
+                // stop event spreading
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                likeC1(e);
+            });
+
+            jQuery('.cobalt_like_c2_class').on('click', function(e) {
+                // stop event spreading
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                likeC2(e);
+            });
+
+            jQuery('#cobalt-follow').on('click', function(e) {
+                followpost(e);
+            });
+
+            // report buttons
+            jQuery('.cobalt-report').on('click', function(e) {
+
+                // find out what called us and its id
+                var ids = event.target.id.split("_");
+
+                if (ids.length == 3){
+                    // Post
+                    var text_type = "Post";
+                    var id = ids[2];
+                } else if (ids.length == 4){
+                    // C1
+                    var text_type = "C1";
+                    var id = ids[3];
+                } else if (ids.length == 5){
+                    // C2
+                    var text_type = "C2";
+                    var id = ids[4];
+                }
+
+                reportAbuse(text_type, id);
+            });
+
+
+        })
+    </script>
 
 {% endblock %}

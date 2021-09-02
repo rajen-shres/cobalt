@@ -172,7 +172,7 @@ def access_basic(request, club, message=None):  # sourcery skip: list-comprehens
 
     return render(
         request,
-        "organisations/club_menu/access_basic.html",
+        "organisations/club_menu/access/basic.html",
         {
             "club": club,
             "setup": "basic",
@@ -204,7 +204,7 @@ def access_basic_div(request, club):  # sourcery skip: list-comprehension
 
     return render(
         request,
-        "organisations/club_menu/access_basic_div_htmx.html",
+        "organisations/club_menu/access/basic_div_htmx.html",
         {"club": club, "setup": "basic", "users": users, "roles": roles},
     )
 
@@ -267,7 +267,7 @@ def access_advanced(request, club, errors={}):
 
     return render(
         request,
-        "organisations/club_menu/access_advanced.html",
+        "organisations/club_menu/access/advanced.html",
         {
             "club": club,
             "user_is_admin": user_is_admin,
@@ -413,7 +413,7 @@ def tab_dashboard_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/tab_dashboard_htmx.html",
+        "organisations/club_menu/dashboard/dashboard_htmx.html",
         {
             "club": club,
             "member_count": member_count,
@@ -433,7 +433,9 @@ def tab_comms_htmx(request):
         return error_page
 
     return render(
-        request, "organisations/club_menu/tab_comms_htmx.html", {"club": club}
+        request,
+        "organisations/club_menu/../templates/organisations/comms/tab_comms_htmx.html",
+        {"club": club},
     )
 
 
@@ -449,7 +451,7 @@ def tab_congress_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/tab_congress_htmx.html",
+        "organisations/club_menu/congress/congress_htmx.html",
         {"club": club, "congresses": congresses},
     )
 
@@ -491,7 +493,7 @@ def tab_finance_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/tab_finance_htmx.html",
+        "organisations/club_menu/finance/finance_htmx.html",
         {
             "club": club,
             "balance": balance,
@@ -771,7 +773,7 @@ def tab_members_un_reg_edit_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/members/un_reg_edit_htmx.html",
+        "organisations/club_menu/members/edit_un_reg_htmx.html",
         {
             "club": club,
             "un_reg": un_reg,
@@ -908,7 +910,7 @@ def tab_members_add_un_reg_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/members/un_reg_add_htmx.html",
+        "organisations/club_menu/members/add_un_reg_htmx.html",
         {
             "club": club,
             "form": form,
@@ -926,7 +928,7 @@ def tab_forums_htmx(request):
         return error_page
 
     return render(
-        request, "organisations/club_menu/tab_forums_htmx.html", {"club": club}
+        request, "organisations/club_menu/forums/forums_htmx.html", {"club": club}
     )
 
 
@@ -939,7 +941,7 @@ def tab_results_htmx(request):
         return error_page
 
     return render(
-        request, "organisations/club_menu/tab_results_htmx.html", {"club": club}
+        request, "organisations/club_menu/results/results_htmx.html", {"club": club}
     )
 
 
@@ -982,7 +984,7 @@ def tab_settings_basic_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/tab_settings_basic_htmx.html",
+        "organisations/club_menu/settings/basic_htmx.html",
         {
             "club": club,
             "org_form": org_form,
@@ -1048,7 +1050,7 @@ def tab_settings_general_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/tab_settings_general_htmx.html",
+        "organisations/club_menu/settings/general_htmx.html",
         {
             "club": club,
             "form": form,
@@ -1069,7 +1071,7 @@ def tab_settings_membership_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/tab_settings_membership_htmx.html",
+        "organisations/club_menu/settings/membership_htmx.html",
         {
             "club": club,
             "membership_types": membership_types,
@@ -1111,7 +1113,7 @@ def club_menu_tab_settings_membership_edit_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/tab_settings_membership_edit_htmx.html",
+        "organisations/club_menu/settings/membership_edit_htmx.html",
         {
             "club": club,
             "membership_type": membership_type,
@@ -1145,7 +1147,7 @@ def club_menu_tab_settings_membership_add_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/tab_settings_membership_add_htmx.html",
+        "organisations/club_menu/settings/membership_add_htmx.html",
         {
             "club": club,
             "form": form,
@@ -1184,7 +1186,7 @@ def club_menu_tab_settings_membership_delete_htmx(request):
     if "delete" not in request.POST:
         return render(
             request,
-            "organisations/club_menu/tab_settings_membership_delete_confirm_htmx.html",
+            "organisations/club_menu/settings/membership_delete_confirm_htmx.html",
             {"membership_type": membership_type},
         )
     else:

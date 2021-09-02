@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Count lines of code
+
+git ls-files | grep -Ev 'static|_build' | xargs wc -l | tail -1 | awk '{print $1}'

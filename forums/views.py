@@ -357,37 +357,35 @@ def post_edit(request, post_id):
 
         return rbac_forbidden(request, role)
 
-    else:
+    if request.method == "POST":
+        if "publish" in request.POST:  # Publish
+            form = PostForm(request.POST, instance=post)
+            if form.is_valid():
 
-        if request.method == "POST":
-            if "publish" in request.POST:  # Publish
-                form = PostForm(request.POST, instance=post)
-                if form.is_valid():
-
-                    post = form.save(commit=False)
-                    post.last_change_date = timezone.now()
-                    post.save()
-                    messages.success(
-                        request, "Post edited", extra_tags="cobalt-message-success"
-                    )
-                    return redirect("forums:post_detail", pk=post.pk)
-
-            elif "delete" in request.POST:  # Delete
-                post.delete()
+                post = form.save(commit=False)
+                post.last_change_date = timezone.now()
+                post.save()
                 messages.success(
-                    request, "Post deleted", extra_tags="cobalt-message-success"
+                    request, "Post edited", extra_tags="cobalt-message-success"
                 )
-                return redirect("forums:forums")
+                return redirect("forums:post_detail", pk=post.pk)
 
-            else:  # Maybe cancel hit or back button - reload page
-                return redirect("forums:post_edit", post_id=post_id)
+        elif "delete" in request.POST:  # Delete
+            post.delete()
+            messages.success(
+                request, "Post deleted", extra_tags="cobalt-message-success"
+            )
+            return redirect("forums:forums")
 
-        # see which forums are blocked for this user - load a list of the others
-        blocked_forums = rbac_user_blocked_for_model(
-            user=request.user, app="forums", model="forum", action="create"
-        )
-        valid_forums = Forum.objects.exclude(id__in=blocked_forums)
-        form = PostForm(valid_forums=valid_forums, instance=post)
+        else:  # Maybe cancel hit or back button - reload page
+            return redirect("forums:post_edit", post_id=post_id)
+
+    # see which forums are blocked for this user - load a list of the others
+    blocked_forums = rbac_user_blocked_for_model(
+        user=request.user, app="forums", model="forum", action="create"
+    )
+    valid_forums = Forum.objects.exclude(id__in=blocked_forums)
+    form = PostForm(valid_forums=valid_forums, instance=post)
 
     return render(
         request,
