@@ -192,6 +192,21 @@ urlpatterns = [
         name="club_menu_tab_members_add_member_htmx",
     ),
     path(
+        "club-menu/tabs/members-reports",
+        club_menu.tab_members_reports_htmx,
+        name="club_menu_tab_members_reports_htmx",
+    ),
+    path(
+        "club-menu/tabs/members-invite",
+        club_menu.invite_user_to_join_htmx,
+        name="club_menu_tab_members_invite_user_to_join_htmx",
+    ),
+    path(
+        "club-menu/tabs/members-reports-all-csv/<int:club_id>/",
+        club_menu.tab_members_report_all_csv,
+        name="club_menu_tab_members_report_all_csv",
+    ),
+    path(
         "club-menu/tabs/members-add-un-reg",
         club_menu.tab_members_add_un_reg_htmx,
         name="club_menu_tab_members_add_un_reg_htmx",

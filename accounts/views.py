@@ -12,6 +12,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth import login
@@ -24,6 +26,7 @@ from django.views.decorators.http import require_POST
 
 from notifications.views import send_cobalt_email, notifications_in_english, CobaltEmail
 from logs.views import get_client_ip, log_event
+from organisations.models import Organisation
 from organisations.views.general import replace_unregistered_user_with_real_user
 from rbac.core import rbac_user_has_role
 from .models import User, TeamMate, UnregisteredUser
@@ -43,6 +46,7 @@ from cobalt.settings import (
     TBA_PLAYER,
     COBALT_HOSTNAME,
     ABF_USER,
+    GLOBAL_TITLE,
 )
 from masterpoints.views import user_summary
 
@@ -1099,3 +1103,57 @@ def check_system_number(system_number):
     ).exists()
 
     return is_valid, is_in_use_member, is_in_use_un_reg
+
+
+def invite_to_join(
+    un_reg: UnregisteredUser,
+    email: str,
+    requested_by_user: User,
+    requested_by_org: Organisation,
+):
+    """Invite an unregistered user to sign up"
+
+    Args:
+        un_reg: An unregistered user object
+        email: email address to send to
+        requested_by_user: User who is inviting this person
+        requested_by_org: Org making request
+
+    """
+
+    email_body = f"""
+                    {requested_by_user.full_name} from {requested_by_org} is inviting you to sign up for
+                    {GLOBAL_TITLE}. This is free for {GLOBAL_ORG} members.
+                    <br><br>
+                    Benefits of signing up include:
+                    <ul>
+                    <li>View and enter events across the country
+                    <li>Use a single account to pay for all you bridge at participating clubs
+                    <li>Use credit card auto top up to add funds to your account automatically
+                    <li>Use club pre-paid systems to pay for your normal duplicate bridge
+                    <li>Manage your preference to receive information on things that interest you
+                    <li>Use forums to follow topics of interest and to communicate with other members
+                    </ul>
+                    Click the link below to sign up now. It's Free!
+                    <br><br>
+    """
+    link = reverse("accounts:register")
+
+    html_msg = render_to_string(
+        "notifications/email_with_button.html",
+        {
+            "name": un_reg.first_name,
+            "title": f"Sign Up for {GLOBAL_TITLE}",
+            "host": COBALT_HOSTNAME,
+            "link_text": "Sign Up",
+            "link": link,
+            "email_body": email_body,
+        },
+    )
+
+    send_cobalt_email(email, f"Sign Up for {GLOBAL_TITLE}", html_msg)
+
+    un_reg.last_registration_invite_sent = timezone.now()
+    un_reg.last_registration_invite_by_user = requested_by_user
+    un_reg.last_registration_invite_by_club = requested_by_org
+    un_reg.save()

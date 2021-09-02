@@ -23,8 +23,8 @@ from django.views.decorators.http import require_POST
 
 from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser
-from accounts.views import check_system_number
-from cobalt.settings import GLOBAL_MPSERVER, GLOBAL_TITLE, GLOBAL_ORG
+from accounts.views import invite_to_join
+from cobalt.settings import GLOBAL_MPSERVER, GLOBAL_ORG, GLOBAL_TITLE, COBALT_HOSTNAME
 from events.models import Congress
 from masterpoints.views import abf_checksum_is_valid
 from organisations.forms import (
@@ -545,7 +545,7 @@ def tab_members_list_htmx(request, message=None):
 
 @login_required()
 def tab_members_add_htmx(request):
-    """add members tab"""
+    """Add sub menu"""
 
     status, error_page, club = _tab_is_okay(request)
     if not status:
@@ -561,6 +561,109 @@ def tab_members_add_htmx(request):
             "total_members": total_members,
         },
     )
+
+
+@login_required()
+def tab_members_reports_htmx(request):
+    """Reports sub menu"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    return render(
+        request,
+        "organisations/club_menu/members/reports_htmx.html",
+        {
+            "club": club,
+        },
+    )
+
+
+@login_required()
+def tab_members_report_all_csv(request, club_id):
+    """CSV of all members"""
+
+    club = get_object_or_404(Organisation, pk=club_id)
+
+    # Check access
+    allowed, role = _menu_rbac_has_access(club, request.user)
+    if not allowed:
+        return rbac_forbidden(request, role)
+
+    # Get all ABF Numbers for members
+
+    now = timezone.now()
+    club_members = (
+        MemberMembershipType.objects.filter(start_date__lte=now)
+        .filter(Q(end_date__gte=now) | Q(end_date=None))
+        .filter(membership_type__organisation=club)
+    ).values_list("system_number")
+
+    # Get proper users
+    users = User.objects.filter(system_number__in=club_members)
+
+    # Get un reg users
+    un_regs = UnregisteredUser.objects.filter(system_number__in=club_members)
+
+    # Get local emails (if set) and turn into a dictionary
+    club_emails = MemberClubEmail.objects.filter(system_number__in=club_members)
+    club_emails_dict = {}
+    for club_email in club_emails:
+        club_emails_dict[club_email.system_number] = club_email.email
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="members.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([club.name, f"Downloaded by {request.user.full_name}", now])
+    writer.writerow(
+        [
+            f"{GLOBAL_ORG} Number",
+            "First Name",
+            "Last Name",
+            "Email",
+            "Email Source",
+            f"{GLOBAL_TITLE} User Type",
+            "Origin",
+        ]
+    )
+
+    for user in users:
+
+        writer.writerow(
+            [
+                user.system_number,
+                user.first_name,
+                user.last_name,
+                user.email,
+                "User",
+                "Registered",
+                "Self-registered",
+            ]
+        )
+
+    for un_reg in un_regs:
+
+        email = un_reg.email
+        email_source = "Unregistered user"
+        if un_reg.system_number in club_emails_dict:
+            email = club_emails_dict[un_reg.system_number]
+            email_source = "Club specific email"
+
+        writer.writerow(
+            [
+                un_reg.system_number,
+                un_reg.first_name,
+                un_reg.last_name,
+                email,
+                email_source,
+                "Unregistered",
+                un_reg.origin,
+            ]
+        )
+
+    return response
 
 
 @login_required()
@@ -1686,3 +1789,40 @@ def process_member_import(
                 errors.append(error)
 
     return added_users, added_unregistered_users, errors
+
+
+def invite_user_to_join_htmx(request):
+    """Invite an unregistered user to sign up"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    un_reg_id = request.POST.get("un_reg_id")
+    un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
+
+    club_email = MemberClubEmail.objects.filter(
+        system_number=un_reg.system_number, organisation=club
+    ).first()
+    if club_email:
+        email = club_email.email
+    elif un_reg.email:
+        email = un_reg.email
+    else:
+        return tab_members_list_htmx(
+            request, f"No email address found for {un_reg.full_name}. Invite not sent."
+        )
+
+    # Check for non-prod environments
+    if COBALT_HOSTNAME not in ["myabf.com.au", "www.myabf.com.au"]:
+        print(f"NOT sending to {email}. Substituted for dev email address")
+        email = "m@rkguthrie.com"
+
+    invite_to_join(
+        un_reg=un_reg,
+        email=email,
+        requested_by_user=request.user,
+        requested_by_org=club,
+    )
+
+    return tab_members_list_htmx(request, f"Invite sent to {un_reg.full_name}")

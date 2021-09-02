@@ -1,0 +1,26 @@
+{% load humanize %}
+{% load cobalt_tags %}
+
+<div class="card">
+    <div class="card-header card-header-danger">
+        <h2>Reports</h2>
+        {% include "organisations/club_menu/members/nav_htmx.html" with selected="reports" %}
+    </div>
+    <div class="card-body">
+        <table class="table table-condensed">
+            <tbody>
+                <tr>
+                    <td>
+                        <a href="{% url "organisations:club_menu_tab_members_report_all_csv" club_id=club.id %}" class="btn bg-primary btn-block"
+                        >Current Members CSV</a>
+                    </td>
+                    <td class="text-left pl-5">
+                        Export CSV of all current members
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
