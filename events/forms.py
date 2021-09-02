@@ -1,3 +1,4 @@
+import bleach
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import (
@@ -13,7 +14,14 @@ from .models import (
 )
 from organisations.models import Organisation
 from django_summernote.widgets import SummernoteInplaceWidget
-from cobalt.settings import GLOBAL_ORG, GLOBAL_CURRENCY_NAME, BRIDGE_CREDITS
+from cobalt.settings import (
+    GLOBAL_ORG,
+    GLOBAL_CURRENCY_NAME,
+    BRIDGE_CREDITS,
+    BLEACH_ALLOWED_TAGS,
+    BLEACH_ALLOWED_ATTRIBUTES,
+    BLEACH_ALLOWED_STYLES,
+)
 
 
 class CongressForm(forms.ModelForm):
@@ -361,11 +369,28 @@ class EmailForm(forms.Form):
             attrs={
                 "summernote": {
                     "height": "250",
+                    "codemirror": {"theme": "monokai"},
                     "placeholder": "<br><br>Enter the body of your email. You can use the test button as many times as you like.",
                 }
             }
         )
     )
+
+    def clean_body(self):
+        # Clean the data - we get some stuff through from cut and paste that messes up emails
+        body = self.cleaned_data["body"]
+
+        body = bleach.clean(
+            body,
+            strip=True,
+            tags=BLEACH_ALLOWED_TAGS,
+            attributes=BLEACH_ALLOWED_ATTRIBUTES,
+            styles=BLEACH_ALLOWED_STYLES,
+        )
+
+        body = body.replace("<", "\n<")
+
+        return body
 
 
 class LatestNewsForm(forms.Form):

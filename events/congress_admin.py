@@ -3,6 +3,7 @@
 import csv
 from threading import Thread
 
+import bleach
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.forms import formset_factory
@@ -64,6 +65,9 @@ from cobalt.settings import (
     TIME_ZONE,
     COBALT_HOSTNAME,
     TBA_PLAYER,
+    BLEACH_ALLOWED_TAGS,
+    BLEACH_ALLOWED_ATTRIBUTES,
+    BLEACH_ALLOWED_STYLES,
 )
 from datetime import datetime
 import itertools
@@ -1126,6 +1130,17 @@ def _admin_email_common(request, all_recipients, congress, event=None):
     if request.method == "POST" and form.is_valid():
         subject = form.cleaned_data["subject"]
         body = form.cleaned_data["body"]
+
+        body = bleach.clean(
+            body,
+            strip=True,
+            tags=BLEACH_ALLOWED_TAGS,
+            attributes=BLEACH_ALLOWED_ATTRIBUTES,
+            styles=BLEACH_ALLOWED_STYLES,
+        )
+
+        print("Inside\n\n")
+        print(body)
 
         recipients = (
             [(request.user.first_name, request.user.last_name, request.user.email)]
