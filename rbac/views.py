@@ -52,47 +52,6 @@ def rbac_forbidden(request, role):
 
 
 @login_required
-def main_admin_screen(request):
-    """Shows the main admin screen - maybe shouldn't live in RBAC"""
-
-    payments_admin = rbac_user_role_list(request.user, "payments", "manage")
-    org_list = []
-    for item in payments_admin:
-        org_list.append(item[0])
-
-    orgs = Organisation.objects.filter(pk__in=org_list)
-
-    payments_site_admin = rbac_user_has_role(request.user, "payments.global.view")
-
-    events_site_admin = rbac_user_has_role(request.user, "events.global.edit")
-    email_site_admin = rbac_user_has_role(request.user, "notifications.admin.view")
-    orgs_site_admin = rbac_user_has_role(
-        request.user, "orgs.admin.edit"
-    ) or rbac_user_has_any_model(request.user, "orgs", "state")
-
-    # Get build time of this release
-    TZ = pytz.timezone(TIME_ZONE)
-
-    stat_time = os.stat("__init__.py").st_mtime
-    utc_build_date = datetime.datetime.fromtimestamp(stat_time)
-    # build_date = timezone.localtime(utc_build_date, TZ)
-    build_date = TZ.localize(utc_build_date)
-
-    return render(
-        request,
-        "rbac/main-admin-screen.html",
-        {
-            "payments_admin": orgs,
-            "payments_site_admin": payments_site_admin,
-            "events_site_admin": events_site_admin,
-            "email_site_admin": email_site_admin,
-            "orgs_site_admin": orgs_site_admin,
-            "build_date": build_date,
-        },
-    )
-
-
-@login_required
 def admin_menu(request):
     """Shows the main admin screen - maybe shouldn't live in RBAC"""
 
@@ -105,7 +64,10 @@ def admin_menu(request):
     orgs_site_admin = rbac_user_has_role(
         request.user, "orgs.admin.edit"
     ) or rbac_user_has_any_model(request.user, "orgs", "state")
-    development_admin = COBALT_HOSTNAME not in ["myabf.com.au", "www.myabf.com.au"]
+    development_admin = (
+        COBALT_HOSTNAME not in ["myabf.com.au", "www.myabf.com.au"]
+        and request.user.is_superuser
+    )
 
     # Get build time of this release
     tz = pytz.timezone(TIME_ZONE)

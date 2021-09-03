@@ -2,95 +2,95 @@
 {% load static %}
 {% block title %} - RBAC Tree View{% endblock %}
 {% block header %}
-<style>
-  ul,
-  #myUL {
-    list-style-type: none;
-    font-size: 18px;
-  }
+    <style>
+        ul,
+        #myUL {
+            list-style-type: none;
+            font-size: 18px;
+        }
 
-  #myUL {
-    margin: 0;
-    padding: 0;
-  }
+        #myUL {
+            margin: 0;
+            padding: 0;
+        }
 
-  .caret {
-    cursor: pointer;
-    -webkit-user-select: none;
-    /* Safari 3.1+ */
-    -moz-user-select: none;
-    /* Firefox 2+ */
-    -ms-user-select: none;
-    /* IE 10+ */
-    user-select: none;
-  }
+        .caret {
+            cursor: pointer;
+            -webkit-user-select: none;
+            /* Safari 3.1+ */
+            -moz-user-select: none;
+            /* Firefox 2+ */
+            -ms-user-select: none;
+            /* IE 10+ */
+            user-select: none;
+        }
 
-  .caret::before {
-    content: "\25B6";
-    color: black;
-    display: inline-block;
-    margin-right: 6px;
-  }
+        .caret::before {
+            content: "\25B6";
+            color: black;
+            display: inline-block;
+            margin-right: 6px;
+        }
 
-  .caret-down::before {
-    -ms-transform: rotate(90deg);
-    /* IE 9 */
-    -webkit-transform: rotate(90deg);
-    /* Safari */
-    '
-transform: rotate(90deg);
-  }
+        .caret-down::before {
+            -ms-transform: rotate(90deg);
+            /* IE 9 */
+            -webkit-transform: rotate(90deg);
+            /* Safari */
+            '
+            transform: rotate(90deg);
+        }
 
-  .nested {
-    display: none;
-  }
+        .nested {
+            display: none;
+        }
 
-  .active {
-    display: block;
-  }
-</style>
+        .active {
+            display: block;
+        }
+    </style>
 {% endblock %}
 {% block content %}
 
-<nav aria-label="breadcrumb" role="navigation">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url "rbac:main_admin_screen" %}">Admin</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Tree View</li>
-  </ol>
-</nav>
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#rbac">Admin</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tree View</li>
+        </ol>
+    </nav>
 
-<h1>Role Based Access Control</h1>
+    <h1>Role Based Access Control</h1>
 
-<div>
-  <div class="card">
-    <div class="card-header card-header-primary">
-      <h3 class="card-title">{{ title }}</h3>
+    <div>
+        <div class="card">
+            <div class="card-header card-header-primary">
+                <h3 class="card-title">{{ title }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="container">
+
+
+                    <ul id="myUL">
+                        {{ html_tree|safe}}
+                    </ul>
+
+
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-      <div class="container">
-
-
-        <ul id="myUL">
-          {{ html_tree|safe}}
-        </ul>
-
-
-      </div>
-    </div>
-  </div>
-</div>
 {% endblock %}
 
 {% block footer %}
-<script>
-  var toggler = document.getElementsByClassName("caret");
-  var i;
+    <script>
+        var toggler = document.getElementsByClassName("caret");
+        var i;
 
-  for (i = 0; i < toggler.length; i++) {
-    toggler[i].addEventListener("click", function() {
-      this.parentElement.querySelector(".nested").classList.toggle("active");
-      this.classList.toggle("caret-down");
-    });
-  }
-</script>
+        for (i = 0; i < toggler.length; i++) {
+            toggler[i].addEventListener("click", function() {
+                this.parentElement.querySelector(".nested").classList.toggle("active");
+                this.classList.toggle("caret-down");
+            });
+        }
+    </script>
 {% endblock %}
