@@ -16,7 +16,7 @@
 
         <form
             hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-            hx-target="#id_member_list_tab"
+            hx-target="#id_panel_members"
             hx-vars="club_id:{{ club.id }},member:{{ member.id }}"
         >
 
