@@ -1,0 +1,41 @@
+{% load cobalt_tags %}
+<div class="card">
+    <div class="card-header card-header-info">
+        <h2 id="t_tab_heading">Club Settings</h2>
+        {% include "organisations/club_menu/settings/nav_htmx.html" with selected="logs" %}
+    </div>
+
+    <div class="card-body">
+        <table id="id_log_table" class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log_event in log_events %}
+                    <tr>
+                        <td>{{ log_event.action_date|cobalt_nice_datetime }}</td>
+                        <td>{{ log_event.actor.full_name }}</td>
+                        <td>{{ log_event.action }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    $(document).ready( function () {
+
+        $('#id_log_table').DataTable({
+            drawCallback: function(settings) {
+                const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+                pagination.toggle(this.api().page.info().pages > 1);
+            },
+        });
+    });
+
+</script>

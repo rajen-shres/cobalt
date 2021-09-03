@@ -204,6 +204,7 @@ class UserMembershipForm(forms.Form):
             other_club = (
                 MemberMembershipType.objects.filter(system_number=member.system_number)
                 .filter(home_club=True)
+                .exclude(membership_type__organisation=self.club)
                 .first()
             )
             if other_club:

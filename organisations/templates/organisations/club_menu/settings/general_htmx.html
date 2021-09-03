@@ -2,37 +2,23 @@
 {% load crispy_forms_filters %}
 {% load cobalt_tags %}
 
+{# set all tabs to at least 800px to it doesn't jump moving between them if scrolled down #}
+<div class="card" style="min-height: 800px; height: auto">
+    <div class="card-header card-header-info">
+        <h2 id="t_tab_heading">Club Settings</h2>
+        {% include "organisations/club_menu/settings/nav_htmx.html" with selected="general" %}
+    </div>
 
-<form
-    hx-post="{% url "organisations:club_menu_tab_settings_general_htmx" %}"
-    hx-indicator=".htmx-indicator"
-    hx-target="#id_settings_form"
-    hx-vars="club_id:{{ club.id }}"
->
-    {# set all tabs to at least 800px to it doesn't jump moving between them if scrolled down #}
-    <div class="card" style="min-height: 800px; height: auto">
-        <div class="card-header card-header-info">
-            <h2 id="t_tab_heading">Club Settings</h2>
-            <button class="btn bg-transparent"
-                style="outline: 0; outline-offset: 0; box-shadow: none;"
-                type="button"
-                hx-post="{% url "organisations:club_menu_tab_settings_basic_htmx" %}"
-                hx-indicator=".htmx-indicator"
-                hx-target="#id_settings_form"
-            >Club Details</button>
-            <button class="btn btn-primary" type="button">General</button>
-            <button class="btn bg-transparent"
-                style="outline: 0; outline-offset: 0; box-shadow: none;"
-                type="button"
-                hx-post="{% url "organisations:club_menu_tab_settings_membership_htmx" %}"
-                hx-indicator=".htmx-indicator"
-                hx-target="#id_settings_form"
-            >Membership Types</button>
-        </div>
+    <div class="card-body">
 
-        <div class="card-body">
+        <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
 
-            <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
+        <form
+            hx-post="{% url "organisations:club_menu_tab_settings_general_htmx" %}"
+            hx-indicator=".htmx-indicator"
+            hx-target="#id_settings_form"
+            hx-vars="club_id:{{ club.id }}"
+        >
 
             <label class="bmd-label-static">Date for Annual Membership Renewals</label>
             <div class="row">
@@ -91,10 +77,12 @@
             </div>
 
             <button type="submit" name="save" class="btn btn-success">Save</button>
-            <button type="reset" class="btn btn-info">Reset</button>
-            <div class="font-italic small">last updated {{ club.last_updated|cobalt_nice_datetime }} by {{ club.last_updated_by.full_name }}</div>
-        </div>
+        </form>
+
+        <div class="font-italic small">last updated {{ club.last_updated|cobalt_nice_datetime }}
+            by {{ club.last_updated_by.full_name }}</div>
     </div>
+</div>
 
 
-</form>
+

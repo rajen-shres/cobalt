@@ -157,6 +157,11 @@ urlpatterns = [
         name="club_menu_tab_settings_membership_htmx",
     ),
     path(
+        "club-menu/tabs/settings-logs",
+        club_menu.tab_settings_logs_htmx,
+        name="club_menu_tab_settings_logs_htmx",
+    ),
+    path(
         "club-menu/tabs/settings-edit-membership",
         club_menu.club_menu_tab_settings_membership_edit_htmx,
         name="club_menu_tab_settings_membership_edit_htmx",
@@ -220,5 +225,10 @@ urlpatterns = [
         "club-menu/tabs/members-cancel-un-reg/<int:club_id>/<int:un_reg_id>/",
         club_menu.tab_member_delete_un_reg_htmx,
         name="club_menu_tab_member_delete_un_reg_htmx",
+    ),
+    path(
+        "club-menu/tabs/members-cancel-member/<int:club_id>/<int:member_id>/",
+        club_menu.tab_member_delete_member_htmx,
+        name="club_menu_tab_member_delete_member_htmx",
     ),
 ]

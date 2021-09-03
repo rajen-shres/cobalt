@@ -1,30 +1,12 @@
 {% load crispy_forms_filters %}
 {% load cobalt_tags %}
 
-<form
-    hx-post="{% url "organisations:club_menu_tab_settings_basic_htmx" %}"
-    hx-indicator=".htmx-indicator"
-    id="id_settings_form"
->
+<div id="id_settings_form">
 
     <div class="card">
         <div class="card-header card-header-info">
             <h2 id="t_tab_heading">Club Settings</h2>
-            <button class="btn btn-primary" type="button">Club Details</button>
-            <button class="btn bg-transparent"
-                style="outline: 0; outline-offset: 0; box-shadow: none;"
-                type="button"
-                hx-post="{% url "organisations:club_menu_tab_settings_general_htmx" %}"
-                hx-indicator=".htmx-indicator"
-                hx-target="#id_settings_form"
-            >General</button>
-            <button class="btn bg-transparent"
-                style="outline: 0; outline-offset: 0; box-shadow: none;"
-                type="button"
-                hx-post="{% url "organisations:club_menu_tab_settings_membership_htmx" %}"
-                hx-indicator=".htmx-indicator"
-                hx-target="#id_settings_form"
-            >Membership Types</button>
+            {% include "organisations/club_menu/settings/nav_htmx.html" with selected="details" %}
         </div>
 
         <div class="card-body">
@@ -42,194 +24,198 @@
             {% endif %}
 
             <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
+            <form
+                hx-post="{% url "organisations:club_menu_tab_settings_basic_htmx" %}"
+                hx-target="#id_settings_form"
+            >
+                <div class="row">
+                    {#                secretary           #}
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <b>Club Secretary: </b><span class="font-weight-bold" id="club_secretary_dummy_name">{{ secretary_name|default_if_none:"Not Set" }}</span>
 
-            <div class="row">
-                {#                secretary           #}
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <b>Club Secretary: </b><span class="font-weight-bold" id="club_secretary_dummy_name">{{ secretary_name|default_if_none:"Not Set" }}</span>
+                            <input type="hidden" id="id_secretary" name="secretary" value="{{ secretary_id|default_if_none:"" }}">
 
-                        <input type="hidden" id="id_secretary" name="secretary" value="{{ secretary_id|default_if_none:"" }}">
-
-                        <span class="cobalt-form-error">{{ org_form.secretary.errors }}</span>
-                        <button id="id_search_button" type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#userSearchModal11">Edit</button>
+                            <span class="cobalt-form-error">{{ org_form.secretary.errors }}</span>
+                            <button id="id_search_button" type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#userSearchModal11">Edit</button>
+                        </div>
                     </div>
-                </div>
-                {#            state         #}
-                <div class="col-md-3">
+                    {#            state         #}
+                    <div class="col-md-3">
 
 
-                    <span class="cobalt-form-error">{{ org_form.state.errors }}</span>
-                    <h3>{{ org_form.state.value }}</h3>
-                    <input type="hidden" name="state" value="{{ org_form.state.value }}">
+                        <span class="cobalt-form-error">{{ org_form.state.errors }}</span>
+                        <h3>{{ org_form.state.value }}</h3>
+                        <input type="hidden" name="state" value="{{ org_form.state.value }}">
 
 
-                </div>
-            </div>
-
-
-            {#        Form        #}
-
-            <div class="row">
-                {#                name           #}
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Club Name</label>
-                        <input type="text"
-                            name="name"
-                            id="id_name"
-                            class="form-control"
-                            maxlength="50"
-                            required
-                            value="{{ org_form.name.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ org_form.name.errors }}</span>
-                        <span class="cobalt-form-warning">{{ org_form.warnings.name }}</span>
-                    </div>
-                </div>
-                {#                org_id         #}
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">{{ GLOBAL_ORG }} Club Number</label>
-                        <input type="number" min="0" step="1"
-                            name="org_id"
-                            id="id_org_id"
-                            class="form-control"
-                            required
-                            {% if not uber_admin %}readonly{% endif %}
-                            value="{{ org_form.org_id.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ org_form.org_id.errors }}</span>
-                    </div>
-                </div>
-            </div>
-
-
-            <div class="row">
-                {#                email           #}
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Club Email Address</label>
-                        <input type="text"
-                            name="club_email"
-                            id="id_club_email"
-                            class="form-control"
-                            maxlength="40"
-                            value="{{ org_form.club_email.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ org_form.club_email.errors }}</span>
-                        <span class="cobalt-form-warning">{{ org_form.warnings.club_email }}</span>
-                    </div>
-                </div>
-                {#                website           #}
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Club Website</label>
-                        <input type="text"
-                            name="club_website"
-                            id="id_club_website"
-                            class="form-control"
-                            maxlength="100"
-                            value="{{ org_form.club_website.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ org_form.club_website.errors }}</span>
-                        <span class="cobalt-form-warning">{{ org_form.warnings.club_website }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                {#                address1           #}
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Address Line 1</label>
-                        <input type="text"
-                            name="address1"
-                            id="id_address1"
-                            class="form-control"
-                            maxlength="100"
-                            value="{{ org_form.address1.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ org_form.address1.errors }}</span>
-                        <span class="cobalt-form-warning">{{ org_form.warnings.address1 }}</span>
-                    </div>
-                </div>
-                {#                suburb           #}
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Suburb</label>
-                        <input type="text"
-                            name="suburb"
-                            id="id_suburb"
-                            class="form-control"
-                            maxlength="50"
-                            value="{{ org_form.suburb.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ org_form.suburb.errors }}</span>
-                        <span class="cobalt-form-warning">{{ org_form.warnings.suburb }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                {#                address2           #}
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Address Line 2</label>
-                        <input type="text"
-                            name="address2"
-                            id="id_address2"
-                            class="form-control"
-                            maxlength="100"
-                            value="{{ org_form.address2.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ org_form.address2.errors }}</span>
-                        <span class="cobalt-form-warning">{{ org_form.warnings.address2 }}</span>
                     </div>
                 </div>
 
-                {#                postcode           #}
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Postcode</label>
-                        <input type="text"
-                            name="postcode"
-                            id="id_postcode"
-                            class="form-control"
-                            maxlength="10"
-                            value="{{ org_form.postcode.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ org_form.postcode.errors }}</span>
-                        <span class="cobalt-form-warning">{{ org_form.warnings.postcode }}</span>
-                    </div>
-                </div>
-            </div>
 
-            <div class="row">
-                {#                bank_bsb           #}
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Bank BSB Number</label>
-                        <input type="number" min="0" step="1"
-                            name="bank_bsb"
-                            id="id_bank_bsb"
-                            class="form-control"
-                            maxlength="7"
-                            value="{{ org_form.bank_bsb.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ org_form.bank_bsb.errors }}</span>
-                    </div>
-                </div>
-                {#                bank_account           #}
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Bank Account Number</label>
-                        <input type="number" min="0" step="1"
-                            name="bank_account"
-                            id="id_bank_account"
-                            class="form-control"
-                            maxlength="7"
-                            value="{{ org_form.bank_account.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ org_form.bank_account.errors }}</span>
-                    </div>
-                </div>
-            </div>
+                {#        Form        #}
 
-            <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
-            <button class="btn btn-info" type=""reset">Reset</button>
+                <div class="row">
+                    {#                name           #}
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="bmd-label-floating">Club Name</label>
+                            <input type="text"
+                                name="name"
+                                id="id_name"
+                                class="form-control"
+                                maxlength="50"
+                                required
+                                value="{{ org_form.name.value|default_if_none:"" }}">
+                            <span class="cobalt-form-error">{{ org_form.name.errors }}</span>
+                            <span class="cobalt-form-warning">{{ org_form.warnings.name }}</span>
+                        </div>
+                    </div>
+                    {#                org_id         #}
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="bmd-label-floating">{{ GLOBAL_ORG }} Club Number</label>
+                            <input type="number" min="0" step="1"
+                                name="org_id"
+                                id="id_org_id"
+                                class="form-control"
+                                required
+                                {% if not uber_admin %}readonly{% endif %}
+                                value="{{ org_form.org_id.value|default_if_none:"" }}">
+                            <span class="cobalt-form-error">{{ org_form.org_id.errors }}</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    {#                email           #}
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="bmd-label-floating">Club Email Address</label>
+                            <input type="text"
+                                name="club_email"
+                                id="id_club_email"
+                                class="form-control"
+                                maxlength="40"
+                                value="{{ org_form.club_email.value|default_if_none:"" }}">
+                            <span class="cobalt-form-error">{{ org_form.club_email.errors }}</span>
+                            <span class="cobalt-form-warning">{{ org_form.warnings.club_email }}</span>
+                        </div>
+                    </div>
+                    {#                website           #}
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="bmd-label-floating">Club Website</label>
+                            <input type="text"
+                                name="club_website"
+                                id="id_club_website"
+                                class="form-control"
+                                maxlength="100"
+                                value="{{ org_form.club_website.value|default_if_none:"" }}">
+                            <span class="cobalt-form-error">{{ org_form.club_website.errors }}</span>
+                            <span class="cobalt-form-warning">{{ org_form.warnings.club_website }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    {#                address1           #}
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="bmd-label-floating">Address Line 1</label>
+                            <input type="text"
+                                name="address1"
+                                id="id_address1"
+                                class="form-control"
+                                maxlength="100"
+                                value="{{ org_form.address1.value|default_if_none:"" }}">
+                            <span class="cobalt-form-error">{{ org_form.address1.errors }}</span>
+                            <span class="cobalt-form-warning">{{ org_form.warnings.address1 }}</span>
+                        </div>
+                    </div>
+                    {#                suburb           #}
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="bmd-label-floating">Suburb</label>
+                            <input type="text"
+                                name="suburb"
+                                id="id_suburb"
+                                class="form-control"
+                                maxlength="50"
+                                value="{{ org_form.suburb.value|default_if_none:"" }}">
+                            <span class="cobalt-form-error">{{ org_form.suburb.errors }}</span>
+                            <span class="cobalt-form-warning">{{ org_form.warnings.suburb }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    {#                address2           #}
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="bmd-label-floating">Address Line 2</label>
+                            <input type="text"
+                                name="address2"
+                                id="id_address2"
+                                class="form-control"
+                                maxlength="100"
+                                value="{{ org_form.address2.value|default_if_none:"" }}">
+                            <span class="cobalt-form-error">{{ org_form.address2.errors }}</span>
+                            <span class="cobalt-form-warning">{{ org_form.warnings.address2 }}</span>
+                        </div>
+                    </div>
+
+                    {#                postcode           #}
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="bmd-label-floating">Postcode</label>
+                            <input type="text"
+                                name="postcode"
+                                id="id_postcode"
+                                class="form-control"
+                                maxlength="10"
+                                value="{{ org_form.postcode.value|default_if_none:"" }}">
+                            <span class="cobalt-form-error">{{ org_form.postcode.errors }}</span>
+                            <span class="cobalt-form-warning">{{ org_form.warnings.postcode }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    {#                bank_bsb           #}
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="bmd-label-floating">Bank BSB Number</label>
+                            <input type="number" min="0" step="1"
+                                name="bank_bsb"
+                                id="id_bank_bsb"
+                                class="form-control"
+                                maxlength="7"
+                                value="{{ org_form.bank_bsb.value|default_if_none:"" }}">
+                            <span class="cobalt-form-error">{{ org_form.bank_bsb.errors }}</span>
+                        </div>
+                    </div>
+                    {#                bank_account           #}
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="bmd-label-floating">Bank Account Number</label>
+                            <input type="number" min="0" step="1"
+                                name="bank_account"
+                                id="id_bank_account"
+                                class="form-control"
+                                maxlength="7"
+                                value="{{ org_form.bank_account.value|default_if_none:"" }}">
+                            <span class="cobalt-form-error">{{ org_form.bank_account.errors }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
+                <button class="btn btn-info" type=""reset">Reset</button>
+            </form>
             <div class="font-italic small">last updated {{ club.last_updated|cobalt_nice_datetime }} by {{ club.last_updated_by.full_name }}</div>
-        </form>
+        </div>
     </div>
     <script>
 
