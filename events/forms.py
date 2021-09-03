@@ -338,6 +338,20 @@ class EventEntryPlayerForm(forms.ModelForm):
             "reason",
         )
 
+    def __init__(self, *args, **kwargs):
+        super(EventEntryPlayerForm, self).__init__(*args, **kwargs)
+
+        # We can get problems if the convener changes the payment method to their-bridge-credits
+        # This is intended for use with team-mates plus and none of the controls will be in place
+        # if it gets manually changed by a convener.
+        # There is no reason for this to be required so remove from options.
+        choices = self.fields["payment_type"].choices
+        clean_choices = []
+        for choice in choices:
+            if choice[0] != "their-system-dollars":
+                clean_choices.append(choice)
+        self.fields["payment_type"].choices = clean_choices
+
 
 class RefundForm(forms.Form):
 
