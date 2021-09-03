@@ -700,6 +700,37 @@ def tab_member_delete_un_reg_htmx(request, club_id, un_reg_id):
 
 
 @login_required()
+def tab_member_delete_member_htmx(request, club_id, member_id):
+    """Remove a registered user from club membership"""
+
+    club = get_object_or_404(Organisation, pk=club_id)
+    member = get_object_or_404(User, pk=member_id)
+
+    # Check security
+    allowed, role = _menu_rbac_has_access(club, request.user)
+    if not allowed:
+        return rbac_forbidden(request, role)
+
+    # Memberships are coming later. For now we treat as basically binary - they start on the date they are
+    # entered and we assume only one without checking
+    now = timezone.now()
+    memberships = (
+        MemberMembershipType.objects.filter(start_date__lte=now)
+        .filter(Q(end_date__gte=now) | Q(end_date=None))
+        .filter(system_number=member.system_number)
+    )
+
+    # Should only be one but not enforced at database level so close any that match to be safe
+    for membership in memberships:
+        membership.last_modified_by = request.user
+        membership.termination_reason = "Cancelled by Club"
+        membership.end_date = now - datetime.timedelta(days=1)
+        membership.save()
+
+    return tab_members_list_htmx(request, f"{member.full_name} membership deleted.")
+
+
+@login_required()
 def tab_members_un_reg_edit_htmx(request):
     """Edit unregistered member details"""
 
@@ -849,10 +880,7 @@ def tab_members_edit_member_htmx(request):
 
     message = ""
 
-    print("hello")
-
     member_id = request.POST.get("member")
-    print("member_id", member_id)
     member = get_object_or_404(User, pk=member_id)
 
     # Look for save as all requests are posts
@@ -862,7 +890,6 @@ def tab_members_edit_member_htmx(request):
         if form.is_valid():
 
             # Get details
-            member_id = form.cleaned_data["member"]
             membership_type_id = form.cleaned_data["membership_type"]
             membership_type = get_object_or_404(MembershipType, pk=membership_type_id)
             home_club = form.cleaned_data["home_club"]
@@ -878,7 +905,11 @@ def tab_members_edit_member_htmx(request):
             member_membership.membership_type = membership_type
             member_membership.home_club = home_club
             member_membership.save()
-            message = "Data saved"
+            message = f"{member.full_name} updated"
+            return tab_members_list_htmx(request, message)
+
+        else:
+            print(form.errors)
     else:
         member_membership = (
             MemberMembershipType.objects.filter(system_number=member.system_number)
@@ -887,11 +918,16 @@ def tab_members_edit_member_htmx(request):
         )
         initial = {
             "member": member.id,
-            "membership_type": member_membership.membership_type,
+            "membership_type": member_membership.membership_type.id,
             "home_club": member_membership.home_club,
         }
-        print(initial)
-        form = UserMembershipForm(request.POST, club=club, initial=initial)
+        form = UserMembershipForm(club=club)
+        form.initial = initial
+
+    hx_delete = reverse(
+        "organisations:club_menu_tab_member_delete_member_htmx",
+        kwargs={"club_id": club.id, "member_id": member.id},
+    )
 
     return render(
         request,
@@ -901,6 +937,7 @@ def tab_members_edit_member_htmx(request):
             "form": form,
             "member": member,
             "message": message,
+            "hx_delete": hx_delete,
         },
     )
 

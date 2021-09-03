@@ -63,6 +63,7 @@ def _add_club_defaults(club: Organisation):
         annual_fee=50,
         part_year_fee=25,
         last_modified_by=system,
+        is_default=True,
     ).save()
 
     MembershipType(

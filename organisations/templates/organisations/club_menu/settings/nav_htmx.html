@@ -1,0 +1,53 @@
+{# Nav bar part for Settings tab #}
+
+{% if selected == "details" %}
+    <button class="btn btn-primary"
+{% else %}
+    <button class="btn bg-transparent"
+    style="outline: 0; outline-offset: 0; box-shadow: none;"
+{% endif %}
+
+type="button"
+hx-post="{% url "organisations:club_menu_tab_settings_basic_htmx" %}"
+hx-target="#id_settings_form"
+>Club Details
+</button>
+
+{% if selected == "general" %}
+    <button class="btn btn-primary"
+{% else %}
+    <button class="btn bg-transparent"
+    style="outline: 0; outline-offset: 0; box-shadow: none;"
+{% endif %}
+
+type="button"
+hx-post="{% url "organisations:club_menu_tab_settings_general_htmx" %}"
+hx-target="#id_settings_form"
+>General
+</button>
+
+{% if selected == "memberships" %}
+    <button class="btn btn-primary"
+{% else %}
+    <button class="btn bg-transparent"
+    style="outline: 0; outline-offset: 0; box-shadow: none;"
+{% endif %}
+
+type="button"
+hx-post="{% url "organisations:club_menu_tab_settings_membership_htmx" %}"
+hx-target="#id_settings_form"
+>Membership Types
+</button>
+
+{% if selected == "logs" %}
+    <button class="btn btn-primary float-right"
+{% else %}
+    <button class="btn bg-transparent float-right"
+    style="outline: 0; outline-offset: 0; box-shadow: none;"
+{% endif %}
+
+type="button"
+hx-post="{% url "organisations:club_menu_tab_members_reports_htmx" %}"
+hx-target="#id_settings_form"
+>Logs
+</button>

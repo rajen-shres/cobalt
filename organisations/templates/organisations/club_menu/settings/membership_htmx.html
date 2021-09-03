@@ -7,18 +7,7 @@
     <div class="card" style="min-height: 800px; height: auto">
         <div class="card-header card-header-info">
             <h2 id="t_tab_heading">Club Settings</h2>
-            <a class="btn bg-transparent"
-                style="outline: 0; outline-offset: 0; box-shadow: none;"
-                hx-post="{% url "organisations:club_menu_tab_settings_basic_htmx" %}"
-                hx-indicator=".htmx-indicator"
-                hx-target="#id_settings_form">Club Details</a>
-            <a class="btn bg-transparent"
-                style="outline: 0; outline-offset: 0; box-shadow: none;"
-                hx-post="{% url "organisations:club_menu_tab_settings_general_htmx" %}"
-                hx-indicator=".htmx-indicator"
-                hx-target="#id_settings_form">General</a>
-
-            <button class="btn btn-primary">Membership Types</button>
+            {% include "organisations/club_menu/settings/nav_htmx.html" with selected="memberships" %}
         </div>
 
         <div class="card-body">

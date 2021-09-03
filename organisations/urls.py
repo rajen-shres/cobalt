@@ -221,4 +221,9 @@ urlpatterns = [
         club_menu.tab_member_delete_un_reg_htmx,
         name="club_menu_tab_member_delete_un_reg_htmx",
     ),
+    path(
+        "club-menu/tabs/members-cancel-member/<int:club_id>/<int:member_id>/",
+        club_menu.tab_member_delete_member_htmx,
+        name="club_menu_tab_member_delete_member_htmx",
+    ),
 ]

@@ -1,0 +1,23 @@
+{% load crispy_forms_tags %}
+{% load crispy_forms_filters %}
+{% load cobalt_tags %}
+
+
+<form
+    hx-post="{% url "organisations:club_menu_tab_settings_general_htmx" %}"
+    hx-indicator=".htmx-indicator"
+    hx-target="#id_settings_form"
+    hx-vars="club_id:{{ club.id }}"
+>
+    {# set all tabs to at least 800px to it doesn't jump moving between them if scrolled down #}
+    <div class="card" style="min-height: 800px; height: auto">
+        <div class="card-header card-header-info">
+            <h2 id="t_tab_heading">Club Settings</h2>
+            {% include "organisations/club_menu/settings/nav_htmx.html" with selected="logs" %}
+        </div>
+
+        <div class="card-body">
+
+
+
+        </form>

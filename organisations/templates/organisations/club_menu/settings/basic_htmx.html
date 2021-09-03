@@ -10,21 +10,7 @@
     <div class="card">
         <div class="card-header card-header-info">
             <h2 id="t_tab_heading">Club Settings</h2>
-            <button class="btn btn-primary" type="button">Club Details</button>
-            <button class="btn bg-transparent"
-                style="outline: 0; outline-offset: 0; box-shadow: none;"
-                type="button"
-                hx-post="{% url "organisations:club_menu_tab_settings_general_htmx" %}"
-                hx-indicator=".htmx-indicator"
-                hx-target="#id_settings_form"
-            >General</button>
-            <button class="btn bg-transparent"
-                style="outline: 0; outline-offset: 0; box-shadow: none;"
-                type="button"
-                hx-post="{% url "organisations:club_menu_tab_settings_membership_htmx" %}"
-                hx-indicator=".htmx-indicator"
-                hx-target="#id_settings_form"
-            >Membership Types</button>
+            {% include "organisations/club_menu/settings/nav_htmx.html" with selected="details" %}
         </div>
 
         <div class="card-body">
