@@ -14,10 +14,8 @@ def membership_type_choices(club):
     """Return membership choices for a club"""
 
     # Get membership type drop down
-    membership_types = (
-        MembershipType.objects.filter(organisation=club)
-        .order_by("pk")
-        .values_list("id", "name")
+    membership_types = MembershipType.objects.filter(organisation=club).values_list(
+        "id", "name"
     )
     return [
         (membership_type[0], membership_type[1]) for membership_type in membership_types
@@ -126,6 +124,7 @@ class MembershipTypeForm(forms.ModelForm):
             "description",
             "annual_fee",
             "part_year_fee",
+            "is_default",
             "does_not_pay_session_fees",
             "does_not_renew",
         )

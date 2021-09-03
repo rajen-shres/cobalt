@@ -207,6 +207,7 @@ class MembershipType(models.Model):
         blank=True,
         null=True,
     )
+    is_default = models.BooleanField("Default Membership Type", default=False)
     does_not_pay_session_fees = models.BooleanField(
         "Play Normal Sessions for Free", default=False
     )
@@ -214,6 +215,10 @@ class MembershipType(models.Model):
     last_modified_by = models.ForeignKey(User, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # Order so is_default is at the top
+    class Meta:
+        ordering = ("-is_default",)
 
     def __str__(self):
         return f"{self.organisation} - {self.name}"

@@ -840,6 +840,73 @@ def tab_members_add_member_htmx(request):
 
 @login_required()
 @require_POST
+def tab_members_edit_member_htmx(request):
+    """Edit a club member manually"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    message = ""
+
+    print("hello")
+
+    member_id = request.POST.get("member")
+    print("member_id", member_id)
+    member = get_object_or_404(User, pk=member_id)
+
+    # Look for save as all requests are posts
+    if "save" in request.POST:
+        form = UserMembershipForm(request.POST, club=club)
+
+        if form.is_valid():
+
+            # Get details
+            member_id = form.cleaned_data["member"]
+            membership_type_id = form.cleaned_data["membership_type"]
+            membership_type = get_object_or_404(MembershipType, pk=membership_type_id)
+            home_club = form.cleaned_data["home_club"]
+
+            # Get the member membership objects
+            member_membership = (
+                MemberMembershipType.objects.filter(system_number=member.system_number)
+                .filter(membership_type__organisation=club)
+                .first()
+            )
+
+            # Update and save
+            member_membership.membership_type = membership_type
+            member_membership.home_club = home_club
+            member_membership.save()
+            message = "Data saved"
+    else:
+        member_membership = (
+            MemberMembershipType.objects.filter(system_number=member.system_number)
+            .filter(membership_type__organisation=club)
+            .first()
+        )
+        initial = {
+            "member": member.id,
+            "membership_type": member_membership.membership_type,
+            "home_club": member_membership.home_club,
+        }
+        print(initial)
+        form = UserMembershipForm(request.POST, club=club, initial=initial)
+
+    return render(
+        request,
+        "organisations/club_menu/members/edit_member_htmx.html",
+        {
+            "club": club,
+            "form": form,
+            "member": member,
+            "message": message,
+        },
+    )
+
+
+@login_required()
+@require_POST
 def tab_members_add_un_reg_htmx(request):
     """Add a club unregistered user manually"""
 
@@ -1111,6 +1178,14 @@ def club_menu_tab_settings_membership_edit_htmx(request):
         updated.save()
         message = "Membership Type Updated"
 
+    # Don't show option to set as default if there is already a default, unless we are it
+    if (
+        MembershipType.objects.filter(organisation=club, is_default=True)
+        .exclude(pk=membership_type.id)
+        .exists()
+    ):
+        del form.fields["is_default"]
+
     return render(
         request,
         "organisations/club_menu/settings/membership_edit_htmx.html",
@@ -1144,6 +1219,10 @@ def club_menu_tab_settings_membership_add_htmx(request):
         membership_type.save()
         #        message = "Membership Type Added"
         return tab_settings_membership_htmx(request)
+
+    # Don't show option to set as default if there is already a default
+    if MembershipType.objects.filter(organisation=club, is_default=True).exists():
+        del form.fields["is_default"]
 
     return render(
         request,

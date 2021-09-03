@@ -31,24 +31,21 @@
                             {% for cobalt_member in cobalt_members %}
                                 <tr>
                                     <td><a href="#"
-                                        hx-post="{% url "accounts:public_profile" pk=cobalt_member.id %}"
-                                        hx-indicator=".htmx-indicator"
+                                        hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
                                         hx-target="#id_member_list_tab"
-                                        hx-vars="club_id:{{ club.id }}, un_reg_id:{{ unregistered_member.id }}">
+                                        hx-vars="club_id:{{ club.id }}, member:{{ cobalt_member.id }}">
                                         {{ cobalt_member.first_name }}
                                     </a></td>
                                     <td><a href="#"
-                                        hx-post="{% url "accounts:public_profile" pk=cobalt_member.id %}"
-                                        hx-indicator=".htmx-indicator"
+                                        hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
                                         hx-target="#id_member_list_tab"
-                                        hx-vars="club_id:{{ club.id }}, un_reg_id:{{ unregistered_member.id }}">
+                                        hx-vars="club_id:{{ club.id }}, member:{{ cobalt_member.id }}">
                                         {{ cobalt_member.last_name }}
                                     </a></td>
                                     <td><a href="#"
-                                        hx-post="{% url "accounts:public_profile" pk=cobalt_member.id %}"
-                                        hx-indicator=".htmx-indicator"
+                                        hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
                                         hx-target="#id_member_list_tab"
-                                        hx-vars="club_id:{{ club.id }}, un_reg_id:{{ unregistered_member.id }}">
+                                        hx-vars="club_id:{{ club.id }}, member:{{ cobalt_member.id }}">
                                         {{ cobalt_member.system_number }}
                                     </a></td>
                                 </tr>

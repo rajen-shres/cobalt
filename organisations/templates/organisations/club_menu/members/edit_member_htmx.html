@@ -1,0 +1,55 @@
+{% load crispy_forms_filters %}
+{% load cobalt_tags %}
+{% load crispy_forms_tags %}
+
+<div class="card col-md-8">
+    <div class="card-header card-header-rose">
+        <h2 class="text-center">Edit Member</h2>
+
+    </div>
+
+    <div class="card-body">
+
+        <h3 class="text-info font-weight-bold settings_message" id="user_add_message">{{ message| default_if_none:"" }}</h3>
+
+        <h3>{{ member }}</h3>
+
+        <form
+            hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
+            hx-target="#id_member_list_tab"
+            hx-vars="club_id:{{ club.id }},member:{{ member.id }}"
+        >
+
+            <div class="cobalt_form_errors">{{ form.errors }}</div>
+
+            <div id="div_id_membership_type" class="form-group row">
+                <div class="col-6">
+                    <label for="id_membership_type" class="bmd-label-static">
+                        Membership type
+                    </label>
+                </div>
+
+                <div class="col-6">
+                    <select name="membership_type" class="select form-control" id="id_membership_type">
+                        {% for option in form.membership_type.field.choices %}
+                            <h1>{{ option }}</h1>
+                            <option value="{{ option.0 }}">{{ option.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <input id="id_home_club" type="checkbox" name="home_club" {% if form.home_club.value %}Checked{% endif %}">
+                <label for="id_home_club" style="color: black">&nbsp;Home Club</label><br>
+
+            </div>
+
+
+            <button type="submit" name="save" class="btn btn-success">Save</button>
+            <button type="submit" class="btn btn-danger">Cancel Membership</button>
+        </form>
+
+    </div>
+</div>
+
