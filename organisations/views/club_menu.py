@@ -43,6 +43,7 @@ from organisations.models import (
     MembershipType,
     MemberMembershipType,
     MemberClubEmail,
+    ClubLog,
 )
 from organisations.views.admin import (
     rbac_get_basic_and_advanced,
@@ -696,6 +697,11 @@ def tab_member_delete_un_reg_htmx(request, club_id, un_reg_id):
         membership.end_date = now - datetime.timedelta(days=1)
         membership.save()
 
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Cancelled membership for {membership.system_number}",
+        ).save()
     return tab_members_list_htmx(request, f"{un_reg.full_name} membership deleted.")
 
 
@@ -726,6 +732,11 @@ def tab_member_delete_member_htmx(request, club_id, member_id):
         membership.termination_reason = "Cancelled by Club"
         membership.end_date = now - datetime.timedelta(days=1)
         membership.save()
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Cancelled membership for {membership.system_number}",
+        ).save()
 
     return tab_members_list_htmx(request, f"{member.full_name} membership deleted.")
 
@@ -758,15 +769,28 @@ def tab_members_un_reg_edit_htmx(request):
         if user_form.is_valid():
             new_un_reg = user_form.save()
             message = "Data Saved"
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action=f"Updated details for {new_un_reg}",
+            ).save()
 
             if "system_number" in user_form.changed_data:
                 # We have updated the un_reg user, but we need to also change club email addresses,
                 # and not just for this club
+
+                ClubLog(
+                    organisation=club,
+                    actor=request.user,
+                    action=f"Updated {GLOBAL_ORG} Number for {new_un_reg}",
+                ).save()
+
                 for email_match in MemberClubEmail.objects.filter(
                     system_number=old_system_number
                 ):
                     email_match.system_number = new_un_reg.system_number
                     email_match.save()
+
                 # reload un_reg
                 un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
 
@@ -785,6 +809,11 @@ def tab_members_un_reg_edit_htmx(request):
             club_email_entry.email = club_email
             club_email_entry.save()
             message = "Data Saved"
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action=f"Updated club email address for {un_reg}",
+            ).save()
 
     else:
         club_email_entry = MemberClubEmail.objects.filter(
@@ -854,6 +883,11 @@ def tab_members_add_member_htmx(request):
                     home_club=home_club,
                 ).save()
                 message = f"{member.full_name} added as a member"
+                ClubLog(
+                    organisation=club,
+                    actor=request.user,
+                    action=f"Added member {member}",
+                ).save()
                 form = UserMembershipForm(club=club)
     else:
         form = UserMembershipForm(club=club)
@@ -906,6 +940,11 @@ def tab_members_edit_member_htmx(request):
             member_membership.home_club = home_club
             member_membership.save()
             message = f"{member.full_name} updated"
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action=f"Edited details for member {member}",
+            ).save()
             return tab_members_list_htmx(request, message)
 
         else:
@@ -979,6 +1018,11 @@ def tab_members_add_un_reg_htmx(request):
                     origin="Manual",
                     added_by_club=club,
                 ).save()
+                ClubLog(
+                    organisation=club,
+                    actor=request.user,
+                    action=f"Added un-registered user {form.cleaned_data['first_name']} {form.cleaned_data['last_name']}",
+                ).save()
                 message = "User added."
 
             # Add to club
@@ -1004,6 +1048,12 @@ def tab_members_add_un_reg_htmx(request):
                 )
                 club_email_entry.email = club_email
                 club_email_entry.save()
+                ClubLog(
+                    organisation=club,
+                    actor=request.user,
+                    action=f"Added club specific email for {form.cleaned_data['system_number']}",
+                ).save()
+
                 message += " Club specific email added."
 
             # return blank form to add another
@@ -1075,6 +1125,10 @@ def tab_settings_basic_htmx(request):
             org.last_updated = timezone.localtime()
             org.save()
 
+            ClubLog(
+                organisation=club, actor=request.user, action="Updated club details"
+            ).save()
+
             # We can't use Django messages as they won't show until the whole page reloads
             message = "Organisation details updated"
 
@@ -1121,8 +1175,30 @@ def tab_settings_basic_reload_htmx(request):
     club.suburb = data["VenueSuburb"]
 
     club.save()
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action="Reloaded data from Masterpoints Centre",
+    ).save()
 
     return tab_settings_basic_htmx(request)
+
+
+@login_required()
+def tab_settings_logs_htmx(request):
+    """Reload data from MPC and return the settings basic tab"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    log_events = ClubLog.objects.filter(organisation=club).order_by("-action_date")
+
+    return render(
+        request,
+        "organisations/club_menu/settings/logs_htmx.html",
+        {"log_events": log_events},
+    )
 
 
 @login_required()
@@ -1148,6 +1224,10 @@ def tab_settings_general_htmx(request):
             org.last_updated_by = request.user
             org.last_updated = timezone.localtime()
             org.save()
+
+            ClubLog(
+                organisation=club, actor=request.user, action="Updated general settings"
+            ).save()
 
             # We can't use Django messages as they won't show until the whole page reloads
             message = "Organisation details updated"
@@ -1213,6 +1293,11 @@ def club_menu_tab_settings_membership_edit_htmx(request):
         updated = form.save(commit=False)
         updated.last_modified_by = request.user
         updated.save()
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Updated membership type: {updated}",
+        ).save()
         message = "Membership Type Updated"
 
     # Don't show option to set as default if there is already a default, unless we are it
@@ -1254,7 +1339,11 @@ def club_menu_tab_settings_membership_add_htmx(request):
         membership_type.last_modified_by = request.user
         membership_type.organisation = club
         membership_type.save()
-        #        message = "Membership Type Added"
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Added membership type: {membership_type.name}",
+        ).save()
         return tab_settings_membership_htmx(request)
 
     # Don't show option to set as default if there is already a default
@@ -1642,6 +1731,12 @@ def club_menu_tab_members_upload_csv_htmx(request):
         },
     )
 
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Uploaded member data from CSV file. Type={file_type}",
+    ).save()
+
     return tab_members_list_htmx(request, table)
 
 
@@ -1741,6 +1836,12 @@ def club_menu_tab_members_import_mpc_htmx(request):
         },
     )
 
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action="Imported member data from the Masterpoints Centre",
+    ).save()
+
     return tab_members_list_htmx(request, table)
 
 
@@ -1783,10 +1884,6 @@ def process_member_import_add_member_to_membership(
         )
 
         error = f"{name} - Already a member"
-
-        print("Got other home club", other_home_club)
-
-        print("home club", home_club)
 
         if other_home_club and home_club:
             error = f"{name} - Already a member and has a different home club"

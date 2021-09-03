@@ -157,6 +157,11 @@ urlpatterns = [
         name="club_menu_tab_settings_membership_htmx",
     ),
     path(
+        "club-menu/tabs/settings-logs",
+        club_menu.tab_settings_logs_htmx,
+        name="club_menu_tab_settings_logs_htmx",
+    ),
+    path(
         "club-menu/tabs/settings-edit-membership",
         club_menu.club_menu_tab_settings_membership_edit_htmx,
         name="club_menu_tab_settings_membership_edit_htmx",
