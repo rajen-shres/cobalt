@@ -22,10 +22,10 @@ To use it, add the following to your HTML template::
 
     {% block footer %}
     {% include "utils/include_htmx.html" %}
-     {% include "accounts/user_search_include_htmx.html" with search_id={{ search_id}} include_me=True %}
+     {% include "accounts/user_search_include_htmx.html" with search_id={{ search_id}} include_me=True callback="MyFunc" %}
 
     <script>
-        function cobaltMemberSearchOk(search_id, user_id, user_name){
+        function MyFunc(search_id, user_id, user_name){
         // do something
             console.log(search_id);
             console.log(user_id);
@@ -41,6 +41,11 @@ To call it add a line to your HTML body::
 Drop the include_me option if you do not want the logged in user to be included in the search results.
 
 The user search dynamically adds functions using HTMX (https://htmx.org).
+
+Originally it was intended to be able to work inline and to return a div with the name of the user, the hidden
+input and a button to search again. In practice only the callback version has been used so far. The code is
+still there to support the inline version (include search_include_inline_htmx.html if you want to use it),
+but it was never finished or tested.
 
 Design
 ^^^^^^
