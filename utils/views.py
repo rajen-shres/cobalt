@@ -189,7 +189,7 @@ def status(request):
     )
 
 
-def download_csv(request, queryset):
+def download_csv(self, request, queryset):
     """Copied from Stack Overflow - generic CSV download"""
 
     model = queryset.model

@@ -191,3 +191,9 @@ class TeamMate(models.Model):
         User, on_delete=models.CASCADE, related_name="team_mate_team_mate"
     )
     make_payments = models.BooleanField("Use my account", default=False)
+
+    def __str__(self):
+        if self.make_payments:
+            return f"Plus - {self.user.full_name} - {self.team_mate.full_name}"
+        else:
+            return f"Basic - {self.user.full_name} - {self.team_mate.full_name}"

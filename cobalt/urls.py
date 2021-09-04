@@ -4,10 +4,12 @@ from dashboard.views import logged_out, home
 from django.conf import settings
 from django.urls import include, path
 
+from utils.views import download_csv
 
-# Overwrite admin panel defaults
 admin.site.site_header = f"{settings.GLOBAL_TITLE} Administration"
 admin.site.site_title = f"{settings.GLOBAL_TITLE} Administration"
+
+admin.site.add_action(download_csv, "export_as_csv")
 
 urlpatterns = [
     path("view", logged_out, name="logged_out"),
