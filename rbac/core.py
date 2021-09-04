@@ -654,7 +654,20 @@ def rbac_admin_all_rights(user):
             ret_str = "%s.%s" % (m.app, m.model)
         if ret_str not in ret:
             ret.append(ret_str)
-    return ret
+
+    # Sort and strip any unnecessary e.g. if org.orgs is in here we don't need org.orgs.4
+    pretty = []
+    for item in ret:
+        if item.count(".") == 2:
+            higher = ".".join(item.split(".")[2])
+            if higher not in ret:
+                pretty.append(item)
+        else:
+            pretty.append(item)
+
+    pretty.sort()
+
+    return pretty
 
 
 def rbac_user_is_group_admin(member, group):

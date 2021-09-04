@@ -61,7 +61,7 @@ def non_production_email_changer(request):
     """Only for test systems - changes email address of all users"""
 
     if not request.user.is_superuser:
-        raise SuspiciousOperation("This is only avaiable for admin users.")
+        raise SuspiciousOperation("This is only available for admin users.")
 
     if COBALT_HOSTNAME in ["myabf.com.au", "www.myabf.com.au"]:
         raise SuspiciousOperation(

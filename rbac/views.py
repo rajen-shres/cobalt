@@ -30,6 +30,7 @@ from .core import (
     rbac_get_users_with_role,
     rbac_admin_tree_access,
     rbac_user_has_any_model,
+    rbac_user_is_admin_for_admin_group,
 )
 from cobalt.settings import TIME_ZONE, COBALT_HOSTNAME
 from .forms import AddGroup
@@ -341,7 +342,7 @@ def admin_group_delete(request, group_id):
 
     group = get_object_or_404(RBACAdminGroup, pk=group_id)
 
-    if not rbac_user_is_group_admin(request.user, group):
+    if not rbac_user_is_admin_for_admin_group(request.user, group):
         return HttpResponse("You are not an admin for this group")
 
     if request.method == "POST":
@@ -451,6 +452,7 @@ def group_edit(request, group_id):
 
     users = RBACUserGroup.objects.filter(group=group)
     admin_roles = rbac_admin_all_rights(request.user)
+    print(admin_roles)
     roles = RBACGroupRole.objects.filter(group=group)
 
     warning = None

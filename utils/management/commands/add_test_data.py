@@ -347,30 +347,33 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         print("Running add_rbac_test_data")
 
-        for fname in sorted(glob.glob(DATA_DIR + "/*.csv")):
-            print("\n#########################################################")
-            print("Processing: %s" % fname)
-            self.process_csv(fname)
+        try:
+            for fname in sorted(glob.glob(DATA_DIR + "/*.csv")):
+                print("\n#########################################################")
+                print("Processing: %s" % fname)
+                self.process_csv(fname)
 
-        # create dummy Posts
-        print("\nCreating dummy forum posts")
-        print("Running", end="", flush=True)
-        count = 0
-        for post_counter in range(DUMMY_DATA_COUNT * 10):
+            # create dummy Posts
+            print("\nCreating dummy forum posts")
+            print("Running", end="", flush=True)
+            for count, _ in enumerate(range(DUMMY_DATA_COUNT * 10), start=1):
 
-            user_list = list(self.id_array["accounts.User"].values())
-            user_list.remove(self.id_array["accounts.User"]["EVERYONE"])
+                user_list = list(self.id_array["accounts.User"].values())
+                user_list.remove(self.id_array["accounts.User"]["EVERYONE"])
 
-            post = Post(
-                forum=random.choice(list(self.id_array["forums.Forum"].values())),
-                title=self.random_sentence(),
-                text=self.random_paragraphs_with_stuff(),
-                author=random.choice(user_list),
-            )
-            post.save()
-            print(".", end="", flush=True)
-            self.add_comments(post, user_list)
-            count += 1
-            if count % 100 == 0:
-                print(count, flush=True)
-        print("\n")
+                post = Post(
+                    forum=random.choice(list(self.id_array["forums.Forum"].values())),
+                    title=self.random_sentence(),
+                    text=self.random_paragraphs_with_stuff(),
+                    author=random.choice(user_list),
+                )
+                post.save()
+                print(".", end="", flush=True)
+                self.add_comments(post, user_list)
+                if count % 100 == 0:
+                    print(count, flush=True)
+            print("\n")
+
+        except KeyboardInterrupt:
+            print("\n\nTest data loading interrupted by user\n")
+            sys.exit(0)

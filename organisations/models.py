@@ -32,6 +32,13 @@ ORGS_RBAC_GROUPS_AND_ROLES = {
         "action": "edit",
         "description": "Edit payments info",
     },
+    # Change member details
+    "members_edit": {
+        "app": "orgs",
+        "model": "members",
+        "action": "edit",
+        "description": "Edit member info",
+    },
 }
 
 

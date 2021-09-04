@@ -43,15 +43,6 @@ class Command(BaseCommand):
             "Has the ability to edit details relating to the specified organisation.",
         )
 
-        # Change orgs.org to a single role (edit). Don't seem to be any problems, but needs to be tested.
-
-        # create_RBAC_action(
-        #     self,
-        #     "orgs",
-        #     "org",
-        #     "view",
-        #     "Has the ability to view details relating to the specified organisation.",
-        # )
         create_RBAC_action(
             self,
             "orgs",
@@ -59,6 +50,17 @@ class Command(BaseCommand):
             "edit",
             "Has the ability to perform global org admin changes like adding clubs.",
         )
+
+        # Manage members of clubs
+        create_RBAC_default(self, "orgs", "members", "Block")
+        create_RBAC_action(
+            self,
+            "orgs",
+            "member",
+            "edit",
+            "Has the ability to change memberships for the specified organisation.",
+        )
+
         group = create_RBAC_admin_group(
             self,
             "admin.orgs.abf.clubs",
@@ -71,6 +73,7 @@ class Command(BaseCommand):
             rbac_add_user_to_admin_group(user, group)
 
         rbac_add_role_to_admin_group(group, app="orgs", model="org")
+        rbac_add_role_to_admin_group(group, app="orgs", model="members")
 
         # Create groups for states to administer clubs
         # for each club, org.parent points to a state that can control it
@@ -96,6 +99,9 @@ class Command(BaseCommand):
             rbac_add_user_to_group(user, group)
         rbac_add_role_to_group(
             group, app="orgs", model="admin", action="edit", rule_type="Allow"
+        )
+        rbac_add_role_to_group(
+            group, app="orgs", model="members", action="edit", rule_type="Allow"
         )
 
         # We will add the rest of the RBAC rules in create_states so it is in once place plus we need the states to

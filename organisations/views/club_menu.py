@@ -169,7 +169,7 @@ def access_basic(request, club, message=None):  # sourcery skip: list-comprehens
     # Get roles
     roles = []
     for rule in ORGS_RBAC_GROUPS_AND_ROLES:
-        roles.append(f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} {club}")
+        roles.append(f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} for {club}")
 
     return render(
         request,
@@ -181,32 +181,6 @@ def access_basic(request, club, message=None):  # sourcery skip: list-comprehens
             "roles": roles,
             "message": message,
         },
-    )
-
-
-def access_basic_div(request, club):  # sourcery skip: list-comprehension
-    """Do the work for the Access tab on the club menu for basic RBAC."""
-
-    group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
-
-    # Get users
-    users = rbac_get_users_in_group(group)
-
-    for user in users:
-        user.hx_post = reverse(
-            "organisations:club_admin_access_basic_delete_user_htmx",
-            kwargs={"club_id": club.id, "user_id": user.id},
-        )
-
-    # Get roles
-    roles = []
-    for rule in ORGS_RBAC_GROUPS_AND_ROLES:
-        roles.append(f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} {club}")
-
-    return render(
-        request,
-        "organisations/club_menu/access/basic_div_htmx.html",
-        {"club": club, "setup": "basic", "users": users, "roles": roles},
     )
 
 
@@ -533,6 +507,9 @@ def tab_members_list_htmx(request, message=None):
 
     total_members = cobalt_members.count() + unregistered_members.count()
 
+    # Check level of access
+    member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
+
     return render(
         request,
         "organisations/club_menu/members/list_htmx.html",
@@ -542,6 +519,7 @@ def tab_members_list_htmx(request, message=None):
             "unregistered_members": unregistered_members,
             "total_members": total_members,
             "message": message,
+            "member_admin": member_admin,
         },
     )
 
@@ -556,12 +534,16 @@ def tab_members_add_htmx(request):
 
     total_members = _member_count(club)
 
+    # Check level of access
+    member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
+
     return render(
         request,
         "organisations/club_menu/members/add_menu_htmx.html",
         {
             "club": club,
             "total_members": total_members,
+            "member_admin": member_admin,
         },
     )
 
@@ -574,11 +556,15 @@ def tab_members_reports_htmx(request):
     if not status:
         return error_page
 
+    # Check level of access
+    member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
+
     return render(
         request,
         "organisations/club_menu/members/reports_htmx.html",
         {
             "club": club,
+            "member_admin": member_admin,
         },
     )
 
@@ -678,7 +664,9 @@ def tab_member_delete_un_reg_htmx(request, club_id, un_reg_id):
 
     # Check security
     allowed, role = _menu_rbac_has_access(club, request.user)
-    if not allowed:
+    if not allowed or not rbac_user_has_role(
+        request.user, f"orgs.members.{club.id}.edit"
+    ):
         return rbac_forbidden(request, role)
 
     # Memberships are coming later. For now we treat as basically binary - they start on the date they are
@@ -714,7 +702,9 @@ def tab_member_delete_member_htmx(request, club_id, member_id):
 
     # Check security
     allowed, role = _menu_rbac_has_access(club, request.user)
-    if not allowed:
+    if not allowed or not rbac_user_has_role(
+        request.user, f"orgs.members.{club.id}.edit"
+    ):
         return rbac_forbidden(request, role)
 
     # Memberships are coming later. For now we treat as basically binary - they start on the date they are
@@ -746,7 +736,9 @@ def tab_members_un_reg_edit_htmx(request):
     """Edit unregistered member details"""
 
     status, error_page, club = _tab_is_okay(request)
-    if not status:
+    if not status or not rbac_user_has_role(
+        request.user, f"orgs.members.{club.id}.edit"
+    ):
         return error_page
 
     un_reg_id = request.POST.get("un_reg_id")
@@ -852,7 +844,9 @@ def tab_members_add_member_htmx(request):
     """Add a club member manually"""
 
     status, error_page, club = _tab_is_okay(request)
-    if not status:
+    if not status or not rbac_user_has_role(
+        request.user, f"orgs.members.{club.id}.edit"
+    ):
         return error_page
 
     message = ""
@@ -909,7 +903,9 @@ def tab_members_edit_member_htmx(request):
     """Edit a club member manually"""
 
     status, error_page, club = _tab_is_okay(request)
-    if not status:
+    if not status or not rbac_user_has_role(
+        request.user, f"orgs.members.{club.id}.edit"
+    ):
         return error_page
 
     message = ""
@@ -987,7 +983,9 @@ def tab_members_add_un_reg_htmx(request):
     """Add a club unregistered user manually"""
 
     status, error_page, club = _tab_is_okay(request)
-    if not status:
+    if not status or not rbac_user_has_role(
+        request.user, f"orgs.members.{club.id}.edit"
+    ):
         return error_page
 
     message = ""
@@ -1424,7 +1422,7 @@ def access_basic_add_user_htmx(request):
     )
     rbac_add_user_to_admin_group(user, admin_group)
 
-    return access_basic_div(request, club)
+    return access_basic(request, club)
 
 
 @login_required()

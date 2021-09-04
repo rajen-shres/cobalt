@@ -96,6 +96,14 @@ class Command(BaseCommand):
                 rule_type="Allow",
                 model_id=state_id,
             )
+            # We also give state admins membership rights for all clubs - too hard to filter to state level
+            rbac_add_role_to_group(
+                group,
+                app="orgs",
+                model="members",
+                action="all",
+                rule_type="Allow",
+            )
 
             # Admin
             qualifier = f"admin.states.{state}"
@@ -111,3 +119,4 @@ class Command(BaseCommand):
             rbac_add_role_to_admin_group(
                 group, app="orgs", model="state", model_id=state_org.id
             )
+            rbac_add_role_to_admin_group(group, app="orgs", model="members")

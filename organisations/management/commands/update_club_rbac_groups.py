@@ -22,6 +22,63 @@ class Command(BaseCommand):
     Gets the definitive list of what should be there from models
     """
 
+    def handle_basic(self, club, basic_group):
+        """Basic RBAC only has one group"""
+
+        print("Club has basic RBAC, adding roles (won't duplicate)...")
+
+        for rule in ORGS_RBAC_GROUPS_AND_ROLES:
+            print(f"{club} - adding {rule} if not there...")
+
+            # Add roles to group, will do nothing if they already exist
+            rbac_add_role_to_group(
+                group=basic_group,
+                app=ORGS_RBAC_GROUPS_AND_ROLES[rule]["app"],
+                model=ORGS_RBAC_GROUPS_AND_ROLES[rule]["model"],
+                action=ORGS_RBAC_GROUPS_AND_ROLES[rule]["action"],
+                rule_type="Allow",
+                model_id=club.id,
+            )
+
+    def handle_advanced(self, club):
+        """Advanced - has multiple groups"""
+
+        print("Club has advanced RBAC...")
+
+        for rule in ORGS_RBAC_GROUPS_AND_ROLES:
+            print(f"{club} - checking {rule}...")
+
+            # See if it exists - do nothing if it does, don't want to change access
+            advanced_group = RBACGroup.objects.filter(
+                name_qualifier=club.rbac_name_qualifier, name_item=rule
+            ).first()
+            if not advanced_group:
+                # create group
+                self.stdout.write(
+                    self.style.WARNING(f"{club} group missing. Adding {rule}...")
+                )
+
+                advanced_group = RBACGroup(
+                    name_qualifier=club.rbac_name_qualifier,
+                    name_item=rule,
+                    description=f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} for {club.id} ({club.name})",
+                )
+                advanced_group.save()
+
+                # Add user
+                rbac_add_user_to_group(club.secretary, advanced_group)
+
+                rbac_add_role_to_group(
+                    group=advanced_group,
+                    app=ORGS_RBAC_GROUPS_AND_ROLES[rule]["app"],
+                    model=ORGS_RBAC_GROUPS_AND_ROLES[rule]["model"],
+                    action=ORGS_RBAC_GROUPS_AND_ROLES[rule]["action"],
+                    rule_type="Allow",
+                    model_id=club.id,
+                )
+            else:
+                print("Nothing to do")
+
     def check_and_fix(self):
         # Loop through all clubs
 
@@ -30,67 +87,21 @@ class Command(BaseCommand):
         for club in clubs:
             print(f"Checking {club}...")
 
-            # See if basic or advanced
+            # See if basic or advanced. Watch out for manually entered (neither)
 
             basic_group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
+            advanced_group = rbac_get_group_by_name(
+                f"{club.rbac_name_qualifier}.conveners"
+            )
+
             if basic_group:
-                # Basic - has only one group
+                self.handle_basic(club, basic_group)
 
-                print("Club has basic RBAC, adding roles (won't duplicate)...")
-
-                for rule in ORGS_RBAC_GROUPS_AND_ROLES:
-
-                    print(f"{club} - adding {rule} if not there...")
-
-                    # Add roles to group, will do nothing if they already exist
-                    rbac_add_role_to_group(
-                        group=basic_group,
-                        app=ORGS_RBAC_GROUPS_AND_ROLES[rule]["app"],
-                        model=ORGS_RBAC_GROUPS_AND_ROLES[rule]["model"],
-                        action=ORGS_RBAC_GROUPS_AND_ROLES[rule]["action"],
-                        rule_type="Allow",
-                        model_id=club.id,
-                    )
+            elif advanced_group:
+                self.handle_advanced(club)
 
             else:
-
-                # Advanced - has multiple groups
-                print("Club has advanced RBAC...")
-
-                for rule in ORGS_RBAC_GROUPS_AND_ROLES:
-
-                    # See if it exists - do nothing if it does, don't want to change access
-                    advanced_group = RBACGroup.objects.filter(
-                        name_qualifier=club.rbac_name_qualifier, name_item=rule
-                    ).first()
-                    if not advanced_group:
-                        # create group
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"{club} group missing. Adding {rule}..."
-                            )
-                        )
-
-                        advanced_group = RBACGroup(
-                            name_qualifier=club.rbac_name_qualifier,
-                            name_item=rule,
-                            description=f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} for {club.id} ({club.name})",
-                        )
-                        advanced_group.save()
-
-                        # Add user
-                        rbac_add_user_to_group(club.secretary, advanced_group)
-
-                        rbac_add_role_to_group(
-                            group=advanced_group,
-                            app=ORGS_RBAC_GROUPS_AND_ROLES[rule]["app"],
-                            model=ORGS_RBAC_GROUPS_AND_ROLES[rule]["model"],
-                            action=ORGS_RBAC_GROUPS_AND_ROLES[rule]["action"],
-                            rule_type="Allow",
-                            model_id=club.id,
-                        )
-                    else:
-                        print("Nothing to do")
+                print(f"{club} has custom RBAC set up - doing nothing")
 
     def handle(self, *args, **options):
 

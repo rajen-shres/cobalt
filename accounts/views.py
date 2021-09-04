@@ -110,7 +110,7 @@ def _check_unregistered_user_match(user):
     # Call the callbacks
 
     # Organisations
-    replace_unregistered_user_with_real_user(unregistered_user, user)
+    replace_unregistered_user_with_real_user(user)
 
     # Now delete the unregistered user, we don't need it any more
     unregistered_user.delete()

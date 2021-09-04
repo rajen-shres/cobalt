@@ -7,9 +7,14 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
 from accounts.models import UnregisteredUser, User
-from cobalt.settings import GLOBAL_MPSERVER
+from cobalt.settings import GLOBAL_MPSERVER, GLOBAL_TITLE
 from organisations.forms import OrgFormOld
-from organisations.models import Organisation
+from organisations.models import (
+    Organisation,
+    MemberClubEmail,
+    ClubLog,
+    MemberMembershipType,
+)
 from payments.models import OrganisationTransaction
 from rbac.core import rbac_user_has_role
 from rbac.models import RBACUserGroup, RBACGroupRole
@@ -148,27 +153,40 @@ def org_edit(request, org_id):
 def club_staff(user):
     """Used by dashboard. Returns the first club found that this user is a staff member for or None
 
+    Note: Staff with orgs.org.all rather than orgs.org.<model_id>.all will not get an icon (returns None)
+
     Args:
         user: User objects
 
     Returns:
-        group: RBACGroupRole. If not None then model_id is the first organisation that this user has access to
-
+        model_id: If not None then model_id is the first organisation that this user has access to
     """
 
-    return (
+    access = (
         RBACGroupRole.objects.filter(group__rbacusergroup__member=user)
         .filter(app="orgs")
         .filter(model="org")
-        .first()
+        .values_list("model_id")
     )
 
+    if access:
+        return access[0][0]  # first match - first item in tuple (model_id)
 
-def replace_unregistered_user_with_real_user(
-    unregistered_user: UnregisteredUser, real_user: User
-):
-    """We don't take any data across from the user, but we do update the links"""
+    return None
 
-    # Call the callbacks - add later
-    print("Unregistered:", unregistered_user)
-    print("User:", real_user)
+
+def replace_unregistered_user_with_real_user(real_user: User):
+    """All the data is keyed off system_number so all we really need to do is to delete club emails.
+
+    The calling function deletes the unregistered user"""
+
+    MemberClubEmail.objects.filter(system_number=real_user).delete()
+
+    # Logs
+    clubs = MemberMembershipType.objects.filter(system_number=real_user.system_number)
+    for club in clubs:
+        ClubLog(
+            actor=User,
+            organisation=club.membership_type__organisation,
+            action=f"{real_user} registered for {GLOBAL_TITLE}. Unregistered user replaced with real user.",
+        )
