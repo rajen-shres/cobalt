@@ -6,8 +6,8 @@ from django.urls import include, path
 
 
 # Overwrite admin panel defaults
-admin.site.site_header = f"{settings.GLOBAL_ORG}Tech Administration"
-admin.site.site_title = f"{settings.GLOBAL_ORG} Administration"
+admin.site.site_header = f"{settings.GLOBAL_TITLE} Administration"
+admin.site.site_title = f"{settings.GLOBAL_TITLE} Administration"
 
 urlpatterns = [
     path("view", logged_out, name="logged_out"),

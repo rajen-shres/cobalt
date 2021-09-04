@@ -352,7 +352,7 @@ def admin_group_delete(request, group_id):
             "Admin Group successfully deleted.",
             extra_tags="cobalt-message-success",
         )
-        return redirect("rbac:access_screen")
+        return redirect("rbac:admin_tree_screen")
     return render(request, "rbac/admin_group_delete.html", {"group": group})
 
 

@@ -65,6 +65,7 @@ psql test < ~/test.db >/dev/null
   then
   ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
   else
+  echo ./manage.py run_tests --base_url http://127.0.0.1:$PORT
   ./manage.py run_tests --base_url http://127.0.0.1:$PORT
   fi
 fi

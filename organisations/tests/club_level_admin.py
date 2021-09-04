@@ -139,6 +139,8 @@ class ClubLevelAdmin:
             f"appear on the page.",
         )
 
+        time.sleep(5)
+
         # Use search to add Fiona
         cobalt_htmx_user_search(
             manager=self.manager,

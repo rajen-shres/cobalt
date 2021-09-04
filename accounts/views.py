@@ -915,7 +915,8 @@ def member_search_htmx(request):
     """Search on user first and last name.
 
     The goal of the member search is to finally replace the included search with a hidden user_id input field,
-    the users name and a button to search again.
+    the users name and a button to search again. Alternatively, a callback can be provided which will be called
+    if/when a user is selected.
 
     All parameters are passed through in the request:
 

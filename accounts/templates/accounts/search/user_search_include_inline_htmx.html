@@ -51,8 +51,10 @@
                     id="id_button_system_number_search{{ search_id }}"
                     hx-post="{% url "accounts:system_number_search_htmx" %}"
                     hx-target="#name-matches{{ search_id }}"
-                    {# add search id to hx-vars if it is set, or ignore. Also add include_me if set #}
-                    hx-vars="system_number_search:getSystemNumber('{{ search_id }}'){% if search_id %}, search_id:'{{ search_id }}'{% endif %}{% if include_me %}, include_me:'yes'{% endif %}"
+                    hx-vars="system_number_search:getSystemNumber('{{ search_id }}')
+                    {% if search_id %}, search_id:'{{ search_id }}'{% endif %}
+                    {% if callback %}, callback:'{{ callback }}'{% endif %}
+                    {% if include_me %}, include_me:'yes'{% endif %}"
 
                 >Lookup Number</button>
             </div>
