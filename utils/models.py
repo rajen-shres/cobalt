@@ -3,9 +3,12 @@
     This handles the models for general things such as batch processing.
 
 """
+from datetime import timedelta
+
+import pytz
 from django.db import models
 from django.utils import timezone
-from cobalt.settings import HOSTNAME
+from cobalt.settings import HOSTNAME, TIME_ZONE
 
 JOB_STATUSES = [
     ("Started", "Job started"),
@@ -15,7 +18,7 @@ JOB_STATUSES = [
 
 
 class Batch(models.Model):
-    """ Batch job status """
+    """Batch job status"""
 
     name = models.CharField("Name", max_length=30)
     run_date = models.DateTimeField("Run Date", default=timezone.now)
@@ -35,3 +38,19 @@ class Batch(models.Model):
             return f"{self.name}[{self.instance}] - {self.run_date} - {self.job_status}"
         else:
             return f"{self.name} - {self.run_date} - {self.job_status}"
+
+
+class Lock(models.Model):
+    """Equivalent of a lock file for a distributed environment"""
+
+    topic = models.CharField(max_length=100, unique=True)
+    lock_created_time = models.DateTimeField(default=timezone.now)
+    lock_open_time = models.DateTimeField(null=True, blank=True)
+    owner = models.CharField(max_length=200)
+
+    def __str__(self):
+        if self.lock_open_time:
+            local_dt = timezone.localtime(self.lock_open_time, pytz.timezone(TIME_ZONE))
+            return f"Locked - {self.topic} - Expires {local_dt:%d/%m/%Y %H:%M %Z}"
+        else:
+            return f"Unlocked - {self.topic}"

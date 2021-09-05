@@ -1,3 +1,4 @@
 # Crontab file for all AWS environments - NEEDS BLANK LINE AT END
 # Run the email check cron every 2 minutes
+# use sleep 20 ; to run more often
 */2 * * * * /var/app/current/utils/cron/wrapper.sh email_sender_cron
