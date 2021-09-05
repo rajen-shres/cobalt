@@ -307,3 +307,34 @@ class MemberClubEmail(models.Model):
 
     def __str__(self):
         return f"{self.organisation} - {self.email}"
+
+
+class ClubTag(models.Model):
+    """Tags are used by clubs to group members together mainly for email purposes. This is the definition
+    for a tag"""
+
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    tag_name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.organisation} - {self.tag_name}"
+
+
+class MemberClubTag(models.Model):
+    """Links a member to a tag for a club"""
+
+    club_tag = models.ForeignKey(ClubTag, on_delete=models.CASCADE)
+    member = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.club_tag} - {self.member}"
+
+
+class Visitor(models.Model):
+    """Visitors to a club"""
+
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    email = models.EmailField()
+    first_name = models.CharField("First Name", max_length=150)
+    last_name = models.CharField("Last Name", max_length=150)
+    notes = models.TextField(blank=True, null=True)
