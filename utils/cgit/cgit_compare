@@ -9,6 +9,15 @@ NC='\033[0m' # No Color
 OLD=$1
 NEW=$2
 
+if [ $# -lt 2 ]
+then
+  echo "Usage: $0 branch1 branch2 --ignore 'pattern'"
+  echo ""
+  echo "e.g. $0 develop my_branch --ignore '^static'"
+  echo "e.g. $0 develop my_branch --ignore '^static|html$|docs'"
+  exit
+fi
+
 if [[ -z $(git status -s) ]]
 then
   # Nothing
@@ -17,12 +26,19 @@ else
   printf "\n\n${BLUE}WARNING!!!${NC}: ${RED}Unsaved changes in current branch.${NC} These won't be included.\n\n"
   git status
   read -p "Press key to continue..." -n1 -s
+  echo ""
+  echo "Running..."
 fi
 
 # Format the HTML Template
 cp utils/cgit/tools/cgit_template.html /tmp/temp.html
-sed -i -e "s/!!BRANCH!!/$OLD/g" /tmp/temp.html
-sed -i -e "s/!!OTHERBRANCH!!/$NEW/g" /tmp/temp.html
+# Use # as sed character since / will be in release branch
+sed -i -e "s#!!BRANCH!!#$OLD#g" /tmp/temp.html
+sed -i -e "s#!!OTHERBRANCH!!#$NEW#g" /tmp/temp.html
 
-# Now run the diff
-git diff -w $NEW $OLD | diff2html -i stdin -s side --su open --htmlWrapperTemplate /tmp/temp.html
+if [ $# -gt 2 ]
+then
+git diff $NEW $OLD --name-only | grep -Ev $4 | xargs git diff $NEW -- | diff2html -i stdin -s side --su open --htmlWrapperTemplate /tmp/temp.html
+else
+  git diff -w $NEW $OLD | diff2html -i stdin -s side --su open --htmlWrapperTemplate /tmp/temp.html
+fi
