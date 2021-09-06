@@ -111,13 +111,13 @@ Environment: {{ COBALT_HOSTNAME }}
                     </li>
                     <hr>
 
-                    {% if club_staff %}
-                        <li class="nav-item {% if request.path|slice:":14" == "/organisations" %}active{% endif %} ">
-                            <a class="nav-link" href="{% url "organisations:club_menu" club_id=club_staff %}">
-                                <i class="material-icons">storefront</i>
-                                <p>Club Admin</p>
-                            </a>
-                    {% endif %}
+                    {#                    {% if club_staff %}#}
+                    {#                        <li class="nav-item {% if request.path|slice:":14" == "/organisations" %}active{% endif %} ">#}
+                    {#                            <a class="nav-link" href="{% url "organisations:club_menu" club_id=club_staff %}">#}
+                    {#                                <i class="material-icons">storefront</i>#}
+                    {#                                <p>Club Admin</p>#}
+                    {#                            </a>#}
+                    {#                    {% endif %}#}
 
                     {% if request.user.is_superuser %}
                         <li class="nav-item {% if request.path|slice:":5" == "/logs" %}active{% endif %} ">

@@ -12,7 +12,6 @@ urlpatterns = [
         SESEventWebhookView.as_view(),
         name="handle-event-webhook",
     ),
-    path("ses/event-webhook2/", views.ses_webhook, name="ses"),
     path("", views.homepage, name="homepage"),
     path("passthrough/<int:id>/", views.passthrough, name="passthrough"),
     path("deleteall", views.deleteall, name="deleteall"),

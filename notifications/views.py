@@ -773,13 +773,3 @@ def watch_emails(request, batch_id):
             "show_details": show_details,
         },
     )
-
-
-@csrf_exempt
-def ses_webhook(request):
-    print("aardvark", flush=True)
-
-    if request.method == "POST":
-        print(request.POST, flush=True)
-
-    return HttpResponse()
