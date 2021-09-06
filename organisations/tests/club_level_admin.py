@@ -166,6 +166,7 @@ class ClubLevelAdmin:
 
         # Delete Fiona
         try:
+            time.sleep(5)
             self.manager.selenium_wait_for(f"id_delete_user_{self.manager.fiona.id}")
             self.manager.selenium_wait_for_clickable(
                 f"id_delete_user_{self.manager.fiona.id}"
