@@ -1,19 +1,9 @@
 import time
 
-from django.urls import reverse
-from selenium.common.exceptions import StaleElementReferenceException
-
-from accounts.tests.common_functions import register_user
-from organisations.models import Organisation
 from organisations.tests.common_functions import (
-    access_club_menu,
-    club_menu_items,
     club_menu_go_to_tab,
-    access_finance_for_club,
-    set_rbac_status_as_user,
     login_and_go_to_club_menu,
 )
-from tests.common_functions import cobalt_htmx_user_search
 from tests.test_manager import CobaltTestManager
 
 # TODO: See if these constants can be centrally stored

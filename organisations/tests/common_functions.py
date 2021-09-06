@@ -361,7 +361,7 @@ def login_and_go_to_club_menu(
         reverse_result: for tests that should fail
     """
     # Login as user
-    manager.login_selenium_user(manager.gary)
+    manager.login_selenium_user(user)
 
     # Go to club menu
     club = Organisation.objects.filter(org_id=org_id).first()

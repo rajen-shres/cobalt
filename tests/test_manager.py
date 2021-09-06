@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import os
 
 from selenium.common.exceptions import TimeoutException
 from termcolor import colored
@@ -192,15 +193,23 @@ class CobaltTestManager:
             calling_class = stack[1][0].f_locals["self"].__class__.__name__
             calling_class_doc = stack[1][0].f_locals["self"].__class__.__doc__
             calling_method = stack[1][0].f_code.co_name
+            calling_line_no = stack[1][0].f_lineno
+            calling_file = stack[1][0].f_code.co_filename
         except KeyError:
             try:
                 calling_class = stack[2][0].f_locals["self"].__class__.__name__
                 calling_class_doc = stack[2][0].f_locals["self"].__class__.__doc__
                 calling_method = stack[2][0].f_code.co_name
+                calling_line_no = stack[2][0].f_lineno
+                calling_file = stack[2][0].f_code.co_filename
             except KeyError:
                 calling_class = stack[3][0].f_locals["self"].__class__.__name__
                 calling_class_doc = stack[3][0].f_locals["self"].__class__.__doc__
                 calling_method = stack[3][0].f_code.co_name
+                calling_line_no = stack[3][0].f_lineno
+                calling_file = stack[3][0].f_code.co_filename
+
+        calling_file = os.path.basename(calling_file)
 
         # dictionary for class doc strings
         if calling_class not in self.class_docs:
@@ -239,11 +248,22 @@ class CobaltTestManager:
         else:
             status_coloured = colored("Pass", "white", "on_magenta", attrs=["bold"])
 
+        test_name = (
+            (test_name[:70] + "..") if len(test_name) > 72 else test_name.ljust(72)
+        )
         test_name_coloured = colored(test_name, "green")
+        calling_method = (
+            (calling_method[:40] + "..")
+            if len(calling_method) > 42
+            else calling_method.ljust(42)
+        )
         calling_method_coloured = colored(calling_method, "cyan")
+        calling_line_coloured = (
+            colored(calling_file, "green") + ":" + colored(calling_line_no, "green")
+        )
 
         print(
-            f"[{status_coloured} - {test_name_coloured} in {calling_method_coloured}]"
+            f"{status_coloured} - {test_name_coloured} in {calling_method_coloured} {calling_line_coloured}"
         )
 
     def report(self):
@@ -374,19 +394,29 @@ class CobaltTestManager:
     def run(self):
         # Actually run the test. Pass in this class instance too.
 
-        # go through list, import and instantiate
-        for test_list_item in LIST_OF_TESTS:
-            test_class = getattr(
-                importlib.import_module(LIST_OF_TESTS[test_list_item]), test_list_item
-            )
-            class_instance = test_class(self)
+        try:
 
-            # Check if only running one test
-            if (
-                self.app_to_test is None
-                or self.app_to_test == type(class_instance).__name__
-            ):
-                print(f"Running {LIST_OF_TESTS[test_list_item]} - {test_list_item}")
-                run_methods(class_instance)
+            # go through list, import and instantiate
+            for test_list_item in LIST_OF_TESTS:
+                test_class = getattr(
+                    importlib.import_module(LIST_OF_TESTS[test_list_item]),
+                    test_list_item,
+                )
+                class_instance = test_class(self)
+
+                # Check if only running one test
+                if (
+                    self.app_to_test is None
+                    or self.app_to_test == type(class_instance).__name__
+                ):
+                    print(
+                        f"\nRunning {LIST_OF_TESTS[test_list_item]} - {test_list_item}"
+                    )
+                    run_methods(class_instance)
+
+            print("\nFinished running tests\n")
+
+        except KeyboardInterrupt:
+            print("\nInterrupted\n\n")
 
         self.driver.quit()

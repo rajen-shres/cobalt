@@ -61,7 +61,7 @@ class ClubLevelAdmin:
             user=self.manager.eric,
             club_id=club.id,
             expected_club_name=club_names[TRUMPS_ID],
-            test_name=f"1. Check that Eric can't access the club menu for {club_names[TRUMPS_ID]}",
+            test_name=f"Check that Eric can't access the club menu for {club_names[TRUMPS_ID]}",
             test_description=f"Go to the club menu page for {club_names[TRUMPS_ID]} "
             f"(org_id={TRUMPS_ID}) as Eric who shouldn't have access.",
             reverse_result=True,
@@ -73,7 +73,7 @@ class ClubLevelAdmin:
             user=self.manager.debbie,
             club_id=club.id,
             expected_club_name=club_names[TRUMPS_ID],
-            test_name=f"2. Check that Debbie can access the club menu for {club_names[TRUMPS_ID]}",
+            test_name=f"Check that Debbie can access the club menu for {club_names[TRUMPS_ID]}",
             test_description=f"Go to the club menu page for {club_names[TRUMPS_ID]} "
             f"(org_id={TRUMPS_ID}) as Debbie (club secretary)",
         )
@@ -94,7 +94,7 @@ class ClubLevelAdmin:
         club_menu_items(
             manager=self.manager,
             expected_tabs=expected_tabs,
-            test_name=f"3. Check tabs for Debbie for {club_names[TRUMPS_ID]}",
+            test_name=f"Check tabs for Debbie for {club_names[TRUMPS_ID]}",
             test_description=f"Go to the club menu page for {club_names[TRUMPS_ID]} "
             f"(org_id={TRUMPS_ID}) as Debbie. Check tabs are {expected_tabs}",
         )
@@ -109,7 +109,7 @@ class ClubLevelAdmin:
             manager=self.manager,
             tab="access",
             title="Staff Access",
-            test_name=f"4. Go to Access tab as Debbie for {club_names[TRUMPS_ID]}",
+            test_name=f"Go to Access tab as Debbie for {club_names[TRUMPS_ID]}",
             test_description="Starting from the dashboard of Club Menu we click on the Access tab "
             "and confirm that we get there.",
         )
@@ -133,7 +133,7 @@ class ClubLevelAdmin:
         self.manager.save_results(
             status=ok,
             output=output,
-            test_name=f"5. Debbie adds Eric as an admin to Basic RBAC for {club_names[TRUMPS_ID]}",
+            test_name=f"Debbie adds Eric as an admin to Basic RBAC for {club_names[TRUMPS_ID]}",
             test_description=f"Debbie goes to Access tab for {club_names[TRUMPS_ID]} and uses the HTMX user "
             f"search to add Eric as an Admin using Basic RBAC. We then look for Eric to "
             f"appear on the page.",
@@ -158,7 +158,7 @@ class ClubLevelAdmin:
         self.manager.save_results(
             status=ok,
             output=output,
-            test_name=f"6. Debbie adds Fiona as an admin to Basic RBAC for {club_names[TRUMPS_ID]}",
+            test_name=f"Debbie adds Fiona as an admin to Basic RBAC for {club_names[TRUMPS_ID]}",
             test_description=f"Debbie goes to Access tab for {club_names[TRUMPS_ID]} and uses the HTMX user "
             f"search to add Fiona as an Admin using Basic RBAC. We then look for Fiona to "
             f"appear on the page.",
@@ -166,7 +166,6 @@ class ClubLevelAdmin:
 
         # Delete Fiona
         try:
-            time.sleep(5)
             self.manager.selenium_wait_for(f"id_delete_user_{self.manager.fiona.id}")
             self.manager.selenium_wait_for_clickable(
                 f"id_delete_user_{self.manager.fiona.id}"
@@ -193,7 +192,7 @@ class ClubLevelAdmin:
         self.manager.save_results(
             status=ok,
             output=output,
-            test_name=f"7. Debbie deletes Fiona as an admin from Basic RBAC for {club_names[TRUMPS_ID]}",
+            test_name=f"Debbie deletes Fiona as an admin from Basic RBAC for {club_names[TRUMPS_ID]}",
             test_description=f"Debbie goes to Access tab for {club_names[TRUMPS_ID]} and deletes Fiona "
             f"as an Admin using Basic RBAC. We then look for Fiona to "
             f"appear on the page.",
@@ -214,7 +213,7 @@ class ClubLevelAdmin:
         club_menu_items(
             manager=self.manager,
             expected_tabs=expected_tabs,
-            test_name=f"8. Check tabs for Eric for {club_names[TRUMPS_ID]}",
+            test_name=f"Check tabs for Eric for {club_names[TRUMPS_ID]}",
             test_description=f"Go to the club menu page for {club_names[TRUMPS_ID]} "
             f"(org_id={TRUMPS_ID}) as Eric. Check tabs are {expected_tabs}",
         )
@@ -227,7 +226,7 @@ class ClubLevelAdmin:
             manager=self.manager,
             club=trumps,
             user=self.manager.colin,
-            test_name=f"9. Access finance info for {trumps} as Colin",
+            test_name=f"Access finance info for {trumps} as Colin",
             test_description=f"Colin tries to access the club bank statement for {trumps}. This should fail "
             f"as he doesn't have access to it.",
             reverse_result=True,
@@ -239,7 +238,7 @@ class ClubLevelAdmin:
             manager=self.manager,
             club=trumps,
             user=self.manager.eric,
-            test_name=f"10. Access finance info for {trumps} as Eric",
+            test_name=f"Access finance info for {trumps} as Eric",
             test_description=f"Eric tries to access the club bank statement for {trumps}. This should work "
             f"as he has access to it.",
             reverse_result=False,
@@ -261,7 +260,7 @@ class ClubLevelAdmin:
             user=self.manager.colin,
             club_org_id=SUNSHINE_ID,
             new_status="Advanced",
-            test_name="11. Re-Check Colin can change RBAC status to Advanced for a Club in his state.",
+            test_name="Re-Check Colin can change RBAC status to Advanced for a Club in his state.",
             test_description=f"""Colin tries to change RBAC status for {club_names[SUNSHINE_ID]}
                                  from Basic to Advanced. Should work. We already tested this but we need
                                  it changed to advanced for the next tests.""",
@@ -280,7 +279,7 @@ class ClubLevelAdmin:
             manager=self.manager,
             tab="access",
             title="Staff Access",
-            test_name=f"12. Go to Access tab as Colin for {club_names[SUNSHINE_ID]}",
+            test_name=f"Go to Access tab as Colin for {club_names[SUNSHINE_ID]}",
             test_description="Starting from the dashboard of Club Menu we click on the Access tab "
             "and confirm that we get there.",
         )
@@ -295,7 +294,7 @@ class ClubLevelAdmin:
 
         self.manager.save_results(
             status=True,
-            test_name="13. Colin adds Fiona to Payments View",
+            test_name="Colin adds Fiona to Payments View",
             test_description=f"Colin uses the search to add Fiona as a user to payments view "
             f"for {club_names[SUNSHINE_ID]}",
             output="This seemed to work. True",
@@ -311,7 +310,7 @@ class ClubLevelAdmin:
 
         self.manager.save_results(
             status=True,
-            test_name="14. Colin adds Gary to Conveners",
+            test_name="Colin adds Gary to Conveners",
             test_description=f"Colin uses the search to add Gary as a user to conveners "
             f"for {club_names[SUNSHINE_ID]}",
             output="This seemed to work. True",
@@ -327,7 +326,7 @@ class ClubLevelAdmin:
 
         self.manager.save_results(
             status=True,
-            test_name="15. Colin adds Heidi as an Administrator",
+            test_name="Colin adds Heidi as an Administrator",
             test_description=f"Colin uses the search to add Heidi as an Administrator "
             f"for {club_names[SUNSHINE_ID]}",
             output="This seemed to work. True",
@@ -351,7 +350,7 @@ class ClubLevelAdmin:
         club_menu_items(
             manager=self.manager,
             expected_tabs=expected_tabs,
-            test_name=f"16. Check tabs for Fiona for {club_names[SUNSHINE_ID]}",
+            test_name=f"Check tabs for Fiona for {club_names[SUNSHINE_ID]}",
             test_description=f"Login as Fiona and go to the club menu page for {club_names[SUNSHINE_ID]} "
             f"(org_id={SUNSHINE_ID}). Check tabs are {expected_tabs}",
         )
@@ -362,7 +361,7 @@ class ClubLevelAdmin:
             org_id=SUNSHINE_ID,
             user=self.manager.gary,
             test_description="Login as Gary and go to club menu",
-            test_name="17. Login as Gary and go to club menu",
+            test_name="Login as Gary and go to club menu",
             reverse_result=False,
         )
 
@@ -380,7 +379,7 @@ class ClubLevelAdmin:
         club_menu_items(
             manager=self.manager,
             expected_tabs=expected_tabs,
-            test_name=f"18. Check tabs for Gary for {club_names[SUNSHINE_ID]}",
+            test_name=f"Check tabs for Gary for {club_names[SUNSHINE_ID]}",
             test_description=f"Login as Gary and go to the club menu page for {club_names[SUNSHINE_ID]} "
             f"(org_id={SUNSHINE_ID}). Check tabs are {expected_tabs}. Should not have payments.",
         )
@@ -391,33 +390,6 @@ class ClubLevelAdmin:
             org_id=SUNSHINE_ID,
             user=self.manager.heidi,
             test_description="Login as Heidi and go to club menu",
-            test_name="19. Login as Heidi and go to club menu",
-            reverse_result=False,
+            test_name="Login as Heidi and go to club menu",
+            reverse_result=True,
         )
-
-        # Go to Access tab
-        club_menu_go_to_tab(
-            manager=self.manager,
-            tab="access",
-            title="Staff Access",
-            test_name=f"20. Go to Access tab as Heidi for {club_names[SUNSHINE_ID]}",
-            test_description="Starting from the dashboard of Club Menu we click on the Access tab "
-            "and confirm that we get there.",
-        )
-
-        # Check if we can click on the admin
-        if self.manager.selenium_wait_for("id_add_administrator").is_enabled():
-            ok = False
-        else:
-            ok = True
-
-        self.manager.save_results(
-            status=ok,
-            test_name="21. Check if Heidi (no-admin) is an admin",
-            test_description=f"Heidi goes to the the access tab to see if the Add Administrator button is available. "
-            f"for {club_names[SUNSHINE_ID]}",
-            output=f"Expected: Not available. Status: {ok}",
-        )
-
-
-#
