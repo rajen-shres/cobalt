@@ -295,19 +295,19 @@ def club_menu_items(
 def club_menu_go_to_tab(
     manager: CobaltTestManager,
     tab: str,
-    title: str,
+    title_id: str,
     test_name: str,
     test_description: str,
 ):
     """Common function to move to the Access tab
 
         Initial Selenium State: On any tab of Club Menu
-        Final Selenium State: On Access tab of Club Menu
+        Final Selenium State: On specified tab of Club Menu
 
     Args:
         manager: test_manager.Manager object for interacting with system
-        tab: the tabs we want to go to
-        title: expected H1 of tab
+        tab: the tab we want to go to
+        title_id: id of the title, should appear if we successfully click on tab
         test_description: long description of test
         test_name: name of test
     """
@@ -319,14 +319,20 @@ def club_menu_go_to_tab(
     if tabs:
         tabs[0].click()
     else:
-        print("ERROR - CANNOT FIND TAB")
+        manager.save_results(
+            status=False,
+            test_name=test_name,
+            output=f"Tried to click on tab {tab}. Tab not found",
+            test_description=test_description,
+        )
+        return
 
-    # Confirm
-    tab_heading = manager.driver.find_elements_by_id("t_tab_heading")
+    # See if the page now has an element with id=title_id
+    title = manager.selenium_wait_for(title_id)
 
-    if tab_heading:
-        tab_title = tab_heading[0].text
-        ok = title == tab_title
+    if title:
+        tab_title = title.text
+        ok = True
     else:
         tab_title = "Not found"
         ok = False
@@ -334,7 +340,8 @@ def club_menu_go_to_tab(
     manager.save_results(
         status=ok,
         test_name=test_name,
-        output=f"Clicked on tab {tab}. Checked if t_tab_heading={title}. Actual value: {tab_title}. {ok}.",
+        output=f"Clicked on tab {tab}. Checked for id={title_id} to be present. {ok}. Title found was: {tab_title}. "
+        "Note. This could have been on the screen already.",
         test_description=test_description,
     )
 

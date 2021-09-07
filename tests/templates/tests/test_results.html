@@ -140,50 +140,51 @@
                                                                         style="display: none;"
                                                                         class="p-3">
                                                                         <div class="card">
-                                                                            <div class="card-body">
+                                                                            <div class="card-body pb-1">
                                                                                 <h5 class="card-title">Test Description</h5>
                                                                                 <p class="card-text fst-italic">{{ row.test_description|default_if_none:"No information available" }}</p>
+                                                                                <p class="text-warning m-0"><small>{{ row.file }}:{{ row.line_no }}<small></p>
+                                                                                </div>
+                                                                                </div>
+
                                                                             </div>
-                                                                        </div>
 
-                                                                    </div>
+                                                                        </td>
 
-                                                                </td>
+                                                                        {#  hide output for Pass but allow click on icon to reveal it #}
 
-                                                                {#  hide output for Pass but allow click on icon to reveal it #}
+                                                                        <td class="col-2">
 
-                                                                <td class="col-2">
+                                                                            {% if row.status == "Pass" %}
 
-                                                                    {% if row.status == "Pass" %}
+                                                                                <i class="material-icons hidden-desc"
+                                                                                    id="show_{{ row.id }}"
+                                                                                    title="{% if row.error_desc %}Click to Show{% else %}No information{% endif %}"
+                                                                                    data-toggle="tooltip"
+                                                                                    style="color: blue; {% if row.error_desc %}cursor: pointer;{% endif %}">
+                                                                                    check_circle
+                                                                                </i>
 
-                                                                        <i class="material-icons hidden-desc"
-                                                                            id="show_{{ row.id }}"
-                                                                            title="{% if row.error_desc %}Click to Show{% else %}No information{% endif %}"
-                                                                            data-toggle="tooltip"
-                                                                            style="color: blue; {% if row.error_desc %}cursor: pointer;{% endif %}">
-                                                                            check_circle
-                                                                        </i>
+                                                                            {% else %}
 
-                                                                    {% else %}
+                                                                                <span class="material-icons" style="color: red">
+                                                                                    error
+                                                                                </span>
 
-                                                                        <span class="material-icons" style="color: red">
-                                                                            error
-                                                                        </span>
+                                                                            {% endif %}
 
-                                                                    {% endif %}
+                                                                        </td>
 
-                                                                </td>
+                                                                        <td class="col-4">
+                                                                            <span id="desc_{{ row.id }}"
+                                                                                {% if row.status == "Pass" %}
+                                                                                    style="display: none;"
+                                                                                {% endif %}
+                                                                            >
+                                                                                {{ row.error_desc|default_if_none:"" }}
+                                                                            </span></td>
 
-                                                                <td class="col-4">
-                                                                    <span id="desc_{{ row.id }}"
-                                                                        {% if row.status == "Pass" %}
-                                                                            style="display: none;"
-                                                                        {% endif %}
-                                                                    >
-                                                                        {{ row.error_desc|default_if_none:"" }}
-                                                                    </span></td>
-
-                                                            </tr>
+                                                                    </tr>
                                                         {% endfor %}
                                                     </tbody>
                                                 </table>

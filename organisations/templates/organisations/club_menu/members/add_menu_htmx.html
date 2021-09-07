@@ -12,6 +12,7 @@
                 <tr>
                     <td>
                         <button class="btn bg-primary btn-block"
+                            id="t_member_add_individual_member"
                             hx-post="{% url "organisations:club_menu_tab_members_add_member_htmx" %}"
                             hx-target="#id_member_add_tab"
                             hx-vars="club_id:{{ club.id }}"
@@ -24,6 +25,7 @@
                 <tr>
                     <td>
                         <button class="btn bg-primary btn-block"
+                            id="t_member_add_individual_un_reg"
                             hx-post="{% url "organisations:club_menu_tab_members_add_un_reg_htmx" %}"
                             hx-target="#id_member_add_tab"
                             hx-vars="club_id:{{ club.id }}"
@@ -36,6 +38,7 @@
                 <tr>
                     <td>
                         <button class="btn bg-primary btn-block"
+                            id="t_mpc_import"
                             hx-post="{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}"
                             hx-target="#id_member_add_tab"
                         >MPC Import</button>

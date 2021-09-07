@@ -2,7 +2,11 @@ import importlib
 import inspect
 import os
 
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import (
+    TimeoutException,
+    NoSuchElementException,
+    StaleElementReferenceException,
+)
 from termcolor import colored
 from django.template.loader import render_to_string
 from django.test import Client
@@ -25,6 +29,7 @@ LIST_OF_TESTS = {
     "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
     "ClubLevelAdmin": "organisations.tests.club_level_admin",
     "ClubSettings": "organisations.tests.club_settings",
+    "ClubMembers": "organisations.tests.club_members",
 }
 
 
@@ -143,32 +148,48 @@ class CobaltTestManager:
         self.driver.find_element(By.ID, "id_password").send_keys(self.test_code)
         self.driver.find_element_by_class_name("btn").click()
 
-    def selenium_wait_for(self, element_id):
+    def _selenium_wait(self, wait_event, element_id, timeout):
+        """Wait for something and return it"""
+        try:
+            ignored_exceptions = (
+                NoSuchElementException,
+                StaleElementReferenceException,
+            )
+            WebDriverWait(
+                self.driver, timeout, ignored_exceptions=ignored_exceptions
+            ).until(wait_event)
+            return self.driver.find_element_by_id(element_id)
+        except TimeoutException:
+            return False
+
+    def selenium_wait_for(self, element_id, timeout=5):
         """Wait for element_id to be on page and return it"""
         element_present = expected_conditions.presence_of_element_located(
             (By.ID, element_id)
         )
-        WebDriverWait(self.driver, 5).until(element_present)
-        return self.driver.find_element_by_id(element_id)
+        return self._selenium_wait(element_present, element_id, timeout=timeout)
 
-    def selenium_wait_for_clickable(self, element_id):
+    def selenium_wait_for_clickable(self, element_id, timeout=5):
         """Wait for element_id to be clickable and return it. E.g. if element is hidden."""
         element_clickable = expected_conditions.element_to_be_clickable(
             (By.ID, element_id)
         )
-        WebDriverWait(self.driver, 5).until(element_clickable)
-        return self.driver.find_element_by_id(element_id)
+        return self._selenium_wait(element_clickable, element_id, timeout=timeout)
 
-    def selenium_wait_for_text(self, element_id, text):
+    def selenium_wait_for_clickable_by_name(self, element_name, timeout=5):
+        """Wait for element_name to be clickable and return it."""
+        element_clickable = expected_conditions.element_to_be_clickable(
+            (By.NAME, element_name)
+        )
+        return self._selenium_wait(element_clickable, element_name, timeout=timeout)
+
+    def selenium_wait_for_text(self, text, element_id, timeout=5):
         """Wait for text to appear in element_id."""
+
         element_has_text = expected_conditions.text_to_be_present_in_element(
             (By.ID, element_id), text
         )
-        try:
-            WebDriverWait(self.driver, 5).until(element_has_text)
-            return True
-        except TimeoutException:
-            return False
+        return self._selenium_wait(element_has_text, element_id, timeout=timeout)
 
     def save_results(self, status, test_name, test_description=None, output=None):
         """handle logging results
@@ -233,6 +254,8 @@ class CobaltTestManager:
             "status": status,
             "test_description": test_description,
             "output": output,
+            "file": calling_file,
+            "line_no": calling_line_no,
         }
 
         # Add to our list if not already there
@@ -342,16 +365,16 @@ class CobaltTestManager:
             ):
                 item = self.test_results[calling_class][calling_method][test_name]
                 status = item["status"]
-                error_desc = item["output"]
-                test_description = item["test_description"]
                 status_word = "Pass" if status else "Fail"
 
                 data[calling_class][calling_method].append(
                     {
                         "test_name": test_name,
                         "status": status_word,
-                        "test_description": test_description,
-                        "error_desc": error_desc,
+                        "test_description": item["test_description"],
+                        "file": item["file"],
+                        "line_no": item["line_no"],
+                        "error_desc": item["output"],
                         "counter": f"[{counter}/{length}]",
                         "id": f"{calling_method}-{counter}",
                     }

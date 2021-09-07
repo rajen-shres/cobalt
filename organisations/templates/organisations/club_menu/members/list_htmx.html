@@ -33,6 +33,7 @@
                                     <td>
                                         {% if member_admin %}
                                             <a href="#"
+                                                id="t_edit_member_{{ cobalt_member.id }}"
                                                 hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
                                                 hx-target="#id_member_list_tab"
                                                 hx-vars="club_id:{{ club.id }}, member:{{ cobalt_member.id }}">

@@ -5,7 +5,7 @@
 
     <div class="card">
         <div class="card-header card-header-info">
-            <h2 id="t_tab_heading">Club Settings</h2>
+            <h2 id="t_tab_heading_settings">Club Settings</h2>
             {% include "organisations/club_menu/settings/nav_htmx.html" with selected="details" %}
         </div>
 
@@ -17,6 +17,7 @@
             {% if org_form.warnings %}
                 <span>This data is out of step with the Masterpoints Centre</span>
                 <button class="btn btn-sm btn-success"
+                    id="t_reload_mpc"
                     hx-post="{% url "organisations:club_menu_tab_settings_reload_basic_htmx" %}"
                     hx-indicator=".htmx-indicator"
                     hx-target="#id_settings_form"

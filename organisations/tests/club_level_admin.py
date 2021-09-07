@@ -25,7 +25,7 @@ QLD = 5
 # Org org_id numbers
 CANBERRA_ID = 1851
 TRUMPS_ID = 2259
-SUNSHINE_ID = 4860
+SUNSHINE_ID = 4680
 WAVERLEY_ID = 3480
 
 # Org names
@@ -108,7 +108,7 @@ class ClubLevelAdmin:
         club_menu_go_to_tab(
             manager=self.manager,
             tab="access",
-            title="Staff Access",
+            title_id="t_tab_heading_access",
             test_name=f"Go to Access tab as Debbie for {club_names[TRUMPS_ID]}",
             test_description="Starting from the dashboard of Club Menu we click on the Access tab "
             "and confirm that we get there.",
@@ -123,7 +123,7 @@ class ClubLevelAdmin:
         )
 
         # Check Eric is there
-        ok = self.manager.selenium_wait_for_text("access", "Eric")
+        ok = self.manager.selenium_wait_for_text("Eric", "access")
 
         if ok:
             output = "Added Eric through search and he appeared in the 'access' div afterwards. Pass."
@@ -148,7 +148,7 @@ class ClubLevelAdmin:
         )
 
         # Check Fiona is there
-        ok = self.manager.selenium_wait_for_text("access", "Fiona")
+        ok = self.manager.selenium_wait_for_text("Fiona", "access")
 
         if ok:
             output = "Added Fiona through search and she appeared in the 'access' div afterwards. Pass."
@@ -180,7 +180,7 @@ class ClubLevelAdmin:
         ).click()
 
         # Wait for screen - will have betty on it
-        self.manager.selenium_wait_for_text("access", "Betty")
+        self.manager.selenium_wait_for_text("Betty", "access")
         # Check for Fiona
         ok = self.manager.driver.find_element_by_id("access").text.find("Fiona") == -1
 
@@ -278,7 +278,7 @@ class ClubLevelAdmin:
         club_menu_go_to_tab(
             manager=self.manager,
             tab="access",
-            title="Staff Access",
+            title_id="t_tab_heading_access",
             test_name=f"Go to Access tab as Colin for {club_names[SUNSHINE_ID]}",
             test_description="Starting from the dashboard of Club Menu we click on the Access tab "
             "and confirm that we get there.",
