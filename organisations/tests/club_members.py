@@ -246,5 +246,5 @@ class ClubMembers:
             output=f"Eric cancelled Betty's membership of {club_names[SUNSHINE_ID]}. "
             f"Outcome: {ok}",
             test_name=f"Eric cancels Betty as member of {club_names[SUNSHINE_ID]}.",
-            test_description=f"Eric cancels Betty's membership of for {club_names[SUNSHINE_ID]}. ",
+            test_description=f"Eric cancels Betty's membership of {club_names[SUNSHINE_ID]}. ",
         )
