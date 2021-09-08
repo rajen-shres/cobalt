@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} - RBAC Tree View (List){% endblock %}
+{% block content %}
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#rbac">Admin</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tree List</li>
+        </ol>
+    </nav>
+
+    <h1>Role Based Access Control</h1>
+
+    <div>
+        <div class="card">
+            <div class="card-header card-header-primary">
+                <h3 class="card-title">RBAC Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="container">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Group</th>
+                                    <th>Roles</th>
+                                    <th>Members</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for group in groups %}
+                                    <tr>
+                                        <td class="align-top">
+                                            <span class="font-weight-bold">
+                                                <a href="{% url "rbac:group_edit" group_id=group.id %}">
+                                                    {{ group.name_qualifier }}.{{ group.name_item }}
+                                                </a>
+                                            </span><br>
+                                            <span class="font-italic">
+                                                {{ group.description }}
+                                            </span>
+                                        </td>
+                                        <td class="align-top">
+                                            <ul>
+                                                {% for role in group.roles %}
+                                                    <li>{{ role.role }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </td>
+                                        <td class="align-top">
+                                            <ul>
+                                                {% for member in group.members %}
+                                                    <li>{{ member.member.full_name }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

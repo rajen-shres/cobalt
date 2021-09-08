@@ -124,7 +124,8 @@ class Command(BaseCommand):
         Requires csv files to have the app and model in the first row and
         the fieldnames in the second row."""
 
-        f = open(file, encoding="ISO-8859-1")
+        # f = open(file, encoding="ISO-8859-1")
+        f = open(file, encoding="utf-8")
 
         lines = f.readlines()
 
@@ -140,19 +141,12 @@ class Command(BaseCommand):
             sys.exit()
 
         try:
-            if lines[0].split(",")[3] == "duplicates":
-                allow_dupes = True
-            else:
-                allow_dupes = False
+            allow_dupes = lines[0].split(",")[3] == "duplicates"
         except (ValueError, IndexError):
             allow_dupes = False
 
         headers = lines[1]
-        header_list = []
-
-        # take column names from header
-        for header in headers.split(","):
-            header_list.append(header.strip())
+        header_list = [header.strip() for header in headers.split(",")]
 
         # loop through records
         for line in lines[2:]:
@@ -172,7 +166,7 @@ class Command(BaseCommand):
             row = {}
             for i in range(len(header_list)):
                 try:
-                    if not columns[i].strip() == "":
+                    if columns[i].strip() != "":
                         row[header_list[i]] = columns[i].strip()
                 except IndexError:
                     row[header_list[i]] = None
@@ -214,10 +208,7 @@ class Command(BaseCommand):
                         elif key[:2] != "t.":  # exclude time
                             exec_cmd2 = f"module = import_module(f'{app}.models')\nfield_type=module.{model}._meta.get_field('{key}').get_internal_type()"
                             exec(exec_cmd2, globals())
-                            if (
-                                field_type == "CharField"  # noqa: F821
-                                or field_type == "TextField"  # noqa: F821
-                            ):  # noqa: F821
+                            if field_type in ["CharField", "TextField"]:  # noqa: F821
                                 exec_cmd += f".filter({key}='{value}')"
                             else:
                                 exec_cmd += f".filter({key}={value})"
@@ -268,27 +259,24 @@ class Command(BaseCommand):
                         except AttributeError:
                             pass
                         if key != "id" and key[:2] != "t.":
-                            if len(key) > 3:
-                                if key[:3] == "id.":  # foreign key
-                                    parts = key.split(".")
-                                    fkey = parts[1]
-                                    fapp = parts[2]
-                                    fmodel = parts[3]
-                                    try:
-                                        val = self.id_array[f"{fapp}.{fmodel}"][value]
-                                    except KeyError:
-                                        print("\n\nError\n")
-                                        print(row)
-                                        print(
-                                            f"Foreign key not found: {fapp}.{fmodel}: {value}"
-                                        )
-                                        print(
-                                            f"Check that the file with {app}.{model} has id {value} and that it is loaded before this file.\n"
-                                        )
-                                        sys.exit()
-                                    setattr(instance, fkey, val)
-                                else:
-                                    setattr(instance, key, value)
+                            if len(key) > 3 and key[:3] == "id.":  # foreign key
+                                parts = key.split(".")
+                                fkey = parts[1]
+                                fapp = parts[2]
+                                fmodel = parts[3]
+                                try:
+                                    val = self.id_array[f"{fapp}.{fmodel}"][value]
+                                except KeyError:
+                                    print("\n\nError\n")
+                                    print(row)
+                                    print(
+                                        f"Foreign key not found: {fapp}.{fmodel}: {value}"
+                                    )
+                                    print(
+                                        f"Check that the file with {app}.{model} has id {value} and that it is loaded before this file.\n"
+                                    )
+                                    sys.exit()
+                                setattr(instance, fkey, val)
                             else:
                                 setattr(instance, key, value)
                         if key[:2] == "t.":

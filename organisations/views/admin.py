@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 
@@ -26,7 +27,9 @@ from rbac.core import (
     rbac_get_users_in_group,
     rbac_delete_group,
     rbac_user_has_admin_tree_access,
+    rbac_user_has_any_model,
 )
+from rbac.models import RBACGroupRole
 from rbac.views import rbac_forbidden
 
 
@@ -131,6 +134,39 @@ def admin_list_clubs(request):
     """List Clubs in the system. For State or ABF Administrators"""
 
     clubs = Organisation.objects.filter(type="Club").order_by("state", "name")
+
+    # Check roles so we only show clubs user can edit
+
+    # Global admin - gets everything
+    if rbac_user_has_role(request.user, "orgs.admin.edit"):
+        for club in clubs:
+            club.user_can_edit = True
+
+    else:
+        # State admin (could have clubs too)
+        states_rbac = (
+            RBACGroupRole.objects.filter(app="orgs", model="state")
+            .filter(group__rbacusergroup__member=request.user)
+            .values("model_id")
+        )
+        if states_rbac:
+            states = Organisation.objects.filter(pk__in=states_rbac).values_list(
+                "state", flat=True
+            )
+            for club in clubs:
+                if club.state in states:
+                    club.user_can_edit = True
+
+        # individual clubs - goes on top of state access (if any)
+        clubs_rbac = (
+            RBACGroupRole.objects.filter(app="orgs", model="org")
+            .filter(Q(action="edit") | Q(action="all"))
+            .filter(group__rbacusergroup__member=request.user)
+            .values_list("model_id", flat=True)
+        )
+        for club in clubs:
+            if club.id in clubs_rbac:
+                club.user_can_edit = True
 
     return render(request, "organisations/admin_list_clubs.html", {"clubs": clubs})
 

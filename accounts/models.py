@@ -6,7 +6,13 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
-from cobalt.settings import AUTO_TOP_UP_MAX_AMT, GLOBAL_ORG, TBA_PLAYER, RBAC_EVERYONE
+from cobalt.settings import (
+    AUTO_TOP_UP_MAX_AMT,
+    GLOBAL_ORG,
+    TBA_PLAYER,
+    RBAC_EVERYONE,
+    ABF_USER,
+)
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, RegexValidator
@@ -94,7 +100,7 @@ class User(AbstractUser):
     ]  # tells createsuperuser to ask for them
 
     def __str__(self):
-        if self.id in (TBA_PLAYER, RBAC_EVERYONE):
+        if self.id in (TBA_PLAYER, RBAC_EVERYONE, ABF_USER):
             return self.first_name
         else:
             return "%s (%s: %s)" % (self.full_name, GLOBAL_ORG, self.system_number)

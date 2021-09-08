@@ -245,6 +245,24 @@ def tree_screen(request):
 
 
 @login_required
+def list_screen(request):
+    """Show full RBAC Tree as a table"""
+    # Get groups
+    groups = (
+        RBACGroup.objects.prefetch_related("rbacgrouprole_set", "rbacusergroup_set")
+        .all()
+        .order_by("name_qualifier")
+    )
+    for group in groups:
+        roles = RBACGroupRole.objects.filter(group=group)
+        group.roles = roles
+        members = RBACUserGroup.objects.filter(group=group)
+        group.members = members
+
+    return render(request, "rbac/list_screen.html", {"groups": groups})
+
+
+@login_required
 def admin_tree_screen(request):
     """Show full RBAC Admin Tree"""
     # Get groups

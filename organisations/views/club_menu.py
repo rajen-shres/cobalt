@@ -356,8 +356,12 @@ def tab_access_htmx(request):
 
     if rbac_basic:
         return access_basic(request, club)
-    else:
+    elif rbac_advanced:
         return access_advanced(request, club)
+    else:
+        return HttpResponse(
+            "<h3>This club has not been set up normally. Unable to manage access through the Club Menu.</h3>"
+        )
 
 
 @login_required()

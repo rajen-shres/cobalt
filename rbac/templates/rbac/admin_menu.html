@@ -186,14 +186,16 @@
                                                 List all clubs in {{ GLOBAL_TITLE }}
                                             </td>
                                         </tr>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-info btn-block" href="{% url "organisations:admin_add_club" %}">Add Club</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                Add a club to {{ GLOBAL_TITLE }}
-                                            </td>
-                                        </tr>
+                                        {% if orgs_site_admin %}
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-info btn-block" href="{% url "organisations:admin_add_club" %}">Add Club</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    Add a club to {{ GLOBAL_TITLE }}
+                                                </td>
+                                            </tr>
+                                        {% endif %}
                                     </tbody>
                                 </table>
                             </div>
@@ -302,6 +304,14 @@
                                             </td>
                                             <td class="text-left pl-5">
                                                 View entire RBAC (normal) tree
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <a class="btn btn-sm btn-info btn-block" href="{% url "rbac:list_screen" %}">View The Whole Tree as List</a>
+                                            </td>
+                                            <td class="text-left pl-5">
+                                                View entire RBAC (normal) tree as a list
                                             </td>
                                         </tr>
                                     </tbody>
