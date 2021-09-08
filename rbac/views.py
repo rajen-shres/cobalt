@@ -71,6 +71,7 @@ def admin_menu(request):
         COBALT_HOSTNAME not in ["myabf.com.au", "www.myabf.com.au"]
         and request.user.is_superuser
     )
+    forums_admin = rbac_user_has_role(request.user, "forums.admin.edit")
 
     # Get build time of this release
     tz = pytz.timezone(TIME_ZONE)
@@ -88,6 +89,7 @@ def admin_menu(request):
             "email_site_admin": email_site_admin,
             "orgs_site_admin": orgs_site_admin,
             "development_admin": development_admin,
+            "forums_admin": forums_admin,
             "build_date": build_date,
         },
     )

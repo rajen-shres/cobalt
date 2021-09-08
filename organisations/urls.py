@@ -102,9 +102,24 @@ urlpatterns = [
         name="club_menu_tab_access_htmx",
     ),
     path(
-        "club-menu/tabs/comms",
-        club_menu.tab_comms_htmx,
-        name="club_menu_tab_comms_htmx",
+        "club-menu/tabs/comms/email",
+        club_menu.tab_comms_email_htmx,
+        name="club_menu_tab_comms_email_htmx",
+    ),
+    path(
+        "club-menu/tabs/comms/tags",
+        club_menu.tab_comms_tags_htmx,
+        name="club_menu_tab_comms_tags_htmx",
+    ),
+    path(
+        "club-menu/tabs/comms/tag-delete",
+        club_menu.tab_comms_tags_delete_tag_htmx,
+        name="club_menu_tab_comms_tags_delete_tag_htmx",
+    ),
+    path(
+        "club-menu/tabs/comms/public-info",
+        club_menu.tab_comms_public_info_htmx,
+        name="club_menu_tab_comms_public_info_htmx",
     ),
     path(
         "club-menu/tabs/congress",

@@ -27,7 +27,14 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button id="id_delete_button_{{ id }}" type="button" hx-post="{{ hx_post }}" hx-target="{{ hx_target }}" class="btn btn-danger">Delete</button>
+                <button id="id_delete_button_{{ id }}"
+                    type="button"
+                    hx-post="{{ hx_post }}"
+                    hx-target="{{ hx_target }}"
+                    {% if hx_vars %}hx-vars="{{ hx_vars }}"{% endif %}
+                    class="btn btn-danger">
+                    Delete
+                </button>
             </div>
         </div>
     </div>

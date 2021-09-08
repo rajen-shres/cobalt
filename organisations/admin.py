@@ -5,6 +5,8 @@ from .models import (
     MembershipType,
     ClubLog,
     MemberClubEmail,
+    ClubTag,
+    MemberClubTag,
 )
 
 
@@ -17,3 +19,5 @@ admin.site.register(MemberMembershipType)
 admin.site.register(MembershipType)
 admin.site.register(MemberClubEmail)
 admin.site.register(ClubLog)
+admin.site.register(ClubTag)
+admin.site.register(MemberClubTag)

@@ -1,0 +1,41 @@
+{# Nav bar part for Comms tab #}
+
+{% if selected == "emails" %}
+    <button class="btn bg-primary"
+{% else %}
+    <button class="btn bg-transparent"
+    style="outline: 0; outline-offset: 0; box-shadow: none;"
+{% endif %}
+
+type="button"
+hx-post="{% url "organisations:club_menu_tab_comms_email_htmx" %}"
+hx-target="#id_panel_comms"
+>Emails
+</button>
+
+{% if selected == "tags" %}
+    <button class="btn bg-primary"
+{% else %}
+    <button class="btn bg-transparent"
+    style="outline: 0; outline-offset: 0; box-shadow: none;"
+{% endif %}
+
+type="button"
+id="t_member_tab_add"
+hx-post="{% url "organisations:club_menu_tab_comms_tags_htmx" %}"
+hx-target="#id_panel_comms"
+>Tags
+</button>
+
+{% if selected == "public_info" %}
+    <button class="btn bg-primary float-right"
+{% else %}
+    <button class="btn bg-transparent float-right"
+    style="outline: 0; outline-offset: 0; box-shadow: none;"
+{% endif %}
+
+type="button"
+hx-post="{% url "organisations:club_menu_tab_comms_public_info_htmx" %}"
+hx-target="#id_panel_comms"
+>Public Information
+</button>

@@ -36,6 +36,7 @@ from organisations.forms import (
     UnregisteredUserAddForm,
     CSVUploadForm,
     MPCForm,
+    TagForm,
 )
 from organisations.models import (
     ORGS_RBAC_GROUPS_AND_ROLES,
@@ -44,6 +45,8 @@ from organisations.models import (
     MemberMembershipType,
     MemberClubEmail,
     ClubLog,
+    ClubTag,
+    MemberClubTag,
 )
 from organisations.views.admin import (
     rbac_get_basic_and_advanced,
@@ -404,8 +407,8 @@ def tab_dashboard_htmx(request):
 
 
 @login_required()
-def tab_comms_htmx(request):
-    """build the comms tab in club menu"""
+def tab_comms_email_htmx(request):
+    """build the comms email tab in club menu"""
 
     status, error_page, club = _tab_is_okay(request)
     if not status:
@@ -413,7 +416,76 @@ def tab_comms_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/../templates/organisations/comms/tab_comms_htmx.html",
+        "organisations/club_menu/comms/tab_comms_email_htmx.html",
+        {"club": club},
+    )
+
+
+@login_required()
+def tab_comms_tags_htmx(request):
+    """build the comms tags tab in club menu"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    if "add" in request.POST:
+        form = TagForm(request.POST)
+
+        if form.is_valid():
+            ClubTag.objects.get_or_create(
+                organisation=club, tag_name=form.cleaned_data["tag_name"]
+            )
+
+    form = TagForm()
+
+    tags = (
+        ClubTag.objects.prefetch_related("memberclubtag_set")
+        .filter(organisation=club)
+        .order_by("tag_name")
+    )
+
+    # Add on count of how many members have this tag
+    for tag in tags:
+        uses = MemberClubTag.objects.filter(club_tag=tag).count()
+        tag.uses = uses
+        tag.hx_post = reverse("organisations:club_menu_tab_comms_tags_delete_tag_htmx")
+        tag.hx_vars = f"club_id:{club.id},tag_id:{tag.id}"
+
+    return render(
+        request,
+        "organisations/club_menu/comms/tab_comms_tags_htmx.html",
+        {"club": club, "tags": tags, "form": form},
+    )
+
+
+@login_required()
+def tab_comms_tags_delete_tag_htmx(request):
+    """Delete a tag"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    tag_id = request.POST.get("tag_id")
+    tag = get_object_or_404(ClubTag, pk=tag_id)
+    if tag.organisation == club:
+        tag.delete()
+
+    return tab_comms_tags_htmx(request)
+
+
+@login_required()
+def tab_comms_public_info_htmx(request):
+    """build the comms public info tab in club menu"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return error_page
+
+    return render(
+        request,
+        "organisations/club_menu/comms/tab_comms_public_info_htmx.html",
         {"club": club},
     )
 
@@ -1601,6 +1673,29 @@ def _club_menu_tab_members_upload_csv_generic(club_member):
     return True, None, item
 
 
+def _club_menu_tab_members_upload_cs2_generic(club_member):
+    """formatting for Compscore 2 files
+
+    Args:
+        club_member: list (a row from spreadsheet)
+
+    Returns:
+        Bool: True for success, False for failure
+        error: message describing error (if there was one)
+        item: dict with formatted values
+
+    """
+
+    item = {
+        "system_number": club_member[8],
+        "first_name": club_member[1].capitalize(),
+        "last_name": club_member[0].capitalize(),
+        "email": club_member[7],
+    }
+
+    return True, None, item
+
+
 def _club_menu_tab_members_upload_csv_common(item):
     """Common checks for all formats
 
@@ -1697,6 +1792,8 @@ def club_menu_tab_members_upload_csv_htmx(request):
             rc, error, item = _club_menu_tab_members_upload_csv_pianola(club_member)
         elif file_type == "CSV":
             rc, error, item = _club_menu_tab_members_upload_csv_generic(club_member)
+        elif file_type == "CS2":
+            rc, error, item = _club_menu_tab_members_upload_cs2_generic(club_member)
         else:
             raise ImproperlyConfigured
 

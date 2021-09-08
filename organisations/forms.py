@@ -273,6 +273,7 @@ class CSVUploadForm(forms.Form):
     file_type = forms.ChoiceField(
         choices=[
             ("CSV", "Generic CSV"),
+            ("CS2", "Compscore"),
             ("Pianola", "Pianola Export"),
         ]
     )
@@ -292,3 +293,9 @@ class MPCForm(forms.Form):
         self.club = kwargs.pop("club")
         super(MPCForm, self).__init__(*args, **kwargs)
         self.fields["membership_type"].choices = membership_type_choices(self.club)
+
+
+class TagForm(forms.Form):
+    """Form to add a tag to an organisation"""
+
+    tag_name = forms.CharField(max_length=50)
