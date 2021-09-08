@@ -1,25 +1,25 @@
-###################################################################
-# Test data format. See read the docs for details                 #
-###################################################################
-# First line is application, Model                                #
-#                                                                 #
-# Second line is headings                                         #
-#                                                                 #
-# Blank lines or lines starting with # are ignored                #
-#                                                                 #
-# REFORMAT files with ./manage.py reformat_test_csvs              #
-#                                                                 #
-###################################################################
+################################################################### 
+# Test data format. See read the docs for details                 # 
+################################################################### 
+# First line is application                                         Model                                # 
+#                                                                 # 
+# Second line is headings                                         # 
+#                                                                 # 
+# Blank lines or lines starting with # are ignored                # 
+#                                                                 # 
+# REFORMAT files with ./manage.py reformat_test_csvs              # 
+#                                                                 # 
+################################################################### 
 
-events, EventEntry           ,             ,                                 ,         ,                     ,                      , ,
-id    , id.event.events.Event, entry_status, id.primary_entrant.accounts.User, category, t.first_created_date, t.entry_complete_date, , 
-1     , wp                   , Complete    , aa                              ,         , 1                   , 1                    , , 
-2     , wp                   , Pending     , bb                              ,         , 1                   , 1                    , , 
-3     , wp                   , Complete    , cc                              ,         , 1                   , 1                    , , 
-4     , wp                   , Complete    , dd                              ,         , 1                   , 1                    , , 
-5     , wp                   , Complete    , ee                              ,         , 1                   , 1                    , , 
-10    , jfp                  , Complete    , aa                              ,         , 1                   , 1                    , , 
-11    , jfp                  , Complete    , cc                              ,         , 1                   , 1                    , , 
-12    , jft                  , Pending     , cc                              ,         , 1                   , 1                    , , 
-13    , jft                  , Pending     , ee                              ,         , 1                   , 1                    , , 
-14    , jft                  , Complete    , ii                              ,         , 1                   , 1                    , , 
+events, EventEntry           ,             ,                                 ,         ,                     ,                      , , , , , , , 
+id    , id.event.events.Event, entry_status, id.primary_entrant.accounts.User, category, t.first_created_date, t.entry_complete_date, , , , , , , 
+1     , wp                   , Complete    , aa                              ,         , 1                   , 1                    , , , , , , , 
+2     , wp                   , Pending     , bb                              ,         , 1                   , 1                    , , , , , , , 
+3     , wp                   , Complete    , cc                              ,         , 1                   , 1                    , , , , , , , 
+4     , wp                   , Complete    , dd                              ,         , 1                   , 1                    , , , , , , , 
+5     , wp                   , Complete    , ee                              ,         , 1                   , 1                    , , , , , , , 
+10    , jfp                  , Complete    , aa                              ,         , 1                   , 1                    , , , , , , , 
+11    , jfp                  , Complete    , cc                              ,         , 1                   , 1                    , , , , , , , 
+12    , jft                  , Pending     , cc                              ,         , 1                   , 1                    , , , , , , , 
+13    , jft                  , Pending     , ee                              ,         , 1                   , 1                    , , , , , , , 
+14    , jft                  , Complete    , ii                              ,         , 1                   , 1                    , , , , , , , 

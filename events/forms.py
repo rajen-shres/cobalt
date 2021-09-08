@@ -345,13 +345,13 @@ class EventEntryPlayerForm(forms.ModelForm):
         # This is intended for use with team-mates plus and none of the controls will be in place
         # if it gets manually changed by a convener.
         # There is no reason for this to be required so remove from options unless already set.
-        print(self.fields["payment_type"])
-        choices = self.fields["payment_type"].choices
-        clean_choices = []
-        for choice in choices:
-            if choice[0] != "their-system-dollars":
-                clean_choices.append(choice)
-        self.fields["payment_type"].choices = clean_choices
+        if self.initial["payment_type"] != "their-system-dollars":
+            choices = self.fields["payment_type"].choices
+            clean_choices = [
+                choice for choice in choices if choice[0] != "their-system-dollars"
+            ]
+
+            self.fields["payment_type"].choices = clean_choices
 
 
 class RefundForm(forms.Form):
