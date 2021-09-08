@@ -1,4 +1,17 @@
-support, NotifyUserByType
-id, id.staff.accounts.User, incident_type
-dummy, jj, All
-dummy, aa, All
+###################################################################
+# Test data format. See read the docs for details                 #
+###################################################################
+# First line is application, Model                                #
+#                                                                 #
+# Second line is headings                                         #
+#                                                                 #
+# Blank lines or lines starting with # are ignored                #
+#                                                                 #
+# REFORMAT files with ./manage.py reformat_test_csvs              #
+#                                                                 #
+###################################################################
+
+support, NotifyUserByType      ,              ,
+id     , id.staff.accounts.User, incident_type, , 
+dummy  , jj                    , All          , , 
+dummy  , aa                    , All          , , 

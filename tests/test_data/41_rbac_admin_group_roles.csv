@@ -1,15 +1,28 @@
-rbac, RBACAdminGroupRole,,
-id.group.rbac.RBACAdminGroup, app, model, model_id
-ad_group, forums, forum,
-ad_group, forums, moderate,
-ad_group, forums, admin,
-ad_group, payments, manage,
-ad_group, payments, global,
-ad_group, orgs, org,
-ad_group, events, org,
-f_group, forums, forum,
-f_group, forums, admin,
-f_group, forums, moderate,
-fbc, payments, manage,2
-rbc, payments, manage,3
-p_group, payments, global,
+###################################################################
+# Test data format. See read the docs for details                 #
+###################################################################
+# First line is application, Model                                #
+#                                                                 #
+# Second line is headings                                         #
+#                                                                 #
+# Blank lines or lines starting with # are ignored                #
+#                                                                 #
+# REFORMAT files with ./manage.py reformat_test_csvs              #
+#                                                                 #
+###################################################################
+
+rbac                        , RBACAdminGroupRole,         ,         , ,
+id.group.rbac.RBACAdminGroup, app               , model   , model_id, , 
+ad_group                    , forums            , forum   ,         , , 
+ad_group                    , forums            , moderate,         , , 
+ad_group                    , forums            , admin   ,         , , 
+ad_group                    , payments          , manage  ,         , , 
+ad_group                    , payments          , global  ,         , , 
+ad_group                    , orgs              , org     ,         , , 
+ad_group                    , events            , org     ,         , , 
+f_group                     , forums            , forum   ,         , , 
+f_group                     , forums            , admin   ,         , , 
+f_group                     , forums            , moderate,         , , 
+fbc                         , payments          , manage  , 2       , , 
+rbc                         , payments          , manage  , 3       , , 
+p_group                     , payments          , global  ,         , , 

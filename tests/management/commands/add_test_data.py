@@ -124,10 +124,21 @@ class Command(BaseCommand):
         Requires csv files to have the app and model in the first row and
         the fieldnames in the second row."""
 
-        # f = open(file, encoding="ISO-8859-1")
         f = open(file, encoding="utf-8")
 
-        lines = f.readlines()
+        all_lines = f.readlines()
+
+        lines = []
+
+        for line in all_lines:
+            # skip empty rows
+            if (
+                line.find("#") == 0
+                or line.strip() == ""
+                or line.replace(",", "").strip() == ""
+            ):
+                continue
+            lines.append(line)
 
         data = []
 
@@ -150,14 +161,6 @@ class Command(BaseCommand):
 
         # loop through records
         for line in lines[2:]:
-
-            # skip empty rows
-            if (
-                line.find("#") == 0
-                or line.strip() == ""
-                or line.strip().replace(",", "") == ""
-            ):
-                continue
 
             # split to parts
             columns = line.split(",")
@@ -281,13 +284,6 @@ class Command(BaseCommand):
                                 setattr(instance, key, value)
                         if key[:2] == "t.":
                             field = key[2:]
-                            print("#######")
-                            print("instance", instance)
-                            print("field", field)
-                            print("value", value)
-                            print("int value", int(value))
-                            print("timedelta", datetime.timedelta(days=-1))
-                            print("timedelta", datetime.timedelta(days=int(value)))
                             adjusted_date = now() - datetime.timedelta(days=int(value))
                             datetime_local = adjusted_date.astimezone(TZ)
                             setattr(instance, field, datetime_local)
