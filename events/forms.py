@@ -344,7 +344,8 @@ class EventEntryPlayerForm(forms.ModelForm):
         # We can get problems if the convener changes the payment method to their-bridge-credits
         # This is intended for use with team-mates plus and none of the controls will be in place
         # if it gets manually changed by a convener.
-        # There is no reason for this to be required so remove from options.
+        # There is no reason for this to be required so remove from options unless already set.
+        print(self.fields["payment_type"])
         choices = self.fields["payment_type"].choices
         clean_choices = []
         for choice in choices:

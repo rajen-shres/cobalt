@@ -281,6 +281,13 @@ class Command(BaseCommand):
                                 setattr(instance, key, value)
                         if key[:2] == "t.":
                             field = key[2:]
+                            print("#######")
+                            print("instance", instance)
+                            print("field", field)
+                            print("value", value)
+                            print("int value", int(value))
+                            print("timedelta", datetime.timedelta(days=-1))
+                            print("timedelta", datetime.timedelta(days=int(value)))
                             adjusted_date = now() - datetime.timedelta(days=int(value))
                             datetime_local = adjusted_date.astimezone(TZ)
                             setattr(instance, field, datetime_local)
