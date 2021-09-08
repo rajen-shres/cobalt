@@ -15,7 +15,7 @@
     <div>
         <div class="card">
             <div class="card-header card-header-primary">
-                <h3 class="card-title">RBAC Details by Group</h3>
+                <h3 class="card-title">RBAC Details by Role</h3>
             </div>
             <div class="card-body">
                 <div class="container">
@@ -23,30 +23,25 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>Group</th>
                                     <th>Roles</th>
+                                    <th>Group</th>
                                     <th>Members</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for group in groups %}
+                                {% for role in roles %}
                                     <tr>
-                                        <td id="group_{{ group.id }}" class="align-top">
+                                        <td id="role_{{ role.id }}" class="align-top">
                                             <span class="font-weight-bold">
-                                                <a href="{% url "rbac:group_edit" group_id=group.id %}">
-                                                    {{ group.name_qualifier }}.{{ group.name_item }}
-                                                </a>
+                                                {{ role.role }}
                                             </span><br>
-                                            <span class="font-italic">
-                                                {{ group.description }}
-                                            </span>
                                         </td>
                                         <td class="align-top">
                                             <ul>
-                                                {% for role in group.roles %}
+                                                {% for group in role.groups %}
                                                     <li>
-                                                        <a href="{% url "rbac:list_roles_screen" %}#role_{{ role.id }}">
-                                                            {{ role.role }}
+                                                        <a href="{% url "rbac:list_screen" %}#group_{{ group.id }}">
+                                                            {{ group.name }}
                                                         </a>
                                                     </li>
                                                 {% endfor %}
@@ -54,7 +49,7 @@
                                         </td>
                                         <td class="align-top">
                                             <ul>
-                                                {% for member in group.members %}
+                                                {% for member in role.members %}
                                                     <li>
                                                         <a href="{% url "rbac:list_members_screen" %}#member_{{ member.member.id }}">
                                                             {{ member.member.full_name }}

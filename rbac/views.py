@@ -1,3 +1,5 @@
+import operator
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -260,6 +262,57 @@ def list_screen(request):
         group.members = members
 
     return render(request, "rbac/list_screen.html", {"groups": groups})
+
+
+@login_required
+def list_roles_screen(request):
+    """Show full RBAC Tree as a table - order by roles"""
+    # Get roles
+    roles = (
+        RBACGroupRole.objects.prefetch_related("group", "group__rbacusergroup_set")
+        .all()
+        .order_by("app", "model", "model_id")
+    )
+
+    for role in roles:
+        groups = (
+            RBACGroup.objects.filter(rbacgrouprole__app=role.app)
+            .filter(rbacgrouprole__model=role.model)
+            .filter(rbacgrouprole__model_id=role.model_id)
+            .filter(rbacgrouprole__action=role.action)
+            .distinct()
+        )
+        role.groups = groups
+        members = (
+            RBACUserGroup.objects.filter(group__rbacgrouprole__app=role.app)
+            .filter(group__rbacgrouprole__model=role.model)
+            .filter(group__rbacgrouprole__model_id=role.model_id)
+            .filter(group__rbacgrouprole__action=role.action)
+            .distinct()
+        )
+        role.members = members
+
+    return render(request, "rbac/list_roles_screen.html", {"roles": roles})
+
+
+@login_required
+def list_members_screen(request):
+    """Show full RBAC Tree as a table order by members"""
+    # Get members
+    members = (
+        RBACUserGroup.objects.prefetch_related("group", "group__rbacgrouprole_set")
+        .all()
+        .order_by("member", "member__first_name")
+        .distinct("member")
+    )
+
+    for member in members:
+        roles = RBACGroupRole.objects.filter(group__rbacusergroup__member=member.member)
+        member.roles = roles
+        groups = RBACGroup.objects.filter(rbacusergroup__member=member.member)
+        member.groups = groups
+
+    return render(request, "rbac/list_members_screen.html", {"members": members})
 
 
 @login_required
