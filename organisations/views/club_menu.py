@@ -416,7 +416,7 @@ def tab_comms_email_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/comms/tab_comms_email_htmx.html",
+        "organisations/club_menu/comms/email_htmx.html",
         {"club": club},
     )
 
@@ -454,7 +454,7 @@ def tab_comms_tags_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/comms/tab_comms_tags_htmx.html",
+        "organisations/club_menu/comms/tags_htmx.html",
         {"club": club, "tags": tags, "form": form},
     )
 
@@ -476,6 +476,47 @@ def tab_comms_tags_delete_tag_htmx(request):
 
 
 @login_required()
+def tab_comms_tags_add_user_tag(request):
+    """Add a tag to a user"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return HttpResponse("Error - Access denied")
+
+    tag_id = request.POST.get("tag_id")
+    tag = get_object_or_404(ClubTag, pk=tag_id)
+    system_number = request.POST.get("system_number")
+
+    if tag.organisation == club:
+        MemberClubTag(club_tag=tag, system_number=system_number).save()
+        return HttpResponse("Tag Added")
+
+    return HttpResponse("Error")
+
+
+@login_required()
+def tab_comms_tags_remove_user_tag(request):
+    """Remove a tag from a user"""
+
+    status, error_page, club = _tab_is_okay(request)
+    if not status:
+        return HttpResponse("Error - Access denied")
+
+    tag_id = request.POST.get("tag_id")
+    tag = get_object_or_404(ClubTag, pk=tag_id)
+    system_number = request.POST.get("system_number")
+
+    if tag.organisation == club:
+        member_tag = MemberClubTag.objects.filter(
+            club_tag=tag, system_number=system_number
+        )
+        member_tag.delete()
+        return HttpResponse("Tag Removed")
+
+    return HttpResponse("Error")
+
+
+@login_required()
 def tab_comms_public_info_htmx(request):
     """build the comms public info tab in club menu"""
 
@@ -485,7 +526,7 @@ def tab_comms_public_info_htmx(request):
 
     return render(
         request,
-        "organisations/club_menu/comms/tab_comms_public_info_htmx.html",
+        "organisations/club_menu/comms/public_info_htmx.html",
         {"club": club},
     )
 
@@ -899,6 +940,14 @@ def tab_members_un_reg_edit_htmx(request):
         kwargs={"club_id": club.id, "un_reg_id": un_reg.id},
     )
 
+    member_tags = MemberClubTag.objects.prefetch_related("club_tag").filter(
+        club_tag__organisation=club, system_number=un_reg.system_number
+    )
+    used_tags = member_tags.values("club_tag__tag_name")
+    available_tags = ClubTag.objects.filter(organisation=club).exclude(
+        tag_name__in=used_tags
+    )
+
     return render(
         request,
         "organisations/club_menu/members/edit_un_reg_htmx.html",
@@ -908,6 +957,8 @@ def tab_members_un_reg_edit_htmx(request):
             "user_form": user_form,
             "club_email_form": club_email_form,
             "member_details": member_details,
+            "member_tags": member_tags,
+            "available_tags": available_tags,
             "hx_delete": hx_delete,
             "message": message,
         },
@@ -1040,6 +1091,14 @@ def tab_members_edit_member_htmx(request):
         kwargs={"club_id": club.id, "member_id": member.id},
     )
 
+    member_tags = MemberClubTag.objects.prefetch_related("club_tag").filter(
+        club_tag__organisation=club, system_number=member.system_number
+    )
+    used_tags = member_tags.values("club_tag__tag_name")
+    available_tags = ClubTag.objects.filter(organisation=club).exclude(
+        tag_name__in=used_tags
+    )
+
     return render(
         request,
         "organisations/club_menu/members/edit_member_htmx.html",
@@ -1049,6 +1108,8 @@ def tab_members_edit_member_htmx(request):
             "member": member,
             "message": message,
             "hx_delete": hx_delete,
+            "member_tags": member_tags,
+            "available_tags": available_tags,
         },
     )
 

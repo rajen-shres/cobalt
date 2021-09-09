@@ -58,3 +58,16 @@ class Command(BaseCommand):
         rbac_add_role_to_group(
             group, app="notifications", model="admin", action="view", rule_type="Allow"
         )
+
+        # Club comms roles
+        create_RBAC_default(self, "notifications", "orgcomms", "Block")
+        create_RBAC_action(
+            self,
+            "notifications",
+            "orgcomms",
+            "edit",
+            "Allows a user to communicate on behalf of an org",
+        )
+
+        # We don't create an ABF role for this as there isn't a scenario where an Admin would need to send email on
+        # behalf of a club where the club couldn't just grant access normally.

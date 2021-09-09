@@ -2,73 +2,82 @@
 {% load cobalt_tags %}
 {% load crispy_forms_tags %}
 
-<div class="card col-md-8">
-    <div class="card-header card-header-rose">
-        <h2 class="text-center">{{ un_reg }}</h2>
-        <h3 class="text-center">
-            {% if member_details.home_club %}
-                This is {{ un_reg.first_name }}'s home club
-            {% else %}
-                This is NOT {{ un_reg.first_name }}'s home club
-            {% endif %}
-        </h3>
+<div class="container">
+    <div class="row">
+
+
+        <div class="card col-md-6">
+            <div class="card-header card-header-rose">
+                <h2 class="text-center">{{ un_reg }}</h2>
+                <h3 class="text-center">
+                    {% if member_details.home_club %}
+                        This is {{ un_reg.first_name }}'s home club
+                    {% else %}
+                        This is NOT {{ un_reg.first_name }}'s home club
+                    {% endif %}
+                </h3>
+            </div>
+            <div class="card-body pt-0">
+
+                <p class="mt-3">There are two emails option that can be changed. The main email address is the
+                    centrally registered one for this (unregistered) user. You can edit this if your club
+                    added this user. This is visible and usable by all other clubs. If you wish to keep
+                    the email private or to override it, then you can use a club-specific email address.</p>
+                <p>To make things even easier, invite this user to sign up for {{ GLOBAL_TITLE }} so
+                    they can manage their own contact details as well as the other benefits of membership.</p>
+
+                <h3 class="text-info font-weight-bold settings_message" id="user_edit_message">{{ message }}</h3>
+
+                <form
+                    hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
+                    hx-target="#id_member_list_tab"
+                    hx-vars="club_id:{{ club.id }}, un_reg_id:{{ un_reg.id }}"
+                >
+
+                    {% if club == un_reg.added_by_club %}
+                        {{ user_form | crispy }}
+                    {% else %}
+                        <h3>View Only - User Belongs to {{ un_reg.added_by_club }}</h3>
+                        {{ un_reg.first_name }} {{ un_reg.last_name }} ({{ GLOBAL_ORG }} Number: {{ un_reg.system_number }}) - {{ un_reg.email|default_if_none:"No Email Address Found" }}
+                    {% endif %}
+
+                    {{ club_email_form | crispy }}
+
+                    <button type="submit" name="save" class="btn btn-success">Save</button>
+
+                    {% include "utils/htmx_confirm_modal.html" with id="undel" delete_item=un_reg.first_name hx_target="#id_panel_members" hx_post=hx_delete %}
+                    <button id="id_delete_user_1" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModalundel">Cancel Membership</button>
+
+
+                    <button
+                        hx-post="{% url "organisations:club_menu_tab_members_invite_user_to_join_htmx" %}"
+                        hx-target="#id_member_list_tab"
+                        hx-vars="club_id:{{ club.id }}, un_reg_id:{{ un_reg.id }}"
+                        class="btn btn-info"
+                        onclick="GrowlNotification.notify({
+                        title: 'Sending invite...',
+                        description: 'Sending invite to {{ un_reg.first_name }}.',
+                        type: 'success',
+                        position: 'top-right',
+                        closeTimeout: 2000})"
+                    >Send Invite to Join {{ GLOBAL_TITLE }}
+                    </button>
+                </form>
+
+                <p class="my-0 font-italic small">Origin: {{ un_reg.origin }}</p>
+                <p class="my-0 font-italic small">Added On: {{ un_reg.created_at|cobalt_nice_datetime }}</p>
+                <p class="my-0 font-italic small">Last Updated: {{ un_reg.updated_at|cobalt_nice_datetime }}</p>
+                <p class="my-0 font-italic small">Last Updated By: {{ un_reg.last_updated_by.full_name }}</p>
+                {% if un_reg.last_registration_invite_sent %}
+                    <p class="my-0 font-italic small">Last Invited to Join By: {{ un_reg.last_registration_invite_by_user.full_name }} ({{ un_reg.last_registration_invite_by_club }})</p>
+                    <p class="my-0 font-italic small">Last Invited to Join At: {{ un_reg.last_registration_invite_sent }}</p>
+                {% else %}
+                    <p class="my-0 font-italic small">Never invited to join {{ GLOBAL_TITLE }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            {% include "organisations/club_menu/members/drag_and_drop.html" with member=un_reg %}
+        </div>
     </div>
-    <div class="card-body pt-0">
-
-        <p class="mt-3">There are two emails option that can be changed. The main email address is the
-            centrally registered one for this (unregistered) user. You can edit this if your club
-            added this user. This is visible and usable by all other clubs. If you wish to keep
-            the email private or to override it, then you can use a club-specific email address.</p>
-        <p>To make things even easier, invite this user to sign up for {{ GLOBAL_TITLE }} so
-            they can manage their own contact details as well as the other benefits of membership.</p>
-
-        <h3 class="text-info font-weight-bold settings_message" id="user_edit_message">{{ message }}</h3>
-
-        <form
-            hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-            hx-target="#id_member_list_tab"
-            hx-vars="club_id:{{ club.id }}, un_reg_id:{{ un_reg.id }}"
-        >
-
-            {% if club == un_reg.added_by_club %}
-                {{ user_form | crispy }}
-            {% else %}
-                <h3>View Only - User Belongs to {{ un_reg.added_by_club }}</h3>
-                {{ un_reg.first_name }} {{ un_reg.last_name }} ({{ GLOBAL_ORG }} Number: {{ un_reg.system_number }}) - {{ un_reg.email|default_if_none:"No Email Address Found" }}
-            {% endif %}
-
-            {{ club_email_form | crispy }}
-
-            <button type="submit" name="save" class="btn btn-success">Save</button>
-
-            {% include "utils/htmx_confirm_modal.html" with id="undel" delete_item=un_reg.first_name hx_target="#id_panel_members" hx_post=hx_delete %}
-            <button id="id_delete_user_1" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModalundel">Cancel Membership</button>
-
-
-            <button
-                hx-post="{% url "organisations:club_menu_tab_members_invite_user_to_join_htmx" %}"
-                hx-target="#id_member_list_tab"
-                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ un_reg.id }}"
-                class="btn btn-info"
-                onclick="GrowlNotification.notify({
-                title: 'Sending invite...',
-                description: 'Sending invite to {{ un_reg.first_name }}.',
-                type: 'success',
-                position: 'top-right',
-                closeTimeout: 2000})"
-            >Send Invite to Join {{ GLOBAL_TITLE }}
-            </button>
-        </form>
-
-        <p class="my-0 font-italic small">Origin: {{ un_reg.origin }}</p>
-        <p class="my-0 font-italic small">Added On: {{ un_reg.created_at|cobalt_nice_datetime }}</p>
-        <p class="my-0 font-italic small">Last Updated: {{ un_reg.updated_at|cobalt_nice_datetime }}</p>
-        <p class="my-0 font-italic small">Last Updated By: {{ un_reg.last_updated_by.full_name }}</p>
-        {% if un_reg.last_registration_invite_sent %}
-            <p class="my-0 font-italic small">Last Invited to Join By: {{ un_reg.last_registration_invite_by_user.full_name }} ({{ un_reg.last_registration_invite_by_club }})</p>
-            <p class="my-0 font-italic small">Last Invited to Join At: {{ un_reg.last_registration_invite_sent }}</p>
-        {% else %}
-            <p class="my-0 font-italic small">Never invited to join {{ GLOBAL_TITLE }}</p>
-        {% endif %}
-    </div>
-</div>

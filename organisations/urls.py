@@ -117,6 +117,16 @@ urlpatterns = [
         name="club_menu_tab_comms_tags_delete_tag_htmx",
     ),
     path(
+        "club-menu/tabs/comms/tag-add-user",
+        club_menu.tab_comms_tags_add_user_tag,
+        name="club_menu_tab_comms_tags_add_user_tag",
+    ),
+    path(
+        "club-menu/tabs/comms/tag-remove-user",
+        club_menu.tab_comms_tags_remove_user_tag,
+        name="club_menu_tab_comms_tags_remove_user_tag",
+    ),
+    path(
         "club-menu/tabs/comms/public-info",
         club_menu.tab_comms_public_info_htmx,
         name="club_menu_tab_comms_public_info_htmx",

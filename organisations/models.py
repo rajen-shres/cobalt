@@ -39,6 +39,13 @@ ORGS_RBAC_GROUPS_AND_ROLES = {
         "action": "edit",
         "description": "Edit member info",
     },
+    # Manage communications
+    "comms_edit": {
+        "app": "notifications",
+        "model": "orgcomms",
+        "action": "edit",
+        "description": "Manage communications",
+    },
 }
 
 
@@ -324,10 +331,10 @@ class MemberClubTag(models.Model):
     """Links a member to a tag for a club"""
 
     club_tag = models.ForeignKey(ClubTag, on_delete=models.CASCADE)
-    member = models.ForeignKey(User, on_delete=models.CASCADE)
+    system_number = models.IntegerField("%s Number" % GLOBAL_ORG, blank=True)
 
     def __str__(self):
-        return f"{self.club_tag} - {self.member}"
+        return f"{self.club_tag} - {self.system_number}"
 
 
 class Visitor(models.Model):
