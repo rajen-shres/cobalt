@@ -7,7 +7,10 @@ from cobalt.settings import GLOBAL_TITLE
 
 ROOT = "notifications/templates/notifications/"
 
-templates = [("button", "po_email_with_button.html")]
+templates = [
+    ("button", "po_email_with_button.html"),
+    #   ("no button", "po_email_without_button.html")
+]
 
 
 class Command(BaseCommand):
@@ -27,7 +30,7 @@ class Command(BaseCommand):
                 email_template = EmailTemplate.objects.create(name=name)
                 self.stdout.write(self.style.SUCCESS(f"Added template: {name}"))
 
-            email_template.subject = f"Message from {GLOBAL_TITLE}"
+            email_template.subject = "{{ subject }}"
             email_template.content = "Hi {{ name }}, how are you feeling today?"
             email_template.html_content = html_content
             email_template.save()

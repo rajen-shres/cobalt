@@ -270,7 +270,7 @@ POST_OFFICE = {
         "default": "django_ses.SESBackend",
     },
     "TEMPLATE_ENGINE": "post_office",
-    "DEFAULT_PRIORITY": "now",
+    "DEFAULT_PRIORITY": "medium",
     "MESSAGE_ID_ENABLED": True,
 }
 

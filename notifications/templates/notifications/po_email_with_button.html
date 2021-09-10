@@ -13,14 +13,14 @@
                     <div class="content">
 
                         <!-- START CENTERED WHITE CONTAINER -->
-                        <span class="preheader">{{ email_body| safe }}</span>
+                        <span class="preheader">{{ email_body| safe |truncatechars_html:50 }}</span>
 
                         <!-- START HEADER -->
                         <div class="header">
                             <table border="0" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td class="align-center">
-                                        <a href="http://{{ host }}" target="_blank"><img src="{% inline_image 'notifications/img/myabf-email.png' %}" alt="Logo" align="center"></a>
+                                        <a href="http://{{ host }}" target="_blank"><img src="{% inline_image img_src %}" alt="Logo" align="center"></a>
                                     </td>
                                 </tr>
                             </table>
@@ -32,7 +32,7 @@
                             <!-- START NOTIFICATION BANNER -->
                             <tr>
                                 <td>
-                                    <table border="0" cellpadding="0" cellspacing="0" class="alert alert-success">
+                                    <table border="0" cellpadding="0" cellspacing="0" class="alert alert-{{ box_colour }}">
                                         <tr>
                                             <td align="center"> {{ title }} </td>
                                         </tr>
@@ -56,7 +56,7 @@
                                                                 <table border="0" cellpadding="0" cellspacing="0">
                                                                     <tbody>
                                                                         <tr>
-                                                                            <td> <a href="http://{{ host|safe }}{{ link|safe }}" target="_blank">{{ link_text }}</a> </td>
+                                                                            <td> <a href="http://{{ host }}{{ link }}" target="_blank">{{ link_text }}</a> </td>
                                                                         </tr>
                                                                     </tbody>
                                                                 </table>

@@ -212,6 +212,52 @@ def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
     )
 
 
+def send_cobalt_email_with_template(
+    to_address, context, template="system - button", sender=None, priority="medium"
+):
+    """Queue an email using a template and context.
+
+    Args:
+        to_address (str or list): who to send to
+        context (dict): values to substitute into email template
+
+        template (str or EmailTemplate instance): it is more efficient to use an instance for multiple calls
+        sender (str): who to send from (None will use default from settings file)
+        priority (str): Django Post Office priority
+
+    Returns:
+        Nothing
+
+    Context for the default template can have:
+
+    img_src: logo to override default MyABF logo
+    name: Users first name
+    title: Goes in title box
+    email_body: main part of email
+    additional_words: goes after main body
+    link: link for button e.g. /dashboard
+    link_text: words to go on link button
+    box_colour: default, primary, warning, danger, success, info
+
+    """
+
+    # Augment context
+    context["host"] = COBALT_HOSTNAME
+    if "img_src" not in context:
+        context["img_src"] = "notifications/img/myabf-email.png"
+    if "box_colour" not in context:
+        context["box_colour"] = "primary"
+
+    po_email.send(
+        sender=sender,
+        recipients=to_address,
+        template=template,
+        context=context,
+        render_on_delivery=True,
+        priority=priority,
+    )
+
+
 def send_cobalt_bulk_email(bcc_addresses, subject, message, reply_to=""):
     """Sends the same message to multiple people.
 
@@ -705,8 +751,8 @@ def admin_send_email_copy_to_admin(request, email_id):
 
     # DEFAULT_FROM_EMAIL could be 'a@b.com' or 'something something<a@b.com>'
     if DEFAULT_FROM_EMAIL.find("<") >= 0:
-        _, the_rest = DEFAULT_FROM_EMAIL.split(">")
-        from_name = f"Email Copy from {GLOBAL_TITLE}<{the_rest}"
+        parts = DEFAULT_FROM_EMAIL.split("<")
+        from_name = f"Email Copy from {GLOBAL_TITLE}<{parts[1]}"
     else:
         from_name = f"Email Copy from {GLOBAL_TITLE}<{DEFAULT_FROM_EMAIL}>"
 

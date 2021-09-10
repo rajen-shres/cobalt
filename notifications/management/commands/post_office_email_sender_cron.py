@@ -2,8 +2,7 @@
 import logging
 
 from django.core.management.base import BaseCommand
-from django.db import connection as db_connection
-from post_office.mail import send_queued_mail_until_done, send_queued
+from post_office.mail import send_queued
 
 from utils.views import CobaltLock
 
@@ -23,7 +22,7 @@ class Command(BaseCommand):
 
         lock = CobaltLock("email")
         if lock.get_lock():
-            send_queued(processes=5)
+            send_queued(processes=1)
             lock.free_lock()
-
-        db_connection.close()
+        else:
+            logger.info("Topic: 'email' is currently locked")

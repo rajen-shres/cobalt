@@ -50,8 +50,7 @@
             be shown.</p>
         <p> To see the full email as it was sent
             <a href="{% url "notifications:admin_send_email_copy_to_admin" email_id=email.id %}">
-                click here to send a copy</a>
-            .</p>
+                click here to send a copy</a>.</p>
 
         {#        This needs some explanation. The email is a Django Post Office email object.#}
         {#        This has a method (email_message) that basically brings it to life by rendering#}

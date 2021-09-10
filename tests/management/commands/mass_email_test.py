@@ -4,19 +4,15 @@ from django.core.management.base import BaseCommand
 from accounts.models import User
 from cobalt.settings import COBALT_HOSTNAME
 
-EMAIL_BASE = "testa_"
-EMAIL_DOMAIN = "@gu3.com.au"
-TEST_SIZE = 2000
-START_NUM = 8200000
-CONTENT = (
-    "I am a big test email to mimic production. Most of my size comes from the template"
-)
+
+TEST_SIZE = 100
+START_NUM = 1_000_000
 
 
 class Command(BaseCommand):
     """
     Mass email test - creates lots of users for test sending
-    Works with /accounts/test_email_send
+    See confluence for details on how to test
     """
 
     def handle(self, *args, **options):
@@ -27,19 +23,16 @@ class Command(BaseCommand):
             )
 
         # Create users
-        user_list = []
         for i in range(TEST_SIZE):
             user = User.objects.create_user(
                 username="%s" % (START_NUM + i),
-                email=f"{EMAIL_BASE}{i}{EMAIL_DOMAIN}",
-                # email="m@rkguthrie.com",
+                email="success@simulator.amazonses.com",
                 password="F1shcake",
-                first_name=f"{EMAIL_BASE}{i}",
+                first_name=f"Someone_{i}",
                 last_name="TestUserEmailThing",
                 system_number=START_NUM + i,
                 about="",
                 pic=None,
             )
             user.save()
-            user_list.append(user)
             print(f"Created used {user}")
