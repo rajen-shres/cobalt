@@ -14,31 +14,37 @@
             Tags are used for general communication, you don't need to set up tags for things like results publishing.
         </p>
 
-        <div class="table-responsive col-md-6">
-            <table class="table table-hover table-condensed">
-                <thead>
-                    <tr>
-                        <th>Tag Name</th>
-                        <th>User with Tag</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for tag in tags %}
-                        <tr>
-                            <td>{{ tag.tag_name }}</td>
-                            <td>{{ tag.uses }}</td>
+        {% if tags %}
 
-                            {% include "utils/htmx_confirm_modal.html" with id=tag.id delete_item=tag.tag_name hx_vars=tag.hx_vars hx_target="#id_panel_comms" hx_post=tag.hx_post %}
-                            <td><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ tag.id }}">
-                                Delete Tag
-                            </button>
-                            </td>
+            <div class="table-responsive col-md-6">
+                <table class="table table-hover table-condensed">
+                    <thead>
+                        <tr>
+                            <th>Tag Name</th>
+                            <th>User with Tag</th>
+                            <th>Action</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        {% for tag in tags %}
+                            <tr>
+                                <td>{{ tag.tag_name }}</td>
+                                <td>{{ tag.uses }}</td>
+
+                                {% include "utils/htmx_confirm_modal.html" with id=tag.id delete_item=tag.tag_name hx_vars=tag.hx_vars hx_target="#id_panel_comms" hx_post=tag.hx_post %}
+                                <td><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ tag.id }}">
+                                    Delete Tag
+                                </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <h4>No tags defined</h4>
+
+        {% endif %}
 
         <div class="col-md-3 text-nowrap">
             <form

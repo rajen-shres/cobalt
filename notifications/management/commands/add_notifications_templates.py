@@ -7,7 +7,7 @@ from cobalt.settings import GLOBAL_TITLE
 
 ROOT = "notifications/templates/notifications/"
 
-templates = [("button", "email_with_button.html")]
+templates = [("button", "po_email_with_button.html")]
 
 
 class Command(BaseCommand):
@@ -17,7 +17,8 @@ class Command(BaseCommand):
         print("Running add_notifications_templates")
 
         for template in templates:
-            name, filename = template
+            short_name, filename = template
+            name = f"system - {short_name}"
             html_content = Path(f"{ROOT}{filename}").read_text()
 
             email_template = EmailTemplate.objects.filter(name=name).first()

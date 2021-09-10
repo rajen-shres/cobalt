@@ -15,8 +15,7 @@ from time import sleep
 from django.contrib.auth.decorators import user_passes_test
 from utils.utils import cobalt_paginator
 from django.shortcuts import render, redirect, get_object_or_404
-from notifications.views import send_cobalt_email
-from cobalt.settings import COBALT_HOSTNAME, TIME_ZONE
+from cobalt.settings import COBALT_HOSTNAME, TIME_ZONE, DEFAULT_FROM_EMAIL
 from accounts.models import User
 from payments.core import payments_status_summary
 from notifications.views import notifications_status_summary

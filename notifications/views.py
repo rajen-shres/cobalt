@@ -22,7 +22,6 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
-from django.views.decorators.csrf import csrf_exempt
 
 from accounts.models import User
 from cobalt.settings import (
@@ -685,6 +684,42 @@ def admin_view_email(request, email_id):
     email = get_object_or_404(PostOfficeEmail, pk=email_id)
 
     return render(request, "notifications/admin_view_email.html", {"email": email})
+
+
+@login_required()
+def admin_send_email_copy_to_admin(request, email_id):
+    """Send a copy of an email to an admin so they can see it fully rendered
+
+    With using templates for Django post office emails and render_on_delivery,
+    we no longer have a copy of the email. We can regenerate it though by
+    sending to someone else.
+
+    """
+
+    # check access
+    role = "notifications.admin.view"
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    email = get_object_or_404(PostOfficeEmail, pk=email_id)
+
+    # DEFAULT_FROM_EMAIL could be 'a@b.com' or 'something something<a@b.com>'
+    if DEFAULT_FROM_EMAIL.find("<") >= 0:
+        _, the_rest = DEFAULT_FROM_EMAIL.split(">")
+        from_name = f"Email Copy from {GLOBAL_TITLE}<{the_rest}"
+    else:
+        from_name = f"Email Copy from {GLOBAL_TITLE}<{DEFAULT_FROM_EMAIL}>"
+
+    po_email.send(
+        request.user.email,
+        from_name,
+        template=email.template,
+        context=email.context,
+        render_on_delivery=True,
+        priority="now",
+    )
+
+    return HttpResponse("Message sent. Check your inbox.")
 
 
 def notifications_status_summary():

@@ -46,8 +46,19 @@
     {% if email.html_message %}
         {{ email.html_message|safe}}
     {% else %}
-        <pre>
-        {{ email.message }}
-        </pre>
+        <p>To save space we don't store the whole email when it has been sent. As a result, images will not
+            be shown.</p>
+        <p> To see the full email as it was sent
+            <a href="{% url "notifications:admin_send_email_copy_to_admin" email_id=email.id %}">
+                click here to send a copy</a>
+            .</p>
+
+        {#        This needs some explanation. The email is a Django Post Office email object.#}
+        {#        This has a method (email_message) that basically brings it to life by rendering#}
+        {#        the template with the context. As this is (at least usually) a multipart email#}
+        {#        we need to get the alternatives (bits) and we want the first one (HTML). We get#}
+        {#        the content and the type, so again take the first part of that for just the content.#}
+
+        {{ email.email_message.alternatives.0.0|safe }}
     {% endif %}
 {% endblock %}
