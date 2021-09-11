@@ -2,3 +2,5 @@
 # Run the email check cron every 2 minutes
 # use sleep 20 ; to run more often
 */2 * * * * /var/app/current/utils/cron/wrapper.sh email_sender_cron
+* * * * * /var/app/current/utils/cron/wrapper.sh post_office_email_sender_cron
+* * * * * sleep 30; /var/app/current/utils/cron/wrapper.sh post_office_email_sender_cron
