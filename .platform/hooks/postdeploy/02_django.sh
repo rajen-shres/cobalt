@@ -20,6 +20,7 @@ cp /var/app/current/cobalt/static/copy-to-media/pic_folder/* /cobalt-media/pic_f
 ./manage.py add_rbac_static_support
 ./manage.py create_states
 ./manage.py add_superadmin
+./manage.py add_notifications_templates
 
 # Replace cron
 crontab utils/cron/crontab.txt
