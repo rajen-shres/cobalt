@@ -155,7 +155,7 @@ def rbac_delete_admin_group_by_name(group_name):
     rbac_get_admin_group_by_name(group_name).delete()
 
 
-def rbac_add_user_to_group(member: User, group: RBACUserGroup) -> RBACUserGroup:
+def rbac_add_user_to_group(member: User, group: RBACGroup) -> RBACGroup:
     """Adds a user to an RBAC group
 
     Args:
