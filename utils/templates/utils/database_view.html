@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block header %}
+    {% include "utils/data_tables_heading.html" %}
+{% endblock header %}
+
+{% block content %}
+
+    <div class="card">
+        <div class="card-header card-header-info">
+            <h2>Database Information</h2>
+            <h3>Total size: {{ total_size|filesizeformat }}</h3>
+            <h3 class="mt-0">Total rows: {{ total_rows|intcomma }}</h3>
+        </div>
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table id="database" class="table table-hover">
+                    <thead class="text-primary">
+                        <tr>
+                            <th>Model</th>
+                            <th class="text-right">Table Size (bytes)</th>
+                            <th class="text-right">Table Size</th>
+                            <th class="text-right">Rows</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for db_size in db_sizes %}
+                            <tr>
+                                <td>{{ db_size.name }}</td>
+                                <td class="text-right">{{ db_size.size|intcomma }}</td>
+                                <td class="text-right">{{ db_size.pretty }}</td>
+                                <td class="text-right">{{ db_size.count|intcomma }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block footer %}
+
+    <script>
+        $(document).ready( function () {
+
+            // Initialise datatable - only show pagination if more than one page, sort in order, column 0
+
+            $('#database').DataTable({
+                drawCallback: function(settings) {
+                    const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+                    pagination.toggle(this.api().page.info().pages > 1);
+                },
+            });
+        });
+    </script>
+
+{% endblock footer %}

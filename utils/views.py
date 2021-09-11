@@ -1,29 +1,28 @@
-# from django.shortcuts import render
 import csv
-import time
-
-import requests
-from django.db import transaction
-from geopy.geocoders import Nominatim
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
-import json
-from .models import Batch, Lock
-from django.utils import timezone
-from random import randint
-from time import sleep
-from django.contrib.auth.decorators import user_passes_test
-from utils.utils import cobalt_paginator
-from django.shortcuts import render, redirect, get_object_or_404
-from cobalt.settings import COBALT_HOSTNAME, TIME_ZONE, DEFAULT_FROM_EMAIL
-from accounts.models import User
-from payments.core import payments_status_summary
-from notifications.views import notifications_status_summary
-from events.core import events_status_summary
-from forums.views import forums_status_summary
 import datetime
 import os
+from random import randint
+from time import sleep
+
 import pytz
+import requests
+from django.apps import apps
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db import transaction, connection, ProgrammingError
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
+from django.utils import timezone
+from geopy.geocoders import Nominatim
+from importlib import import_module
+
+from accounts.models import User
+from cobalt.settings import TIME_ZONE
+from events.core import events_status_summary
+from forums.views import forums_status_summary
+from notifications.views import notifications_status_summary
+from payments.core import payments_status_summary
+from utils.utils import cobalt_paginator
+from .models import Batch, Lock
 
 
 @login_required
@@ -293,3 +292,63 @@ class CobaltLock:
             return
         lock.lock_open_time = None
         lock.save()
+
+
+@login_required()
+def database_view(request):
+    """Show basic stats about the database"""
+
+    db_sizes = []
+
+    with connection.cursor() as cursor:
+
+        for app in apps.get_app_configs():
+            for app_model in app.get_models():
+                name = app_model.__name__.lower()
+                try:
+                    # Pretty printed disk space
+                    cursor.execute(
+                        f"SELECT pg_size_pretty(pg_total_relation_size('{app.verbose_name.lower()}_{name}'));"
+                    )
+                    ans = cursor.fetchall()
+                    pretty = ans[0][0]
+
+                    # Disk space in bytes
+                    cursor.execute(
+                        f"SELECT pg_total_relation_size('{app.verbose_name.lower()}_{name}');"
+                    )
+                    ans = cursor.fetchall()
+
+                    # Count of rows
+                    local_array = {}
+                    exec_cmd = (
+                        "module = import_module('%s.models')\ncount = module.%s.objects.count()"
+                        % (app.verbose_name.lower(), app_model.__name__)
+                    )
+                    exec(exec_cmd, globals(), local_array)
+
+                    # Add it all to dictionary
+                    db_sizes.append(
+                        {
+                            "name": f"{app.verbose_name}: {app_model.__name__}",
+                            "size": ans[0][0],
+                            "pretty": pretty,
+                            "count": local_array["count"],
+                        }
+                    )
+
+                except ProgrammingError:
+                    # We get some noise through, just ignore it
+                    pass
+
+    total_size = 0
+    total_rows = 0
+    for db_size in db_sizes:
+        total_size += db_size["size"]
+        total_rows += db_size["count"]
+
+    return render(
+        request,
+        "utils/database_view.html",
+        {"db_sizes": db_sizes, "total_size": total_size, "total_rows": total_rows},
+    )

@@ -39,13 +39,13 @@ ORGS_RBAC_GROUPS_AND_ROLES = {
         "action": "edit",
         "description": "Edit member info",
     },
-    # # Manage communications
-    # "comms_edit": {
-    #     "app": "notifications",
-    #     "model": "orgcomms",
-    #     "action": "edit",
-    #     "description": "Manage communications",
-    # },
+    # Manage communications
+    "comms_edit": {
+        "app": "notifications",
+        "model": "orgcomms",
+        "action": "edit",
+        "description": "Manage communications",
+    },
 }
 
 
