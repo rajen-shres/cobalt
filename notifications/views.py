@@ -42,7 +42,15 @@ from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
 from .forms import EmailContactForm
-from .models import InAppNotification, NotificationMapping, Email, EmailThread, Snooper
+from .models import (
+    InAppNotification,
+    NotificationMapping,
+    Email,
+    EmailThread,
+    Snooper,
+    BatchID,
+    EmailBatchRBAC,
+)
 from post_office import mail as po_email
 from post_office.models import Email as PostOfficeEmail
 
@@ -213,7 +221,12 @@ def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
 
 
 def send_cobalt_email_with_template(
-    to_address, context, template="system - button", sender=None, priority="medium"
+    to_address,
+    context,
+    template="system - button",
+    sender=None,
+    priority="medium",
+    batch_id=None,
 ):
     """Queue an email using a template and context.
 
@@ -224,6 +237,7 @@ def send_cobalt_email_with_template(
         template (str or EmailTemplate instance): it is more efficient to use an instance for multiple calls
         sender (str): who to send from (None will use default from settings file)
         priority (str): Django Post Office priority
+        batch_id (BatchID): batch_id for this batch of emails
 
     Returns:
         Nothing
@@ -248,7 +262,7 @@ def send_cobalt_email_with_template(
     if "box_colour" not in context:
         context["box_colour"] = "primary"
 
-    po_email.send(
+    email = po_email.send(
         sender=sender,
         recipients=to_address,
         template=template,
@@ -256,6 +270,29 @@ def send_cobalt_email_with_template(
         render_on_delivery=True,
         priority=priority,
     )
+
+    Snooper(post_office_email=email, batch_id=batch_id).save()
+
+
+def create_rbac_batch_id(rbac_role: str, batch_id: BatchID = None):
+    """Create a new EmailBatchRBAC object to allow an RBAC role to access a batch of emails
+
+    Args:
+        rbac_role (str): the RBAC role to allow. e.g. "org.orgs.34.view"
+        batch_id (BatchID): batch ID, if None a new batch Id will be created
+
+    Returns: BatchID
+
+    """
+
+    if not batch_id:
+        batch_id = BatchID()
+        batch_id.create_new()
+        batch_id.save()
+
+    EmailBatchRBAC(batch_id=batch_id, rbac_role=rbac_role).save()
+
+    return batch_id
 
 
 def send_cobalt_bulk_email(bcc_addresses, subject, message, reply_to=""):
