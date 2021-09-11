@@ -1,3 +1,6 @@
+import random
+import string
+
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
@@ -109,8 +112,32 @@ class EmailThread(models.Model):
     created_date = models.DateTimeField("Create Date", default=timezone.now)
 
 
+class BatchID(models.Model):
+    """Simple model for unique batch ids"""
+
+    batch_id = models.CharField("Batch Id", max_length=14, blank=True, null=True)
+    """batch id links emails together and controls security """
+
+    def create_new(self):
+        """create a new batch id"""
+        self.batch_id = "%s-%s-%s" % (
+            "".join(random.choices(string.ascii_letters + string.digits, k=4)),
+            "".join(random.choices(string.ascii_letters + string.digits, k=4)),
+            "".join(random.choices(string.ascii_letters + string.digits, k=4)),
+        )
+        return self.batch_id
+
+    def __str__(self):
+        return self.batch_id
+
+
 class Snooper(models.Model):
-    """Stores information from AWS SES about activity with Email"""
+    """Stores information from AWS SES about activity with Email
+
+    Also stores the batch id associated with this email which controls
+    who sent it and who can access it.
+
+    """
 
     post_office_email = models.OneToOneField(
         PostOfficeEmail,
@@ -126,3 +153,26 @@ class Snooper(models.Model):
     ses_clicked_count = models.IntegerField("Clicked Count", default=0)
     ses_last_bounce_at = models.DateTimeField("Last Bounce At", blank=True, null=True)
     ses_bounce_reason = models.TextField("Bounce Reason", blank=True, null=True)
+    batch_id = models.ForeignKey(
+        BatchID, on_delete=models.CASCADE, blank=True, null=True
+    )
+
+    def __str__(self):
+        return f"Snooper for {self.post_office_email}"
+
+
+class EmailBatchRBAC(models.Model):
+    """Control who can access a batch of emails.
+
+    By default only the global admin group can see an email, this allows specific
+    RBAC roles to be granted access.
+
+    """
+
+    batch_id = models.ForeignKey(
+        BatchID, on_delete=models.CASCADE, blank=True, null=True
+    )
+    rbac_role = models.CharField(max_length=300)
+
+    def __str__(self):
+        return f"{self.batch_id} - {self.rbac_role}"
