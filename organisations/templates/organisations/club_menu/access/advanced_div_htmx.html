@@ -31,7 +31,7 @@
                                     {% for user in data.1 %}
                                         <tr>
                                             <td>{{ user|cobalt_user_link_short }}
-                                                {% include "utils/htmx_confirm_modal.html" with id=user.delete_id delete_item=user.first_name hx_target="#access-advanced" hx_post=user.hx_post %}
+                                                {% include "utils/htmx_confirm_modal.html" with id=user.delete_id delete_item=user.first_name hx_target="#access-advanced" hx_post=user.hx_post hx_vars=user.hx_vars %}
                                                 <td><button {{ disable_buttons }} type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.delete_id }}">
                                                     Remove
                                                 </button>

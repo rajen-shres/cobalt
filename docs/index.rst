@@ -22,6 +22,7 @@ User Guides
 
 Here are pages that describe things relevant to Cobalt in general:
 
+* :doc:`cobalt_for_porkchops`
 * :doc:`development_overview`
 * :doc:`design_overview`
 * :doc:`security_overview`

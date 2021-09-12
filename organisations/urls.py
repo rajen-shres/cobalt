@@ -2,6 +2,12 @@
 from django.urls import path
 
 import organisations.views.club_menu
+import organisations.views.club_menu_tabs.access
+import organisations.views.club_menu_tabs.comms
+import organisations.views.club_menu_tabs.import_data
+import organisations.views.club_menu_tabs.members
+import organisations.views.club_menu_tabs.settings
+import organisations.views.club_menu_tabs.utils
 from .views import club_menu, ajax
 
 from .views import admin
@@ -62,33 +68,33 @@ urlpatterns = [
         name="club_menu",
     ),
     path(
-        "admin/access-basic/delete-user/<int:club_id>/<int:user_id>",
-        organisations.views.club_menu.access_basic_delete_user_htmx,
+        "admin/access-basic/delete-user/",
+        organisations.views.club_menu_tabs.access.basic_delete_user_htmx,
         name="club_admin_access_basic_delete_user_htmx",
     ),
     path(
         "admin/access-advanced/delete-admin",
-        organisations.views.club_menu.access_advanced_add_admin_htmx,
+        organisations.views.club_menu_tabs.access.advanced_add_admin_htmx,
         name="access_advanced_add_admin_htmx",
     ),
     path(
-        "admin/access-advanced/delete-user/<int:club_id>/<int:user_id>/<str:group_name_item>",
-        organisations.views.club_menu.access_advanced_delete_user_htmx,
+        "admin/access-advanced/delete-user/",
+        organisations.views.club_menu_tabs.access.advanced_delete_user_htmx,
         name="club_admin_access_advanced_delete_user_htmx",
     ),
     path(
         "admin/access-advanced/delete-admin/<int:club_id>/<int:user_id>",
-        organisations.views.club_menu.access_advanced_delete_admin_htmx,
+        organisations.views.club_menu_tabs.access.advanced_delete_admin_htmx,
         name="access_advanced_delete_admin_htmx",
     ),
     path(
         "admin/access-basic/add-user",
-        organisations.views.club_menu.access_basic_add_user_htmx,
+        organisations.views.club_menu_tabs.access.basic_add_user_htmx,
         name="club_admin_access_basic_add_user_htmx",
     ),
     path(
         "admin/access-advanced/add-user",
-        organisations.views.club_menu.access_advanced_add_user_htmx,
+        organisations.views.club_menu_tabs.access.advanced_add_user_htmx,
         name="club_admin_access_advanced_add_user_htmx",
     ),
     path(
@@ -103,32 +109,37 @@ urlpatterns = [
     ),
     path(
         "club-menu/tabs/comms/email",
-        club_menu.tab_comms_email_htmx,
+        organisations.views.club_menu_tabs.comms.email_htmx,
         name="club_menu_tab_comms_email_htmx",
     ),
     path(
+        "club-menu/tabs/comms/email-send",
+        organisations.views.club_menu_tabs.comms.email_send_htmx,
+        name="club_menu_tab_comms_email_send_htmx",
+    ),
+    path(
         "club-menu/tabs/comms/tags",
-        club_menu.tab_comms_tags_htmx,
+        organisations.views.club_menu_tabs.comms.tags_htmx,
         name="club_menu_tab_comms_tags_htmx",
     ),
     path(
         "club-menu/tabs/comms/tag-delete",
-        club_menu.tab_comms_tags_delete_tag_htmx,
+        organisations.views.club_menu_tabs.comms.delete_tag_htmx,
         name="club_menu_tab_comms_tags_delete_tag_htmx",
     ),
     path(
         "club-menu/tabs/comms/tag-add-user",
-        club_menu.tab_comms_tags_add_user_tag,
+        organisations.views.club_menu_tabs.comms.tags_add_user_tag,
         name="club_menu_tab_comms_tags_add_user_tag",
     ),
     path(
         "club-menu/tabs/comms/tag-remove-user",
-        club_menu.tab_comms_tags_remove_user_tag,
+        organisations.views.club_menu_tabs.comms.tags_remove_user_tag,
         name="club_menu_tab_comms_tags_remove_user_tag",
     ),
     path(
         "club-menu/tabs/comms/public-info",
-        club_menu.tab_comms_public_info_htmx,
+        organisations.views.club_menu_tabs.comms.public_info_htmx,
         name="club_menu_tab_comms_public_info_htmx",
     ),
     path(
@@ -143,12 +154,12 @@ urlpatterns = [
     ),
     path(
         "club-menu/tabs/members",
-        club_menu.tab_members_list_htmx,
+        organisations.views.club_menu_tabs.members.list_htmx,
         name="club_menu_tab_members_htmx",
     ),
     path(
         "club-menu/tabs/members/add",
-        club_menu.tab_members_add_htmx,
+        organisations.views.club_menu_tabs.members.add_htmx,
         name="club_menu_tab_members_add_htmx",
     ),
     path(
@@ -163,97 +174,97 @@ urlpatterns = [
     ),
     path(
         "club-menu/tabs/settings-basic",
-        club_menu.tab_settings_basic_htmx,
+        organisations.views.club_menu_tabs.settings.basic_htmx,
         name="club_menu_tab_settings_basic_htmx",
     ),
     path(
         "club-menu/tabs/settings-basic-reload",
-        club_menu.tab_settings_basic_reload_htmx,
+        organisations.views.club_menu_tabs.settings.basic_reload_htmx,
         name="club_menu_tab_settings_reload_basic_htmx",
     ),
     path(
         "club-menu/tabs/settings-general",
-        club_menu.tab_settings_general_htmx,
+        organisations.views.club_menu_tabs.settings.general_htmx,
         name="club_menu_tab_settings_general_htmx",
     ),
     path(
         "club-menu/tabs/settings-membership",
-        club_menu.tab_settings_membership_htmx,
+        organisations.views.club_menu_tabs.settings.membership_htmx,
         name="club_menu_tab_settings_membership_htmx",
     ),
     path(
         "club-menu/tabs/settings-logs",
-        club_menu.tab_settings_logs_htmx,
+        organisations.views.club_menu_tabs.settings.logs_htmx,
         name="club_menu_tab_settings_logs_htmx",
     ),
     path(
         "club-menu/tabs/settings-edit-membership",
-        club_menu.club_menu_tab_settings_membership_edit_htmx,
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_membership_edit_htmx,
         name="club_menu_tab_settings_membership_edit_htmx",
     ),
     path(
         "club-menu/tabs/settings-add-membership",
-        club_menu.club_menu_tab_settings_membership_add_htmx,
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_membership_add_htmx,
         name="club_menu_tab_settings_membership_add_htmx",
     ),
     path(
         "club-menu/tabs/settings-delete-membership",
-        club_menu.club_menu_tab_settings_membership_delete_htmx,
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_membership_delete_htmx,
         name="club_menu_tab_settings_membership_delete_htmx",
     ),
     path(
         "club-menu/tabs/members-upload-csv",
-        club_menu.club_menu_tab_members_upload_csv_htmx,
+        organisations.views.club_menu_tabs.import_data.upload_csv_htmx,
         name="club_menu_tab_members_upload_csv",
     ),
     path(
         "club-menu/tabs/members-import-mpc",
-        club_menu.club_menu_tab_members_import_mpc_htmx,
+        organisations.views.club_menu_tabs.import_data.import_mpc_htmx,
         name="club_menu_tab_members_import_mpc_htmx",
     ),
     path(
         "club-menu/tabs/members-edit-unreg",
-        club_menu.tab_members_un_reg_edit_htmx,
+        organisations.views.club_menu_tabs.members.un_reg_edit_htmx,
         name="club_menu_tab_members_un_reg_edit_htmx",
     ),
     path(
         "club-menu/tabs/members-add-member",
-        club_menu.tab_members_add_member_htmx,
+        organisations.views.club_menu_tabs.members.add_member_htmx,
         name="club_menu_tab_members_add_member_htmx",
     ),
     path(
         "club-menu/tabs/members-edit-member",
-        club_menu.tab_members_edit_member_htmx,
+        organisations.views.club_menu_tabs.members.edit_member_htmx,
         name="club_menu_tab_members_edit_member_htmx",
     ),
     path(
         "club-menu/tabs/members-reports",
-        club_menu.tab_members_reports_htmx,
+        organisations.views.club_menu_tabs.members.reports_htmx,
         name="club_menu_tab_members_reports_htmx",
     ),
     path(
         "club-menu/tabs/members-invite",
-        club_menu.invite_user_to_join_htmx,
+        organisations.views.club_menu_tabs.utils.invite_user_to_join_htmx,
         name="club_menu_tab_members_invite_user_to_join_htmx",
     ),
     path(
         "club-menu/tabs/members-reports-all-csv/<int:club_id>/",
-        club_menu.tab_members_report_all_csv,
+        organisations.views.club_menu_tabs.members.report_all_csv,
         name="club_menu_tab_members_report_all_csv",
     ),
     path(
         "club-menu/tabs/members-add-un-reg",
-        club_menu.tab_members_add_un_reg_htmx,
+        organisations.views.club_menu_tabs.members.add_un_reg_htmx,
         name="club_menu_tab_members_add_un_reg_htmx",
     ),
     path(
-        "club-menu/tabs/members-cancel-un-reg/<int:club_id>/<int:un_reg_id>/",
-        club_menu.tab_member_delete_un_reg_htmx,
+        "club-menu/tabs/members-cancel-un-reg",
+        organisations.views.club_menu_tabs.members.delete_un_reg_htmx,
         name="club_menu_tab_member_delete_un_reg_htmx",
     ),
     path(
-        "club-menu/tabs/members-cancel-member/<int:club_id>/<int:member_id>/",
-        club_menu.tab_member_delete_member_htmx,
+        "club-menu/tabs/members-cancel-member",
+        organisations.views.club_menu_tabs.members.delete_member_htmx,
         name="club_menu_tab_member_delete_member_htmx",
     ),
 ]

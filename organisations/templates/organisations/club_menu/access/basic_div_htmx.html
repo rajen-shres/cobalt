@@ -24,7 +24,7 @@ administrator (able to grant access to others). This is the recommended configur
             {% for user in users %}
                 <tr>
                     <td>{{ user|cobalt_user_link_short }}
-                        {% include "utils/htmx_confirm_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-basic" hx_post=user.hx_post %}
+                        {% include "utils/htmx_confirm_modal.html" with id=user.id delete_item=user.first_name hx_target="#access-basic" hx_post=user.hx_post hx_vars=user.hx_vars %}
                         <td><button id="id_delete_user_{{ user.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user.id }}">
                             Remove
                         </button>

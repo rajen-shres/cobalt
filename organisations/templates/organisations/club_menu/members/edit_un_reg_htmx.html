@@ -45,7 +45,7 @@
 
                     <button type="submit" name="save" class="btn btn-success">Save</button>
 
-                    {% include "utils/htmx_confirm_modal.html" with id="undel" delete_item=un_reg.first_name hx_target="#id_panel_members" hx_post=hx_delete %}
+                    {% include "utils/htmx_confirm_modal.html" with id="undel" delete_item=un_reg.first_name hx_target="#id_panel_members" hx_post=hx_delete hx_args=hx_args %}
                     <button id="id_delete_user_1" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModalundel">Cancel Membership</button>
 
 

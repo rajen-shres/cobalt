@@ -99,6 +99,14 @@
                                     RBAC
                                 </a>
                             </li>
+                            {% if request.user.is_superuser %}
+                                <li class="nav-item">
+                                    <a id="id_tab_dev" class="nav-link" href="#it" role="tab" data-toggle="tab">
+                                        <i class="material-icons">architecture</i>
+                                        IT
+                                    </a>
+                                </li>
+                            {% endif %}
                             {% if development_admin %}
                                 <li class="nav-item">
                                     <a id="id_tab_dev" class="nav-link" href="#dev" role="tab" data-toggle="tab">
@@ -409,15 +417,12 @@
                                             </tr>
                                         </tbody>
                                     </table>
-
                                 {% endif %}
-
                             </div>
 
                             <!-- Email -->
 
                             <div class="tab-pane fade" id="email">
-
                                 <table class="table table-condensed">
                                     <tbody>
                                         <tr>
@@ -430,8 +435,25 @@
                                         </tr>
                                     </tbody>
                                 </table>
-
                             </div>
+
+                            <!-- IT -->
+
+                            <div class="tab-pane fade" id="it">
+                                <table class="table table-condensed">
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <a class="btn btn-sm btn-primary btn-block" href="{% url "logs:logs" %} ">Logs</a>
+                                            </td>
+                                            <td class="text-left pl-5">
+                                                View Logs
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
                         </div>
                     </div>
                 </div>

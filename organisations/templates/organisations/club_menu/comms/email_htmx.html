@@ -3,11 +3,34 @@
 
 <div class="card" style="min-height: 800px; height: auto">
     <div class="card-header card-header-warning">
+        <h2>Communications</h2>
         {% include "organisations/club_menu/comms/nav_htmx.html" with selected="emails" %}
     </div>
     <div class="card-body" id="id_comms_email_tab">
 
-        <h3>Emails</h3>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-9">
+                    <div class="card">
+                        <div class="card-header-rose">
+                            <h3>Emails</h3>
+                        </div>
+                        <div class="card-body">
+                            emails here
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button
+                        class="btn btn-info btn-block"
+                        hx-target="#id_comms_email_tab"
+                        hx-vars="club_id:{{ club.id }}"
+                        hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}"
+                    >
+                        Send New Email</button>
+                </div>
+            </div>
+        </div>
 
     </div>
 </div>
