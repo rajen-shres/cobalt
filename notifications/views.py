@@ -6,6 +6,7 @@
    ./notifications_overview.html
 
 """
+import logging
 import random
 import string
 from datetime import datetime, timedelta
@@ -28,6 +29,7 @@ from cobalt.settings import (
     AWS_SECRET_ACCESS_KEY,
     AWS_REGION_NAME,
     AWS_ACCESS_KEY_ID,
+    DISABLE_PLAYPEN,
 )
 from cobalt.settings import (
     DEFAULT_FROM_EMAIL,
@@ -53,6 +55,8 @@ from .models import (
 )
 from post_office import mail as po_email
 from post_office.models import Email as PostOfficeEmail
+
+logger = logging.getLogger("cobalt")
 
 # Max no of emails to send in a batch
 MAX_EMAILS = 45
@@ -261,6 +265,13 @@ def send_cobalt_email_with_template(
         context["img_src"] = "notifications/img/myabf-email.png"
     if "box_colour" not in context:
         context["box_colour"] = "primary"
+
+    # Check for playpen - don't send emails to users unless on production. Send to EVERYONE id
+    if DISABLE_PLAYPEN != "ON":
+        to_address = User.objects.get(pk=RBAC_EVERYONE).email
+        logger.warning(
+            f"DISABLE_PLAYPEN is OFF. Overriding email address to {to_address}"
+        )
 
     email = po_email.send(
         sender=sender,

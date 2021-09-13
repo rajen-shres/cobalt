@@ -76,6 +76,9 @@ DEFAULT_FROM_EMAIL = set_value("DEFAULT_FROM_EMAIL", "notset@fake.com")
 # TODO: SUPPORT_EMAIL is only used to send client side errors - replace with ADMINS
 SUPPORT_EMAIL = set_value("SUPPORT_EMAIL", ["m@rkguthrie.com"])
 
+# playpen - don't send emails from non-prod systems
+DISABLE_PLAYPEN = set_value("DISABLE_PLAYPEN", "OFF")
+
 # stripe
 STRIPE_SECRET_KEY = set_value("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = set_value("STRIPE_PUBLISHABLE_KEY")

@@ -8,26 +8,116 @@
     </div>
     <div class="card-body" id="id_comms_email_tab">
 
+        <h3 class="text-info font-weight-bold settings_message" id="user_list_message">{{ message| default_if_none:"" }}</h3>
+
         <div class="container">
             <div class="row">
-                <div class="col-md-9">
+                <div class="">
+                    <button
+                        class="btn btn-info"
+                        hx-target="#id_comms_email_tab"
+                        hx-vars="club_id:{{ club.id }}"
+                        hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}"
+                    >
+                        Send New Email
+                        <i class="material-icons">email</i>
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
                     <div class="card">
                         <div class="card-header-rose">
                             <h3>Emails</h3>
                         </div>
                         <div class="card-body">
-                            emails here
+                            {% if things %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr class="text-primary">
+                                                <th>Date</th>
+                                                <th>Subject</th>
+                                                <th class="text-right">Recipients</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for thing in things %}
+                                                <tr>
+                                                    <td>{{ thing.created|cobalt_nice_datetime }}</td>
+                                                    <td>{{ thing.subject }}</td>
+                                                    <td class="text-right">{{ thing.number_sent }}</td>
+                                                    <td><a class="btn btn-info btn-sm">view</a></td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+
+
+                                    {% if things.paginator.num_pages > 1 %}
+
+                                        <div class="pagination">
+                                            {% if things.has_previous %}
+                                                <a class="pagination-action"
+                                                    hx-post="{% url "organisations:club_menu_tab_comms_email_htmx" %}?page=1"
+                                                    hx-vars="club_id:{{ club.id }},page:1"
+                                                    hx-target="#id_panel_comms"
+                                                >
+                                                    <i class="fa fa-angle-double-left" aria-hidden="true"></i>
+                                                </a>
+                                                <a class="pagination-action"
+                                                    hx-post="{% url "organisations:club_menu_tab_comms_email_htmx" %}?page={{ things.previous_page_number }}"
+                                                    hx-vars="club_id:{{ club.id }},page:{{ things.previous_page_number }}"
+                                                    hx-target="#id_panel_comms"
+                                                >
+                                                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                                                </a>
+                                            {% endif %}
+
+                                            {% for num in things.paginator.page_range %}
+                                                {% if things.number == num %}
+                                                    <span class="pagination-number pagination-current">{{ num }}</span>
+                                                {% elif num > things.number|add:'-3' and num < things.number|add:'3' %}
+                                                    <a class="pagination-number"
+                                                        hx-post="{% url "organisations:club_menu_tab_comms_email_htmx" %}?page={{ num }}"
+                                                        hx-vars="club_id:{{ club.id }},page:{{ num }}"
+                                                        hx-target="#id_panel_comms">{{ num }}
+                                                    </a>
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            {% if things.has_next %}
+                                                <a class="pagination-action"
+                                                    hx-post="{% url "organisations:club_menu_tab_comms_email_htmx" %}?page={{ things.next_page_number }}"
+                                                    hx-vars="club_id:{{ club.id }},page:{{ things.next_page_number }}"
+                                                    hx-target="#id_panel_comms"
+
+                                                >
+                                                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                                                </a>
+                                                <a class="pagination-action"
+                                                    hx-post="{% url "organisations:club_menu_tab_comms_email_htmx" %}?page={{ things.paginator.num_pages }}"
+                                                    hx-vars="club_id:{{ club.id }},page:{{ things.paginator.num_pages }}"
+                                                    hx-target="#id_panel_comms"
+                                                >
+                                                    <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+
+                                    {% endif %}
+
+
+                                </div>
+                            {% else %}
+                                <h4>No emails sent yet</h4>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <button
-                        class="btn btn-info btn-block"
-                        hx-target="#id_comms_email_tab"
-                        hx-vars="club_id:{{ club.id }}"
-                        hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}"
-                    >
-                        Send New Email</button>
+                <div id="id_comms_email_details" class="col-md-6">
+                    <h3>Email Details go here</h3>
                 </div>
             </div>
         </div>
