@@ -28,7 +28,7 @@
                                 <th class="text-left">Date</th>
                                 <th class="text-left">Status</th>
                                 <th class="text-left">Sent To (first name in list)</th>
-                                <th class="text-left">Subject</th>
+                                <th class="text-left">Batch</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -63,7 +63,7 @@
                                     </td>
 
                                     <td class="text-left" data-toggle="tooltip" title="{{ thing.to.0 }}">{{ thing.to.0|cobalt_hide_email }}</td>
-                                    <td class="text-left">{{ thing.subject }}</td>
+                                    <td class="text-left">{{ thing.snooper.batch_id|default_if_none:"" }}</td>
                                     <td><a onClick='showEmail({{ thing.id }})'
                                         class="btn btn-sm btn-info">View</a>
                                     </td>

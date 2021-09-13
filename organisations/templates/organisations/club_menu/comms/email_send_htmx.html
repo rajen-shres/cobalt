@@ -1,1 +1,31 @@
-<h3>Email form goes here</h3>
+{% load crispy_forms_filters %}
+{% load widget_tweaks %}
+
+
+
+<form hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}">
+    <div class="col-md-9 col-lg-9">
+        <h3>Send a New Email</h3>
+        <h3 class="text-info font-weight-bold settings_message" id="user_list_message">{{ message| default_if_none:"" }}</h3>
+        <div class="row">
+            <div class="col-12">
+                <div class="form-group">
+                    <label class="bmd-label-float">Subject</label>
+                    <span class="cobalt-form-error"
+                        id="id_subject_errors">{{ email_form.subject.errors|striptags }}</span>
+                    {% render_field email_form.subject class+="form-control" %}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                {{ email_form.body|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button class="btn btn-info btn-sm cobalt-save" name="test">Test</button>
+            <button class="btn btn-success btn-sm cobalt-save" name="send">Send</button>
+        </div>
+    </div>
+</form>

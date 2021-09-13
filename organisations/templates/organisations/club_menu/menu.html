@@ -6,6 +6,7 @@
 
 {% block header %}
     <script src="{% static "assets/js/plugins/jquery-ui.min.js" %}"></script>
+    <link href="{% static "assets/css/cobalt-summernote.css" %}" rel="stylesheet">
     {% include "utils/data_tables_heading.html" %}
     <style>
         .htmx-request .btn {
@@ -18,6 +19,8 @@
     </style>
 {% endblock header %}
 {% block content %}
+
+    {% include "utils/summernote_heading.html" %}
 
     {% if other_clubs %}
         <h4>You have access to multiple clubs, change club:</h4>

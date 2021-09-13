@@ -1139,9 +1139,6 @@ def _admin_email_common(request, all_recipients, congress, event=None):
             styles=BLEACH_ALLOWED_STYLES,
         )
 
-        print("Inside\n\n")
-        print(body)
-
         recipients = (
             [(request.user.first_name, request.user.last_name, request.user.email)]
             if "test" in request.POST
