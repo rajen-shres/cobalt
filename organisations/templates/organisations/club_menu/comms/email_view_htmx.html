@@ -1,0 +1,115 @@
+{% load humanize %}
+{% load cobalt_tags %}
+
+<h3>{{ details.subject }}</h3>
+
+<div id="email_info" style="display: none;">
+
+
+    <div id="piechart_3d">
+    </div>
+    <script>
+        google.charts.load("current", {packages: ["corechart"]});
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            const data = google.visualization.arrayToDataTable([
+                ['Task', 'Hours per Day'],
+                ['Queued', 15],
+                ['Sent', 20],
+                ['Delivered', {{ details.totals.delivered }}],
+                ['Failed', {{ details.number_sent }}],
+            ]);
+
+            const options = {
+                title: 'Email Status',
+                width: 500,
+                height: 500,
+                is3D: true,
+                animation: {"startup": true, "duration": 1000}
+            };
+
+            const chart = new google.visualization.PieChart(document.getElementById('piechart_3d'));
+            google.visualization.events.addListener(chart, 'ready', afterDraw);
+            chart.draw(data, options);
+        }
+
+        function afterDraw(){
+            // we hide the side panel and fade it in as the chart won't be ready straight away and jumps
+            $("#email_info").fadeIn("slow", "swing");
+        }
+    </script>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <tbody>
+                <tr>
+                    <td>Sent {{ details.totals.sent }}/{{ details.number_sent }}</td>
+                    <td>
+                        <div class="progress-container progress-primary">
+                            <span class="progress-badge">35%</span>
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-primary" role="progressbar" aria-valuenow="30"
+                                    aria-valuemin="0" aria-valuemax="100" style="width: 30%;">
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Delivered {{ details.totals.delivered }}/{{ details.number_sent }}</td>
+                    <td>
+                        <div class="progress-container progress-primary">
+                            <span class="progress-badge">35%</span>
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-primary" role="progressbar" aria-valuenow="30"
+                                    aria-valuemin="0" aria-valuemax="100" style="width: 30%;">
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Opened {{ details.totals.opened }}/{{ details.number_sent }}</td>
+                    <td>
+                        <div class="progress-container progress-primary">
+                            <span class="progress-badge">35%</span>
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-primary" role="progressbar" aria-valuenow="30"
+                                    aria-valuemin="0" aria-valuemax="100" style="width: 30%;">
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="bg-rose">Clicked {{ details.totals.clicked }}/{{ details.number_sent }}</td>
+                    <td class="bg-info">
+                        <div class="progress-container progress-primary">
+                            <span class="progress-badge">35%</span>
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-primary" role="progressbar" aria-valuenow="30"
+                                    aria-valuemin="0" aria-valuemax="100" style="width: 30%;">
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Bounced {{ details.totals.bounced }}/{{ details.number_sent }}</td>
+                    <td>
+                        <div class="progress-container progress-primary">
+                            <span class="progress-badge">35%</span>
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-primary" role="progressbar" aria-valuenow="30"
+                                    aria-valuemin="0" aria-valuemax="100" style="width: 30%;">
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -273,6 +273,18 @@ If you want to have different text based upon the size of the screen
     </span>
 
 
+Cobalt Simple Form
+==================
+
+If you want a simple Bootstrap4 form and don't need to customise the field set up, you can use this::
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% include 'utils/cobalt_simple_form.html' with form=my_form %}
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
+
 Batch Jobs
 ==========
 

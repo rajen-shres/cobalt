@@ -118,6 +118,11 @@ urlpatterns = [
         name="club_menu_tab_comms_email_send_htmx",
     ),
     path(
+        "club-menu/tabs/comms/email-view",
+        organisations.views.club_menu_tabs.comms.email_view_htmx,
+        name="club_menu_tab_comms_email_view_htmx",
+    ),
+    path(
         "club-menu/tabs/comms/tags",
         organisations.views.club_menu_tabs.comms.tags_htmx,
         name="club_menu_tab_comms_tags_htmx",

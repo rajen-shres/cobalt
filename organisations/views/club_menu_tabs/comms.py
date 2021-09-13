@@ -1,5 +1,6 @@
 from itertools import chain
 
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
@@ -32,10 +33,11 @@ def email_htmx(request, club, message=None):
     # Augment data
     for batch_id in batch_ids:
         snoopers = Snooper.objects.filter(batch_id=batch_id.batch_id)
-        first_snooper = snoopers.first()
-        batch_id.created = first_snooper.post_office_email.created
         batch_id.number_sent = snoopers.count()
-        batch_id.subject = first_snooper.post_office_email.context["subject"]
+        first_snooper = snoopers.first()
+        if first_snooper:
+            batch_id.created = first_snooper.post_office_email.created
+            batch_id.subject = first_snooper.post_office_email.context["subject"]
 
     things = cobalt_paginator(request, batch_ids, 4)
 
@@ -114,12 +116,55 @@ def email_send_htmx(request, club):
                 message = "Test email sent. Check your inbox"
             else:
                 _send_email_to_tags(request, club, ["aaa"], email_form)
-                return email_htmx(request, "Email sent")
+                return HttpResponse(
+                    "<h3>Email sent</h3>Click on Email to see sent messages."
+                )
 
     return render(
         request,
         "organisations/club_menu/comms/email_send_htmx.html",
         {"club": club, "email_form": email_form, "message": message},
+    )
+
+
+@check_club_menu_access()
+def email_view_htmx(request, club):
+    """view an email"""
+
+    batch_id = request.POST.get("batch_id")
+
+    # Get the matching batch
+    email_batch = EmailBatchRBAC.objects.prefetch_related(
+        "batch_id__snooper_set__post_office_email"
+    ).get(pk=batch_id)
+
+    # Get the snoopers for this batch
+    snoopers = Snooper.objects.filter(batch_id=email_batch.batch_id)
+
+    totals = snoopers.aggregate(
+        sent=Count("ses_sent_at"),
+        delivered=Count("ses_delivered_at"),
+        opened=Count("ses_last_opened_at"),
+        clicked=Count("ses_last_clicked_at"),
+        bounced=Count("ses_last_bounce_at"),
+    )
+
+    print(totals)
+
+    count = snoopers.count()
+    snooper = snoopers.first()
+
+    details = {
+        "number_sent": count,
+        "created": snooper.post_office_email.created,
+        "subject": snooper.post_office_email.context["subject"],
+        "totals": totals,
+    }
+
+    return render(
+        request,
+        "organisations/club_menu/comms/email_view_htmx.html",
+        {"club": club, "email_batch": email_batch, "details": details},
     )
 
 
