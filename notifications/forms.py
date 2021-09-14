@@ -21,12 +21,6 @@ class EmailForm(forms.Form):
     """Form to send an email. This form doesn't include who to send it to, that is specific to the use of the form
     and needs to be handled separately"""
 
-    def __init__(self, *args, **kwargs):
-        super(EmailForm, self).__init__(*args, **kwargs)
-
-        # Hide the crispy labels
-        self.fields["body"].label = False
-
     subject = forms.CharField(max_length=100)
     body = forms.CharField(
         widget=SummernoteInplaceWidget(

@@ -1,11 +1,13 @@
 import random
 
 from django import template
+from django.template.defaultfilters import striptags
 from django.utils.dateformat import DateFormat
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.contrib.humanize.templatetags.humanize import intcomma
+from widget_tweaks.templatetags.widget_tweaks import render_field, FieldAttributeNode
 
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL
 
@@ -156,3 +158,70 @@ def cobalt_dict_key(my_dict, my_keyname):
         return my_dict[my_keyname]
     except (KeyError, TypeError):
         return ""
+
+
+def _add_class(field):
+    """sub function to add class to HTML string"""
+
+    html = field.__str__()
+
+    # Summernote is a special case
+    if "summernote" in field.widget_type:
+        loc = html.find("<textarea")
+        return f'{html[:loc + 10]}class="form-control" {html[loc + 10:]}'
+
+    # Add our bootstrap class to string
+    # If there is a class tag already then use that
+    loc = html.find("class=")
+    if loc >= 0:
+        return f"{html[:loc + 7]}form-control {html[loc + 7:]}"
+
+    # no class tag insert before name
+    loc = html.find("name=")
+    if loc >= 0:
+        return f'{html[:loc]}class="form-control" {html[loc:]}'
+
+    # no name either, sort if we get a real example of this
+    print("Error: cobalt_bs4_field cannot find class or name in object")
+    return html
+
+
+@register.simple_tag
+def cobalt_bs4_field(field, params=None):
+    """Format a field for a standard Bootstrap 4 form element.
+
+    Returns a form-group div with the field rendered inside
+    Will include a label if the type of field suits it.
+
+    This is a general tag to be used for any field. It tries
+    to work out how to format the HTML based upon the type of field.
+
+    use it per field so you can format the elements individually.
+
+    e.g.
+
+    <div class="col-6">{% cobalt_bs4_field form.field1 %}</div>
+    <div class="col-6">{% cobalt_bs4_field form.field2 %}</div>
+    """
+
+    # We are going to use the field to generate most things, we just wrap around it
+
+    # Get string from field and add class
+    html = _add_class(field)
+
+    # which widget types do not want a label
+    no_label_types = ["summernoteinplace"]
+
+    # Add errors
+    html = f'<span class="cobalt-form-error">{striptags(field.errors)}</span>\n{html}'
+
+    # Add labels
+    if field.label and field.widget_type not in no_label_types:
+        html = f'<label class="bmd-label-float" for="{field.id_for_label}">{field.label}</label>\n{html}'
+
+    # Now wrap in form group
+    html = f'<div class="form-group">\n{html}</div>'
+
+    print(html)
+
+    return mark_safe(html)
