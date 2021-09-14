@@ -1,0 +1,7 @@
+{% load widget_tweaks %}
+
+<div class="form-group">
+    <label class="bmd-label-float" for="{{ field.id_for_label }}">{{ field.label_tag }}</label>
+    <span class="cobalt-form-error">{{ field.errors|striptags }}</span>
+    {% render_field field class+="form-control" %}
+</div>

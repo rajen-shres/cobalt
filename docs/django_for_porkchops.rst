@@ -5,25 +5,28 @@
  :width: 300
  :alt: Cobalt Chemical Symbol
 
+=====================
 Django for Pork Chops
 =====================
 
 This assumes you know Python,
 if you don't then you should first read :doc:`python_for_porkchops`.
 
+************
 Introduction
-------------
+************
 
 It takes about two years to become proficient in Django, some people
 are quicker and some are slower. This document is intended to try to
 help people to get there quicker.
 
-As someone wise once said, you should try to learn from other's mistakes
+As someone wise once said (possibly Eleanor Roosevelt),
+you should try to learn from other's mistakes
 as there isn't time to make them all yourself. Here are some snippets to
 get you going.
 
 First Steps
------------
+===========
 
 If you haven't used Django before then your best bet is a Youtube video series,
 a tutorial or a paid course. There are lots to choose from. Be aware that you
@@ -37,7 +40,7 @@ There are really only a few key concepts that you need to understand to get
 started.
 
 Models, Views and Templates (oh, and URLs but nobody ever mentions them)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+========================================================================
 
 *Skip this is you know Django, this is for people too lazy to do a course.*
 
@@ -141,8 +144,9 @@ The other moving parts of Django that you will deal with regularly are:
 
 That's the end of the beginners bit, if you haven't done so already go and learn Django.
 
+***********
 Information
------------
+***********
 
 Syntax really doesn't matter. For example, as long as you remember there is a template tag that formats
 numbers, you can easily Google it to find out the right word to use. What matters is design and patterns.
@@ -164,21 +168,22 @@ all the nodding heads copy it. The best thing is to only ever take what you find
 as suggestions and to work out for yourself if they are good suggestions or not. I will go through
 some of them here. Of course the same advice applies to this document.
 
+*******
 Journey
--------
+*******
 
 Let us set some markers for you to track your journey as a Django developer. See how far you
 have come already and what things might be next.
 
 Level 1 - Basic Explorer
-^^^^^^^^^^^^^^^^^^^^^^^^
+========================
 
 You can write Django that works. You have got the hang of views and templates. You have
 probably written three things in three different ways but you are getting there. Somethings
 confuse you and it takes a long time to work things out, but you get there in the end.
 
 Level 2 - Quietly Confident
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===========================
 
 You have started to really understand models. You can do use foreign keys to get data
 that you used to have to do in two separate queries. You don't have to look up the common
@@ -187,7 +192,7 @@ getting them to do what you want. You think you know how static works now but yo
 aren't sure which of the static directories is which.
 
 Level 3 - Clunky Builder
-^^^^^^^^^^^^^^^^^^^^^^^^
+========================
 
 You swear you will never use Crispy Forms again and you build your own HTML forms.
 You have discovered 'include' and 'extends' and your templates are looking nicer.
@@ -195,14 +200,135 @@ You have played with something else really cool, maybe writing your own template
 or overriding save() in models, but you can't remember where you put it.
 
 Level 4 - Baby Guru
-^^^^^^^^^^^^^^^^^^^
+===================
 
 You found a bunch of Django add-ons including the debug toolbar and it showed how poor
 some of your database queries are. You now know what an N+1 problem is and you
 have started getting your head around pre-fetch and fetch-related. You have finally started
 writing some tests.
 
+**********
+Principles
+**********
+
+Django, and Python for that matter, is heavy on principles. You will hear people talking about DRY and
+being Pythonic, which probably makes you want to reach for a sick bag. Tim Peters came up with 20 aphorisms (yup,
+maybe get a bucket this time) for Python, called the `The Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_
+(make it is a large bucket). This is even given the honour of being a Python Enhancement Proposal (PEP) and
+is hidden in the source code as an Easter Egg. I think
+he was on his second bottle of Midori when he wrote these though as all but one of them are complete nonsense.
+He also only wrote down 19 presumably beacuse when you finally attain enlightenment as a Python programmer the 20th
+one will be self evident. Or more likely it was even worse than "Although that way may not be obvious at
+first unless you're Dutch.".
+
+Django nerds also like to talk about DRY (Don't Repeat Yourself) as if it was something new. You'll work this out entirely
+on your own after you have to update very similar code in four different places and decide to create a common function for
+it.
+
+Useful Ones
+===========
+
+Okay, so which principles are actually useful here.
+
+Do What Django Wants
+--------------------
+
+You are using the Django framework so do things the Django way even if you don't like it. Consistency is much more
+important than anything else when maintaining code so if you stick to how Django was designed you won't go far wrong.
+Django says - Database stuff goes in Models, Business logic goes in Views, Validation goes in Forms
+and Presentation stuff goes in Templates.
+If you find yourself writing presentation stuff in a form (I'm looking at you Crispy Forms) then you are making a mistake.
+
+Explicit is Better than Implicit
+--------------------------------
+
+This is the one that Tim Peters got right. All it means is don't hide stuff that will be hard for others to find.
+For example, when you start writing your own template tags and using them everywhere, you will be tempted to add them
+to context_processors instead of having to load them in every template. Now you find the exception where you don't want
+to load it in a template. Maybe there is a name clash with another set of template tags that you want to use. Good luck
+finding how it got loaded. Your code won't run any faster for loading the template tags in a different place (slower
+for all of the times you don't use them).
+
+You could always put a comment at the top of your templates to tell the poor person who comes along to support it
+that this template uses template tags from my_tags. The clever people who brought you Django actually have a shorthand
+notation for this comment::
+
+    {% load my_tags %}
+
+Signals are another good way to obscure your code. So is overriding methods unless you use them in a lot of places.
+Here is a simple example. You have a model with a CharField defined that has a max_length of 20. You hit a problem
+when something longer than 20 gets put into the field. You could make it bigger or change it to a TextField (infinite
+length but same properties) but you aren't sure of the consequences so instead you do this::
+
+    my_thing.short_field = random_value[:20]
+    my_thing.save()
+
+Now it works fine. But what if this happens somewhere else? You could look for all instances of random_value and
+do this to them all, but that is ugly and someone else might add a new one and forget to do it. What about just
+overriding the save() method on the model for my_thing? Now you are only making the change in one place and your code
+is far simpler::
+
+    my_thing.short_field = random_value
+    my_thing.save()
+
+    def save():
+        self.short_field = self.short_field[:20]
+
+Nice solution! Except six months later you are trying to work out why data in short_field is getting truncated.
+The system throws no errors and the code looks fine. When you examine the variables they have the long value but
+later it has been truncated. This could take you a very long time to solve.
+
+Tim Peters has two others that are pretty much okay, he actually split one thing into two in his late night
+effort to get to 20: "Errors should never pass silently." and "Unless explicitly silenced.". That is pretty
+much the same thing as here though, nice try Tim.
+
+Write Comments
+--------------
+
+There are a bunch of dangerous idiots going around preaching that comments are the work of the devil and finding
+comments in code is a sure sign that the code is bad, otherwise why would you need to write comments? Use better
+variable names, refactor the code to be easier to read, delete the comments. These people are insane, ignore them.
+Here is a much better philosophy - instead of thinking that the comments are there to explain the code to humans,
+try thinking that the code is only there because the computer can't read the comments.
+
+Apart from showing your most beautiful work to people at parties there are only three reasons to be looking at code:
+
+#. It's broken and you need to fix it
+#. It works but you need it to do something else now
+#. You want to understand what it does and how (to copy it or to use it)
+
+Every one of these is going to be easier if the code has comments, especially the first one which is the worst
+reason to be looking at code (second worst, you could be at a party and someone is showing it to you).
+
+Take this example::
+
+    # Save original value
+    original_value = request.POST.get("my_value")
+
+    # Loop through and create list of options
+    for item in items:
+        my_list.append(item)
+
+    # add the original value back into our list
+    my_list.append(item)
+
+It is very obvious that the last line of code doesn't do what its comment says it is going to do.
+
+There are lots of excuses for writing bad code (short of time, hate my job, drunk, stupid) but no excuse for not
+writing comments.
+
+###########
+Refactoring
+###########
+
+This has nothing really to do with Django but neither did the last point about comments and you didn't notice until
+I just pointed it out.
+
 Principles - DRY, refactor the 3rd time, comments, explicit over implicit
+
+Forms
+
+
 
 Tests
 
