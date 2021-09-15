@@ -357,6 +357,10 @@ Refactoring
 This has nothing really to do with Django but neither did the last point about comments and you didn't notice until
 I just pointed it out.
 
+Refactoring is the most fun you can have in programming without being able to tell anyone you did it.
+Ignoring the obvious parallels, there is nothing better than taking some badly structured code and
+turning it into something beautiful and easy to maintain.
+
 Principles - DRY, refactor the 3rd time, comments, explicit over implicit
 
 Forms

@@ -10,11 +10,11 @@
 
         <h3 class="text-info font-weight-bold settings_message" id="user_list_message">{{ message| default_if_none:"" }}</h3>
 
-        <div class="container">
-            <div class="row">
-                <div class="">
+        <div class="container-flow">
+            <div>
+                <div>
                     <button
-                        class="btn btn-info"
+                        class="btn btn-sm btn-outline-secondary"
                         hx-target="#id_comms_email_tab"
                         hx-vars="club_id:{{ club.id }}"
                         hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}"
@@ -39,24 +39,22 @@
                                                 <th>Date</th>
                                                 <th>Subject</th>
                                                 <th class="text-right">Recipients</th>
-                                                <th>Actions</th>
+
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for thing in things %}
-                                                <tr>
+                                                <tr
+                                                    style="cursor: pointer;"
+                                                    hx-post="{% url "organisations:club_menu_tab_comms_email_view_htmx" %}"
+                                                    hx-vars="club_id:{{ club.id }},batch_id:{{ thing.id }}"
+                                                    hx-target="#id_comms_email_details"
+                                                    {# hide the sidebar if there so it doesn't jump #}
+                                                    onclick='$("#email_info").hide();'
+                                                >
                                                     <td>{{ thing.created|cobalt_nice_datetime }}</td>
                                                     <td>{{ thing.subject }}</td>
                                                     <td class="text-right">{{ thing.number_sent }}</td>
-                                                    <td><a
-                                                        class="btn btn-info btn-sm"
-                                                        hx-post="{% url "organisations:club_menu_tab_comms_email_view_htmx" %}"
-                                                        hx-vars="club_id:{{ club.id }},batch_id:{{ thing.id }}"
-                                                        hx-target="#id_comms_email_details"
-                                                        {# hide the sidebar if there so it doesn't jump #}
-                                                        onclick='$("#email_info").hide();'
-                                                    >
-                                                        view</a></td>
                                                 </tr>
                                             {% endfor %}
                                         </tbody>

@@ -4,12 +4,15 @@
 <h3>{{ details.subject }}</h3>
 
 <div id="email_info" style="display: none;">
+    {#    https://developers.google.com/chart/interactive/docs/gallery/barchart#}
 
-
+    {#    https://developers.google.com/chart/interactive/docs/gallery/imagepiechart#Configuration_Options#}
     <div id="piechart_3d">
     </div>
+    <div id="barchart">
+    </div>
     <script>
-        google.charts.load("current", {packages: ["corechart"]});
+        google.charts.load("current", {packages: ["corechart","bar"]});
         google.charts.setOnLoadCallback(drawChart);
 
         function drawChart() {
@@ -22,19 +25,47 @@
             ]);
 
             const options = {
-                title: 'Email Status',
+                {#title: 'Email Status',#}
                 width: 500,
                 height: 500,
+                {#pieHole: 0.4,#}
                 is3D: true,
-                animation: {"startup": true, "duration": 1000}
+                animation: {"startup": true, "duration": 1000},
+                'chartArea': {'width': '80%', 'height': '80%'},
+                'legend': {'position': 'top'},
+                'labels': 'value',
+                'colors': ['#2196f3', '#4caf50', '#00bcd4', '#ffeb3b', '#f44336', '#e91e63']
             };
 
             const chart = new google.visualization.PieChart(document.getElementById('piechart_3d'));
             google.visualization.events.addListener(chart, 'ready', afterDraw);
             chart.draw(data, options);
+
+
+            var data2 = google.visualization.arrayToDataTable([
+                ['Year', 'Sales'],
+                ['2014', 1000],
+                ['2015', 1170],
+                ['2016', 660],
+                ['2017', 1030]
+            ]);
+
+            var options2 = {
+                chart: {
+                    title: 'Company Performance',
+                    subtitle: 'Sales, Expenses, and Profit: 2014-2017',
+                },
+                'colors': ['#2196f3', '#4caf50', '#00bcd4', '#ffeb3b', '#f44336', '#e91e63'],
+                bars: 'horizontal' // Required for Material Bar Charts.
+            };
+
+            var chart2 = new google.charts.Bar(document.getElementById('barchart'));
+
+            chart2.draw(data2, google.charts.Bar.convertOptions(options2));
         }
 
-        function afterDraw(){
+
+        function afterDraw() {
             // we hide the side panel and fade it in as the chart won't be ready straight away and jumps
             $("#email_info").fadeIn("slow", "swing");
         }
