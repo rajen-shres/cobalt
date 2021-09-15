@@ -14,7 +14,13 @@ from cobalt.settings import (
     BLEACH_ALLOWED_STYLES,
 )
 from rbac.core import rbac_user_has_role
-from .models import Organisation, MembershipType, MemberClubEmail, MemberMembershipType
+from .models import (
+    Organisation,
+    MembershipType,
+    MemberClubEmail,
+    MemberMembershipType,
+    ClubTag,
+)
 
 
 def membership_type_choices(club):
@@ -68,7 +74,6 @@ class OrgForm(forms.ModelForm):
         for state in ABF_STATES:
             choices.append((ABF_STATES[state][1], ABF_STATES[state][1]))
         widgets = {
-            # Need position relative or crispy forms makes a mess of the drop down
             "state": forms.Select(
                 choices=choices,
             ),
@@ -86,7 +91,7 @@ class OrgForm(forms.ModelForm):
         self.user = user
 
         # Remove label from dropdown
-        self.fields["state"].label = False
+        # self.fields["state"].label = False
 
     def clean_state(self):
         """check this user has access to this state"""
@@ -306,3 +311,31 @@ class TagForm(forms.Form):
     """Form to add a tag to an organisation"""
 
     tag_name = forms.CharField(max_length=50)
+
+
+class TagMultiForm(forms.Form):
+    """Form to select multiple tags"""
+
+    tags = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        super(TagMultiForm, self).__init__(*args, **kwargs)
+
+        # Get tags for this club
+        club_tags = ClubTag.objects.filter(organisation=self.club).values_list(
+            "id", "tag_name"
+        )
+
+        # Add as choices
+        self.fields["tags"].choices = [
+            (club_tag[0], club_tag[1]) for club_tag in club_tags
+        ]
+        self.fields["tags"].choices.insert(0, (0, "Everyone"))
+
+    def clean_tags(self):
+        tags = self.cleaned_data["tags"]
+        if len(tags) == 0:
+            self.add_error("tags", "You must select at least one tag")
+
+        return tags

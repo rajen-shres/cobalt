@@ -76,7 +76,7 @@ class Organisation(models.Model):
         ("Closed", "Closed"),
     ]
 
-    org_id = models.CharField(max_length=4, unique=True)
+    org_id = models.CharField(f"{GLOBAL_ORG} Club Number", max_length=4, unique=True)
     """ maps to MPC OrgID """
 
     status = models.CharField(choices=ORG_STATUS, max_length=6, default="Open")

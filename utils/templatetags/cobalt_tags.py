@@ -210,18 +210,16 @@ def cobalt_bs4_field(field, params=None):
     html = _add_class(field)
 
     # which widget types do not want a label
-    no_label_types = ["summernoteinplace"]
+    no_label_types = ["summernoteinplace", "select"]
 
     # Add errors
     html = f'<span class="cobalt-form-error">{striptags(field.errors)}</span>\n{html}'
 
     # Add labels
     if field.label and field.widget_type not in no_label_types:
-        html = f'<label class="bmd-label-float" for="{field.id_for_label}">{field.label}</label>\n{html}'
+        html = f'<label class="bmd-label-floating" for="{field.id_for_label}">{field.label}</label>\n{html}'
 
     # Now wrap in form group
-    html = f'<div class="form-group">\n{html}</div>'
-
-    print(html)
+    html = f'<div class="form-group">\n{html}\n</div>'
 
     return mark_safe(html)

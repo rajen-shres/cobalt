@@ -39,10 +39,34 @@ both of these things are possible, and so will you when you finish your training
 There are really only a few key concepts that you need to understand to get
 started.
 
-Models, Views and Templates (oh, and URLs but nobody ever mentions them)
-========================================================================
+Models, Views, Forms and Templates (oh, and URLs but nobody ever mentions them, and Template Tags whatever they are)
+====================================================================================================================
 
 *Skip this is you know Django, this is for people too lazy to do a course.*
+
+If you have done a Django course or even just googled Django to see what it is,
+you will know that Django is based upon a model-template-views (MTV) architecture.
+This makes it sound a lot like the popular model-view-controller (MVC) architecture
+which makes people feel good.
+Even `Wikipedia <https://en.wikipedia.org/wiki/Django_(web_framework)>`_ believes this.
+
+Unfortunately, that is totally wrong. Marketing people love putting three words
+together, it works really well with triggering things in humans. Ready, Steady, Go!
+Veni, Vidi, Vici. You get the idea. The problem is that Django actually has six
+parts to it, and making people think it has three might be good for rousing interest
+but is likely a big cause of the problems with people writing code in the wrong place.
+
+So first up forget that "I want my... MTV" nonsense and realise that Django has six components that
+do very different things. When you are in your IDE typing letters and numbers into
+one of these six files, make sure what you are typing relates to what the file is supposed
+to do.
+
+* **URLs** - Maps a URL to a view. Very boring.
+* **Models** - Data
+* **Forms** - Validation and some pre-filling of values
+* **Views** - Business logic. Code to run before you format things
+* **Templates** - Presentation. This is where you wrap your data and forms in HTML for the browser
+* **Template Tags** - Presentation logic. Code to run while you format things
 
 You probably wouldn't be using Django if you didn't want to store data
 in a database. Use Postgres unless you have to use something else and
@@ -136,11 +160,20 @@ You end up doing a lot of stuff with forms, so forms.py will make an appearance 
 directory before long. Forms can link directly to the Models and handle validation and
 things more easily than writing everything in the view.
 
-The other moving parts of Django that you will deal with regularly are:
+However, Django lives in the real world where things can get a bit uglier. It isn't always possible (or desirable)
+for all of our code to run in views **before** we call our templates to make things pretty. Sometimes we need to
+do something as we go through the template. Django's template system is pluggable so you can swap it out for another
+one if you like. I wouldn't bother, the default is fine, but it is pretty simple. If you want to do anything complicated
+then you should generally try to do it in your view before you call the template. If your view code is ending up full of
+nasty HTML strings though then you should consider moving that all into template tags. These are just Python code but
+you can call them from the template after you have provided the data from the view. HTML code in your nice clean view
+which is handling the business logic just looks wrong. Lift up the carpet and sweep all that ugly code away into a
+template tag, then for 99% of the time you can pretend it doesn't exist and your views can carry on focussing on
+what they do best, handling business logic.
 
-* **settings.py** - variables to control things
-* **context_processors.py** - global variables for templates
-* **templates** - there is the whole templates language and includes and things to learn
+The only other part of Django that you will deal with regularly is **settings.py** but the tutorials cover this
+fairly well. Environment variables are definitely your friend here, although other ways to manage different
+settings between production and non-production environments are possible.
 
 That's the end of the beginners bit, if you haven't done so already go and learn Django.
 
@@ -344,4 +377,5 @@ Signals
 
 CBVs
 
+Production and Other Environments
 

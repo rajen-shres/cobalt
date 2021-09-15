@@ -57,164 +57,60 @@
                         <button id="id_search_button" type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#userSearchModal1">Edit</button>
                     </div>
                 </div>
-                {#            state         #}
+
                 <div class="col-md-3">
                     <div class="form-group">
-                        {{ form.state|as_crispy_field }}
+                        {% cobalt_bs4_field form.state %}
                     </div>
                 </div>
             </div>
 
-
-            {#        Form        #}
-
             <div class="row">
-                {#                name           #}
                 <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Club Name</label>
-                        <input type="text"
-                            name="name"
-                            id="id_name"
-                            class="form-control"
-                            maxlength="50"
-                            required
-                            value="{{ form.name.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.name.errors }}</span>
-                    </div>
+                    {% cobalt_bs4_field form.name %}
                 </div>
-                {#                org_id         #}
                 <div class="col-md-3">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">{{ GLOBAL_ORG }} Club Number</label>
-                        <input type="number" min="0" step="1"
-                            name="org_id"
-                            id="id_org_id"
-                            class="form-control"
-                            required
-                            value="{{ form.org_id.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.org_id.errors }}</span>
-                    </div>
-                </div>
-            </div>
-
-
-            <div class="row">
-                {#                email           #}
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Club Email Address</label>
-                        <input type="text"
-                            name="club_email"
-                            id="id_club_email"
-                            class="form-control"
-                            maxlength="40"
-                            value="{{ form.club_email.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.club_email.errors }}</span>
-                    </div>
-                </div>
-                {#                website           #}
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Club Website</label>
-                        <input type="text"
-                            name="club_website"
-                            id="id_club_website"
-                            class="form-control"
-                            maxlength="100"
-                            value="{{ form.club_website.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.club_website.errors }}</span>
-                    </div>
+                    {% cobalt_bs4_field form.org_id %}
                 </div>
             </div>
 
             <div class="row">
-                {#                address1           #}
                 <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Address Line 1</label>
-                        <input type="text"
-                            name="address1"
-                            id="id_address1"
-                            class="form-control"
-                            maxlength="100"
-                            value="{{ form.address1.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.address1.errors }}</span>
-                    </div>
+                    {% cobalt_bs4_field form.club_email %}
                 </div>
-                {#                suburb           #}
+                <div class="col-md-6">
+                    {% cobalt_bs4_field form.club_website %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    {% cobalt_bs4_field form.address1 %}
+                </div>
                 <div class="col-md-3">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Suburb</label>
-                        <input type="text"
-                            name="suburb"
-                            id="id_suburb"
-                            class="form-control"
-                            maxlength="50"
-                            value="{{ form.suburb.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.suburb.errors }}</span>
-                    </div>
+                    {% cobalt_bs4_field form.suburb %}
                 </div>
             </div>
 
             <div class="row">
-                {#                address2           #}
                 <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Address Line 2</label>
-                        <input type="text"
-                            name="address2"
-                            id="id_address2"
-                            class="form-control"
-                            maxlength="100"
-                            value="{{ form.address2.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.address2.errors }}</span>
-                    </div>
+                    {% cobalt_bs4_field form.address2 %}
                 </div>
 
-                {#                postcode           #}
                 <div class="col-md-2">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Postcode</label>
-                        <input type="text"
-                            name="postcode"
-                            id="id_postcode"
-                            class="form-control"
-                            maxlength="10"
-                            value="{{ form.postcode.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.postcode.errors }}</span>
-                    </div>
+                    {% cobalt_bs4_field form.postcode %}
                 </div>
             </div>
 
             <div class="row">
-                {#                bank_bsb           #}
                 <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Bank BSB Number</label>
-                        <input type="number" min="0" step="1"
-                            name="bank_bsb"
-                            id="id_bank_bsb"
-                            class="form-control"
-                            maxlength="7"
-                            value="{{ form.bank_bsb.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.bank_bsb.errors }}</span>
-                    </div>
+                    {% cobalt_bs4_field form.bank_bsb %}
                 </div>
-                {#                bank_account           #}
                 <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="bmd-label-floating">Bank Account Number</label>
-                        <input type="number" min="0" step="1"
-                            name="bank_account"
-                            id="id_bank_account"
-                            class="form-control"
-                            maxlength="7"
-                            value="{{ form.bank_account.value|default_if_none:"" }}">
-                        <span class="cobalt-form-error">{{ form.bank_account.errors }}</span>
-                    </div>
+                    {% cobalt_bs4_field form.bank_account %}
                 </div>
             </div>
+
         </div>
     </div>
 

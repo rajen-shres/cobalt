@@ -10,8 +10,8 @@ from notifications.forms import EmailForm
 from notifications.models import Snooper, EmailBatchRBAC
 from notifications.views import create_rbac_batch_id, send_cobalt_email_with_template
 from organisations.decorators import check_club_menu_access
-from organisations.forms import TagForm
-from organisations.models import ClubTag, MemberClubTag
+from organisations.forms import TagForm, TagMultiForm
+from organisations.models import ClubTag, MemberClubTag, MemberMembershipType
 from post_office.models import Email as PostOfficeEmail
 
 from utils.utils import cobalt_paginator
@@ -52,15 +52,22 @@ def _send_email_to_tags(request, club, tags, email_form):
     """Send an email to a group of members identified by tags"""
 
     # let anyone with comms access to this org view them
-    # TODO: Which group to use?
     batch_id = create_rbac_batch_id(f"notifications.orgcomms.{club.id}.view")
 
-    # go through list of tags and create list of recipients, members could be in multiple tags
-    tag_system_numbers = (
-        MemberClubTag.objects.filter(club_tag__tag_name__in=tags)
-        .distinct("system_number")
-        .values("system_number")
-    )
+    # Check for Tag=0, means everyone
+    if 0 in tags:
+        tag_system_numbers = (
+            MemberMembershipType.objects.filter(membership_type__organisation=club)
+            .distinct("system_number")
+            .values("system_number")
+        )
+    else:
+        tag_system_numbers = (
+            MemberClubTag.objects.filter(club_tag__in=tags)
+            .distinct("system_number")
+            .values("system_number")
+            # go through list of tags and create list of recipients, members could be in multiple tags
+        )
     # Get real members
     members = User.objects.filter(system_number__in=tag_system_numbers).values(
         "email", "first_name"
@@ -106,24 +113,43 @@ def email_send_htmx(request, club):
 
     if "test" not in request.POST and "send" not in request.POST:
         email_form = EmailForm()
+        tag_form = TagMultiForm(club=club)
     else:
         email_form = EmailForm(request.POST)
-        if email_form.is_valid():
+        tag_form = TagMultiForm(request.POST, club=club)
+        print(tag_form.errors)
+        if email_form.is_valid() and tag_form.is_valid():
+
             if "test" in request.POST:
                 _send_email_sub(
                     request, request.user.first_name, request.user.email, email_form
                 )
                 message = "Test email sent. Check your inbox"
             else:
-                _send_email_to_tags(request, club, ["aaa"], email_form)
+
+                # convert tags from strings to ints
+                send_tags = list(map(int, tag_form.cleaned_data["tags"]))
+
+                print(send_tags)
+
+                _send_email_to_tags(request, club, send_tags, email_form)
                 return HttpResponse(
                     "<h3>Email sent</h3>Click on Email to see sent messages."
                 )
 
+    # Get tags, we include an everyone tag inside the template
+    tags = ClubTag.objects.filter(organisation=club)
+
     return render(
         request,
         "organisations/club_menu/comms/email_send_htmx.html",
-        {"club": club, "email_form": email_form, "message": message},
+        {
+            "club": club,
+            "email_form": email_form,
+            "tag_form": tag_form,
+            "tags": tags,
+            "message": message,
+        },
     )
 
 
