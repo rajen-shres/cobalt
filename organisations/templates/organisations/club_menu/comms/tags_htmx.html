@@ -33,7 +33,7 @@
                                 <td>{{ tag.uses }}</td>
 
                                 {% include "utils/htmx_confirm_modal.html" with id=tag.id delete_item=tag.tag_name hx_vars=tag.hx_vars hx_target="#id_panel_comms" hx_post=tag.hx_post %}
-                                <td><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ tag.id }}">
+                                <td><button id="t_delete_tag_{{ tag.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ tag.id }}">
                                     Delete Tag
                                 </button>
                                 </td>
@@ -54,7 +54,6 @@
                 hx-vars="club_id:{{ club.id }}"
             >
                 {% cobalt_bs4_field form.tag_name %}
-                {#                <input type="text" name="tag_name" maxlength="50" class=" form-control" placeholder="Add new tag" required="" id="id_tag_name">#}
                 <button name="add" id="id_tags_add_tag" class="btn btn-sm btn-success">Add</button>
             </form>
         </div>
