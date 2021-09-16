@@ -4,7 +4,7 @@ from .models import RBACAdminTree, RBACAdminUserGroup, RBACGroup, RBACAdminGroup
 
 
 class AddGroup(forms.Form):
-    """ Add a new group to RBAC """
+    """Add a new group to RBAC"""
 
     name_item = forms.CharField(
         label="Name",
@@ -33,7 +33,7 @@ class AddGroup(forms.Form):
         self.environment = kwargs.pop("environment", None)
 
         # create form
-        super(AddGroup, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # build name_qualifier list for this user
         choices = []
@@ -87,9 +87,9 @@ class AddGroup(forms.Form):
         )
 
     def clean(self):
-        """ We allow uses to put . into the name_item so here we split that
-            out and put the part before the . into name_qualifier
-            but only on group creation. """
+        """We allow uses to put . into the name_item so here we split that
+        out and put the part before the . into name_qualifier
+        but only on group creation."""
         super().clean()
 
         if not self.is_valid():
@@ -113,11 +113,13 @@ class AddGroup(forms.Form):
             # check for dupicates - this form is used by two models so load the right one
             if self.environment == "admin":
                 dupe = RBACAdminGroup.objects.filter(
-                    name_qualifier=qualifier, name_item=item,
+                    name_qualifier=qualifier,
+                    name_item=item,
                 ).exists()
             else:
                 dupe = RBACGroup.objects.filter(
-                    name_qualifier=qualifier, name_item=item,
+                    name_qualifier=qualifier,
+                    name_item=item,
                 ).exists()
             if dupe:
                 msg = "%s.%s already taken" % (qualifier, item)

@@ -66,7 +66,7 @@ class UserUpdateForm(forms.ModelForm):
         ]
 
     def __init__(self, *args, **kwargs):
-        super(UserUpdateForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_show_labels = False
         self.old_dob = kwargs["instance"].dob

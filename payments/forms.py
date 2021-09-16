@@ -29,7 +29,7 @@ from django.core.exceptions import ValidationError
 
 
 class MemberTransfer(forms.Form):
-    """ M2M transfer form """
+    """M2M transfer form"""
 
     transfer_to = forms.ModelChoiceField(queryset=User.objects.all())
     amount = forms.DecimalField(label="Amount", max_digits=8, decimal_places=2)
@@ -38,11 +38,11 @@ class MemberTransfer(forms.Form):
     # We need the logged in user to check the balance, add a parameter
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
-        super(MemberTransfer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class MemberTransferOrg(forms.Form):
-    """ Org to Member transfer form """
+    """Org to Member transfer form"""
 
     transfer_to = forms.ModelChoiceField(queryset=User.objects.all())
     amount = forms.DecimalField(label="Amount", max_digits=8, decimal_places=2)
@@ -51,10 +51,10 @@ class MemberTransferOrg(forms.Form):
     # We need the balance to take it as a parameter
     def __init__(self, *args, **kwargs):
         self.balance = kwargs.pop("balance", 0.0)
-        super(MemberTransferOrg, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean_amount(self):
-        """ check the balance is sufficient for the payment """
+        """check the balance is sufficient for the payment"""
 
         amount = self.cleaned_data["amount"]
         if amount > self.balance:
@@ -63,7 +63,7 @@ class MemberTransferOrg(forms.Form):
 
 
 class ManualTopup(forms.Form):
-    """ Manual top up form """
+    """Manual top up form"""
 
     CARD_CHOICES = [
         ("Existing", "Use Registered Card"),
@@ -78,10 +78,10 @@ class ManualTopup(forms.Form):
     # We need the balance to take it as a parameter
     def __init__(self, *args, **kwargs):
         self.balance = kwargs.pop("balance", 0.0)
-        super(ManualTopup, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
-        """ validation for the amount field """
+        """validation for the amount field"""
         cleaned_data = super(ManualTopup, self).clean()
         print(cleaned_data)
         if cleaned_data.get("amount"):
@@ -108,7 +108,7 @@ class ManualTopup(forms.Form):
 
 
 class SettlementForm(forms.Form):
-    """ For payments to Orgs """
+    """For payments to Orgs"""
 
     CARD_CHOICES = [
         ("Dummy", "Dummy"),
@@ -121,16 +121,16 @@ class SettlementForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        """ dynamic override of checkbox list """
+        """dynamic override of checkbox list"""
 
         # Get list of orgs
         self.orgs = kwargs.pop("orgs", None)
-        super(SettlementForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["settle_list"].choices = self.orgs
 
 
 class AdjustMemberForm(forms.ModelForm):
-    """ For dodgy changes to members """
+    """For dodgy changes to members"""
 
     class Meta:
         model = MemberTransaction
@@ -142,7 +142,7 @@ class AdjustMemberForm(forms.ModelForm):
 
 
 class AdjustOrgForm(forms.ModelForm):
-    """ For dodgy changes to orgs """
+    """For dodgy changes to orgs"""
 
     class Meta:
         model = OrganisationTransaction
@@ -154,14 +154,14 @@ class AdjustOrgForm(forms.ModelForm):
 
 
 class DateForm(forms.Form):
-    """ for simple from to date ranges """
+    """for simple from to date ranges"""
 
     from_date = forms.DateField(input_formats=["%d/%m/%Y"])
     to_date = forms.DateField(input_formats=["%d/%m/%Y"])
 
 
 class PaymentStaticForm(forms.ModelForm):
-    """ static data on payments """
+    """static data on payments"""
 
     class Meta:
         model = PaymentStatic
@@ -175,7 +175,7 @@ class PaymentStaticForm(forms.ModelForm):
 
 
 class OrgStaticOverrideForm(forms.ModelForm):
-    """ override default ABF fees for an organisation """
+    """override default ABF fees for an organisation"""
 
     class Meta:
         model = OrganisationSettlementFees
@@ -183,17 +183,17 @@ class OrgStaticOverrideForm(forms.ModelForm):
 
 
 class StripeRefund(forms.Form):
-    """ Allow admins to make Stripe refunds """
+    """Allow admins to make Stripe refunds"""
 
     amount = forms.DecimalField(label="Refund", max_digits=8, decimal_places=2)
     description = forms.CharField(max_length=80)
 
     def __init__(self, *args, **kwargs):
         self.payment_amount = kwargs.pop("payment_amount", 0.0)
-        super(StripeRefund, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
-        """ validation for the amount field """
+        """validation for the amount field"""
         cleaned_data = super(StripeRefund, self).clean()
         if cleaned_data.get("amount"):
             amount = self.cleaned_data["amount"]

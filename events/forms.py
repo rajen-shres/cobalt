@@ -29,7 +29,7 @@ class CongressForm(forms.ModelForm):
 
         # Get allowed congress masters as parameter
         congress_masters = kwargs.pop("congress_masters", [])
-        super(CongressForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Modify and congress master if  passed
         self.fields["congress_master"].queryset = CongressMaster.objects.filter(
@@ -270,7 +270,7 @@ class NewCongressForm(forms.Form):
 
         # Get valid orgs as parameter
         valid_orgs = kwargs.pop("valid_orgs", [])
-        super(NewCongressForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         org_queryset = Organisation.objects.filter(pk__in=valid_orgs).order_by("name")
         choices = [("", "-----------")]
@@ -339,7 +339,7 @@ class EventEntryPlayerForm(forms.ModelForm):
         )
 
     def __init__(self, *args, **kwargs):
-        super(EventEntryPlayerForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # We can get problems if the convener changes the payment method to their-bridge-credits
         # This is intended for use with team-mates plus and none of the controls will be in place
@@ -373,7 +373,7 @@ class EventPlayerDiscountForm(forms.ModelForm):
 
 class EmailForm(forms.Form):
     def __init__(self, *args, **kwargs):
-        super(EmailForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Hide the crispy labels
         self.fields["body"].label = False
@@ -410,7 +410,7 @@ class EmailForm(forms.Form):
 
 class LatestNewsForm(forms.Form):
     def __init__(self, *args, **kwargs):
-        super(LatestNewsForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Hide the crispy labels
         self.fields["latest_news"].label = False
@@ -463,5 +463,5 @@ class OffSystemPPForm(forms.Form):
 
         # Get list of event_entry_players
         self.event_entry_players = kwargs.pop("event_entry_players", None)
-        super(OffSystemPPForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["event_entry_players_list"].choices = self.event_entry_players

@@ -10,7 +10,7 @@ class PostForm(forms.ModelForm):
         valid_forums = kwargs.pop("valid_forums", None)
         #
         # Call super()
-        super(PostForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         #
         # Modify valid forums if they were passed
         if valid_forums:
@@ -36,7 +36,12 @@ class PostForm(forms.ModelForm):
         )
     )
 
-    get_notified_of_replies = forms.ChoiceField(choices=[(True, "Receive emails for all replies"),(False,"No emails, thank you")])
+    get_notified_of_replies = forms.ChoiceField(
+        choices=[
+            (True, "Receive emails for all replies"),
+            (False, "No emails, thank you"),
+        ]
+    )
 
     class Meta:
         model = Post
@@ -50,7 +55,7 @@ class PostForm(forms.ModelForm):
 class CommentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # Hide the crispy labels
-        super(CommentForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["text"].label = False
         self.fields["text"].widget = forms.Textarea(
             attrs={"rows": 10, "cols": 80, "class": "cobalt-min-width-100"}
@@ -76,7 +81,7 @@ class CommentForm(forms.ModelForm):
 class Comment2Form(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # Hide the crispy labels
-        super(Comment2Form, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["text"].label = False
         self.fields["text"].widget = forms.Textarea(
             attrs={"rows": 10, "cols": 80, "class": "cobalt-textarea"}

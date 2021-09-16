@@ -40,7 +40,7 @@ class HelpdeskLoggedOutContactForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super(HelpdeskLoggedOutContactForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # require fields
         self.fields["title"].required = True
         self.fields["description"].required = True
@@ -67,7 +67,7 @@ class IncidentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         """override init so we can set the assigned_to field to be only support staff"""
-        super(IncidentForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         staff = [(None, "Unassigned")] + list(
             rbac_get_users_with_role("support.helpdesk.edit").values_list(
@@ -99,7 +99,7 @@ class AttachmentForm(forms.ModelForm):
 class IncidentLineItemForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
 
-        super(IncidentLineItemForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Hide the crispy labels
         self.fields["description"].label = False
@@ -125,7 +125,7 @@ class IncidentLineItemForm(forms.ModelForm):
 class NotifyUserByTypeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
 
-        super(NotifyUserByTypeForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Hide the crispy labels
         self.fields["incident_type"].label = False

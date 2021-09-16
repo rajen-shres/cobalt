@@ -85,7 +85,7 @@ class OrgForm(forms.ModelForm):
         user = kwargs.pop("user", None)
 
         # Call Super()
-        super(OrgForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Add field
         self.user = user
@@ -202,7 +202,7 @@ class UserMembershipForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
-        super(UserMembershipForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["membership_type"].choices = membership_type_choices(self.club)
 
     def clean_home_club(self):
@@ -244,7 +244,7 @@ class UnregisteredUserAddForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
-        super(UnregisteredUserAddForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["membership_type"].choices = membership_type_choices(self.club)
 
     def clean_system_number(self):
@@ -294,7 +294,7 @@ class CSVUploadForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
-        super(CSVUploadForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["membership_type"].choices = membership_type_choices(self.club)
 
 
@@ -305,7 +305,7 @@ class MPCForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
-        super(MPCForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["membership_type"].choices = membership_type_choices(self.club)
 
 
@@ -320,7 +320,7 @@ class TagForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
-        super(TagForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean_tag_name(self):
         tag_name = self.cleaned_data["tag_name"]
@@ -341,7 +341,7 @@ class TagMultiForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
-        super(TagMultiForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Get tags for this club
         club_tags = ClubTag.objects.filter(organisation=self.club).values_list(
@@ -371,7 +371,7 @@ class UnregisteredUserMembershipForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
         self.system_number = kwargs.pop("system_number")
-        super(UnregisteredUserMembershipForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["membership_type"].choices = membership_type_choices(self.club)
 
     def clean_home_club(self):
