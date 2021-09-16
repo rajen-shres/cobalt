@@ -164,22 +164,27 @@ def _add_class(field):
     """sub function to add class to HTML string"""
 
     html = field.__str__()
+    # class to add depends on type of field
+    if field.widget_type == "checkbox":
+        class_to_add = "form-check-input"
+    else:
+        class_to_add = "form-control"
 
     # Summernote is a special case
     if "summernote" in field.widget_type:
         loc = html.find("<textarea")
-        return f'{html[:loc + 10]}class="form-control" {html[loc + 10:]}'
+        return f'{html[:loc + 10]}class="{class_to_add}" {html[loc + 10:]}'
 
     # Add our bootstrap class to string
     # If there is a class tag already then use that
     loc = html.find("class=")
     if loc >= 0:
-        return f"{html[:loc + 7]}form-control {html[loc + 7:]}"
+        return f"{html[:loc + 7]}{class_to_add} {html[loc + 7:]}"
 
     # no class tag insert before name
     loc = html.find("name=")
     if loc >= 0:
-        return f'{html[:loc]}class="form-control" {html[loc:]}'
+        return f'{html[:loc]}class="{class_to_add}" {html[loc:]}'
 
     # no name either, sort if we get a real example of this
     print("Error: cobalt_bs4_field cannot find class or name in object")
@@ -187,7 +192,7 @@ def _add_class(field):
 
 
 @register.simple_tag
-def cobalt_bs4_field(field, params=None):
+def cobalt_bs4_field(field):
     """Format a field for a standard Bootstrap 4 form element.
 
     Returns a form-group div with the field rendered inside
@@ -209,17 +214,38 @@ def cobalt_bs4_field(field, params=None):
     # Get string from field and add class
     html = _add_class(field)
 
-    # which widget types do not want a label
-    no_label_types = ["summernoteinplace", "select"]
+    # handle checkboxes
+    if field.widget_type == "checkbox":
+        html = f"""
+                <span class="cobalt-form-error">{striptags(field.errors)}</span>
+                <div class="form-check">
+                    <label class="form-check-label">
+                    {html}
+                  {field.label}
+                  <span class="form-check-sign">
+                    <span class="check"></span>
+                  </span>
+                </label>
+                 </div>
+                """
 
-    # Add errors
-    html = f'<span class="cobalt-form-error">{striptags(field.errors)}</span>\n{html}'
+    else:
 
-    # Add labels
-    if field.label and field.widget_type not in no_label_types:
-        html = f'<label class="bmd-label-floating" for="{field.id_for_label}">{field.label}</label>\n{html}'
+        # which widget types do not want a label
+        no_label_types = ["summernoteinplace", "select"]
 
-    # Now wrap in form group
-    html = f'<div class="form-group">\n{html}\n</div>'
+        # Add errors
+        html = (
+            f'<span class="cobalt-form-error">{striptags(field.errors)}</span>\n{html}'
+        )
+
+        # Add labels
+        if field.label and field.widget_type not in no_label_types:
+            html = f'<label class="bmd-label-floating" for="{field.id_for_label}">{field.label}</label>\n{html}'
+
+        # Now wrap in form group
+        html = f'<div class="form-group">\n{html}\n</div>'
+
+    print(html)
 
     return mark_safe(html)

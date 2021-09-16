@@ -19,6 +19,7 @@ from organisations.forms import (
     MemberClubEmailForm,
     UserMembershipForm,
     UnregisteredUserAddForm,
+    UnregisteredUserMembershipForm,
 )
 from organisations.models import (
     MemberMembershipType,
@@ -248,20 +249,38 @@ def un_reg_edit_htmx(request, club):
     # for later
     old_system_number = copy(un_reg.system_number)
 
-    member_details = MemberMembershipType.objects.filter(
-        system_number=un_reg.system_number
-    ).first()
+    member_details = (
+        MemberMembershipType.objects.active()
+        .filter(system_number=un_reg.system_number)
+        .first()
+    )
+    membership = (
+        MemberMembershipType.objects.active()
+        .filter(system_number=un_reg.system_number)
+        .first()
+    )
     message = ""
 
     if "save" in request.POST:
         user_form = UnregisteredUserForm(request.POST, instance=un_reg)
         club_email_form = MemberClubEmailForm(request.POST, prefix="club")
+        club_membership_form = UnregisteredUserMembershipForm(
+            request.POST, club=club, system_number=un_reg.system_number, prefix="member"
+        )
 
         # Assume the worst
         message = "Errors found on Form"
 
-        if user_form.is_valid():
+        if user_form.is_valid() and club_membership_form.is_valid():
             new_un_reg = user_form.save()
+            if club_membership_form.changed_data:
+                membership.home_club = club_membership_form.cleaned_data["home_club"]
+                membership_type = MembershipType.objects.get(
+                    pk=club_membership_form.cleaned_data["membership_type"]
+                )
+                membership.membership_type = membership_type
+                membership.save()
+
             message = "Data Saved"
             ClubLog(
                 organisation=club,
@@ -315,6 +334,13 @@ def un_reg_edit_htmx(request, club):
         ).first()
         user_form = UnregisteredUserForm(instance=un_reg)
         club_email_form = MemberClubEmailForm(prefix="club")
+        club_membership_form = UnregisteredUserMembershipForm(
+            club=club, system_number=un_reg.system_number, prefix="member"
+        )
+
+        # Set initial values for membership form
+        club_membership_form.initial["home_club"] = membership.home_club
+        club_membership_form.initial["membership_type"] = membership.membership_type_id
 
         # Set initial value for email if record exists
         if club_email_entry:
@@ -339,6 +365,7 @@ def un_reg_edit_htmx(request, club):
             "un_reg": un_reg,
             "user_form": user_form,
             "club_email_form": club_email_form,
+            "club_membership_form": club_membership_form,
             "member_details": member_details,
             "member_tags": member_tags,
             "available_tags": available_tags,
@@ -367,9 +394,14 @@ def add_member_htmx(request, club):
             member = get_object_or_404(User, pk=member_id)
             membership_type = MembershipType(pk=membership_type_id)
 
-            if MemberMembershipType.objects.filter(
-                system_number=member.system_number, membership_type__organisation=club
-            ).exists():
+            if (
+                MemberMembershipType.objects.active()
+                .filter(
+                    system_number=member.system_number,
+                    membership_type__organisation=club,
+                )
+                .exists()
+            ):
                 form.add_error(
                     "member", f"{member.full_name} is already a member of this club"
                 )
@@ -423,7 +455,8 @@ def edit_member_htmx(request, club):
 
             # Get the member membership objects
             member_membership = (
-                MemberMembershipType.objects.filter(system_number=member.system_number)
+                MemberMembershipType.objects.active()
+                .filter(system_number=member.system_number)
                 .filter(membership_type__organisation=club)
                 .first()
             )
@@ -444,7 +477,8 @@ def edit_member_htmx(request, club):
             print(form.errors)
     else:
         member_membership = (
-            MemberMembershipType.objects.filter(system_number=member.system_number)
+            MemberMembershipType.objects.active()
+            .filter(system_number=member.system_number)
             .filter(membership_type__organisation=club)
             .first()
         )
@@ -523,10 +557,14 @@ def add_un_reg_htmx(request, club):
                 message = "User added."
 
             # Add to club
-            if MemberMembershipType.objects.filter(
-                system_number=form.cleaned_data["system_number"],
-                membership_type__organisation=club,
-            ).exists():
+            if (
+                MemberMembershipType.objects.active()
+                .filter(
+                    system_number=form.cleaned_data["system_number"],
+                    membership_type__organisation=club,
+                )
+                .exists()
+            ):
                 message += " Already a member of club."
             else:
                 MemberMembershipType.objects.get_or_create(

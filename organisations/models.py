@@ -7,6 +7,7 @@ from django.core.validators import RegexValidator, MaxValueValidator, MinValueVa
 # Variable to control what is expected to be in the RBAC structure for Organisations
 # A management script runs to update RBAC structure for all clubs if a new option is found.
 from cobalt.settings import GLOBAL_ORG
+from organisations.model_managers import MemberMembershipTypeManager
 
 ORGS_RBAC_GROUPS_AND_ROLES = {
     # Conveners for this orgs events
@@ -278,6 +279,8 @@ class MemberMembershipType(models.Model):
         return (
             f"{self.system_number}, member of {self.membership_type.organisation.name}"
         )
+
+    objects = MemberMembershipTypeManager()
 
 
 class ClubLog(models.Model):

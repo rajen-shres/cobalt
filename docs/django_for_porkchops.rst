@@ -382,4 +382,20 @@ Signals
 CBVs
 
 Production and Other Environments
+USe env variables 12factor.net
+
+Models
+Abstract Classes
+django-model-utils - the earlier you discover this the less of it you will write yourself
+
+Migrations
+Part of the code base
+
+Don't use Docker. Celery
+
+Keep virtual env out of your code
+
+gitignore
+
+
 

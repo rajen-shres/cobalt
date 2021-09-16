@@ -354,22 +354,29 @@ def add_member_to_membership(
 
     # Check if already there
     member_membership = (
-        MemberMembershipType.objects.filter(system_number=club_member["system_number"])
+        MemberMembershipType.objects.active()
+        .filter(system_number=club_member["system_number"])
         .filter(membership_type__organisation=club)
-        .filter(start_date__lte=now)
-        .filter(Q(end_date__gte=now) | Q(end_date=None))
+        # .filter(start_date__lte=now)
+        # .filter(Q(end_date__gte=now) | Q(end_date=None))
         .first()
     )
 
     if member_membership:
         # check for other home clubs
+        # other_home_club = (
+        #     MemberMembershipType.objects.filter(
+        #         system_number=club_member["system_number"]
+        #     )
+        #     .exclude(membership_type__organisation=club)
+        #     .filter(start_date__lte=now)
+        #     .filter(Q(end_date__gte=now) | Q(end_date=None))
+        #     .exists()
+        # )
+
         other_home_club = (
-            MemberMembershipType.objects.filter(
-                system_number=club_member["system_number"]
-            )
-            .exclude(membership_type__organisation=club)
-            .filter(start_date__lte=now)
-            .filter(Q(end_date__gte=now) | Q(end_date=None))
+            MemberMembershipType.objects.active()
+            .filter(system_number=club_member["system_number"])
             .exists()
         )
 

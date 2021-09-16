@@ -256,11 +256,9 @@ def club_menu_tab_settings_membership_delete_htmx(request, club):
     membership_type = get_object_or_404(MembershipType, pk=membership_type_id)
 
     # Check for active members in this membership type
-    now = timezone.now()
     if (
-        MemberMembershipType.objects.filter(membership_type=membership_type)
-        .filter(start_date__lte=now)
-        .filter(Q(end_date__gte=now) | Q(end_date=None))
+        MemberMembershipType.objects.active()
+        .filter(membership_type=membership_type)
         .exists()
     ):
         return HttpResponse(

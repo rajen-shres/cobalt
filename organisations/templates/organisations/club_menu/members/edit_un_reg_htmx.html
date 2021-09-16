@@ -35,13 +35,30 @@
                 >
 
                     {% if club == un_reg.added_by_club %}
-                        {{ user_form | crispy }}
+                        <h4>{{ GLOBAL_ORG }} Number: {{ un_reg.system_number }}</h4>
+                        {% cobalt_bs4_field user_form.first_name %}
+                        {% cobalt_bs4_field user_form.last_name %}
                     {% else %}
                         <h3>View Only - User Belongs to {{ un_reg.added_by_club }}</h3>
                         {{ un_reg.first_name }} {{ un_reg.last_name }} ({{ GLOBAL_ORG }} Number: {{ un_reg.system_number }}) - {{ un_reg.email|default_if_none:"No Email Address Found" }}
                     {% endif %}
 
                     {{ club_email_form | crispy }}
+
+                    <div class="row">
+                        <div class="col-6">Membership type</div>
+                        <div class="col-6">{% cobalt_bs4_field club_membership_form.membership_type %}</div>
+                    </div>
+
+                    <br><br>
+
+                    {% cobalt_bs4_field club_membership_form.home_club %}
+
+
+
+
+
+
 
                     <button type="submit" name="save" class="btn btn-success">Save</button>
 

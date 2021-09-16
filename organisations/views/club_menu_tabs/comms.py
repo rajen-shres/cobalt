@@ -57,7 +57,8 @@ def _send_email_to_tags(request, club, tags, email_form):
     # Check for Tag=0, means everyone
     if 0 in tags:
         tag_system_numbers = (
-            MemberMembershipType.objects.filter(membership_type__organisation=club)
+            MemberMembershipType.objects.active()
+            .filter(membership_type__organisation=club)
             .distinct("system_number")
             .values("system_number")
         )
@@ -199,14 +200,16 @@ def tags_htmx(request, club):
     """build the comms tags tab in club menu"""
 
     if "add" in request.POST:
-        form = TagForm(request.POST)
+        form = TagForm(request.POST, club=club)
 
         if form.is_valid():
             ClubTag.objects.get_or_create(
                 organisation=club, tag_name=form.cleaned_data["tag_name"]
             )
-
-    form = TagForm()
+            # reset form
+            form = TagForm(club=club)
+    else:
+        form = TagForm(club=club)
 
     tags = (
         ClubTag.objects.prefetch_related("memberclubtag_set")

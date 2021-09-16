@@ -183,7 +183,9 @@ def replace_unregistered_user_with_real_user(real_user: User):
     MemberClubEmail.objects.filter(system_number=real_user).delete()
 
     # Logs
-    clubs = MemberMembershipType.objects.filter(system_number=real_user.system_number)
+    clubs = MemberMembershipType.objects.active().filter(
+        system_number=real_user.system_number
+    )
     for club in clubs:
         ClubLog(
             actor=User,

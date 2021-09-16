@@ -53,7 +53,8 @@
                 hx-target="#id_panel_comms"
                 hx-vars="club_id:{{ club.id }}"
             >
-                <input type="text" name="tag_name" maxlength="50" class=" form-control" placeholder="Add new tag" required="" id="id_tag_name">
+                {% cobalt_bs4_field form.tag_name %}
+                {#                <input type="text" name="tag_name" maxlength="50" class=" form-control" placeholder="Add new tag" required="" id="id_tag_name">#}
                 <button name="add" class="btn btn-sm btn-success">Add</button>
             </form>
         </div>

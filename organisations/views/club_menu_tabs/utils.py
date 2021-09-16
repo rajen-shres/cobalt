@@ -133,9 +133,11 @@ def _tab_is_okay(request):
 def get_members_balance(club: Organisation):
     """Get the total balance for members of this club"""
 
-    member_list = MemberMembershipType.objects.filter(
-        membership_type__organisation=club
-    ).values("system_number")
+    member_list = (
+        MemberMembershipType.objects.active()
+        .filter(membership_type__organisation=club)
+        .values("system_number")
+    )
 
     member_balances = (
         MemberTransaction.objects.filter(member__system_number__in=member_list)

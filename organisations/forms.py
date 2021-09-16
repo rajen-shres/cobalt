@@ -214,7 +214,8 @@ class UserMembershipForm(forms.Form):
 
         if home_club:
             other_club = (
-                MemberMembershipType.objects.filter(system_number=member.system_number)
+                MemberMembershipType.objects.active()
+                .filter(system_number=member.system_number)
                 .filter(home_club=True)
                 .exclude(membership_type__organisation=self.club)
                 .first()
@@ -268,7 +269,8 @@ class UnregisteredUserAddForm(forms.Form):
 
         if (
             home_club
-            and MemberMembershipType.objects.filter(system_number=system_number)
+            and MemberMembershipType.objects.active()
+            .filter(system_number=system_number)
             .filter(home_club=True)
             .exclude(membership_type__organisation=self.club)
             .exists()
@@ -310,7 +312,26 @@ class MPCForm(forms.Form):
 class TagForm(forms.Form):
     """Form to add a tag to an organisation"""
 
-    tag_name = forms.CharField(max_length=50)
+    tag_name = forms.CharField(
+        max_length=50,
+        label="",
+        widget=forms.TextInput(attrs={"placeholder": "Add new tag"}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        super(TagForm, self).__init__(*args, **kwargs)
+
+    def clean_tag_name(self):
+        tag_name = self.cleaned_data["tag_name"]
+        if tag_name.lower() == "everyone":
+            self.add_error(
+                "tag_name", "No need to add everyone, the system does that for you."
+            )
+
+        if ClubTag.objects.filter(organisation=self.club, tag_name=tag_name).exists():
+            self.add_error("tag_name", "Duplicate name")
+        return tag_name
 
 
 class TagMultiForm(forms.Form):
@@ -339,3 +360,31 @@ class TagMultiForm(forms.Form):
             self.add_error("tags", "You must select at least one tag")
 
         return tags
+
+
+class UnregisteredUserMembershipForm(forms.Form):
+    """Form for handling home club and membership type"""
+
+    membership_type = forms.ChoiceField()
+    home_club = forms.BooleanField(initial=True, required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        self.system_number = kwargs.pop("system_number")
+        super(UnregisteredUserMembershipForm, self).__init__(*args, **kwargs)
+        self.fields["membership_type"].choices = membership_type_choices(self.club)
+
+    def clean_home_club(self):
+        """Users can only have one home club"""
+        home_club = self.cleaned_data["home_club"]
+
+        if (
+            home_club
+            and MemberMembershipType.objects.active()
+            .filter(system_number=self.system_number)
+            .filter(home_club=True)
+            .exclude(membership_type__organisation=self.club)
+            .exists()
+        ):
+            self.add_error("home_club", "User already has a home club")
+        return home_club
