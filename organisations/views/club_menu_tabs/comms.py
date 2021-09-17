@@ -165,6 +165,9 @@ def email_view_htmx(request, club):
         "batch_id__snooper_set__post_office_email"
     ).get(pk=batch_id)
 
+    print("batch id:", batch_id)
+    print("batch:", email_batch)
+
     # Get the snoopers for this batch
     snoopers = Snooper.objects.filter(batch_id=email_batch.batch_id)
 
@@ -175,8 +178,6 @@ def email_view_htmx(request, club):
         clicked=Count("ses_last_clicked_at"),
         bounced=Count("ses_last_bounce_at"),
     )
-
-    print(totals)
 
     count = snoopers.count()
     snooper = snoopers.first()

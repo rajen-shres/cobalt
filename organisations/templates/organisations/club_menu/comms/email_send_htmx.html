@@ -63,7 +63,6 @@
 <script>
     function addTag(tag_id, item, classname) {
         // Handle adding a tag to the email
-        console.log(tag_id);
         const moved = $("#" + tag_id);
         moved.addClass(classname);
         moved.removeClass("btn-default");
@@ -76,11 +75,18 @@
         });
     }
 
-    function removeTag(tag_id, item, classname) {
+    function removeTag(tag_id, item) {
         // Handle removing a tag to the email
         const moved = $("#" + tag_id);
-        moved.addClass("btn-default");
-        moved.removeClass(classname);
+
+        // handle everyone differently
+        if (item==="0") {
+            moved.addClass("btn-info");
+            moved.removeClass("btn-success");
+        } else {
+            moved.addClass("btn-default");
+            moved.removeClass("btn-success");
+        }
 
         // update select list
         $('#id_hidden_checkboxes').find(':checkbox').each(function() {
@@ -93,13 +99,7 @@
     function clearTags() {
         // Remove all tags
 
-        console.log("clear tags");
-        console.log($("#send_tags"));
-
         $('#send_tags').find('.btn').each(function(){
-            console.log("inside loop");
-            console.log(this);
-            console.log(this.id);
             const this_button = $('#' + this.id);
             this_button.appendTo('#available_tags')
             this_button.addClass("btn-default");
@@ -137,8 +137,19 @@
                 ev.target.appendChild(document.getElementById(id));
                 addTag(id, item, "btn-primary");
             } else {
-                ev.target.appendChild(document.getElementById(id));
-                addTag(id, item, "btn-success");
+                // Check if everyone is already in list
+                if ($('#send_tags').find('#item_0').length){
+                    GrowlNotification.notify({
+                        title: 'Already sending this to everyone',
+                        description: 'No need to add any other groups. If you want to change this first remove everyone',
+                        type: 'warning',
+                        position: 'top-right',
+                        closeTimeout: 5000
+                    });
+                } else {
+                    ev.target.appendChild(document.getElementById(id));
+                    addTag(id, item, "btn-success");
+                }
             }
 
             $('#id_send_button').attr('disabled', false);
@@ -149,12 +160,7 @@
         if (ev.target.id === "available_tags"){
             ev.target.appendChild(document.getElementById(id));
 
-            {#// check for special case of everyone#}
-            if (item === "0") {
-                removeTag(id, item, "btn-primary");
-            } else {
-                removeTag(id, item, "btn-success");
-            }
+            removeTag(id, item);
 
         }
     }

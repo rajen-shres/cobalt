@@ -23,6 +23,11 @@ urlpatterns = [
         name="admin_view_email",
     ),
     path(
+        "admin/email/view-email-by-batch/<int:batch_id>",
+        views.admin_view_email_by_batch,
+        name="admin_view_email_by_batch",
+    ),
+    path(
         "admin/email/view-email-send-copy/<int:email_id>",
         views.admin_send_email_copy_to_admin,
         name="admin_send_email_copy_to_admin",

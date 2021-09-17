@@ -1,63 +1,128 @@
-
+{% load static %}
+{% load humanize %}
 {% load cobalt_tags %}
-{% block content %}
-    <h1>{{ email.subject }}</h1>
-    <h2 style="padding: 10px">To:
-        {% for sent_to in email.to %}
-            {{ sent_to }}&nbsp;
-        {% endfor %}
-    </h2>
-    <p style="padding: 10px">
-        Date Sent: <i>{{ email.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"Not Sent" }}</i></p>
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport"
+            content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Email Viewer</title>
+        <script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
+        <style>
+            .zui-table {
+                border: solid 1px #DDEEEE;
+                border-collapse: collapse;
+                border-spacing: 0;
+                font: normal 13px Arial, sans-serif;
+                width: 50%;
+            }
+            .zui-table thead th {
+                background-color: #DDEFEF;
+                border: solid 1px #DDEEEE;
+                color: #336B6B;
+                padding: 10px;
+                text-align: left;
+                text-shadow: 1px 1px 1px #fff;
+            }
+            .zui-table tbody td {
+                border: solid 1px #DDEEEE;
+                color: #333;
+                padding: 10px;
+                text-shadow: 1px 1px 1px #fff;
+            }
+        </style>
+    </head>
+    <body>
 
-    <table>
-        <tr>
-            <td>Sent</td>
-            <td>{{ email.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"" }}</td>
-        </tr>
-        <tr>
-            <td>Delivered</td>
-            <td>{{ email.snooper.ses_delivered_at|cobalt_nice_datetime|default_if_none:"" }}</td>
-        </tr>
-        <tr>
-            <td>Opened</td>
-            <td>{{ email.snooper.ses_open_count }} time{{ email.snooper.ses_open_count|pluralize }}.
-                Last opened: {{ email.snooper.ses_last_opened_at|cobalt_nice_datetime|default_if_none:"Never" }}</td>
-        </tr>
-        <tr>
-            <td>Clicked</td>
-            <td>{{ email.snooper.ses_clicked_count }} time{{ email.snooper.ses_clicked_count|pluralize }}.
-                Last clicked: {{ email.snooper.ses_last_clicked_at|cobalt_nice_datetime|default_if_none:"Never" }}</td>
-        </tr>
 
-        {% if email.snooper.ses_bounce_reason %}
-            <tr>
-                <td>Bounce Reason</td>
-                <td>{{ email.snooper.ses_bounce_reason }}</td>
-            </tr>
-            <tr>
-                <td>Last Bounce Time</td>
-                <td>{{ email.snooper.ses_last_bounce_at|cobalt_nice_datetime }}</td>
-            </tr>
-        {% endif %}
-    </table>
+        <div style="padding: 20px">
 
-    <hr>
-    {% if email.html_message %}
-        {{ email.html_message|safe}}
-    {% else %}
-        <p>To save space we don't store the whole email when it has been sent. As a result, images will not
-            be shown.</p>
-        <p> To see the full email as it was sent
-            <a href="{% url "notifications:admin_send_email_copy_to_admin" email_id=email.id %}">
-                click here to send a copy</a>.</p>
 
-        {#        This needs some explanation. The email is a Django Post Office email object.#}
-        {#        This has a method (email_message) that basically brings it to life by rendering#}
-        {#        the template with the context. As this is (at least usually) a multipart email#}
-        {#        we need to get the alternatives (bits) and we want the first one (HTML). We get#}
-        {#        the content and the type, so again take the first part of that for just the content.#}
+            <h1>{{ email.subject }}</h1>
+            <h2 style="padding: 10px">To:
+                {% for sent_to in email.to %}
+                    {{ sent_to }}&nbsp;
+                {% endfor %}
+            </h2>
+            <p style="padding-left: 10px">
+                Date Sent: <i>{{ email.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"Not Sent" }}</i></p>
+            {% if snoopers %}
+                <p style="padding-left: 10px">
+                    This email was sent to {{ snoopers.count|intcomma }} {{ snoopers.count|pluralize:"person,people" }}.
+                    <button onclick="$('#to_list').toggle();" style="">Show Recipients</button>
+                </p>
 
-        {{ email.email_message.alternatives.0.0|safe }}
-    {% endif %}
-{% endblock %}
+                <div id="to_list" style="display: none;">
+                    <ul>
+                        {% for snooper in snoopers %}
+                            {% for recipient in snooper.post_office_email.to %}
+                                <li>{{ recipient }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <table class="zui-table">
+                <thead>
+                    <tr><th>Event</th><th>Description</th></tr>
+                </thead>
+                <tr>
+                    <td>Sent</td>
+                    <td>{{ email.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"Not sent" }}</td>
+                </tr>
+                <tr>
+                    <td>Delivered</td>
+                    <td>{{ email.snooper.ses_delivered_at|cobalt_nice_datetime|default_if_none:"Not delivered" }}</td>
+                </tr>
+                <tr>
+                    <td>Opened</td>
+                    <td>{{ email.snooper.ses_open_count }} time{{ email.snooper.ses_open_count|pluralize }}.
+                        Last opened: {{ email.snooper.ses_last_opened_at|cobalt_nice_datetime|default_if_none:"Never" }}</td>
+                </tr>
+                <tr>
+                    <td>Clicked</td>
+                    <td>{{ email.snooper.ses_clicked_count }} time{{ email.snooper.ses_clicked_count|pluralize }}.
+                        Last clicked: {{ email.snooper.ses_last_clicked_at|cobalt_nice_datetime|default_if_none:"Never" }}</td>
+                </tr>
+
+                {% if email.snooper.ses_bounce_reason %}
+                    <tr>
+                        <td>Bounce Reason</td>
+                        <td>{{ email.snooper.ses_bounce_reason }}</td>
+                    </tr>
+                    <tr>
+                        <td>Last Bounce Time</td>
+                        <td>{{ email.snooper.ses_last_bounce_at|cobalt_nice_datetime }}</td>
+                    </tr>
+                {% endif %}
+            </table>
+
+            <hr>
+            {% if email.html_message %}
+                {{ email.html_message|safe}}
+            {% else %}
+                <p>To save space we don't store the whole email when it has been sent. As a result, images will not
+                    be shown.</p>
+                <p> To see the full email as it was sent
+                    <a href="{% url "notifications:admin_send_email_copy_to_admin" email_id=email.id %}">
+                        click here to send a copy</a>.</p>
+
+                <h2>Subject: {{ email.context.subject }}</h2>
+
+                {#        This needs some explanation. The email is a Django Post Office email object.#}
+                {#        This has a method (email_message) that basically brings it to life by rendering#}
+                {#        the template with the context. As this is (at least usually) a multipart email#}
+                {#        we need to get the alternatives (bits) and we want the first one (HTML). We get#}
+                {#        the content and the type, so again take the first part of that for just the content.#}
+
+                {{ email.email_message.alternatives.0.0|safe }}
+            {% endif %}
+
+        </div>
+
+
+    </body>
+</html>

@@ -767,15 +767,49 @@ def admin_view_all_emails(request):
 
 
 @login_required()
+def admin_view_email_by_batch(request, batch_id):
+    """Show an email from a batch"""
+
+    batch = get_object_or_404(EmailBatchRBAC, pk=batch_id)
+
+    admin_role = "notifications.admin.view"
+
+    if not (
+        rbac_user_has_role(request.user, batch.rbac_role)
+        or rbac_user_has_role(request.user, admin_role)
+    ):
+        return rbac_forbidden(request, batch.rbac_role)
+
+    snoopers = Snooper.objects.filter(batch_id=batch_id)
+
+    if not snoopers:
+        return HttpResponse("Not found")
+
+    return render(
+        request,
+        "notifications/admin_view_email.html",
+        {"email": snoopers.first().post_office_email, "snoopers": snoopers},
+    )
+
+
+@login_required()
 def admin_view_email(request, email_id):
     """Show single email for administrators"""
 
-    # check access
-    role = "notifications.admin.view"
-    if not rbac_user_has_role(request.user, role):
-        return rbac_forbidden(request, role)
-
     email = get_object_or_404(PostOfficeEmail, pk=email_id)
+
+    # check access
+    snooper = Snooper.objects.filter(post_office_email=email).first()
+    rbac_role = (
+        EmailBatchRBAC.objects.filter(batch_id=snooper.batch_id).first().rbac_role
+    )
+
+    admin_role = "notifications.admin.view"
+
+    if not rbac_user_has_role(request.user, rbac_role) or rbac_user_has_role(
+        request.user, admin_role
+    ):
+        return rbac_forbidden(request, rbac_role)
 
     return render(request, "notifications/admin_view_email.html", {"email": email})
 

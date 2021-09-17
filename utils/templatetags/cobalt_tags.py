@@ -246,6 +246,4 @@ def cobalt_bs4_field(field):
         # Now wrap in form group
         html = f'<div class="form-group">\n{html}\n</div>'
 
-    print(html)
-
     return mark_safe(html)

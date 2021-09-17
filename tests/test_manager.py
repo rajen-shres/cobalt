@@ -26,11 +26,11 @@ setup_test_environment()
 # List of tests to run format is "class": "location"
 LIST_OF_TESTS = {
     #    "MemberTransfer": "payments.tests.member_actions",
-    # "OrgHighLevelAdmin": "organisations.tests.high_level_admin",
-    # "ClubLevelAdmin": "organisations.tests.club_level_admin",
-    # "ClubSettings": "organisations.tests.club_settings",
-    # "ClubMembers": "organisations.tests.club_members",
-    "ClubComms": "organisations.tests.club_comms",
+    "OrgHighLevelAdmin": "organisations.tests.01_high_level_admin",
+    "ClubLevelAdmin": "organisations.tests.02_club_level_admin",
+    "ClubSettings": "organisations.tests.03_club_settings",
+    "ClubMembers": "organisations.tests.04_club_members",
+    "ClubComms": "organisations.tests.05_club_comms",
 }
 
 
