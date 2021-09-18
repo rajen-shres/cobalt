@@ -1,0 +1,13 @@
+<tr>
+    <td>{{ item.name|title }} {{ item.amount }}/{{ details.number_sent }}</td>
+    <td>
+        <div class="progress-container progress-primary">
+            <span class="progress-badge">{{ item.percent }}%</span>
+            <div class="progress">
+                <div class="progress-bar progress-bar-{{ item.colour }}" role="progressbar" aria-valuenow="{{ item.percent }}"
+                    aria-valuemin="0" aria-valuemax="100" style="width: {{ item.percent }}%;">
+                </div>
+            </div>
+        </div>
+    </td>
+</tr>

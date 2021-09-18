@@ -1,0 +1,28 @@
+{% load cobalt_tags %}
+
+{% if emails %}
+
+    <h3>Recent Emails</h3>
+
+    <table class="table table-hover">
+
+        {% for email in emails %}
+            <tr>
+                <td><a onclick='window.open("{% url "notifications:admin_view_email" email_id=email.id %}", "email","width=1000,height=1500");'
+                    href="javascript:void(0)">
+                    {{ email.created }}</a></td>
+                <td><a onclick='window.open("{% url "notifications:admin_view_email" email_id=email.id %}", "email","width=1000,height=1500");'
+                    href="javascript:void(0)">
+                    {{ email.subject }}{{ email.context.subject }}</a></td>
+                <td><a onclick='window.open("{% url "notifications:admin_view_email" email_id=email.id %}", "email","width=1000,height=1500");'
+                    href="javascript:void(0)">
+                    {{ email.get_status_display }}</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% else %}
+
+    <h3>No Recent Emails Available</h3>
+
+{% endif %}

@@ -812,15 +812,20 @@ def admin_view_email(request, email_id):
     email = get_object_or_404(PostOfficeEmail, pk=email_id)
 
     # check access
-    snooper = Snooper.objects.filter(post_office_email=email).first()
+    snooper = (
+        Snooper.objects.select_related("batch_id")
+        .filter(post_office_email=email)
+        .first()
+    )
     rbac_role = (
         EmailBatchRBAC.objects.filter(batch_id=snooper.batch_id).first().rbac_role
     )
 
     admin_role = "notifications.admin.view"
 
-    if not rbac_user_has_role(request.user, rbac_role) or rbac_user_has_role(
-        request.user, admin_role
+    if not (
+        rbac_user_has_role(request.user, rbac_role)
+        or rbac_user_has_role(request.user, admin_role)
     ):
         return rbac_forbidden(request, rbac_role)
 

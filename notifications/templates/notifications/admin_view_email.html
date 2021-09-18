@@ -71,10 +71,12 @@
 
             {% else %}
 
-                <p>
-                    This email was sent to {{ snoopers.count|intcomma }} {{ snoopers.count|pluralize:"person,people" }}.
-                    Showing first email sent.
-                </p>
+                {% if snoopers %}
+                    <p>
+                        This email was sent to {{ snoopers.count|intcomma }} {{ snoopers.count|pluralize:"person,people" }}.
+                        Showing first email sent.
+                    </p>
+                {% endif %}
 
                 <div class="email-box">
 

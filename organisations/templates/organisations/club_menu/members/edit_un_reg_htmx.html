@@ -55,11 +55,6 @@
                     {% cobalt_bs4_field club_membership_form.home_club %}
 
 
-
-
-
-
-
                     <button type="submit" name="save" class="btn btn-success">Save</button>
 
                     {% include "utils/htmx_confirm_modal.html" with id="undel" delete_item=un_reg.first_name hx_target="#id_panel_members" hx_post=hx_delete hx_args=hx_args %}
@@ -96,5 +91,6 @@
 
         <div class="col-md-6">
             {% include "organisations/club_menu/members/drag_and_drop.html" with member=un_reg %}
+            {% include "organisations/club_menu/members/recent_emails.html" %}
         </div>
     </div>

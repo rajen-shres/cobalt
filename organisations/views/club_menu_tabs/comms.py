@@ -1,6 +1,6 @@
 from itertools import chain
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
@@ -11,7 +11,12 @@ from notifications.models import Snooper, EmailBatchRBAC
 from notifications.views import create_rbac_batch_id, send_cobalt_email_with_template
 from organisations.decorators import check_club_menu_access
 from organisations.forms import TagForm, TagMultiForm
-from organisations.models import ClubTag, MemberClubTag, MemberMembershipType
+from organisations.models import (
+    ClubTag,
+    MemberClubTag,
+    MemberMembershipType,
+    MemberClubEmail,
+)
 from post_office.models import Email as PostOfficeEmail
 
 from rbac.core import rbac_user_has_role
@@ -41,7 +46,7 @@ def email_htmx(request, club, message=None):
             batch_id.created = first_snooper.post_office_email.created
             batch_id.subject = first_snooper.post_office_email.context["subject"]
 
-    things = cobalt_paginator(request, batch_ids, 4)
+    things = cobalt_paginator(request, batch_ids)
 
     return render(
         request,
@@ -77,19 +82,28 @@ def _send_email_to_tags(request, club, tags, email_form):
         )
     # Get real members
     members = User.objects.filter(system_number__in=tag_system_numbers).values(
-        "email", "first_name"
+        "email", "first_name", "system_number"
     )
     # Get unregistered TODO: handle club level emails
     un_regs = UnregisteredUser.objects.filter(
         system_number__in=tag_system_numbers
-    ).values("email", "first_name")
+    ).values("email", "first_name", "system_number")
+
+    # get club level email overrides
+    overrides = MemberClubEmail.objects.filter(
+        system_number__in=tag_system_numbers
+    ).values("email", "system_number")
 
     combined_list = list(chain(members, un_regs))
 
     for recipient in combined_list:
-        _send_email_sub(
-            request, recipient["first_name"], recipient["email"], email_form, batch_id
-        )
+        override = overrides.filter(system_number=recipient["system_number"]).first()
+        if override:
+            email = override["email"]
+            print(f"overriding email address for {recipient['system_number']}")
+        else:
+            email = recipient["email"]
+        _send_email_sub(request, recipient["first_name"], email, email_form, batch_id)
 
 
 def _send_email_sub(request, first_name, email, email_form, batch_id=None):
@@ -179,9 +193,12 @@ def email_view_htmx(request, club):
         return rbac_forbidden(request, email_batch.rbac_role)
 
     # Get the snoopers for this batch
-    snoopers = Snooper.objects.filter(batch_id=email_batch.batch_id)
+    snoopers = Snooper.objects.select_related("post_office_email").filter(
+        batch_id=email_batch.batch_id
+    )
 
-    totals = snoopers.aggregate(
+    # Get totals from the database
+    db_totals = snoopers.aggregate(
         sent=Count("ses_sent_at"),
         delivered=Count("ses_delivered_at"),
         opened=Count("ses_last_opened_at"),
@@ -189,14 +206,51 @@ def email_view_htmx(request, club):
         bounced=Count("ses_last_bounce_at"),
     )
 
+    # Total count
     count = snoopers.count()
+
+    # We only show the first email
     snooper = snoopers.first()
+
+    totals = {}
+
+    # Build dictionary of items from Snoopers - this is how the email got on after we sent it according to AWS SES
+    for db_total in db_totals:
+        line = {}
+        line["name"] = db_total.split("_")[-1]
+        line["amount"] = db_totals[db_total]
+        line["amount"] = 25
+        line["percent"] = int(db_totals[db_total] * 100.0 / count)
+        line["percent"] = int(line["amount"] * 100.0 / count)
+        if line["percent"] == 100:
+            line["colour"] = "success"
+        elif line["percent"] >= 80:
+            line["colour"] = "primary"
+        elif line["percent"] >= 60:
+            line["colour"] = "info"
+        elif line["percent"] >= 40:
+            line["colour"] = "warning"
+        else:
+            line["colour"] = "danger"
+        # Bounces are always bad
+        if line["name"] == "bounced":
+            line["colour"] = "danger"
+        totals[db_total] = line
+
+    # Now build status of what Django Post Office knows
+    po_counts = snoopers.aggregate(
+        sent=Count("pk", filter=Q(post_office_email__status=0)),
+        failed=Count("pk", filter=Q(post_office_email__status=1)),
+        queued=Count("pk", filter=Q(post_office_email__status=2)),
+        requeued=Count("pk", filter=Q(post_office_email__status=3)),
+    )
 
     details = {
         "number_sent": count,
         "created": snooper.post_office_email.created,
         "subject": snooper.post_office_email.context["subject"],
         "totals": totals,
+        "po_counts": po_counts,
     }
 
     return render(

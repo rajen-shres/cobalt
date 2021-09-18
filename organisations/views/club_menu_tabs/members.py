@@ -2,13 +2,11 @@ import csv
 import datetime
 from copy import copy
 
-from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_POST
 
 import organisations.views.club_menu_tabs.utils
 from accounts.forms import UnregisteredUserForm
@@ -30,9 +28,9 @@ from organisations.models import (
     ClubTag,
     MembershipType,
 )
-import organisations.views.club_menu as club_menu
+from organisations.views.general import _active_email_for_un_reg
 from rbac.core import rbac_user_has_role
-from rbac.views import rbac_forbidden
+from post_office.models import Email as PostOfficeEmail
 
 
 @check_club_menu_access()
@@ -357,6 +355,16 @@ def un_reg_edit_htmx(request, club):
         tag_name__in=used_tags
     )
 
+    # Get recent emails too
+    if rbac_user_has_role(
+        request.user, f"notifications.orgcomms.{club.id}.view"
+    ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
+        emails = PostOfficeEmail.objects.filter(
+            to=[_active_email_for_un_reg(un_reg, club)]
+        ).order_by("-pk")[:20]
+    else:
+        emails = None
+
     return render(
         request,
         "organisations/club_menu/members/edit_un_reg_htmx.html",
@@ -372,6 +380,7 @@ def un_reg_edit_htmx(request, club):
             "hx_delete": hx_delete,
             "hx_args": hx_args,
             "message": message,
+            "emails": emails,
         },
     )
 
@@ -501,6 +510,14 @@ def edit_member_htmx(request, club):
         tag_name__in=used_tags
     )
 
+    # Get recent emails too
+    if rbac_user_has_role(
+        request.user, f"notifications.orgcomms.{club.id}.view"
+    ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
+        emails = PostOfficeEmail.objects.filter(to=[member.email]).order_by("-pk")[:20]
+    else:
+        emails = None
+
     return render(
         request,
         "organisations/club_menu/members/edit_member_htmx.html",
@@ -513,6 +530,7 @@ def edit_member_htmx(request, club):
             "hx_vars": hx_vars,
             "member_tags": member_tags,
             "available_tags": available_tags,
+            "emails": emails,
         },
     )
 
