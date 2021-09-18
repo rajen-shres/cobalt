@@ -40,6 +40,7 @@ from cobalt.settings import (
 )
 from forums.models import Forum, Post
 from logs.views import log_event
+from organisations.models import Organisation
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
@@ -285,12 +286,19 @@ def send_cobalt_email_with_template(
     Snooper(post_office_email=email, batch_id=batch_id).save()
 
 
-def create_rbac_batch_id(rbac_role: str, batch_id: BatchID = None):
+def create_rbac_batch_id(
+    rbac_role: str,
+    batch_id: BatchID = None,
+    user: User = None,
+    organisation: Organisation = None,
+):
     """Create a new EmailBatchRBAC object to allow an RBAC role to access a batch of emails
 
     Args:
         rbac_role (str): the RBAC role to allow. e.g. "org.orgs.34.view"
         batch_id (BatchID): batch ID, if None a new batch Id will be created
+        organisation: Org responsible for sending this
+        user: User responsible for sending this
 
     Returns: BatchID
 
@@ -301,7 +309,12 @@ def create_rbac_batch_id(rbac_role: str, batch_id: BatchID = None):
         batch_id.create_new()
         batch_id.save()
 
-    EmailBatchRBAC(batch_id=batch_id, rbac_role=rbac_role).save()
+        EmailBatchRBAC(
+            batch_id=batch_id,
+            rbac_role=rbac_role,
+            meta_sender=user,
+            meta_organisation=organisation,
+        ).save()
 
     return batch_id
 

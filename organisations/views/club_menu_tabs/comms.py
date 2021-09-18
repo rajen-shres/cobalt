@@ -14,6 +14,8 @@ from organisations.forms import TagForm, TagMultiForm
 from organisations.models import ClubTag, MemberClubTag, MemberMembershipType
 from post_office.models import Email as PostOfficeEmail
 
+from rbac.core import rbac_user_has_role
+from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
 
 
@@ -52,7 +54,11 @@ def _send_email_to_tags(request, club, tags, email_form):
     """Send an email to a group of members identified by tags"""
 
     # let anyone with comms access to this org view them
-    batch_id = create_rbac_batch_id(f"notifications.orgcomms.{club.id}.view")
+    batch_id = create_rbac_batch_id(
+        rbac_role=f"notifications.orgcomms.{club.id}.view",
+        user=request.user,
+        organisation=club,
+    )
 
     # Check for Tag=0, means everyone
     if 0 in tags:
@@ -165,8 +171,12 @@ def email_view_htmx(request, club):
         "batch_id__snooper_set__post_office_email"
     ).get(pk=batch_id)
 
-    print("batch id:", batch_id)
-    print("batch:", email_batch)
+    # We allow people with explicit access to see emails or global admins, not state admins
+    if not (
+        rbac_user_has_role(request.user, email_batch.rbac_role)
+        or rbac_user_has_role(request.user, "orgs.admin.edit")
+    ):
+        return rbac_forbidden(request, email_batch.rbac_role)
 
     # Get the snoopers for this batch
     snoopers = Snooper.objects.filter(batch_id=email_batch.batch_id)

@@ -6,6 +6,9 @@ from django.utils import timezone
 from django.conf import settings
 from post_office.models import Email as PostOfficeEmail
 
+from accounts.models import User
+from organisations.models import Organisation
+
 
 class InAppNotification(models.Model):
     """Temporary storage for notification messages.
@@ -173,6 +176,15 @@ class EmailBatchRBAC(models.Model):
         BatchID, on_delete=models.CASCADE, blank=True, null=True
     )
     rbac_role = models.CharField(max_length=300)
+    """rbac role to view this batch of emails"""
+    meta_sender = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, blank=True
+    )
+    """User who sent this"""
+    meta_organisation = models.ForeignKey(
+        Organisation, on_delete=models.CASCADE, null=True, blank=True
+    )
+    """Org who sent this"""
 
     def __str__(self):
         return f"{self.batch_id} - {self.rbac_role}"

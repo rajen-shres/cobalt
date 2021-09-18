@@ -6,6 +6,7 @@ from .models import (
     EmailArchive,
     EmailThread,
     Snooper,
+    BatchID,
 )
 
 
@@ -24,3 +25,4 @@ admin.site.register(Email)
 admin.site.register(EmailArchive)
 admin.site.register(EmailThread)
 admin.site.register(Snooper)
+admin.site.register(BatchID)
