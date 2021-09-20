@@ -5,14 +5,11 @@
 {% block title %}- Club Menu {{ club }}{% endblock %}
 
 {% block header %}
-    <script src="{% static "assets/js/plugins/jquery-ui.min.js" %}"></script>
+    {#    <script src="{% static "assets/js/plugins/jquery-ui.min.js" %}"></script>#}
     <link href="{% static "assets/css/cobalt-summernote.css" %}" rel="stylesheet">
     {% include "utils/data_tables_heading.html" %}
     <style>
         .htmx-request .btn {
-            display: none;
-        }
-        .htmx-request.btn {
             display: none;
         }
 
