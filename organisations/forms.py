@@ -90,9 +90,6 @@ class OrgForm(forms.ModelForm):
         # Add field
         self.user = user
 
-        # Remove label from dropdown
-        # self.fields["state"].label = False
-
     def clean_state(self):
         """check this user has access to this state"""
 

@@ -56,6 +56,9 @@ def compare_form_with_mpc(form, club):
         ]:
             try:
                 if form[item].value() != club_data[item]:
+                    # We can get None and empty string "". Treat as equal
+                    if form[item].value() is None and club_data[item] == "":
+                        continue
                     form.warnings[item] = "Warning: This value doesn't match the MPC"
             except KeyError:
                 pass

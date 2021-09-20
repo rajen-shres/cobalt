@@ -4,15 +4,17 @@ unset AWS_SECRET_ACCESS_KEY
 unset AWS_ACCESS_KEY_ID
 ENV=cobalt-production-green
 
+read -p "Make sure you are on the same git branch as production. Press any key..." -n1 -s
+
 # Dump data
-#eb ssh $ENV --command "-f sudo /var/app/current/utils/aws/copy_data_from_production_dump.sh"
+eb ssh $ENV --command "-f sudo /var/app/current/utils/aws/copy_data_from_production_dump.sh"
 
 # Get instance
 INSTANCE=$(eb list --verbose | grep $ENV | tail -1 | awk '{print $3}' | tr -d "'[],")
 
 echo $INSTANCE
-# Get IP of instance
 
+# Get IP of instance
 IP=$(aws ec2 describe-instances --instance-ids $INSTANCE | grep PublicIpAddress | awk '{print $2}' | tr -d '",')
 echo $IP
 
@@ -20,7 +22,7 @@ echo $IP
 scp -i ~/.ssh/cobalt.pem ec2-user@$IP:/cobalt-media/db.json /tmp/db.json
 
 # Delete dump file from server
-#eb ssh $ENV --command "-f sudo rm /cobalt-media/db.json"
+eb ssh $ENV --command "-f sudo rm /cobalt-media/db.json"
 
 # Clean database and load
 psql -f utils/aws/rebuild_test_data.sql
