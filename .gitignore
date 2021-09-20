@@ -13,6 +13,7 @@ nohup.out
 .idea
 .pytest_cache
 geckodriver.log
+newrelic.ini
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
