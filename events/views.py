@@ -12,8 +12,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
 from django.db import transaction
+from django.utils import timezone
 
 from logs.views import log_event
+from masterpoints.views import user_summary
+from rbac.decorators import rbac_check_role
 from utils.templatetags.cobalt_tags import cobalt_credits
 from notifications.views import contact_member
 from accounts.models import User, TeamMate
@@ -1656,4 +1659,50 @@ def partnership_desk_signup(request, congress_id, event_id):
 
     return render(
         request, "events/partnership_desk_signup.html", {"form": form, "event": event}
+    )
+
+
+@rbac_check_role("events.global.view")
+def global_admin_view_player_entries(request, member_id):
+    """Allow an admin to see entries for a player
+
+    Args:
+        member_id: member to look up
+        request (HTTPRequest): standard request object
+
+    Returns:
+        HTTPResponse
+    """
+
+    member = get_object_or_404(User, pk=member_id)
+    summary = user_summary(member.system_number)
+
+    # See if we should include all entries or just future ones
+    show_all = request.GET.get("show_all", False)
+
+    basket_items = BasketItem.objects.select_related(
+        "event_entry", "event_entry__event"
+    ).filter(player=member)
+
+    event_entries = EventEntry.objects.select_related(
+        "event", "event__congress"
+    ).filter(primary_entrant=member)
+
+    if not show_all:
+        event_entries = event_entries.filter(
+            event__congress__start_date__gte=timezone.now()
+        )
+
+    event_entries = event_entries.order_by("-pk")
+
+    return render(
+        request,
+        "events/global_admin_view_player_entries.html",
+        {
+            "profile": member,
+            "summary": summary,
+            "basket_items_this": basket_items,
+            "event_entries": event_entries,
+            "show_all": show_all,
+        },
     )

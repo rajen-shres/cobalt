@@ -462,4 +462,9 @@ urlpatterns = [
         views.global_admin_create_congress_master,
         name="global_admin_create_congress_master",
     ),
+    path(
+        "system-admin/player-view/<int:member_id>",
+        views.global_admin_view_player_entries,
+        name="global_admin_view_player_entries",
+    ),
 ]

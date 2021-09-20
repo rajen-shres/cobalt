@@ -6,37 +6,17 @@
     <div>
         <div class="container-fluid">
             <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="card card-profile">
-                        <div class="card-header card-header-warning">
-                            <h3 class="card-title">{{ profile.full_name }}</h3>
-                            <h4 class="card-title">{{ GLOBAL_ORG }} No. {{ profile.system_number }}</h4>
-                            {% if summary.RankName %}
-                                <h5>{{ summary.RankName }}: {{ summary.TotalMPs }} Masterpoints</h5>
-                            {% endif %}
-                            {% if summary.home_club %}
-                                {% if summary.IsActive %}
-                                    <h4>Home Club: {{ summary.home_club }}</h4>
-                                {% else %}
-                                    <h4>Used to play at: {{ summary.home_club }}</h4>
-                                {% endif %}
-                            {% endif %}
-                        </div>
-                        <div class="card-body">
-                            <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 140px; width: 140px;" src="/media/{{ profile.pic }}" />
-                            <p class="card-description">
-                                <br>
-                                {{ profile.about|default_if_none:"" }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+
+                {% include "accounts/public_profile_header.html" %}
 
             </div>
             <div class="row justify-content-center">
                 <div class="py-2">
                     {% if payments_admin %}
                         <a href="{% url "payments:admin_player_payments" member_id=profile.id %}" class="btn btn-sm btn-danger">Payments Admin</a>
+                    {% endif %}
+                    {% if events_admin %}
+                        <a href="{% url "events:global_admin_view_player_entries" member_id=profile.id %}" class="btn btn-sm btn-danger">Events Admin</a>
                     {% endif %}
                 </div>
             </div>

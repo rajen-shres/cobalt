@@ -675,6 +675,11 @@ def public_profile(request, pk):
     else:
         payments_admin = False
 
+    if rbac_user_has_role(request.user, "events.global.view"):
+        events_admin = True
+    else:
+        events_admin = False
+
     return render(
         request,
         "accounts/public_profile.html",
@@ -688,6 +693,7 @@ def public_profile(request, pk):
             "comment2s_active": comment2s_active,
             "summary": summary,
             "payments_admin": payments_admin,
+            "events_admin": events_admin,
         },
     )
 
