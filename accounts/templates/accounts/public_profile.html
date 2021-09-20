@@ -18,6 +18,9 @@
                     {% if events_admin %}
                         <a href="{% url "events:global_admin_view_player_entries" member_id=profile.id %}" class="btn btn-sm btn-danger">Events Admin</a>
                     {% endif %}
+                    {% if tickets %}
+                        <a href="{% url "support:helpdesk_list" %}?days=-1&user={{ profile.id }}" class="btn btn-sm btn-danger">Helpdesk Tickets ({{ tickets.count }})</a>
+                    {% endif %}
                 </div>
             </div>
 

@@ -39,6 +39,7 @@ from .forms import (
     UserSettingsForm,
 )
 from forums.models import Post, Comment1, Comment2
+from support.models import Incident
 from utils.utils import cobalt_paginator
 from cobalt.settings import (
     GLOBAL_ORG,
@@ -680,6 +681,11 @@ def public_profile(request, pk):
     else:
         events_admin = False
 
+    if rbac_user_has_role(request.user, "support.helpdesk.edit"):
+        tickets = Incident.objects.filter(reported_by_user=pub_profile.id)
+    else:
+        tickets = False
+
     return render(
         request,
         "accounts/public_profile.html",
@@ -694,6 +700,7 @@ def public_profile(request, pk):
             "summary": summary,
             "payments_admin": payments_admin,
             "events_admin": events_admin,
+            "tickets": tickets,
         },
     )
 
