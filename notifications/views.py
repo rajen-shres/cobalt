@@ -817,11 +817,15 @@ def admin_view_email(request, email_id):
         .filter(post_office_email=email)
         .first()
     )
-    rbac_role = (
-        EmailBatchRBAC.objects.filter(batch_id=snooper.batch_id).first().rbac_role
-    )
 
     admin_role = "notifications.admin.view"
+
+    try:
+        rbac_role = (
+            EmailBatchRBAC.objects.filter(batch_id=snooper.batch_id).first().rbac_role
+        )
+    except AttributeError:
+        rbac_role = admin_role
 
     if not (
         rbac_user_has_role(request.user, rbac_role)
