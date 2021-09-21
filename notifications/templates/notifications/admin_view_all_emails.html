@@ -35,7 +35,7 @@
                         <tbody>
                             {% for thing in things %}
                                 <tr>
-                                    <td class="text-left">{{ thing.snooper.ses_sent_at|cobalt_nice_datetime }}</td>
+                                    <td class="text-left">{{ thing.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"" }}</td>
 
                                     {# show real status #}
                                     <td class="text-left">
