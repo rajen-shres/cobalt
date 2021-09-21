@@ -4,8 +4,6 @@ import logging
 from django.core.management.base import BaseCommand
 from post_office.mail import send_queued
 
-from utils.views import CobaltLock
-
 logger = logging.getLogger("cobalt")
 
 
@@ -17,6 +15,7 @@ class Command(BaseCommand):
         we can't use that in a distributed environment so we do our own locking.
 
         """
+        from utils.views import CobaltLock
 
         logger.info("Post Office cron looking for work")
 
