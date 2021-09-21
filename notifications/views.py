@@ -833,6 +833,8 @@ def admin_view_email(request, email_id):
     ):
         return rbac_forbidden(request, rbac_role)
 
+    return render(request, "notifications/admin_view_email.html", {"email": email})
+
 
 @login_required()
 def admin_send_email_copy_to_admin(request, email_id):
