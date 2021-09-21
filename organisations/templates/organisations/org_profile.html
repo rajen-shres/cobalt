@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} - {{ org }}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="card">
+            <div class="card-header card-header-rose">
+                <h2>{{ org }}</h2>
+            </div>
+            <div class="card-body">
+                {{ front_page.summary | safe }}
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}

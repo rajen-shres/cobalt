@@ -272,4 +272,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.members.delete_member_htmx,
         name="club_menu_tab_member_delete_member_htmx",
     ),
+    path(
+        "public-profile/<int:org_id>",
+        organisations.views.general.org_profile,
+        name="general_org_profile",
+    ),
 ]

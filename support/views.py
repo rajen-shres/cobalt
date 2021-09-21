@@ -21,6 +21,7 @@ from cobalt.settings import (
 from events.models import Congress
 from forums.models import Post, Forum
 from notifications.views import send_cobalt_email
+from organisations.models import Organisation
 from payments.models import MemberTransaction
 from rbac.core import rbac_user_has_role
 from utils.utils import cobalt_paginator
@@ -250,6 +251,7 @@ def search(request):
     include_posts = request.GET.get("include_posts")
     include_events = request.GET.get("include_events")
     include_payments = request.GET.get("include_payments")
+    include_orgs = request.GET.get("include_orgs")
 
     searchparams = ""
 
@@ -290,8 +292,14 @@ def search(request):
         else:
             payments = []
 
+        if include_orgs:
+            orgs = Organisation.objects.filter(name__icontains=query)
+            searchparams += "include_orgs=1&"
+        else:
+            orgs = []
+
         # combine outputs
-        results = list(chain(people, posts, forums, events, payments))
+        results = list(chain(people, posts, forums, events, payments, orgs))
 
         # create paginator
         things = cobalt_paginator(request, results)
@@ -311,6 +319,7 @@ def search(request):
             "include_posts": include_posts,
             "include_events": include_events,
             "include_payments": include_payments,
+            "include_orgs": include_orgs,
             "searchparams": searchparams,
         },
     )

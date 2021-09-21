@@ -9,6 +9,18 @@
     <div class="card-body" id="id_comms_email_tab">
 
         <h3>Public Information</h3>
+        <a href="{% url "organisations:general_org_profile" org_id=club.id %}" target="_blank" class="btn btn-rose btn-sm">show public profile</a>
+        <h3 class="text-info font-weight-bold settings_message">{{ message }}</h3>
+        <form
+            hx-post="{% url "organisations:club_menu_tab_comms_public_info_htmx" %}"
+            hx-vars="club_id:{{ club.id }}"
+            hx-target="#id_panel_comms"
+        >
+            {% cobalt_bs4_field front_page_form.summary %}
+            <input type="hidden" name="organisation" value="{{ club.id }}">
+
+            <button class="btn btn-success" name="save">Save</button>
+        </form>
 
     </div>
 </div>

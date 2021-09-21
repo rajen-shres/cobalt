@@ -14,6 +14,7 @@ from organisations.models import (
     MemberClubEmail,
     ClubLog,
     MemberMembershipType,
+    OrganisationFrontPage,
 )
 from payments.models import OrganisationTransaction
 from rbac.core import rbac_user_has_role
@@ -205,3 +206,14 @@ def _active_email_for_un_reg(un_reg, club):
     if club_email:
         return club_email.email
     return un_reg.email
+
+
+def org_profile(request, org_id):
+    """Show public profile for organisation"""
+    org = get_object_or_404(Organisation, pk=org_id)
+    front_page, _ = OrganisationFrontPage.objects.get_or_create(organisation=org)
+    return render(
+        request,
+        "organisations/org_profile.html",
+        {"org": org, "front_page": front_page},
+    )

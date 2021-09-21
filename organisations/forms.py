@@ -20,6 +20,7 @@ from .models import (
     MemberClubEmail,
     MemberMembershipType,
     ClubTag,
+    OrganisationFrontPage,
 )
 
 
@@ -385,3 +386,35 @@ class UnregisteredUserMembershipForm(forms.Form):
         ):
             self.add_error("home_club", "User already has a home club")
         return home_club
+
+
+class FrontPageForm(forms.ModelForm):
+    """Form for the front page info for a club"""
+
+    summary = forms.CharField(
+        widget=SummernoteInplaceWidget(
+            attrs={"summernote": {"placeholder": "<br><br>Build your page here..."}}
+        )
+    )
+
+    class Meta:
+        model = OrganisationFrontPage
+        fields = (
+            "summary",
+            "organisation",
+        )
+
+    def clean_summary(self):
+        summary = self.cleaned_data["summary"]
+
+        summary = bleach.clean(
+            summary,
+            strip=True,
+            tags=BLEACH_ALLOWED_TAGS,
+            attributes=BLEACH_ALLOWED_ATTRIBUTES,
+            styles=BLEACH_ALLOWED_STYLES,
+        )
+
+        summary = summary.replace("<", "\n<")
+
+        return summary

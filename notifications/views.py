@@ -451,8 +451,8 @@ def get_notifications_for_user(user):
         notifications.append(
             ("---- Show all notifications ----", reverse("notifications:homepage"))
         )
-    #
-    return (note_count, notifications)
+
+    return note_count, notifications
 
 
 def contact_member(member, msg, contact_type, link=None, html_msg=None, subject=None):

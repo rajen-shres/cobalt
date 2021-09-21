@@ -7,6 +7,7 @@ from .models import (
     MemberClubEmail,
     ClubTag,
     MemberClubTag,
+    OrganisationFrontPage,
 )
 
 
@@ -21,3 +22,4 @@ admin.site.register(MemberClubEmail)
 admin.site.register(ClubLog)
 admin.site.register(ClubTag)
 admin.site.register(MemberClubTag)
+admin.site.register(OrganisationFrontPage)

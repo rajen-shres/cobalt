@@ -348,3 +348,15 @@ class Visitor(models.Model):
     first_name = models.CharField("First Name", max_length=150)
     last_name = models.CharField("Last Name", max_length=150)
     notes = models.TextField(blank=True, null=True)
+
+
+class OrganisationFrontPage(models.Model):
+    """Basic information about an organisation, primarily for the public profile. Likely to be extended later"""
+
+    organisation = models.OneToOneField(
+        Organisation, on_delete=models.CASCADE, primary_key=True
+    )
+    summary = models.TextField()
+
+    def __str__(self):
+        return f"Front Page for {self.organisation}"
