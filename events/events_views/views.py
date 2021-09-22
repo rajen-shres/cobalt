@@ -49,7 +49,11 @@ from events.models import (
 from events.forms import (
     PartnershipForm,
 )
-from events.events_views.core import events_payments_callback, notify_conveners
+from events.events_views.core import (
+    events_payments_callback,
+    notify_conveners,
+    get_basket_for_user,
+)
 
 TZ = pytz.timezone(TIME_ZONE)
 
@@ -118,7 +122,7 @@ def home(request):
 
     if request.user.is_authenticated:
 
-        template = "events/home.html"
+        template = "events/players/home.html"
 
         # get draft congresses
         draft_congresses = Congress.objects.filter(status="Draft")
@@ -130,7 +134,7 @@ def home(request):
                 break
     else:
 
-        template = "events/home_logged_out.html"
+        template = "events/players/home_logged_out.html"
 
         draft_congress_flag = False
 
@@ -212,10 +216,10 @@ def view_congress(request, congress_id, fullscreen=False):
     # Which template to use
     if fullscreen:
         master_template = "empty.html"
-        template = "events/congress.html"
+        template = "events/players/congress.html"
     elif request.user.is_authenticated:
         master_template = "base.html"
-        template = "events/congress.html"
+        template = "events/players/congress.html"
 
         # check if published or user has rights
         if congress.status != "Published":
@@ -223,7 +227,7 @@ def view_congress(request, congress_id, fullscreen=False):
             if not rbac_user_has_role(request.user, role):
                 return rbac_forbidden(request, role)
     else:
-        template = "events/congress_logged_out.html"
+        template = "events/players/congress_logged_out.html"
         master_template = "empty.html"
         if congress.status != "Published":
             return HttpResponseNotFound("Not published")
@@ -382,6 +386,75 @@ def view_congress(request, congress_id, fullscreen=False):
     )
 
 
+def _checkout_perform_action(request):
+    """sub function for the checkout screen, also called directly if only one item in cart"""
+
+    # Need to mark the entries that this is covering. The payment call is asynchronous so
+    # we can't just load all the open basket_entries when we come back or more could have been
+    # added.
+
+    # Get list of event_entry_player records to include.
+    event_entries = BasketItem.objects.filter(player=request.user).values_list(
+        "event_entry"
+    )
+    event_entry_players = (
+        EventEntryPlayer.objects.filter(event_entry__in=event_entries)
+        .exclude(payment_status="Paid")
+        .exclude(payment_status="Free")
+        .filter(payment_type="my-system-dollars")
+        .distinct()
+    )
+    # players that are using club pp to pay are pending payments not unpaid
+    # unpaid would prompt the player to pay for event which is not desired here
+    event_entry_player_club_pp = (
+        EventEntryPlayer.objects.filter(event_entry__in=event_entries)
+        .filter(payment_type="off-system-pp")
+        .distinct()
+    )
+    for event_entry in event_entry_player_club_pp:
+        event_entry.payment_status = "Pending Manual"
+        event_entry.save()
+
+    unique_id = str(uuid.uuid4())
+
+    # map this user (who is paying) to the batch id
+    PlayerBatchId(player=request.user, batch_id=unique_id).save()
+
+    # Get total amount
+    amount = event_entry_players.aggregate(Sum("entry_fee"))
+
+    if amount["entry_fee__sum"]:  # something for Payments to do
+
+        for event_entry_player in event_entry_players:
+            event_entry_player.batch_id = unique_id
+            event_entry_player.save()
+
+            # Log it
+            EventLog(
+                event=event_entry_player.event_entry.event,
+                actor=request.user,
+                action=f"Checkout for event entry {event_entry_player.event_entry.id} for {event_entry_player.player}",
+                event_entry=event_entry_player.event_entry,
+            ).save()
+
+        return payment_api(
+            request=request,
+            member=request.user,
+            description="Congress Entry",
+            amount=amount["entry_fee__sum"],
+            route_code="EVT",
+            route_payload=unique_id,
+            url=reverse("events:enter_event_success"),
+            url_fail=reverse("events:enter_event_payment_fail"),
+            payment_type="Entry to an event",
+            book_internals=False,
+        )
+
+    else:  # no payment required go straight to the callback
+
+        events_payments_callback("Success", unique_id, None)
+
+
 @login_required()
 def checkout(request):
     """Checkout view - make payments, get details"""
@@ -389,72 +462,7 @@ def checkout(request):
     basket_items = BasketItem.objects.filter(player=request.user)
 
     if request.method == "POST":
-
-        # Need to mark the entries that this is covering. The payment call is asynchronous so
-        # we can't just load all the open basket_entries when we come back or more could have been
-        # added.
-
-        # Get list of event_entry_player records to include.
-        event_entries = BasketItem.objects.filter(player=request.user).values_list(
-            "event_entry"
-        )
-        event_entry_players = (
-            EventEntryPlayer.objects.filter(event_entry__in=event_entries)
-            .exclude(payment_status="Paid")
-            .exclude(payment_status="Free")
-            #        .filter(Q(player=request.user) | Q(payment_type="my-system-dollars"))
-            .filter(payment_type="my-system-dollars")
-            .distinct()
-        )
-        # players that are using club pp to pay are pending payments not unpaid
-        # unpaid would prompt the player to pay for event which is not desired here
-        event_entry_player_club_pp = (
-            EventEntryPlayer.objects.filter(event_entry__in=event_entries)
-            .filter(payment_type="off-system-pp")
-            .distinct()
-        )
-        for event_entry in event_entry_player_club_pp:
-            event_entry.payment_status = "Pending Manual"
-            event_entry.save()
-
-        unique_id = str(uuid.uuid4())
-
-        # map this user (who is paying) to the batch id
-        PlayerBatchId(player=request.user, batch_id=unique_id).save()
-
-        # Get total amount
-        amount = event_entry_players.aggregate(Sum("entry_fee"))
-
-        if amount["entry_fee__sum"]:  # something for Payments to do
-
-            for event_entry_player in event_entry_players:
-                event_entry_player.batch_id = unique_id
-                event_entry_player.save()
-
-                # Log it
-                EventLog(
-                    event=event_entry_player.event_entry.event,
-                    actor=request.user,
-                    action=f"Checkout for event entry {event_entry_player.event_entry.id} for {event_entry_player.player}",
-                    event_entry=event_entry_player.event_entry,
-                ).save()
-
-            return payment_api(
-                request=request,
-                member=request.user,
-                description="Congress Entry",
-                amount=amount["entry_fee__sum"],
-                route_code="EVT",
-                route_payload=unique_id,
-                url=reverse("events:enter_event_success"),
-                url_fail=reverse("events:enter_event_payment_fail"),
-                payment_type="Entry to an event",
-                book_internals=False,
-            )
-
-        else:  # no payment required go straight to the callback
-
-            events_payments_callback("Success", unique_id, None)
+        _checkout_perform_action(request)
 
     # Not a POST, build the form
 
@@ -1512,7 +1520,12 @@ def enter_event(request, congress_id, event_id):
             ).save()
 
         if "now" in request.POST:
-            return redirect("events:checkout")
+            # if only one thing in basket, go straight to checkout
+            if get_basket_for_user(request.user) == 1:
+                return _checkout_perform_action(request)
+            else:
+                return redirect("events:checkout")
+
         else:  # add to cart and keep shopping
             msg = "Added to your cart"
             return redirect(

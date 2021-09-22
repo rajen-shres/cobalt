@@ -1211,8 +1211,7 @@ def delete_me_from_partnership_desk(request, event_id):
 
         partnership.delete()
 
-    response_data = {}
-    response_data["message"] = "Success"
+    response_data = {"message": "Success"}
     return JsonResponse({"data": response_data})
 
 
