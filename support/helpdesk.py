@@ -21,6 +21,7 @@ from cobalt.settings import (
     RBAC_HELPDESK_GROUP,
     TIME_ZONE,
     ABF_USER,
+    GLOBAL_TITLE,
 )
 from notifications.views import send_cobalt_email, CobaltEmail
 from rbac.core import (
@@ -101,6 +102,9 @@ def _notify_user_common(ticket, subject, email_ticket_msg, email_ticket_footer="
     email_table = _email_table(ticket, full_name)
     email_body = f"""{email_ticket_msg}{email_table}{email_ticket_footer}"""
     link = reverse("support:helpdesk_user_edit", kwargs={"ticket_id": ticket.id})
+    additional_words = mark_safe(
+        f"<br><i><span style='color: #778899;'>{GLOBAL_TITLE} support hours are 9-5 Monday to Friday (excluding public holidays).</i></span>"
+    )
 
     html_msg = render_to_string(
         "notifications/email_with_button.html",
@@ -111,6 +115,7 @@ def _notify_user_common(ticket, subject, email_ticket_msg, email_ticket_footer="
             "link_text": "Open Ticket",
             "link": link,
             "email_body": email_body,
+            "additional_words": additional_words,
         },
     )
 

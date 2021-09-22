@@ -50,6 +50,7 @@
                                             id="id_reported_by_user_errors">{{ form.reported_by_user.errors|striptags }}</span>
                                         <input type="text" name="reported_by_user_fake" class="form-control"
                                             id="id_reported_by_user_fake" value="{{ user }}" readonly>
+                                        <p>{{ user.email }}</p>
                                     </div>
                                 </div>
                                 <div class="col-2">

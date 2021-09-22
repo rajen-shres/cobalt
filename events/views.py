@@ -647,8 +647,11 @@ def view_event_entries(request, congress_id, event_id):
         .exclude(entry_status="Cancelled")
         .order_by("entry_complete_date")
     )
+    entries.prefetch_related("evententryplayer_set")
     categories = Category.objects.filter(event=event).exists()
     date_string = event.print_dates()
+
+    # See if this user is already entered
     try:
         user_entered = (
             EventEntryPlayer.objects.filter(event_entry__event=event)
@@ -657,8 +660,8 @@ def view_event_entries(request, congress_id, event_id):
             .exists()
         )
         # TODO: Fix this bare exception!
-    except:  # noqa: E722
-        # may be annonymous
+    except TypeError:
+        # may be anonymous
         user_entered = False
 
     return render(

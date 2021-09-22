@@ -804,6 +804,11 @@ class EventEntry(models.Model):
         tag = reverse("events:admin_evententry", kwargs={"evententry_id": self.id})
         return f"<a href='{tag}' target='_blank'>{self.event.congress} - {self.event.event_name}</a>"
 
+    def ordered_event_entry_player(self):
+        """helper function to set order of queryset for event_entry_player"""
+
+        return self.evententryplayer_set.all().distinct("pk").order_by("pk")
+
 
 class EventEntryPlayer(models.Model):
     """A player who is entering an event"""
