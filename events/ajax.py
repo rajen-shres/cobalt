@@ -1321,32 +1321,34 @@ def change_payment_method_on_existing_entry_ajax(request):
 def admin_event_entry_notes_ajax(request):
     """Ajax call from event entry screen to update notes"""
 
-    if request.method == "POST":
-        data = json.loads(request.body.decode("utf-8"))
-        event_entry_id = int(data["id"])
-        notes = data["notes"]
+    if request.method != "POST":
+        return JsonResponse({"message": "Invalid call"})
 
-        event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
+    data = json.loads(request.body.decode("utf-8"))
+    event_entry_id = int(data["id"])
+    notes = data["notes"]
 
-        # check access
-        role = "events.org.%s.edit" % event_entry.event.congress.congress_master.org.id
-        if not rbac_user_has_role(request.user, role):
-            return rbac_forbidden(request, role)
+    event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
 
-        event_entry.notes = notes
-        event_entry.save()
+    # check access
+    role = "events.org.%s.edit" % event_entry.event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
 
-        log_event(
-            user=request.user.href,
-            severity="INFO",
-            source="Events",
-            sub_source="events_entries_admin",
-            message=f"Added notes '{notes}' to {event_entry.href} in {event_entry.event.href}",
-        )
+    print("notes", notes)
 
-        return JsonResponse({"message": "Success"})
+    event_entry.notes = None if len(notes) == 0 else notes
+    event_entry.save()
 
-    return JsonResponse({"message": "Invalid call"})
+    log_event(
+        user=request.user.href,
+        severity="INFO",
+        source="Events",
+        sub_source="events_entries_admin",
+        message=f"Added notes '{notes}' to {event_entry.href} in {event_entry.event.href}",
+    )
+
+    return JsonResponse({"message": "Success"})
 
 
 @login_required()

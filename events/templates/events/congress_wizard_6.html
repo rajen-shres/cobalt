@@ -4,7 +4,7 @@
 {% load crispy_forms_tags %}
 {% load cobalt_tags %}
 {% block title %} - Congress Wizard Step 6{% endblock %}
-{% block headerjs %}
+{% block header %}
     {% include "events/congress_wizard_include_header.html" %}
 {% endblock %}
 {% block content %}
@@ -41,14 +41,14 @@
                                         <div class="d-flex">
                                             <div>
                                                 <a href="{% url "events:create_event" congress_id=congress.id %}"
-                                                   class="btn btn-success btn-sm cobalt-save">Add</a>
+                                                    class="btn btn-success btn-sm cobalt-save">Add</a>
                                                 <button id="edit_button" class="btn btn-primary btn-sm cobalt-save"
-                                                        disabled>Edit
+                                                    disabled>Edit
                                                 </button>
                                             </div>
                                             <div class="ml-auto">
                                                 <button class="btn btn-danger btn-sm cobalt-save" disabled
-                                                        id="delete_button" onclick="deleteEvent();return false">Delete
+                                                    id="delete_button" onclick="deleteEvent();return false">Delete
                                                 </button>
                                             </div>
                                         </div>
@@ -88,27 +88,27 @@
                     event_id = $('#event_list').val();
                     $.get("{% url "events:delete_event_ajax" %}?event_id=" + event_id)
                         .done(response => {
-                            msg = response['data']['message'];
-                            if (msg == 'Success') {
-                                swal.fire({
-                                    title: "Event Deleted",
-                                    html: "Success. Event deleted from congress.",
-                                    icon: "success"
-                                })
-                                    .then((result) => {
-                                        location.reload();
-                                    });
-                            } else {
-                                swal.fire({
-                                    title: "Error",
-                                    html: msg,
-                                    icon: "error"
-                                })
-                                    .then((result) => {
-                                        location.reload();
-                                    });
-                            }
-                        });
+                        msg = response['data']['message'];
+                        if (msg == 'Success') {
+                            swal.fire({
+                                title: "Event Deleted",
+                                html: "Success. Event deleted from congress.",
+                                icon: "success"
+                            })
+                                .then((result) => {
+                                location.reload();
+                            });
+                        } else {
+                            swal.fire({
+                                title: "Error",
+                                html: msg,
+                                icon: "error"
+                            })
+                                .then((result) => {
+                                location.reload();
+                            });
+                        }
+                    });
                 }
             })
         }

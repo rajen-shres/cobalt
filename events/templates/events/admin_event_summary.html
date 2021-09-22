@@ -97,7 +97,7 @@
                                         <tr>
                                             <td>
                                                 {% if event_entry.notes %}
-                                                    <a href="javascript:void(0)" onclick='help("Notes", "{{ event_entry.notes }}");'>
+                                                    <a href="javascript:void(0)" onclick='editNotes({{ event_entry.id }});'>
                                                         <i class="material-icons">sticky_note_2</i></a>
                                                 {% endif %}
                                                 {% for event_entry_player in event_entry.players %}
@@ -203,7 +203,7 @@
                 },
                 showCancelButton: true
             }).then(function(result) {
-                if (result.value) {
+                if (result.isConfirmed) {
                     var url = "{% url "events:admin_event_entry_notes_ajax" %}";
                     var serializedData = {
                         "id": id,

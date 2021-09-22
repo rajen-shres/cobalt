@@ -3,123 +3,123 @@
 {% load widget_tweaks %}
 {% load crispy_forms_tags %}
 {% block title %} - Congress Wizard Step 2{% endblock %}
-{% block headerjs %}
-{% include "events/congress_wizard_include_header.html" %}
+{% block header %}
+    {% include "events/congress_wizard_include_header.html" %}
 {% endblock %}
 {% block content %}
-{% include "events/congress_wizard_include_body.html" %}
+    {% include "events/congress_wizard_include_body.html" %}
 
-<div class="container">
-  <a class="btn btn-warning btn-sm" href="{% url "events:manage_congress_download" congress_id=congress.id %}">Manage Download Files</a>
-  <div class="row">
-    <div class="card">
-      <div class="card-header card-header-primary">
-        <h2>General Information</h2>
-      </div>
-      <div class="card-body">
-        <div class="container">
-          <div class="row">
-            <div class="col-12">
-              <h3>{{ congress.congress_master }}</h3>
-            </div>
-          </div>
-          <br>
-          <form method="POST">
-            {% csrf_token %}
-
-            <div class="row">
-              <div class="col-2 justify-content-center align-self-center">
-                Congress Type
-              </div>
-              <div class="col-8">
-                <div id="div_id_congress_types" class="form-group">
-                  <span class="cobalt-form-error" id="id_year_errors">{{ form.congress_types.errors|striptags }}</span>
-                  {% render_field form.congress_type class+="form-control" %}
+    <div class="container">
+        <a class="btn btn-warning btn-sm" href="{% url "events:manage_congress_download" congress_id=congress.id %}">Manage Download Files</a>
+        <div class="row">
+            <div class="card">
+                <div class="card-header card-header-primary">
+                    <h2>General Information</h2>
                 </div>
-              </div>
-              <div class="col-2 justify-content-center align-self-center">
-                <a href="javascript:void(0)" onclick='help("Congress Year", "The year that this event will take place.");'>help</a>
-              </div>
-            </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-12">
+                                <h3>{{ congress.congress_master }}</h3>
+                            </div>
+                        </div>
+                        <br>
+                        <form method="POST">
+                            {% csrf_token %}
 
-            <div class="row">
-              <div class="col-2 justify-content-center align-self-center">
-                Year
-              </div>
-              <div class="col-8">
-                <div id="div_id_name" class="form-group">
-                  <span class="cobalt-form-error" id="id_year_errors">{{ form.year.errors|striptags }}</span>
-                  {% render_field form.year class+="form-control" %}
-                </div>
-              </div>
-              <div class="col-2 justify-content-center align-self-center">
-                <a href="javascript:void(0)" onclick='help("Congress Year", "The year that this event will take place.");'>help</a>
-              </div>
-            </div>
+                            <div class="row">
+                                <div class="col-2 justify-content-center align-self-center">
+                                    Congress Type
+                                </div>
+                                <div class="col-8">
+                                    <div id="div_id_congress_types" class="form-group">
+                                        <span class="cobalt-form-error" id="id_year_errors">{{ form.congress_types.errors|striptags }}</span>
+                                        {% render_field form.congress_type class+="form-control" %}
+                                    </div>
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center">
+                                    <a href="javascript:void(0)" onclick='help("Congress Type", "Select what type of congress this is.");'>help</a>
+                                </div>
+                            </div>
 
-            <div class="row">
-              <div class="col-2 justify-content-center align-self-center">
-                Name
-              </div>
-              <div class="col-8">
-                <div id="div_id_name" class="form-group">
-                  <span class="cobalt-form-error" id="id_name_errors">{{ form.name.errors|striptags }}</span>
-                  {% render_field form.name class+="form-control" %}
-                </div>
-              </div>
-              <div class="col-2 justify-content-center align-self-center">
-                <a href="javascript:void(0)" onclick='help("Congress Name", "The name you wish to give this congress. Typically the Congress Master plus the Year.");'>help</a>
-              </div>
-            </div>
+                            <div class="row">
+                                <div class="col-2 justify-content-center align-self-center">
+                                    Year
+                                </div>
+                                <div class="col-8">
+                                    <div id="div_id_name" class="form-group">
+                                        <span class="cobalt-form-error" id="id_year_errors">{{ form.year.errors|striptags }}</span>
+                                        {% render_field form.year class+="form-control" %}
+                                    </div>
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center">
+                                    <a href="javascript:void(0)" onclick='help("Congress Year", "The year that this event will take place.");'>help</a>
+                                </div>
+                            </div>
 
-            <div class="row">
-              <div class="col-2 justify-content-center align-self-center">
-                Dates
-              </div>
-              <div class="col-md-4">
-                <div class="form-group">
-                  <label class="bmd-label-float" style="font-size:11px">Start</label>
-                  <input type="text" name="start_date" id="id_start_date" class="form-control datepicker" value="{{ form.start_date.value|default_if_none:'' }}">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-group">
-                  <label class="bmd-label-float" style="font-size:11px">End</label>
-                  <input type="text" name="end_date" id="id_end_date" class="form-control datepicker" value="{{ form.end_date.value|default_if_none:'' }}">
-                </div>
-              </div>
-              <div class="col-2 justify-content-center align-self-center">
-                <a href="javascript:void(0)" onclick='help("Dates", "First and last day of congress.");'>help</a>
-              </div>
-            </div>
+                            <div class="row">
+                                <div class="col-2 justify-content-center align-self-center">
+                                    Name
+                                </div>
+                                <div class="col-8">
+                                    <div id="div_id_name" class="form-group">
+                                        <span class="cobalt-form-error" id="id_name_errors">{{ form.name.errors|striptags }}</span>
+                                        {% render_field form.name class+="form-control" %}
+                                    </div>
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center">
+                                    <a href="javascript:void(0)" onclick='help("Congress Name", "The name you wish to give this congress. Typically the Congress Master plus the Year.");'>help</a>
+                                </div>
+                            </div>
 
-            <div class="row">
-              <div class="col-2 justify-content-center align-self-center">
-                Date String
-              </div>
-              <div class="col-8">
-                <div id="div_id_date_string" class="form-group">
-                  <span class="cobalt-form-error" id="id_date_string_errors">{{ form.date_string.errors|striptags }}</span>
-                  {% render_field form.date_string class+="form-control" %}
-                </div>
-              </div>
-              <div class="col-2 justify-content-center align-self-center">
-                <a href="javascript:void(0)" onclick='help("Date String", "Free format text for the dates of the congress. e.g. 23rd March 2021 to 29th March 2021.");'>help</a>
-              </div>
-            </div>
+                            <div class="row">
+                                <div class="col-2 justify-content-center align-self-center">
+                                    Dates
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="bmd-label-float" style="font-size:11px">Start</label>
+                                        <input type="text" name="start_date" id="id_start_date" class="form-control datepicker" value="{{ form.start_date.value|default_if_none:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="bmd-label-float" style="font-size:11px">End</label>
+                                        <input type="text" name="end_date" id="id_end_date" class="form-control datepicker" value="{{ form.end_date.value|default_if_none:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center">
+                                    <a href="javascript:void(0)" onclick='help("Dates", "First and last day of congress.");'>help</a>
+                                </div>
+                            </div>
 
-            <hr>
+                            <div class="row">
+                                <div class="col-2 justify-content-center align-self-center">
+                                    Date String
+                                </div>
+                                <div class="col-8">
+                                    <div id="div_id_date_string" class="form-group">
+                                        <span class="cobalt-form-error" id="id_date_string_errors">{{ form.date_string.errors|striptags }}</span>
+                                        {% render_field form.date_string class+="form-control" %}
+                                    </div>
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center">
+                                    <a href="javascript:void(0)" onclick='help("Date String", "Free format text for the dates of the congress. e.g. 23rd March 2021 to 29th March 2021.");'>help</a>
+                                </div>
+                            </div>
 
-            <div class="row">
-              <div class="col-10 justify-content-center align-self-center">
-                <h3>People</h3>
-              </div>
-              <div class="col-2 justify-content-center align-self-center">
-                <a href="javascript:void(0)" onclick='help("People", "List people and contact details.");'>help</a>
-              </div>
-            </div>
+                            <hr>
 
-            <!-- <div class="row">
+                            <div class="row">
+                                <div class="col-10 justify-content-center align-self-center">
+                                    <h3>People</h3>
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center">
+                                    <a href="javascript:void(0)" onclick='help("People", "List people and contact details.");'>help</a>
+                                </div>
+                            </div>
+
+                            <!-- <div class="row">
               <div class="col-12">
                 <div class="form-check form-check-radio form-check-inline">
                   <label class="form-check-label">
@@ -140,7 +140,7 @@
               </div>
             </div> -->
 
-            <!-- <div class="row">
+                            <!-- <div class="row">
               <div class="col-12">
                 <div id="people_preview">
                   <h5>Preview</h5>
@@ -151,147 +151,147 @@
               </div>
             </div> -->
 
-            <div class="row">
-              <div class="col-12">
-                {{ form.people|as_crispy_field }}
-              </div>
-            </div>
-            <hr>
+                            <div class="row">
+                                <div class="col-12">
+                                    {{ form.people|as_crispy_field }}
+                                </div>
+                            </div>
+                            <hr>
 
-            <div class="row">
-              <div class="col-10 justify-content-center align-self-center">
-                <h3>General Information</h3>
-              </div>
-              <div class="col-2 justify-content-center align-self-center">
-                <a href="javascript:void(0)" onclick='help("General Info", "This goes near the top and should describe high level things about the congress.");'>help</a>
-              </div>
-              <div class="col-12">
-                {{ form.general_info|as_crispy_field }}
-              </div>
-            </div>
-            <hr>
+                            <div class="row">
+                                <div class="col-10 justify-content-center align-self-center">
+                                    <h3>General Information</h3>
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center">
+                                    <a href="javascript:void(0)" onclick='help("General Info", "This goes near the top and should describe high level things about the congress.");'>help</a>
+                                </div>
+                                <div class="col-12">
+                                    {{ form.general_info|as_crispy_field }}
+                                </div>
+                            </div>
+                            <hr>
 
-            <div class="row">
-              <div class="col-10 justify-content-center align-self-center">
-                <h3>Links</h3>
-              </div>
-              <div class="col-2 justify-content-center align-self-center">
-                <a href="javascript:void(0)" onclick='help("Links", "Here you can add links to useful information. We suggest using a bullet list.");'>help</a>
-              </div>
-              <div class="col-12">
-                {{ form.links|as_crispy_field }}
-              </div>
-            </div>
-            <hr>
+                            <div class="row">
+                                <div class="col-10 justify-content-center align-self-center">
+                                    <h3>Links</h3>
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center">
+                                    <a href="javascript:void(0)" onclick='help("Links", "Here you can add links to useful information. We suggest using a bullet list.");'>help</a>
+                                </div>
+                                <div class="col-12">
+                                    {{ form.links|as_crispy_field }}
+                                </div>
+                            </div>
+                            <hr>
 
-            <div class="row">
-              <div class="col-10 justify-content-center align-self-center">
-                <h3>Additional Information (footer)</h3>
-              </div>
-              <div class="col-2 justify-content-center align-self-center">
-                <a href="javascript:void(0)" onclick='help("Additional Info", "This is extra info for the bottom of the page if required.");'>help</a>
-              </div>
-              <div class="col-12">
-                {{ form.additional_info|as_crispy_field }}
-              </div>
+                            <div class="row">
+                                <div class="col-10 justify-content-center align-self-center">
+                                    <h3>Additional Information (footer)</h3>
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center">
+                                    <a href="javascript:void(0)" onclick='help("Additional Info", "This is extra info for the bottom of the page if required.");'>help</a>
+                                </div>
+                                <div class="col-12">
+                                    {{ form.additional_info|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col text-center">
+                                    <button class="btn btn-info btn-sm cobalt-save">Save/Next</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="row">
-              <div class="col text-center">
-                <button class="btn btn-info btn-sm cobalt-save">Save/Next</button>
-              </div>
-            </div>
-          </form>
         </div>
-      </div>
     </div>
-  </div>
-</div>
 
 
 {% endblock %}
 {% block footer %}
-<script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
-<script src="{% static "assets/js/plugins/bootstrap-datetimepicker.min.js" %}"></script>
-<script src="{% static "assets/js/plugins/jquery.cookie.1.4.1.min.js" %}"></script>
-{% include "events/congress_wizard_include_footer.html" %}
+    <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
+    <script src="{% static "assets/js/plugins/bootstrap-datetimepicker.min.js" %}"></script>
+    <script src="{% static "assets/js/plugins/jquery.cookie.1.4.1.min.js" %}"></script>
+    {% include "events/congress_wizard_include_footer.html" %}
 
-<script>
-  function generate_date_string() {
+    <script>
+        function generate_date_string() {
 
-    if ($("#id_start_date").val() != "" & $("#id_end_date").val() != "") {
+            if ($("#id_start_date").val() != "" & $("#id_end_date").val() != "") {
 
-      var start_day = $('#id_start_date').data("DateTimePicker").viewDate().format("Do");
-      var start_month = $('#id_start_date').data("DateTimePicker").viewDate().format("MMMM");
-      var start_year = $('#id_start_date').data("DateTimePicker").viewDate().format("YYYY");
-      var end_day = $('#id_end_date').data("DateTimePicker").viewDate().format("Do");
-      var end_month = $('#id_end_date').data("DateTimePicker").viewDate().format("MMMM");
-      var end_year = $('#id_end_date').data("DateTimePicker").viewDate().format("YYYY");
-      var end_date = $('#id_end_date').data("DateTimePicker").viewDate().format("Do MMMM YYYY");
+                var start_day = $('#id_start_date').data("DateTimePicker").viewDate().format("Do");
+                var start_month = $('#id_start_date').data("DateTimePicker").viewDate().format("MMMM");
+                var start_year = $('#id_start_date').data("DateTimePicker").viewDate().format("YYYY");
+                var end_day = $('#id_end_date').data("DateTimePicker").viewDate().format("Do");
+                var end_month = $('#id_end_date').data("DateTimePicker").viewDate().format("MMMM");
+                var end_year = $('#id_end_date').data("DateTimePicker").viewDate().format("YYYY");
+                var end_date = $('#id_end_date').data("DateTimePicker").viewDate().format("Do MMMM YYYY");
 
-      if (start_year == end_year) {
-        start_year = "";
-      }
+                if (start_year == end_year) {
+                    start_year = "";
+                }
 
-      if (start_month == end_month) {
-        start_month = "";
-      } else {
-        start_month = " " + start_month;
-        if (start_year != "") {
-          start_year = " " + start_year;
+                if (start_month == end_month) {
+                    start_month = "";
+                } else {
+                    start_month = " " + start_month;
+                    if (start_year != "") {
+                        start_year = " " + start_year;
+                    }
+                }
+
+                var display_date = start_day + start_month + start_year + " to " + end_date;
+
+                $("#id_date_string").val(display_date);
+            }
         }
-      }
 
-      var display_date = start_day + start_month + start_year + " to " + end_date;
+        $(document).ready(function() {
 
-      $("#id_date_string").val(display_date);
-    }
-  }
+            $("#id_congress_type").css("position", "revert");
+            $('#id_start_date').datetimepicker({
+                format: 'DD/MM/YYYY'
+            });
+            $('#id_end_date').datetimepicker({
+                format: 'DD/MM/YYYY',
+                useCurrent: false
+            });
+            $("#id_start_date").on("dp.change", function(e) {
+                $('#id_end_date').data("DateTimePicker").minDate(e.date);
+            });
+            $("#id_end_date").on("dp.change", function(e) {
+                $('#id_start_date').data("DateTimePicker").maxDate(e.date);
+            });
 
-  $(document).ready(function() {
+            $("#id_year").change(function() {
+                var name_id = $("#id_name");
+                if (name_id.val() == "") {
+                    name_id.val("{{ congress.congress_master.name }} " + $("#id_year").val())
+                }
+            });
 
-    $("#id_congress_type").css("position", "revert");
-    $('#id_start_date').datetimepicker({
-      format: 'DD/MM/YYYY'
-    });
-    $('#id_end_date').datetimepicker({
-      format: 'DD/MM/YYYY',
-      useCurrent: false
-    });
-    $("#id_start_date").on("dp.change", function(e) {
-      $('#id_end_date').data("DateTimePicker").minDate(e.date);
-    });
-    $("#id_end_date").on("dp.change", function(e) {
-      $('#id_start_date').data("DateTimePicker").maxDate(e.date);
-    });
+            $("#id_start_date").change(function() {
+                generate_date_string();
+            });
 
-    $("#id_year").change(function() {
-      var name_id = $("#id_name");
-      if (name_id.val() == "") {
-        name_id.val("{{ congress.congress_master.name }} " + $("#id_year").val())
-      }
-    });
+            $("#id_date_string").focus(function() {
+                generate_date_string();
+            });
 
-    $("#id_start_date").change(function() {
-      generate_date_string();
-    });
+            if (typeof $.cookie('congress-previewmsg-{{ congress.id }}') === 'undefined') {
+                $.cookie('congress-previewmsg-{{ congress.id }}', 'set', {
+                    expires: 10000,
+                    domain: '',
+                    path: ''
+                });
 
-    $("#id_date_string").focus(function() {
-      generate_date_string();
-    });
+                Swal.fire({
+                    title: 'Hint: Preview',
+                    html: 'At any time after saving your data you can go to <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=7 %}">Step 7 - Publish</a> to preview your page.',
+                });
+            }
 
-    if (typeof $.cookie('congress-previewmsg-{{ congress.id }}') === 'undefined') {
-      $.cookie('congress-previewmsg-{{ congress.id }}', 'set', {
-        expires: 10000,
-        domain: '',
-        path: ''
-      });
-
-      Swal.fire({
-        title: 'Hint: Preview',
-        html: 'At any time after saving your data you can go to <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=7 %}">Step 7 - Publish</a> to preview your page.',
-      });
-    }
-
-  });
-</script>
+        });
+    </script>
 {% endblock %}

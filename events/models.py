@@ -485,48 +485,44 @@ class Event(models.Model):
         if (
             self.congress.allow_early_payment_discount
             and self.congress.early_payment_discount_date
-        ):
-            if self.congress.early_payment_discount_date >= check_date:
-                entry_fee = (
-                    self.entry_fee - self.entry_early_payment_discount
-                ) / players_per_entry
-                entry_fee = cobalt_round(entry_fee)
-                reason = "Early discount"
-                discount = float(self.entry_fee) / players_per_entry - float(entry_fee)
-                description = "Early discount " + cobalt_credits(discount)
+        ) and self.congress.early_payment_discount_date >= check_date:
+            entry_fee = (
+                self.entry_fee - self.entry_early_payment_discount
+            ) / players_per_entry
+            entry_fee = cobalt_round(entry_fee)
+            reason = "Early discount"
+            discount = float(self.entry_fee) / players_per_entry - float(entry_fee)
+            description = "Early discount " + cobalt_credits(discount)
 
         # youth discounts apply after early entry discounts
         if (
             self.congress.allow_youth_payment_discount
             and self.congress.youth_payment_discount_date
-        ):
-            if user.dob:  # skip if no date of birth set
-                dob = datetime.datetime.combine(user.dob, datetime.time(0, 0))
-                dob = timezone.make_aware(dob, pytz.timezone(TIME_ZONE))
+        ) and user.dob:  # skip if no date of birth set
+            dob = datetime.datetime.combine(user.dob, datetime.time(0, 0))
+            dob = timezone.make_aware(dob, pytz.timezone(TIME_ZONE))
 
-                # changing the year if date is 29th Feb can cause errors - change to 28th
-                if dob.month == 2 and dob.day == 29:
-                    dob = dob.replace(day=28)
+            # changing the year if date is 29th Feb can cause errors - change to 28th
+            if dob.month == 2 and dob.day == 29:
+                dob = dob.replace(day=28)
 
-                ref_date = dob.replace(
-                    year=dob.year + self.congress.youth_payment_discount_age
+            ref_date = dob.replace(
+                year=dob.year + self.congress.youth_payment_discount_age
+            )
+            if self.congress.youth_payment_discount_date <= ref_date.date():
+                entry_fee = float(entry_fee) - (
+                    float(entry_fee) * float(self.entry_youth_payment_discount) / 100.0
                 )
-                if self.congress.youth_payment_discount_date <= ref_date.date():
-                    entry_fee = (
-                        float(entry_fee)
-                        * float(self.entry_youth_payment_discount)
-                        / 100.0
+                entry_fee = cobalt_round(entry_fee)
+                discount = float(self.entry_fee) / players_per_entry - entry_fee
+                if reason == "Early discount":
+                    reason = "Youth+Early discount"
+                    description = "Youth+Early discount " + cobalt_credits(discount)
+                else:
+                    reason = "Youth discount"
+                    description = (
+                        "Youth discount %s%%" % self.entry_youth_payment_discount
                     )
-                    entry_fee = cobalt_round(entry_fee)
-                    discount = float(self.entry_fee) / players_per_entry - entry_fee
-                    if reason == "Early discount":
-                        reason = "Youth+Early discount"
-                        description = "Youth+Early discount " + cobalt_credits(discount)
-                    else:
-                        reason = "Youth discount"
-                        description = (
-                            "Youth discount %s%%" % self.entry_youth_payment_discount
-                        )
 
         # EventPlayerDiscount
         event_player_discount = (

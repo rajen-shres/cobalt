@@ -306,6 +306,16 @@ class EventForm(forms.ModelForm):
             return 0.0
         return data
 
+    def clean_entry_youth_payment_discount(self):
+
+        entry_youth_payment_discount = self.cleaned_data["entry_youth_payment_discount"]
+        if entry_youth_payment_discount < 0:
+            self.add_error(
+                "entry_youth_payment_discount", "Discount percentage cannot be negative"
+            )
+
+        return entry_youth_payment_discount
+
 
 class SessionForm(forms.ModelForm):
     class Meta:
