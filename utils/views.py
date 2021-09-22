@@ -13,11 +13,10 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from geopy.geocoders import Nominatim
-from importlib import import_module
 
 from accounts.models import User
 from cobalt.settings import TIME_ZONE
-from events.core import events_status_summary
+from events.events_views.core import events_status_summary
 from forums.views import forums_status_summary
 from notifications.views import notifications_status_summary
 from payments.core import payments_status_summary

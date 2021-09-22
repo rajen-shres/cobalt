@@ -2,7 +2,7 @@
 
 from django.conf import settings
 from notifications.views import get_notifications_for_user
-from events.core import get_basket_for_user
+from events.events_views.core import get_basket_for_user
 from support.helpdesk import get_tickets
 from .version import COBALT_VERSION
 from rbac.core import rbac_show_admin

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load cobalt_tags %}
+{% block title %} - Delete Event Entry{% endblock %}
+{% block content %}
+
+    <div class="jumbotron">
+        <div class="d-flex justify-content-between">
+            <div class="card col-lg-9">
+                <div class="card-header card-header-danger">
+                    <h2>{{ event_entry.event }}</h2>
+                    {% if basket_item %}
+                        <h3>Delete from Cart</h3>
+                    {% else %}
+                        <h3>Withdraw Entry</h3>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% if basket_item %}
+                            <p>This will delete your entry from your shopping cart.</p>
+                        {% else %}
+                            <p>This will delete your entry from this event.</p>
+                        {% endif %}
+
+
+                        <!-- only show table if there is an amount to refund -->
+                        {% if total > 0 %}
+
+                            <p>The following credits will be returned to the {{ BRIDGE_CREDITS }} accounts of the people who paid for them.</p>
+                            <div class="container">
+                                <div class="row justify-content-center">
+                                    <div class="col-auto">
+                                        <table class="table table-responsive">
+                                            <thead class="text-danger">
+                                                <tr>
+                                                    <th>Player</th>
+                                                    <th>Paid</th>
+                                                    <th>Paid By</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for event_entry_player in event_entry_players %}
+                                                    <tr>
+                                                        <td>{{ event_entry_player.player }}</td>
+                                                        <td>{{ event_entry_player.payment_received|cobalt_credits }}</td>
+                                                        <td>{{ event_entry_player.paid_by|default_if_none:"-" }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-warning">Confirm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    </div>
+{% endblock %}

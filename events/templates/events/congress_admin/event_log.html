@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+{% block title %} - Admin Event Log{% endblock %}
+
+{% block content %}
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event.congress.id %}">{{ event.congress.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Logs</li>
+        </ol>
+    </nav>
+
+    <div class="container justify-content-center">
+        <div class="row h-100 d-flex justify-content-center">
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h2>Congress Admin View</h2>
+                    <h3>{{ event.congress }}</h3>
+                </div>
+                <div class="card-body">
+
+                    <div class="card">
+                        <div class="card-header card-header-info">
+                            <h2>{{ event.event_name }} - Logs</h2>
+                        </div>
+
+                        <div class="card-body table-responsive">
+                            <table class="table table-hover">
+                                <thead class="text-info">
+                                    <th>Date</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Entry</th>
+                                </thead>
+                                <tbody>
+                                    {% for thing in things %}
+
+                                        <tr>
+                                            <td>{{ thing.action_date|cobalt_nice_datetime }}</td>
+                                            <td>{{ thing.actor }}</td>
+                                            <td>{{ thing.action }}</td>
+                                            <td>{{ thing.event_entry|default_if_none:"" }}</td>
+                                        </tr>
+                                    {% endfor %}
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include 'utils/pagination_footer.html' %}
+{% endblock %}

@@ -49,7 +49,10 @@ from cobalt.settings import (
     BRIDGE_CREDITS,
     GLOBAL_CURRENCY_SYMBOL,
 )
-from events.core import events_payments_callback, events_payments_secondary_callback
+from events.events_views.core import (
+    events_payments_callback,
+    events_payments_secondary_callback,
+)
 from logs.views import log_event
 from notifications.views import contact_member
 from .models import (

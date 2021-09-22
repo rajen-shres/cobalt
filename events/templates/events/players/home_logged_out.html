@@ -1,0 +1,38 @@
+{% extends "base_logged_out.html" %}
+{% load static %}
+
+{% block content %}
+
+
+    <div class="content">
+
+        <br>
+        <h2> upcoming congresses </h2>
+        <br>
+
+        {% for month, congresses in grouped_by_month.items %}
+            <button class="congresses" disabled style="pointer-events:none;"> {{ month }} </button>
+            <br>
+
+            <div class="flex-container">
+                {% for congress in congresses %}
+                    <div>
+                        <h2> {{ congress }} </h2>
+                        <p>
+                            by {{ congress.congress_master.org }}
+                        </p>
+                        <p>
+                            {{ congress.date_string}}
+                        </p>
+                        <p>
+                            {{ congress.msg }}
+                        </p>
+                        <button><a href="{% url "events:view_congress" congress_id=congress.id %}"> DETAILS </a></button>
+                    </div>
+
+
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

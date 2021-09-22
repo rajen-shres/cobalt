@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+{% block title %} - Admin Players Report{% endblock %}
+{% block content %}
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event.congress.id %}">{{ event.congress.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Players Report</li>
+        </ol>
+    </nav>
+    <div class="container justify-content-center">
+        <div class="row h-100 d-flex justify-content-center">
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h2>Congress Admin View</h2>
+                    <h3>{{ event.congress }}</h3>
+                </div>
+                <button class="btn btn-sm mx-auto btn-success" id="show_hide_active">
+                    Hide Active
+                </button>
+                <div class="card-body">
+
+                    <div class="card">
+                        <div class="card-header card-header-info">
+                            <h2>{{ event.event_name }} - Players Report</h2>
+                        </div>
+
+                        <div class="card-body table-responsive">
+
+                            {% if players %}
+
+                                <table class="table table-hover">
+                                    <thead class="text-info">
+                                        <th>Player</th>
+                                        <th class="text-right">Status</th>
+                                        <th class="text-right">MasterPoints</th>
+                                        <th class="text-right">Action</th>
+                                    </thead>
+                                    <tbody>
+                                        {% for event_entry_player in players %}
+
+                                            <tr id={{event_entry_player.status}}>
+                                                <td>
+                                                    {{ event_entry_player.player|cobalt_user_link }}
+                                                    {% if event_entry_player.player.id == TBA_PLAYER %}
+                                                        - by {{ event_entry_player.event_entry.primary_entrant|cobalt_user_link }}
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-right">{{ event_entry_player.status }}</td>
+                                                <td class="text-right">{{ event_entry_player.masterpoint }}</td>
+                                                <td class="text-right">
+
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn btn-sm btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                            Actions
+                                                        </button>
+                                                        <div class="dropdown-menu">
+                                                            <a href="{% url "events:admin_evententryplayer" evententryplayer_id=event_entry_player.id %}" class="dropdown-item">Edit</a>
+                                                            <a href="{% url "notifications:email_contact" member_id=event_entry_player.player.id %}" class="dropdown-item">Email</a>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+
+                                    </tbody>
+                                </table>
+
+                            {% else %}
+
+                                <h4>There are no entries in this event</h4>
+
+                            {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block footer %}
+    <script>
+        $(document).ready(function() {
+            var rows = $('table.table-hover tr');
+            var active = rows.filter("#Active")
+            var inactive = rows.filter("#Inactive")
+            inactive.css("color", "red")
+            $("#show_hide_active").click(function() {
+                active.toggle();
+                $(this).text(function(i, text){
+                    return text === 'Show Active' ? 'Hide Active' : 'Show Active' ;
+                });
+            });
+        });
+    </script>
+{% endblock %}

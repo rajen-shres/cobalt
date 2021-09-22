@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+{% block title %} - Admin Event Entry Delete{% endblock %}
+
+{% block content %}
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event_entry.event.congress.id %}">{{ event_entry.event.congress.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event_entry.event.id %}">{{ event_entry.event.event_name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Entry: {{ event_entry.id }}</li>
+        </ol>
+    </nav>
+
+    <div class="container justify-content-center">
+        <div class="row h-100 d-flex justify-content-center">
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h2>Congress Admin View</h2>
+                    <h3>{{ event_entry.event.congress }}</h3>
+                </div>
+                <div class="card-body">
+
+                    <div class="card col-md-8">
+                        <div class="card-header card-header-info">
+                            <h2>{{ event_entry.event.event_name }} - Cancel Entry</h2>
+                            <h3 class="py-0 my-0">
+                                {% for event_entry_player in event_entry_players %}
+                                    {{ event_entry_player.player.full_name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </h3>
+                            <h3 class="py-0 my-0">
+                                {% if event_entry.received > 0 %}
+                                    Paid - {{ event_entry.received }} credits
+                                {% else %}
+                                    No funds received
+                                {% endif %}
+                            </h3>
+                        </div>
+
+                        <div class="card-body table-responsive">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <!-- required for the formset to work -->
+                                {{ refund_form_set.management_form }}
+                                <i>Refunds are at the discretion of the convener. Funds will be transferred
+                                    from the club account to the entrant's account and could result in the
+                                    club being overdrawn. <span class="font-weight-bold">{{ club }}</span> has a balance of
+                                    <span class="font-weight-bold">{{ club_balance|floatformat:2 }} credits</span>.</i><br><br>
+                                <i>If you don't want to give a refund then set the amount to zero.</i><br><br>
+                                <table class="table table-hover">
+                                    <thead class="text-info">
+                                        <th>Player</th>
+                                        <th class="text-right">Refund</th>
+                                    </thead>
+                                    <tbody>
+                                        {% for form in refund_form_set %}
+                                            <tr>
+                                                <td>{{ form.player.value }}
+                                                    {% if form.player.value == "TBA" %}
+                                                        (Refund will go to {{ event_entry.primary_entrant }})
+                                                    {% endif %}
+                                                    {{ form.player_id.as_hidden }}
+                                                    {{ form.player.as_hidden }}
+                                                    <td class="text-right">{{ form.refund }}
+                                                    </tr>
+                                        {% endfor %}
+
+                                    </tbody>
+                                </table>
+                                <button type="submit" name="refund" class="btn btn-success cobalt-save">Cancel Entry</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

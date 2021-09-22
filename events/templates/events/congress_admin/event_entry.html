@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+{% block title %} - Admin Event Entry{% endblock %}
+
+{% block content %}
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=congress.id %}">{{ congress.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Entry: {{ event_entry.id }}</li>
+        </ol>
+    </nav>
+
+    <div class="container justify-content-center">
+        <div class="row h-100 d-flex justify-content-center">
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h2>Congress Admin View</h2>
+                    <h3>{{ event.congress }}</h3>
+                </div>
+                <div class="card-body">
+
+                    <div class="card">
+                        <div class="card-header card-header-info">
+                            <h2>{{ event.event_name }} - Entry</h2>
+                            {% if event_entry.category %}
+                                <h3>Category - {{ event_entry.category }}</h3>
+                            {% endif %}
+                            <h3>Entry by: {{ event_entry.primary_entrant }}</h3>
+                            {% if event.player_format == "Teams" %}
+                                <a href=" {% url "events:admin_event_entry_player_add" event_entry_id=event_entry.id %}" class='btn btn-sm btn-secondary'>Add player</a>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-body table-responsive">
+                            <table class="table table-hover">
+                                <thead class="text-info">
+                                    <th>Players</th>
+                                    <th class="text-right">Received</th>
+                                    <th class="text-right">Entry Fee</th>
+                                    <th class="text-right">Status</th>
+                                    <th class="text-right">Payment Type</th>
+                                    <th class="text-right">Paid By</th>
+                                    <th class="text-right">Entry Fee Reason</th>
+                                    <th class="text-right">Entry Complete</th>
+                                    <th class="text-right">Action</th>
+                                </thead>
+                                <tbody>
+                                    {% for event_entry_player in event_entry_players %}
+
+                                        <tr>
+                                            <td>
+                                                {{ event_entry_player.player.href|safe }}
+                                            </td>
+                                            <td class="text-right">{{ event_entry_player.payment_received }}</td>
+                                            <td class="text-right">{{ event_entry_player.entry_fee }}</td>
+                                            <td class="text-right">{{ event_entry_player.payment_status }}</td>
+                                            <td class="text-right">{{ event_entry_player.get_payment_type_display }}</td>
+                                            <td class="text-right">{{ event_entry_player.paid_by.href|safe }}</td>
+                                            <td class="text-right">{{ event_entry_player.reason|default_if_none:"" }}</td>
+                                            <td class="text-right">{{ event_entry_player.entry_complete_date|cobalt_nice_datetime|default_if_none:"-" }}</td>
+                                            <td class="text-right">
+
+                                                <div class="btn-group">
+                                                    <button type="button" class="btn btn-sm btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                        Actions
+                                                    </button>
+                                                    <div class="dropdown-menu">
+                                                        <a href="{% url "events:admin_evententryplayer" evententryplayer_id=event_entry_player.id %}" class="dropdown-item">Edit</a>
+                                                        <a href="{% url "notifications:email_contact" member_id=event_entry_player.player.id %}" class="dropdown-item">Email</a>
+                                                        {% if event.player_format == "Teams" %}
+                                                            <a href="{% url "events:admin_event_entry_player_delete" event_entry_player_id=event_entry_player.id %}" class="dropdown-item">Delete Player</a>
+                                                        {% endif %}
+                                                        <a href="{% url "events:admin_player_events_list" member_id=event_entry_player.player.id congress_id=congress.id%}" class="dropdown-item">Show Events Entered</a>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+
+                                        </tr>
+                                    {% endfor %}
+
+                                </tbody>
+                            </table>
+                            {% if event_entry.notes %}
+                                <h3>Notes</h3>
+                                {{ event_entry.notes }}
+                            {% endif %}
+                            {% if event_entry.comment %}
+                                <h3>Comment by Player</h3>
+                                {{ event_entry.comment }}
+                            {% endif %}
+                            {% if event.free_format_question %}
+                                <h3>Question: {{ event.free_format_question }}</h3>
+                                <p><b>Answer: </b>{{ event_entry.free_format_answer|default_if_none:"No answer provided" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header card-header-success">
+                    <h3>Log Events</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-responsive">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Actor</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event_log in event_logs %}
+                                <tr>
+                                    <td>{{ event_log.action_date|cobalt_nice_datetime }}</td>
+                                    <td>{{ event_log.actor }}</td>
+                                    <td>{{ event_log.action }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

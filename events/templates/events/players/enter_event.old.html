@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+
+{% block header %}
+    <style>
+        select{
+            width: 100px;
+            text-overflow: ellipsis;
+        }
+
+        .borderless td, .borderless th {
+            border: none;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+
+
+    <div class="container">
+        <div class="row text-center">
+            <div class="card">
+                <div class="card-header card-header-primary">
+
+                    <h1>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                Enter Event
+                            </div>
+                            <div>
+                                <i class="material-icons" id="icon" style="font-size:60px;">edit</i>
+                            </div>
+                        </h1>
+                        <h2>{{ event.event_name }} in {{ congress.name}}</h2>
+                        <h3>{{ event.description|default_if_none:"" }}</h3>
+                        <h4>{{ event_start.session_date|cobalt_nice_date }} {{ event_start.session_start|cobalt_time }}</h4>
+                    </div>
+                    <div class="card-body text-center mx-auto">
+                        <div class="container">
+
+                            <!-- Player 0 -->
+                            {% include "utils/generic_user_search_body.html" with search_id=0 %}
+
+                            {% for our_form_row in our_form %}
+                                {% include "utils/generic_user_search_body.html" with search_id=our_form_row.player_no %}
+                            {% endfor %}
+
+                            <form method="POST">
+                                {% csrf_token %}
+
+                                {% if categories %}
+                                    <label for="id_category">Category</label>
+                                    <select class="selectpicker" data-style="btn btn-info" id="id_category" name="category">
+                                        {% for category in categories %}
+                                            <option value="{{ category.id }}">{{ category }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
+
+                                <div class="container row table-responsive">
+                                    <table class="table borderless">
+                                        <thead>
+                                            <tr>
+
+                                                <th class="px-lg-5 text-left text-primary">Player</th>
+                                                <th class="px-lg-5">Payment Method</th>
+                                                <th></th>
+                                                <th class="px-lg-5">Pay Now</th>
+                                                <th class="px-lg-5">Pending</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+
+                                            <tr>
+                                                <td class="col text-center">
+                                                    <div id="div_id_player0" class="form-group">
+                                                        <select class="cobalt-playerN form-control input-sm" title="Select" id="id_player0" name="player0">
+                                                            <option value="{{ player0.id }}" selected>{{ player0.name }}</option>
+                                                            {% for val,item in player0.name_choices %}
+
+                                                                <option value="{{ val }}" {% if our_form_row.name_selected == val %} selected {% endif %}>{{ item }}</option>
+
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="form-group">
+                                                        <select id="id_player0_payment" name="player0_payment" class="form-control input-sm payment-method">
+                                                            {% for val,item in player0.payment_choices %}
+                                                                <option value="{{ val }}">{{ item }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <td class="col">
+                                                        <nobr>
+                                                            {% if discount %}
+                                                                <span class="myHover" data-toggle="tooltip" title="{{ description }}" data-delay="100" data-placement="bottom">
+                                                                    <i class="fas fa-tag"></i>
+                                                                </span>
+                                                            {% else %}
+                                                                &nbsp;
+                                                            {% endif %}
+                                                            <td class="text-right">
+                                                                <input id="fee_0_now" class="pay_now" type="text" size="12" readonly style="border: none;" value="{{ player0.entry_fee_you|cobalt_credits }}">
+                                                            </nobr>
+                                                            <td class="col">
+                                                                <input id="fee_0_later" class="pay_later" type="text" size="12" readonly style="border: none;" value="">
+                                                            </tr>
+
+                                                            {% for our_form_row in our_form %}
+                                                                {% include "events/players/enter_event_sub.html" with row=our_form_row %}
+                                                            {% endfor %}
+                                                            <tr>
+                                                                <td>
+                                                                    <td>
+                                                                        <td class="col" style="text-align: right; padding-right:18px;"><b>Total</b>
+                                                                            <td class="col" align="right">
+                                                                                <input id="total_now" type="text" size="12" readonly style="border: none;" value="">
+                                                                                <td class="col">
+                                                                                    <input id="total_later" type="text" size="12" style="border: none;" readonly value="">
+                                                                                </tr>
+
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <br>
+                                                                        {% if event.free_format_question %}
+                                                                            <label for="id_category">{{ event.free_format_question }}</label>
+                                                                            <input type="text" size="60" id="id_free_format_answer" name="free_format_answer">
+                                                                            <br>
+                                                                            <br>
+                                                                        {% endif %}
+                                                                        <div class="row">
+                                                                            <div class="col text-center">
+                                                                                <button id="id_checkout" type="submit" name="now" class="btn btn-success cobalt-save" style="width:150px" disabled>Checkout Now</button>
+                                                                                <button id="id_cart" type="submit" name="cart" onclick="this.disabled=true,this.form.submit();" class="btn btn-success cobalt-save" style="width:150px" disabled>Add to Cart</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+{% endblock %}
+{% block footer %}
+
+    <script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+    <script src="{% static "assets/js/plugins/jquery.cookie.1.4.1.min.js" %}"></script>
+    <script>
+
+
+        // get entry fee for user
+        function user_entry_fee(user_id, search_id){
+            console.log("1 - inside user_entry_fee");
+            $.get("{% url "events:fee_for_user_ajax" %}?event_id={{ event.id }}&user_id=" + user_id)
+                .done(response => {
+                msg = response['data']['message'];
+                console.log("1 - user_entry_fee: " + msg)
+                if (msg == 'Success') {
+                    if (response['data']['discount']>0) {
+                        $("#player" + search_id + "_discount_alert").html('<span class="myHover" data-toggle="tooltip" title="'
+                            + response['data']['description']
+                            + '" data-delay="100" data-placement="bottom"><i class="fas fa-tag"></i></span>');
+
+                        $(".myHover").tooltip();
+                    }
+                    // format nicely with credits on the end
+                    var entry_fee = parseFloat(response['data']['entry_fee']);
+                    var entry_fee_string;
+                    if (entry_fee % 1 === 0){
+                        entry_fee_string = entry_fee + " credits";
+                    } else {
+                        entry_fee_string = entry_fee.toFixed(2) + " credits";
+                    }
+
+                    $("#fee_" + search_id + "_now").val(entry_fee_string);
+                    $("#fee_" + search_id + "_later").val("");
+
+                    // enable payment type - must refresh selectpickers
+                    $("#id_player" + search_id + "_payment").prop("disabled", false);
+
+                    console.log("1- finished user_entry_fee");
+                    user_payment_method(user_id, search_id);
+                }
+            });
+        }
+
+
+
+        // update payment method if team mates
+        function user_payment_method(user_id, search_id){
+            console.log("2 - inside user_payment_method");
+            $.get("{% url "events:payment_options_for_user_ajax" %}?event_id={{ event.id }}&entering_user_id={{ request.user.id }}&other_user_id=" + user_id)
+                .done(response => {
+                var msg = response['data']['message'];
+                // get pay amt
+                var now_payment = $("#fee_" + search_id + "_now");
+                var later_payment = $("#fee_" + search_id + "_later");
+                var pay_amt = now_payment.val() || later_payment.val();
+
+                // if search_id=0 then they have changed themselves. Need to add ask them to pay to options
+                if (search_id==0){
+                    $("#id_player" + search_id + "_payment option[value='other-system-dollars']").remove();
+                    $("#id_player" + search_id + "_payment").append('<option value="other-system-dollars" selected="">Ask them to pay</option>');
+                    $("#id_player" + search_id + "_payment").val('my-system-dollars');
+                }
+
+                if (msg == 'Allowed') {
+                    console.log("2 - user_payment_method: We are allowed to use their abf dollars");
+                    if ($("#id_player" + search_id + "_payment option[value='their-system-dollars']").length == 0){
+                        $("#id_player" + search_id + "_payment").append('<option value="their-system-dollars" selected="">Their {{ BRIDGE_CREDITS }}</option>');
+                    }
+                    $("#id_player" + search_id + "_payment").prop("disabled", false);
+                    $("#id_player" + search_id + "_payment").val('their-system-dollars');
+
+                    console.log("2 - user_payment_method: now_payment amt = " + now_payment.val());
+                    console.log("2 - user_payment_method: later_payment amt = " + later_payment.val());
+                    console.log("2 - user_payment_method: pay_amt = " + pay_amt);
+                    console.log("2 - user_payment_method: Changing later_payment amt to pay_amt...");
+                    later_payment.val(pay_amt);
+                    console.log("2 - user_payment_method: later_payment amt = " + later_payment.val());
+
+                    now_payment.val("");
+                    console.log("2 - user_payment_method: now_payment amt = " + now_payment.val());
+
+                } else {
+
+                    $("#id_player" + search_id + "_payment option[value='their-system-dollars']").remove();
+                    $("#id_player" + search_id + "_payment").val('my-system-dollars');
+                    later_payment.val("");
+                    now_payment.val(pay_amt);
+                    console.log("finished user_payment_method");
+                }
+
+            });
+        }
+
+
+        // wrapper for player_has_changed to temporarily disable checking for
+        // subsequent changes triggered by changing select options
+        function player_has_changed_wrapper(event) {
+
+            $('.cobalt-playerN').off('change', player_has_changed_wrapper);
+            player_has_changed(event);
+            $('.cobalt-playerN').on('change', player_has_changed_wrapper);
+        }
+
+        // handle a player changing - invoke search, get entry fee, get payment method
+        function player_has_changed(event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+            //  get values
+            var user_id = event.target.value;
+            var this_id = event.target.id;
+            var search_id = this_id.slice(-1);  // index of this element
+
+            // check for search id=0
+            if (user_id == 0){
+                $('#cobalt_general_member_search' + search_id).modal('show');
+
+            } else {
+
+                // get entry fee and payment methods
+                if (search_id<4){
+                    user_entry_fee(user_id, search_id);
+                }
+                // remove from other lists
+                if (user_id != {{ TBA_PLAYER }}) {
+                    $(".cobalt-playerN option[value='" + user_id + "']").each(function() {
+                        var parent_no = this.parentNode.id.slice(-1);
+                        if (parent_no != search_id) {
+                            this.remove();
+                        }
+                    });
+                }
+            }
+
+            // if we had a previous value then add that back in to the other lists
+            // This took a while to work out - selectpicker creates a wrapper around
+            // the select and you get two matches back. Need to look at the first
+            // child and see if it is SELECT (real object).
+
+            // we only need to keep one previous value, but we need one per player_entry so use array
+            if (previous[search_id]) {
+
+                // loop through all player fields
+                $(".cobalt-playerN").each(function(){
+
+                    // ignore this one
+                    if ($(this).attr("id") != this_id) {
+                        // var realthis = $(this)[0];
+                        // if (realthis.tagName == "SELECT"){
+                        // $(this).append('<option value="' + previous[search_id] + '">' + previous_name[search_id] + '</option>');
+                        var my_id = $(this).attr("id");
+                        if ($("#" + my_id + " option[value='" + previous[search_id] + "']").length == 0){
+                            $(this).append('<option value="' + previous[search_id] + '">' + previous_name[search_id] + '</option>');
+                        }
+                    }
+
+                });
+            };
+
+            // refresh select pickers after changes
+            //      $('.selectpicker').selectpicker('refresh');
+
+            // save current values as previous for next time unless this was a search
+            if (user_id != 0){
+                previous[search_id] = event.target.value;
+                previous_name[search_id] = $('#id_player' + search_id).find('option:selected').text();
+            }
+        }
+
+        // player has changed
+        function payment_has_changed(event) {
+            console.log("payment has changed");
+            var me = event.target.id;
+            var parts = me.split("_");
+            var player_no = parts[1].slice(-1);  // last char of word 2
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            var now_payment = $("#fee_" + player_no + "_now");
+            var later_payment = $("#fee_" + player_no + "_later");
+
+            // one or other payment field will have a value
+            var pay_amt = now_payment.val() || later_payment.val();
+
+            var selection = $(this).val();
+            if (selection == 'my-system-dollars') {
+                now_payment.val(pay_amt);
+                later_payment.val("");
+            } else {
+                now_payment.val("");
+                later_payment.val(pay_amt);
+            }
+
+
+            // firefox only seems to fire this once, so need to re-register the event
+            $(this).on('change', player_has_changed_wrapper);
+        }
+
+        // Doc Ready
+        $(document).ready(function(){
+
+            // Handle member select
+            previous={};
+            previous_name={};
+
+            $('.cobalt-playerN').on('change', player_has_changed_wrapper);
+
+            // when player payment method changes update totals
+            // id of trigger event is id_player(N)_payment
+            // we need to change
+            $('.payment-method').on('change', payment_has_changed);
+
+
+        });
+    </script>
+
+{% endblock %}

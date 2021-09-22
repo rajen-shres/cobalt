@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load cobalt_tags %}
+{% block title %} - View Events{% endblock %}
+{% block content %}
+
+    {% if pending_payments %}
+
+        <div class="card">
+            <div class="card-header card-header-danger">
+                <h2>Pending Payments</h2>
+                <h4>These entries are awaiting payment</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-responsive">
+                    <thead class="text-danger">
+                        <tr>
+                            <th>Date</th>
+                            <th>Congress</th>
+                            <th>Event</th>
+                            <th>Entry Status</th>
+                            <th>Payment Method</th>
+                            <th>Entry Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {% for pending_payment in pending_payments %}
+                            <tr>
+                                <td>{{ pending_payment.event_entry.event.start_date }}</td>
+                                <td><a href="{% url "events:view_congress" congress_id=pending_payment.event_entry.event.congress.id %}">{{ pending_payment.event_entry.event.congress }}</a></td>
+                                <td><a href="{% url "events:edit_event_entry" congress_id=pending_payment.event_entry.event.congress.id event_id=pending_payment.event_entry.event.id %}">{{ pending_payment.event_entry.event.event_name }}</a></td>
+                                <td style="text-align: right">{{ pending_payment.payment_status }}</td>
+                                <td style="text-align: right">{{ pending_payment.get_payment_type_display }}</td>
+                                <td style="text-align: right">{{ pending_payment.entry_fee|cobalt_credits }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- check if things are in the basket, if so send the user to checkout not pay now -->
+                <!-- basket items are loaded already for us by base.html -->
+                {% if basket_items %}
+                    <a href="{% url "events:checkout" %}" class="btn btn-success">Checkout</a>
+                {% else %}
+                    <button type='submit' id='paynow' class="btn btn-success cobalt-save">Pay Now With Bridge Credits</button>
+                {% endif %}
+            </div>
+        </div>
+        <br>
+    {% endif %}
+
+    {% if event_list %}
+
+        <div class="card">
+            <div class="card-header card-header-primary">
+                <h2>Congresses</h2>
+                <h4>Here are your upcoming congresses</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-responsive">
+                    <thead class="text-warning">
+                        <tr>
+                            <th>Date</th>
+                            <th>Congress</th>
+                            <th>Event</th>
+                            <th>Entry Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {% for event in event_list %}
+                            <tr>
+                                <td>{{ event.start_date }}</td>
+                                <td><a href="{% url "events:view_congress" congress_id=event.congress.id %}">{{ event.congress }}</a></td>
+                                <td><a href="{% url "events:edit_event_entry" event_id=event.id congress_id=event.congress.id %}">{{ event.event_name }}</a></td>
+                                <td style="text-align: right">{{ event.entry_status }}</td>
+                            </tr>
+
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+    {% else %}
+        <div class="card">
+            <div class="card-header card-header-primary">
+                <h2>No Entries Found</h2>
+            </div>
+            <div class="card-body">
+                <h4>You don't appear to be entered in any congresses. Why not look through the <a href="{% url "events:events" %}">Upcoming Events</a> and find something to enter?</h4>
+            </div>
+        </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block footer %}
+    <script>
+        $(document).ready(function() {
+            // We don't have a valid form so the cobalt-core.js function won't do this for us
+
+            $('#paynow').click(function() {
+                $('#paynow').prop('disabled', true);
+                window.location.href = "{% url "events:pay_outstanding" %}"
+            });
+        });
+    </script>
+{% endblock footer %}
