@@ -319,23 +319,20 @@ def system_number_available(system_number):
     True if number is valid and available
     """
 
-    if system_number.isdigit():
-        try:
-            match = requests.get("%s/id/%s" % (GLOBAL_MPSERVER, system_number)).json()[
-                0
-            ]
-        except IndexError:
-            return False
-    else:
+    if not system_number.isdigit():
+        return False
+
+    try:
+        match = requests.get("%s/id/%s" % (GLOBAL_MPSERVER, system_number)).json()[0]
+    except IndexError:
         return False
 
     if match:
         member = User.objects.filter(system_number=system_number)
         if member:  # already registered
             return False
-        else:
-            if match["IsActive"] == "Y":
-                return True
+        if match["IsActive"] == "Y":
+            return True
     return False
 
 

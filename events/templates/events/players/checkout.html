@@ -20,7 +20,8 @@
         }
         .accordion {
             background-color: #eee;
-            color: #444;
+            {#color: #444;#}
+            color: black;
             cursor: pointer;
             padding: 12px;
             width: 100%;
@@ -37,7 +38,8 @@
 
         .accordion:after {
             content: '\002B';
-            color: white;
+            {#color: white;#}
+            color: black;
             font-weight: bold;
             float: left;
             margin-right: 5px;
@@ -94,6 +96,14 @@
                                             >
                                                 <i class="material-icons">delete_forever</i>
                                             </button>
+                                            <a id="edit_basket_{{ basket_entry.id }}"
+                                                data-toggle="tooltip"
+                                                class="btn btn-sm btn-info"
+                                                title="Edit this entry"
+                                                href="{% url "events:edit_event_entry" congress_id=basket_entry.event_entry.event.congress.id event_id=basket_entry.event_entry.event.id edit_flag=1 %}"
+                                            >
+                                                <i class="material-icons">edit</i>
+                                            </a>
                                         </td>
                                         <td>{{ basket_entry.event_entry.event.event_name }}</td>
                                         <td>{{ basket_entry.event_entry.event.congress.name }}</td>
@@ -104,22 +114,15 @@
                         </div>
                     </div>
 
-
-                    {% if grouped_by_congress|length > 0 %}
-                        <div class="card">
-                            <div class="total mx-auto my-2 card-header card-header-primary">
-                                <b class="display-3">Total to pay now: {{ total_today|cobalt_credits }}</b>
-                            </div>
-
-                            <h3>Details:</h3>
-
+                    {% if grouped_by_congress %}
+                        <h3>Details:</h3>
                     {% endif %}
 
                     <div class="mx-4">
 
                         {% for congress, rows in grouped_by_congress.items %}
 
-                            <button class="accordion card-header card-header-info mx-auto my-2 ">{{ congress }}: {{ rows.0.today|cobalt_credits }} now.
+                            <button class="accordion card-header card-header-info mx-auto my-2 text-dark">{{ congress }}: {{ rows.0.today|cobalt_credits }} now.
                                 {% if rows.0.later > 0 %}
                                     To pay later: {{ rows.0.later|cobalt_credits }}.
                                 {% endif %}
@@ -186,10 +189,22 @@
                         {% endfor %}
 
                         {% if grouped_by_congress %}
+
+                            <div class="total mx-auto my-2 card-header card-header-primary">
+                                <b class="display-3">Totals - Now: {{ total_today|cobalt_credits }} Later: {{ total_outstanding|cobalt_credits }}</b>
+                            </div>
+
+
                             <form method='post'>
                                 {% csrf_token %}
                                 <div class="col text-center">
-                                    <button type="submit" class="btn btn-success cobalt-save mx-auto">Confirm Entry</button>
+                                    <button type="submit" class="btn btn-success cobalt-save mx-auto">
+                                        {% if total_today > 0 %}
+                                            Confirm and Pay Now
+                                        {% else %}
+                                            Confirm
+                                        {% endif %}
+                                    </button>
                                 </div>
                             </form>
                         {% else %}

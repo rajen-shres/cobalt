@@ -484,12 +484,19 @@ def checkout(request):
 
     for event_entry_player in event_entry_players:
 
+        total_entry_fee += event_entry_player.entry_fee
         congress = event_entry_player.event_entry.event.congress
 
-        if congress not in congress_total.keys():
+        if congress in congress_total:
+            congress_total[congress]["entry_fee"] += event_entry_player.entry_fee
+            if event_entry_player.payment_type == "my-system-dollars":
+                congress_total[congress]["today"] += event_entry_player.entry_fee
+                total_today += event_entry_player.entry_fee
+            else:
+                congress_total[congress]["later"] += event_entry_player.entry_fee
 
-            congress_total[congress] = {}
-            congress_total[congress]["entry_fee"] = event_entry_player.entry_fee
+        else:
+            congress_total[congress] = {"entry_fee": event_entry_player.entry_fee}
             if event_entry_player.payment_type == "my-system-dollars":
                 congress_total[congress]["today"] = event_entry_player.entry_fee
                 total_today += event_entry_player.entry_fee
@@ -497,14 +504,6 @@ def checkout(request):
             else:
                 congress_total[congress]["later"] = event_entry_player.entry_fee
                 congress_total[congress]["today"] = Decimal(0.0)
-
-        else:
-            congress_total[congress]["entry_fee"] += event_entry_player.entry_fee
-            if event_entry_player.payment_type == "my-system-dollars":
-                congress_total[congress]["today"] += event_entry_player.entry_fee
-                total_today += event_entry_player.entry_fee
-            else:
-                congress_total[congress]["later"] += event_entry_player.entry_fee
 
     grouped_by_congress = {}
     for event_entry_player in event_entry_players:
@@ -895,8 +894,8 @@ def delete_event_entry(request, event_entry_id):
 
         # Notify conveners
         player_string = f"<table><tr><td><b>Name</b><td><b>{GLOBAL_ORG} No.</b><td><b>Payment Method</b><td><b>Status</b></tr>"
+        PAYMENT_TYPES_DICT = dict(PAYMENT_TYPES)
         for event_entry_player in event_entry_players:
-            PAYMENT_TYPES_DICT = dict(PAYMENT_TYPES)
             payment_type_str = PAYMENT_TYPES_DICT.get(
                 event_entry_player.payment_type, event_entry_player.payment_type
             )
@@ -982,7 +981,7 @@ def delete_event_entry(request, event_entry_id):
                 )
 
                 # record refund amount
-                if event_entry_player.paid_by in refunds.keys():
+                if event_entry_player.paid_by in refunds:
                     refunds[event_entry_player.paid_by] += amount
                 else:
                     refunds[event_entry_player.paid_by] = amount
@@ -992,7 +991,7 @@ def delete_event_entry(request, event_entry_id):
                 cancelled.append(event_entry_player.player)
 
         # new loop, refunds have been made so notify people
-        for member in refunds.keys():
+        for member in refunds:
 
             # Notify users
 
@@ -1068,7 +1067,7 @@ def delete_event_entry(request, event_entry_id):
 
     return render(
         request,
-        "events/congress_admin/delete_event_entry.html",
+        "events/players/delete_event_entry.html",
         {
             "event_entry": event_entry,
             "event_entry_players": event_entry_players,
