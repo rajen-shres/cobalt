@@ -1,0 +1,37 @@
+<div class="card card-chart">
+    <div class="card-header card-header-secondary">
+        <div id="dashboard-member-chart" style=" width: 400px; height: 160px"></div>
+    </div>
+    <div class="card-body">
+        <h4 class="card-title">Members</h4>
+        <p class="card-category">Club members by type</p>
+    </div>
+</div>
+
+<script>
+    $(document).ready( function(){
+
+        google.charts.load("current", {packages:["corechart"]});
+        google.charts.setOnLoadCallback(drawChart);
+        function drawChart() {
+            const data = google.visualization.arrayToDataTable([
+                ['Club Members', '{{ GLOBAL_TITLE }} Status'],
+                ['Registered', {{ myabf_members }}],
+                ['Unregistered', {{ un_regs }}],
+                ['Visitors', {{ visitors }}]
+            ]);
+
+            const options = {
+                title: 'Members',
+                pieHole: 0.4,
+                backgroundColor: { fill:'transparent' },
+                width: 400,
+                height: 160,
+            };
+
+            const chart = new google.visualization.PieChart(document.getElementById('dashboard-member-chart'));
+            chart.draw(data, options);
+        }
+    });
+
+</script>

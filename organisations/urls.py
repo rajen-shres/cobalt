@@ -4,6 +4,7 @@ from django.urls import path
 import organisations.views.club_menu
 import organisations.views.club_menu_tabs.access
 import organisations.views.club_menu_tabs.comms
+import organisations.views.club_menu_tabs.dashboard
 import organisations.views.club_menu_tabs.import_data
 import organisations.views.club_menu_tabs.members
 import organisations.views.club_menu_tabs.settings
@@ -276,5 +277,25 @@ urlpatterns = [
         "public-profile/<int:org_id>",
         organisations.views.general.org_profile,
         name="general_org_profile",
+    ),
+    path(
+        "club-menu/dashboard/members-chart",
+        organisations.views.club_menu_tabs.dashboard.dashboard_members_htmx,
+        name="club_menu_tab_dashboard_members_htmx",
+    ),
+    path(
+        "club-menu/dashboard/members-changes",
+        organisations.views.club_menu_tabs.dashboard.dashboard_member_changes_htmx,
+        name="club_menu_tab_dashboard_member_changes_htmx",
+    ),
+    path(
+        "club-menu/dashboard/members-staff",
+        organisations.views.club_menu_tabs.dashboard.dashboard_staff_htmx,
+        name="club_menu_tab_dashboard_staff_htmx",
+    ),
+    path(
+        "club-menu/dashboard/members-congresses",
+        organisations.views.club_menu_tabs.dashboard.dashboard_congresses_htmx,
+        name="club_menu_tab_dashboard_congresses_htmx",
     ),
 ]

@@ -18,7 +18,6 @@ from organisations.models import (
     MemberClubEmail,
     OrganisationFrontPage,
 )
-from post_office.models import Email as PostOfficeEmail
 
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
@@ -220,9 +219,7 @@ def email_view_htmx(request, club):
         line = {}
         line["name"] = db_total.split("_")[-1]
         line["amount"] = db_totals[db_total]
-        line["amount"] = 25
         line["percent"] = int(db_totals[db_total] * 100.0 / count)
-        line["percent"] = int(line["amount"] * 100.0 / count)
         if line["percent"] == 100:
             line["colour"] = "success"
         elif line["percent"] >= 80:

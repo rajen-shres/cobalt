@@ -1,0 +1,52 @@
+<div class="card card-chart">
+    <div class="card-header card-header-warning">
+        <div id="straightLinesChart" class="ct-chart"></div>
+    </div>
+    <div class="card-body">
+        <h4 class="card-title">Total Member Numbers</h4>
+        <p class="card-category">Show by month for last 12 months</p>
+    </div>
+</div>
+
+<script>
+    $(document).ready( function(){
+
+        dataStraightLinesChart = {
+            labels: [ {% for label in labels %}
+                '{{ label }}'
+                {% if not forloop.last %}, {% endif %}
+            {% endfor %}
+            ],
+            series: [[ {% for item in data %}
+                {{ item }}
+                {% if not forloop.last %}, {% endif %}
+            {% endfor %}
+            ]]
+        };
+
+        optionsStraightLinesChart = {
+            lineSmooth: Chartist.Interpolation.cardinal({
+                tension: 0
+            }),
+            low: 0,
+            high: {{ max_value }},
+            chartPadding: {
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0
+            },
+            classNames: {
+                point: 'ct-point ct-white',
+                line: 'ct-line ct-white'
+            }
+        }
+
+        const straightLinesChart = new Chartist.Line('#straightLinesChart', dataStraightLinesChart, optionsStraightLinesChart);
+
+        md.startAnimationForLineChart(straightLinesChart);
+
+
+    });
+
+</script>
