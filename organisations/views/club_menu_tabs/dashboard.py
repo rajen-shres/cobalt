@@ -7,6 +7,7 @@ from django.utils import timezone
 from accounts.models import User, UnregisteredUser
 from organisations.decorators import check_club_menu_access
 from organisations.models import MemberMembershipType
+from rbac.models import RBACUserGroup
 
 
 @check_club_menu_access()
@@ -21,10 +22,16 @@ def dashboard_members_htmx(request, club):
     myabf_members = User.objects.filter(system_number__in=club_members).count()
     visitors = 0
     un_regs = UnregisteredUser.objects.filter(system_number__in=club_members).count()
+
     return render(
         request,
         "organisations/club_menu/dashboard/members_chart_htmx.html",
-        {"myabf_members": myabf_members, "un_regs": un_regs, "visitors": visitors},
+        {
+            "myabf_members": myabf_members,
+            "un_regs": un_regs,
+            "visitors": visitors,
+            "has_members": club_members.exists(),
+        },
     )
 
 
@@ -60,7 +67,17 @@ def dashboard_member_changes_htmx(request, club):
 def dashboard_staff_htmx(request, club):
     """show basic member data"""
 
-    return render(request, "organisations/club_menu/dashboard/staff_htmx.html")
+    staff = (
+        RBACUserGroup.objects.filter(group__rbacgrouprole__model_id=club.id)
+        .filter(group__name_qualifier=club.rbac_name_qualifier)
+        .values_list("member")
+        .distinct()
+        .count()
+    )
+
+    return render(
+        request, "organisations/club_menu/dashboard/staff_htmx.html", {"staff": staff}
+    )
 
 
 @check_club_menu_access()
