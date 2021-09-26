@@ -984,6 +984,7 @@ def settlement(request):
 
     non_zero_orgs = []
     for org in orgs:
+        print(org.id)
         if org.balance != 0.0:
             org_list.append((org.id, org.organisation.name))
             non_zero_orgs.append(org)
@@ -1135,11 +1136,12 @@ def manual_adjust_member(request):
 # manual_adjust_org    #
 ########################
 @login_required()
-def manual_adjust_org(request):
+def manual_adjust_org(request, org_id=None):
     """make a manual adjustment on an organisation account
 
     Args:
         request (HTTPRequest): standard request object
+        org_id: optional id of organisation
 
     Returns:
         HTTPResponse
@@ -1173,8 +1175,14 @@ def manual_adjust_org(request):
 
     else:
         form = AdjustOrgForm()
+        if org_id:
+            org = get_object_or_404(Organisation, pk=org_id)
+        else:
+            org = None
 
-        return render(request, "payments/manual_adjust_org.html", {"form": form})
+        return render(
+            request, "payments/manual_adjust_org.html", {"form": form, "org": org}
+        )
 
 
 ##########################
@@ -1564,7 +1572,7 @@ def admin_view_manual_adjustments(request):
                 )
 
                 for org in manual_org:
-                    local_dt = timezone.localtime(member.created_date, TZ)
+                    local_dt = timezone.localtime(org.created_date, TZ)
 
                     writer.writerow(
                         [

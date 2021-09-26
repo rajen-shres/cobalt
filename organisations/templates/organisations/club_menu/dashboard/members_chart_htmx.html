@@ -6,7 +6,7 @@
         </div>
         <div class="card-body">
             <h4 class="card-title">Members</h4>
-            <p class="card-category">Club members by type</p>
+            <p class="card-category">Club members by type. Unregistered means the member has not yet signed up for {{ GLOBAL_TITLE }}, you can invite them to join.</p>
         </div>
     </div>
 
@@ -15,25 +15,28 @@
 
             google.charts.load("current", {packages:["corechart"]});
             google.charts.setOnLoadCallback(drawChart);
+
             function drawChart() {
+
                 const data = google.visualization.arrayToDataTable([
-                    ['Club Members', '{{ GLOBAL_TITLE }} Status'],
-                    ['Registered', {{ myabf_members }}],
+                    ['Type', 'Number'],
+                    ['{{ GLOBAL_TITLE }}', {{ myabf_members }}],
                     ['Unregistered', {{ un_regs }}],
-                    ['Visitors', {{ visitors }}]
+                    ['Visitor', {{ visitors }}],
                 ]);
 
                 const options = {
-                    title: 'Members',
-                    pieHole: 0.4,
-                    backgroundColor: { fill:'transparent' },
-                    width: 400,
-                    height: 160,
+                    title: 'Member Breakdown',
+                    width: 440,
+                    height: 250,
+                    backgroundColor: {fill: 'transparent'},
                 };
 
                 const chart = new google.visualization.PieChart(document.getElementById('dashboard-member-chart'));
+
                 chart.draw(data, options);
             }
+
         });
 
     </script>

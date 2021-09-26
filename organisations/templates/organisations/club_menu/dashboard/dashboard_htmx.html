@@ -3,7 +3,7 @@
 <div class="table-responsive">
     <div class="container">
         <div class="row">
-            <div class="col-6">
+            <div class="col-12 col-xl-6">
                 <table class="table table-hover table-condensed col-md-6 col-lg-4">
                     <tbody>
                         <tr
@@ -20,8 +20,8 @@
                             hx-vars="club_id:{{ club.id }}"
                             hx-target="#dashboard_chart_div"
                         >
-                            <td class="text-left">Member Changes Last 28 days</td>
-                            <td class="text-right">{{ diff_28_days }}</td>
+                            <td class="text-left">Member Changes</td>
+                            <td class="text-right">Last 28 days {{ diff_28_days }}</td>
                         </tr>
                         <tr
                             hx-post="{% url "organisations:club_menu_tab_dashboard_staff_htmx" %}"
@@ -31,18 +31,10 @@
                             <td class="text-left">Staff</td>
                             <td class="text-right">{{ staff_count|intcomma }}</td>
                         </tr>
-                        <tr
-                            hx-post="{% url "organisations:club_menu_tab_dashboard_congresses_htmx" %}"
-                            hx-vars="club_id:{{ club.id }}"
-                            hx-target="#dashboard_chart_div"
-                        >
-                            <td class="text-left">Congresses</td>
-                            <td class="text-right">{{ congress_count|intcomma }}</td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
-            <div id="dashboard_chart_div" class="col-6">
+            <div id="dashboard_chart_div" class="col-12 col-xl-6">
 
             </div>
         </div>

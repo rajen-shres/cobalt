@@ -67,21 +67,15 @@ def dashboard_member_changes_htmx(request, club):
 def dashboard_staff_htmx(request, club):
     """show basic member data"""
 
-    staff = (
+    staff_nos = (
         RBACUserGroup.objects.filter(group__rbacgrouprole__model_id=club.id)
         .filter(group__name_qualifier=club.rbac_name_qualifier)
         .values_list("member")
         .distinct()
-        .count()
     )
+
+    staff = User.objects.filter(id__in=staff_nos)
 
     return render(
         request, "organisations/club_menu/dashboard/staff_htmx.html", {"staff": staff}
     )
-
-
-@check_club_menu_access()
-def dashboard_congresses_htmx(request, club):
-    """show basic member data"""
-
-    return render(request, "organisations/club_menu/dashboard/congresses_htmx.html")

@@ -70,6 +70,11 @@ urlpatterns = [
     ),
     path("manual-adjust-org", views.manual_adjust_org, name="manual_adjust_org"),
     path(
+        "manual-adjust-org/<int:org_id>",
+        views.manual_adjust_org,
+        name="manual_adjust_org",
+    ),
+    path(
         "statement-admin-view/<int:member_id>",
         views.statement_admin_view,
         name="statement_admin_view",

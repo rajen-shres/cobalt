@@ -1,0 +1,28 @@
+{% load cobalt_tags %}
+
+<div class="container">
+    <div class="row">
+
+        {% for member in staff %}
+
+            <div class="col-md-6">
+                <div class="card card-profile">
+                    <div class="card-header card-header-{% cobalt_random_colour %}">
+                        <h4 class="card-title">{{ member.full_name }}</h4>
+                        <h5 class="card-title">{{ GLOBAL_ORG }} No. {{ member.system_number }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 80px; width: 80px;" src="/media/{{ member.pic }}" />
+                        <p class="card-description">
+                            <br>
+                            {{ member.about|default_if_none:"" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        {% endfor %}
+
+
+    </div>
+</div>
