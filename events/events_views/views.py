@@ -22,7 +22,11 @@ from rbac.core import (
     rbac_user_has_role,
 )
 from rbac.views import rbac_forbidden
-from payments.core import payment_api, update_account, update_organisation
+from payments.payments_views.core import (
+    payment_api,
+    update_account,
+    update_organisation,
+)
 from cobalt.settings import (
     BRIDGE_CREDITS,
     TIME_ZONE,

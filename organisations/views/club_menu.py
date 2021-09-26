@@ -27,7 +27,7 @@ from organisations.views.club_menu_tabs.utils import (
     _member_count,
     get_members_balance,
 )
-from payments.core import get_balance_and_recent_trans_org
+from payments.payments_views.core import get_balance_and_recent_trans_org
 from rbac.core import (
     rbac_user_has_role,
 )

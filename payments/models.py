@@ -252,8 +252,6 @@ class OrganisationTransaction(AbstractTransaction):
 
     organisation = models.ForeignKey(
         Organisation,
-        blank=True,
-        null=True,
         on_delete=models.PROTECT,
         related_name="primary_org",
     )

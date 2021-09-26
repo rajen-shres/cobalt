@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+{% load humanize %}
+{% block title %} - Manual Top Up{% endblock %}
+{% block content %}
+
+    <br><br>
+    <div align="center">
+        <div class="card col-md-5">
+            <div class="card-header card-header-primary">
+                <h3 class="card-title">{{ BRIDGE_CREDITS }}</h3>
+                <h5>Manual Top Up</h5>
+                <h5>Balance: ${{ balance|floatformat:2|intcomma }}</h5>
+            </div>
+            <div class="card-body" style="text-align: center">
+                <form id="submitForm" method="post">
+                    {% csrf_token %}
+
+                    <div class="row justify-content-center">
+                        <div class="form-group">
+                            <span class="cobalt-form-error" id="id_amount_errors">{{ form.amount.errors|striptags }}</span><br>
+                            <label for="id_amount" class="bmd-label-floating">Amount {{ GLOBAL_CURRENCY_SYMBOL }}</label>
+                            {% render_field form.amount class+="form-control" %}
+                        </div>
+                    </div>
+
+                    {% if user.stripe_auto_confirmed == "On" %}
+
+                        <div class="row justify-content-center">
+                            <div class="form-group">
+                                <select name="card_choice" id="id_card_choice" style="width: 200px">
+                                    <option value="Existing">&nbsp;Use Registered Card</option>
+                                    <option value="Another">&nbsp;Use Another Card</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    {% endif %}
+
+                    <div class="d-flex">
+                        <div>
+                            <input id="submit" type="submit" value="Top Up" class="btn btn-success cobalt-save center-text">
+                        </div>
+                        <div class="ml-auto">
+                            <a class="btn btn-info center-text" href="{% url "payments:payments" %}">Cancel</a>
+                        </div>
+                    </div>
+
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

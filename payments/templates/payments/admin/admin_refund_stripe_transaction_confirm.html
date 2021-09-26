@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load cobalt_tags %}
+{% block title %} - Admin Refund Stripe Confirm{% endblock %}
+{% block content %}
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "payments:statement_admin_summary" %}">Payments Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "payments:admin_view_stripe_transactions" %}">Stripe Transactions</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Details</li>
+        </ol>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header card-header-primary">
+                <h1>{{ BRIDGE_CREDITS }}</h1>
+                <h2>Stripe Refund</h2>
+            </div>
+
+            <div class="card-body table-responsive">
+
+                <h2>Are You Sure?</h2>
+                <h3>Refund {{ GLOBAL_CURRENCY_SYMBOL}}{{ form.amount.value|floatformat:2 }} to {{ stripe_item.member }}</h3>
+                <h3>Member's balance after refund will be {{ GLOBAL_CURRENCY_SYMBOL}}{{ after_balance|floatformat:2 }}</h3>
+                <h3>Description: {{ form.description.value }}</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.amount.as_hidden }}
+                    {{ form.description.as_hidden }}
+                    <button type="submit" name="confirm-submit" class="btn btn-danger cobalt-save">Confirm</button>
+                    <a href="{% url "payments:admin_view_stripe_transactions" %}" class="btn btn-info">Cancel</a>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

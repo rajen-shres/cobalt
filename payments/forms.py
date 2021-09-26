@@ -144,6 +144,10 @@ class AdjustMemberForm(forms.ModelForm):
 class AdjustOrgForm(forms.ModelForm):
     """For dodgy changes to orgs"""
 
+    adjustment_type = forms.ChoiceField(
+        choices=[(1, "Manual Adjustment"), (2, "Settlement")]
+    )
+
     class Meta:
         model = OrganisationTransaction
         fields = (

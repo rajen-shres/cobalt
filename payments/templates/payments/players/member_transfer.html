@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+{% load cobalt_tags %}
+{% load humanize %}
+{% block title %} - Member to Member Transfer{% endblock %}
+
+{% block content %}
+    <div id="ignore_cobalt_save"></div>
+    <div id="top_content" class="container">
+        <div class="row justify-content-center">
+            <div class="card col-11 col-md-6">
+                <div class="card-header card-header-primary">
+                    <h3 class="card-title">{{ BRIDGE_CREDITS }}</h3>
+                    <h5>Transfer funds online to another member</h5>
+                    <h5>Balance: {{ balance|cobalt_credits }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <br>
+
+                        <div id="cobalt-search" class="row justify-content-center">
+
+                            {% if recents %}
+                                <div class="form-group col-md-6">
+                                    <label for="id-cobalt-recent">Recent or Team Mate Transfers</label>
+                                    <select id="id-cobalt-recent" class="form-control">
+                                        <option value="unset">Choose...</option>
+                                        {% for member in recents %}
+                                            <option value="{{ member.id }}">
+                                                {{ member.full_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            {% endif %}
+
+                            <div class="card col-11 col-md-9">
+                                <div class="card-header card-header-warning">
+                                    <h4>Member Lookup</h4>
+                                </div>
+                                <div class="card-body">
+
+                                    <div class="form-group">
+                                        <label for="lastname" class="bmd-label-floating">Last Name</label>
+                                        <input type="text" class="form-control dynamic-search" id="id_lastname" name="lastname" value="">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="" class="bmd-label-floating">First Name</label>
+                                        <input type="text" class="form-control dynamic-search" id="id_firstname" name="firstname" value="">
+                                    </div>
+
+                                    {% if request.user.system_number_search %}
+                                        <div class="form-group">
+                                            <label for="id_system_number{{ search_id }}" id="id_label_system_number{{ search_id }}" class="bmd-label-floating">{{ GLOBAL_ORG }} Number</label>
+                                            <input type="number" class="form-control" id="id_system_number{{ search_id }}" name="system_number" value="">
+                                        </div>
+                                        <div class="col-4 form-group text-right">
+                                            <button class="btn btn-sm bt-warning" id="system_number_search_button{{ search_id }}">Search</button>
+
+                                        </div>
+                                    {% endif %}
+
+                                </div>
+                            </div>
+                        </div>
+                        <div id="cobalt-member">
+                        </div>
+                        <form action="member-transfer" method="post">
+                            {% csrf_token %}
+
+                            <div class="row justify-content-center">
+                                {{ form.transfer_to.errors }}
+                                <span id="search-results"></span>
+                            </div>
+
+                            <div id="cobalt-after" style="display: none;">
+                                <div class="row justify-content-center">
+                                    <span class="cobalt-form-error" id="id_amount_errors">{{ form.amount.errors|striptags }}</span>
+                                </div>
+                                <br>
+                                <div class="row justify-content-center">
+                                    <div class="form-group">
+                                        <label for="id_amount" class="bmd-label-floating">Amount {{ GLOBAL_CURRENCY_SYMBOL }}</label>
+                                        {% render_field form.amount class+="form-control" %}
+                                    </div>
+                                </div>
+                                <div class="row justify-content-center">
+                                    <span class="cobalt-form-error" id="id_description_errors">{{ form.description.errors|striptags }}</span>
+                                </div>
+                                <br>
+
+                                <div class="row justify-content-center">
+                                    <div class="w-100"></div>
+                                    {{ form.description.errors }}
+                                    <div class="form-group">
+                                        <label for="id_description" class="bmd-label-floating">Description (required)</label>
+                                        {% render_field form.description class+="form-control" %}
+                                    </div>
+                                </div>
+
+                                <div class="row justify-content-center">
+                                    <div id="cobalt-hidden-member"><input type='hidden' id='id_transfer_to' name='transfer_to' value='{{ form.transfer_to.value }}'></div>
+
+                                    <div class="d-flex">
+                                        <div>
+                                            <input type="submit" value="Transfer" id="cobalt-button" onclick="this.disabled=true,this.form.submit();" class="btn btn-success center-text cobalt-save" disabled>
+                                        </div>
+                                        <div class="ml-auto">
+                                            <a class="btn btn-info center-text cobalt-save" href="{% url "payments:payments" %}">Cancel</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block footer %}
+    <script>
+        jQuery(document).ready(function() {
+            const amount = $("#id_amount");
+            const amount_err = $("#id_amount_errors");
+            const lastname = $("#id_lastname")
+            const firstname = $("#id_firstname")
+            const search_results = $('#search-results')
+            const search_panel = $('#cobalt-search')
+            const form_dets = $('#cobalt-after')
+            const member_display = $('#cobalt-member')
+            const member_search = '{% url "accounts:member_search_M2M_ajax" %}'
+            const member_detail = '{% url "accounts:member_detail_m2m_ajax" %}'
+            const system_number{{ search_id }} = $('#id_system_number{{ search_id }}')
+            const system_number_search{{ search_id }} = '{% url "accounts:system_number_search_ajax" %}'
+
+            // first check if we have been given a transfer_to value - that means
+            // that we have failed validation. Show the user the same form
+            {% if form.transfer_to.value %}
+
+                $.getJSON(member_detail + "?member_id={{ form.transfer_to.value }}")
+                    .done(response => {
+                    search_panel.hide();
+                    search_results.html("");
+                    // show the member
+                    member_display.html(response['data']);
+                    // show amount, description and button
+                    form_dets.show();
+                });
+
+            {% endif %}
+
+            // validate amount
+            amount.blur(function(e) {
+                amount_err.html("");
+                if (amount.val() < 0) {
+                    amount_err.html("Must be a positive amount");
+                    amount.focus();
+                    e.preventDefault();
+                }
+                if (amount.val() > {{ AUTO_TOP_UP_MAX_AMT }}) {
+                    amount_err.html("Too large. Maximum transfer amount is {{ AUTO_TOP_UP_MAX_AMT|cobalt_credits }}.");
+                    amount.focus();
+                    e.preventDefault();
+                }
+            });
+
+            // enable submit if we have a value and description
+            function check_enable() {
+                if ($("#id_amount").val() > 0 && $("#id_description").val()) {
+                    $("#cobalt-button").prop('disabled', false);
+                } else {
+                    $("#cobalt-button").prop('disabled', true);
+                }
+            }
+
+            $("#id_amount").on('keyup', function() {
+                check_enable()
+            });
+
+            $("#id_description").on('keyup', function() {
+                check_enable()
+            });
+
+            // fill in single person for payment - hide other fields
+            function showSingleMember(id) {
+                $.getJSON(member_detail + "?member_id=" + id)
+                    .done(response => {
+                    search_panel.hide();
+                    search_results.html("");
+                    // show the member
+                    member_display.html(response['data']);
+                    // show amount, description and button
+                    form_dets.show();
+                    // hide member number on form
+                    $("#cobalt-hidden-member").html("<input type='hidden' id='id_transfer_to' name='transfer_to' value='" + id + "'>");
+                })
+            }
+
+            // For previous users, bind to then being selected
+            $("#id-cobalt-recent").change(function(event) {
+                var id = this.value;
+                showSingleMember(id);
+            });
+
+            // dynamic search
+            $(".dynamic-search").on('keyup', function(event) {
+
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+
+                var ln = lastname.val();
+                var fn = firstname.val();
+
+                search_results.html("");
+
+                if (ln.length + fn.length > 1) {
+                    $.getJSON(member_search + "?lastname=" + ln + "&firstname=" + fn)
+                        .done(response => {
+                        // update screen with results
+                        search_results.html(response['data']);
+                        // watch for user selecting member and change screen again
+                        $(".cobalt-names").change(function(event) {
+                            var id = $(this).val();
+                            showSingleMember(id);
+                        });
+                    })
+                }
+            });
+
+            //
+            // system number search
+            //
+
+            $("#system_number_search_button{{search_id}}").click(function(event){
+
+                if(system_number{{ search_id }}.val() == ""){
+                    $("#top_content").prepend("\
+                        <div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\"> \
+                        You need to provide an {{ GLOBAL_ORG }} number to use the search\
+                        <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"> \
+                        <span aria-hidden=\"true\">&times;</span> </button> </div> ")
+                    return;
+                }
+                $.getJSON(system_number_search{{ search_id }} + "?system_number=" + system_number{{ search_id }}.val() + "&search_id={{ search_id }}")
+                    .done(response => {
+
+                    if (response['data']['status'] == "Success") {
+                        showSingleMember{{ search_id }}(response['data']['member_id']);
+                    } else {
+                        search_results{{ search_id }}.html(response['data']['msg']);
+                    }
+                });
+            });
+
+        });
+    </script>
+
+{% endblock %}

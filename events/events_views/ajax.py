@@ -11,7 +11,7 @@ from cobalt.settings import TBA_PLAYER, COBALT_HOSTNAME, BRIDGE_CREDITS
 from logs.views import log_event
 from notifications.views import contact_member
 from organisations.models import Organisation
-from payments.core import (
+from payments.payments_views.core import (
     update_account,
     update_organisation,
     get_balance,

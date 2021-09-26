@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from django.template.loader import render_to_string
 from django.urls import reverse
 
-import payments.core as payments_core  # circular dependency
+import payments.payments_views.core as payments_core  # circular dependency
 from cobalt.settings import COBALT_HOSTNAME, BRIDGE_CREDITS, GLOBAL_ORG
 from events.models import PAYMENT_TYPES
 from logs.views import log_event

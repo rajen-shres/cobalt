@@ -39,7 +39,11 @@ from events.forms import (
     OffSystemPPForm,
 )
 from rbac.views import rbac_user_has_role, rbac_forbidden
-from payments.core import org_balance, update_account, update_organisation
+from payments.payments_views.core import (
+    org_balance,
+    update_account,
+    update_organisation,
+)
 from django.contrib import messages
 import copy
 from cobalt.settings import (

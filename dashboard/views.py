@@ -3,7 +3,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from masterpoints.views import get_masterpoints
-from payments.core import get_balance_detail
+from payments.payments_views.core import get_balance_detail
 from events.events_views.core import get_events
 
 from utils.utils import cobalt_paginator
