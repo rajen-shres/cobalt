@@ -156,6 +156,14 @@ class AdjustOrgForm(forms.ModelForm):
             "amount",
         )
 
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get("amount")
+        adjustment_type = cleaned_data.get("adjustment_type")
+        if adjustment_type == "2" and amount >= 0:
+            self.add_error("amount", "Settlement amount must be negative")
+        return cleaned_data
+
 
 class DateForm(forms.Form):
     """for simple from to date ranges"""

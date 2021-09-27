@@ -1577,37 +1577,35 @@ def manual_adjust_org(request, org_id=None):
     # TODO: move this to model as an enum
     payment_type_dic = {1: "Manual Adjustment", 2: "Settlement"}
 
-    if request.method == "POST":
-        form = AdjustOrgForm(request.POST)
-        if form.is_valid():
-            org = form.cleaned_data["organisation"]
-            amount = form.cleaned_data["amount"]
-            description = form.cleaned_data["description"]
-            adjustment_type = int(form.cleaned_data["adjustment_type"])
-            payment_type = payment_type_dic[adjustment_type]
-            update_organisation(
-                organisation=org,
-                amount=amount,
-                description=description,
-                log_msg=description,
-                source="payments",
-                sub_source="manual_adjustment_org",
-                payment_type=payment_type,
-                member=request.user,
-            )
-            msg = "Adjustment successful. %s adjusted by %s%s" % (
-                org,
-                GLOBAL_CURRENCY_SYMBOL,
-                amount,
-            )
-            messages.success(request, msg, extra_tags="cobalt-message-success")
-            return redirect("payments:statement_admin_summary")
-        else:
-            print(form.errors)
+    form = AdjustOrgForm(request.POST or None)
 
-    else:
-        form = AdjustOrgForm()
-        org = get_object_or_404(Organisation, pk=org_id) if org_id else None
-        return render(
-            request, "payments/admin/manual_adjust_org.html", {"form": form, "org": org}
+    if form.is_valid():
+        org = form.cleaned_data["organisation"]
+        amount = form.cleaned_data["amount"]
+        description = form.cleaned_data["description"]
+        adjustment_type = int(form.cleaned_data["adjustment_type"])
+        payment_type = payment_type_dic[adjustment_type]
+        update_organisation(
+            organisation=org,
+            amount=amount,
+            description=description,
+            log_msg=description,
+            source="payments",
+            sub_source="manual_adjustment_org",
+            payment_type=payment_type,
+            member=request.user,
         )
+        msg = "Adjustment successful. %s adjusted by %s%s" % (
+            org,
+            GLOBAL_CURRENCY_SYMBOL,
+            amount,
+        )
+        messages.success(request, msg, extra_tags="cobalt-message-success")
+        return redirect("payments:statement_admin_summary")
+    else:
+        print(form.errors)
+
+    org = get_object_or_404(Organisation, pk=org_id) if org_id else None
+    return render(
+        request, "payments/admin/manual_adjust_org.html", {"form": form, "org": org}
+    )

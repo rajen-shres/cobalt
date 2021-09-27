@@ -15,14 +15,12 @@
             <div class="card-header card-header-primary">
                 <h1>{{ BRIDGE_CREDITS }}</h1>
                 <h2>Manual Adjust Organisation Account<span id="org">{% if org %} - {{ org.name }}{% endif %}</span></h2>
-                <h2>Use negative numbers to remove money from organisations account</h2>
+                <h3 >Use negative numbers to remove money from organisations account</h3>
             </div>
             <div class="card-body table-responsive">
 
                 <div id="cobalt_form"
-                    {% if not org %}
-                        style="display: none;"
-                    {% endif %}
+
                 >
                     <div class="col-md-6">
 
@@ -38,15 +36,16 @@
                             {% endif %}
 
                             <div id="cobalt-hidden-org"></div>
-
+                            {% cobalt_bs4_field form.amount %}
                             <div class="row pb-3">
                                 <div class="col-4 pt-3">Transaction Type</div>
                                 <div class="col-8">
                                     {% cobalt_bs4_field form.adjustment_type %}
                                 </div>
                             </div>
+
                             {% cobalt_bs4_field form.description %}
-                            {% cobalt_bs4_field form.amount %}
+
 
                             <div>
                                 <button type="submit" class="btn btn-success center-text cobalt-save">Submit</button>
@@ -61,8 +60,20 @@
 {% endblock %}
 
 {% block footer %}
-    {% if not org %}
-        <script>
+    <script>
+        {% if org %}
+            $('#id_adjustment_type').change(function(){
+                const amt = $('#id_amount').val() || 0;
+                const fees = {{ org.settlement_fee_percent }};
+                let settlement = 0;
+                if (amt !== 0) {
+                    settlement = amt - (amt * fees / 100.0);
+                }
+                console.log($('#id_description'));
+                $('#id_description').val('Settlement from {{ GLOBAL_ORG }}. Fees ' + fees.toFixed(2) + '%. Net Bank Transfer: {{ GLOBAL_CURRENCY_SYMBOL }}' + -settlement.toFixed(2))
+                $('#id_description').trigger("change");
+            });
+        {% else %}
             {% include 'generic_org_search_footer.html' %}
 
             $('#cobalt_general_org_search').modal('show');
@@ -75,7 +86,8 @@
                 $("#org").html(" - " + org_name);
                 clearModalOrg();
             }
-        </script>
-    {% endif %}
+        {% endif %}
+    </script>
+
 
 {% endblock %}
