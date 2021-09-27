@@ -197,6 +197,7 @@ class Congress(models.Model):
     congress_type = models.CharField(
         "Congress Type", max_length=30, choices=CONGRESS_TYPES, blank=True, null=True
     )
+    contact_email = models.EmailField(blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Congresses"

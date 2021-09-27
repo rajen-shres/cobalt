@@ -17,7 +17,20 @@
                     </div>
 
                         <div class="card-body table-responsive">
-                            <a href="#program" style="text-transform: none;" class="btn btn-success"><span style="font-size: 150%;">Click here to jump to program...</span></a>
+
+                            <div class="d-flex">
+                                <div>
+                                    <a href="#program" style="text-transform: none;" class="btn btn-sm btn-success">
+                                        <span style="font-size: 150%;">Click here to jump to program...</span>
+                                    </a>
+                                </div>
+                                <div class="ml-auto">
+                                    <a href="mailto:{{ congress.contact_email }}?subject={{ congress.name }}" style="text-transform: none;" class="btn btn-sm btn-rose">
+                                        <span style="font-size: 150%;">Email Organiser...</span>
+                                    </a>
+                                </div>
+                            </div>
+
                             {% if congress.sponsors %}
                                 <div class="row">
                                     <div class="card col-lg-10 mx-auto">
@@ -214,8 +227,6 @@
                         </div>
                     </div>
                 </div>
-
-
 
                 <!-- end raw HTML if/else -->
     {% endif %}

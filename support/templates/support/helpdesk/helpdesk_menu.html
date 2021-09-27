@@ -31,7 +31,7 @@
                         </div>
                         <div class="card-body">
                             {% if assigned_to_you %}
-                                {%  include "support/list_tickets_table.html" with things=assigned_to_you %}
+                                {%  include "support/helpdesk/list_tickets_table.html" with things=assigned_to_you %}
                             {% else %}
                                 <h3>You have nothing assigned.</h3>
                             {% endif %}
@@ -44,7 +44,7 @@
                         <div class="card-body">
                             {% if unassigned_tickets %}
                                 {#                            Pass a counter to give the table a unique name#}
-                                {%  include "support/list_tickets_table.html" with things=unassigned_tickets counter=1 %}
+                                {%  include "support/helpdesk/list_tickets_table.html" with things=unassigned_tickets counter=1 %}
                             {% else %}
                                 <h3>There is nothing pending.</h3>
                             {% endif %}
@@ -57,7 +57,7 @@
                         <div class="card-body">
                             {% if assigned_to_others %}
                                 {#                            Pass a counter to give the table a unique name#}
-                                {%  include "support/list_tickets_table.html" with things=assigned_to_others counter=2 %}
+                                {%  include "support/helpdesk/list_tickets_table.html" with things=assigned_to_others counter=2 %}
                             {% else %}
                                 <h3>There is nothing assigned to others.</h3>
                             {% endif %}

@@ -71,6 +71,7 @@ class CongressForm(forms.ModelForm):
         self.fields["cheque_details"].label = False
         self.fields["automatic_refund_cutoff"].label = False
         self.fields["congress_type"].label = False
+        self.fields["contact_email"].label = False
 
         # mark fields as optional
         self.fields["name"].required = False
@@ -106,6 +107,7 @@ class CongressForm(forms.ModelForm):
         self.fields["bank_transfer_details"].required = False
         self.fields["cheque_details"].required = False
         self.fields["automatic_refund_cutoff"].required = False
+        self.fields["contact_email"].required = False
 
     general_info = forms.CharField(
         widget=SummernoteInplaceWidget(
@@ -262,6 +264,7 @@ class CongressForm(forms.ModelForm):
             "cheque_details",
             "automatic_refund_cutoff",
             "congress_type",
+            "contact_email",
         )
 
 

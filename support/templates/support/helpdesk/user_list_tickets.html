@@ -27,7 +27,7 @@
                         <div class="card-header card-header-danger"><h2>Open</h2></div>
                         <div class="card-body">
                             {% if open_tickets %}
-                                {% include "support/user_list_tickets_table.html" with tickets=open_tickets %}
+                                {% include "support/helpdesk/user_list_tickets_table.html" with tickets=open_tickets %}
                             {% else %}
                                 <h3>You have no open tickets</h3>
                             {% endif %}
@@ -40,7 +40,7 @@
                         <div class="card">
                             <div class="card-header card-header-warning"><h2>Closed</h2></div>
                             <div class="card-body">
-                                {% include "support/user_list_tickets_table.html" with tickets=closed_tickets %}
+                                {% include "support/helpdesk/user_list_tickets_table.html" with tickets=closed_tickets %}
                             </div>
                         </div>
 
