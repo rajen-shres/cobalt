@@ -25,6 +25,32 @@ from cobalt.settings import GLOBAL_MPSERVER
 ######
 
 
+def masterpoint_query_local(query):
+    """Generic function to talk to the masterpoints server and return data
+
+    THIS IS A DUPLICATE OF THE FUNCTION IN UTILS/UTIL_VIEWS/MASTERPOINTS
+    due to circular dependency problems.
+
+    Takes in a SQLServer query e.g. "select count(*) from table"
+
+    Returns an iterable, either an empty list or the response from the server.
+
+    In case there is a problem connecting to the server, this will do everything it
+    can to fail silently.
+
+    """
+
+    # Try to load data from MP Server
+
+    try:
+        response = requests.get(query, timeout=10).json()
+    except Exception as exc:
+        print(exc)
+        response = []
+
+    return response
+
+
 def process_transactions(details, month, year):
     """
     Separate process and provisional details
@@ -49,15 +75,7 @@ def masterpoints_detail(request, system_number=None, years=1, retry=False):
 
     # Get summary data
     qry = "%s/mps/%s" % (GLOBAL_MPSERVER, system_number)
-    try:
-        r = requests.get(qry).json()
-    except (
-        IndexError,
-        requests.exceptions.InvalidSchema,
-        requests.exceptions.MissingSchema,
-        ConnectionError,
-    ):
-        r = []
+    r = masterpoint_query_local(qry)
 
     if len(r) == 0:
 
@@ -86,12 +104,10 @@ def masterpoints_detail(request, system_number=None, years=1, retry=False):
         summary["IsActive"] = False
 
     # Get provisional month and year, anything this date or later is provisional
-    qry = "%s/provisionaldate" % GLOBAL_MPSERVER
-    data = requests.get(qry).json()[0]
-    prov_month = "%02d" % int(data["month"])
-    prov_year = data["year"]
-
-    print(prov_year, prov_month)
+    #   qry = "%s/provisionaldate" % GLOBAL_MPSERVER
+    #   data = requests.get(qry).json()[0]
+    #   prov_month = "%02d" % int(data["month"])
+    #   prov_year = data["year"]
 
     # Get home club name
     qry = "%s/club/%s" % (GLOBAL_MPSERVER, summary["HomeClubID"])
@@ -290,25 +306,22 @@ def system_number_lookup(request):
         member = None
         result = "Error: Invalid or inactive number"
         if system_number.isdigit():
-            try:
-                member = requests.get(
-                    "%s/id/%s" % (GLOBAL_MPSERVER, system_number)
-                ).json()[0]
-            except IndexError:
-                member = None
+            query = "%s/id/%s" % (GLOBAL_MPSERVER, system_number)
+            ret = masterpoint_query_local(query)
+            if ret:
+                member = ret[0]
 
         if member:
-            m = User.objects.filter(system_number=system_number).filter(is_active=True)
+            m = User.objects.filter(system_number=system_number)
             if m:  # already registered
                 result = "Error: User already registered"
-            else:
-                if member["IsActive"] == "Y":
-                    # only use first name from given names
-                    given_name = member["GivenNames"].split(" ")[0]
-                    surname = member["Surname"]
-                    result = "%s %s" % (given_name, surname)
-                    # convert special chars
-                    result = html.unescape(result)
+            elif member["IsActive"] == "Y":
+                # only use first name from given names
+                given_name = member["GivenNames"].split(" ")[0]
+                surname = member["Surname"]
+                result = "%s %s" % (given_name, surname)
+                # convert special chars
+                result = html.unescape(result)
 
     return HttpResponse(result)
 
@@ -316,7 +329,7 @@ def system_number_lookup(request):
 def system_number_available(system_number):
     """
     Called from the registration page. Takes in a system number and returns
-    True if number is valid and available (including if registered but never activated)
+    True if number is valid and available
     """
 
     if not system_number.isdigit():
@@ -324,11 +337,10 @@ def system_number_available(system_number):
 
     try:
         match = requests.get("%s/id/%s" % (GLOBAL_MPSERVER, system_number)).json()[0]
-    except IndexError:
+    except (IndexError, JSONDecodeError):
         return False
-
     if match:
-        member = User.objects.filter(system_number=system_number).filter(is_active=True)
+        member = User.objects.filter(system_number=system_number)
         if member:  # already registered
             return False
         if match["IsActive"] == "Y":
@@ -348,7 +360,8 @@ def get_masterpoints(system_number):
         requests.exceptions.MissingSchema,
         ConnectionError,
         JSONDecodeError,
-    ):
+    ) as exc:
+        print(exc)
         points = "Not found"
         rank = "Not found"
 
