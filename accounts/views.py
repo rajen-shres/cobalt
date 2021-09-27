@@ -253,8 +253,6 @@ def password_reset_request(request):
             },
         )
 
-        print(link)
-
         message = render_to_string(
             "notifications/email_with_button.html",
             {
