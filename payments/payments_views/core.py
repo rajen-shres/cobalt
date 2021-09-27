@@ -27,6 +27,7 @@ Key Points:
 
 """
 import json
+from json import JSONDecodeError
 
 import pytz
 import requests
@@ -1538,7 +1539,7 @@ def statement_common(user):
     qry = "%s/mps/%s" % (GLOBAL_MPSERVER, user.system_number)
     try:
         summary = requests.get(qry).json()[0]
-    except IndexError:  # server down or some error
+    except (IndexError, JSONDecodeError):  # server down or some error
         # raise Http404
         summary = {"IsActive": False, "HomeClubID": 0}
 
@@ -1549,7 +1550,7 @@ def statement_common(user):
     qry = "%s/club/%s" % (GLOBAL_MPSERVER, summary["HomeClubID"])
     try:
         club = requests.get(qry).json()[0]["ClubName"]
-    except IndexError:  # server down or some error
+    except (IndexError, JSONDecodeError):  # server down or some error
         club = "Unknown"
 
     # get balance
