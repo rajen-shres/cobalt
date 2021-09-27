@@ -21,6 +21,9 @@
                     {% if tickets %}
                         <a href="{% url "support:helpdesk_list" %}?days=-1&user={{ profile.id }}" class="btn btn-sm btn-danger">Helpdesk Tickets ({{ tickets.count }})</a>
                     {% endif %}
+                    {% if email_admin %}
+                        <a href="{% url "notifications:global_admin_view_emails" member_id=profile.id %}" class="btn btn-sm btn-danger">Email Admin</a>
+                    {% endif %}
                 </div>
             </div>
 

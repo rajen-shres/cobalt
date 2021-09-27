@@ -238,18 +238,39 @@ def password_reset_request(request):
     email = password_reset_form.cleaned_data["email"]
     associated_users = User.objects.filter(email=email)
 
-    email_body = (
+    email_body_base = (
         f"You are receiving this email because you requested a password reset for your account with "
         f"{GLOBAL_TITLE}. Click on the link below to reset your password.<br><br>"
     )
 
+    if associated_users.count() > 1:
+        email_body_base += (
+            "<b>This email address is shared.</b> You should check the name above and "
+            "only click on the link sent to the person who wants to reset their password.<br><br>"
+        )
+
     for user in associated_users:
 
+        if user.is_active:
+            link_type = "password_reset_confirm"
+            link_text = "Reset Password"
+            token = default_token_generator.make_token(user)
+            email_body = email_body_base
+        else:
+            link_type = "accounts:activate"
+            link_text = "Activate Account"
+            token = account_activation_token.make_token(user)
+            email_body = (
+                email_body_base
+                + "<h3>This account has not been activated. You must activate "
+                "the account first.</h3><br><br>"
+            )
+
         link = reverse(
-            "password_reset_confirm",
+            link_type,
             kwargs={
                 "uidb64": urlsafe_base64_encode(force_bytes(user.pk)),
-                "token": default_token_generator.make_token(user),
+                "token": token,
             },
         )
 
@@ -261,7 +282,7 @@ def password_reset_request(request):
                 "email_body": email_body,
                 "host": COBALT_HOSTNAME,
                 "link": link,
-                "link_text": "Reset Password",
+                "link_text": link_text,
             },
         )
 
@@ -752,6 +773,11 @@ def public_profile(request, pk):
     else:
         tickets = False
 
+    if rbac_user_has_role(request.user, "notifications.admin.view"):
+        email_admin = True
+    else:
+        email_admin = False
+
     return render(
         request,
         "accounts/public_profile.html",
@@ -766,6 +792,7 @@ def public_profile(request, pk):
             "summary": summary,
             "payments_admin": payments_admin,
             "events_admin": events_admin,
+            "email_admin": email_admin,
             "tickets": tickets,
         },
     )

@@ -35,4 +35,9 @@ urlpatterns = [
     path("admin/email/view-email", views.admin_view_email, name="admin_view_email"),
     path("email/send-email/<int:member_id>", views.email_contact, name="email_contact"),
     path("email/watch_emails/<str:batch_id>", views.watch_emails, name="watch_emails"),
+    path(
+        "system-admin/player-view/<int:member_id>",
+        views.global_admin_view_emails,
+        name="global_admin_view_emails",
+    ),
 ]
