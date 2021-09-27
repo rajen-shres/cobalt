@@ -8,6 +8,11 @@ app_name = "accounts"  # pylint: disable=invalid-name
 
 urlpatterns = [
     path("register", views.register, name="register"),
+    path(
+        "password-reset-request",
+        views.password_reset_request,
+        name="password_reset_request",
+    ),
     path("loggedout", views.loggedout, name="loggedout"),
     path("signin", views.loggedout, name="signin"),
     path("search-ajax", views.search_ajax, name="member_search_M2M_ajax"),

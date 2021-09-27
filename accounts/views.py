@@ -6,6 +6,7 @@ accounts, resetting passwords, searches. profiles etc.
 
 """
 from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import SuspiciousOperation
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -19,7 +20,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth import login
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.forms import PasswordChangeForm, PasswordResetForm
 from django.http import JsonResponse
 from django.contrib.auth.views import PasswordResetView
 from django.views.decorators.http import require_POST
@@ -202,6 +203,60 @@ def activate(request, uidb64, token):
         )
     else:
         return HttpResponse("Activation link is invalid or already used!")
+
+
+def password_reset_request(request):
+    """handle password resets from users not logged in"""
+    if request.method != "POST":
+        password_reset_form = PasswordResetForm()
+        return render(
+            request,
+            "registration/password_reset_form.html",
+            {"password_reset_form": password_reset_form},
+        )
+
+    password_reset_form = PasswordResetForm(request.POST)
+
+    if not password_reset_form.is_valid():
+        return render(
+            request,
+            "registration/password_reset_form.html",
+            {"password_reset_form": password_reset_form},
+        )
+
+    email = password_reset_form.cleaned_data["email"]
+    associated_users = User.objects.filter(email=email)
+
+    email_body = (
+        f"You are receiving this email because you requested a password reset for your account with "
+        f"{GLOBAL_TITLE}. Click on the link below to reset your password.<br><br>"
+    )
+
+    for user in associated_users:
+
+        link = reverse(
+            "password_reset_confirm",
+            kwargs={
+                "uidb64": urlsafe_base64_encode(force_bytes(user.pk)),
+                "token": default_token_generator.make_token(user),
+            },
+        )
+
+        message = render_to_string(
+            "notifications/email_with_button.html",
+            {
+                "name": user.first_name,
+                "title": "Password Reset",
+                "email_body": email_body,
+                "host": COBALT_HOSTNAME,
+                "link": link,
+                "link_text": "Reset Password",
+            },
+        )
+
+        send_cobalt_email(user.email, "Password Reset Requested", message)
+
+    return redirect("password_reset_done")
 
 
 def loggedout(request):
