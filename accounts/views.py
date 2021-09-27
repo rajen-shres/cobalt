@@ -240,7 +240,7 @@ def password_reset_request(request):
 
     email_body = (
         f"You are receiving this email because you requested a password reset for your account with "
-        f"{GLOBAL_ORG}. Click on the link below to reset your password.<br><br>"
+        f"{GLOBAL_TITLE}. Click on the link below to reset your password.<br><br>"
     )
 
     for user in associated_users:
@@ -249,7 +249,7 @@ def password_reset_request(request):
             "password_reset_confirm",
             kwargs={
                 "uidb64": urlsafe_base64_encode(force_bytes(user.pk)),
-                "token": account_activation_token.make_token(user),
+                "token": default_token_generator.make_token(user),
             },
         )
 
