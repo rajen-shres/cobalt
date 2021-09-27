@@ -19,8 +19,6 @@ import accounts.views as accounts_views
 class UserRegisterForm(UserCreationForm):
     """User Registration"""
 
-    email = forms.EmailField()
-
     class Meta:
         model = User
         fields = [
@@ -34,16 +32,9 @@ class UserRegisterForm(UserCreationForm):
             "password2",
         ]
 
-    def clean_username(self):
-        """check system_number is valid. Don't rely on client side validation"""
-
-        username = self.cleaned_data["username"]
-        if not username:
-            raise forms.ValidationError("System number missing")
-
-        if not system_number_available(username):
-            raise forms.ValidationError("Number invalid or in use")
-        return username
+    def clean(self):
+        """The validation will reject a duplicate user. We want to allow is_active=False users to sign up again"""
+        pass
 
 
 class UserUpdateForm(forms.ModelForm):

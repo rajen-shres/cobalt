@@ -298,7 +298,7 @@ def system_number_lookup(request):
                 member = None
 
         if member:
-            m = User.objects.filter(system_number=system_number)
+            m = User.objects.filter(system_number=system_number).filter(is_active=True)
             if m:  # already registered
                 result = "Error: User already registered"
             else:
@@ -316,7 +316,7 @@ def system_number_lookup(request):
 def system_number_available(system_number):
     """
     Called from the registration page. Takes in a system number and returns
-    True if number is valid and available
+    True if number is valid and available (including if registered but never activated)
     """
 
     if not system_number.isdigit():
@@ -328,7 +328,7 @@ def system_number_available(system_number):
         return False
 
     if match:
-        member = User.objects.filter(system_number=system_number)
+        member = User.objects.filter(system_number=system_number).filter(is_active=True)
         if member:  # already registered
             return False
         if match["IsActive"] == "Y":

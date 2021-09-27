@@ -1050,39 +1050,65 @@ def admin_player_payments(request, member_id):
 def _get_member_balance_at_date(ref_date):
     """Internal function to get list of members with balances at specific date"""
 
-    # get latest transaction per member - can't do a Sum after a distinct - not yet supported
-    members = (
+    # # get latest transaction per member - can't do a Sum after a distinct - not yet supported
+    # members = (
+    #     MemberTransaction.objects.filter(created_date__lt=ref_date)
+    #     .order_by("member", "-created_date")
+    #     .distinct("member")
+    #     .exclude(balance=0.0)
+    # )
+
+    member_balances = (
         MemberTransaction.objects.filter(created_date__lt=ref_date)
-        .order_by("member", "-created_date")
+        .values(
+            "member",
+            "member__first_name",
+            "member__last_name",
+            "member__system_number",
+            "balance",
+        )
         .distinct("member")
-        .exclude(balance=0.0)
+        .order_by("member", "-id")
     )
 
-    members_balance = 0.0
+    member_total_balance = 0.0
 
-    for member in members:
-        members_balance += float(member.balance)
+    for member_balance in member_balances:
+        member_total_balance += float(member_balance["balance"])
 
-    return members_balance, members
+    return member_total_balance, member_balances
 
 
 def _get_org_balance_at_date(ref_date):
     """Internal function to get list of organisations with balances at specific date"""
 
-    # get latest transaction per org - can't do a Sum after a distinct - not yet supported
-    orgs = (
+    # # get summary per organisation
+    # org_trans = (
+    #     OrganisationTransaction.objects.filter(created_date__lt=ref_date)
+    #     .values('organisation', "organisation__name", "type")
+    #     .order_by("organisation", "type")
+    #     .annotate(sub_amount=Sum('amount'))
+    # )
+    #
+    # print(org_trans)
+    # for org in org_trans:
+    #     print(org)
+
+    org_balances = (
         OrganisationTransaction.objects.filter(created_date__lt=ref_date)
-        .order_by("organisation", "-created_date")
+        .values("organisation", "organisation__name", "organisation__org_id", "balance")
         .distinct("organisation")
-        .exclude(balance=0.0)
+        .order_by("organisation", "-id")
     )
 
-    orgs_balance = 0.0
+    print(org_balances)
 
-    for org in orgs:
-        orgs_balance += float(org.balance)
+    # Better to calculate total in Python as we already have the data loaded
+    org_total_balance = 0.0
+    for org_balance in org_balances:
+        org_total_balance += float(org_balance["balance"])
 
-    return orgs_balance, orgs
+    return org_total_balance, org_balances
 
 
 @rbac_check_role("payments.global.view")
@@ -1102,7 +1128,7 @@ def admin_stripe_rec(request):
 
     return render(
         request,
-        "payments/admin/admin_stripe_rec.html",
+        "payments/admin/stripe_rec.html",
         {
             "members_balance": members_balance,
             "orgs_balance": orgs_balance,
@@ -1297,24 +1323,20 @@ def admin_stripe_rec_download_member(request):
     writer.writerow([""])
     writer.writerow(
         [
-            "Member",
             f"{GLOBAL_ORG} Number",
+            "First Name",
+            "Last Name",
             "Balance",
-            "Last Transaction Date",
-            "Last Transaction Amount",
-            "Last Transaction Description",
         ]
     )
 
     for member in members:
         writer.writerow(
             [
-                member.member.full_name,
-                member.member.system_number,
-                member.balance,
-                dateformat.format(member.created_date, "Y-m-d H:i:s"),
-                member.amount,
-                member.description,
+                member["member__system_number"],
+                member["member__first_name"],
+                member["member__last_name"],
+                member["balance"],
             ]
         )
 
@@ -1353,21 +1375,15 @@ def admin_stripe_rec_download_org(request):
             "Organisation",
             f"{GLOBAL_ORG} Org Number",
             "Balance",
-            "Last Transaction Date",
-            "Last Transaction Amount",
-            "Last Transaction Description",
         ]
     )
 
     for org in orgs:
         writer.writerow(
             [
-                org.organisation.name,
-                org.organisation.org_id,
-                org.balance,
-                dateformat.format(org.created_date, "Y-m-d H:i:s"),
-                org.amount,
-                org.description,
+                org["organisation__name"],
+                org["organisation__org_id"],
+                org["balance"],
             ]
         )
 
