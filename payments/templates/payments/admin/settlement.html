@@ -57,7 +57,7 @@
                                         <td class="text-right px-2">{{ GLOBAL_CURRENCY_SYMBOL }}{{ org.settlement_amount|floatformat:2|intcomma }}</td>
                                         <td class="text-right px-2"><a
                                             class="btn btn-sm btn-danger"
-                                            href="{% url "payments:manual_adjust_org" org_id=org.organisation.id %}">manual amount</a></td>
+                                            href="{% url "payments:manual_adjust_org" org_id=org.organisation.id default_transaction=2 %}">manual amount</a></td>
                                     </tr>
                                 {% endfor %}
                                 <tr>

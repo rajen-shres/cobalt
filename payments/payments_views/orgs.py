@@ -309,3 +309,11 @@ def member_transfer_org(request, org_id):
         "payments/orgs/member_transfer_org.html",
         {"form": form, "balance": balance, "org": organisation},
     )
+
+
+@login_required()
+def get_org_fees(request, org_id):
+    """Get the ABF fees associated with this organisation"""
+
+    org = get_object_or_404(Organisation, pk=org_id)
+    return HttpResponse(org.settlement_fee_percent)

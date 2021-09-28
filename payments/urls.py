@@ -10,7 +10,6 @@ app_name = "payments"  # pylint: disable=invalid-name
 
 urlpatterns = [
     path("", payments.payments_views.players.statement, name="payments"),
-    #    path("test-payment", views.test_payment, name="test_payment"),
     path("stripe-webhook", core.stripe_webhook, name="stripe_webhook"),
     path(
         "create-payment-intent", core.stripe_manual_payment_intent, name="paymentintent"
@@ -83,7 +82,7 @@ urlpatterns = [
         name="manual_adjust_org",
     ),
     path(
-        "manual-adjust-org/<int:org_id>",
+        "manual-adjust-org/<int:org_id>/<int:default_transaction>",
         payments.payments_views.admin.manual_adjust_org,
         name="manual_adjust_org",
     ),
@@ -221,5 +220,15 @@ urlpatterns = [
         "admin-stripe-rec-download-org",
         payments.payments_views.admin.admin_stripe_rec_download_org,
         name="admin_stripe_rec_download_org",
+    ),
+    path(
+        "get-org-fees",
+        payments.payments_views.orgs.get_org_fees,
+        name="orgs_get_org_fees",
+    ),
+    path(
+        "get-org-fees/<int:org_id>",
+        payments.payments_views.orgs.get_org_fees,
+        name="orgs_get_org_fees",
     ),
 ]

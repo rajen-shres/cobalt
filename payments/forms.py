@@ -156,6 +156,14 @@ class AdjustOrgForm(forms.ModelForm):
             "amount",
         )
 
+    def __init__(self, *args, **kwargs):
+        """dynamic set of default value on dropdown"""
+
+        # Get default value
+        default_transaction = kwargs.pop("default_transaction", None)
+        super().__init__(*args, **kwargs)
+        self.fields["adjustment_type"].initial = default_transaction
+
     def clean(self):
         cleaned_data = super().clean()
         amount = cleaned_data.get("amount")

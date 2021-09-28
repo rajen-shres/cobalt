@@ -272,6 +272,11 @@ class OrganisationTransaction(AbstractTransaction):
         related_name="secondary_org",
     )
 
+    settlement_amount = models.DecimalField(
+        "Settlement Amount", max_digits=12, decimal_places=2, blank=True, null=True
+    )
+    """ Records the actual amount paid out minus the fees for settlement transactions. Blank for anything else"""
+
     def save(self, *args, **kwargs):
         if not self.reference_no:
             self.reference_no = "%s-%s-%s" % (

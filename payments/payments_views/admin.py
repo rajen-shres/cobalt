@@ -1577,12 +1577,13 @@ def manual_adjust_member(request):
 
 
 @login_required()
-def manual_adjust_org(request, org_id=None):
+def manual_adjust_org(request, org_id=None, default_transaction=None):
     """make a manual adjustment on an organisation account
 
     Args:
         request (HTTPRequest): standard request object
         org_id: optional id of organisation
+        default_transaction: Allows a default for transaction type to be selected
 
     Returns:
         HTTPResponse
@@ -1593,10 +1594,12 @@ def manual_adjust_org(request, org_id=None):
     # TODO: move this to model as an enum
     payment_type_dic = {1: "Manual Adjustment", 2: "Settlement"}
 
-    form = AdjustOrgForm(request.POST or None)
+    form = AdjustOrgForm(request.POST or None, default_transaction=default_transaction)
 
     if form.is_valid():
         org = form.cleaned_data["organisation"]
+        settlement_amount = 15.0
+        print(org)
         amount = form.cleaned_data["amount"]
         description = form.cleaned_data["description"]
         adjustment_type = int(form.cleaned_data["adjustment_type"])
@@ -1610,6 +1613,7 @@ def manual_adjust_org(request, org_id=None):
             sub_source="manual_adjustment_org",
             payment_type=payment_type,
             member=request.user,
+            settlement_amount=settlement_amount,
         )
         msg = "Adjustment successful. %s adjusted by %s%s" % (
             org,

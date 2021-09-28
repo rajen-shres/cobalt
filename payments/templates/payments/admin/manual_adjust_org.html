@@ -61,19 +61,47 @@
 
 {% block footer %}
     <script>
-        {% if org %}
-            $('#id_adjustment_type').change(function(){
-                const amt = $('#id_amount').val() || 0;
-                const fees = {{ org.settlement_fee_percent }};
-                let settlement = 0;
-                if (amt !== 0) {
-                    settlement = amt - (amt * fees / 100.0);
+        let fees = {% if org %}{{ org.settlement_fee_percent }}{% else %}3.0{% endif %};
+
+        $(document).ready(function(){
+
+            function changeDescription(){
+                // update the description for settlement transactions only
+                if ($('#id_adjustment_type').val() === "2")
+                {
+                    const amt = $('#id_amount').val() || 0;
+                    let settlement = 0;
+                    if (amt !== 0) {
+                        settlement = amt - (amt * fees / 100.0);
+                    }
+
+                    const desc = $('#id_description');
+                    desc.val('Settlement from {{ GLOBAL_ORG }}. Fees ' + fees.toFixed(2) + '%. Net Bank Transfer: {{ GLOBAL_CURRENCY_SYMBOL }}' + -settlement.toFixed(2))
+                    desc.trigger("change");
+                    desc.attr("readonly", true);
                 }
-                console.log($('#id_description'));
-                $('#id_description').val('Settlement from {{ GLOBAL_ORG }}. Fees ' + fees.toFixed(2) + '%. Net Bank Transfer: {{ GLOBAL_CURRENCY_SYMBOL }}' + -settlement.toFixed(2))
-                $('#id_description').trigger("change");
+
+
+            }
+
+            $('#id_adjustment_type').change(function(){
+                changeDescription();
+                if ($('#id_adjustment_type').val() !== "2"){
+                    $('#id_description').attr("readonly", false);
+                }
             });
-        {% else %}
+
+            $('#id_amount').change(function(){
+                changeDescription();
+            });
+
+            // call function the first time
+            changeDescription();
+
+        });
+
+        {% if not org %}
+            {# load the stuff to let the user find the org if not provided #}
             {% include 'generic_org_search_footer.html' %}
 
             $('#cobalt_general_org_search').modal('show');
@@ -85,8 +113,17 @@
                 $("#cobalt-hidden-org").html("<input type='hidden' id='id_organisation' name='organisation' value='" + org_id + "'>");
                 $("#org").html(" - " + org_name);
                 clearModalOrg();
+
+                // Get correct fees for this organisation
+                $.get({
+                    url: '{% url "payments:orgs_get_org_fees" %}/' + org_id,
+                    success: function(res){
+                        fees = parseInt(res);
+                    }
+                });
             }
         {% endif %}
+
     </script>
 
 
