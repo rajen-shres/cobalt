@@ -350,17 +350,14 @@ def system_number_available(system_number):
 
 def get_masterpoints(system_number):
     # Called from Dashboard
+
     try:
-        summary = requests.get("%s/mps/%s" % (GLOBAL_MPSERVER, system_number)).json()[0]
+        summary = requests.get(
+            "%s/mps/%s" % (GLOBAL_MPSERVER, system_number), timeout=5
+        ).json()[0]
         points = summary["TotalMPs"]
         rank = summary["RankName"] + " Master"
-    except (
-        IndexError,
-        requests.exceptions.InvalidSchema,
-        requests.exceptions.MissingSchema,
-        ConnectionError,
-        JSONDecodeError,
-    ) as exc:
+    except Exception as exc:
         print(exc)
         points = "Not found"
         rank = "Not found"
