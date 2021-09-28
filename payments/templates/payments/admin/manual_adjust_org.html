@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load cobalt_tags %}
+{% load static %}
 {% block title %} - Manual Adjust Organisation{% endblock %}
 {% block content %}
 
@@ -60,6 +61,7 @@
 {% endblock %}
 
 {% block footer %}
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
     <script>
         let fees = {% if org %}{{ org.settlement_fee_percent }}{% else %}3.0{% endif %};
 
@@ -91,8 +93,19 @@
                 }
             });
 
-            $('#id_amount').change(function(){
-                changeDescription();
+            $('#id_amount').on("change", function(evt){
+                evt.preventDefault();
+                if ($('#id_adjustment_type').val() === "2" && $('#id_amount').val()>0){
+                    $('#id_amount').focus();
+                    swal.fire({
+                        title: "Error",
+                        html: "Amount must be negative for Settlements",
+                        icon: "error"
+                    })
+
+                } else {
+                    changeDescription();
+                }
             });
 
             // call function the first time

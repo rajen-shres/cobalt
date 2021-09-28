@@ -272,8 +272,8 @@ class OrganisationTransaction(AbstractTransaction):
         related_name="secondary_org",
     )
 
-    settlement_amount = models.DecimalField(
-        "Settlement Amount", max_digits=12, decimal_places=2
+    bank_settlement_amount = models.DecimalField(
+        "Bank Settlement Amount", max_digits=12, decimal_places=2, default=0
     )
     """ Records the actual amount paid out minus the fees for settlement transactions. Blank for anything else"""
 

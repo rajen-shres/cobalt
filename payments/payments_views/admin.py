@@ -1508,6 +1508,7 @@ def settlement(request):
                         source="payments",
                         sub_source="settlements",
                         payment_type="Settlement",
+                        bank_settlement_amount=item.settlement_amount,
                     )
                     trans_list.append(trans)
 
@@ -1598,9 +1599,10 @@ def manual_adjust_org(request, org_id=None, default_transaction=None):
 
     if form.is_valid():
         org = form.cleaned_data["organisation"]
-        settlement_amount = 15.0
-        print(org)
         amount = form.cleaned_data["amount"]
+        bank_settlement_amount = -float(amount) * (
+            1.0 - float(org.settlement_fee_percent) / 100.0
+        )
         description = form.cleaned_data["description"]
         adjustment_type = int(form.cleaned_data["adjustment_type"])
         payment_type = payment_type_dic[adjustment_type]
@@ -1613,7 +1615,7 @@ def manual_adjust_org(request, org_id=None, default_transaction=None):
             sub_source="manual_adjustment_org",
             payment_type=payment_type,
             member=request.user,
-            settlement_amount=settlement_amount,
+            bank_settlement_amount=bank_settlement_amount,
         )
         msg = "Adjustment successful. %s adjusted by %s%s" % (
             org,

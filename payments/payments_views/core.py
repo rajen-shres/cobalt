@@ -1236,7 +1236,7 @@ def update_organisation(
     payment_type,
     other_organisation=None,
     member=None,
-    settlement_amount=None,
+    bank_settlement_amount=None,
 ):
     """method to update an organisations account"""
 
@@ -1250,7 +1250,7 @@ def update_organisation(
     act.balance = float(balance) + float(amount)
     act.description = description
     act.type = payment_type
-    act.settlement_amount = settlement_amount
+    act.bank_settlement_amount = bank_settlement_amount
 
     act.save()
 
