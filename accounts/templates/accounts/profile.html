@@ -92,6 +92,32 @@
                     </div>
                 </div>
 
+
+                <div class="card">
+                    <div class="card-header card-header-danger">
+                        <h4>Covid Certification</h4>
+                        <p class="card-category">
+                            All ABF face-to-face national events, and many other events in Australia
+                            now require proof that you have received a COVID-19 vaccination.
+                        </p>
+                    </div>
+                    <div class="card-body">
+
+
+                        <div class="d-flex">
+                            <div>
+                                <a id="confirm-vaccine" class="btn btn-primary text-light">Click here to confirm you are vaccinated</a>
+                            </div>
+                        </div>
+                        <p class="bb-0 mb-0 pt-3 pb-0 font-italic text-center">If there is a medical reason that you are unable to be
+                            vaccinated please contact <a href='{% url "support:contact_logged_in" %}'>
+                                My ABF Support.</a></p>
+
+                    </div>
+                </div>
+
+
+
                 <div class="card">
                     <div class="card-header card-header-warning">
                         <h4>Team Mates</h4>
@@ -250,7 +276,6 @@
     <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
     <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
 
-
     <script>
         $(function () {
 
@@ -342,6 +367,24 @@
                     $('.profile_form_element').attr('readonly', true);
                 }
             });
+
+            // Covid confirmation
+            $('#confirm-vaccine').click(function(){
+                swal.fire(
+                    {
+                        title:"Confirm Covid Vaccination Status",
+                        html: "Click to confirm you have a Covid-19 digital certificate " +
+                        "that will be viewed at your first ABF Licensed event in 2022.<br><br>",
+                        confirmButtonText: "I am vaccinated",
+                        showCancelButton: true,
+                        imageUrl: '{% static "assets/img/covid.png" %}',
+                        imageWidth: 200,
+                        imageHeight: 200,
+                        imageAlt: 'Custom image',
+                    }
+                )
+            });
+
         });
 
 
