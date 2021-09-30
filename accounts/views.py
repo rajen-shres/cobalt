@@ -647,7 +647,7 @@ def profile(request):
 
     return render(
         request,
-        "accounts/profile.html",
+        "accounts/profile/profile.html",
         {
             "form": form,
             "blurbform": blurbform,
@@ -780,7 +780,7 @@ def public_profile(request, pk):
 
     return render(
         request,
-        "accounts/public_profile.html",
+        "accounts/profile/public_profile.html",
         {
             "profile": pub_profile,
             "posts": posts,
@@ -1264,3 +1264,19 @@ def invite_to_join(
     un_reg.last_registration_invite_by_user = requested_by_user
     un_reg.last_registration_invite_by_club = requested_by_org
     un_reg.save()
+
+
+@login_required()
+def covid_htmx(request):
+    """return current state of users covid status as HTML"""
+
+    return render(request, "accounts/profile/covid_htmx.html")
+
+
+@login_required()
+def covid_user_confirm_htmx(request):
+    """Update users covid status"""
+
+    request.user.user_covid_confirm = True
+    request.user.save()
+    return render(request, "accounts/profile/covid_htmx.html")

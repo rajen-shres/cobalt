@@ -93,6 +93,10 @@ class User(AbstractUser):
         "Use Perfect Scrollbar on Windows", default=False
     )
     last_activity = models.DateTimeField(blank="True", null=True)
+    user_covid_confirm = models.BooleanField("Covid Vaccinated", default=False)
+    admin_covid_confirm = models.BooleanField(
+        "Certificate Confirmed by Administrator", default=False
+    )
 
     REQUIRED_FIELDS = [
         "system_number",
@@ -118,6 +122,15 @@ class User(AbstractUser):
         return format_html(
             "<a href='{}' target='_blank'>{}</a>", mark_safe(url), self.full_name
         )
+
+    @property
+    def covid_status(self):
+        """Returns covid status by combining the two covid fields"""
+        if self.admin_covid_confirm:
+            return "Confirmed"
+        if self.user_covid_confirm:
+            return "Ok, Certificate not seen"
+        return "Not Done"
 
 
 class UnregisteredUser(models.Model):

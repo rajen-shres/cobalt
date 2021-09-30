@@ -706,13 +706,9 @@ def get_player_mp_stats(player):
         player.system_number,
     )  # player.player.system_number)
     try:
-        r = requests.get(qry).json()
-    except (
-        IndexError,
-        requests.exceptions.InvalidSchema,
-        requests.exceptions.MissingSchema,
-        ConnectionError,
-    ):
+        r = requests.get(qry, timeout=5).json()
+    except Exception as exc:
+        print(exc)
         r = []
 
     if len(r) == 0:

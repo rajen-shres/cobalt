@@ -27,6 +27,12 @@ urlpatterns = [
     path("change-password", views.change_password, name="change_password"),
     path("activate/<str:uidb64>/<str:token>/", views.activate, name="activate"),
     path("profile", views.profile, name="user_profile"),
+    path("profile-covid-htmx", views.covid_htmx, name="covid_htmx"),
+    path(
+        "profile-covid-user-confirm-htmx",
+        views.covid_user_confirm_htmx,
+        name="covid_user_confirm_htmx",
+    ),
     path("settings", views.user_settings, name="user_settings"),
     path("update-blurb", views.blurb_form_upload, name="user_blurb"),
     path("update-photo", views.picture_form_upload, name="user_photo"),

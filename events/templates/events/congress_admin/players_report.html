@@ -38,37 +38,39 @@
                                     <thead class="text-info">
                                         <th>Player</th>
                                         <th class="text-right">Status</th>
-                                        <th class="text-right">MasterPoints</th>
-                                        <th class="text-right">Action</th>
+                                        <th class="text-right">Masterpoints</th>
+                                        <th class="text-right">Covid Status</th>
+                                        <th class="text-center">Action</th>
                                     </thead>
-                                    <tbody>
-                                        {% for event_entry_player in players %}
 
-                                            <tr id={{event_entry_player.status}}>
-                                                <td>
-                                                    {{ event_entry_player.player|cobalt_user_link }}
-                                                    {% if event_entry_player.player.id == TBA_PLAYER %}
-                                                        - by {{ event_entry_player.event_entry.primary_entrant|cobalt_user_link }}
-                                                    {% endif %}
-                                                </td>
-                                                <td class="text-right">{{ event_entry_player.status }}</td>
-                                                <td class="text-right">{{ event_entry_player.masterpoint }}</td>
-                                                <td class="text-right">
+                                    {% for event_entry_player in players %}
 
-                                                    <div class="btn-group">
-                                                        <button type="button" class="btn btn-sm btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                            Actions
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a href="{% url "events:admin_evententryplayer" evententryplayer_id=event_entry_player.id %}" class="dropdown-item">Edit</a>
-                                                            <a href="{% url "notifications:email_contact" member_id=event_entry_player.player.id %}" class="dropdown-item">Email</a>
-                                                        </div>
+                                        <tr id={{event_entry_player.status}}>
+                                            <td>
+                                                {{ event_entry_player.player|cobalt_user_link }}
+                                                {% if event_entry_player.player.id == TBA_PLAYER %}
+                                                    - by {{ event_entry_player.event_entry.primary_entrant|cobalt_user_link }}
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-right">{{ event_entry_player.status }}</td>
+                                            <td class="text-right">{{ event_entry_player.masterpoint }}</td>
+                                            <td class="text-right">{{ event_entry_player.player.covid_status }}</td>
+                                            <td class="text-right">
+
+                                                <div class="btn-group">
+                                                    <button type="button" class="btn btn-sm btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                        Actions
+                                                    </button>
+                                                    <div class="dropdown-menu">
+                                                        <a href="{% url "events:admin_evententryplayer" evententryplayer_id=event_entry_player.id %}" class="dropdown-item">Edit</a>
+                                                        <a href="{% url "notifications:email_contact" member_id=event_entry_player.player.id %}" class="dropdown-item">Email</a>
                                                     </div>
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
 
-                                    </tbody>
+                                </tce>
                                 </table>
 
                             {% else %}

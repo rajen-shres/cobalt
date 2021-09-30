@@ -374,12 +374,8 @@ def user_summary(system_number):
     qry = "%s/mps/%s" % (GLOBAL_MPSERVER, system_number)
     try:
         r = requests.get(qry).json()
-    except (
-        IndexError,
-        requests.exceptions.InvalidSchema,
-        requests.exceptions.MissingSchema,
-        ConnectionError,
-    ):
+    except Exception as exc:
+        print(exc)
         r = []
 
     if not r:

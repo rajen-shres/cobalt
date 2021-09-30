@@ -61,7 +61,6 @@ class UserUpdateForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.form_show_labels = False
         self.old_dob = kwargs["instance"].dob
-        print("old DOB:", self.old_dob)
 
     def clean_dob(self):
         # DOB will be None if invalid data was entered. We can only really fix this
