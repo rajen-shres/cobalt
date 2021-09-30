@@ -14,11 +14,12 @@ from cobalt.settings import GLOBAL_CURRENCY_SYMBOL
 register = template.Library()
 
 
-# custom filter for datetime so we can get "am" amd "pm" instead of "a.m." and "p.m."
-# accepted datetime object or time object
-# returns e.g. 10am, 7:15pm 10:01am
 @register.filter(name="cobalt_time", expects_localtime=True)
 def cobalt_time(value):
+    """Custom filter for datetime so we can get "am" amd "pm" instead of "a.m." and "p.m."
+    Accepted datetime object or time object
+    Returns e.g. 10am, 7:15pm 10:01am"""
+
     if not value:
         return None
 
@@ -33,18 +34,18 @@ def cobalt_time(value):
         return f"{hour_num}:{min_str}{ampm_str}"
 
 
-# custom filter for datetime to format as full date
 @register.filter(name="cobalt_nice_date", expects_localtime=True)
 def cobalt_nice_date(value):
+    """custom filter for date to format as full date"""
     if not value:
         return None
 
     return DateFormat(value).format("l jS M Y")
 
 
-# custom filter for datetime to format as full date
 @register.filter(name="cobalt_nice_datetime", expects_localtime=True)
 def cobalt_nice_datetime(value):
+    """Custom filter for datetime to format as full date"""
     if not value:
         return None
 
@@ -54,9 +55,9 @@ def cobalt_nice_datetime(value):
     return f"{date_part} {time_part}"
 
 
-# custom filter for user which includes link to public profile
 @register.filter(name="cobalt_user_link", is_safe=True)
 def cobalt_user_link(user):
+    """Custom filter for user which includes link to public profile. Could possibly be extended to add a hover"""
     if not user:
         return None
 
@@ -64,10 +65,10 @@ def cobalt_user_link(user):
     return format_html("<a href='{}'>{}</a>", mark_safe(url), user)
 
 
-# custom filter for user which includes link to public profile
-# Short version - name only, no system number
 @register.filter(name="cobalt_user_link_short", is_safe=True)
 def cobalt_user_link_short(user):
+    """Custom filter for user which includes link to public profile.
+    Short version - name only, no system number."""
     if not user:
         return None
     try:
@@ -80,9 +81,9 @@ def cobalt_user_link_short(user):
         return user
 
 
-# return formatted bridge credit number
 @register.filter(name="cobalt_credits", is_safe=True)
 def cobalt_credits(credits_amt):
+    """Return formatted bridge credit number"""
     try:
         credits_amt = float(credits_amt)
     except ValueError:
@@ -100,9 +101,9 @@ def cobalt_credits(credits_amt):
     return ret
 
 
-# custom filter for email address which hides the address. Used by admin email viewer
 @register.filter(name="cobalt_hide_email", is_safe=True)
 def cobalt_hide_email(email):
+    """Custom filter for email address which hides the address. Used by admin email viewer."""
     if not email:
         return None
 
@@ -118,22 +119,22 @@ def cobalt_hide_email(email):
         return "*******************"
 
 
-# return class of object - used by search
 @register.filter(name="get_class")
 def get_class(value):
+    """Return class of object - used by search."""
     return value.__class__.__name__
 
 
-# Return number formatted with commas and 2 decimals
 @register.filter(name="cobalt_number", is_safe=True)
 def cobalt_number(dollars):
+    """Return number formatted with commas and 2 decimals"""
     dollars = round(float(dollars), 2)
     return "%s%s" % (intcomma(int(dollars)), ("%0.2f" % dollars)[-3:])
 
 
-# Return number formatted as currency
 @register.filter(name="cobalt_currency", is_safe=True)
 def cobalt_currency(dollars):
+    """Return number formatted as currency"""
     dollars = round(float(dollars), 2)
     return "%s%s%s" % (
         GLOBAL_CURRENCY_SYMBOL,
@@ -142,17 +143,17 @@ def cobalt_currency(dollars):
     )
 
 
-# Return random bootstrap colour - useful for card headers from lists
 @register.simple_tag(name="cobalt_random_colour")
 def cobalt_random_colour():
+    """Return random bootstrap colour - useful for card headers from lists."""
     colours = ["primary", "info", "warning", "danger", "success", "rose"]
 
     return random.choice(colours)
 
 
-# return value from key for an array in a template. Django doesn't do this out of the box
 @register.filter(name="cobalt_dict_key")
 def cobalt_dict_key(my_dict, my_keyname):
+    """Return value from key for an array in a template. Django doesn't do this out of the box"""
 
     try:
         return my_dict[my_keyname]
