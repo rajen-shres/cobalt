@@ -10,24 +10,30 @@
     </div>
     <div class="card-body">
 
-        {% if user.user_covid_confirm %}
-            {% if user.admin_covid_confirm %}
-                <span class="material-icons display-4 text-primary">done_all</span>
-                Your Covid vaccination status is confirmed
-            {% else %}
-                <span class="material-icons display-4 text-primary">done</span>
-                You have confirmed you are vaccinated. You need to show your certificate that the next ABF face-to-face event you attend.
-            {% endif %}
-        {% else %}
+        {% if user.covid_status == user.CovidStatus.ADMIN_CONFIRMED %}
+            <span class="material-icons display-4 text-primary">done_all</span>
+            Your Covid vaccination status is confirmed
+
+        {% elif user.covid_status == user.CovidStatus.USER_CONFIRMED %}
+            <span class="material-icons display-4 text-primary">done</span>
+            You have confirmed you are vaccinated. You need to show your certificate
+            that the next ABF face-to-face event you attend.
+
+        {% elif user.covid_status == user.CovidStatus.USER_EXEMPT %}
+            <span class="material-icons display-4 text-primary">medical_services</span>
+            You have a medical certificate confirming you are ineligible to be
+            vaccinated for medical reasons.
+            You are required to email the Tournament Organiser
+            the confirmation of a negative Covid test conducted within 3 days of the
+            commencement of each event you enter.
+
+        {% elif user.covid_status == user.CovidStatus.UNSET %}
 
             <div class="d-flex">
                 <div>
-                    <a id="confirm-vaccine" class="btn btn-primary text-light">Click here to confirm you are vaccinated</a>
+                    <a id="confirm-vaccine" class="btn btn-primary text-light">Click here to update your vaccine status</a>
                 </div>
             </div>
-            <p class="bb-0 mb-0 pt-3 pb-0 font-italic text-center">If there is a medical reason that you are unable to be
-                vaccinated please contact <a href='{% url "support:contact_logged_in" %}'>
-                    My ABF Support.</a></p>
 
         {% endif %}
 
@@ -46,18 +52,43 @@
                     "that will be viewed at your first ABF Licensed event in 2022.<br><br>",
                     confirmButtonText: "I am vaccinated",
                     showCancelButton: true,
+                    showDenyButton: true,
+                    denyButtonText: "Medically Exempt",
                     imageUrl: '{% static "assets/img/covid.png" %}',
                     imageWidth: 200,
                     imageHeight: 200,
                     imageAlt: 'Covid Logo',
+                    width: '800px'
                 }
             ).then(result => {
                 if (result.isConfirmed) {
                     htmx.ajax('POST', '{% url "accounts:covid_user_confirm_htmx" %}', {'target': '#covid-status'});
+                } else if (result.isDenied) {
+                    swal.fire(
+                        {
+                            title:"Covid Vaccination Medical Exemption",
+                            html: "Please tick to confirm you have a medical certificate confirming you are " +
+                            "ineligible to be vaccinated for medical reasons." +
+                            "<br><br><b>Note:</b> You will be required to email the Tournament Organiser " +
+                            "the confirmation of a negative Covid test conducted within 3 days of the " +
+                            "commencement of each event you enter.",
+                            confirmButtonText: "Confirm",
+                            showCancelButton: true,
+                            imageUrl: '{% static "assets/img/covid.png" %}',
+                            imageWidth: 200,
+                            imageHeight: 200,
+                            imageAlt: 'Covid Logo',
+                        }).then(result2 => {
+                            if (result2.isConfirmed) {
+                                htmx.ajax('POST', '{% url "accounts:covid_user_exempt_htmx" %}', {'target': '#covid-status'});
+
+                            }
+                        });
                 }
-            })
+            });
         });
 
     });
+
 
 </script>

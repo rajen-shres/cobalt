@@ -33,6 +33,11 @@ urlpatterns = [
         views.covid_user_confirm_htmx,
         name="covid_user_confirm_htmx",
     ),
+    path(
+        "profile-covid-user-exempt-htmx",
+        views.covid_user_exempt_htmx,
+        name="covid_user_exempt_htmx",
+    ),
     path("settings", views.user_settings, name="user_settings"),
     path("update-blurb", views.blurb_form_upload, name="user_blurb"),
     path("update-photo", views.picture_form_upload, name="user_photo"),

@@ -30,6 +30,12 @@ class User(AbstractUser):
     User class based upon AbstractUser.
     """
 
+    class CovidStatus(models.TextChoices):
+        UNSET = "US", "Unset"
+        USER_CONFIRMED = "UC", "User Confirmed"
+        ADMIN_CONFIRMED = "AC", "Administrator Confirmed"
+        USER_EXEMPT = "AV", "User Medically Exempt from Vaccination"
+
     email = models.EmailField(unique=False)
     system_number = models.IntegerField(
         "%s Number" % GLOBAL_ORG,
@@ -93,9 +99,9 @@ class User(AbstractUser):
         "Use Perfect Scrollbar on Windows", default=False
     )
     last_activity = models.DateTimeField(blank="True", null=True)
-    user_covid_confirm = models.BooleanField("Covid Vaccinated", default=False)
-    admin_covid_confirm = models.BooleanField(
-        "Certificate Confirmed by Administrator", default=False
+
+    covid_status = models.CharField(
+        choices=CovidStatus.choices, max_length=2, default=CovidStatus.UNSET
     )
 
     REQUIRED_FIELDS = [
@@ -122,15 +128,6 @@ class User(AbstractUser):
         return format_html(
             "<a href='{}' target='_blank'>{}</a>", mark_safe(url), self.full_name
         )
-
-    @property
-    def covid_status(self):
-        """Returns covid status by combining the two covid fields"""
-        if self.admin_covid_confirm:
-            return "Confirmed"
-        if self.user_covid_confirm:
-            return "Ok, Certificate not seen"
-        return "Not Done"
 
 
 class UnregisteredUser(models.Model):

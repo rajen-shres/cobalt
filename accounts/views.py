@@ -1277,6 +1277,15 @@ def covid_htmx(request):
 def covid_user_confirm_htmx(request):
     """Update users covid status"""
 
-    request.user.user_covid_confirm = True
+    request.user.covid_status = request.user.CovidStatus.USER_CONFIRMED
+    request.user.save()
+    return render(request, "accounts/profile/covid_htmx.html")
+
+
+@login_required()
+def covid_user_exempt_htmx(request):
+    """Update users covid status to anti-vaxxer"""
+
+    request.user.covid_status = request.user.CovidStatus.USER_EXEMPT
     request.user.save()
     return render(request, "accounts/profile/covid_htmx.html")
