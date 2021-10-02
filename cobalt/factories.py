@@ -97,6 +97,8 @@ class MasterpointFile(MasterpointFactory):
 
     def get_masterpoints(self, system_number):
 
+        print("using file")
+
         pattern = f"{int(system_number):07}"
         result = mp_file_grep(pattern)
 
