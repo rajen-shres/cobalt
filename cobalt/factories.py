@@ -51,6 +51,9 @@ class MasterpointFactory:
     def system_number_lookup(self, system_number):
         """Look up the system number and return name"""
 
+    def system_number_available(self, system_number):
+        """Check if system number is available"""
+
 
 class MasterpointDB(MasterpointFactory):
     """Concrete implementation of a masterpoint factory using a database to get the data"""
@@ -76,6 +79,17 @@ class MasterpointDB(MasterpointFactory):
                 given_name = result["GivenNames"].split(" ")[0]
                 surname = result["Surname"]
                 return html.unescape(f"{given_name} {surname}")
+
+    def system_number_available(self, system_number):
+
+        match = masterpoint_query_row(f"id/{system_number}")
+        if match:
+            member = User.objects.filter(system_number=system_number)
+            if member:  # already registered
+                return False
+            if match["IsActive"] == "Y":
+                return True
+        return False
 
 
 class MasterpointFile(MasterpointFactory):
@@ -110,6 +124,18 @@ class MasterpointFile(MasterpointFactory):
                 return html.unescape(f"{given_name} {surname}")
 
         return "Error: Inactive or invalid number"
+
+    def system_number_available(self, system_number):
+
+        pattern = f"{int(system_number):07}"
+        result = mp_file_grep(pattern)
+        if result:
+            member = User.objects.filter(system_number=system_number)
+            if member:  # already registered
+                return False
+            if result[6] == "Y":
+                return True
+        return False
 
 
 def masterpoint_factory_creator():

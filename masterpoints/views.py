@@ -319,17 +319,8 @@ def system_number_available(system_number):
     if not system_number.isdigit():
         return False
 
-    try:
-        match = requests.get("%s/id/%s" % (GLOBAL_MPSERVER, system_number)).json()[0]
-    except (IndexError, JSONDecodeError):
-        return False
-    if match:
-        member = User.objects.filter(system_number=system_number)
-        if member:  # already registered
-            return False
-        if match["IsActive"] == "Y":
-            return True
-    return False
+    mp_source = masterpoint_factory_creator()
+    return mp_source.system_number_available(system_number)
 
 
 def get_masterpoints(system_number):
