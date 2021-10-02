@@ -100,6 +100,9 @@ COBALT_HOSTNAME = set_value("COBALT_HOSTNAME", "127.0.0.1:8000")
 # Hostname set by AWS
 HOSTNAME = set_value("HOSTNAME", "Unknown")
 
+# Masterpoint source
+MP_USE_FILE = set_value("MP_USE_FILE", None)
+
 # database
 RDS_DB_NAME = set_value("RDS_DB_NAME")
 RDS_USERNAME = set_value("RDS_USERNAME")
