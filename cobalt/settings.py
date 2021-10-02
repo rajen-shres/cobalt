@@ -91,7 +91,7 @@ AWS_SES_REGION_NAME = AWS_REGION_NAME
 AWS_SES_REGION_ENDPOINT = set_value("AWS_SES_REGION_ENDPOINT")
 AWS_SES_CONFIGURATION_SET = set_value("AWS_SES_CONFIGURATION_SET")
 # Set this to false so we don't need to install m2crypto which needs OS installs to work
-# Not verifying the certificate is lower risk than having
+# Not verifying the certificate is lower risk than having us rely on an OS install
 AWS_SES_VERIFY_EVENT_SIGNATURES = False
 
 # our logical hostname (dev, test, uat, prod)
@@ -99,6 +99,9 @@ COBALT_HOSTNAME = set_value("COBALT_HOSTNAME", "127.0.0.1:8000")
 
 # Hostname set by AWS
 HOSTNAME = set_value("HOSTNAME", "Unknown")
+
+# Masterpoint source
+MP_USE_FILE = set_value("MP_USE_FILE", None)
 
 # database
 RDS_DB_NAME = set_value("RDS_DB_NAME")

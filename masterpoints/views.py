@@ -23,6 +23,7 @@ from cobalt.settings import GLOBAL_MPSERVER
 # to a SQL Server database. Confluence can tell you more
 #
 ######
+from masterpoints.factories import masterpoint_factory_creator
 
 
 def masterpoint_query_local(query):
@@ -301,29 +302,12 @@ def system_number_lookup(request):
     Called from the registration page. Takes in a system number and returns
     the member first and lastname or an error message.
     """
+
     if request.method == "GET":
         system_number = request.GET["system_number"]
-        member = None
-        result = "Error: Invalid or inactive number"
-        if system_number.isdigit():
-            query = "%s/id/%s" % (GLOBAL_MPSERVER, system_number)
-            ret = masterpoint_query_local(query)
-            if ret:
-                member = ret[0]
 
-        if member:
-            m = User.objects.filter(system_number=system_number)
-            if m:  # already registered
-                result = "Error: User already registered"
-            elif member["IsActive"] == "Y":
-                # only use first name from given names
-                given_name = member["GivenNames"].split(" ")[0]
-                surname = member["Surname"]
-                result = "%s %s" % (given_name, surname)
-                # convert special chars
-                result = html.unescape(result)
-
-    return HttpResponse(result)
+        mp_source = masterpoint_factory_creator()
+        return HttpResponse(mp_source.system_number_lookup(system_number))
 
 
 def system_number_available(system_number):
@@ -351,18 +335,8 @@ def system_number_available(system_number):
 def get_masterpoints(system_number):
     # Called from Dashboard
 
-    try:
-        summary = requests.get(
-            "%s/mps/%s" % (GLOBAL_MPSERVER, system_number), timeout=5
-        ).json()[0]
-        points = summary["TotalMPs"]
-        rank = summary["RankName"] + " Master"
-    except Exception as exc:
-        print(exc)
-        points = "Not found"
-        rank = "Not found"
-
-    return {"points": points, "rank": rank}
+    mp_source = masterpoint_factory_creator()
+    return mp_source.get_masterpoints(system_number)
 
 
 def user_summary(system_number):
