@@ -4,7 +4,7 @@ import re
 import requests
 
 from accounts.models import User
-from cobalt.settings import GLOBAL_MPSERVER, MP_USE_FILE
+from cobalt.settings import GLOBAL_MPSERVER, MP_USE_FILE, MEDIA_ROOT
 
 
 def masterpoint_query_list(query):
@@ -31,7 +31,9 @@ def masterpoint_query_row(query):
 
 
 def mp_file_grep(pattern):
-    with open("media/masterpoints/MPData.csv", "r", encoding="utf-8") as mp_file:
+    with open(
+        MEDIA_ROOT + "/masterpoints/MPData.csv", "r", encoding="utf-8"
+    ) as mp_file:
         for line in mp_file:
             if re.search(pattern, line):
                 return line.split(",")
