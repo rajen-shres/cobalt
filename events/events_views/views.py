@@ -457,6 +457,10 @@ def _checkout_perform_action(request):
     else:  # no payment required go straight to the callback
 
         events_payments_callback("Success", unique_id, None)
+        messages.success(
+            request, "Entry successful", extra_tags="cobalt-message-success"
+        )
+        return redirect("events:enter_event_success")
 
 
 @login_required()

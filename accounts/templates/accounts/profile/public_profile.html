@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
+{% load cobalt_tags %}
 {% block content %}
 
     <div>
@@ -60,7 +61,7 @@
                                         <tr>
                                             <td><a href="{% url "forums:post_detail" post.pk %}"> {{ post.title }}</td>
                                                 <td>{{ post.forum }}</td>
-                                                <td>{{ post.created_date }}</td>
+                                                <td>{{ post.created_date|cobalt_nice_datetime }}</td>
                                             </tr>
                                     {% endfor %}
                                 </table>
@@ -118,7 +119,7 @@ paginations we are doing -->
                                         <tr>
                                             <td><a href="{% url "forums:post_detail" c1.post.pk %}#c1-{{c1.id}}"> {{ c1.post.title }}</td>
                                                 <td>{{ c1.post.forum }}</td>
-                                                <td>{{ c1.created_date }}</td>
+                                                <td>{{ c1.created_date|cobalt_nice_datetime }}</td>
                                             </tr>
                                     {% endfor %}
                                 </table>
@@ -175,7 +176,7 @@ paginations we are doing -->
                                         <tr>
                                             <td><a href="{% url "forums:post_detail" c2.post.pk %}#c2-{{c2.id}}"> {{ c2.post.title }}</td>
                                                 <td>{{ c2.post.forum }}</td>
-                                                <td>{{ c2.created_date }}</td>
+                                                <td>{{ c2.created_date|cobalt_nice_datetime }}</td>
                                             </tr>
                                     {% endfor %}
                                 </table>
