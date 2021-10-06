@@ -9,9 +9,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-
-from accounts.models import User
 from cobalt.settings import GLOBAL_MPSERVER
+from .factories import masterpoint_factory_creator
 
 
 #####
@@ -23,7 +22,6 @@ from cobalt.settings import GLOBAL_MPSERVER
 # to a SQL Server database. Confluence can tell you more
 #
 ######
-from masterpoints.factories import masterpoint_factory_creator
 
 
 def masterpoint_query_local(query):
@@ -319,17 +317,8 @@ def system_number_available(system_number):
     if not system_number.isdigit():
         return False
 
-    try:
-        match = requests.get("%s/id/%s" % (GLOBAL_MPSERVER, system_number)).json()[0]
-    except (IndexError, JSONDecodeError):
-        return False
-    if match:
-        member = User.objects.filter(system_number=system_number)
-        if member:  # already registered
-            return False
-        if match["IsActive"] == "Y":
-            return True
-    return False
+    mp_source = masterpoint_factory_creator()
+    return mp_source.system_number_available(system_number)
 
 
 def get_masterpoints(system_number):
@@ -348,8 +337,12 @@ def user_summary(system_number):
     qry = "%s/mps/%s" % (GLOBAL_MPSERVER, system_number)
     try:
         r = requests.get(qry).json()
-    except Exception as exc:
-        print(exc)
+    except (
+        IndexError,
+        requests.exceptions.InvalidSchema,
+        requests.exceptions.MissingSchema,
+        ConnectionError,
+    ):
         r = []
 
     if not r:

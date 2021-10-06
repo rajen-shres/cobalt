@@ -112,8 +112,6 @@ class MasterpointFile(MasterpointFactory):
 
 def masterpoint_factory_creator():
 
-    breakpoint()
-
     if MP_USE_FILE:
         return MasterpointFile()
     else:
