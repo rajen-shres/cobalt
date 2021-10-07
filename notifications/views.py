@@ -40,8 +40,10 @@ from cobalt.settings import (
 )
 from forums.models import Forum, Post
 from logs.views import log_event
+from masterpoints.views import user_summary
 from organisations.models import Organisation
 from rbac.core import rbac_user_has_role
+from rbac.decorators import rbac_check_role
 from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
 from .forms import EmailContactForm
@@ -451,8 +453,8 @@ def get_notifications_for_user(user):
         notifications.append(
             ("---- Show all notifications ----", reverse("notifications:homepage"))
         )
-    #
-    return (note_count, notifications)
+
+    return note_count, notifications
 
 
 def contact_member(member, msg, contact_type, link=None, html_msg=None, subject=None):
@@ -956,5 +958,33 @@ def watch_emails(request, batch_id):
             "batch_id": batch_id,
             "sender": sender,
             "show_details": show_details,
+        },
+    )
+
+
+@rbac_check_role("notifications.admin.view")
+def global_admin_view_emails(request, member_id):
+    """Allow an admin to see emails for a player
+
+    Args:
+        member_id: member to look up
+        request (HTTPRequest): standard request object
+
+    Returns:
+        HTTPResponse
+    """
+
+    member = get_object_or_404(User, pk=member_id)
+    summary = user_summary(member.system_number)
+
+    email_list = PostOfficeEmail.objects.filter(to=[member.email]).order_by("-pk")[:50]
+
+    return render(
+        request,
+        "notifications/global_admin_view_emails.html",
+        {
+            "profile": member,
+            "summary": summary,
+            "emails": email_list,
         },
     )

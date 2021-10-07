@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block title %} - Stripe Pending{% endblock %}
+
+{% block content %}
+    <br>
+    <div class="container">
+
+        <div class="">
+            <div class="card">
+                <div class="card-header card-header-primary">
+                    <h1>Stripe Status</h1>
+                </div>
+                <div class="card-body table-responsive">
+                    <div class="container">
+                        Latest Successful Transaction: {{ stripe_latest.created_date }} ({{ stripe_latest.created_date|timesince }} ago)
+                        <div class="card bg-light text-dark">
+                            <div class="card-header card-header-danger">
+
+                                <h2>Manual Checkout Pending</h2>
+                                <p>A status of pending for manual checkouts means that a user has made a
+                                    payment which has been confirmed back to them by Stripe, but Stripe has not
+                                    sent us formal confirmation. This should not happen and needs to be investigated.</p>
+                            </div>
+                            <div class="card-body table-responsive">
+                                <div class="container">
+                                    {% if stripe_manual_pending %}
+                                        <table border>
+                                            <tr>
+                                                <th class="px-2">Member</th>
+                                                <th class="px-2">Stripe Transaction</th>
+                                                <th class="px-2">Status</th>
+                                                <th class="px-2">Amount</th>
+                                                <th class="px-2">Description</th>
+                                                <th class="px-2">Date</th>
+                                            </tr>
+                                            {% for stripe in stripe_manual_pending %}
+                                                <tr>
+                                                    <td class="px-2"><a href="{% url "accounts:public_profile" pk=stripe.member.id %}">{{ stripe.member }}</a></td>
+                                                    <td class="px-2">{{ stripe.id }}</td>
+                                                    <td class="px-2">{{ stripe.status }}</td>
+                                                    <td class="px-2">{{ GLOBAL_CURRENCY_SYMBOL }}{{ stripe.amount }}</td>
+                                                    <td class="px-2">{{ stripe.description }}</td>
+                                                    <td class="px-2">{{ stripe.created_date }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </table>
+                                    {% else %}
+                                        <br>
+                                        <h4>No current errors</h4>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="card bg-light text-dark">
+                            <div class="card-header card-header-warning">
+
+                                <h2>Manual Checkout Intent</h2>
+                                <p>A status of intent for manual checkouts means that a user has gone to the
+                                    checkout screen but not completed the payment. This is normal behaviour.</p>
+                            </div>
+                            <div class="card-body table-responsive">
+                                <div class="container">
+                                    <h4>Last 20 records</h4>
+                                    <table border>
+                                        <tr>
+                                            <th class="px-2">Member</th>
+                                            <th class="px-2">Stripe Transaction</th>
+                                            <th class="px-2">Status</th>
+                                            <th class="px-2">Amount</th>
+                                            <th class="px-2">Description</th>
+                                            <th class="px-2">Date</th>
+                                        </tr>
+                                        {% for stripe in stripe_manual_intent %}
+                                            <tr>
+                                                <td class="px-2"><a href="{% url "accounts:public_profile" pk=stripe.member.id %}">{{ stripe.member }}</a></td>
+                                                <td class="px-2">{{ stripe.id }}</td>
+                                                <td class="px-2">{{ stripe.status }}</td>
+                                                <td class="px-2">{{ GLOBAL_CURRENCY_SYMBOL }}{{ stripe.amount }}</td>
+                                                <td class="px-2">{{ stripe.description }}</td>
+                                                <td class="px-2">{{ stripe.created_date }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="card bg-light text-dark">
+                            <div class="card-header card-header-info">
+
+                                <h2>Auto Checkout Pending</h2>
+                                <p>A status of pending for auto top up means that a user has set up
+                                    auto top up which has been confirmed back to them by Stripe, but Stripe has not
+                                    sent us formal confirmation. This should not happen and needs to be investigated.</p>
+                            </div>
+                            {% if stripe_auto_pending %}
+                                <div class="card-body table-responsive">
+                                    <div class="container">
+                                        <table border>
+                                            <tr>
+                                                <th class="px-2">Member</th>
+                                                <th class="px-2">Status</th>
+                                            </tr>
+                                            {% for member in stripe_auto_pending %}
+                                                <tr>
+                                                    <td class="px-2"><a href="{% url "accounts:public_profile" pk=member.id %}">{{ member }}</a></td>
+                                                    <td class="px-2">{{ member.stripe_auto_confirmed }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </table>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="container">
+                                    <br>
+                                    <h4>No current errors</h4>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                    <a href="{% url "payments:admin_view_stripe_transactions" %}" class="btn btn-sm btn-primary">View Stripe Transactions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+{% endblock %}

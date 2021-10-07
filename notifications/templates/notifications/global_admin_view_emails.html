@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load cobalt_tags %}
+{% load static %}
+{% load humanize %}
+{% block title %} - Admin Player Emails{% endblock %}
+{% block header %}
+    {% include "utils/data_tables_heading.html" %}
+{% endblock header %}
+{% block content %}
+
+    <div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+
+                {% include "accounts/profile/public_profile_header.html" %}
+
+                <div class="card">
+                    <div class="card-header card-header-info">
+                        <h3>Recent Emails</h3>
+                    </div>
+                    <div class="card-body">
+                        <table id="emails" style="display: none;" class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Subject</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for email in emails %}
+                                    <tr>
+                                        <td><a href="#" onClick='showEmail({{ email.id }})'>{{ email.last_updated|date:'Y-m-d H:i:s' }}</a></td>
+                                        <td><a href="#" onClick='showEmail({{ email.id }})'>{{ email.get_status_display }}</a></td>
+                                        <td><a href="#" onClick='showEmail({{ email.id }})'>{{ email.subject }}{{ email.context.subject }}</a></td>
+
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+{% block footer %}
+    <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
+    <script>
+        $(document).ready(function () {
+
+            // Initialise datatable - only show pagination if more than one page, sort in reverse date order, column 0
+            $('#emails').DataTable({
+                "order": [[1, "desc"]],
+                drawCallback: function (settings) {
+                    const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+                    pagination.toggle(this.api().page.info().pages > 1);
+                },
+            });
+
+            // Unhide table now. This avoids the flicker
+            $('#emails').show();
+        });
+
+        function showEmail(id) {
+            const newWin = window.open('{% url "notifications:admin_view_email" %}/' + id, 'email', 'width=1000,height=1500');
+        }
+
+    </script>
+
+{% endblock footer %}

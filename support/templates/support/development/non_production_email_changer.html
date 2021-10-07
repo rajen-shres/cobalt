@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %} - Non-Production Email Changer{% endblock %}
+{% block content %}
+    <form method="post">
+
+        {% csrf_token %}
+
+        <div class="card">
+            <div class="card-header card-header-danger">
+                <h1>Change ALL Emails to a new address</h1>
+                <h2>Obviously, don't use except in test systems</h2>
+            </div>
+            <div class="card-body">
+                New Email Address:  <input type="text" name="new_email">
+
+                <button class="btn btn-success btn-sm">Change</button>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in all_users %}
+                            <tr>
+                                <td>{{ user }}</td>
+                                <td>{{ user.email }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </form>
+
+        </div>
+    </div>
+
+
+{% endblock %}

@@ -1,0 +1,15 @@
+{% load static %}
+
+<script src="{% static "assets/js/cobalt-unsaved.js" %}"></script>
+
+<script>
+    function help(title, html){
+        swal.fire({ title:title, html: html, icon: "info"})
+        return false;
+    }
+
+    $(document).ready(function(){
+        $(".myHover").tooltip();
+    });
+
+</script>

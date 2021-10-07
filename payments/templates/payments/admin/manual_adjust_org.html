@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load cobalt_tags %}
+{% load static %}
+{% block title %} - Manual Adjust Organisation{% endblock %}
+{% block content %}
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "payments:statement_admin_summary" %}">Payments Admin</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Manual Adjust Organisation</li>
+        </ol>
+    </nav>
+
+    <div class="">
+        <div class="card">
+            <div class="card-header card-header-primary">
+                <h1>{{ BRIDGE_CREDITS }}</h1>
+                <h2>Manual Adjust Organisation Account<span id="org">{% if org %} - {{ org.name }}{% endif %}</span></h2>
+                <h3 >Use negative numbers to remove money from organisations account</h3>
+            </div>
+            <div class="card-body table-responsive">
+
+                <div id="cobalt_form"
+
+                >
+                    <div class="col-md-6">
+
+                        <form method="POST">
+                            {% csrf_token %}
+                            {% if org %}
+                                <input type='hidden' id='id_organisation' name='organisation' value='{{ org.id }}'>
+                            {% else %}
+
+                                {% include "generic_org_search_body.html" %}
+                                <a class="cobalt_generic_org btn btn-warning btn-sm" data-toggle="modal" id="id_org_search" data-target="#cobalt_general_org_search"><span style="color: white;">Organisation Search</span></a>
+
+                            {% endif %}
+
+                            <div id="cobalt-hidden-org"></div>
+                            {% cobalt_bs4_field form.amount %}
+                            <div class="row pb-3">
+                                <div class="col-4 pt-3">Transaction Type</div>
+                                <div class="col-8">
+                                    {% cobalt_bs4_field form.adjustment_type %}
+                                </div>
+                            </div>
+
+                            {% cobalt_bs4_field form.description %}
+
+
+                            <div>
+                                <button type="submit" class="btn btn-success center-text cobalt-save">Submit</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block footer %}
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+    <script>
+        let fees = {% if org %}{{ org.settlement_fee_percent }}{% else %}3.0{% endif %};
+
+        $(document).ready(function(){
+
+            function changeDescription(){
+                // update the description for settlement transactions only
+                if ($('#id_adjustment_type').val() === "2")
+                {
+                    const amt = $('#id_amount').val() || 0;
+                    let settlement = 0;
+                    if (amt !== 0) {
+                        settlement = amt - (amt * fees / 100.0);
+                    }
+
+                    const desc = $('#id_description');
+                    desc.val('Settlement from {{ GLOBAL_ORG }}. Fees ' + fees.toFixed(2) + '%. Net Bank Transfer: {{ GLOBAL_CURRENCY_SYMBOL }}' + -settlement.toFixed(2))
+                    desc.trigger("change");
+                    desc.attr("readonly", true);
+                }
+            }
+
+            $('#id_adjustment_type').change(function(){
+                changeDescription();
+                if ($('#id_adjustment_type').val() !== "2"){
+                    $('#id_description').attr("readonly", false);
+                }
+            });
+
+            $('#id_amount').on("change", function(evt){
+                evt.preventDefault();
+                if ($('#id_adjustment_type').val() === "2" && $('#id_amount').val()>0){
+                    $('#id_amount').focus();
+                    swal.fire({
+                        title: "Error",
+                        html: "Amount must be negative for Settlements",
+                        icon: "error"
+                    })
+
+                } else {
+                    changeDescription();
+                }
+            });
+
+            // call function the first time
+            changeDescription();
+
+        });
+
+        {% if not org %}
+            {# load the stuff to let the user find the org if not provided #}
+            {% include 'generic_org_search_footer.html' %}
+
+            $('#cobalt_general_org_search').modal('show');
+
+            function cobaltOrgSearchOk() {
+                // Show form now that search is complete
+                $("#cobalt_form").show();
+                $("#id_org_search").hide();
+                $("#cobalt-hidden-org").html("<input type='hidden' id='id_organisation' name='organisation' value='" + org_id + "'>");
+                $("#org").html(" - " + org_name);
+                clearModalOrg();
+
+                // Get correct fees for this organisation
+                $.get({
+                    url: '{% url "payments:orgs_get_org_fees" %}/' + org_id,
+                    success: function(res){
+                        fees = parseInt(res);
+                    }
+                });
+            }
+        {% endif %}
+
+    </script>
+
+
+{% endblock %}

@@ -91,7 +91,7 @@ AWS_SES_REGION_NAME = AWS_REGION_NAME
 AWS_SES_REGION_ENDPOINT = set_value("AWS_SES_REGION_ENDPOINT")
 AWS_SES_CONFIGURATION_SET = set_value("AWS_SES_CONFIGURATION_SET")
 # Set this to false so we don't need to install m2crypto which needs OS installs to work
-# Not verifying the certificate is lower risk than having
+# Not verifying the certificate is lower risk than having us rely on an OS install
 AWS_SES_VERIFY_EVENT_SIGNATURES = False
 
 # our logical hostname (dev, test, uat, prod)

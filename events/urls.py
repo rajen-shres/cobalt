@@ -1,5 +1,7 @@
-from django.urls import path, include
-from . import views, ajax, congress_builder, congress_admin
+from django.urls import path
+
+import events.events_views.global_admin
+from .events_views import congress_admin, congress_builder, views, ajax
 
 app_name = "events"  # pylint: disable=invalid-name
 
@@ -449,22 +451,22 @@ urlpatterns = [
     #######################################################
     path(
         "system-admin/congress-masters",
-        views.global_admin_congress_masters,
+        events.events_views.global_admin.global_admin_congress_masters,
         name="global_admin_congress_masters",
     ),
     path(
         "system-admin/congress-master-edit/<int:id>",
-        views.global_admin_edit_congress_master,
+        events.events_views.global_admin.global_admin_edit_congress_master,
         name="global_admin_edit_congress_master",
     ),
     path(
         "system-admin/congress-master-create",
-        views.global_admin_create_congress_master,
+        events.events_views.global_admin.global_admin_create_congress_master,
         name="global_admin_create_congress_master",
     ),
     path(
         "system-admin/player-view/<int:member_id>",
-        views.global_admin_view_player_entries,
+        events.events_views.global_admin.global_admin_view_player_entries,
         name="global_admin_view_player_entries",
     ),
 ]

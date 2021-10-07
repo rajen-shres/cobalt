@@ -10,14 +10,14 @@ from notifications.forms import EmailForm
 from notifications.models import Snooper, EmailBatchRBAC
 from notifications.views import create_rbac_batch_id, send_cobalt_email_with_template
 from organisations.decorators import check_club_menu_access
-from organisations.forms import TagForm, TagMultiForm
+from organisations.forms import TagForm, TagMultiForm, FrontPageForm
 from organisations.models import (
     ClubTag,
     MemberClubTag,
     MemberMembershipType,
     MemberClubEmail,
+    OrganisationFrontPage,
 )
-from post_office.models import Email as PostOfficeEmail
 
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
@@ -219,9 +219,7 @@ def email_view_htmx(request, club):
         line = {}
         line["name"] = db_total.split("_")[-1]
         line["amount"] = db_totals[db_total]
-        line["amount"] = 25
         line["percent"] = int(db_totals[db_total] * 100.0 / count)
-        line["percent"] = int(line["amount"] * 100.0 / count)
         if line["percent"] == 100:
             line["colour"] = "success"
         elif line["percent"] >= 80:
@@ -345,8 +343,24 @@ def tags_remove_user_tag(request, club):
 def public_info_htmx(request, club):
     """build the comms public info tab in club menu"""
 
+    front_page, _ = OrganisationFrontPage.objects.get_or_create(organisation=club)
+
+    message = ""
+
+    if "save" in request.POST:
+        front_page_form = FrontPageForm(request.POST, instance=front_page)
+        if front_page_form.is_valid():
+            front_page_form.save()
+            print("saved")
+            message = "Data saved"
+        else:
+            print(front_page_form.errors)
+
+    else:
+        front_page_form = FrontPageForm(instance=front_page)
+
     return render(
         request,
         "organisations/club_menu/comms/public_info_htmx.html",
-        {"club": club},
+        {"club": club, "front_page_form": front_page_form, "message": message},
     )

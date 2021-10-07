@@ -10,4 +10,4 @@
 cd /var/app/current
 
 # Dump database
-./manage.py dumpdata --exclude auth.permission --exclude contenttypes > /cobalt-media/db.json
+./manage.py dumpdata --natural-foreign --natural-primary --exclude auth.permission --exclude contenttypes --indent 4 -o /cobalt-media/db.json.gz

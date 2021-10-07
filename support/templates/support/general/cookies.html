@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} - Cookies{% endblock %}
+{% block content %}
+    <div class="container d-flex justify-content-center">
+        <div class="card col-md-8">
+            <div class="card-header card-header-info">
+                <h1>Cookies</h1>
+            </div>
+            <div class="card-body">
+                <img src="{% static "assets/img/cookies.jpg" %}" alt="Cookies" width="400px">
+                <h3>What Are Cookies?</h3>
+                <p>
+                    <del>Cookies are horrible American biscuits.</del>
+                </p>
+                <p>
+                    Cookies are little text files that websites ask your web browser to store
+                    on your computer so they can keep track of the things you are doing and
+                    the places that you visit on the Internet.
+                </p>
+                <p>
+                    You can view your cookies through your web browser, but most people don't.
+                </p>
+                <p>
+                    Cookies are used extensively by marketing companies to track what you are
+                    up to and to try to gain an insight into what they can sell you. For this reason
+                    many countries have laws that force websites to ask your consent to their use
+                    of cookies. You will almost certainly have had to agree to the use of cookies
+                    when visiting some websites.
+                </p>
+                <h3>Our Use of Cookies</h3>
+                <p>
+                    We don't ask you to accept our use of cookies because we only use
+                    <a href="https://gdpr.eu/cookies/">Strictly Necessary Cookies</a> which
+                    do not require approval.
+                </p>
+                <p>
+                    We don't track you through evil cookies and we let you set your preferences
+                    through the website, not through cookies.
+                </p>
+                <p>
+                    <b>The only cookies we use are to do basic website things</b> such as not making you
+                    log in every time you go to a new page (session cookies), making sure the
+                    data you send us is not interfered with (Cross Site Request Forgery checks) and remembering if
+                    we have already told you something so you don't get constant annoying pop-ups
+                    but you do get useful information the first time you need it.
+                </p>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

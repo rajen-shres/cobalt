@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load cobalt_tags %}
+{% load static %}
+{% load humanize %}
+{% block title %} - Admin Player Payments{% endblock %}
+{% block header %}
+    {% include "utils/data_tables_heading.html" %}
+{% endblock header %}
+{% block content %}
+
+    <div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+
+                {% include "accounts/profile/public_profile_header.html" %}
+
+                <div class="card col-md-8">
+                    <div class="card-header-success">
+                        <h3>Shopping Basket</h3>
+                        <p>Items in the shopping basket have not yet been checked out to properly enter the event, nor paid for.</p>
+                        <p>A player can manage their shopping basket from the icon on the top right of every screen.</p>
+                    </div>
+                    <div class="card-body">
+                        {% if basket_items_this %}
+                            <table class="table table-hover table-condensed">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">Event</th>
+                                        <th>Date Added to Basket</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for basket_item in basket_items_this %}
+                                        <tr>
+                                            <td class="text-left">{{ basket_item.event_entry.event }}</td>
+                                            <td>{{ basket_item.event_entry.first_created_date|cobalt_nice_datetime }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <h3>basket is empty</h3>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header card-header-info">
+                        {% if show_all %}
+                            <h3>All Entries - No Date Filters</h3>
+                        {% else %}
+                            <h3>Upcoming Entries</h3>
+                            <a href="{% url "events:global_admin_view_player_entries" member_id=profile.id %}?show_all=True"
+                                class="btn btn-secondary btn-sm"
+                            >
+                                Include Past Events
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <table id="events" style="display: none;" class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Congress Start Date</th>
+                                    <th>Congress and Event</th>
+                                    <th>Entry Status</th>
+                                    <th>Organisation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event_entry in event_entries %}
+                                    <tr>
+                                        <td>{{ event_entry.event.congress.start_date|date:"Y-m-d" }}</td>
+                                        <td><a href="{% url "events:admin_evententry" evententry_id=event_entry.id %}">{{ event_entry.event }}</a></td>
+                                        <td>{{ event_entry.entry_status }}</td>
+                                        <td>{{ event_entry.event.congress.congress_master.org }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+{% block footer %}
+    <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
+    <script>
+        $(document).ready(function () {
+
+            // Initialise datatable - only show pagination if more than one page, sort in reverse date order, column 0
+            $('#events').DataTable({
+                "order": [[1, "desc"]],
+                drawCallback: function (settings) {
+                    const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+                    pagination.toggle(this.api().page.info().pages > 1);
+                },
+            });
+
+            // Unhide table now. This avoids the flicker
+            $('#events').show();
+        });
+    </script>
+
+{% endblock footer %}

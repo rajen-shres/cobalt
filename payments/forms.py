@@ -144,6 +144,10 @@ class AdjustMemberForm(forms.ModelForm):
 class AdjustOrgForm(forms.ModelForm):
     """For dodgy changes to orgs"""
 
+    adjustment_type = forms.ChoiceField(
+        choices=[(1, "Manual Adjustment"), (2, "Settlement")]
+    )
+
     class Meta:
         model = OrganisationTransaction
         fields = (
@@ -151,6 +155,22 @@ class AdjustOrgForm(forms.ModelForm):
             "description",
             "amount",
         )
+
+    def __init__(self, *args, **kwargs):
+        """dynamic set of default value on dropdown"""
+
+        # Get default value
+        default_transaction = kwargs.pop("default_transaction", None)
+        super().__init__(*args, **kwargs)
+        self.fields["adjustment_type"].initial = default_transaction
+
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get("amount")
+        adjustment_type = cleaned_data.get("adjustment_type")
+        if adjustment_type == "2" and amount >= 0:
+            self.add_error("amount", "Settlement amount must be negative")
+        return cleaned_data
 
 
 class DateForm(forms.Form):

@@ -1,16 +1,21 @@
 # .coveragerc to control coverage.py
 
 [run]
-branch = True
+branch = true
 source = .
 omit =
         *__migrations__*.py
-        __init__.py
+        */__init__.py
+        */migrations/*
+        */tests/*
+        */tests.py
+        */wsgi.py
+        */urls.py
+        */admin.py
+        */apps.py
+        manage.py
+        */cobalt/version.py
+        */cobalt/settings.py
 
-
-[html]
-branch = True
-source = .
-omit =
-        *__migrations__*.py
-        __init__.py
+[report]
+show_missing = true

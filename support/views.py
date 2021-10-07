@@ -21,6 +21,7 @@ from cobalt.settings import (
 from events.models import Congress
 from forums.models import Post, Forum
 from notifications.views import send_cobalt_email
+from organisations.models import Organisation
 from payments.models import MemberTransaction
 from rbac.core import rbac_user_has_role
 from utils.utils import cobalt_paginator
@@ -36,25 +37,25 @@ from .helpdesk import notify_user_new_ticket_by_form, notify_group_new_ticket
 def home(request):
 
     helpdesk = bool(rbac_user_has_role(request.user, "support.helpdesk.view"))
-    return render(request, "support/home.html", {"helpdesk": helpdesk})
+    return render(request, "support/general/home.html", {"helpdesk": helpdesk})
 
 
 @login_required
 def admin(request):
 
-    return render(request, "support/home-admin.html")
+    return render(request, "support/general/home_admin.html")
 
 
 def cookies(request):
-    return render(request, "support/cookies.html")
+    return render(request, "support/general/cookies.html")
 
 
 def guidelines(request):
-    return render(request, "support/guidelines.html")
+    return render(request, "support/general/guidelines.html")
 
 
 def acceptable_use(request):
-    return render(request, "support/acceptable_use.html")
+    return render(request, "support/general/acceptable_use.html")
 
 
 def non_production_email_changer(request):
@@ -84,7 +85,9 @@ def non_production_email_changer(request):
         )
 
     return render(
-        request, "support/non_production_email_changer.html", {"all_users": all_users}
+        request,
+        "support/development/non_production_email_changer.html",
+        {"all_users": all_users},
     )
 
 
@@ -108,7 +111,7 @@ def contact_logged_in(request):
 
     return render(
         request,
-        "support/contact_logged_in.html",
+        "support/contact/contact_logged_in.html",
         {
             "form": form,
         },
@@ -151,7 +154,7 @@ def contact_logged_out(request):
 
     return render(
         request,
-        "support/contact_logged_out.html",
+        "support/contact/contact_logged_out.html",
         {
             "form": form,
             "site_key": RECAPTCHA_SITE_KEY,
@@ -214,7 +217,7 @@ def contact(request):
         username = None
     return render(
         request,
-        "support/contact.html",
+        "support/contact/contact.html",
         {"form": form, "email": email, "username": username},
     )
 
@@ -250,6 +253,7 @@ def search(request):
     include_posts = request.GET.get("include_posts")
     include_events = request.GET.get("include_events")
     include_payments = request.GET.get("include_payments")
+    include_orgs = request.GET.get("include_orgs")
 
     searchparams = ""
 
@@ -290,8 +294,14 @@ def search(request):
         else:
             payments = []
 
+        if include_orgs:
+            orgs = Organisation.objects.filter(name__icontains=query)
+            searchparams += "include_orgs=1&"
+        else:
+            orgs = []
+
         # combine outputs
-        results = list(chain(people, posts, forums, events, payments))
+        results = list(chain(people, posts, forums, events, payments, orgs))
 
         # create paginator
         things = cobalt_paginator(request, results)
@@ -302,7 +312,7 @@ def search(request):
 
     return render(
         request,
-        "support/search.html",
+        "support/general/search.html",
         {
             "things": things,
             "search_string": query,
@@ -311,6 +321,7 @@ def search(request):
             "include_posts": include_posts,
             "include_events": include_events,
             "include_payments": include_payments,
+            "include_orgs": include_orgs,
             "searchparams": searchparams,
         },
     )

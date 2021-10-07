@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %} - Helpdesk Menu{% endblock %}
+{% block content %}
+
+    <div class="container">
+        <div class="row">
+            <div class="card col-12 mx-auto">
+                <div class="card-header card-header-info">
+                    <h1>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                Helpdesk
+                            </div>
+                            <div>
+                                <i class="material-icons" style="font-size:50px">contact_support</i>
+                            </div>
+                        </div>
+                    </h1>
+                    <h3>Open Tickets: {{ open_tickets }}</h3>
+                </div>
+                <div class="card-body">
+                    <a href="{% url "support:create_ticket" %}" class="btn-success btn-sm btn">Create New Ticket</a>
+                    <a href="{% url "support:helpdesk_list" %}" class="btn-rose btn-sm btn">Filter Tickets</a>
+                    <div class="float-right">
+                        <a href="{% url "support:helpdesk_admin" %}" class="btn-danger btn-sm btn">Admin</a>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header card-header-danger">
+                            <h2>Assigned to You({{ assigned_to_you.count }})</h2>
+                        </div>
+                        <div class="card-body">
+                            {% if assigned_to_you %}
+                                {%  include "support/helpdesk/list_tickets_table.html" with things=assigned_to_you %}
+                            {% else %}
+                                <h3>You have nothing assigned.</h3>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header card-header-warning">
+                            <h2>Unassigned({{ unassigned_tickets.count }})</h2>
+                        </div>
+                        <div class="card-body">
+                            {% if unassigned_tickets %}
+                                {#                            Pass a counter to give the table a unique name#}
+                                {%  include "support/helpdesk/list_tickets_table.html" with things=unassigned_tickets counter=1 %}
+                            {% else %}
+                                <h3>There is nothing pending.</h3>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header card-header-success">
+                            <h2>Assigned to Others({{ assigned_to_others.count }})</h2>
+                        </div>
+                        <div class="card-body">
+                            {% if assigned_to_others %}
+                                {#                            Pass a counter to give the table a unique name#}
+                                {%  include "support/helpdesk/list_tickets_table.html" with things=assigned_to_others counter=2 %}
+                            {% else %}
+                                <h3>There is nothing assigned to others.</h3>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <a href="{% url "support:create_ticket" %}" class="btn-success btn-sm btn">Create New Ticket</a>
+                    <a href="{% url "support:helpdesk_list" %}" class="btn-rose btn-sm btn">Filter Tickets</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+{%  block footer %}
+    <script>
+        $(document).ready(function () {
+
+            // Unhide table now. A bit annoying, but we share the table code with other html files
+            $('#ticket_table').show();
+            $('#ticket_table1').show();
+            $('#ticket_table2').show();
+
+
+            // handle clicking on a row - assumes row has one <a> link in it which is applied to all cells
+            $('tr').click(function () {
+                const href = $(this).find('a').attr('href');
+                if (typeof href !== 'undefined') {
+                    window.location = href;
+                }
+            });
+
+        });
+    </script>
+{% endblock footer %}

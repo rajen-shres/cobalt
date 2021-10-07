@@ -1,0 +1,120 @@
+{% load static %}
+{% load humanize %}
+
+<table class="table table-hover">
+    <thead class="text-info">
+        <tr>
+            <th></th>
+            <th>Date</th>
+            <th>Counterparty</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th class="text-right">In({{ GLOBAL_CURRENCY_SYMBOL }})</th>
+            <th class="text-right">Out({{ GLOBAL_CURRENCY_SYMBOL }})</th>
+            <th class="text-right">Balance({{ GLOBAL_CURRENCY_SYMBOL }})</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="font-weight-bold">Closing Balance</td>
+            <td></td>
+            <td></td>
+            <td class="text-right">{{ page_balance.closing_balance|floatformat:2|intcomma }}</td>
+        </tr>
+        {% for thing in things %}
+            <tr>
+                <td><a href="javascript:void(0)" onclick="
+                    swal.fire({
+                    title: '{{ thing.type }}',
+                    showClass: {
+                    popup: 'animate__animated animate__fadeInDown'
+                    },
+                    hideClass: {
+                    popup: 'animate__animated animate__fadeOutUp'
+                    },
+                    html: '<table class=cobalt-table>\
+                    <tr>\
+                        <td class=cobalt-left>Date: </td>\
+                        <td class=cobalt-left>{{ thing.created_date }}</td>\
+                    </tr>\
+                    <tr>\
+                        <td class=cobalt-left>Description:</td>\
+                        <td class=cobalt-left>{{ thing.description }}</td>\
+                    </tr>\
+                    <tr>\
+                        <td class=cobalt-left>Reference:</td>\
+                        <td class=cobalt-left>{{ thing.reference_no }}</td>\
+                    </tr>\
+                    <tr>\
+                        <td class=cobalt-left>Counterparty:</td>\
+                        <td class=cobalt-left>{{ thing.member|default_if_none:"" }}\
+                            {% spaceless %}
+                                {% if not thing.member %}
+                                    {{ thing.organisation|default_if_none:"" }}</td>\
+                                {% else %}
+                                    </td>\
+                                {% endif %}
+                            {% endspaceless %}
+                        </tr>\
+                        <tr>\
+                            <td class=cobalt-left>Amount:</td>\
+                            <td class=cobalt-left>{{ thing.amount|floatformat:2|intcomma }}</td>\
+                        </tr>\
+                    </table>',
+                    icon: 'info',
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Dismiss'
+                    })">
+                    <i class="material-icons">info</i></a></td>
+                <td>{{ thing.created_date|date:"d M Y" }}</td>
+                <td>{{ thing.member|default_if_none:"" }}{{ thing.other_organisation|default_if_none:"" }}</td>
+                <td>{{ thing.type }}</td>
+                <td>
+                    {% if thing.stripe_transaction.stripe_receipt_url %}
+                        <a href="{{ thing.stripe_transaction.stripe_receipt_url }}">
+
+                            Payment from <img height="16px;" src="
+                                {% if thing.stripe_transaction.stripe_brand == "visa" %}
+                                    {% static 'assets/img/cards/visa-dark.png' %}
+                                {% elif thing.stripe_transaction.stripe_brand == "mastercard" %}
+                                    {% static 'assets/img/cards/mastercard-dark.png' %}
+                                {% else %}
+                                    {% static 'assets/img/cards/default-dark.png' %}
+                                {% endif %}
+                                ">
+
+                            ending {{ thing.stripe_transaction.stripe_last4 }}
+                        </a>
+                    {% else %}
+                        {{ thing.description }}
+                    {% endif %}
+                </td>
+                {% if thing.amount >= 0 %}
+                    <td class="text-right">{{ thing.amount|floatformat:2|intcomma }}</td>
+                    <td></td>
+                {% else %}
+                    <td></td>
+                    <td class="text-right">{{ thing.amount|floatformat:2|intcomma|slice:"1:" }}</td>
+                {% endif %}
+                <td class="text-right">{{ thing.balance|floatformat:2|intcomma }}</td>
+
+            </tr>
+        {% endfor %}
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="font-weight-bold">Opening Balance</td>
+            <td></td>
+            <td></td>
+            <td class="text-right">{{ page_balance.opening_balance|floatformat:2|intcomma }}</td>
+        </tr>
+
+    </tbody>
+</table>

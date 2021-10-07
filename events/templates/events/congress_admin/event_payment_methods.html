@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+{% block title %} - Admin Event Payment Methods{% endblock %}
+
+{% block content %}
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event.congress.id %}">{{ event.congress.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Payment Methods</li>
+        </ol>
+    </nav>
+
+    <div class="container justify-content-center">
+        <div class="row h-100 d-flex justify-content-center">
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h2>Congress Admin View</h2>
+                    <h3>Payment Methods for {{ event }}</h3>
+                    <h4>This report shows all payment methods, including for cancelled entries</h4>
+                    <a href="{% url "events:admin_event_payment_methods_csv" event_id=event.id %}" class="btn btn-sm btn-primary">Download as CSV</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="text-info">
+                                <tr>
+                                    <th>Primary Entrant</th>
+                                    <th>Player</th>
+                                    <th>Entry Status</th>
+                                    <th>Status</th>
+                                    <th>Entry Fee</th>
+                                    <th>Paid</th>
+                                    <th>Payment Method</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event_entry_player in event_entry_players %}
+                                    <tr>
+                                        <td>{{ event_entry_player.event_entry.primary_entrant }}</td>
+                                        <td>{{ event_entry_player.player }}</td>
+                                        <td>{{ event_entry_player.event_entry.entry_status }}</td>
+                                        <td>{{ event_entry_player.payment_status }}</td>
+                                        <td>{{ event_entry_player.entry_fee }}</td>
+                                        <td>{{ event_entry_player.payment_received }}</td>
+                                        <td>{{ event_entry_player.get_payment_type_display }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% include "events/congress_admin/event_log_table.html" %}
+        </div>
+    </div>
+{% endblock %}

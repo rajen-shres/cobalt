@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load cobalt_tags %}
+{% load widget_tweaks %}
+{% block title %} - Search{% endblock %}
+
+{% block content %}
+    <div id="ignore_cobalt_save"></div>
+
+    <div class="container pt-4">
+        <div class="card">
+            <div class="card-header card-header-info">
+
+                <h1>Search</h1>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    {% csrf_token %}
+                    <div>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text col-md-3">
+                                    <i class="material-icons">search</i>
+                                </span>
+                            </div>
+                            <input type="text" class="form-control" placeholder="Search Words" name="search_string" value={{ search_string|default_if_none:"" }}>
+                        </div>
+                        <div class="form-check form-check-inline mt-4">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" id="include_people" name="include_people" value="checked" if {% if include_people %} checked {% endif %}> People
+                                <span class="form-check-sign">
+                                    <span class="check"></span>
+                                </span>
+                            </label>
+                        </div>
+
+                        <div class="form-check form-check-inline">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" id="include_forums" name="include_forums" value="checked" if {% if include_forums %} checked {% endif %}> Forums
+                                <span class="form-check-sign">
+                                    <span class="check"></span>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" id="include_orgs" name="include_orgs" value="checked" if {% if include_orgs %} checked {% endif %}> Clubs
+                                <span class="form-check-sign">
+                                    <span class="check"></span>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" id="include_posts" name="include_posts" value="checked" if {% if include_posts %} checked {% endif %}> Post Titles
+                                <span class="form-check-sign">
+                                    <span class="check"></span>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" id="include_events" name="include_events" value="checked" if {% if include_events %} checked {% endif %}> Events
+                                <span class="form-check-sign">
+                                    <span class="check"></span>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" id="include_payments" name="include_payments" value="checked" if {% if include_payments %} checked {% endif %}> Payments
+                                <span class="form-check-sign">
+                                    <span class="check"></span>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="w-100"></div>
+                        <button class="btn btn-warning mt-3" type="submit">
+                            <i class="material-icons">search</i>Search
+                        </button>
+                    </div>
+
+                </form>
+
+                {% if things %}
+                    <table class="table table-hover">
+                        <thead>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th>Info</th>
+                        </thead>
+                        <tbody>
+                            {% for thing in things %}
+                                <tr>
+                                    <td>
+                                        {% if thing|get_class == 'MemberTransaction' %}
+                                            Payments
+                                        {% else %}
+                                            {{ thing|get_class }}
+                                        {% endif %}
+                                    </td>
+
+                                    {% if thing|get_class == 'Post' %}
+
+                                        <td><a href="{% url "forums:post_detail" pk=thing.id %}">{{ thing.title }}</a></td>
+                                        <td>Post in <a href="{% url "forums:post_list_single_forum" forum_id=thing.forum.id %}">
+                                            {{ thing.forum }}</a> by <a href="{% url "accounts:public_profile" pk=thing.author.id %}">{{ thing.author.full_name }}</a></td>
+
+                                    {% elif thing|get_class == 'User' %}
+
+                                        <td><a href="{% url "accounts:public_profile" pk=thing.id %}">{{ thing.full_name }}</a></td>
+                                        <td><a href="{% url "accounts:public_profile" pk=thing.id %}">{{ GLOBAL_ORG}} Number: {{ thing.system_number }}</a></td>
+
+                                    {% elif thing|get_class == 'Organisation' %}
+
+                                        <td><a href="{% url "organisations:general_org_profile" org_id=thing.id %}">{{ thing }}</a></td>
+                                        <td><a href="{% url "organisations:general_org_profile" org_id=thing.id %}">{{ thing.state }}</a></td>
+
+                                    {% elif thing|get_class == 'Forum' %}
+
+                                        <td><a href="{% url "forums:post_list_single_forum" forum_id=thing.id %}">{{ thing.title }}</a></td>
+                                        <td>{{ thing.description }} - {{ thing.forum_type }}</td>
+
+
+                                    {% elif thing|get_class == 'Congress' %}
+
+                                        <td><a href="{% url "events:view_congress" congress_id=thing.id %}">{{ thing.name }}</a></td>
+                                        <td>{{ thing.date_string }}</td>
+
+                                    {% elif thing|get_class == 'MemberTransaction' %}
+
+                                        <td><a href="{% url "payments:payments" %}">{{ thing.description }}</a></td>
+                                        <td>{{ thing.created_date|cobalt_nice_datetime }}</td>
+
+                                    {% endif %}
+
+                                </tr>
+
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    {% include "utils/pagination_footer.html" %}
+
+                    </div>
+
+                {% else %}
+
+                    <h3>No Results Found</h3>
+
+                {% endif %}
+
+            </div>
+        </div>
+
+{% endblock %}

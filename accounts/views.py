@@ -135,7 +135,18 @@ def register(request):
     """
 
     form = UserRegisterForm(request.POST or None)
-    if form.is_valid():
+
+    if request.method == "POST":
+        # See if this user registered before and didn't activate
+        user = (
+            User.objects.filter(system_number=request.POST.get("username"))
+            .filter(is_active=False)
+            .first()
+        )
+        if user:
+            # reload form with this user as base
+            form = UserRegisterForm(request.POST, instance=user)
+
         user = form.save(commit=False)
         user.is_active = False  # not active until email confirmed
         user.system_number = user.username
@@ -227,18 +238,39 @@ def password_reset_request(request):
     email = password_reset_form.cleaned_data["email"]
     associated_users = User.objects.filter(email=email)
 
-    email_body = (
+    email_body_base = (
         f"You are receiving this email because you requested a password reset for your account with "
         f"{GLOBAL_TITLE}. Click on the link below to reset your password.<br><br>"
     )
 
+    if associated_users.count() > 1:
+        email_body_base += (
+            "<b>This email address is shared.</b> You should check the name above and "
+            "only click on the link sent to the person who wants to reset their password.<br><br>"
+        )
+
     for user in associated_users:
 
+        if user.is_active:
+            link_type = "password_reset_confirm"
+            link_text = "Reset Password"
+            token = default_token_generator.make_token(user)
+            email_body = email_body_base
+        else:
+            link_type = "accounts:activate"
+            link_text = "Activate Account"
+            token = account_activation_token.make_token(user)
+            email_body = (
+                email_body_base
+                + "<h3>This account has not been activated. You must activate "
+                "the account first.</h3><br><br>"
+            )
+
         link = reverse(
-            "password_reset_confirm",
+            link_type,
             kwargs={
                 "uidb64": urlsafe_base64_encode(force_bytes(user.pk)),
-                "token": default_token_generator.make_token(user),
+                "token": token,
             },
         )
 
@@ -250,7 +282,7 @@ def password_reset_request(request):
                 "email_body": email_body,
                 "host": COBALT_HOSTNAME,
                 "link": link,
-                "link_text": "Reset Password",
+                "link_text": link_text,
             },
         )
 
@@ -615,7 +647,7 @@ def profile(request):
 
     return render(
         request,
-        "accounts/profile.html",
+        "accounts/profile/profile.html",
         {
             "form": form,
             "blurbform": blurbform,
@@ -741,9 +773,14 @@ def public_profile(request, pk):
     else:
         tickets = False
 
+    if rbac_user_has_role(request.user, "notifications.admin.view"):
+        email_admin = True
+    else:
+        email_admin = False
+
     return render(
         request,
-        "accounts/public_profile.html",
+        "accounts/profile/public_profile.html",
         {
             "profile": pub_profile,
             "posts": posts,
@@ -755,6 +792,7 @@ def public_profile(request, pk):
             "summary": summary,
             "payments_admin": payments_admin,
             "events_admin": events_admin,
+            "email_admin": email_admin,
             "tickets": tickets,
         },
     )
@@ -1226,3 +1264,28 @@ def invite_to_join(
     un_reg.last_registration_invite_by_user = requested_by_user
     un_reg.last_registration_invite_by_club = requested_by_org
     un_reg.save()
+
+
+@login_required()
+def covid_htmx(request):
+    """return current state of users covid status as HTML"""
+
+    return render(request, "accounts/profile/covid_htmx.html")
+
+
+@login_required()
+def covid_user_confirm_htmx(request):
+    """Update users covid status"""
+
+    request.user.covid_status = request.user.CovidStatus.USER_CONFIRMED
+    request.user.save()
+    return render(request, "accounts/profile/covid_htmx.html")
+
+
+@login_required()
+def covid_user_exempt_htmx(request):
+    """Update users covid status to anti-vaxxer"""
+
+    request.user.covid_status = request.user.CovidStatus.USER_EXEMPT
+    request.user.save()
+    return render(request, "accounts/profile/covid_htmx.html")

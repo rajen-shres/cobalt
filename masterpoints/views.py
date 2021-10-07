@@ -9,10 +9,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-
-from accounts.models import User
-from cobalt.factories import masterpoint_factory_creator
 from cobalt.settings import GLOBAL_MPSERVER
+from .factories import masterpoint_factory_creator
 
 
 #####

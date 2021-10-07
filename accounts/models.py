@@ -30,6 +30,12 @@ class User(AbstractUser):
     User class based upon AbstractUser.
     """
 
+    class CovidStatus(models.TextChoices):
+        UNSET = "US", "Unset"
+        USER_CONFIRMED = "UC", "User Confirmed"
+        ADMIN_CONFIRMED = "AC", "Administrator Confirmed"
+        USER_EXEMPT = "AV", "User Medically Exempt from Vaccination"
+
     email = models.EmailField(unique=False)
     system_number = models.IntegerField(
         "%s Number" % GLOBAL_ORG,
@@ -93,6 +99,10 @@ class User(AbstractUser):
         "Use Perfect Scrollbar on Windows", default=False
     )
     last_activity = models.DateTimeField(blank="True", null=True)
+
+    covid_status = models.CharField(
+        choices=CovidStatus.choices, max_length=2, default=CovidStatus.UNSET
+    )
 
     REQUIRED_FIELDS = [
         "system_number",

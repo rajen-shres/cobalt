@@ -1,0 +1,211 @@
+{% extends "base_logged_out.html" %}
+{% load static %}
+
+{% block header %}
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDt0qnOZKvnJzLO83eg1KB0k8l5SH-NGzY&callback=initMap&libraries=&v=weekly" defer></script>
+    <style type="text/css">
+        /* Set the size of the div element that contains the map */
+        #map {
+            height: 400px;
+            /* The height is 400 pixels */
+            width: 100%;
+            /* The width is the width of the web page */
+        }
+    </style>
+    <script>
+        // Initialize and add the map
+        function initMap() {
+            var myLatlng = new google.maps.LatLng({{ congress.venue_location }});
+
+            var mapOptions = {
+                zoom: 14,
+                center: myLatlng,
+                scrollwheel: false, //we disable de scroll over the map, it is a really annoing when you scroll through page
+            }
+
+            var map = new google.maps.Map(document.getElementById("map"), mapOptions);
+
+            var marker = new google.maps.Marker({
+                position: myLatlng,
+                title: "Regular Map!"
+            });
+
+            marker.setMap(map);
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <button><a href="#program" class="btn btn-sm btn-success col-md-2 col-lg-2"> Click here to enter </a></button>
+    {% if congress.raw_html %}
+        {{ congress.raw_html|safe }}
+    {% else %}
+
+        <div class="event">
+            <br>
+            <h1>{{ congress.congress_master.org }}</h1>
+            <h2>{{ congress.date_string }}</h2>
+            <br>
+        </div>
+
+        <div class="arrow-down">
+        </div>
+        <br>
+        <br>
+        <button class="congresses"  disabled style="pointer-events:none;> <a href="#program">{{ congress.name }}</a>  </button>
+        <br>
+
+        <div class="flex-container">
+            {% if congress.sponsors %}
+                <div>
+                    <h2>Sponsored by</h2>
+                    {{ congress.sponsors|safe }}
+                </div>
+            {% endif %}
+
+            {% if congress.latest_news %}
+                <div>
+                    <h2>Latest News</h2>
+                    {{ congress.latest_news|safe }}
+                </div>
+            {% endif %}
+
+            {% if congress.people %}
+                <div>
+                    <h2>People</h2>
+                    {{ congress.people|safe }}
+                </div>
+            {% endif %}
+
+            {% if congress.links %}
+                <div>
+                    <h2>Links</h2>
+                    {{ congress.links|safe }}
+                </div>
+            {% endif %}
+
+
+
+            {% if bulletins %}
+                <div>
+                    <h2>Bulletins</h2>
+                    <ul>
+                        {% for bulletin in bulletins %}
+                            <li><a href="{{ bulletin.document.url }}">{{ bulletin.description }}</a>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+        </div>
+
+
+        <div class="flex-container">
+            <div style="width: 50%">
+                <h2> GENERAL INFORMATION </h2>
+
+                <span style="text-align: left;">
+                    <p class="description">	{{ congress.general_info|safe}} </p>
+                </span>
+            </div>
+
+
+        </div>
+
+
+        {% if downloads %}
+            <div class="flex-container">
+                <div style="width: 50%">
+                    <h2> DOWNLOADS </h2>
+
+                    <span style="text-align: left;">
+                        <p class="description">
+
+                            <ul>
+                                {% for download in downloads %}
+                                    <li><a href="{{ download.document.url }}" target="_blank">{{ download.description }}</a>
+                                {% endfor %}
+                            </ul>
+
+                        </p>
+                    </span>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="map-container">
+            <div style="width: 80%">
+                <h2>Location - {{ congress.venue_name }}</h2>
+                <div id="map"></div>
+            </div>
+
+        </div>
+
+
+        <div class="flex-container">
+
+            {% if congress.venue_transport %}
+                <div>
+                    <h2>Transport</h2>
+                    <span style="text-align: left;">
+                        {{ congress.venue_transport|safe }}
+                    </span>
+                </div>
+            {% endif %}
+
+            {% if congress.venue_catering %}
+                <div>
+                    <h2>Catering</h2>
+                    <span style="text-align: left;">
+                        {{ congress.venue_catering|safe }}
+                    </span>
+                </div>
+            {% endif %}
+
+            {% if congress.venue_additional_info %}
+                <div>
+                    <h2>Additional Information</h2>
+                    {{ congress.venue_additional_info|safe }}
+                </div>
+            {% endif %}
+
+        </div>
+
+
+        <div href="program" class="flex-container">
+            <a name="program"></a>
+            <div style="width: 80%">
+                <h2> PROGRAM </h2>
+                <br>
+
+                <table class="program">
+                    <tr>
+                        <th>Event</th>
+                        <th>Entry Fee</th>
+                        <th>Day</th>
+                        <th>Time</th>
+                        <th>Total Entries</th>
+                        <th>Action</th>
+                    </tr>
+                    {% for program in program_list %}
+                        <tr>
+                            {{ program.event|safe }}
+                            {{ program.day|safe }}
+                            {{ program.time|safe }}
+                            {{ program.entries_total|safe }}
+                            {{ program.links|safe }}
+                        </tr>
+                    {% endfor %}
+
+                </table>
+
+                <p>{{ congress.additional_info|safe }}</p>
+
+
+            </div>
+
+        </div>
+
+        <!-- end raw HTML if/else -->
+    {% endif %}
+{% endblock %}

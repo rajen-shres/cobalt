@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load cobalt_tags %}
+{% block content %}
+
+    <div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+
+                {% include "accounts/profile/public_profile_header.html" %}
+
+            </div>
+            <div class="row justify-content-center">
+                <div class="py-2">
+                    {% if payments_admin %}
+                        <a href="{% url "payments:admin_player_payments" member_id=profile.id %}" class="btn btn-sm btn-danger">Payments Admin</a>
+                    {% endif %}
+                    {% if events_admin %}
+                        <a href="{% url "events:global_admin_view_player_entries" member_id=profile.id %}" class="btn btn-sm btn-danger">Events Admin</a>
+                    {% endif %}
+                    {% if tickets %}
+                        <a href="{% url "support:helpdesk_list" %}?days=-1&user={{ profile.id }}" class="btn btn-sm btn-danger">Helpdesk Tickets ({{ tickets.count }})</a>
+                    {% endif %}
+                    {% if email_admin %}
+                        <a href="{% url "notifications:global_admin_view_emails" member_id=profile.id %}" class="btn btn-sm btn-danger">Email Admin</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card card-nav-tabs">
+                <div class="card-header card-header-info">
+                    <div class="nav-tabs-navigation">
+                        <div class="nav-tabs-wrapper">
+                            <ul class="nav nav-tabs" data-tabs="tabs">
+                                <li class="nav-item">
+                                    <a class="nav-link {{ posts_active }}" href="#posts" data-toggle="tab">Posts({{ profile.post_set.count }})</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ comment1s_active }}" href="#replies" data-toggle="tab">Replies({{ profile.comment1_set.count }})</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ comment2s_active }}" href="#comments" data-toggle="tab">Comments({{ profile.comment2_set.count }})</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content text-left">
+                        <!-- Posts -->
+                        <div class="tab-pane {{ posts_active }}" id="posts">
+                            {% if posts %}
+                                <table class="table">
+                                    <tr>
+                                        <th>Post</th>
+                                        <th>Forum</th>
+                                        <th>Date</th>
+                                    </tr>
+                                    {% for post in posts %}
+                                        <tr>
+                                            <td><a href="{% url "forums:post_detail" post.pk %}"> {{ post.title }}</td>
+                                                <td>{{ post.forum }}</td>
+                                                <td>{{ post.created_date|cobalt_nice_datetime }}</td>
+                                            </tr>
+                                    {% endfor %}
+                                </table>
+
+                                <!-- We can't use pagination_footer as we have 3 different paginations on the same page
+We add an optional parameter to the link so the view code can work out which
+paginations we are doing -->
+
+                                {% if posts.has_other_pages %}
+                                    <ul class="pagination">
+                                        {% if posts.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?tab=posts&page={{ posts.previous_page_number }}">Previous</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">Previous</span>
+                                            </li>
+                                        {% endif %}
+                                        {% for i in posts.paginator.page_range %}
+                                            {% if posts.number == i %}
+                                                <li class="page-item active"> <span class="page-link">
+                                                    {{ i }}
+                                                    <span class="sr-only">(current)</span>
+                                                </span>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item"><a class="page-link" href="?tab=posts&page={{ i }}">{{ i }}&nbsp;</a></li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if posts.has_next %}
+                                            <li class="page-item"><a class="page-link" href="?tab=posts&page={{ posts.next_page_number }}">Next</a></li>
+                                        {% else %}
+                                            <li class="page-item disabled"><span>Next</span></li>
+                                        {% endif %}
+                                    </ul>
+                                {% endif %}
+                            {% else %}
+                                <h4>{{ profile.first_name }} hasn't posted anything yet.</h4>
+                            {% endif %}
+                        </div>
+
+                        <!-- End of Posts -->
+
+                        <!-- C1 -->
+                        <div class="tab-pane {{ comment1s_active }}" id="replies">
+                            {% if comment1s %}
+                                <table class="table">
+                                    <tr>
+                                        <th>Post</th>
+                                        <th>Forum</th>
+                                        <th>Date</th>
+                                    </tr>
+                                    {% for c1 in comment1s %}
+                                        <tr>
+                                            <td><a href="{% url "forums:post_detail" c1.post.pk %}#c1-{{c1.id}}"> {{ c1.post.title }}</td>
+                                                <td>{{ c1.post.forum }}</td>
+                                                <td>{{ c1.created_date|cobalt_nice_datetime }}</td>
+                                            </tr>
+                                    {% endfor %}
+                                </table>
+
+                                <!-- We can't use pagination_footer as we have 3 different paginations on the same page
+We add an optional parameter to the link so the view code can work out which
+paginations we are doing -->
+
+                                {% if comment1s.has_other_pages %}
+                                    <ul class="pagination">
+                                        {% if comment1s.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?tab=comment1s&page={{ comment1s.previous_page_number }}">Previous</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">Previous</span>
+                                            </li>
+                                        {% endif %}
+                                        {% for i in comment1s.paginator.page_range %}
+                                            {% if comment1s.number == i %}
+                                                <li class="page-item active"> <span class="page-link">
+                                                    {{ i }}
+                                                    <span class="sr-only">(current)</span>
+                                                </span>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item"><a class="page-link" href="?tab=comment1s&page={{ i }}">{{ i }}&nbsp;</a></li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if comment1s.has_next %}
+                                            <li class="page-item"><a class="page-link" href="?tab=comment1s&page={{ comment1s.next_page_number }}">Next</a></li>
+                                        {% else %}
+                                            <li class="page-item disabled"><span>Next</span></li>
+                                        {% endif %}
+                                    </ul>
+                                {% endif %}
+                            {% else %}
+                                <h4>{{ profile.first_name }} hasn't replied to anything yet.</h4>
+                            {% endif %}
+                        </div>
+
+                        <!-- End of C1 -->
+                        <!-- C2 -->
+                        <div class="tab-pane {{ comment2s_active }}" id="comments">
+                            {% if comment2s %}
+                                <table class="table">
+                                    <tr>
+                                        <th>Post</th>
+                                        <th>Forum</th>
+                                        <th>Date</th>
+                                    </tr>
+                                    {% for c2 in comment2s %}
+                                        <tr>
+                                            <td><a href="{% url "forums:post_detail" c2.post.pk %}#c2-{{c2.id}}"> {{ c2.post.title }}</td>
+                                                <td>{{ c2.post.forum }}</td>
+                                                <td>{{ c2.created_date|cobalt_nice_datetime }}</td>
+                                            </tr>
+                                    {% endfor %}
+                                </table>
+
+                                <!-- We can't use pagination_footer as we have 3 different paginations on the same page
+We add an optional parameter to the link so the view code can work out which
+paginations we are doing -->
+
+                                {% if comment2s.has_other_pages %}
+                                    <ul class="pagination">
+                                        {% if comment2s.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?tab=comment2s&page={{ comment2s.previous_page_number }}">Previous</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">Previous</span>
+                                            </li>
+                                        {% endif %}
+                                        {% for i in comment2s.paginator.page_range %}
+                                            {% if comment2s.number == i %}
+                                                <li class="page-item active"> <span class="page-link">
+                                                    {{ i }}
+                                                    <span class="sr-only">(current)</span>
+                                                </span>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item"><a class="page-link" href="?tab=comment2s&page={{ i }}">{{ i }}&nbsp;</a></li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if comment2s.has_next %}
+                                            <li class="page-item"><a class="page-link" href="?tab=comment2s&page={{ comment2s.next_page_number }}">Next</a></li>
+                                        {% else %}
+                                            <li class="page-item disabled"><span>Next</span></li>
+                                        {% endif %}
+                                    </ul>
+                                {% endif %}
+                            {% else %}
+                                <h4>{{ profile.first_name }} hasn't commented on anything yet.</h4>
+                            {% endif %}
+                        </div>
+
+                        <!-- End of C1 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

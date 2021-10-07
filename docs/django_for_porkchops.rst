@@ -397,5 +397,128 @@ Keep virtual env out of your code
 
 gitignore
 
+Things I used to do but promise never to do  again
+==================================================
 
+Here are some things to watch out for. They are not necessarily all terrible, but people will think more of you as
+a developer if you can avoid them.
+
+Using Strings instead of Constants
+----------------------------------
+
+There is a lot of Cobalt code that still has this problem. Fix it as you find it.
+
+Don't do this::
+
+    model.py
+
+    CHOICES = [("Active", "Active"), ("Inactive", "Inactive")]
+
+    class MyThing(models.Model):
+    status = models.CharField(choices=CHOICES, max_length=400, default="Inactive")
+
+
+    views.py
+
+    if thing.status == "Active":
+        # Do something
+
+It will work fine, but this is better::
+
+    model.py
+
+    class MyThing(models.Model):
+
+    class SpecificStatus(models.TextChoices):
+        ACTIVE = 'AC', 'Active'
+        INACTIVE = 'IN', 'Inactive'
+
+        # This works too - the readable name is taken from the variable name
+        ACTIVE = 'AC'
+        INACTIVE = 'IN'
+
+    specific_status = models.CharField(choices=SpecificStatus.choices, max_length=2, default=SpecificStatus.ACTIVE)
+
+
+    views.py
+
+    if thing.specific_status == SpecificStatus.ACTIVE:
+        # Do something
+
+This not only lets you change the readable name (and only specify it in one place) but more importantly you will get
+an error if you type the variable name wrongly and your IDE will autocomplete it for you.
+
+Turn Away Unwanted Guests at the Front Door
+-------------------------------------------
+
+Don't do this::
+
+    if state = EXPECTED_STATE:
+    # Do a bunch of things
+    elif state == BAD_STATE:
+        return "Error - bad state"
+    else:
+        return "Error - unexpected state"
+
+Do this instead::
+
+    if state == BAD_STATE:
+        return "Error - bad state"
+
+    if state != EXPECTED_STATE:
+        return "Error - unexpected state"
+
+    # Now do your stuff, but one indentation further out and code is easier to read
+
+Use Custom Exceptions
+---------------------
+
+Exceptions are the acceptable face of the old GOTO statement. They let you quite your code in the middle if something
+goes wrong. However, it is better to say exactly what went wrong and not just use a built in exception.
+
+Don't do this::
+
+    raise ValueError
+
+Do this::
+
+    class CSVInconsistentDataException(Exception):
+        def __init__(self, filename, message):
+        self.message = message
+        self.filename = filename
+
+    def __str__(self):
+        return self.message
+
+    raise CSVInconsistentDataException(filename, "Bad data found on row 7 - date field missing from column 8")
+
+Functions should conduct the orchestra or play one instrument well
+------------------------------------------------------------------
+
+If you have a function that takes a parameter to tell it what to do, then either replace it with specific functions
+or have it call specific functions. Don't have a function that tries to play the flute and the violin at the same
+time.
+
+But... this::
+
+    def my_func(age):
+
+        if age < 5:
+            log_it("Under 5 found")
+            return "This person is under 5 years old"
+
+        # do something
+
+Is better than this::
+
+    def my_func(age):
+
+        if age < 5:
+            return _handle_under_5()
+
+        # do something
+
+    def _handle_under_5():
+            log_it("Under 5 found")
+            return "This person is under 5 years old"
 

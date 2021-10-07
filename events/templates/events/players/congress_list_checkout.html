@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} - Congress List Checkout{% endblock %}
+{% block content %}
+
+    <div class="container justify-content-center">
+        <div class="row h-100 d-flex justify-content-center">
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h2>Congress Checkout</h2>
+                </div>
+                <div class="card-body">
+
+                    <h2>Multiple Congresses - Pick one to checkout</h2>
+                    <ul>
+                        {% for congress in congress_list %}
+                            <li><a href="{% url "events:checkout" congress_id=congress.id %}">{{ congress }}</a>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

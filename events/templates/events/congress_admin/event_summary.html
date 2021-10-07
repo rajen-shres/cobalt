@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+{% load humanize %}
+{% block title %} - Admin Event Summary{% endblock %}
+{% block content %}
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event.congress.id %}">{{ event.congress.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ event.event_name }}</li>
+        </ol>
+    </nav>
+
+    <div class="container justify-content-center">
+        <div class="row h-100 d-flex justify-content-center">
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h2>Congress Admin View</h2>
+                    <h3>{{ event.congress }}</h3>
+                    <a href="{% url "events:edit_event" event_id=event.id congress_id=event.congress.id %}" class="btn btn-sm btn-secondary">Edit Event</a>
+                </div>
+                <div class="card-body">
+
+                    <div class="card">
+                        <div class="card-header card-header-info">
+                            <h2>{{ event.event_name }}</h2>
+                            <div class="float-left">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-primary dropdown-toggle btn-round" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Actions
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="{% url 'events:admin_event_offsystem' event_id=event.id %}">Off System Payments</a>
+                                        {% if event.congress.payment_method_off_system_pp %}
+                                            <a class="dropdown-item" href="{% url 'events:admin_event_offsystem_pp' event_id=event.id %}">Club PP System</a>
+                                        {% endif %}
+                                        <a class="dropdown-item" href="{% url 'events:admin_event_unpaid' event_id=event.id %}">Unpaid Entries</a>
+                                        <a class="dropdown-item" href="{% url 'events:admin_event_entry_add' event_id=event.id %}">Add Entry</a>
+                                        <a class="dropdown-item" href="{% url 'events:admin_event_log' event_id=event.id %}">View Logs</a>
+                                        <a class="dropdown-item" href="{% url 'events:admin_event_player_discount' event_id=event.id %}">Manage Player Discounts</a>
+                                        <a class="dropdown-item" href="{% url 'events:admin_event_email' event_id=event.id %}">Email Event Entrants</a>
+                                        {% if event.congress.allow_partnership_desk %}
+                                            <a class="dropdown-item" href="{% url 'events:view_event_partnership_desk' congress_id=event.congress.id event_id=event.id %}">Partnership Desk</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-success dropdown-toggle btn-round" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Reports
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="{% url 'events:admin_players_report' event_id=event.id %}">Players Report</a>
+                                        <a class="dropdown-item" href="{% url 'events:admin_event_payment_methods' event_id=event.id %}">Payment Methods</a>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="float-right">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-secondary dropdown-toggle btn-round" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        CSV Downloads
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="{% url 'events:admin_event_csv' event_id=event.id %}">Entrants</a>
+                                        <a class="dropdown-item" href="{% url 'events:admin_event_csv_scoring' event_id=event.id %}">Import to Scoring Program</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-body table-responsive">
+                            <table class="table table-hover">
+                                <thead class="text-info">
+                                    <th>Players</th>
+                                    <th class="text-right">Due</th>
+                                    <th class="text-right">Paid</th>
+                                    <th class="text-right">Pending</th>
+
+                                    {% if categories %}
+                                        <th>Category</th>
+                                    {% endif %}
+
+                                    {% if event.free_format_question %}
+                                        <th>Answer</th>
+                                    {% endif %}
+
+                                    <th class="text-right">Status</th>
+                                    <th class="text-right">Comments</th>
+                                    <th class="text-right">Action</th>
+                                </thead>
+                                <tbody>
+                                    {% for event_entry in event_entries %}
+
+                                        <tr>
+                                            <td>
+                                                {% if event_entry.notes %}
+                                                    <a href="javascript:void(0)" onclick='editNotes({{ event_entry.id }});'>
+                                                        <i class="material-icons">sticky_note_2</i></a>
+                                                {% endif %}
+                                                {% for event_entry_player in event_entry.players %}
+                                                    {{ event_entry_player.player.full_name }}{% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </td>
+                                            <td class="text-right">{{ event_entry.entry_fee|floatformat:2 }}</td>
+                                            <td class="text-right">{{ event_entry.received|floatformat:2 }}</td>
+                                            <td class="text-right">{{ event_entry.outstanding|floatformat:2 }}</td>
+                                            {% if categories %}
+                                                <td>{{ event_entry.category|default_if_none:"Not Entered!!!" }}</td>
+                                            {% endif %}
+                                            {% if event.free_format_question %}
+                                                <td class="text-center">
+                                                    {% if event_entry.free_format_answer %}
+                                                        <a href="javascript:void(0)" onclick='help("{{ event.free_format_question }}", "{{ event_entry.free_format_answer }}");'>
+                                                            <i class="material-icons">question_answer</i></a>
+                                                    {% endif %}
+                                                </td>
+                                            {% endif %}
+
+                                            <td class="text-right">{{ event_entry.entry_status }}</td>
+                                            {% if event_entry.comment %}
+                                                <td class="text-center">
+                                                    <a href="javascript:void(0)" onclick='help("Comment", "{{ event_entry.comment }}");'>
+                                                        <i class="material-icons">comment</i></a>
+                                                </td>
+                                            {% else %}
+                                                <td class="text-center"></td>
+                                            {% endif %}
+                                            <td class="text-right">
+
+                                                <div class="float-right">
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn btn-sm btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                            Actions
+                                                        </button>
+                                                        <div class="dropdown-menu">
+                                                            <a class="dropdown-item" href="{% url "events:admin_evententry" evententry_id=event_entry.id %}">Details</a>
+                                                            <a class="dropdown-item cobalt-notes" id="notes_{{ event_entry.id }}">Notes</a>
+                                                            <a class="dropdown-item" href="{% url "events:admin_evententry_delete" evententry_id=event_entry.id %}">Withdraw</a>
+                                                            <a class="dropdown-item" href="{% url "events:admin_move_entry" event_entry_id=event_entry.id %}">Move</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- Hide the current notes value in page -->
+                                            <input type="hidden" id="notes_value_{{ event_entry.id }}" value="{{ event_entry.notes|default_if_none:"" }}">
+
+                                        </tr>
+                                    {% endfor %}
+
+                                    <tr>
+                                        <td class="font-weight-bold">
+                                            TOTAL
+                                        </td>
+                                        <td class="text-right font-weight-bold">{{ total_entry_fee|floatformat:2 }}</td>
+                                        <td class="text-right font-weight-bold">{{ total_received|floatformat:2 }}</td>
+                                        <td class="text-right font-weight-bold">{{ total_outstanding|floatformat:2 }}</td>
+                                        <td></td>
+                                        {% if categories %}
+                                            <td></td>
+                                        {% endif %}
+                                        {% if event.free_format_question %}
+                                            <td></td>
+                                        {% endif %}
+                                        <td></td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footer %}
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+    <script src="{% static "assets/js/core/jquery.cookie.min.js" %}"></script>
+    <script>
+
+        function help(title, html){
+            swal.fire({ title:title, html: html, icon: "info"})
+            return false;
+        }
+
+        // report a post or comment to a moderator
+        function editNotes(id) {
+
+            var current_value = $('#notes_value_' + id).val();
+
+            Swal.fire({
+                title: 'Notes',
+                input: 'text',
+                inputValue: current_value,
+                inputPlaceholder: 'Notes...',
+                inputAttributes: {
+                    'aria-label': 'Notes'
+                },
+                showCancelButton: true
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    var url = "{% url "events:admin_event_entry_notes_ajax" %}";
+                    var serializedData = {
+                        "id": id,
+                        "notes": result.value
+                    };
+
+                    $.ajax({
+                        url: url,
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
+                        },
+                        type: "post",
+                        data: JSON.stringify(serializedData),
+                        dataType: "json",
+                        success: function(response) {
+                            swal.fire({
+                                title: "Notes updated",
+                                html: response.message,
+                                icon: "success",
+                            }).then(function() {
+                                location.reload();
+                            });
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.log(textStatus, errorThrown);
+                        }
+                    });
+                }
+            })
+        }
+
+
+
+        $(document).ready(function(){
+
+            $('.cobalt-notes').click(function(event){
+                var id = $(this).attr('id').split("_")[1];
+                editNotes(id);
+            });
+
+        });
+
+    </script>
+{% endblock %}

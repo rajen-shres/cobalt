@@ -1,14 +1,8 @@
-import inspect
 import time
-from pprint import pprint
-
-from django.test import Client
-from django.urls import reverse
 
 from accounts.models import User
-from payments.core import get_balance
+from payments.payments_views.core import get_balance
 from payments.models import MemberTransaction
-from payments import forms
 
 from selenium.webdriver.common.by import By
 

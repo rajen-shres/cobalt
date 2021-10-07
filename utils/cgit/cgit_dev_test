@@ -47,7 +47,7 @@ if [ $# -lt 1 ]
   echo ""
   echo ""
   echo "Starting tests"
-  ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
+  coverage run ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
 
 else
 
@@ -63,9 +63,11 @@ psql test < ~/test.db >/dev/null
 
   if [ $# -lt 2 ]
   then
-  ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
+  coverage run ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
   else
-  echo ./manage.py run_tests --base_url http://127.0.0.1:$PORT
-  ./manage.py run_tests --base_url http://127.0.0.1:$PORT
+  coverage run ./manage.py run_tests --base_url http://127.0.0.1:$PORT
   fi
 fi
+
+coverage html
+open htmlcov/index.html

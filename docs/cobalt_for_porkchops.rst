@@ -23,3 +23,4 @@ overview of the thought processes.
 If you aren't familiar with Django then it is recommended that you
 read :doc:`django_for_porkchops`. This assumes you know Python,
 if you don't then you should first read :doc:`python_for_porkchops`.
+

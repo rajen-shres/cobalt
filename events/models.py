@@ -197,6 +197,7 @@ class Congress(models.Model):
     congress_type = models.CharField(
         "Congress Type", max_length=30, choices=CONGRESS_TYPES, blank=True, null=True
     )
+    contact_email = models.EmailField(blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Congresses"
@@ -485,48 +486,44 @@ class Event(models.Model):
         if (
             self.congress.allow_early_payment_discount
             and self.congress.early_payment_discount_date
-        ):
-            if self.congress.early_payment_discount_date >= check_date:
-                entry_fee = (
-                    self.entry_fee - self.entry_early_payment_discount
-                ) / players_per_entry
-                entry_fee = cobalt_round(entry_fee)
-                reason = "Early discount"
-                discount = float(self.entry_fee) / players_per_entry - float(entry_fee)
-                description = "Early discount " + cobalt_credits(discount)
+        ) and self.congress.early_payment_discount_date >= check_date:
+            entry_fee = (
+                self.entry_fee - self.entry_early_payment_discount
+            ) / players_per_entry
+            entry_fee = cobalt_round(entry_fee)
+            reason = "Early discount"
+            discount = float(self.entry_fee) / players_per_entry - float(entry_fee)
+            description = "Early discount " + cobalt_credits(discount)
 
         # youth discounts apply after early entry discounts
         if (
             self.congress.allow_youth_payment_discount
             and self.congress.youth_payment_discount_date
-        ):
-            if user.dob:  # skip if no date of birth set
-                dob = datetime.datetime.combine(user.dob, datetime.time(0, 0))
-                dob = timezone.make_aware(dob, pytz.timezone(TIME_ZONE))
+        ) and user.dob:  # skip if no date of birth set
+            dob = datetime.datetime.combine(user.dob, datetime.time(0, 0))
+            dob = timezone.make_aware(dob, pytz.timezone(TIME_ZONE))
 
-                # changing the year if date is 29th Feb can cause errors - change to 28th
-                if dob.month == 2 and dob.day == 29:
-                    dob = dob.replace(day=28)
+            # changing the year if date is 29th Feb can cause errors - change to 28th
+            if dob.month == 2 and dob.day == 29:
+                dob = dob.replace(day=28)
 
-                ref_date = dob.replace(
-                    year=dob.year + self.congress.youth_payment_discount_age
+            ref_date = dob.replace(
+                year=dob.year + self.congress.youth_payment_discount_age
+            )
+            if self.congress.youth_payment_discount_date <= ref_date.date():
+                entry_fee = float(entry_fee) - (
+                    float(entry_fee) * float(self.entry_youth_payment_discount) / 100.0
                 )
-                if self.congress.youth_payment_discount_date <= ref_date.date():
-                    entry_fee = (
-                        float(entry_fee)
-                        * float(self.entry_youth_payment_discount)
-                        / 100.0
+                entry_fee = cobalt_round(entry_fee)
+                discount = float(self.entry_fee) / players_per_entry - entry_fee
+                if reason == "Early discount":
+                    reason = "Youth+Early discount"
+                    description = "Youth+Early discount " + cobalt_credits(discount)
+                else:
+                    reason = "Youth discount"
+                    description = (
+                        "Youth discount %s%%" % self.entry_youth_payment_discount
                     )
-                    entry_fee = cobalt_round(entry_fee)
-                    discount = float(self.entry_fee) / players_per_entry - entry_fee
-                    if reason == "Early discount":
-                        reason = "Youth+Early discount"
-                        description = "Youth+Early discount " + cobalt_credits(discount)
-                    else:
-                        reason = "Youth discount"
-                        description = (
-                            "Youth discount %s%%" % self.entry_youth_payment_discount
-                        )
 
         # EventPlayerDiscount
         event_player_discount = (
@@ -803,6 +800,11 @@ class EventEntry(models.Model):
 
         tag = reverse("events:admin_evententry", kwargs={"evententry_id": self.id})
         return f"<a href='{tag}' target='_blank'>{self.event.congress} - {self.event.event_name}</a>"
+
+    def ordered_event_entry_player(self):
+        """helper function to set order of queryset for event_entry_player"""
+
+        return self.evententryplayer_set.all().distinct("pk").order_by("pk")
 
 
 class EventEntryPlayer(models.Model):

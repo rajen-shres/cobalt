@@ -25,7 +25,8 @@
                     <table class="table table-hover table-condensed">
                         <thead class="text-info">
                             <tr>
-                                <th class="text-left">Date</th>
+                                <th class="text-left">Sent Date</th>
+                                <th class="text-left">Subject</th>
                                 <th class="text-left">Status</th>
                                 <th class="text-left">Sent To (first name in list)</th>
                                 <th class="text-left">Batch</th>
@@ -35,7 +36,12 @@
                         <tbody>
                             {% for thing in things %}
                                 <tr>
-                                    <td class="text-left">{{ thing.snooper.ses_sent_at|cobalt_nice_datetime }}</td>
+                                    <td class="text-left">{{ thing.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"Not yet sent" }}</td>
+                                    <td class="text-left">
+                                        {# We should get one or the other depending upon whether a template was used or not #}
+                                        {{ thing.subject|default_if_none:"" }}
+                                        {{ thing.context.subject|default_if_none:"" }}
+                                    </td>
 
                                     {# show real status #}
                                     <td class="text-left">

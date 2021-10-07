@@ -1,4 +1,4 @@
- /* Set the colour for the toolbar in summertime */
+/* Set the colour for the toolbar in summertime */
 .note-btn {
     background-color: #5bc0de;
 }
@@ -6,4 +6,9 @@
 /* remove bug from summernote height in codeview mode */
 .note-codable {
     min-height: 300px !important;
+}
+
+/* fix bold problem with summernote */
+.note-editable b{
+    font-weight:800;
 }

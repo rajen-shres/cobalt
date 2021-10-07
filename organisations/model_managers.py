@@ -6,8 +6,8 @@ from django.utils import timezone
 class MemberMembershipTypeManager(models.Manager):
     """Model Manager for Memberships. Creates a filter for active membership"""
 
-    def active(self):
-        now = timezone.now()
-        return self.filter(start_date__lte=now).filter(
-            Q(end_date__gte=now) | Q(end_date=None)
+    def active(self, ref_date=timezone.now()):
+
+        return self.filter(start_date__lte=ref_date).filter(
+            Q(end_date__gte=ref_date) | Q(end_date=None)
         )

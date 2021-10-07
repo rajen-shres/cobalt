@@ -1,0 +1,48 @@
+{% if has_members %}
+
+    <div class="card card-chart">
+        <div class="card-header card-header-secondary">
+            <div id="dashboard-member-chart" style=" width: 400px; height: 160px"></div>
+        </div>
+        <div class="card-body">
+            <h4 class="card-title">Members</h4>
+            <p class="card-category">Club members by type. Unregistered means the member has not yet signed up for {{ GLOBAL_TITLE }}, you can invite them to join.</p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready( function(){
+
+            google.charts.load("current", {packages:["corechart"]});
+            google.charts.setOnLoadCallback(drawChart);
+
+            function drawChart() {
+
+                const data = google.visualization.arrayToDataTable([
+                    ['Type', 'Number'],
+                    ['{{ GLOBAL_TITLE }}', {{ myabf_members }}],
+                    ['Unregistered', {{ un_regs }}],
+                    ['Visitor', {{ visitors }}],
+                ]);
+
+                const options = {
+                    title: 'Member Breakdown',
+                    width: 440,
+                    height: 250,
+                    backgroundColor: {fill: 'transparent'},
+                };
+
+                const chart = new google.visualization.PieChart(document.getElementById('dashboard-member-chart'));
+
+                chart.draw(data, options);
+            }
+
+        });
+
+    </script>
+
+{% else %}
+
+    <h4>This club currently has no members. Use the <b>Members</b> tab above, and <b>Add</b> to add members.</h4>
+
+{% endif %}
