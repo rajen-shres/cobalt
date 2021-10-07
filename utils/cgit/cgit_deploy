@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Sometimes you want to deploy code without going through proper cgit processes
+# This does it so that at least the proper label is applied
+
+BRANCH=`git branch --show-current`
+
+  if [ $? -ne 1 ];then
+    echo ""
+    echo ""
+    echo "Usage: $0 env"
+    echo "e.g. $0 cobalt-test-black"
+   exit 1
+  fi
+
+if [[ -z $(git status -s) ]]
+then
+   DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
+   echo "Running eb deploy -m '$BRANCH@$DATE' $1"
+   eb deploy -m "$BRANCH@$DATE" $1
+  else
+else
+  echo ""
+  echo ""
+  echo "There are uncommitted changes or other problems with your git status. See below."
+  echo ""
+  echo ""
+  git status
+  echo ""
+  echo ""
+fi

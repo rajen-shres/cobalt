@@ -8,5 +8,5 @@ cat utils/cgit/tools/test.txt
 sleep 1
 clear
 export RDS_DB_NAME=test
-./manage.py runserver 0.0.0.0:8088
+coverage run -p manage.py runserver 0.0.0.0:8088 --noreload
 exit

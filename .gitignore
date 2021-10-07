@@ -9,7 +9,7 @@ db.sqlite3*
 .scannerwork
 nohup.out
 *.map
-.coverage
+.coverage.*
 .idea
 .pytest_cache
 geckodriver.log

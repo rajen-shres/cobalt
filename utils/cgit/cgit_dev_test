@@ -9,6 +9,9 @@ PORT=8088
 export RDS_DB_NAME=test
 export DUMMY_DATA_COUNT=1
 
+# reset coverage
+coverage erase
+
 # Kill manage.py if running
 lsof -i tcp:$PORT | awk 'NR!=1 {print $2}' | xargs kill
 
@@ -30,9 +33,6 @@ psql </tmp/drop_db
 if [ $# -lt 1 ]
  then
   echo "Full rebuild..."
-
-  # For build server use:
-  # sudo su - postgres -c "psql </tmp/drop_db"
 
   # include scripts
   utils/aws/rebuild_test_database_subcommands.sh
@@ -63,11 +63,16 @@ psql test < ~/test.db >/dev/null
 
   if [ $# -lt 2 ]
   then
-  coverage run ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
+  coverage run -p ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
   else
-  coverage run ./manage.py run_tests --base_url http://127.0.0.1:$PORT
+  coverage run -p ./manage.py run_tests --base_url http://127.0.0.1:$PORT
   fi
 fi
 
+# Stop the django server
+lsof -i tcp:$PORT | awk 'NR!=1 {print $2}' | xargs kill -SIGINT
+
+coverage combine
 coverage html
 open htmlcov/index.html
+coverage erase

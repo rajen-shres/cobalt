@@ -83,12 +83,12 @@ class ClubLevelAdmin:
             "id_tab_dashboard",
             "id_tab_members",
             "id_tab_congress",
-            "id_tab_results",
+            #           "id_tab_results",
             "id_tab_comms",
             "id_tab_access",
             "id_tab_settings",
             "id_tab_finance",
-            "id_tab_forums",
+            #            "id_tab_forums",
         ]
 
         club_menu_items(
@@ -202,12 +202,12 @@ class ClubLevelAdmin:
             "id_tab_dashboard",
             "id_tab_members",
             "id_tab_congress",
-            "id_tab_results",
+            #            "id_tab_results",
             "id_tab_comms",
             "id_tab_access",
             "id_tab_settings",
             "id_tab_finance",
-            "id_tab_forums",
+            #            "id_tab_forums",
         ]
 
         club_menu_items(
@@ -339,12 +339,12 @@ class ClubLevelAdmin:
             "id_tab_dashboard",
             "id_tab_members",
             "id_tab_congress",
-            "id_tab_results",
+            #           "id_tab_results",
             "id_tab_comms",
             "id_tab_access",
             "id_tab_settings",
             "id_tab_finance",
-            "id_tab_forums",
+            #           "id_tab_forums",
         ]
 
         club_menu_items(
@@ -369,11 +369,11 @@ class ClubLevelAdmin:
             "id_tab_dashboard",
             "id_tab_members",
             "id_tab_congress",
-            "id_tab_results",
+            #            "id_tab_results",
             "id_tab_comms",
             "id_tab_access",
             "id_tab_settings",
-            "id_tab_forums",
+            #            "id_tab_forums",
         ]
 
         club_menu_items(
