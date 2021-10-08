@@ -213,3 +213,23 @@ class TeamMate(models.Model):
             return f"Plus - {self.user.full_name} - {self.team_mate.full_name}"
         else:
             return f"Basic - {self.user.full_name} - {self.team_mate.full_name}"
+
+
+class UserPaysFor(models.Model):
+    """Allow a user to charge their bridge to another person"""
+
+    class Circumstance(models.TextChoices):
+        ALWAYS = "AL", "Always"
+        IF_PLAYING_TOGETHER = "PT", "If Playing Together"
+        IF_PLAYING_SAME_SESSION = "PS", "If Playing Same Session"
+
+    sponsor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sponsor")
+    lucky_person = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="lucky_person"
+    )
+    criterion = models.CharField(
+        max_length=2, choices=Circumstance.choices, default=Circumstance.ALWAYS
+    )
+
+    def __str__(self):
+        return f"{self.sponsor.full_name} pays for {self.lucky_person.full_name}"

@@ -54,3 +54,10 @@ class Lock(models.Model):
             return f"Locked - {self.topic} - Expires {local_dt:%d/%m/%Y %H:%M %Z}"
         else:
             return f"Unlocked - {self.topic}"
+
+
+class Seat(models.TextChoices):
+    NORTH = "N", "North"
+    SOUTH = "S", "South"
+    EAST = "E", "East"
+    WEST = "W", "West"

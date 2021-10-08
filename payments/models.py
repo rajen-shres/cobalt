@@ -15,6 +15,8 @@ from decimal import Decimal
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+
+from accounts.models import User
 from organisations.models import Organisation
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, GLOBAL_ORG
 
@@ -363,3 +365,35 @@ class OrganisationSettlementFees(models.Model):
 
     def __str__(self):
         return f"{self.organisation} - {self.org_fee_percent}"
+
+
+class OrgPaymentMethod(models.Model):
+    """Defines the types of payments that an organisation will accept
+    These are Bridge Credits plus any kind of off system payment. We allow an organisation
+    to enter anything they like here but create sensible defaults for them.
+    """
+
+    organisation = models.OneToOneField(Organisation, on_delete=models.CASCADE)
+    payment_method = models.CharField(max_length=15)
+
+    class Meta:
+        unique_together = ["organisation", "payment_method"]
+
+    def __str__(self):
+        return f"{self.organisation} - {self.payment_method}"
+
+
+class UserPendingPayment(models.Model):
+    """This is basically an IOU for when a player cannot pay for something at a club
+    but the club is okay for them to pay later."""
+
+    from club_sessions.models import SessionEntry
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.CharField(max_length=100, blank=True, null=True)
+    session_entry = models.ForeignKey(
+        SessionEntry, on_delete=models.CASCADE, blank=True, null=True
+    )
+    """ Optional but likely that this IOU is for a session that they played in"""

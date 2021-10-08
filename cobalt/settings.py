@@ -183,6 +183,7 @@ INSTALLED_APPS = [
     "logs",
     "rbac",
     "cobalt",
+    "club_sessions",
     "utils",
     "tests",
     "django.contrib.admin",

@@ -31,6 +31,7 @@ urlpatterns = [
     path("logs/", include("logs.urls", namespace="logs")),
     path("organisations/", include("organisations.urls", namespace="organisations")),
     path("support/", include("support.urls", namespace="support")),
+    path("sessions/", include("club_sessions.urls", namespace="club_sessions")),
     path("summernote/", include("django_summernote.urls")),
     path("health/", include("health_check.urls")),
     path("admin/django-ses/", include("django_ses.urls")),

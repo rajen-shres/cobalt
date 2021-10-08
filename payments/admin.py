@@ -7,6 +7,7 @@ from .models import (
     StripeLog,
     PaymentStatic,
     OrganisationSettlementFees,
+    OrgPaymentMethod,
 )
 
 
@@ -33,3 +34,4 @@ admin.site.register(StripeTransaction, StripeTransactionAdmin)
 admin.site.register(StripeLog, StripeLogAdmin)
 admin.site.register(OrganisationSettlementFees)
 admin.site.register(PaymentStatic)
+admin.site.register(OrgPaymentMethod)
