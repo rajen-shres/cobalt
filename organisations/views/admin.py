@@ -5,6 +5,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 
 from accounts.models import User
+from club_sessions.club_sessions_views.admin import add_club_session_defaults
 from cobalt.settings import ABF_USER
 from organisations.forms import OrgForm
 from organisations.models import (
@@ -88,6 +89,9 @@ def _add_club_defaults(club: Organisation):
         does_not_pay_session_fees=True,
         last_modified_by=system,
     ).save()
+
+    # Add defaults for club sessions too
+    add_club_session_defaults(club)
 
 
 @login_required()

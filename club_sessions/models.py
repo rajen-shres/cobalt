@@ -19,6 +19,7 @@ class MasterSessionType(models.TextChoices):
 class SessionType(models.Model):
     """Specific club session types"""
 
+    name = models.CharField(max_length=15)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     master_session_type = models.CharField(
         max_length=2,
@@ -39,6 +40,9 @@ class SessionTypePaymentMethod(models.Model):
 
     session_type = models.ForeignKey(SessionType, on_delete=models.CASCADE)
     payment_method = models.ForeignKey(OrgPaymentMethod, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.session_type} - {self.payment_method.payment_method}"
 
 
 class Session(models.Model):
@@ -73,3 +77,6 @@ class SessionEntry(models.Model):
     )
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.ForeignKey(OrgPaymentMethod, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = "Session entries"

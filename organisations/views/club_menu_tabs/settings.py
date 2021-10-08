@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 
+from club_sessions.models import SessionType, SessionTypePaymentMethod
 from cobalt.settings import GLOBAL_MPSERVER
 from organisations.decorators import check_club_menu_access
 from organisations.forms import OrgForm, OrgDatesForm, MembershipTypeForm
@@ -278,3 +279,18 @@ def club_menu_tab_settings_membership_delete_htmx(request, club):
         membership_type.delete()
 
     return membership_htmx(request, club)
+
+
+@check_club_menu_access()
+def club_menu_tab_settings_sessions_htmx(request, club):
+    """Show club sessions details"""
+
+    session_type_payment_methods = SessionTypePaymentMethod.objects.select_related(
+        "session_type", "payment_method"
+    ).filter(session_type__organisation=club)
+
+    return render(
+        request,
+        "organisations/club_menu/settings/sessions_htmx.html",
+        {"session_type_payment_methods": session_type_payment_methods},
+    )

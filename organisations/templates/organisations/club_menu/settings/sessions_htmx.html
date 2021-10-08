@@ -1,0 +1,20 @@
+{% load cobalt_tags %}
+<div class="card">
+    <div class="card-header card-header-info">
+        <h2 id="t_tab_heading_settings">Club Settings</h2>
+        {% include "organisations/club_menu/settings/nav_htmx.html" with selected="sessions" %}
+    </div>
+
+    <div class="card-body">
+        <h1>Sessions</h1>
+        <ol>
+            {% for session_type_payment_method in session_type_payment_methods %}
+                <li>
+                    {{ session_type_payment_method }}
+                    {{ session_type_payment_method.session_type.get_master_session_type_display }}
+                </li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+
