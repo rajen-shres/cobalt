@@ -1,0 +1,31 @@
+
+{% load cobalt_tags %}
+{% load crispy_forms_tags %}
+<div class="card">
+    <div class="card-body pt-0">
+        <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
+        <form
+            hx-post="{% url "organisations:club_menu_tab_settings_session_edit_htmx" %}"
+            hx-target="#id_session_edit"
+            hx-vars="session_type_payment_method_id:{{ session_type_payment_method.id }}"
+        >
+            <h3 class="text-center">{{ membership_type.name }}</h3>
+
+            {{ form.as_p }}
+
+            <button id="t_stype_save" type="submit" name="save" class="btn btn-success">Save</button>
+            {{ session_type_payment_methods }}
+            <a href="#"
+                class="btn btn-danger"
+                hx-post="{% url "organisations:club_menu_tab_settings_membership_delete_htmx" %}"
+                hx-target="#id_sesssion_edit"
+                hx-vars="session_type_payment_method_id:{{ session_type_payment_method.id }}"
+            >Delete</a>
+        </form>
+        {#        {% if membership_type.last_modified_by %}#}
+        {#            <div class="font-italic small">last updated {{ membership_type.updated_at|cobalt_nice_datetime }}#}
+        {#                by {{ membership_type.last_modified_by.full_name }}</div>#}
+        {#        {% endif %}#}
+
+    </div>
+</div>

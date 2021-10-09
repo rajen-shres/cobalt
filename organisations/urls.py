@@ -298,4 +298,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.club_menu_tab_settings_sessions_htmx,
         name="club_menu_tab_settings_sessions_htmx",
     ),
+    path(
+        "club-menu/settings/sessions/edit",
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_session_edit_htmx,
+        name="club_menu_tab_settings_session_edit_htmx",
+    ),
 ]

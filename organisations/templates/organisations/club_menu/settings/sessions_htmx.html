@@ -4,17 +4,37 @@
         <h2 id="t_tab_heading_settings">Club Settings</h2>
         {% include "organisations/club_menu/settings/nav_htmx.html" with selected="sessions" %}
     </div>
-
     <div class="card-body">
-        <h1>Sessions</h1>
-        <ol>
-            {% for session_type_payment_method in session_type_payment_methods %}
-                <li>
-                    {{ session_type_payment_method }}
-                    {{ session_type_payment_method.session_type.get_master_session_type_display }}
-                </li>
-            {% endfor %}
-        </ol>
+        <div class="container" ">
+
+            <div class="row">
+                <div class="col-3 mx-0 px-0">
+                    <h4 class="text-center">Session Types</h4>
+                    {% for session_type_payment_method in session_type_payment_methods %}
+                        <div class="col-12 d-inline-flex w-100 mx-0 px-0 justify-content-between">
+                            <button class="membership-btn btn btn-outline-info w-100 mx-2"
+                                id="id_settings-btn-{{ session_type_payment_method.id }}"
+                                hx-post="{% url "organisations:club_menu_tab_settings_session_edit_htmx" %}"
+                                hx-target="#id_session_edit"
+                                hx-vars="session_type_payment_method_id:{{ session_type_payment_method.id }}"
+                                {#                                    onclick="membershipTypeButtonSelect(this);"#}
+                            > {{ session_type_payment_method.session_type.get_master_session_type_display }}</button>
+                        </div>
+                    {% endfor %}
+                    <div class="col-12 d-inline-flex w-100 mx-0 px-0 justify-content-between">
+                        <button
+                            class="btn btn-sm btn-success w-100 mx-5"
+                            hx-post="{% url "organisations:club_menu_tab_settings_membership_add_htmx" %}"
+                            hx-indicator=".htmx-indicator"
+                            hx-target="#id_membership_edit"
+                        >Add</button>
+                    </div>
+                </div>
+
+                {# The Membership Type form appears here when an entry is clicked on #}
+                <div id="id_session_edit" class="col-9"></div>
+            </div>
+        </div>
     </div>
-</div>
+
 

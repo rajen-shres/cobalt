@@ -294,3 +294,43 @@ def club_menu_tab_settings_sessions_htmx(request, club):
         "organisations/club_menu/settings/sessions_htmx.html",
         {"session_type_payment_methods": session_type_payment_methods},
     )
+
+
+@check_club_menu_access()
+def club_menu_tab_settings_session_edit_htmx(request, club):
+    """Part of the settings tab for session types to allow user to edit the session type
+
+    When a session type is clicked on, this code is run and returns a form to edit the
+    details.
+    """
+
+    session_type_payment_methods = SessionTypePaymentMethod.objects.select_related(
+        "session_type", "payment_method"
+    ).filter(session_type__organisation=club)
+
+    # This is a POST even the first time so look for "save" to see if this really is a form submit
+    # real_post = "save" in request.POST
+
+    # if not real_post:
+    #     form = MembershipTypeForm(instance=membership_type)
+    # else:
+    #     form = MembershipTypeForm(request.POST, instance=membership_type)
+    #
+    # message = ""
+    #
+    # if form.is_valid():
+    #     updated = form.save(commit=False)
+    #     updated.last_modified_by = request.user
+    #     updated.save()
+    #     ClubLog(
+    #         organisation=club,
+    #         actor=request.user,
+    #         action=f"Updated membership type: {updated}",
+    #     ).save()
+    #     message = "Membership Type Updated"
+
+    return render(
+        request,
+        "organisations/club_menu/settings/session_edit_htmx.html",
+        {"session_type_payment_methods": session_type_payment_methods},
+    )
