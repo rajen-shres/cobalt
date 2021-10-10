@@ -15,7 +15,6 @@
 
         <form
             hx-post="{% url "organisations:club_menu_tab_settings_general_htmx" %}"
-            hx-indicator=".htmx-indicator"
             hx-target="#id_settings_form"
             hx-vars="club_id:{{ club.id }}"
         >

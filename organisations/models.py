@@ -360,3 +360,17 @@ class OrganisationFrontPage(models.Model):
 
     def __str__(self):
         return f"Front Page for {self.organisation}"
+
+
+class MiscPayTypes(models.Model):
+    """Labels for different kinds of miscellaneous payments for clubs. eg. Parking, books"""
+
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    description = models.CharField(max_length=30)
+
+
+class OrgVenue(models.Model):
+    """Used by clubs that have multiple venues so we can identify sessions properly"""
+
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    venue = models.CharField(max_length=15)

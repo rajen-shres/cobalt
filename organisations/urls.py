@@ -303,4 +303,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.club_menu_tab_settings_session_edit_htmx,
         name="club_menu_tab_settings_session_edit_htmx",
     ),
+    path(
+        "club-menu/settings/payment",
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_payment_htmx,
+        name="club_menu_tab_settings_payment_htmx",
+    ),
 ]

@@ -373,8 +373,9 @@ class OrgPaymentMethod(models.Model):
     to enter anything they like here but create sensible defaults for them.
     """
 
-    organisation = models.OneToOneField(Organisation, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     payment_method = models.CharField(max_length=15)
+    active = models.BooleanField(default=True)
 
     class Meta:
         unique_together = ["organisation", "payment_method"]

@@ -1,0 +1,40 @@
+{% load cobalt_tags %}
+<div class="card">
+    <div class="card-header card-header-info">
+        <h2 id="t_tab_heading_settings">Club Settings</h2>
+        {% include "organisations/club_menu/settings/nav_htmx.html" with selected="payment" %}
+    </div>
+    <div class="card-body">
+        <p class="font-italic">
+            Set the types of payment that the club can accept.
+        </p>
+        <div class="table-responsive col-md-6">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Bridge Credits</td>
+                        <td>Cannot be changed</td>
+                    </tr>
+                    {% for payment_method in payment_methods %}
+                        <tr>
+                            <td>{{ payment_method.payment_method }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger">Inactivate</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+
+

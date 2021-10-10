@@ -7,10 +7,11 @@ from club_sessions.models import SessionType, SessionTypePaymentMethod
 from cobalt.settings import GLOBAL_MPSERVER
 from organisations.decorators import check_club_menu_access
 from organisations.forms import OrgForm, OrgDatesForm, MembershipTypeForm
-from organisations.models import ClubLog, MembershipType, MemberMembershipType
+from organisations.models import ClubLog, MembershipType, MemberMembershipType, OrgVenue
 from organisations.views.admin import get_secretary_from_org_form
 from organisations.views.club_menu_tabs.utils import _user_is_uber_admin
 from organisations.views.general import compare_form_with_mpc
+from payments.models import OrgPaymentMethod
 from utils.views import masterpoint_query
 
 
@@ -131,6 +132,8 @@ def general_htmx(request, club):
             # We can't use Django messages as they won't show until the whole page reloads
             message = "Organisation details updated"
 
+    venues = OrgVenue.objects.filter(organisation=club)
+
     return render(
         request,
         "organisations/club_menu/settings/general_htmx.html",
@@ -138,6 +141,7 @@ def general_htmx(request, club):
             "club": club,
             "form": form,
             "message": message,
+            "venues": venues,
         },
     )
 
@@ -285,14 +289,12 @@ def club_menu_tab_settings_membership_delete_htmx(request, club):
 def club_menu_tab_settings_sessions_htmx(request, club):
     """Show club sessions details"""
 
-    session_type_payment_methods = SessionTypePaymentMethod.objects.select_related(
-        "session_type", "payment_method"
-    ).filter(session_type__organisation=club)
+    session_types = SessionType.objects.filter(organisation=club)
 
     return render(
         request,
         "organisations/club_menu/settings/sessions_htmx.html",
-        {"session_type_payment_methods": session_type_payment_methods},
+        {"session_types": session_types},
     )
 
 
@@ -304,9 +306,9 @@ def club_menu_tab_settings_session_edit_htmx(request, club):
     details.
     """
 
-    session_type_payment_methods = SessionTypePaymentMethod.objects.select_related(
-        "session_type", "payment_method"
-    ).filter(session_type__organisation=club)
+    session_type = get_object_or_404(
+        SessionType, pk=request.POST.get("session_type_id")
+    )
 
     # This is a POST even the first time so look for "save" to see if this really is a form submit
     # real_post = "save" in request.POST
@@ -332,5 +334,18 @@ def club_menu_tab_settings_session_edit_htmx(request, club):
     return render(
         request,
         "organisations/club_menu/settings/session_edit_htmx.html",
-        {"session_type_payment_methods": session_type_payment_methods},
+        {"session_type": session_type},
+    )
+
+
+@check_club_menu_access()
+def club_menu_tab_settings_payment_htmx(request, club):
+    """Show club payment types"""
+
+    payment_methods = OrgPaymentMethod.objects.filter(organisation=club)
+
+    return render(
+        request,
+        "organisations/club_menu/settings/payment_htmx.html",
+        {"payment_methods": payment_methods},
     )

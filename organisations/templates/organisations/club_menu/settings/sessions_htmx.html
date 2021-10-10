@@ -10,15 +10,14 @@
             <div class="row">
                 <div class="col-3 mx-0 px-0">
                     <h4 class="text-center">Session Types</h4>
-                    {% for session_type_payment_method in session_type_payment_methods %}
+                    {% for session_type in session_types %}
                         <div class="col-12 d-inline-flex w-100 mx-0 px-0 justify-content-between">
                             <button class="membership-btn btn btn-outline-info w-100 mx-2"
-                                id="id_settings-btn-{{ session_type_payment_method.id }}"
+                                id="id_settings-btn-{{ session_type.id }}"
                                 hx-post="{% url "organisations:club_menu_tab_settings_session_edit_htmx" %}"
                                 hx-target="#id_session_edit"
-                                hx-vars="session_type_payment_method_id:{{ session_type_payment_method.id }}"
-                                {#                                    onclick="membershipTypeButtonSelect(this);"#}
-                            > {{ session_type_payment_method.session_type.get_master_session_type_display }}</button>
+                                hx-vars="session_type_id:{{ session_type.id }}"
+                            > {{ session_type.get_master_session_type_display }}</button>
                         </div>
                     {% endfor %}
                     <div class="col-12 d-inline-flex w-100 mx-0 px-0 justify-content-between">

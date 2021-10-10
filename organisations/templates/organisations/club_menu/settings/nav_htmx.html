@@ -26,6 +26,7 @@ hx-target="#id_settings_form"
 >General
 </button>
 
+
 {% if selected == "memberships" %}
     <button class="btn btn-primary"
 {% else %}
@@ -38,6 +39,20 @@ hx-post="{% url "organisations:club_menu_tab_settings_membership_htmx" %}"
 hx-target="#id_settings_form"
 id="t_settings_membership_types"
 >Membership Types
+</button>
+
+{% if selected == "payment" %}
+    <button class="btn btn-primary"
+{% else %}
+    <button class="btn bg-transparent"
+    style="outline: 0; outline-offset: 0; box-shadow: none;"
+{% endif %}
+
+type="button"
+hx-post="{% url "organisations:club_menu_tab_settings_payment_htmx" %}"
+hx-target="#id_settings_form"
+id="t_settings_payment_types"
+>Payment Types
 </button>
 
 {% if selected == "sessions" %}

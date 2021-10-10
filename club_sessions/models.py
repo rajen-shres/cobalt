@@ -14,6 +14,7 @@ class MasterSessionType(models.TextChoices):
 
     DUPLICATE = "DP", "Duplicate"
     MULTI_SESSION = "MS", "Multi-session"
+    WORKSHOP = "WS", "Workshop"
 
 
 class SessionType(models.Model):
@@ -27,6 +28,9 @@ class SessionType(models.Model):
         default=MasterSessionType.DUPLICATE,
     )
     status = models.BooleanField(default=True)
+
+    # class Meta:
+    #     unique_together = ["organisation", "master_session_type"]
 
     def __str__(self):
         if self.status:
