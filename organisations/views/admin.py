@@ -12,6 +12,7 @@ from organisations.models import (
     Organisation,
     ORGS_RBAC_GROUPS_AND_ROLES,
     MembershipType,
+    ClubLog,
 )
 from organisations.views import general
 from rbac.core import (
@@ -92,6 +93,15 @@ def _add_club_defaults(club: Organisation):
 
     # Add defaults for club sessions too
     add_club_session_defaults(club)
+
+    # log it
+    system = User.objects.get(pk=ABF_USER)
+
+    ClubLog(
+        organisation=club,
+        actor=system,
+        action="Initial defaults set up",
+    ).save()
 
 
 @login_required()

@@ -1,0 +1,9 @@
+{% if not venues %}
+    <p>This club has a single venue. <button class="btn btn-sm btn-outline-secondary">Click to Add Venues</button></p>
+{% else %}
+    <ul>
+        {% for venue in venues %}
+            <li>{{ venue }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}

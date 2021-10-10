@@ -8,6 +8,7 @@ from .models import (
     ClubTag,
     MemberClubTag,
     OrganisationFrontPage,
+    OrgVenue,
 )
 
 
@@ -23,3 +24,4 @@ admin.site.register(ClubLog)
 admin.site.register(ClubTag)
 admin.site.register(MemberClubTag)
 admin.site.register(OrganisationFrontPage)
+admin.site.register(OrgVenue)

@@ -349,3 +349,16 @@ def club_menu_tab_settings_payment_htmx(request, club):
         "organisations/club_menu/settings/payment_htmx.html",
         {"payment_methods": payment_methods},
     )
+
+
+@check_club_menu_access()
+def club_menu_tab_settings_venues_htmx(request, club):
+    """Show club venues"""
+
+    venues = OrgVenue.objects.filter(organisation=club)
+
+    return render(
+        request,
+        "organisations/club_menu/settings/venues_htmx.html",
+        {"venues": venues},
+    )

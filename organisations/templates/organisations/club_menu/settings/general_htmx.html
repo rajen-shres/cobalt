@@ -13,75 +13,89 @@
 
         <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
 
-        <form
-            hx-post="{% url "organisations:club_menu_tab_settings_general_htmx" %}"
-            hx-target="#id_settings_form"
-            hx-vars="club_id:{{ club.id }}"
-        >
-
-            <label class="bmd-label-static">Date for Annual Membership Renewals</label>
+        <div class="container">
             <div class="row">
+                <div class="col-md-6">
 
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <input type="number" min="0" step="1" max="31"
-                            name="membership_renewal_date_day"
-                            id="id_membership_renewal_date_day"
-                            class="form-control"
-                            value="{{ form.membership_renewal_date_day.value|default_if_none:"" }}">
-                    </div>
+                    <form
+                        hx-post="{% url "organisations:club_menu_tab_settings_general_htmx" %}"
+                        hx-target="#id_settings_form"
+                        hx-vars="club_id:{{ club.id }}"
+                    >
+
+                        <label class="bmd-label-static">Date for Annual Membership Renewals</label>
+                        <div class="row">
+
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <input type="number" min="0" step="1" max="31"
+                                        name="membership_renewal_date_day"
+                                        id="id_membership_renewal_date_day"
+                                        class="form-control"
+                                        value="{{ form.membership_renewal_date_day.value|default_if_none:"" }}">
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <select
+                                        name="membership_renewal_date_month"
+                                        id="id_membership_renewal_date_month"
+                                        class="form-control"
+                                    >
+                                        {% include "organisations/club_menu/settings/general_option_dates_htmx.html" with month=form.membership_renewal_date_month.value %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="cobalt-form-error col-md-5">{{ form.membership_renewal_date_month.errors|striptags }}</div>
+                        </div>
+                        <br>
+
+                        <label class="bmd-label-static">Date for Reduced Memberships to Start</label>
+                        <div class="row">
+
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <input type="number" min="0" step="1" max="31"
+                                        name="membership_part_year_date_day"
+                                        id="id_membership_part_year_date_day"
+                                        class="form-control"
+                                        value="{{ form.membership_part_year_date_day.value|default_if_none:"" }}">
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <select
+                                        name="membership_part_year_date_month"
+                                        id="id_membership_part_year_date_month"
+                                        class="form-control"
+                                    >
+                                        {% include "organisations/club_menu/settings/general_option_dates_htmx.html" with month=form.membership_part_year_date_month.value %}
+                                    </select>
+                                </div>
+                            </div>
+                            <span class="cobalt-form-error col-md-5">{{ form.membership_part_year_date_month.errors|striptags }}</span>
+
+                        </div>
+
+                        <button type="submit" name="save" class="btn btn-success">Save</button>
+                    </form>
+
+                    <div class="font-italic small">last updated {{ club.last_updated|cobalt_nice_datetime }}
+                        by {{ club.last_updated_by.full_name }}</div>
                 </div>
 
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <select
-                            name="membership_renewal_date_month"
-                            id="id_membership_renewal_date_month"
-                            class="form-control"
-                        >
-                            {% include "organisations/club_menu/settings/general_option_dates_htmx.html" with month=form.membership_renewal_date_month.value %}
-                        </select>
+                <div class="col-md-6">
+                    <div id="club-venues"
+                        hx-post="{% url "organisations:club_menu_tab_settings_venues_htmx" %}"
+                        hx-vars="club_id:{{ club.id }}"
+                        hx-trigger="load"
+                    >
                     </div>
                 </div>
-                <div class="cobalt-form-error col-md-5">{{ form.membership_renewal_date_month.errors|striptags }}</div>
             </div>
-            <br>
-
-            <label class="bmd-label-static">Date for Reduced Memberships to Start</label>
-            <div class="row">
-
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <input type="number" min="0" step="1" max="31"
-                            name="membership_part_year_date_day"
-                            id="id_membership_part_year_date_day"
-                            class="form-control"
-                            value="{{ form.membership_part_year_date_day.value|default_if_none:"" }}">
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <select
-                            name="membership_part_year_date_month"
-                            id="id_membershippart_yearl_date_month"
-                            class="form-control"
-                        >
-                            {% include "organisations/club_menu/settings/general_option_dates_htmx.html" with month=form.membership_part_year_date_month.value %}
-                        </select>
-                    </div>
-                </div>
-                <span class="cobalt-form-error col-md-5">{{ form.membership_part_year_date_month.errors|striptags }}</span>
-
-            </div>
-
-            <button type="submit" name="save" class="btn btn-success">Save</button>
-        </form>
-
-        <div class="font-italic small">last updated {{ club.last_updated|cobalt_nice_datetime }}
-            by {{ club.last_updated_by.full_name }}</div>
+        </div>
     </div>
+
 </div>
-
-
-
