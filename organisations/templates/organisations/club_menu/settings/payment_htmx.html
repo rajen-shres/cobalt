@@ -1,3 +1,4 @@
+{% load static %}
 {% load cobalt_tags %}
 <div class="card">
     <div class="card-header card-header-info">
@@ -8,40 +9,49 @@
         <p class="font-italic">
             Set the types of payment that the club can accept.
         </p>
+
         <div class="table-responsive col-md-6">
             <table class="table table-hover table-condensed">
-                <thead class="text-rose">
+                <thead class="text-primary">
                     <tr>
                         <th>Type</th>
-                        <th>Action</th>
+                        <th>Enabled</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>Bridge Credits</td>
-                        <td><button class="btn btn-sm btn-danger" disabled>Cannot be changed</button></td>
+                        <td>
+                            <input
+                                type="checkbox"
+                                class="toggle_button"
+                                data-toggle="toggle"
+                                data-size="sm"
+                                data-onstyle="primary"
+                                disabled
+                                checked
+                            >
+                        </td>
                     </tr>
                     {% for payment_method in payment_methods %}
                         <tr>
                             <td>{{ payment_method.payment_method }}</td>
-                            <td>
-                                <button
+                            <td
+                                hx-post="{% url "organisations:club_menu_tab_settings_toggle_payment_type_htmx" %}"
+                                hx-vars="club_id:{{ club.id }},payment_type_id:{{ payment_method.id }}"
+                                hx-swap="none"
+                            >
+                                <input
                                     id="t_toggle_pay_method_{{ payment_method.id }}"
-                                    type="button"
-                                    class="btn btn-sm btn-{% if payment_method.active %}danger{% else %}info{% endif %}"
-                                    hx-post="{% url "organisations:club_menu_tab_settings_toggle_payment_type_htmx" %}"
-                                    hx-vars="club_id:{{ club.id }},payment_type_id:{{ payment_method.id }}"
-                                    hx-target="#id_settings_form"
+                                    type="checkbox"
+                                    class="toggle_button"
+                                    data-toggle="toggle"
+                                    data-size="sm"
+                                    data-onstyle="primary"
+                                    {% if payment_method.active %}checked{% endif %}
                                 >
-                                    {% if payment_method.active %}
-                                        On</button>
-                                        - Click to turn off
-                                    {% else %}
-                                        Off</button>
-                                        - Click to turn on
-                                    {% endif %}
-                                </td>
-                            </tr>
+                            </td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -61,4 +71,9 @@
 </div>
 
 
-
+<script>
+    $( document ).ready(function() {
+        // activate toggle buttons
+        $('.toggle_button').bootstrapToggle();
+    });
+</script>

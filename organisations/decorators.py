@@ -16,7 +16,7 @@ def check_club_menu_access(check_members=False):
     from .decorators import check_club_menu_access
 
     @check_club_menu_access()
-    def my_func(request):
+    def my_func(request, club):
 
     You don't need @login_required as it does that for you as well
 

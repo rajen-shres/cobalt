@@ -5,7 +5,8 @@
 {% block title %}- Club Menu {{ club }}{% endblock %}
 
 {% block header %}
-    {#    <script src="{% static "assets/js/plugins/jquery-ui.min.js" %}"></script>#}
+    <link href="{% static "assets/css/bootstrap4-toggle.min.css" %}" rel="stylesheet">
+    <script src="{% static "assets/js/bootstrap4-toggle.min.js" %}"></script>
     <link href="{% static "assets/css/cobalt-summernote.css" %}" rel="stylesheet">
     {% include "utils/data_tables_heading.html" %}
     <style>

@@ -22,7 +22,7 @@ def add_club_session_defaults(club):
     for default_payment_method in DEFAULT_PAYMENT_METHODS:
 
         payment_method = OrgPaymentMethod(
-            organisation=club, payment_method=default_payment_method
+            organisation=club, payment_method=default_payment_method, active=False
         )
         payment_method.save()
 
