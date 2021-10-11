@@ -7,7 +7,13 @@ from django.utils import timezone
 from club_sessions.models import SessionType, SessionTypePaymentMethod
 from cobalt.settings import GLOBAL_MPSERVER
 from organisations.decorators import check_club_menu_access
-from organisations.forms import OrgForm, OrgDatesForm, MembershipTypeForm, VenueForm
+from organisations.forms import (
+    OrgForm,
+    OrgDatesForm,
+    MembershipTypeForm,
+    VenueForm,
+    PaymentTypeForm,
+)
 from organisations.models import ClubLog, MembershipType, MemberMembershipType, OrgVenue
 from organisations.views.admin import get_secretary_from_org_form
 from organisations.views.club_menu_tabs.utils import _user_is_uber_admin
@@ -95,9 +101,9 @@ def basic_reload_htmx(request, club):
 
 @check_club_menu_access()
 def logs_htmx(request, club):
-    """Reload data from MPC and return the settings basic tab"""
+    """Shows the log events"""
 
-    log_events = ClubLog.objects.filter(organisation=club).order_by("-action_date")
+    log_events = ClubLog.objects.filter(organisation=club).order_by("-pk")
 
     return render(
         request,
@@ -343,12 +349,34 @@ def club_menu_tab_settings_session_edit_htmx(request, club):
 def club_menu_tab_settings_payment_htmx(request, club):
     """Show club payment types"""
 
-    payment_methods = OrgPaymentMethod.objects.filter(organisation=club)
+    if "add" in request.POST:
+        form = PaymentTypeForm(request.POST, club=club)
+
+        if form.is_valid():
+            payment_type = OrgPaymentMethod(
+                organisation=club, payment_method=form.cleaned_data["payment_name"]
+            )
+            payment_type.save()
+
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action=f"Added payment type: {payment_type.payment_method}",
+            ).save()
+
+            # reset form
+            form = PaymentTypeForm(club=club)
+    else:
+        form = PaymentTypeForm(club=club)
+
+    payment_methods = OrgPaymentMethod.objects.filter(organisation=club).order_by(
+        "-active"
+    )
 
     return render(
         request,
         "organisations/club_menu/settings/payment_htmx.html",
-        {"payment_methods": payment_methods},
+        {"payment_methods": payment_methods, "club": club, "form": form},
     )
 
 
@@ -360,9 +388,15 @@ def club_menu_tab_settings_venues_htmx(request, club):
         form = VenueForm(request.POST, club=club)
 
         if form.is_valid():
-            OrgVenue.objects.get_or_create(
-                organisation=club, venue=form.cleaned_data["venue_name"]
-            )
+            venue = OrgVenue(organisation=club, venue=form.cleaned_data["venue_name"])
+            venue.save()
+
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action=f"Added venue: {venue.venue}",
+            ).save()
+
             # reset form
             form = VenueForm(club=club)
     else:
@@ -397,3 +431,30 @@ def club_menu_tab_settings_delete_venue_htmx(request, club):
     venue.delete()
 
     return club_menu_tab_settings_venues_htmx(request)
+
+
+@check_club_menu_access()
+def club_menu_tab_settings_toggle_payment_type_htmx(request, club):
+    """toggle a payment type on or off"""
+
+    payment_type = get_object_or_404(
+        OrgPaymentMethod, pk=request.POST.get("payment_type_id")
+    )
+
+    if payment_type.active:
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Disabled payment method: {payment_type.payment_method}",
+        ).save()
+        payment_type.active = False
+    else:
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Activated payment method: {payment_type.payment_method}",
+        ).save()
+        payment_type.active = True
+    payment_type.save()
+
+    return club_menu_tab_settings_payment_htmx(request)

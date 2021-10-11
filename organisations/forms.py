@@ -13,6 +13,7 @@ from cobalt.settings import (
     BLEACH_ALLOWED_ATTRIBUTES,
     BLEACH_ALLOWED_STYLES,
 )
+from payments.models import OrgPaymentMethod
 from rbac.core import rbac_user_has_role
 from .models import (
     Organisation,
@@ -440,3 +441,26 @@ class VenueForm(forms.Form):
         if OrgVenue.objects.filter(organisation=self.club, venue=venue_name).exists():
             self.add_error("venue_name", "Duplicate name")
         return venue_name
+
+
+class PaymentTypeForm(forms.Form):
+    """Form to add a payment type to an organisation"""
+
+    payment_name = forms.CharField(
+        max_length=15,
+        label="",
+        widget=forms.TextInput(attrs={"placeholder": "Add new type"}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        super().__init__(*args, **kwargs)
+
+    def clean_payment_name(self):
+        payment_name = self.cleaned_data["payment_name"]
+
+        if OrgPaymentMethod.objects.filter(
+            organisation=self.club, payment_method=payment_name
+        ).exists():
+            self.add_error("payment_name", "Duplicate name")
+        return payment_name

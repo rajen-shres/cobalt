@@ -318,4 +318,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.club_menu_tab_settings_delete_venue_htmx,
         name="club_menu_tab_settings_delete_venue_htmx",
     ),
+    path(
+        "club-menu/settings/payment-type-toggle",
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_toggle_payment_type_htmx,
+        name="club_menu_tab_settings_toggle_payment_type_htmx",
+    ),
 ]

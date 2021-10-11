@@ -9,8 +9,8 @@
             Set the types of payment that the club can accept.
         </p>
         <div class="table-responsive col-md-6">
-            <table class="table table-hover">
-                <thead>
+            <table class="table table-hover table-condensed">
+                <thead class="text-rose">
                     <tr>
                         <th>Type</th>
                         <th>Action</th>
@@ -19,18 +19,42 @@
                 <tbody>
                     <tr>
                         <td>Bridge Credits</td>
-                        <td>Cannot be changed</td>
+                        <td><button class="btn btn-sm btn-danger" disabled>Cannot be changed</button></td>
                     </tr>
                     {% for payment_method in payment_methods %}
                         <tr>
                             <td>{{ payment_method.payment_method }}</td>
                             <td>
-                                <button class="btn btn-sm btn-danger">Inactivate</button>
-                            </td>
-                        </tr>
+                                <button
+                                    id="t_toggle_pay_method_{{ payment_method.id }}"
+                                    type="button"
+                                    class="btn btn-sm btn-{% if payment_method.active %}danger{% else %}info{% endif %}"
+                                    hx-post="{% url "organisations:club_menu_tab_settings_toggle_payment_type_htmx" %}"
+                                    hx-vars="club_id:{{ club.id }},payment_type_id:{{ payment_method.id }}"
+                                    hx-target="#id_settings_form"
+                                >
+                                    {% if payment_method.active %}
+                                        On</button>
+                                        - Click to turn off
+                                    {% else %}
+                                        Off</button>
+                                        - Click to turn on
+                                    {% endif %}
+                                </td>
+                            </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        <div class="col-md-3 text-nowrap">
+            <form
+                hx-post="{% url "organisations:club_menu_tab_settings_payment_htmx" %}"
+                hx-target="#id_settings_form"
+                hx-vars="club_id:{{ club.id }}"
+            >
+                {% cobalt_bs4_field form.payment_name %}
+                <button name="add" id="id_payments_add_type" class="btn btn-sm btn-success">Add</button>
+            </form>
         </div>
 
     </div>
