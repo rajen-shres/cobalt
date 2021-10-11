@@ -313,4 +313,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.club_menu_tab_settings_venues_htmx,
         name="club_menu_tab_settings_venues_htmx",
     ),
+    path(
+        "club-menu/settings/venue-delete",
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_delete_venue_htmx,
+        name="club_menu_tab_settings_delete_venue_htmx",
+    ),
 ]

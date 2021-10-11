@@ -21,6 +21,7 @@ from .models import (
     MemberMembershipType,
     ClubTag,
     OrganisationFrontPage,
+    OrgVenue,
 )
 
 
@@ -418,3 +419,24 @@ class FrontPageForm(forms.ModelForm):
         summary = summary.replace("<", "\n<")
 
         return summary
+
+
+class VenueForm(forms.Form):
+    """Form to add a venue to an organisation"""
+
+    venue_name = forms.CharField(
+        max_length=15,
+        label="",
+        widget=forms.TextInput(attrs={"placeholder": "Add new venue"}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        super().__init__(*args, **kwargs)
+
+    def clean_venue_name(self):
+        venue_name = self.cleaned_data["venue_name"]
+
+        if OrgVenue.objects.filter(organisation=self.club, venue=venue_name).exists():
+            self.add_error("venue_name", "Duplicate name")
+        return venue_name

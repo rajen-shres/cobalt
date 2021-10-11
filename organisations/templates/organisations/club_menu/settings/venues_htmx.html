@@ -1,9 +1,46 @@
+{% load cobalt_tags %}
 {% if not venues %}
-    <p>This club has a single venue. <button class="btn btn-sm btn-outline-secondary">Click to Add Venues</button></p>
+    <p>This club has no venues defined. This is normal if you only play at one place.
+        <button
+            class="btn btn-sm btn-outline-secondary"
+            onclick="$('#settings_general_add_venue').show();"
+        >
+            Click to Add Venues</button></p>
 {% else %}
-    <ul>
-        {% for venue in venues %}
-            <li>{{ venue }}</li>
-        {% endfor %}
-    </ul>
+    <div class="table-responsive">
+        <table class="table table-condensed table-hover">
+            <thead>
+                <tr class="text-primary">
+                    <th class="text-left">Venue</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venue in venues %}
+                    <tr>
+                        <td class="text-left">{{ venue.venue }}</td>
+                        <td>
+                            {% include "utils/htmx_confirm_modal.html" with id=venue.id delete_item=venue.venue hx_vars=venue.hx_vars hx_target="#club-venues" hx_post=venue.hx_post %}
+                            <button id="t_delete_venue_{{ venue.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ venue.id }}">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endif %}
+
+<div id="settings_general_add_venue" {% if not venues %}style="display: none;"{% endif %}>
+    <div class="col-md-5 text-nowrap">
+        <form
+            hx-post="{% url "organisations:club_menu_tab_settings_venues_htmx" %}"
+            hx-target="#club-venues"
+            hx-vars="club_id:{{ club.id }}"
+        >
+            {% cobalt_bs4_field form.venue_name %}
+            <button name="add" id="id_settings_add_venue" class="btn btn-sm btn-success">Add</button>
+        </form>
+    </div>
+</div>

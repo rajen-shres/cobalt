@@ -1,12 +1,13 @@
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 
 from club_sessions.models import SessionType, SessionTypePaymentMethod
 from cobalt.settings import GLOBAL_MPSERVER
 from organisations.decorators import check_club_menu_access
-from organisations.forms import OrgForm, OrgDatesForm, MembershipTypeForm
+from organisations.forms import OrgForm, OrgDatesForm, MembershipTypeForm, VenueForm
 from organisations.models import ClubLog, MembershipType, MemberMembershipType, OrgVenue
 from organisations.views.admin import get_secretary_from_org_form
 from organisations.views.club_menu_tabs.utils import _user_is_uber_admin
@@ -355,10 +356,44 @@ def club_menu_tab_settings_payment_htmx(request, club):
 def club_menu_tab_settings_venues_htmx(request, club):
     """Show club venues"""
 
+    if "add" in request.POST:
+        form = VenueForm(request.POST, club=club)
+
+        if form.is_valid():
+            OrgVenue.objects.get_or_create(
+                organisation=club, venue=form.cleaned_data["venue_name"]
+            )
+            # reset form
+            form = VenueForm(club=club)
+    else:
+        form = VenueForm(club=club)
+
     venues = OrgVenue.objects.filter(organisation=club)
+
+    # Add on htmx data for venues
+    for venue in venues:
+        venue.hx_post = reverse(
+            "organisations:club_menu_tab_settings_delete_venue_htmx"
+        )
+        venue.hx_vars = f"club_id:{club.id},venue_id:{venue.id}"
 
     return render(
         request,
         "organisations/club_menu/settings/venues_htmx.html",
-        {"venues": venues},
+        {"venues": venues, "form": form, "club": club},
     )
+
+
+@check_club_menu_access()
+def club_menu_tab_settings_delete_venue_htmx(request, club):
+    """Delete a venue"""
+
+    venue = get_object_or_404(OrgVenue, pk=request.POST.get("venue_id"))
+
+    ClubLog(
+        organisation=club, actor=request.user, action=f"Deleted venue: {venue.venue}"
+    ).save()
+
+    venue.delete()
+
+    return club_menu_tab_settings_venues_htmx(request)
