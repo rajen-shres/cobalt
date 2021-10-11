@@ -208,6 +208,7 @@ def club_menu_tab_settings_membership_edit_htmx(request, club):
         .exclude(pk=membership_type.id)
         .exists()
     ):
+        # This throws a non fatal error but actually works!
         del form.fields["is_default"]
 
     return render(

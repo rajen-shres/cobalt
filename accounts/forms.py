@@ -179,7 +179,6 @@ class UnregisteredUserForm(forms.ModelForm):
     class Meta:
         model = UnregisteredUser
         fields = [
-            "system_number",
             "first_name",
             "last_name",
             "email",

@@ -238,114 +238,59 @@ def delete_member_htmx(request, club):
     return list_htmx(request, f"{member.full_name} membership deleted.")
 
 
-@check_club_menu_access(check_members=True)
-def un_reg_edit_htmx(request, club):
-    """Edit unregistered member details"""
+def _un_reg_edit_htmx_process_form(
+    request, un_reg, club, membership, user_form, club_email_form, club_membership_form
+):
+    """Sub process to handle form for un_reg_edit_htmx"""
 
-    un_reg_id = request.POST.get("un_reg_id")
-    un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
-    # for later
-    old_system_number = copy(un_reg.system_number)
+    # Assume the worst
+    message = "Errors found on Form"
 
-    member_details = (
-        MemberMembershipType.objects.active()
-        .filter(system_number=un_reg.system_number)
-        .first()
-    )
-    membership = (
-        MemberMembershipType.objects.active()
-        .filter(system_number=un_reg.system_number)
-        .first()
-    )
-    message = ""
-
-    if "save" in request.POST:
-        user_form = UnregisteredUserForm(request.POST, instance=un_reg)
-        club_email_form = MemberClubEmailForm(request.POST, prefix="club")
-        club_membership_form = UnregisteredUserMembershipForm(
-            request.POST, club=club, system_number=un_reg.system_number, prefix="member"
-        )
-
-        # Assume the worst
-        message = "Errors found on Form"
-
-        if user_form.is_valid() and club_membership_form.is_valid():
-            new_un_reg = user_form.save()
-            if club_membership_form.changed_data:
-                membership.home_club = club_membership_form.cleaned_data["home_club"]
-                membership_type = MembershipType.objects.get(
-                    pk=club_membership_form.cleaned_data["membership_type"]
-                )
-                membership.membership_type = membership_type
-                membership.save()
-
-            message = "Data Saved"
-            ClubLog(
-                organisation=club,
-                actor=request.user,
-                action=f"Updated details for {new_un_reg}",
-            ).save()
-
-            if "system_number" in user_form.changed_data:
-                # We have updated the un_reg user, but we need to also change club email addresses,
-                # and not just for this club
-
-                ClubLog(
-                    organisation=club,
-                    actor=request.user,
-                    action=f"Updated {GLOBAL_ORG} Number for {new_un_reg}",
-                ).save()
-
-                for email_match in MemberClubEmail.objects.filter(
-                    system_number=old_system_number
-                ):
-                    email_match.system_number = new_un_reg.system_number
-                    email_match.save()
-
-                # reload un_reg
-                un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
-
-                # We also need to change club memberships
-                for member_match in MemberMembershipType.objects.filter(
-                    system_number=old_system_number
-                ):
-                    member_match.system_number = new_un_reg.system_number
-                    member_match.save()
-
-        if club_email_form.is_valid():
-            club_email = club_email_form.cleaned_data["email"]
-            club_email_entry, _ = MemberClubEmail.objects.get_or_create(
-                organisation=club, system_number=un_reg.system_number
+    if user_form.is_valid() and club_membership_form.is_valid():
+        new_un_reg = user_form.save()
+        if club_membership_form.changed_data:
+            membership.home_club = club_membership_form.cleaned_data["home_club"]
+            membership_type = MembershipType.objects.get(
+                pk=club_membership_form.cleaned_data["membership_type"]
             )
-            club_email_entry.email = club_email
-            club_email_entry.save()
-            message = "Data Saved"
-            ClubLog(
-                organisation=club,
-                actor=request.user,
-                action=f"Updated club email address for {un_reg}",
-            ).save()
+            membership.membership_type = membership_type
+            membership.save()
 
-    else:
-        club_email_entry = MemberClubEmail.objects.filter(
+        message = "Data Saved"
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Updated details for {new_un_reg}",
+        ).save()
+
+    if club_email_form.is_valid():
+        club_email = club_email_form.cleaned_data["email"]
+        club_email_entry, _ = MemberClubEmail.objects.get_or_create(
             organisation=club, system_number=un_reg.system_number
-        ).first()
-        user_form = UnregisteredUserForm(instance=un_reg)
-        club_email_form = MemberClubEmailForm(prefix="club")
-        club_membership_form = UnregisteredUserMembershipForm(
-            club=club, system_number=un_reg.system_number, prefix="member"
         )
+        club_email_entry.email = club_email
+        club_email_entry.save()
+        message = "Data Saved"
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Updated club email address for {un_reg}",
+        ).save()
 
-        # Set initial values for membership form
-        club_membership_form.initial["home_club"] = membership.home_club
-        club_membership_form.initial["membership_type"] = membership.membership_type_id
+    return message, un_reg
 
-        # Set initial value for email if record exists
-        if club_email_entry:
-            club_email_form.initial["email"] = club_email_entry.email
 
-    hx_delete = reverse("organisations:club_menu_tab_member_delete_un_reg_htmx")
-    hx_args = f"club_id:{club.id},un_reg_id:{un_reg.id}"
+def _un_rg_edit_htmx_common(
+    request,
+    club,
+    un_reg,
+    message,
+    user_form,
+    club_email_form,
+    club_membership_form,
+    member_details,
+):
+    """Common part of editing un registered user, used whether form was filled in or not"""
 
     member_tags = MemberClubTag.objects.prefetch_related("club_tag").filter(
         club_tag__organisation=club, system_number=un_reg.system_number
@@ -355,7 +300,7 @@ def un_reg_edit_htmx(request, club):
         tag_name__in=used_tags
     )
 
-    # Get recent emails too
+    # Get recent emails if allowed
     if rbac_user_has_role(
         request.user, f"notifications.orgcomms.{club.id}.view"
     ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
@@ -377,11 +322,81 @@ def un_reg_edit_htmx(request, club):
             "member_details": member_details,
             "member_tags": member_tags,
             "available_tags": available_tags,
-            "hx_delete": hx_delete,
-            "hx_args": hx_args,
+            "hx_delete": reverse(
+                "organisations:club_menu_tab_member_delete_un_reg_htmx"
+            ),
+            "hx_args": f"club_id:{club.id},un_reg_id:{un_reg.id}",
             "message": message,
             "emails": emails,
         },
+    )
+
+
+@check_club_menu_access(check_members=True)
+def un_reg_edit_htmx(request, club):
+    """Edit unregistered member details"""
+
+    un_reg_id = request.POST.get("un_reg_id")
+    un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
+
+    member_details = (
+        MemberMembershipType.objects.active()
+        .filter(system_number=un_reg.system_number)
+        .first()
+    )
+    membership = (
+        MemberMembershipType.objects.active()
+        .filter(system_number=un_reg.system_number)
+        .first()
+    )
+    message = ""
+
+    if "save" in request.POST:
+        # We got form data - process it
+        user_form = UnregisteredUserForm(request.POST, instance=un_reg)
+        club_email_form = MemberClubEmailForm(request.POST, prefix="club")
+        club_membership_form = UnregisteredUserMembershipForm(
+            request.POST, club=club, system_number=un_reg.system_number, prefix="member"
+        )
+        message, un_reg = _un_reg_edit_htmx_process_form(
+            request,
+            un_reg,
+            club,
+            membership,
+            user_form,
+            club_email_form,
+            club_membership_form,
+        )
+
+    else:
+        # No form data so build up what we need to show user
+        club_email_entry = MemberClubEmail.objects.filter(
+            organisation=club, system_number=un_reg.system_number
+        ).first()
+        user_form = UnregisteredUserForm(instance=un_reg)
+        club_email_form = MemberClubEmailForm(prefix="club")
+        club_membership_form = UnregisteredUserMembershipForm(
+            club=club, system_number=un_reg.system_number, prefix="member"
+        )
+
+        # Set initial values for membership form
+        club_membership_form.initial["home_club"] = membership.home_club
+        club_membership_form.initial["membership_type"] = membership.membership_type_id
+
+        # Set initial value for email if record exists
+        if club_email_entry:
+            club_email_form.initial["email"] = club_email_entry.email
+
+    # Common parts
+    return _un_rg_edit_htmx_common(
+        request,
+        club,
+        un_reg,
+        message,
+        user_form,
+        club_email_form,
+        club_membership_form,
+        member_details,
     )
 
 
