@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Pull current branch and generally sync things up
+
+BRANCH=$(git branch --show-current)
+
+echo "#########################################"
+echo "# Updating myself for next time...      #"
+echo "#########################################"
+cp utils/cgit/pull /usr/local/bin/pull
+
+echo "#########################################"
+echo "# Updating cgit...                      #"
+echo "#########################################"
+cp utils/cgit/cgit* /usr/local/bin/
+
+echo "#########################################"
+echo "# Pulling current branch...             #"
+echo "#########################################"
+
+git pull origin $BRANCH
+
+echo "#########################################"
+echo "# Fetching everything remote...         #"
+echo "#########################################"
+git fetch origin
+
+echo "#########################################"
+echo "# Django ./manage.py migrate...         #"
+echo "#########################################"
+./manage.py migrate
+
+echo "#########################################"
+echo "# Here are your branches                #"
+echo "#########################################"
+git for-each-ref --sort=-committerdate refs/heads/ --format='%(committerdate:short) %(refname:short)'
+
+
+

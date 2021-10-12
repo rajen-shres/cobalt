@@ -2,11 +2,45 @@
     <div class="card-body">
         <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
 
-        <ul>
-            {% for session_type_payment_method_membership in session_type_payment_method_memberships %}
-                <li>{{ session_type_payment_method_membership }} - ${{ session_type_payment_method_membership.fee }}
-            {% endfor %}
-        </ul>
+        <h2>{{ session_type.name }} Rates</h2>
+
+        <div class="table-responsive">
+            <table class="table table-condensed table-hover">
+                <thead>
+                    <tr class="text-primary">
+                        <th></th>
+                        {% for session_type_payment_method_membership in session_type_payment_methods.0.sessiontypepaymentmethodmembership_set.all %}
+                            <th class="text-left">
+                                {% if session_type_payment_method_membership.membership %}
+                                    {{ session_type_payment_method_membership.membership.name }}
+                                {% else %}
+                                    Non-Member
+                                {% endif %}
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session_type_payment_method in session_type_payment_methods %}
+                        <tr>
+                            <td class="font-weight-bold text-left">{{ session_type_payment_method.payment_method.payment_method }}</td>
+                            {% for session_type_payment_method_membership in session_type_payment_method.sessiontypepaymentmethodmembership_set.all %}
+                                <td>
+                                    <input type="number"
+                                        value="{{ session_type_payment_method_membership.fee }}"
+                                        step="0.01"
+                                        class="numberinput form-control"
+                                        style="width: 50px;"
+                                    >
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+
 
     </div>
 </div>

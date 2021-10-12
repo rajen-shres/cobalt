@@ -1,5 +1,4 @@
 from django.urls import path
-from . import views
 
 app_name = "club_sessions"  # pylint: disable=invalid-name
 

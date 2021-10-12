@@ -1,8 +1,12 @@
+from decimal import Decimal
+
 from club_sessions.models import (
     SessionType,
     MasterSessionType,
     SessionTypePaymentMethod,
+    SessionTypePaymentMethodMembership,
 )
+from organisations.models import MembershipType
 from payments.models import OrgPaymentMethod
 
 DEFAULT_PAYMENT_METHODS = ["Cash", "EFTPOS", "Credit Card", "Bank Transfer"]
@@ -11,6 +15,7 @@ DEFAULT_SESSION_TYPES = [
     MasterSessionType.MULTI_SESSION,
     MasterSessionType.WORKSHOP,
 ]
+DEFAULT_FEE = Decimal(5.0)
 
 
 def add_club_session_defaults(club):
@@ -34,7 +39,7 @@ def add_club_session_defaults(club):
     for default_session_type in DEFAULT_SESSION_TYPES:
 
         session_type = SessionType(
-            name=default_session_type,
+            name=default_session_type.label,
             organisation=club,
             master_session_type=default_session_type.value,
         )
@@ -45,8 +50,23 @@ def add_club_session_defaults(club):
     # Combination of the two
     for pay_meth_item in pay_meth:
         for sess_type_item in sess_type:
-            SessionTypePaymentMethod(
+            sess_type_pay_method = SessionTypePaymentMethod(
                 session_type=sess_type_item, payment_method=pay_meth_item
-            ).save()
+            )
+            sess_type_pay_method.save()
 
-        # Now create
+            # Now create the SessionTypePaymentMethodMembership items.
+            membership_types = MembershipType.objects.filter(organisation=club)
+            for membership_type in membership_types:
+                SessionTypePaymentMethodMembership(
+                    session_type_payment_method=sess_type_pay_method,
+                    membership=membership_type,
+                    fee=DEFAULT_FEE,
+                ).save()
+
+            # Add non-member fee
+            SessionTypePaymentMethodMembership(
+                session_type_payment_method=sess_type_pay_method,
+                membership=None,
+                fee=DEFAULT_FEE,
+            ).save()

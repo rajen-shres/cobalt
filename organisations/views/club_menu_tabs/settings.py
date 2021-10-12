@@ -324,19 +324,25 @@ def club_menu_tab_settings_session_edit_htmx(request, club):
     details.
     """
 
-    session_type_payment_method_memberships = (
-        SessionTypePaymentMethodMembership.objects.filter(
-            session_type_payment_method__session_type__id=request.POST.get(
-                "session_type_id"
-            )
-        )
+    session_type = get_object_or_404(
+        SessionType, pk=request.POST.get("session_type_id")
+    )
+
+    session_type_payment_methods = SessionTypePaymentMethod.objects.filter(
+        session_type=session_type
+    )
+
+    session_type_payment_methods.prefetch_related(
+        "sessiontypepaymentmethodmembership_set"
     )
 
     return render(
         request,
         "organisations/club_menu/settings/session_edit_htmx.html",
         {
-            "session_type_payment_method_memberships": session_type_payment_method_memberships
+            "session_type_payment_methods": session_type_payment_methods,
+            "session_type": session_type,
+            "club": club,
         },
     )
 

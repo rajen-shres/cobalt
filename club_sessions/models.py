@@ -13,7 +13,7 @@ class MasterSessionType(models.TextChoices):
     """Master list of different types of session that are supported"""
 
     DUPLICATE = "DP", "Duplicate"
-    MULTI_SESSION = "MS", "Multi-session"
+    MULTI_SESSION = "MS", "Multi-Session"
     WORKSHOP = "WS", "Workshop"
 
 
