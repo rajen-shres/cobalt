@@ -362,7 +362,7 @@ class OrganisationFrontPage(models.Model):
         return f"Front Page for {self.organisation}"
 
 
-class MiscPayTypes(models.Model):
+class MiscPayType(models.Model):
     """Labels for different kinds of miscellaneous payments for clubs. eg. Parking, books"""
 
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)

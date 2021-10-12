@@ -6,74 +6,144 @@
         {% include "organisations/club_menu/settings/nav_htmx.html" with selected="payment" %}
     </div>
     <div class="card-body">
-        <p class="font-italic">
-            Set the types of payment that the club can accept.
-        </p>
 
-        <div class="table-responsive col-md-6">
-            <table class="table table-hover table-condensed">
-                <thead class="text-primary">
-                    <tr>
-                        <th>Type</th>
-                        <th>Enabled</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Bridge Credits</td>
-                        <td>
-                            <input
-                                type="checkbox"
-                                class="toggle_button"
-                                data-toggle="toggle"
-                                data-size="sm"
-                                data-onstyle="primary"
-                                disabled
-                                checked
-                            >
-                        </td>
-                    </tr>
-                    {% for payment_method in payment_methods %}
-                        <tr>
-                            <td>{{ payment_method.payment_method }}</td>
-                            <td
-                                hx-post="{% url "organisations:club_menu_tab_settings_toggle_payment_type_htmx" %}"
-                                hx-vars="club_id:{{ club.id }},payment_type_id:{{ payment_method.id }}"
-                                hx-swap="none"
-                            >
-                                <input
-                                    id="t_toggle_pay_method_{{ payment_method.id }}"
-                                    type="checkbox"
-                                    class="toggle_button"
-                                    data-toggle="toggle"
-                                    data-size="sm"
-                                    data-onstyle="primary"
-                                    {% if payment_method.active %}checked{% endif %}
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header card-header-warning">
+                            <h3>Accepted Payment Methods</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="font-italic">
+                                Set the types of payment that the club can accept.
+                            </p>
+
+                            <div class="table-responsive col-md-6">
+                                <table class="table table-hover table-condensed">
+                                    <thead class="text-primary">
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Enabled</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Bridge Credits</td>
+                                            <td>
+                                                <input
+                                                    type="checkbox"
+                                                    class="toggle_button"
+                                                    data-toggle="toggle"
+                                                    data-size="sm"
+                                                    data-onstyle="primary"
+                                                    disabled
+                                                    checked
+                                                >
+                                            </td>
+                                        </tr>
+                                        {% for payment_method in payment_methods %}
+                                            <tr>
+                                                <td>{{ payment_method.payment_method }}</td>
+                                                <td
+                                                    hx-post="{% url "organisations:club_menu_tab_settings_toggle_payment_type_htmx" %}"
+                                                    hx-vars="club_id:{{ club.id }},payment_type_id:{{ payment_method.id }}"
+                                                    hx-swap="none"
+                                                >
+                                                    <input
+                                                        id="t_toggle_pay_method_{{ payment_method.id }}"
+                                                        type="checkbox"
+                                                        class="toggle_button"
+                                                        data-toggle="toggle"
+                                                        data-size="sm"
+                                                        data-onstyle="primary"
+                                                        {% if payment_method.active %}checked{% endif %}
+                                                    >
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-5 text-nowrap">
+                                <form
+                                    hx-post="{% url "organisations:club_menu_tab_settings_payment_htmx" %}"
+                                    hx-target="#id_settings_form"
+                                    hx-vars="club_id:{{ club.id }}"
                                 >
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="col-md-3 text-nowrap">
-            <form
-                hx-post="{% url "organisations:club_menu_tab_settings_payment_htmx" %}"
-                hx-target="#id_settings_form"
-                hx-vars="club_id:{{ club.id }}"
-            >
-                {% cobalt_bs4_field form.payment_name %}
-                <button name="add" id="id_payments_add_type" class="btn btn-sm btn-success">Add</button>
-            </form>
-        </div>
+                                    {% cobalt_bs4_field form.payment_name %}
+                                    <button name="add" id="id_payments_add_type" class="btn btn-sm btn-success">Add</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header card-header-success">
+                            <h3>Miscellaneous Payment Types</h3>
+                        </div>
+                        <div class="card-body">
+                            <i>Manage the list of payments that your club handles. e.g. Parking, books, coffee, etc.</i>
+                            <div class="col-md-6 text-nowrap">
+
+                                <div class="table-responsive">
+                                    <table class="table table-condensed table-hover">
+                                        <thead>
+                                            <tr class="text-primary">
+                                                <th class="text-left">Payment Type</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for misc_pay_type in misc_pay_types %}
+                                                <tr>
+                                                    <td class="text-left">{{ misc_pay_type.description }}</td>
+                                                    <td>
+                                                        <button
+                                                            class="btn btn-sm btn-danger"
+                                                            hx-post="{% url "organisations:club_menu_tab_settings_misc_pay_delete_htmx" %}"
+                                                            hx-target="#id_settings_form"
+                                                            hx-vars="club_id:{{ club.id }},misc_pay_id:{{ misc_pay_type.id }}"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <form
+                                    hx-post="{% url "organisations:club_menu_tab_settings_misc_pay_add_htmx" %}"
+                                    hx-target="#id_settings_form"
+                                    hx-vars="club_id:{{ club.id }}"
+                                >
+
+                                    <input type="text" class="form-control" name="misc_pay_name"
+                                        placeholder="Add new type" maxlength="30">
+
+                                    <button class="btn btn-sm btn-success">Add</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
+
 </div>
 
 
 <script>
     $( document ).ready(function() {
+
         // activate toggle buttons
         $('.toggle_button').bootstrapToggle();
+
     });
 </script>

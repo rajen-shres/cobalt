@@ -4,7 +4,11 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 
-from club_sessions.models import SessionType, SessionTypePaymentMethod
+from club_sessions.models import (
+    SessionType,
+    SessionTypePaymentMethod,
+    SessionTypePaymentMethodMembership,
+)
 from cobalt.settings import GLOBAL_MPSERVER
 from organisations.decorators import check_club_menu_access
 from organisations.forms import (
@@ -14,7 +18,13 @@ from organisations.forms import (
     VenueForm,
     PaymentTypeForm,
 )
-from organisations.models import ClubLog, MembershipType, MemberMembershipType, OrgVenue
+from organisations.models import (
+    ClubLog,
+    MembershipType,
+    MemberMembershipType,
+    OrgVenue,
+    MiscPayType,
+)
 from organisations.views.admin import get_secretary_from_org_form
 from organisations.views.club_menu_tabs.utils import _user_is_uber_admin
 from organisations.views.general import compare_form_with_mpc
@@ -314,35 +324,20 @@ def club_menu_tab_settings_session_edit_htmx(request, club):
     details.
     """
 
-    session_type = get_object_or_404(
-        SessionType, pk=request.POST.get("session_type_id")
+    session_type_payment_method_memberships = (
+        SessionTypePaymentMethodMembership.objects.filter(
+            session_type_payment_method__session_type__id=request.POST.get(
+                "session_type_id"
+            )
+        )
     )
-
-    # This is a POST even the first time so look for "save" to see if this really is a form submit
-    # real_post = "save" in request.POST
-
-    # if not real_post:
-    #     form = MembershipTypeForm(instance=membership_type)
-    # else:
-    #     form = MembershipTypeForm(request.POST, instance=membership_type)
-    #
-    # message = ""
-    #
-    # if form.is_valid():
-    #     updated = form.save(commit=False)
-    #     updated.last_modified_by = request.user
-    #     updated.save()
-    #     ClubLog(
-    #         organisation=club,
-    #         actor=request.user,
-    #         action=f"Updated membership type: {updated}",
-    #     ).save()
-    #     message = "Membership Type Updated"
 
     return render(
         request,
         "organisations/club_menu/settings/session_edit_htmx.html",
-        {"session_type": session_type},
+        {
+            "session_type_payment_method_memberships": session_type_payment_method_memberships
+        },
     )
 
 
@@ -373,11 +368,17 @@ def club_menu_tab_settings_payment_htmx(request, club):
     payment_methods = OrgPaymentMethod.objects.filter(organisation=club).order_by(
         "-active"
     )
+    misc_pay_types = MiscPayType.objects.filter(organisation=club)
 
     return render(
         request,
         "organisations/club_menu/settings/payment_htmx.html",
-        {"payment_methods": payment_methods, "club": club, "form": form},
+        {
+            "payment_methods": payment_methods,
+            "club": club,
+            "form": form,
+            "misc_pay_types": misc_pay_types,
+        },
     )
 
 
@@ -457,5 +458,36 @@ def club_menu_tab_settings_toggle_payment_type_htmx(request, club):
         ).save()
         payment_type.active = True
     payment_type.save()
+
+    return club_menu_tab_settings_payment_htmx(request)
+
+
+@check_club_menu_access()
+def club_menu_tab_settings_misc_pay_add_htmx(request, club):
+    """Add a miscellaneous payment"""
+
+    misc_pay_name = request.POST.get("misc_pay_name")
+    MiscPayType(organisation=club, description=misc_pay_name).save()
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Added miscellaneous payment type: {misc_pay_name}",
+    ).save()
+
+    return club_menu_tab_settings_payment_htmx(request)
+
+
+@check_club_menu_access()
+def club_menu_tab_settings_misc_pay_delete_htmx(request, club):
+    """Add a miscellaneous payment"""
+
+    misc_pay_id = request.POST.get("misc_pay_id")
+    misc_pay = get_object_or_404(MiscPayType, pk=misc_pay_id)
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Deleted miscellaneous payment type: {misc_pay.description}",
+    ).save()
+    misc_pay.delete()
 
     return club_menu_tab_settings_payment_htmx(request)

@@ -5,9 +5,11 @@ from club_sessions.models import (
     SessionType,
     SessionTypePaymentMethod,
     SessionEntry,
+    SessionTypePaymentMethodMembership,
 )
 
 admin.site.register(Session)
 admin.site.register(SessionType)
 admin.site.register(SessionTypePaymentMethod)
 admin.site.register(SessionEntry)
+admin.site.register(SessionTypePaymentMethodMembership)

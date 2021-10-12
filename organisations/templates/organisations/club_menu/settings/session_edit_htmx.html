@@ -1,45 +1,12 @@
-
-{% load cobalt_tags %}
-{% load crispy_forms_tags %}
 <div class="card">
-    <div class="card-body pt-0">
+    <div class="card-body">
         <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
-        <h1>{{ session_type }}</h1>
-        {% for session_type_payment_method in session_type.session_type_payment_method.all %}
-            <h3>{{ session_type_payment_method }}</h3>
-        {% endfor %}
-        <form
-            hx-post="{% url "organisations:club_menu_tab_settings_session_edit_htmx" %}"
-            hx-target="#id_session_edit"
-            hx-vars="session_type_payment_method_id:{{ session_type_payment_method.id }}"
-        >
-            <h4>
-                Name: {{ session_type_payment_method.session_type.name }}
-            </h4>
-            <h4>
-                Master Session type: {{ session_type_payment_method.session_type.get_master_session_type_display }}
-            </h4>
-            <h4>
-                payment Method: {{ session_type_payment_method.payment_method.payment_method }}
-            </h4>
 
-            <h3 class="text-center">{{ membership_type.name }}</h3>
-
-
-
-            <button id="t_stype_save" type="submit" name="save" class="btn btn-success">Save</button>
-            {{ session_type_payment_methods }}
-            <a href="#"
-                class="btn btn-danger"
-                hx-post="{% url "organisations:club_menu_tab_settings_membership_delete_htmx" %}"
-                hx-target="#id_sesssion_edit"
-                hx-vars="session_type_payment_method_id:{{ session_type_payment_method.id }}"
-            >Delete</a>
-        </form>
-        {#        {% if membership_type.last_modified_by %}#}
-        {#            <div class="font-italic small">last updated {{ membership_type.updated_at|cobalt_nice_datetime }}#}
-        {#                by {{ membership_type.last_modified_by.full_name }}</div>#}
-        {#        {% endif %}#}
+        <ul>
+            {% for session_type_payment_method_membership in session_type_payment_method_memberships %}
+                <li>{{ session_type_payment_method_membership }} - ${{ session_type_payment_method_membership.fee }}
+            {% endfor %}
+        </ul>
 
     </div>
 </div>

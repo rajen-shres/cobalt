@@ -48,3 +48,5 @@ def add_club_session_defaults(club):
             SessionTypePaymentMethod(
                 session_type=sess_type_item, payment_method=pay_meth_item
             ).save()
+
+        # Now create

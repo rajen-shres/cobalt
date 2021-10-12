@@ -448,7 +448,7 @@ class PaymentTypeForm(forms.Form):
     payment_name = forms.CharField(
         max_length=15,
         label="",
-        widget=forms.TextInput(attrs={"placeholder": "Add new type"}),
+        widget=forms.TextInput(attrs={"placeholder": "Add new method"}),
     )
 
     def __init__(self, *args, **kwargs):

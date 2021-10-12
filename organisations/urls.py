@@ -323,4 +323,14 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.club_menu_tab_settings_toggle_payment_type_htmx,
         name="club_menu_tab_settings_toggle_payment_type_htmx",
     ),
+    path(
+        "club-menu/settings/misc-pay-delete",
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_misc_pay_delete_htmx,
+        name="club_menu_tab_settings_misc_pay_delete_htmx",
+    ),
+    path(
+        "club-menu/settings/misc-pay-add",
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_misc_pay_add_htmx,
+        name="club_menu_tab_settings_misc_pay_add_htmx",
+    ),
 ]

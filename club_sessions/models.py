@@ -4,7 +4,7 @@ from django.db import models
 from django.utils import timezone
 
 from accounts.models import User
-from organisations.models import Organisation
+from organisations.models import Organisation, MembershipType
 from payments.models import OrgPaymentMethod, OrganisationTransaction, MemberTransaction
 from utils.models import Seat
 
@@ -47,6 +47,22 @@ class SessionTypePaymentMethod(models.Model):
 
     def __str__(self):
         return f"{self.session_type} - {self.payment_method.payment_method}"
+
+
+class SessionTypePaymentMethodMembership(models.Model):
+    """Links a session type (and payment method) to a membership type and sets the fee"""
+
+    session_type_payment_method = models.ForeignKey(
+        SessionTypePaymentMethod, on_delete=models.CASCADE
+    )
+    membership = models.ForeignKey(
+        MembershipType, on_delete=models.CASCADE, null=True, blank=True
+    )
+    """ This either holds a link to a membership type or can be blank to signify the rate for non-members"""
+    fee = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.membership} - {self.session_type_payment_method}"
 
 
 class Session(models.Model):
