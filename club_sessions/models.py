@@ -13,7 +13,11 @@ DEFAULT_FEE = Decimal(5.0)
 
 
 class MasterSessionType(models.TextChoices):
-    """Master list of different types of session that are supported"""
+    """Master list of different types of session that are supported
+    The idea with this is that different things will happen depending
+    upon the master_session_type. Currently nothing happens so this
+    is just set to DUPLICATE.
+    """
 
     DUPLICATE = "DP", "Duplicate"
     MULTI_SESSION = "MS", "Multi-Session"
