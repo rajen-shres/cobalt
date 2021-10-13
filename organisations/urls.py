@@ -333,4 +333,19 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.club_menu_tab_settings_misc_pay_add_htmx,
         name="club_menu_tab_settings_misc_pay_add_htmx",
     ),
+    path(
+        "club-menu/settings/session-fee-change",
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_table_fee_update_htmx,
+        name="club_menu_tab_settings_table_fee_update_htmx",
+    ),
+    path(
+        "club-menu/settings/session-delete",
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_session_delete_htmx,
+        name="club_menu_tab_settings_session_delete_htmx",
+    ),
+    path(
+        "club-menu/settings/session-add",
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_session_add_htmx,
+        name="club_menu_tab_settings_session_add_htmx",
+    ),
 ]

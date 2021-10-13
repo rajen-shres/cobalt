@@ -17,15 +17,15 @@
                                 hx-post="{% url "organisations:club_menu_tab_settings_session_edit_htmx" %}"
                                 hx-target="#id_session_edit"
                                 hx-vars="session_type_id:{{ session_type.id }}"
-                            > {{ session_type.get_master_session_type_display }}</button>
+                            > {{ session_type.name }}
+                                {#                                ({{ session_type.get_master_session_type_display }})#}
+                            </button>
                         </div>
                     {% endfor %}
                     <div class="col-12 d-inline-flex w-100 mx-0 px-0 justify-content-between">
                         <button
                             class="btn btn-sm btn-success w-100 mx-5"
-                            hx-post="{% url "organisations:club_menu_tab_settings_membership_add_htmx" %}"
-                            hx-indicator=".htmx-indicator"
-                            hx-target="#id_membership_edit"
+                            id="settings_add_session"
                         >Add</button>
                     </div>
                 </div>
@@ -35,5 +35,37 @@
             </div>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function() {
+            $("#settings_add_session").click(function(){
+                swal.fire({
+                    title: 'Add New Session Type',
+                    input: 'text',
+                    width: 800,
+                    inputPlaceholder: 'Session name...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Create',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (result.value.length > 15) {
+                            swal.fire({
+                                title: "Error",
+                                html: "Maximum length is 15 characters",
+                                icon: "error"
+                            });
+                            return false;
+                        } else {
+                            postData = {
+                                'club_id': {{ club.id }},
+                                'session_name': result.value
+                            };
+                            htmx.ajax('POST', '{% url "organisations:club_menu_tab_settings_session_add_htmx" %}', {'target': '#id_settings_form', 'values': postData });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 
 

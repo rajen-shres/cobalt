@@ -141,6 +141,13 @@ class MembershipTypeForm(forms.ModelForm):
             "does_not_renew",
         )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # {{ form | crispy }} stuffs up checkboxes and {% crispy form %} adds </form>. This prevents this.
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+
 
 class OrgDatesForm(forms.ModelForm):
     class Meta:

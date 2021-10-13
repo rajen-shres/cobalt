@@ -1,9 +1,14 @@
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 
+from club_sessions.club_sessions_views.admin import (
+    add_club_session,
+    add_payment_method_session_type_combos,
+    turn_off_payment_type,
+)
 from club_sessions.models import (
     SessionType,
     SessionTypePaymentMethod,
@@ -253,7 +258,13 @@ def club_menu_tab_settings_membership_add_htmx(request, club):
             actor=request.user,
             action=f"Added membership type: {membership_type.name}",
         ).save()
-        return membership_htmx(request, club)
+
+        # Update any sessions with the new payment type
+        add_payment_method_session_type_combos(club)
+
+        return membership_htmx(request)
+    else:
+        print(form.errors)
 
     # Don't show option to set as default if there is already a default
     if MembershipType.objects.filter(organisation=club, is_default=True).exists():
@@ -299,8 +310,10 @@ def club_menu_tab_settings_membership_delete_htmx(request, club):
         )
     else:
         membership_type.delete()
+        # Delete any invalid session payment records
+        turn_off_payment_type(club)
 
-    return membership_htmx(request, club)
+    return membership_htmx(request)
 
 
 @check_club_menu_access()
@@ -312,7 +325,7 @@ def club_menu_tab_settings_sessions_htmx(request, club):
     return render(
         request,
         "organisations/club_menu/settings/sessions_htmx.html",
-        {"session_types": session_types},
+        {"session_types": session_types, "club": club},
     )
 
 
@@ -321,7 +334,7 @@ def club_menu_tab_settings_session_edit_htmx(request, club):
     """Part of the settings tab for session types to allow user to edit the session type
 
     When a session type is clicked on, this code is run and returns a form to edit the
-    details.
+    details. Updates are not done through here however, this just serves the form.
     """
 
     session_type = get_object_or_404(
@@ -330,19 +343,32 @@ def club_menu_tab_settings_session_edit_htmx(request, club):
 
     session_type_payment_methods = SessionTypePaymentMethod.objects.filter(
         session_type=session_type
-    )
+    ).order_by("payment_method")
 
-    session_type_payment_methods.prefetch_related(
-        "sessiontypepaymentmethodmembership_set"
-    )
+    # you can't use order_by in a template and prefetch related doesn't seem to support it properly, so build it here
+    rates = []
+
+    for session_type_payment_method in session_type_payment_methods:
+        rates.append(
+            session_type_payment_method.sessiontypepaymentmethodmembership_set.order_by(
+                "session_type_payment_method", "membership__name"
+            )
+        )
+
+    # HTMX values for the delete button
+    hx_post = reverse("organisations:club_menu_tab_settings_session_delete_htmx")
+    hx_vars = f"club_id:{club.id},session_id:{session_type.id}"
 
     return render(
         request,
         "organisations/club_menu/settings/session_edit_htmx.html",
         {
-            "session_type_payment_methods": session_type_payment_methods,
+            #       "session_type_payment_methods": session_type_payment_methods,
+            "rates": rates,
             "session_type": session_type,
             "club": club,
+            "hx_post": hx_post,
+            "hx_vars": hx_vars,
         },
     )
 
@@ -359,6 +385,9 @@ def club_menu_tab_settings_payment_htmx(request, club):
                 organisation=club, payment_method=form.cleaned_data["payment_name"]
             )
             payment_type.save()
+
+            # Update any sessions with the new payment type
+            add_payment_method_session_type_combos(club)
 
             ClubLog(
                 organisation=club,
@@ -456,6 +485,10 @@ def club_menu_tab_settings_toggle_payment_type_htmx(request, club):
             action=f"Disabled payment method: {payment_type.payment_method}",
         ).save()
         payment_type.active = False
+        payment_type.save()
+
+        # Delete any invalid session payment records
+        turn_off_payment_type(club)
     else:
         ClubLog(
             organisation=club,
@@ -463,7 +496,10 @@ def club_menu_tab_settings_toggle_payment_type_htmx(request, club):
             action=f"Activated payment method: {payment_type.payment_method}",
         ).save()
         payment_type.active = True
-    payment_type.save()
+        payment_type.save()
+
+        # Update any sessions with the new payment type
+        add_payment_method_session_type_combos(club)
 
     return club_menu_tab_settings_payment_htmx(request)
 
@@ -497,3 +533,62 @@ def club_menu_tab_settings_misc_pay_delete_htmx(request, club):
     misc_pay.delete()
 
     return club_menu_tab_settings_payment_htmx(request)
+
+
+@check_club_menu_access()
+def club_menu_tab_settings_table_fee_update_htmx(request, club):
+    """Change table fees"""
+
+    session = get_object_or_404(
+        SessionTypePaymentMethodMembership, pk=request.POST.get("session_id")
+    )
+    fee = request.POST.get("fee")
+    session.fee = fee
+    session.save()
+
+    if session.membership:
+        membership_name = session.membership.name
+    else:
+        membership_name = "Non-member"
+
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Changed session fee for {membership_name} {session.session_type_payment_method.payment_method.payment_method} to {fee}",
+    ).save()
+
+    return HttpResponse("Data saved")
+
+
+@check_club_menu_access()
+def club_menu_tab_settings_session_delete_htmx(request, club):
+    """Delete entire session"""
+
+    session = get_object_or_404(SessionType, pk=request.POST.get("session_id"))
+
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Deleted session {session}",
+    ).save()
+
+    session.delete()
+
+    return club_menu_tab_settings_sessions_htmx(request)
+
+
+@check_club_menu_access()
+def club_menu_tab_settings_session_add_htmx(request, club):
+    """Add new session"""
+
+    session_name = request.POST.get("session_name")
+
+    add_club_session(club, session_name)
+
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Added session {session_name}",
+    ).save()
+
+    return club_menu_tab_settings_sessions_htmx(request)

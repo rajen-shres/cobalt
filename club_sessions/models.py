@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 
 from django.db import models
 from django.utils import timezone
@@ -7,6 +8,8 @@ from accounts.models import User
 from organisations.models import Organisation, MembershipType
 from payments.models import OrgPaymentMethod, OrganisationTransaction, MemberTransaction
 from utils.models import Seat
+
+DEFAULT_FEE = Decimal(5.0)
 
 
 class MasterSessionType(models.TextChoices):
@@ -59,7 +62,7 @@ class SessionTypePaymentMethodMembership(models.Model):
         MembershipType, on_delete=models.CASCADE, null=True, blank=True
     )
     """ This either holds a link to a membership type or can be blank to signify the rate for non-members"""
-    fee = models.DecimalField(max_digits=10, decimal_places=2)
+    fee = models.DecimalField(max_digits=10, decimal_places=2, default=DEFAULT_FEE)
 
     def __str__(self):
         return f"{self.membership} - {self.session_type_payment_method}"

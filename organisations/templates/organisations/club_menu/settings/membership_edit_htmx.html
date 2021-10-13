@@ -14,7 +14,7 @@
             {% crispy form %}
 
             <button id="t_mtype_save" type="submit" name="save" class="btn btn-success">Save</button>
-            <button type="reset" class="btn btn-info">Reset</button>
+            {#            <button type="reset" class="btn btn-info">Reset</button>#}
             <a href="#"
                 class="btn btn-danger"
                 hx-post="{% url "organisations:club_menu_tab_settings_membership_delete_htmx" %}"

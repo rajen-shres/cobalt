@@ -1,6 +1,6 @@
 <div class="card">
     <div class="card-body">
-        <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
+        <h4 class="text-info font-weight-bold settings_message" id="settings_message_rates">{{ message }}</h4>
 
         <h2>{{ session_type.name }} Rates</h2>
 
@@ -9,10 +9,13 @@
                 <thead>
                     <tr class="text-primary">
                         <th></th>
-                        {% for session_type_payment_method_membership in session_type_payment_methods.0.sessiontypepaymentmethodmembership_set.all %}
+
+                        {#-- for the header rows we just go with the data from the first row --#}
+
+                        {% for header in rates.0 %}
                             <th class="text-left">
-                                {% if session_type_payment_method_membership.membership %}
-                                    {{ session_type_payment_method_membership.membership.name }}
+                                {% if header.membership %}
+                                    {{ header.membership.name }}
                                 {% else %}
                                     Non-Member
                                 {% endif %}
@@ -20,17 +23,24 @@
                         {% endfor %}
                     </tr>
                 </thead>
+
+                {# We have a row per payment method --#}
+
                 <tbody>
-                    {% for session_type_payment_method in session_type_payment_methods %}
+                    {% for rate_list in rates %}
                         <tr>
-                            <td class="font-weight-bold text-left">{{ session_type_payment_method.payment_method.payment_method }}</td>
-                            {% for session_type_payment_method_membership in session_type_payment_method.sessiontypepaymentmethodmembership_set.all %}
+                            <td class="font-weight-bold text-primary text-left">{{ rate_list.0.session_type_payment_method.payment_method.payment_method }}</td>
+                            {% for session_type_payment_method_membership in rate_list %}
                                 <td>
                                     <input type="number"
+                                        name="fee"
                                         value="{{ session_type_payment_method_membership.fee }}"
                                         step="0.01"
                                         class="numberinput form-control"
                                         style="width: 50px;"
+                                        hx-post="{% url "organisations:club_menu_tab_settings_table_fee_update_htmx" %}"
+                                        hx-target="#settings_message_rates"
+                                        hx-vars="club_id:{{ club.id }},session_id:{{ session_type_payment_method_membership.id }}"
                                     >
                                 </td>
                             {% endfor %}
@@ -40,6 +50,10 @@
                 </tbody>
             </table>
         </div>
+        {% include "utils/htmx_confirm_modal.html" with id=session_type.id delete_item=session_type.name hx_vars=hx_vars hx_target="#id_settings_form" hx_post=hx_post %}
+        <button id="t_delete_session_type_{{ session_type.id }}" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal{{ session_type.id }}">
+            Delete Session Type
+        </button>
 
 
     </div>

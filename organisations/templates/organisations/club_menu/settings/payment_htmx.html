@@ -86,8 +86,9 @@
                         </div>
                         <div class="card-body">
                             <i>Manage the list of payments that your club handles. e.g. Parking, books, coffee, etc.</i>
-                            <div class="col-md-6 text-nowrap">
 
+
+                            {% if misc_pay_types %}
                                 <div class="table-responsive">
                                     <table class="table table-condensed table-hover">
                                         <thead>
@@ -115,6 +116,8 @@
                                         </tbody>
                                     </table>
                                 </div>
+                            {% endif %}
+                            <div class="col-md-6 text-nowrap">
 
                                 <form
                                     hx-post="{% url "organisations:club_menu_tab_settings_misc_pay_add_htmx" %}"
@@ -144,6 +147,18 @@
 
         // activate toggle buttons
         $('.toggle_button').bootstrapToggle();
+
+        // warn if enabling a payment type
+        $('.toggle_button').change(function(evt){
+            if ($(this).prop('checked')) {
+                swal.fire({
+                    title: "Warning",
+                    html: "Check the rates on your sessions (SESSION TYPES above) as a default value has been applied, which may not be what you want.",
+                    icon: "warn"
+                });
+            }
+
+        });
 
     });
 </script>
