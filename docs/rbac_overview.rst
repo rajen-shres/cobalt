@@ -1,5 +1,4 @@
-.. _rbac-overview:
-
+:orphan:
 
 .. image:: images/cobalt.jpg
  :width: 300

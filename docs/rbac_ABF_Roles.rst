@@ -1,5 +1,4 @@
-.. _rbac_ABF_Roles:
-
+:orphan:
 
 .. image:: images/cobalt.jpg
  :width: 300

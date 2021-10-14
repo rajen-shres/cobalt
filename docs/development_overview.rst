@@ -1,9 +1,12 @@
-.. _forums-overview:
-
+:orphan:
 
 .. image:: images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
+
+.. image:: images/development.jpg
+ :width: 300
+ :alt: Coding
 
 Development Overview
 ====================

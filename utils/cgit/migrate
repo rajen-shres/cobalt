@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo "Making migrations..."
+echo "./manage.py makemigrations"
+./manage.py makemigrations
+echo "Applying migrations..."
+echo "./manage.py migrate"
+./manage.py migrate

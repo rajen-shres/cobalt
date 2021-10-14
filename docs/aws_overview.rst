@@ -1,5 +1,4 @@
-.. _aws-overview:
-
+:orphan:
 
 .. image:: images/cobalt.jpg
  :width: 300

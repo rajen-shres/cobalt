@@ -1,5 +1,4 @@
-.. _payments-overview:
-
+:orphan:
 
 .. image:: images/cobalt.jpg
  :width: 300
