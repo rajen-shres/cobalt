@@ -4,31 +4,37 @@
 
 BRANCH=$(git branch --show-current)
 
-echo "#########################################"
-echo "# Updating myself for next time...      #"
-echo "#########################################"
+echo "################################################################"
+echo "# Updating myself (and specific friends) for next time...      #"
+echo "################################################################"
 cp utils/cgit/pull /usr/local/bin/pull
+cp utils/cgit/doco /usr/local/bin/doco
+cp utils/cgit/migrate /usr/local/bin/migrate
+echo "..."
 
 echo "#########################################"
 echo "# Updating cgit...                      #"
 echo "#########################################"
 cp utils/cgit/cgit* /usr/local/bin/
+echo "..."
 
 echo "#########################################"
 echo "# Pulling current branch...             #"
 echo "#########################################"
-
 git pull origin $BRANCH
+echo "..."
 
 echo "#########################################"
 echo "# Fetching everything remote...         #"
 echo "#########################################"
 git fetch origin
+echo "..."
 
 echo "#########################################"
 echo "# Django ./manage.py migrate...         #"
 echo "#########################################"
 ./manage.py migrate
+echo "..."
 
 echo "#########################################"
 echo "# Here are your branches                #"

@@ -1,5 +1,4 @@
-.. _events-overview:
-
+:orphan:
 
 .. image:: images/cobalt.jpg
  :width: 300

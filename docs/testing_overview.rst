@@ -1,5 +1,4 @@
-.. _forums-overview:
-
+:orphan:
 
 .. image:: images/cobalt.jpg
  :width: 300

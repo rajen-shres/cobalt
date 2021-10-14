@@ -1,5 +1,4 @@
-.. _notifications-overview:
-
+:orphan:
 
 .. image:: images/cobalt.jpg
  :width: 300
