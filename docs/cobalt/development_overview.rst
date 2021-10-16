@@ -39,15 +39,16 @@ There are a few steps to follow:
 Code
 ----
 
-You can use any OS you like for development, but for simplicity the commands
-shown here are for a Unix style environment such as Linux or Mac OS. The
-Windows equivalent commands will work just as well.
+.. hint::
+
+    If you want to develop on Windows you will need to install the Windows Linux Subsystem. File
+    permissions and other things get messed up in the Windows UI so it is not recommended.
 
 Here are the basic steps to get started::
 
     $ mkdir cobalt-project
     $ virtualenv myenv   # specify -P python3.7 or similar if that is not your default
-    $ . virtualenv/bin/activate
+    $ . ./myenv/bin/activate
     $ mkdir cobalt
     $ cd cobalt
 
@@ -55,7 +56,7 @@ Get code from github and set up::
 
     $ git init
     $ git remote add origin https://github.com/abftech/cobalt.git
-    $ git pull origin master
+    $ git pull origin develop
 
 Install requirements::
 

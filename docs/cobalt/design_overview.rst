@@ -8,15 +8,29 @@
  :width: 300
  :alt: Design
 
-
+===============
 Design Overview
 ===============
 
+************************
+High Level System Design
+************************
+
+External
+========
+
+Internal
+========
+
+****************
+Key Technologies
+****************
+
 HTMX
-----
+====
 
 Intro
-^^^^^
+-----
 
 Cobalt is a Django application so much of the design is already dictated.
 We originally discussed having an API for most functions which would
@@ -45,7 +59,7 @@ Django already handles the separation of content from presentation
 with its templates.
 
 History
-^^^^^^^
+-------
 
 Using the original best practice approach we ended up with
 three types of screen. We had pure Django screens that did
@@ -70,7 +84,7 @@ event entry screen was built this way and quickly became the
 worst screen in Cobalt and the hardest to support.
 
 A Better Option
-^^^^^^^^^^^^^^^
+---------------
 
 Starting with the Club Menu screens we introduced HTMX
 (https://htmx.org) to Cobalt. HTMX makes it easier to update
@@ -88,7 +102,7 @@ plumbing code, mostly on the client side but also within your
 Django views. With HTMX that disappears.
 
 In Practice
-^^^^^^^^^^^
+-----------
 
 It is not a completely fair comparison but it does give some
 insight into the difference if we compare the original
@@ -106,7 +120,7 @@ the client side HTML. It took 4 hours to build (obviously
 quicker as code from the original version was re-used).
 
 Design Approach
-^^^^^^^^^^^^^^^
+---------------
 
 The biggest advance of using HTMX is how modular and easy
 to maintain the code becomes. Take the example of a page

@@ -4,6 +4,10 @@
  :width: 300
  :alt: Cobalt Chemical Symbol
 
+.. image:: ../images/aws.png
+ :width: 300
+ :alt: Amazon Web Services
+
 
 AWS Overview
 ============

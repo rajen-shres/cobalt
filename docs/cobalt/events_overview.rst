@@ -4,6 +4,10 @@
  :width: 300
  :alt: Cobalt Chemical Symbol
 
+.. image:: ../images/event.jpg
+ :width: 300
+ :alt: Events
+
 Events Overview
 =================
 
@@ -46,7 +50,7 @@ Entries are linked to the congress structure as follows:
 Flow
 ====
 
-.. image:: images/events.jpg
+.. image:: ../images/events.jpg
   :alt: Events Diagram
 
 Users view congresses and can choose to enter events. They may checkout after

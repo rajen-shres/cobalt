@@ -16,4 +16,5 @@
    cobalt_modules/rbac
    cobalt_modules/results
    cobalt_modules/support
+   cobalt_modules/tests
    cobalt_modules/utils

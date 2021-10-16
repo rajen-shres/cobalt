@@ -1279,12 +1279,8 @@ def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
 
     Args:
         member - a User object.
-        topup_required - the amount of the top up (optional). This is required
-        if the payment is larger than the top up amount. e.g. balance is 25,
-        top up amount is 50, payment is 300.
-        payment_type - defaults to Auto Top Up. We allow this to be overriden
-        so that a member manually topping up their account using their registered
-        auto top up card get the payment type of Manual Top Up on their statement.
+        topup_required - the amount of the top up (optional). This is required if the payment is larger than the top up amount. e.g. balance is 25, top up amount is 50, payment is 300.
+        payment_type - defaults to Auto Top Up. We allow this to be overridden so that a member manually topping up their account using their registered auto top up card get the payment type of Manual Top Up on their statement.
 
     Returns:
         return_code - True for success, False for failure

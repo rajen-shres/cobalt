@@ -4,6 +4,10 @@
  :width: 300
  :alt: Cobalt Chemical Symbol
 
+.. image:: ../images/utilities.jpg
+ :width: 300
+ :alt: Utilities
+
 Utilities Overview
 ==================
 

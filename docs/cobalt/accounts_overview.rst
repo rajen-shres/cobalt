@@ -4,6 +4,9 @@
  :width: 300
  :alt: Cobalt Chemical Symbol
 
+.. image:: ../images/accounts.jpg
+ :width: 300
+ :alt: Accounts
 
 Accounts Overview
 =================

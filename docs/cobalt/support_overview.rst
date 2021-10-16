@@ -4,6 +4,10 @@
  :width: 300
  :alt: Cobalt Chemical Symbol
 
+.. image:: ../images/support.jpg
+ :width: 300
+ :alt: Support
+
 Support Overview
 ================
 

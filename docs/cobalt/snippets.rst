@@ -7,7 +7,10 @@ Snippets
 .. image:: ../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
- :align: center
+
+.. image:: ../images/snippet.jpg
+ :width: 300
+ :alt: Snippet
 
 .. note:: This page contains things that are useful shortcuts for developers.
 

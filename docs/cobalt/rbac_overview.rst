@@ -4,6 +4,10 @@
  :width: 300
  :alt: Cobalt Chemical Symbol
 
+.. image:: ../images/rbac-logo.jpg
+ :width: 300
+ :alt: RBAC
+
 RBAC Overview
 =============
 

@@ -3,13 +3,13 @@ Cobalt Developer Documentation
 ###########################################
 
 .. image:: images/cobalt.jpg
- :width: 300
+ :width: 500
  :alt: Cobalt Chemical Symbol
  :align: center
 
 .. admonition:: Additional Documentation
 
-   Additional documentation specific to the ABF version of Cobalt can be found on Confluence.
+   Documentation specific to the ABF version of Cobalt can be found on Confluence.
 
 Introduction
 ============
@@ -27,6 +27,8 @@ national level including:
 - Pre-paid Systems
 - Results (*in the future*)
 - Scoring (*in the future*)
+
+Cobalt is build using `Django <https://www.djangoproject.com/>`_.
 
 The source code can be found in `Github <https://github.com/abftech/cobalt>`_.
 
@@ -55,12 +57,6 @@ Here are links to documents that describe specific modules.
 * :doc:`cobalt/forums_overview`
 * :doc:`cobalt/utilities_overview`
 * :doc:`cobalt/support_overview`
-
-.. toctree::
-   :maxdepth: 3
-   :caption: Cobalt Modules
-
-   modules
 
 Appendices
 ==========

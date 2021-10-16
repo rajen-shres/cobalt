@@ -4,6 +4,10 @@
  :width: 300
  :alt: Cobalt Chemical Symbol
 
+.. image:: ../images/notifications.jpg
+ :width: 300
+ :alt: Notifications
+
 .. note::
    This documentation needs a refresh. The email part needs
    updated with examples and the rest needs to be tighter.

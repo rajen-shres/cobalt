@@ -4,6 +4,10 @@
  :width: 300
  :alt: Cobalt Chemical Symbol
 
+.. image:: ../images/test-data.jpg
+ :width: 300
+ :alt: Test Data
+
 Test Data Overview
 ==================
 

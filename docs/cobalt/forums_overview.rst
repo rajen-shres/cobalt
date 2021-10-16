@@ -4,6 +4,10 @@
  :width: 300
  :alt: Cobalt Chemical Symbol
 
+.. image:: ../images/forums.jpg
+ :width: 300
+ :alt: Forums
+
 Forums Overview
 ===============
 
