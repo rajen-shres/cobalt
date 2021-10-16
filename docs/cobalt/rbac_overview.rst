@@ -1,6 +1,6 @@
 :orphan:
 
-.. image:: images/cobalt.jpg
+.. image:: ../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
@@ -33,7 +33,7 @@ administrator for a club or congress should be able to appoint other
 administrators, or directors or any other role, themselves without needing the
 permission of anyone else. RBAC is the mechanism for achieving this.
 
-.. image:: images/rbac_overview.png
+.. image:: ../images/rbac_overview.png
 
 Security Basics
 ===============
@@ -72,7 +72,7 @@ if a better third part option appears then we should use it.
 RBAC Model Overview
 ===================
 
-.. image:: images/rbac.png
+.. image:: ../images/rbac.png
  :width: 800
  :alt: Cobalt Chemical Symbol
 
@@ -427,6 +427,7 @@ simple roles for a user:
     def my_func(request):
 
     # your code
+
 The decorator also checks if the user is logged in so you don't need
 to use @login_required.
 

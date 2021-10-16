@@ -20,7 +20,7 @@ class NotificationsConfig(AppConfig):
 
     There is a weird problem where it won't work unless DEBUG is on. It seems that within Django
     in dispatch/dispatcher.py in the function connect, if DEBUG is true then it tries to check that
-    the receiver (us) accepts **kwargs (we do). Without this check Django SES doesn't call us.
+    the receiver (us) accepts kwargs (we do). Without this check Django SES doesn't call us.
     To get around this, we call the same function that connect calls - func_accepts_kwargs once
     for each receiving function.
     """

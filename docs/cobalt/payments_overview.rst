@@ -1,10 +1,10 @@
 :orphan:
 
-.. image:: images/cobalt.jpg
+.. image:: ../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: images/heavy-dollar-sign.png
+.. image:: ../images/heavy-dollar-sign.png
   :width: 200
   :alt: Cobalt Dollar Symbol
 

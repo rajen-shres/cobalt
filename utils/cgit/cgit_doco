@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# The documentation for Cobalt lives in /docs and is written in Sphinx.
+# We have both static (written) documents (in docs/cobalt) and generated
+# control files in docs/cobalt_modules.
+# If the structure of Cobalt changes then we need to regenerate the
+# control files which is what this script does. It is safe to run any time.
+
+# Delete old generated files
+rm docs/cobalt_modules/*
+
+# Add warning
+echo "Changed made here will be lost the next time cgit_doco is run" > docs/cobalt_modules/DO_NOT_EDIT_THESE_FILES
+
+# Get directories but exclude ones that aren't apps
+APPS=$(ls -d */ | grep -v 'htmlcov|static|media' | tr -d "/")
+
+for APP in $APPS
+do
+  sphinx-apidoc -o docs/cobalt_modules $APP */migrations/*
+  # We don't use the modules.rst file, but it doesn't seem that you can suppress it.
+  rm docs/cobalt_modules/modules.rst
+done

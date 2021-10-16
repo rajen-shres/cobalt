@@ -1,10 +1,10 @@
 :orphan:
 
-.. image:: images/cobalt.jpg
+.. image:: ../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: images/security.jpg
+.. image:: ../images/security.jpg
  :width: 300
  :alt: Security
 
@@ -18,14 +18,14 @@ on how to stay safe.
 The biggest problem by far is user inputs. Never trust anything that has
 come from a user, not even administrators.
 
-.. admonition:: Rule 1 - |safe in templates
+.. admonition:: Rule 1 - \|safe in templates
 
-    Only use |safe if you are sure the content is really safe.
+    Only use \|safe if you are sure the content is really safe.
 
 By default, Django's templating engine will escape all content. That means
 that if you have mark up such as <i> it will turn that into &lt;i&gt;.
 However, a lot of times you want to show the HTML. You can do that with
-the template tag |safe. If you do then you are on your own and need to
+the template tag \|safe. If you do then you are on your own and need to
 make sure that the data really is safe.
 
 .. admonition:: Rule 2 - Use format_html
@@ -49,7 +49,7 @@ make sure that the data really is safe.
     prevent problems.
 
 Summernote inputs map to model.TextField and we want them to have
-HTML in them so when we show them we have to use |safe. When you
+HTML in them so when we show them we have to use \|safe. When you
 save them, make sure they actually are safe by using bleach. Bleach
 works on an allowed rather than prohibited basis so you need to make
 sure that cobalt/settings has the right strings for bleach.

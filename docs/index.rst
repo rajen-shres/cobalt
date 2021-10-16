@@ -35,26 +35,32 @@ User Guides
 
 Here are pages that describe things relevant to Cobalt in general:
 
-* :doc:`development_overview`
-* :doc:`design_overview`
-* :doc:`security_overview`
-* :doc:`testing_overview`
-* :doc:`test_data_overview`
-* :doc:`aws_overview`
-* :doc:`cobalt_for_porkchops`
-* :doc:`snippets`
+* :doc:`cobalt/development_overview`
+* :doc:`cobalt/design_overview`
+* :doc:`cobalt/security_overview`
+* :doc:`cobalt/testing_overview`
+* :doc:`cobalt/test_data_overview`
+* :doc:`cobalt/aws_overview`
+* :doc:`cobalt/cobalt_for_porkchops`
+* :doc:`cobalt/snippets`
 
 Here are links to documents that describe specific modules.
 
-* :doc:`payments_overview`
-* :doc:`events_overview`
-* :doc:`notifications_overview`
-* :doc:`rbac_overview`
-* :doc:`accounts_overview`
-* :doc:`rbac_ABF_Roles`
-* :doc:`forums_overview`
-* :doc:`utilities_overview`
-* :doc:`support_overview`
+* :doc:`cobalt/payments_overview`
+* :doc:`cobalt/events_overview`
+* :doc:`cobalt/notifications_overview`
+* :doc:`cobalt/rbac_overview`
+* :doc:`cobalt/accounts_overview`
+* :doc:`cobalt/rbac_ABF_Roles`
+* :doc:`cobalt/forums_overview`
+* :doc:`cobalt/utilities_overview`
+* :doc:`cobalt/support_overview`
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Cobalt Modules
+
+   modules
 
 Appendices
 ==========

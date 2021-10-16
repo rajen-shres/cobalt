@@ -1,6 +1,6 @@
 :orphan:
 
-.. image:: images/cobalt.jpg
+.. image:: ../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
@@ -575,7 +575,7 @@ cgit_prod_hotfix_test
 **Environment Impact**: Updates Test (or specified environment) with hotfix version. **Note**: Test may be ahead of Production in terms of migrations.
 
 cgit_prod_hotfix_finish
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 

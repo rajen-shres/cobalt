@@ -1,10 +1,10 @@
 :orphan:
 
-.. image:: images/cobalt.jpg
+.. image:: ../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: images/development.jpg
+.. image:: ../images/development.jpg
  :width: 300
  :alt: Coding
 

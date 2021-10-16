@@ -1,10 +1,10 @@
 :orphan:
 
-.. image:: images/cobalt.jpg
+.. image:: ../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
- .. important::
+.. important::
 
    This document has largely been replaced by a screen within Cobalt that
    shows the data dynamically. Information in here is likely out of date.
@@ -149,7 +149,7 @@ This is the basic structure of the tree and groups for RBAC.
 |                        | | e.g. rbac.abf.finance                 |
 |                        | | rbac.abf.forumadmins                  |
 +------------------------+-----------------------------------------+
-| rbac.general           | | *General this such as public forums   |
+| rbac.general           | | *General this such as public forums*  |
 |                        | | e.g. rbac.abf.general.forums          |
 +------------------------+-----------------------------------------+
 
