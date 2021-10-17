@@ -95,6 +95,7 @@ psql </tmp/drop_db_prod_copy
 ./manage.py migrate
 echo "Loading the data, this will take a while..."
 ./manage.py loaddata ~/cobalt_backup/db.json
+# ./manage.py loaddata  --exclude post_office --exclude notifications ~/cobalt_backup/db.json
 
 # check it works
 # ./manage.py count_users
