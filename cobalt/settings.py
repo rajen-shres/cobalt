@@ -353,6 +353,7 @@ AUTO_TOP_UP_MAX_AMT = 2000
 SUMMERNOTE_CONFIG = {
     "iframe": False,
     "summernote": {
+        "fontSizes": ["8", "9", "10", "11", "12", "14", "16", "18", "24", "36"],
         "airMode": False,
         "width": "100%",
         "height": "600",
