@@ -764,15 +764,12 @@ def payment_api(
             if request:
                 next_url_name = ""
                 if url:
-                    print(url)
                     if url.find("events") >= 0:
                         next_url_name = "Events"
                     elif url.find("dashboard") >= 0:
                         next_url_name = "Dashboard"
                     elif url.find("payments") >= 0:
                         next_url_name = "your statement"
-
-                print(next_url_name)
 
                 return render(
                     request,

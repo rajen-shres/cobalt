@@ -430,6 +430,7 @@ def _checkout_perform_action(request):
     if amount["entry_fee__sum"]:  # something for Payments to do
 
         for event_entry_player in event_entry_players:
+
             event_entry_player.batch_id = unique_id
             event_entry_player.save()
 
@@ -470,7 +471,7 @@ def checkout(request):
     basket_items = BasketItem.objects.filter(player=request.user)
 
     if request.method == "POST":
-        _checkout_perform_action(request)
+        return _checkout_perform_action(request)
 
     # Not a POST, build the form
 
