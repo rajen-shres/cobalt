@@ -20,12 +20,10 @@
 # some changes.
 
 ENV=cobalt-production-green
-#ENV=cobalt-test-black
 
 # Generate a random string to act as a 'password'
 # The file will be publicly readable so obscure it
 SESSIONID=$(openssl rand -hex 12)
-SESSIONID="aaa"
 DUMPFILE="$SESSIONID.json.gz"
 
 # Load default environment settings
@@ -67,7 +65,7 @@ pip install -r requirements.txt
 
 # Dump data
 echo "sshing to $ENV to run dump command..."
-# eb ssh -n 1 $ENV --command "sudo /var/app/current/utils/aws/copy_data_from_production_dump.sh $SESSIONID"
+eb ssh -n 1 $ENV --command "sudo /var/app/current/utils/aws/copy_data_from_production_dump.sh $SESSIONID"
 
 # Copy data down
 echo "Downloading file..."
