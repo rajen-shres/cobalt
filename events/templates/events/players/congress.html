@@ -24,11 +24,13 @@
                                         <span style="font-size: 150%;">Click here to jump to program...</span>
                                     </a>
                                 </div>
-                                <div>
-                                    <a href="mailto:{{ congress.contact_email }}?subject={{ congress.name }}" target="_blank" style="text-transform: none;" class="btn btn-sm btn-rose">
-                                        <span style="font-size: 150%;">Email Tournament Organiser...</span>
-                                    </a>
-                                </div>
+                                {% if congress.contact_email %}
+                                    <div>
+                                        <a href="mailto:{{ congress.contact_email }}?subject={{ congress.name }}" target="_blank" style="text-transform: none;" class="btn btn-sm btn-rose">
+                                            <span style="font-size: 150%;">Email Tournament Organiser...</span>
+                                        </a>
+                                    </div>
+                                {% endif %}
                             </div>
 
                             {% if congress.sponsors %}
