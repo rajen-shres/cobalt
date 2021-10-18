@@ -35,7 +35,7 @@ The source code can be found in `Github <https://github.com/abftech/cobalt>`_.
 User Guides
 ===========
 
-Here are pages that describe things relevant to Cobalt in general:
+Here are pages that describe things relevant to Cobalt in general.
 
 * :doc:`cobalt/development_overview`
 * :doc:`cobalt/design_overview`

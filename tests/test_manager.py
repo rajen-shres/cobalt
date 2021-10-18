@@ -25,6 +25,7 @@ setup_test_environment()
 
 # List of tests to run format is "class": "location"
 LIST_OF_TESTS = {
+    "TestURLsRequireLogin": "tests.01_system_wide_security",
     #    "MemberTransfer": "payments.tests.member_actions",
     "OrgHighLevelAdmin": "organisations.tests.01_high_level_admin",
     "ClubLevelAdmin": "organisations.tests.02_club_level_admin",
@@ -120,7 +121,7 @@ class CobaltTestManager:
         self.test_code = "F1shcake"
 
         # Log user in
-        self.login_user(self.test_user)
+        # self.login_user(self.test_user)
 
         # Variables for results of tests
         self.overall_success = True

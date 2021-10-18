@@ -148,4 +148,10 @@ contained as comments in the script itself.
 This calls ``utils/aws/copy_data_from_production_dump.sh`` on the application server to do the actual database extract.
 
 We use the Django command ``manage.py dumpdata`` to produce an database dump file and copy that to the development
-machine where it it loaded into a prod_copy database for testing.
+machine where it is loaded into a prod_copy database for testing.
+
+Back in the day, standard practice was for small offices to get the local manager to take a back up tape
+home with them once a week. More recently it has been easier just to ask the NSA for a copy of your
+data if you lose it. We have gone for a half way solution. The data is stored outside AWS but I'm not
+telling you where.
+

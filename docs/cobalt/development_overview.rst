@@ -12,7 +12,7 @@ Development Overview
 ====================
 
 Cobalt is written in Django. It is assumed that you already know Python,
-Django and the associated tools such as pip and virtualenv. If you don't
+Django and the associated tools such as ``pip`` and ``virtualenv``. If you don't
 there are lots of resources available to help you.
 
 Before you get started make sure you have the following installed:
@@ -21,7 +21,7 @@ Before you get started make sure you have the following installed:
 - pip
 - virtualenv
 - git
-- postgresql (*optional but highly recommended*)
+- postgres (*optional but highly recommended*)
 
 Development Environment Set Up
 ==============================
@@ -43,6 +43,10 @@ Code
 
     If you want to develop on Windows you will need to install the Windows Linux Subsystem. File
     permissions and other things get messed up in the Windows UI so it is not recommended.
+
+    In fact, you will likely break important things for others if you try to do native Windows
+    development. Don't worry though, you can use Pycharm or VS Code to do your work, you just need
+    to run git and the other tools through WLS.
 
 Here are the basic steps to get started::
 
@@ -66,7 +70,7 @@ Install development-only requirements::
 
     $ pip install -r requirements-dev.txt
 
-We recommend using two pre-commits for Git which are described below. For now,
+We recommend using pre-commits for Git which are described below. For now,
 just install them using::
 
     $ pre-commit install
@@ -75,7 +79,7 @@ Database
 --------
 
 There are a number of problems with using SQLite3 especially on a Mac. It is
-strongly recommended that even for development, you set up a local Postgresql
+strongly recommended that even for development, you set up a local Postgres
 database.
 
 You will need to create a user. Start psql::
@@ -85,38 +89,13 @@ You will need to create a user. Start psql::
 Environment Variables
 ---------------------
 
-.. highlight:: none
+See main article: :doc:`environment_variables`.
 
-Before running manage.py you will need to set some environment variables::
+Before running manage.py you will need to set some environment variables. As these are considered secret they
+are not part of the codebase, but you should be able to get help from another developer.
 
-    # Postgres - use your own settings
-    export RDS_DB_NAME=ebdb
-    export RDS_HOSTNAME=127.0.0.1
-    export RDS_PORT=5432
-    export RDS_USERNAME=cobalt
-    export RDS_PASSWORD=password
-
-    # Masterpoints server - not essential
-    export GLOBAL_MPSERVER=http://localhost:8081
-
-    # Email - you can use the email server settings from AWS if you want
-    export EMAIL_HOST=smtp.something.com
-    export EMAIL_HOST_USER=userid
-    export EMAIL_HOST_PASSWORD=password
-    export DEFAULT_FROM_EMAIL=donotreply@something.com
-
-    # Stripe - for payments. Set up a free Stripe account
-    export STRIPE_SECRET_KEY=sk_test_key
-    export STRIPE_PUBLISHABLE_KEY=pk_test_key
-
-    # AWS - for SMS
-    export AWS_ACCESS_KEY_ID=SOMETHING
-    export AWS_SECRET_ACCESS_KEY=KEY
-
-It is easiest to put this in a batch file, or even run it automatically when
+It is easiest to put these in a batch file, or even run it automatically when
 you start your shell.
-
-.. highlight:: default
 
 Management Commands
 -------------------
@@ -133,7 +112,7 @@ Test Data
 ---------
 
 There are Django management commands within Cobalt that create test data.
-The input is CSV files whixh live within test.
+The input is CSV files which live in ``tests/test_data``.
 
 Combining it all
 ----------------
@@ -145,30 +124,17 @@ For example::
 
     #!/bin/sh
 
-    # copy test data from dropbox
-    mkdir /tmp/test-data
-    cp ~/Dropbox/Technology/Testing/test_data/upload/* /tmp/test-data
-
     # reset database
-    psql -f ~/Dropbox/bin/rebuild_dev_db.sql
+    psql -f rebuild_dev_db.sql
 
     # migrate
     ./manage.py migrate
 
     # static data
-    ./manage.py createsu
-    ./manage.py create_abf
-    ./manage.py add_rbac_static_forums
-    ./manage.py add_rbac_static_payments
-    ./manage.py add_rbac_static_orgs
-    ./manage.py add_rbac_static_events
-    ./manage.py add_rbac_static_notifications
-    ./manage.py create_states
+    utils/aws/rebuild_test_database_subcommands.sh
 
     # Test data
     ./manage.py add_test_data
-    #./manage.py createdummyusers
-    #./manage.py importclubs
 
 rebuild_dev_db.sql::
 

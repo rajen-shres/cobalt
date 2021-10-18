@@ -684,6 +684,7 @@ def deleteall(request):
     return homepage(request)
 
 
+@login_required
 def passthrough(request, id):
     """passthrough function to acknowledge a message has been clicked on"""
 
