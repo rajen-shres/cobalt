@@ -417,7 +417,7 @@ def admin_event_csv(request, event_id):
         received = Decimal(0)
         entry_fee = Decimal(0)
 
-        for player in row.evententryplayer_set.all():
+        for player in row.evententryplayer_set.order_by("pk").all():
             players += player.player.full_name + " - "
             try:
                 received += player.payment_received
@@ -514,9 +514,6 @@ def admin_event_csv_scoring(request, event_id):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
-    # local_dt = timezone.localtime(timezone.now(), TZ)
-    #   today = dateformat.format(local_dt, "Y-m-d H:i:s")
-
     # get details
     entries = event.evententry_set.exclude(entry_status="Cancelled").order_by(
         "first_created_date"
@@ -551,7 +548,7 @@ def admin_event_csv_scoring(request, event_id):
 
     for entry in entries:
         entry_line = 1
-        for row in entry.evententryplayer_set.all():
+        for row in entry.evententryplayer_set.order_by("pk").all():
             data_row = [
                 count,
                 row.player.full_name.upper(),

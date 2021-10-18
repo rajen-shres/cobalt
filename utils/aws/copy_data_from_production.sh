@@ -15,8 +15,18 @@
 #   git remote add origin https://github.com/abftech/cobalt.git    #
 #   eb init                                                        #
 ####################################################################
+# This script is quite specific to how my development environment
+# is set up. If you are taking this over you may need to make
+# some changes.
 
 ENV=cobalt-production-green
+#ENV=cobalt-test-black
+
+# Generate a random string to act as a 'password'
+# The file will be publicly readable so obscure it
+SESSIONID=$(openssl rand -hex 12)
+SESSIONID="aaa"
+DUMPFILE="$SESSIONID.json.gz"
 
 # Load default environment settings
 . ~/Dropbox/bin/cobalt_env.sh
@@ -57,29 +67,16 @@ pip install -r requirements.txt
 
 # Dump data
 echo "sshing to $ENV to run dump command..."
-eb ssh -n 1 $ENV --command "-f sudo /var/app/current/utils/aws/copy_data_from_production_dump.sh"
-
-# The extract could still be running, so we look for the file to stop changing
-echo "Checking for file export to be finished..."
-file_age=0
-while [ $file_age -lt 20 ]
-do
-   file_age=$(eb ssh -n 1 $ENV --command "echo \$((\$(date +%s) - \$(date +%s -r "/cobalt-media/db.json")))" 2>/dev/null | head -1)
-   echo "File age: $file_age"
-   sleep 5
-done
-
-# Passed
-echo "File is old enough ($file_age seconds). Starting download..."
+# eb ssh -n 1 $ENV --command "sudo /var/app/current/utils/aws/copy_data_from_production_dump.sh $SESSIONID"
 
 # Copy data down
 echo "Downloading file..."
-echo "scp -i ~/.ssh/cobalt.pem ec2-user@$IP:/cobalt-media/db.json ~/cobalt_backup/db.json"
-scp -i ~/.ssh/cobalt.pem ec2-user@$IP:/cobalt-media/db.json ~/cobalt_backup/db.json
+echo "scp -i ~/.ssh/cobalt.pem ec2-user@$IP:/cobalt-media/$DUMPFILE ~/cobalt_backup/$DUMPFILE"
+scp -i ~/.ssh/cobalt.pem ec2-user@$IP:/cobalt-media/$DUMPFILE ~/cobalt_backup/$DUMPFILE
 
 # Delete dump file from server
 echo "sshing to $ENV to delete backup file..."
-eb ssh -n 1 $ENV --command "-f sudo rm /cobalt-media/db.json"
+eb ssh -n 1 $ENV --command "-f sudo rm /cobalt-media/$DUMPFILE"
 
 # Check we can load the database
 echo "Loading database, dropping old DB..."
@@ -94,8 +91,8 @@ psql </tmp/drop_db_prod_copy
 # Run migrations and load the database
 ./manage.py migrate
 echo "Loading the data, this will take a while..."
-./manage.py loaddata ~/cobalt_backup/db.json
-# ./manage.py loaddata  --exclude post_office --exclude notifications ~/cobalt_backup/db.json
+./manage.py loaddata ~/cobalt_backup/$SESSIONID.json
+# ./manage.py loaddata  --exclude post_office --exclude notifications ~/cobalt_backup/$SESSIONID.json
 
 # check it works
 # ./manage.py count_users
