@@ -70,8 +70,8 @@ Install development-only requirements::
 
     $ pip install -r requirements-dev.txt
 
-We recommend using pre-commits for Git which are described below. For now,
-just install them using::
+We recommend using pre-commits for Git which are included as part of the code base (Flake8, Black and Djhtml).
+You can install them using::
 
     $ pre-commit install
 

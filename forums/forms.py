@@ -20,7 +20,7 @@ class PostForm(forms.ModelForm):
         self.fields["forum"].label = False
         self.fields["title"].label = False
         self.fields["text"].label = False
-        # self.fields["get_notified_of_replies"].label = False
+        self.fields["get_notified_of_replies"].label = False
 
     title = forms.CharField(
         widget=forms.TextInput(attrs={"class": "cobalt-min-width-100"})

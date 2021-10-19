@@ -14,8 +14,12 @@ Cobalt Developer Documentation
 Introduction
 ============
 
-Cobalt is an Open Source system for the administration of the game of bridge.
+Cobalt is an Open Source system for the administration of the game of
+`bridge <https://en.wikipedia.org/wiki/Contract_bridge>`_.
 The development of Cobalt was funded by the `Australian Bridge Federation <https://abf.com.au>`_.
+
+Cobalt may or may not stand for **CO**\ mmon **B**\ ridge **A**\ nd **L**\ earning **T**\ echnology, but we are open to
+naming suggestions.
 
 Cobalt aims to provide all of the functionality needed to support bridge at the club, state and
 national level including:
