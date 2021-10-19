@@ -476,23 +476,46 @@ ABF_STATES = {
     6751: ("BAWA", "WA"),
 }
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
+# Check for default value of COBALT_HOSTNAME. If this is not set to something else then we could be on Read The Docs
+# Read the Docs will fail writing to the log file
+if COBALT_HOSTNAME == "127.0.0.1:8000":
+
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+            },
         },
-        "file": {
-            "class": "logging.FileHandler",
-            "filename": "/var/log/cobalt.log",
+        "loggers": {
+            "cobalt": {
+                "handlers": ["console"],
+                "level": "DEBUG",
+                "propagate": True,
+            },
         },
-    },
-    "loggers": {
-        "cobalt": {
-            "handlers": ["console", "file"],
-            "level": "DEBUG",
-            "propagate": True,
+    }
+
+else:
+
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+            },
+            "file": {
+                "class": "logging.FileHandler",
+                "filename": "/var/log/cobalt.log",
+            },
         },
-    },
-}
+        "loggers": {
+            "cobalt": {
+                "handlers": ["console", "file"],
+                "level": "DEBUG",
+                "propagate": True,
+            },
+        },
+    }
