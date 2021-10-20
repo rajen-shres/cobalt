@@ -3,102 +3,102 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-  <meta charset="utf-8" />
-  <link rel="apple-touch-icon" sizes="76x76" href="{% static "assets/img/apple-icon.png" %}">
-  <link rel="icon" type="image/png" href="{% static "assets/img/favicon.png" %}">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
-  <title>
-    {{ GLOBAL_TITLE }}
-  </title>
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
-  <link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
-  <style>
-    .bg {
-      height: 100%;
-      background-image: url("{% static "assets/img/backgrounds/success2.jpg" %}");
-      background-position: center;
-      background-repeat: no-repeat;
-      background-size: cover;
-    }
-  </style>
-</head>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="apple-touch-icon" sizes="76x76" href="{% static "assets/img/apple-icon.png" %}">
+        <link rel="icon" type="image/png" href="{% static "assets/img/favicon.png" %}">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+        <title>
+            {{ GLOBAL_TITLE }}
+        </title>
+        <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+        <link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
+        <style>
+            .bg {
+                height: 100%;
+                background-image: url("{% static "assets/img/backgrounds/success2.jpg" %}");
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: cover;
+            }
+        </style>
+    </head>
 
-<body>
+    <body>
 
-  <div class="bg" id="bg">
-    <div class="wrapper">
-      <div class="container">
-        <div class="row">
-          <div class="card">
-            <div class="card-body">
-              <h1>Congratulations!</h1>
-              <h2>Hi {{ user.first_name }}, your account is active.</h2>
-              {% if others_same_email %}
-              <h4>You can login using your {{ GLOBAL_ORG }} number({{ user.username }}).</h4>
-              <h4><b>You cannot login using your email address as this is already linked to {{ others_same_email.0.full_name }}.</b></h4>
-              {% else %}
-              <h4>You can login using your email address or {{ GLOBAL_ORG }} number({{ user.username }}).</h4>
-              {% endif %}
-              <h3> We will take you to complete your profile in <span id="time">20 seconds</span>.
-                <h3><a href="{% url "accounts:user_profile" %}">Click here to go there now</a></h3>
+        <div class="bg" id="bg">
+            <div class="wrapper">
+                <div class="container">
+                    <div class="row">
+                        <div class="card">
+                            <div class="card-body">
+                                <h1>Congratulations!</h1>
+                                <h2>Hi {{ user.first_name }}, your account is active.</h2>
+                                {% if others_same_email %}
+                                    <h4>You can login using your {{ GLOBAL_ORG }} number({{ user.username }}).</h4>
+                                    <h4><strong>You cannot login using your email address as this is already linked to {{ others_same_email.0.full_name }}.</strong></h4>
+                                {% else %}
+                                    <h4>You can login using your email address or {{ GLOBAL_ORG }} number({{ user.username }}).</h4>
+                                {% endif %}
+                                <h3> We will take you to complete your profile in <span id="time">20 seconds</span>.</h3>
+                                <h3><a href="{% url "accounts:user_profile" %}">Click here to go there now</a></h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
+            <footer class="footer fixed-bottom">
+                <div class="container-fluid">
+                    <nav class="float-left">
+                        <ul>
+                            <li>
+                                <a href="{{ GLOBAL_CONTACT }}">
+                                    Contact Us
+                                </a>
+                            </li>
+                            <li>
+                                <a href=" {{ GLOBAL_ABOUT }}">
+                                    About Us
+                                </a>
+                            </li>
+                            <li>
+                                <a href=" {{ GLOBAL_PRIVACY }}">
+                                    Privacy
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <div class="copyright float-right">
+                        {{ GLOBAL_ORG }} &copy;
+                        <script>
+                            document.write(new Date().getFullYear())
+                        </script>
+                    </div>
+                </div>
+            </footer>
         </div>
-      </div>
-    </div>
-    <footer class="footer fixed-bottom">
-      <div class="container-fluid">
-        <nav class="float-left">
-          <ul>
-            <li>
-              <a href="{{ GLOBAL_CONTACT }}">
-                Contact Us
-              </a>
-            </li>
-            <li>
-              <a href=" {{ GLOBAL_ABOUT }}">
-                About Us
-              </a>
-            </li>
-            <li>
-              <a href=" {{ GLOBAL_PRIVACY }}">
-                Privacy
-              </a>
-            </li>
-          </ul>
-        </nav>
-        <div class="copyright float-right">
-          {{ GLOBAL_ORG }} &copy;
-          <script>
-            document.write(new Date().getFullYear())
-          </script>
-        </div>
-      </div>
-    </footer>
-  </div>
 
 
-  <!--   Core JS Files   -->
-  <script src="{% static "assets/js/core/jquery.min.js" %}"></script>
-  <script src="{% static "assets/js/core/popper.min.js" %}"></script>
-  <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
-  <script>
-    $('document').ready(function() {
-      var time = 20;
-      setInterval(function() {
-        document.getElementById("time").innerHTML = time + " seconds";
-        time--;
-        if (time == 0) {
-          window.location.href = "{% url "accounts:user_profile" %}";
-        }
-      }, 1000);
+        <!--   Core JS Files   -->
+        <script src="{% static "assets/js/core/jquery.min.js" %}"></script>
+        <script src="{% static "assets/js/core/popper.min.js" %}"></script>
+        <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
+        <script>
+            $('document').ready(function() {
+                var time = 20;
+                setInterval(function() {
+                    document.getElementById("time").innerHTML = time + " seconds";
+                    time--;
+                    if (time == 0) {
+                        window.location.href = "{% url "accounts:user_profile" %}";
+                    }
+                }, 1000);
 
-    });
-  </script>
+            });
+        </script>
 
-</body>
+    </body>
 
 </html>
