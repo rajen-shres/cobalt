@@ -128,7 +128,7 @@ to remove UAT.
 For this reason we have an off-system backup which runs daily. This is not without risk as it needs to access
 production data and systems in order to copy the data. It also requires maintenance and testing. The IT equivalent
 of the medical joke "The operation was successful, but the patient died" is "The backups worked perfectly, it
-was the restores that had problems." For that reason as well as copying the data we also restore and test it
+was the restores that had problems." For that reason, as well as copying the data we also restore and test it
 each time.
 
 Unlike the RDS backups, our additional backups do not lock the database for writes, so they are "dirty" backups

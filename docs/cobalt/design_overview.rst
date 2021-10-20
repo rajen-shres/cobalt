@@ -12,19 +12,121 @@
 Design Overview
 ===============
 
+Cobalt is built using vanilla Django. Where possible we try to follow the path of least resistance by using
+defaults or common packages and approaches. The one main difference here is with HTMX which is described below.
+While this is currently an anti-pattern, we do not believe that this will be the case for long and Django-HTMX will
+come to be the most common way of building applications such as this.
+
 ************************
 High Level System Design
 ************************
 
-External
-========
+Basic
+=====
 
-Internal
-========
+This shows the basic architecture of Cobalt, which is typical for a Django application.
+
+.. image:: ../images/architecture_basic.png
+ :width: 800
+ :align: center
+ :alt: Basic Architecture Diagram
+
+Interfaces
+===========
+
+This includes the external interfaces.
+
+.. image:: ../images/architecture_interfaces.png
+ :width: 800
+ :align: center
+ :alt: Basic Architecture Diagram with Interfaces
+
+AWS
+===
+
+This diagram shows the high level architecture of Cobalt as deployed on AWS for the ABF.
+
+.. image:: ../images/architecture_aws.png
+ :width: 800
+ :align: center
+ :alt: AWS Deployment Architecture
+
+This represents a single system, for the ABF we have Test, UAT and Production.
 
 ****************
 Key Technologies
 ****************
+
+Every time we add a technology to Cobalt we introduce another dependency and another thing that can go wrong.
+
+Every time we build functionality in Cobalt that could have been implemented using a third party tool,
+we increase the complexity of Cobalt unnecessarily.
+
+This requires a level of balance.
+
+Rules for Adding to the Technology Stack
+========================================
+
+- It must be easier to learn the new technology stack than to build functionality ourselves.
+- It must be well supported and widely used.
+- It should do a single, well defined thing.
+- It must never be added just because it is “cool” or looks good on a resume.
+- All client side libraries (with few exceptions) must be part of the code base.
+- All server side libraries must be installed with pip.
+- It must be added to this document.
+
+Current Server-side Approved Technology Stack
+==============================================
+
+=======================             =============================       ========================================================
+Technology                          Version                             Purpose
+=======================             =============================       ========================================================
+Python                              3.7 (dictated by AWS)               Core development language
+Postgres                            12 (dictated by AWS)                Main database
+django                              3.2.5                               Web framework
+pytz                                2019.3                              Timezone utilities
+requests                            2.20.1                              URL access (used by other packages as well)
+stripe                              2.43.0                              Stripe API
+Pillow                              8.2.0                               Image manipulation
+psycopg2-binary                     2.8                                 Access to postgres
+django-summernote                   0.8.11.6                            Wrapper for Summernote WYSIWYG
+django-crispy-forms                 1.9.0                               Form generation (*Deprecated*)
+django-widget-tweaks                1.4.8                               Form manipulation (*Deprecated*)
+django-extensions                   2.2.9                               Standard utilities
+boto3                               1.12.39                             AWS API
+botocore                            1.15.39                             AWS API
+geopy                               2.0.0                               Lat and Lon finder
+essential-generators                0.9.2                               Generating test data
+=======================             =============================       ========================================================
+
+Current Server-side Banned Technology Stack
+===========================================
+
+=======================             =============================       =======================================================================
+Technology                          Version                             Purpose
+=======================             =============================       =======================================================================
+django-rest-framework               Build APIs in Django                DRF is excellent technology but we don’t currently have a need for it.
+celery                              asynchronous task management        Too complicated for our needs. Use simple threads or cron instead.
+=======================             =============================       =======================================================================
+
+Current Client-side Approved Technology Stack
+=============================================
+
+==========================          =============================       =======================================================================
+Technology                          Version                             Purpose
+==========================          =============================       =======================================================================
+Creative Tim Dashboard Pro          2.1.0                               We bought a licence for this as a starter template
+Bootstrap 4                         4.0.0                               CSS
+JQuery                              3.4.1                               Easier Javascript code
+Summernote                          0.8.16                              WYSIWYG editor
+animate                             4.0.0                               Web animation
+data tables                         1.10.25                             Client side table manipulation
+HTMX                                Latest                              Client updates
+==========================          =============================       =======================================================================
+
+**Do not use any other significant client side code, e.g. React or Angular without proper discussion.**
+
+One-off use of JS libraries for specific pages is fine.
 
 HTMX
 ====

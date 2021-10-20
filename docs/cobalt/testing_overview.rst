@@ -67,18 +67,25 @@ There are two basic types of automated tests used:
 * Selenium is used to test through the web page
 * We also use the Django test client, along with direct model access and Forms to do functional testing.
 
-Both approaches are used together, so a we might use Selenium to create something and then access
+Both approaches are used together, so we might use Selenium to create something and then access
 the model directly to confirm it was successful.
+
+See below for instructions on running the tests.
 
 Performance Testing
 -------------------
 
-We don’t do anything.
+There are currently over 3,000 people involved in performance testing.
+
+    "Premature optimization is the root of all evil." Sir Tony Hoare
+
+*It is planned to add New Relic for capture and alerting around key metrics*.
 
 Security Testing
 ----------------
 
-We don’t do anything.
+Some of the automated tests focus on specific aspects of security and one module tests for URLs that do not
+require authorisation.
 
 Why Don't We Use a Testing Framework?
 -------------------------------------
@@ -95,6 +102,9 @@ simple solution ourselves. This won't be good news
 for whoever is maintaining this if you already know
 these frameworks, but our approach is so simple
 that it shouldn't be hard for you.
+
+The Cobalt test framework also produces much nicer reports and includes
+``coverage`` automatically.
 
 Running Tests
 =============
@@ -120,6 +130,10 @@ This is the wrapper script to start the tests. it does the following:
 * After a keypress to confirm the windows are running it will run::
 
     ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
+
+You can also run ``cgit_dev_test short`` after once running the full command and it will not rebuild the database from
+scratch (uses a copy from the last run). This saves a lot of time if there haven't been any schema changes since the
+last time it was run.
 
 run_tests.py management command
 -------------------------------

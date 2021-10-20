@@ -49,15 +49,28 @@ or you can live without the tracking features.
 Tools
 =====
 
+With the ``utils`` application in Cobalt there are a number of tools that can help with
+development activities. See :doc:`utilities_overview` for details.
 
-Security
-========
+- **cgit** is a set of tools for working with github and AWS Elastic Beanstalk.
+- Inside the aws folder of utils you can find tools related to building environments on AWS
 
 Quirks and Things to Know
 =========================
 
+Static Files
+------------
+
+Normally for a Django project you would add /static to .gitignore and run ``collectstatic`` as part of the
+deployment process on each server. For Elasticbeanstalk with ``manifeststaticfilesstorage``
+that will not work. You need to ensure that ``collectstatic`` is run within the development
+environment as Elasticbeanstalk gives all files the same create date which means that
+manifeststaticfilesstorage can’t tell which is the most recent one and doesn’t know which file to use.
+
 FAQ
 ===
 
-Resources
-=========
+**Q**: I have looked at the code and bits of it don't match what the documentation says. How come?
+**A**: The documentation reflects what we would like the code to look like and what we are building
+going forward. There are still bits of code that were build in a different style (especially non-HTMX code)
+which could be there for several years before they get re-done.
