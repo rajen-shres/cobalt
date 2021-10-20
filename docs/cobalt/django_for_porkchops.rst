@@ -28,6 +28,9 @@ you should try to learn from other's mistakes
 as there isn't time to make them all yourself. Here are some snippets to
 get you going.
 
+These are basically things I wish I had known before I got started, although
+some things won't make total sense to you to begin with.
+
 First Steps
 ===========
 
@@ -41,6 +44,9 @@ both of these things are possible, and so will you when you finish your training
 
 There are really only a few key concepts that you need to understand to get
 started.
+
+I recommend doing something that takes about 6-10 hours, much less will be too
+superficial and much more is just too long.
 
 Models, Views, Forms and Templates (oh, and URLs but nobody ever mentions them, and Template Tags whatever they are)
 ====================================================================================================================
@@ -64,8 +70,12 @@ do very different things. When you are in your IDE typing letters and numbers in
 one of these six files, make sure what you are typing relates to what the file is supposed
 to do.
 
+.. image:: ../images/mtv.png
+ :width: 900
+ :alt: MTV
+
 * **URLs** - Maps a URL to a view. Very boring.
-* **Models** - Data
+* **Models** - Data - links to the database
 * **Forms** - Validation and some pre-filling of values
 * **Views** - Business logic. Code to run before you format things
 * **Templates** - Presentation. This is where you wrap your data and forms in HTML for the browser
@@ -77,8 +87,8 @@ don't worry, you'll almost never have to touch it, Django does all of that
 for you.
 
 The way into the database is through a Model. Let's assume you have created
-your Django project and called it inventory and you have added an application
-called warehouse. If you look in the directory inventory/warehouse you will
+your Django project and called it **Inventory** and you have added an application
+called **warehouse**. If you look in the directory inventory/warehouse you will
 find a file called models.py, and this is where you're database definitions
 will go.
 
@@ -125,7 +135,8 @@ a url (e.g. /warehouse/list-contents) to a chunk of code and optionally handle s
 parameters if we have them (e.g. /warehouse/show_details/stock-item-365). You will
 hate all of the time that you spend in urls.py and hopefully a future version of
 Django will get rid of this and maybe just put the definitions directly into
-view.py.
+view.py. However, smarter people than me think this is the best way to do it, so I
+doubt it will ever change.
 
 So the user has told us what they want to do, urls.py has mapped that to a function
 in views.py and now we can build our screen and show it to the user.
@@ -215,13 +226,13 @@ Level 1 - Basic Explorer
 ========================
 
 You can write Django that works. You have got the hang of views and templates. You have
-probably written three things in three different ways but you are getting there. Somethings
+probably written three things in three different ways but you are getting there. Some things
 confuse you and it takes a long time to work things out, but you get there in the end.
 
 Level 2 - Quietly Confident
 ===========================
 
-You have started to really understand models. You can do use foreign keys to get data
+You have started to really understand models. You can use foreign keys to get data
 that you used to have to do in two separate queries. You don't have to look up the common
 template tags any more. You have discovered Crispy Forms and spent quite a long time
 getting them to do what you want. You think you know how static works now but you still
@@ -240,8 +251,14 @@ Level 4 - Baby Guru
 
 You found a bunch of Django add-ons including the debug toolbar and it showed how poor
 some of your database queries are. You now know what an N+1 problem is and you
-have started getting your head around pre-fetch and fetch-related. You have finally started
+have started getting your head around select_related and prefetch_related. You have finally started
 writing some tests.
+
+Level 5 - Zen
+=============
+
+You are now a fully initiated Django Master. I don't know what things you can do at this level as
+I haven't got there yet myself, but I bet they are pretty awesome.
 
 **********
 Principles
@@ -353,9 +370,53 @@ It is very obvious that the last line of code doesn't do what its comment says i
 There are lots of excuses for writing bad code (short of time, hate my job, drunk, stupid) but no excuse for not
 writing comments.
 
-###########
+*****
+Tools
+*****
+
+IDE
+===
+
+Choose a good IDE and learn the half a dozen shortcut commands that you will use all the time.
+`PyCharm <https://www.jetbrains.com/pycharm/>`_ is really worth the money.
+
+PyCharm shortcuts (Mac):
+
+- ``CMD-/`` Comment out line
+- ``CMD-D`` Duplicate
+- ``CMD-DownArrow`` Go to code (click on a function name first)
+- ``CMD+OPT-BackArrow`` Go back
+- ``OPT-MouseClick`` Duplicate cursor (*I thought I'd never use this, but I use it all the time*)
+
+You will write code with bugs in it, and it will be found. The default location for finding bugs is production, but
+with appropriate testing you can catch them earlier. The best place to catch them is in your IDE. PyCharm is pretty
+good at this so look out for highlighted errors.
+
+Virtual Environments
+====================
+
+These are a no-brainer really. Virtualenv and pip are a perfect combination, or use something similar if you prefer,
+it is the idea of keeping things isolated that really matters.
+
+Pre-Commits
+===========
+
+Set up your git (or similar) environment with pre-commits so they can save you from yourself.
+
+Black
+    An opinionated code formatter. Essential.
+
+Flake8
+    A middle of the road linter. "What! There is nothing wrong with that, stupid Flake8! Oh... hang on, I think it
+    might be right."
+
+Djhtml
+    Black only formats Python, this does HTML for you. It understands Django so won't break things like some other
+    HTML formatter have a habit of doing.
+
+***********
 Refactoring
-###########
+***********
 
 This has nothing really to do with Django but neither did the last point about comments and you didn't notice until
 I just pointed it out.
@@ -364,50 +425,80 @@ Refactoring is the most fun you can have in programming without being able to te
 Ignoring the obvious parallels, there is nothing better than taking some badly structured code and
 turning it into something beautiful and easy to maintain.
 
-Principles - DRY, refactor the 3rd time, comments, explicit over implicit
+In the examples above, we had views.py and a templates folder. Once things get big, you will need to split
+them. You can make views a directory and have a bunch of separate files in there that map to logically different
+parts of your system. If things get even bigger then you can make those things directories too instead of files::
 
-Forms
+    myapp
+     \-views
+        \-players
+            common.py
+            basic.py
+            advance.py
+        \-conveners
+            global.py
+            state.py
 
+You should try to keep your views reasonably short (Cobalt doesn't do this nearly well enough at the moment and
+needs to be refactored). You can move logic out of the function and into somewhere else, either other functions in
+the same file or in other files or even classes if that works better. You will hear people saying "Fat Models,
+Thin Views", ignore them. That is totally stupid. Yes, keep your views thin, but move the business logic into other
+parts of the view structure, not into your models. Models should only have things that relate directly to data.
+Ultimately Django is just Python code so you can move your code wherever you like. If you come across someone who says
+the business logic should go into the model, tell them you think that is wrong, the latest thinking is that it should
+go into settings.py.
 
+.. hint::
+   In Python abc.views.fishcake could be either a function inside views.py or a file in the directory views.
+   When refactoring, you will confuse your IDE if you have both views.py and views the directory at the same time.
+   It is better to create a directory called something else and rename it to views once you have moved everything across
+   and can delete views.py.
 
-Tests
+***************
+Things to Avoid
+***************
 
-Tools
+Lots of people will disagree with me, but I would avoid the following:
 
-Common commands, black flake8
+Crispy Forms
+    This is a presentation tool that makes to write code in a Form. That is just wrong. I have used it a lot
+    and I wish I hadn't.
 
-Browse libarires to see what they do
+Class Based Views
+    Function Based Views (FBVs) were the first thing that Django came with and do everything you need. They are easy to
+    follow. Class Based Views (CBVs) came later as a way to hide bits of your code in lots of different places to
+    make it harder to look after. There is a tendency to think that Class=Good, Function=Bad but that is not the case.
+    CBVs come with a bunch of basic things to use as templates, however in the real world they never do exactly what
+    you want and you will need to extend serialisers and generally much about with them. Stick with FBVs, they are fine.
 
-Structure - refactor
+Celery
+    Its too complicated for most use cases. Cron and Django management commands work fine.
+
+Makemigrations in Production
+    Migrations are part of your source code. Run ``manage.py makemigrations`` in development and save the migration
+    files as part of your code base. Run ``manage.py migrate`` in production to apply the migrations.
 
 Signals
+    Another way to hide your code up a chimney so the police won't find it if you get raided (but nor will you).
 
-CBVs
+Save Methods
+    Sometimes you can't avoid doing things in the save method of a model (e.g. using bleach to see if the code is
+    safe). If you can avoid it though, do. Remember, explicit it better than implicit.
 
-Production and Other Environments
-USe env variables 12factor.net
+Docker
+    Docker is fine for large environments were you cannot control the run time environment properly. For most
+    Django implementations you can get by with ``pip`` and ``virtualenv`` just fine. Less complexity, less runtime
+    overhead.
 
-Models
-Abstract Classes
-django-model-utils - the earlier you discover this the less of it you will write yourself
-
-Migrations
-Part of the code base
-
-Don't use Docker. Celery
-
-Keep virtual env out of your code
-
-gitignore
-
-Things I used to do but promise never to do  again
-==================================================
+*************************************************
+Things I used to do but promise never to do again
+*************************************************
 
 Here are some things to watch out for. They are not necessarily all terrible, but people will think more of you as
 a developer if you can avoid them.
 
 Using Strings instead of Constants
-----------------------------------
+==================================
 
 There is a lot of Cobalt code that still has this problem. Fix it as you find it.
 
@@ -452,7 +543,7 @@ This not only lets you change the readable name (and only specify it in one plac
 an error if you type the variable name wrongly and your IDE will autocomplete it for you.
 
 Turn Away Unwanted Guests at the Front Door
--------------------------------------------
+===========================================
 
 Don't do this::
 
@@ -474,7 +565,7 @@ Do this instead::
     # Now do your stuff, but one indentation further out and code is easier to read
 
 Use Custom Exceptions
----------------------
+=====================
 
 Exceptions are the acceptable face of the old GOTO statement. They let you quite your code in the middle if something
 goes wrong. However, it is better to say exactly what went wrong and not just use a built in exception.
@@ -496,7 +587,7 @@ Do this::
     raise CSVInconsistentDataException(filename, "Bad data found on row 7 - date field missing from column 8")
 
 Functions should conduct the orchestra or play one instrument well
-------------------------------------------------------------------
+==================================================================
 
 If you have a function that takes a parameter to tell it what to do, then either replace it with specific functions
 or have it call specific functions. Don't have a function that tries to play the flute and the violin at the same

@@ -1,7 +1,7 @@
 :orphan:
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 6
 
    cobalt_modules/accounts
    cobalt_modules/calendar_app

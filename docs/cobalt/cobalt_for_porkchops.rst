@@ -15,7 +15,7 @@ Cobalt for Pork Chops
 If you have recently got involved in Cobalt, then before you start
 carrying on like a pork chop, read this.
 
-Cobalt is written in Django. Yes it could have been written in whatever
+Cobalt is written in Django. Yes, it could have been written in whatever
 your favourite tool is but it's not. To understand this better you can read
 the `ABF Technology Strategy <https://abftech.atlassian.net/wiki/download/attachments/13795352/ABF%20Technology%20Strategy%20-%202019%20-%202021%20v1.0.pdf?api=v2>`_ which describes **why** Cobalt was built and
 the `ABF Technology Strategy Implementation <https://abftech.atlassian.net/wiki/download/attachments/13795352/ABF%20Technology%20Strategy%20Implementation%20-%202019%20-%202021%20v1.pdf?api=v2>`_
@@ -54,6 +54,21 @@ development activities. See :doc:`utilities_overview` for details.
 
 - **cgit** is a set of tools for working with github and AWS Elastic Beanstalk.
 - Inside the aws folder of utils you can find tools related to building environments on AWS
+
+Development
+===========
+
+Main document: :doc:`development_overview`.
+
+I don't use Windows very much, most of the development of Cobalt has been done on a Mac.
+Some development however, was done successfully on Windows up to a point. I switched from
+native Windows development, to using Windows Linux Subsystem after a while. The intermittent problems
+I had, mainly with file permissions, went away when I started using WLS.
+
+If you do want to develop on Windows that is fine, I recommend using WLS, but you don't have to, just
+watch out for Windows specific problems, especially related to file permissions.
+
+Note also that most of the command line utilities will only work on Unix style environments.
 
 Quirks and Things to Know
 =========================
