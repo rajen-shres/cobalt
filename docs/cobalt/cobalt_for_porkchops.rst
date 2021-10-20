@@ -62,7 +62,8 @@ Static Files
 ------------
 
 Normally for a Django project you would add /static to .gitignore and run ``collectstatic`` as part of the
-deployment process on each server. For Elasticbeanstalk with ``manifeststaticfilesstorage``
+deployment process on each server. For Elastic Beanstalk with
+`manifeststaticfilesstorage <https://docs.djangoproject.com/en/3.2/ref/contrib/staticfiles/#manifeststaticfilesstorage>`_
 that will not work. You need to ensure that ``collectstatic`` is run within the development
 environment as Elasticbeanstalk gives all files the same create date which means that
 manifeststaticfilesstorage can’t tell which is the most recent one and doesn’t know which file to use.
@@ -71,6 +72,7 @@ FAQ
 ===
 
 **Q**: I have looked at the code and bits of it don't match what the documentation says. How come?
+
 **A**: The documentation reflects what we would like the code to look like and what we are building
 going forward. There are still bits of code that were build in a different style (especially non-HTMX code)
 which could be there for several years before they get re-done.

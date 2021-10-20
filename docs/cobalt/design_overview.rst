@@ -54,7 +54,7 @@ This diagram shows the high level architecture of Cobalt as deployed on AWS for 
 This represents a single system, for the ABF we have Test, UAT and Production.
 
 ****************
-Key Technologies
+Technology List
 ****************
 
 Every time we add a technology to Cobalt we introduce another dependency and another thing that can go wrong.
@@ -127,6 +127,10 @@ HTMX                                Latest                              Client u
 **Do not use any other significant client side code, e.g. React or Angular without proper discussion.**
 
 One-off use of JS libraries for specific pages is fine.
+
+****************
+Key Technologies
+****************
 
 HTMX
 ====
