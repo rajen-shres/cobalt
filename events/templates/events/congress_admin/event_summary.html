@@ -37,7 +37,6 @@
                                         {% if event.congress.payment_method_off_system_pp %}
                                             <a class="dropdown-item" href="{% url 'events:admin_event_offsystem_pp' event_id=event.id %}">Club PP System</a>
                                         {% endif %}
-                                        <a class="dropdown-item" href="{% url 'events:admin_event_unpaid' event_id=event.id %}">Unpaid Entries</a>
                                         <a class="dropdown-item" href="{% url 'events:admin_event_entry_add' event_id=event.id %}">Add Entry</a>
                                         <a class="dropdown-item" href="{% url 'events:admin_event_log' event_id=event.id %}">View Logs</a>
                                         <a class="dropdown-item" href="{% url 'events:admin_event_player_discount' event_id=event.id %}">Manage Player Discounts</a>
@@ -53,6 +52,7 @@
                                     </button>
                                     <div class="dropdown-menu">
                                         <a class="dropdown-item" href="{% url 'events:admin_players_report' event_id=event.id %}">Players Report</a>
+                                        <a class="dropdown-item" href="{% url 'events:admin_event_unpaid' event_id=event.id %}">Unpaid Entries</a>
                                         <a class="dropdown-item" href="{% url 'events:admin_event_payment_methods' event_id=event.id %}">Payment Methods</a>
                                     </div>
                                 </div>

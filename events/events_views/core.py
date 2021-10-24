@@ -177,6 +177,11 @@ def _update_entries(route_payload, payment_user):
     for event_entry in event_entries:
         event_entry.check_if_paid()
 
+        # Any payments should remove the entry from the shopping basket
+        basket = BasketItem.objects.filter(event_entry=event_entry)
+        if basket:
+            basket.delete()
+
 
 def _send_notifications(route_payload, payment_user):
     """Send the notification emails"""

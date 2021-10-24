@@ -10,7 +10,7 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=event.congress.id %}">{{ event.congress.name }}</a></li>
             <li class="breadcrumb-item"><a href="{% url "events:admin_event_summary" event_id=event.id %}">{{ event.event_name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Off System Payments</li>
+            <li class="breadcrumb-item active" aria-current="page">Unpaid Entries Report</li>
         </ol>
     </nav>
 
@@ -26,6 +26,7 @@
                     <div class="card">
                         <div class="card-header card-header-info">
                             <h2>{{ event.event_name }} - Unpaid Entries</h2>
+                            <a href="{% url "events:admin_unpaid_email" event_id=event.id %}" class="btn btn-secondary">Email All Unpaid</a>
                         </div>
 
                         <div class="card-body table-responsive">

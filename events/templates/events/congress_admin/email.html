@@ -55,7 +55,7 @@
                             <div id="recipients" class="mt-2" style="display: none;">
                                 <ul>
                                     {% for recipient in recipients %}
-                                        <li>{{ recipient|cobalt_user_link_short }}
+                                        <li>{{ recipient.0 }} {{ recipient.1 }} - {{ recipient.2 }}
                                     {% endfor %}
                                 </ul>
                             </div>

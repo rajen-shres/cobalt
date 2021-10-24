@@ -1,6 +1,7 @@
 """ The file has the code relating to a convener managing an existing event """
 
 import csv
+from itertools import chain
 from threading import Thread
 
 import bleach
@@ -10,7 +11,7 @@ from django.forms import formset_factory
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone, dateformat
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from notifications.views import contact_member, CobaltEmail
 from logs.views import log_event
 from django.db import transaction
@@ -1055,6 +1056,50 @@ def admin_event_email(request, event_id):
 
 
 @login_required()
+def admin_unpaid_email(request, event_id):
+    """Email all entrants to an event who have not paid"""
+
+    event = get_object_or_404(Event, pk=event_id)
+
+    # check access
+    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    # who will receive this
+
+    # Real people
+    all_recipients_real = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .exclude(player_id=TBA_PLAYER)
+        .exclude(payment_status="Paid")
+        .exclude(payment_status="Free")
+        .exclude(event_entry__entry_status="Cancelled")
+        .values_list("player__first_name", "player__last_name", "player__email")
+        .distinct()
+    )
+
+    # For TBAs get the primary entrant
+    all_recipients_tba = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .filter(player_id=TBA_PLAYER)
+        .exclude(payment_status="Paid")
+        .exclude(payment_status="Free")
+        .exclude(event_entry__entry_status="Cancelled")
+        .values_list(
+            "event_entry__primary_entrant__first_name",
+            "event_entry__primary_entrant__last_name",
+            "event_entry__primary_entrant__email",
+        )
+        .distinct()
+    )
+
+    all_recipients = list(chain(all_recipients_real, all_recipients_tba))
+
+    return _admin_email_common(request, all_recipients, event.congress, event)
+
+
+@login_required()
 def admin_congress_email(request, congress_id):
     """Email all entrants to an entire congress"""
 
@@ -1554,9 +1599,14 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
             event_entry=event_entry,
         ).save()
 
-        tba = User.objects.get(pk=TBA_PLAYER)
-        event_entry_player.player = tba
-        event_entry_player.save()
+        # Delete if payment_type is free (5th or 6th player) otherwise change to TBA
+
+        if event_entry_player.payment_type == "Free":
+            event_entry_player.delete()
+        else:
+            tba = User.objects.get(pk=TBA_PLAYER)
+            event_entry_player.player = tba
+            event_entry_player.save()
 
         messages.success(request, "Player Deleted", extra_tags="cobalt-message-success")
 
