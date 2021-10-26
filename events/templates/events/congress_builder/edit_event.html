@@ -177,6 +177,8 @@
                                                 <a href="javascript:void(0)" onclick='help("Youth Discount", "Discount applied for youth players as a percentage. Only one discount will be applied (whichever is largest).");'>help</a>
                                             </div>
                                         </div>
+                                    {% else %}
+                                        <input type="hidden" name="entry_youth_payment_discount" value="{{ form.entry_youth_payment_discount.value }}">
                                     {% endif %}
                                     <br>
 
