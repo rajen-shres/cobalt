@@ -613,9 +613,11 @@ def create_event(request, congress_id):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
-    if request.method == "POST":
+    form = EventForm(
+        request.POST or None, initial={"entry_early_payment_discount": 0.0}
+    )
 
-        form = EventForm(request.POST, initial={"entry_early_payment_discount": 0.0})
+    if request.method == "POST":
 
         if form.is_valid():
             event = Event()
@@ -624,20 +626,7 @@ def create_event(request, congress_id):
                 "events:edit_event", event_id=event.id, congress_id=congress_id
             )
         else:
-            for er in form.errors:
-                messages.error(
-                    request,
-                    form.errors[er],
-                    extra_tags="cobalt-message-error",
-                )
-
-    else:
-        # default youth discount to 50% if used
-        initial = {}
-        if congress.allow_youth_payment_discount:
-            initial["entry_youth_payment_discount"] = 50
-
-        form = EventForm(initial=initial)
+            print(form.errors)
 
     # create a dummy event so template doesn't generate errors - we share the template with the edit function
     # which has an event
