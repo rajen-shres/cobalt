@@ -378,7 +378,7 @@ class Event(models.Model):
         default=Decimal(0.0),
     )
     entry_youth_payment_discount = models.IntegerField(
-        "Youth Discount Percentage", null=True, blank=True
+        "Youth Discount Percentage", default=50
     )
     player_format = models.CharField(
         "Player Format",
