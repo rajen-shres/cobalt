@@ -451,6 +451,11 @@ urlpatterns = [
         congress_admin.admin_event_payment_methods_csv,
         name="admin_event_payment_methods_csv",
     ),
+    path(
+        "congress-admin/event-entry/change-category",
+        congress_admin.admin_event_entry_change_category_htmx,
+        name="admin_event_entry_change_category_htmx",
+    ),
     #######################################################
     # higher level admin functions                        #
     #######################################################

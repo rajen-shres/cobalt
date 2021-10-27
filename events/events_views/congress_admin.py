@@ -1839,3 +1839,37 @@ def admin_event_payment_methods_csv(request, event_id):
     event_entry_players = EventEntryPlayer.objects.filter(event_entry__event=event)
 
     return download_csv(request, event_entry_players)
+
+
+@login_required()
+def admin_event_entry_change_category_htmx(request):
+    """Allow admins to change categories for entries in an event that has categories defined"""
+
+    event_id = request.POST.get("event_id")
+    event = get_object_or_404(Event, pk=event_id)
+    event_entry_id = request.POST.get("event_entry_id")
+    event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
+
+    # check access
+    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    if "update" in request.POST:
+        new_category_id = request.POST.get("category")
+        new_category = get_object_or_404(Category, pk=new_category_id)
+        event_entry.category = new_category
+        event_entry.save()
+        return render(
+            request,
+            "events/congress_admin/admin_event_entry_category_htmx.html",
+            {"event": event, "event_entry": event_entry},
+        )
+
+    categories = Category.objects.filter(event=event)
+
+    return render(
+        request,
+        "events/congress_admin/admin_event_entry_change_category_htmx.html",
+        {"event": event, "event_entry": event_entry, "categories": categories},
+    )

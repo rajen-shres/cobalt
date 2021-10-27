@@ -368,139 +368,166 @@ def admin_orgs_with_balance_csv(request):
     return response
 
 
+def _admin_view_specific_transactions_csv_download(
+    request, filename, title, manual_member, manual_org
+):
+    """Produce CSV file from the view of specific transaction types
+
+    Args:
+        request: Standard request Object
+        filename: Name of output file
+        title: Title for report
+        manual_member: transactions relating to members (can be empty)
+        manual_org: transactions relating to orgs (can be empty)
+
+    """
+
+    local_dt = timezone.localtime(timezone.now(), TZ)
+    today = dateformat.format(local_dt, "Y-m-d H:i:s")
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = f"attachment; filename={filename}"
+
+    writer = csv.writer(response)
+    writer.writerow(
+        [
+            title,
+            "Downloaded by %s" % request.user.full_name,
+            today,
+        ]
+    )
+
+    # Members
+    writer.writerow("")
+    writer.writerow(["Member Transactions"])
+
+    writer.writerow(
+        [
+            "Date",
+            "Administrator",
+            "Transaction Type",
+            f"{GLOBAL_ORG} Number",
+            "User",
+            "Description",
+            "Amount",
+        ]
+    )
+
+    for member in manual_member:
+        local_dt = timezone.localtime(member.created_date, TZ)
+
+        writer.writerow(
+            [
+                dateformat.format(local_dt, "Y-m-d H:i:s"),
+                member.other_member,
+                member.type,
+                member.member.system_number,
+                member.member.full_name,
+                member.description,
+                member.amount,
+            ]
+        )
+
+    # Organisations
+    writer.writerow("")
+    writer.writerow("")
+    writer.writerow(["Organisation Transactions"])
+
+    writer.writerow(
+        [
+            "Date",
+            "Administrator",
+            "Transaction Type",
+            "Club ID",
+            "Organisation",
+            "Description",
+            "Amount",
+        ]
+    )
+
+    for org in manual_org:
+        local_dt = timezone.localtime(org.created_date, TZ)
+
+        writer.writerow(
+            [
+                dateformat.format(local_dt, "Y-m-d H:i:s"),
+                org.member,
+                org.type,
+                org.organisation.org_id,
+                org.organisation,
+                org.description,
+                org.amount,
+            ]
+        )
+
+    return response
+
+
 @login_required()
-def admin_view_manual_adjustments(request):
-    """Shows any open balances held by orgs - as CSV
+def admin_view_specific_transactions(request, trans_type):
+    """Shows transactions of a specific type. e.g. manual adjustments or settlements
 
     Args:
         request (HTTPRequest): standard request object
+        trans_type (str): which transactions to show
 
     Returns:
         HTTPResponse (Can be CSV)
     """
 
+    transaction_types = {
+        "manual_adjust": "Manual Adjustment",
+        "settlement": "Settlement",
+    }
+
     if not rbac_user_has_role(request.user, "payments.global.view"):
         return rbac_forbidden(request, "payments.global.view")
 
-    if request.method == "POST":
-        form = DateForm(request.POST)
-        if form.is_valid():
+    if trans_type not in transaction_types:
+        return HttpResponse(f"Invalid transaction type for this report: {trans_type}")
 
-            # Need to make the dates TZ aware
-            to_date_form = form.cleaned_data["to_date"]
-            from_date_form = form.cleaned_data["from_date"]
-            # date -> datetime
-            to_date = datetime.datetime.combine(to_date_form, datetime.time(23, 59))
-            from_date = datetime.datetime.combine(from_date_form, datetime.time(0, 0))
-            # make aware
-            to_date = make_aware(to_date, TZ)
-            from_date = make_aware(from_date, TZ)
+    form = DateForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
 
-            manual_member = MemberTransaction.objects.filter(
-                type="Manual Adjustment"
-            ).filter(created_date__range=(from_date, to_date))
-            manual_org = OrganisationTransaction.objects.filter(
-                type="Manual Adjustment"
-            ).filter(created_date__range=(from_date, to_date))
+        # Need to make the dates TZ aware
+        to_date_form = form.cleaned_data["to_date"]
+        from_date_form = form.cleaned_data["from_date"]
+        # date -> datetime
+        to_date = datetime.datetime.combine(to_date_form, datetime.time(23, 59))
+        from_date = datetime.datetime.combine(from_date_form, datetime.time(0, 0))
+        # make aware
+        to_date = make_aware(to_date, TZ)
+        from_date = make_aware(from_date, TZ)
 
-            if "export" in request.POST:
+        manual_member = MemberTransaction.objects.filter(
+            type=transaction_types[trans_type]
+        ).filter(created_date__range=(from_date, to_date))
 
-                local_dt = timezone.localtime(timezone.now(), TZ)
-                today = dateformat.format(local_dt, "Y-m-d H:i:s")
+        manual_org = OrganisationTransaction.objects.filter(
+            type=transaction_types[trans_type]
+        ).filter(created_date__range=(from_date, to_date))
 
-                response = HttpResponse(content_type="text/csv")
-                response[
-                    "Content-Disposition"
-                ] = 'attachment; filename="manual-adjustments.csv"'
+        if "export" not in request.POST:
+            return render(
+                request,
+                "payments/admin/admin_view_specific_transactions.html",
+                {
+                    "form": form,
+                    "manual_member": manual_member,
+                    "manual_org": manual_org,
+                    "title": transaction_types[trans_type],
+                },
+            )
 
-                writer = csv.writer(response)
-                writer.writerow(
-                    [
-                        "Manual Adjustments",
-                        "Downloaded by %s" % request.user.full_name,
-                        today,
-                    ]
-                )
-
-                # Members
-
-                writer.writerow(
-                    [
-                        "Date",
-                        "Administrator",
-                        "Transaction Type",
-                        "User",
-                        "Description",
-                        "Amount",
-                    ]
-                )
-
-                for member in manual_member:
-                    local_dt = timezone.localtime(member.created_date, TZ)
-
-                    writer.writerow(
-                        [
-                            dateformat.format(local_dt, "Y-m-d H:i:s"),
-                            member.other_member,
-                            member.type,
-                            member.member,
-                            member.description,
-                            member.amount,
-                        ]
-                    )
-
-                # Organisations
-                writer.writerow("")
-                writer.writerow("")
-
-                writer.writerow(
-                    [
-                        "Date",
-                        "Administrator",
-                        "Transaction Type",
-                        "Club ID",
-                        "Organisation",
-                        "Description",
-                        "Amount",
-                    ]
-                )
-
-                for org in manual_org:
-                    local_dt = timezone.localtime(org.created_date, TZ)
-
-                    writer.writerow(
-                        [
-                            dateformat.format(local_dt, "Y-m-d H:i:s"),
-                            org.member,
-                            org.type,
-                            org.organisation.org_id,
-                            org.organisation,
-                            org.description,
-                            org.amount,
-                        ]
-                    )
-
-                return response
-
-            else:
-                return render(
-                    request,
-                    "payments/admin/admin_view_manual_adjustments.html",
-                    {
-                        "form": form,
-                        "manual_member": manual_member,
-                        "manual_org": manual_org,
-                    },
-                )
-
-        else:
-            print(form.errors)
-
-    else:
-        form = DateForm()
+        filename = transaction_types[trans_type].replace(" ", "_") + ".csv"
+        return _admin_view_specific_transactions_csv_download(
+            request, filename, transaction_types[trans_type], manual_member, manual_org
+        )
 
     return render(
-        request, "payments/admin/admin_view_manual_adjustments.html", {"form": form}
+        request,
+        "payments/admin/admin_view_specific_transactions.html",
+        {"form": form, "title": transaction_types[trans_type]},
     )
 
 
