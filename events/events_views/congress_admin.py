@@ -1860,6 +1860,14 @@ def admin_event_entry_change_category_htmx(request):
         new_category = get_object_or_404(Category, pk=new_category_id)
         event_entry.category = new_category
         event_entry.save()
+
+        EventLog(
+            event=event,
+            event_entry=event_entry,
+            actor=request.user,
+            action=f"Administrator changed category to {new_category}",
+        ).save()
+
         return render(
             request,
             "events/congress_admin/admin_event_entry_category_htmx.html",
