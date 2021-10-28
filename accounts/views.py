@@ -147,36 +147,41 @@ def register(request):
             # reload form with this user as base
             form = UserRegisterForm(request.POST, instance=user)
 
-        user = form.save(commit=False)
-        user.is_active = False  # not active until email confirmed
-        user.system_number = user.username
-        user.save()
-
-        _check_duplicate_email(user)
-
-        current_site = get_current_site(request)
-        mail_subject = "Activate your account."
-        message = render_to_string(
-            "accounts/acc_active_email.html",
-            {
-                "user": user,
-                "domain": current_site.domain,
-                "org": settings.GLOBAL_ORG,
-                "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-                "token": account_activation_token.make_token(user),
-            },
-        )
-        to_email = form.cleaned_data.get("email")
-        send_cobalt_email(to_email, mail_subject, message)
-
-        # Check if we have a matching UnregisteredUser object and copy data across
-        _check_unregistered_user_match(user)
-
-        return render(
-            request, "accounts/register_complete.html", {"email_address": to_email}
-        )
+        if form.is_valid():
+            return _register_handle_valid_form(form, request)
 
     return render(request, "accounts/register.html", {"user_form": form})
+
+
+def _register_handle_valid_form(form, request):
+    user = form.save(commit=False)
+    user.is_active = False  # not active until email confirmed
+    user.system_number = user.username
+    user.save()
+
+    _check_duplicate_email(user)
+
+    current_site = get_current_site(request)
+    mail_subject = "Activate your account."
+    message = render_to_string(
+        "accounts/acc_active_email.html",
+        {
+            "user": user,
+            "domain": current_site.domain,
+            "org": settings.GLOBAL_ORG,
+            "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+            "token": account_activation_token.make_token(user),
+        },
+    )
+    to_email = form.cleaned_data.get("email")
+    send_cobalt_email(to_email, mail_subject, message)
+
+    # Check if we have a matching UnregisteredUser object and copy data across
+    _check_unregistered_user_match(user)
+
+    return render(
+        request, "accounts/register_complete.html", {"email_address": to_email}
+    )
 
 
 def activate(request, uidb64, token):
