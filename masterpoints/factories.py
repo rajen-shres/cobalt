@@ -67,7 +67,9 @@ class MasterpointDB(MasterpointFactory):
     def system_number_lookup(self, system_number):
         result = masterpoint_query_row(f"id/{system_number}")
         if result:
-            if User.objects.filter(system_number=system_number).exists():
+            if User.objects.filter(
+                system_number=system_number, is_active=True
+            ).exists():
                 return "Error: User already registered"
             if result["IsActive"] == "Y":
                 # only use first name from given names
@@ -99,7 +101,9 @@ class MasterpointFile(MasterpointFactory):
         result = mp_file_grep(pattern)
 
         if result:
-            if User.objects.filter(system_number=system_number).exists():
+            if User.objects.filter(
+                system_number=system_number, is_active=True
+            ).exists():
                 return "Error: User already registered"
             if result[6] == "Y":
                 # only use first name from given names
