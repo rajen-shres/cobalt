@@ -17,8 +17,8 @@ General Approach
 ----------------
 
 The script ``utils/management/commands/add_test_data.py`` loads test data from
-the directory ``utils/testdata``. The test data is in CSV format and is safe to
-edit with Excel. The test data is run in alphabetical order so it can
+the directory ``utils/testdata``. The test data is in CSV format and is safe (but not recommended) to
+edit with Excel, provided you are careful. The test data is run in alphabetical order so it can
 handle dependencies between the files. Each file
 matches a model within Cobalt.
 
@@ -114,3 +114,7 @@ model_def
 ---------
 
 Use ./manage.py model_def to generate the header for you.
+
+Test data generation is not the most beautiful part of Cobalt, but it works well enough provided you
+stick to the formats that it supports. You can tidy up the scripts by running the management command
+``manage.py reformat_test_csvs``.

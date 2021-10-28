@@ -27,3 +27,10 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "*/*.migrations.rst"]
 
 todo_include_todos = True
 html_theme = "sphinx_rtd_theme"
+
+# Set the background to pure white to avoid slight differences with images
+html_static_path = ["_static"]
+
+
+def setup(app):
+    app.add_css_file("css/cobalt.css")

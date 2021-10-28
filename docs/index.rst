@@ -7,16 +7,21 @@ Cobalt Developer Documentation
  :alt: Cobalt Chemical Symbol
  :align: center
 
-.. admonition:: Additional Documentation
+.. admonition:: ABF Specific Documentation
 
-   Documentation specific to the ABF version of Cobalt can be found on Confluence.
+   |
+
+   **Documentation specific to the ABF version of Cobalt can be found on Confluence.**
+
+   |
 
 Introduction
 ============
 
-Cobalt is an Open Source system for the administration of the game of
+Cobalt is an `Open Source <https://github.com/abftech/cobalt/blob/master/LICENSE>`_
+system for the administration of the game of
 `bridge <https://en.wikipedia.org/wiki/Contract_bridge>`_.
-The development of Cobalt was funded by the `Australian Bridge Federation <https://abf.com.au>`_.
+The development of Cobalt is currently funded by the `Australian Bridge Federation <https://abf.com.au>`_.
 
 Cobalt may or may not stand for **CO**\ mmon **B**\ ridge **A**\ nd **L**\ earning **T**\ echnology, but we are open to
 naming suggestions.
@@ -34,7 +39,7 @@ national level including:
 
 Cobalt is build using `Django <https://www.djangoproject.com/>`_.
 
-The source code can be found in `Github <https://github.com/abftech/cobalt>`_.
+The source code can be found on `Github <https://github.com/abftech/cobalt>`_.
 
 User Guides
 ===========

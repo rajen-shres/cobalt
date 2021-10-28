@@ -15,7 +15,7 @@ Cobalt for Pork Chops
 If you have recently got involved in Cobalt, then before you start
 carrying on like a pork chop, read this.
 
-Cobalt is written in Django. Yes it could have been written in whatever
+Cobalt is written in Django. Yes, it could have been written in whatever
 your favourite tool is but it's not. To understand this better you can read
 the `ABF Technology Strategy <https://abftech.atlassian.net/wiki/download/attachments/13795352/ABF%20Technology%20Strategy%20-%202019%20-%202021%20v1.0.pdf?api=v2>`_ which describes **why** Cobalt was built and
 the `ABF Technology Strategy Implementation <https://abftech.atlassian.net/wiki/download/attachments/13795352/ABF%20Technology%20Strategy%20Implementation%20-%202019%20-%202021%20v1.pdf?api=v2>`_
@@ -49,15 +49,45 @@ or you can live without the tracking features.
 Tools
 =====
 
+With the ``utils`` application in Cobalt there are a number of tools that can help with
+development activities. See :doc:`utilities_overview` for details.
 
-Security
-========
+- **cgit** is a set of tools for working with github and AWS Elastic Beanstalk.
+- Inside the aws folder of utils you can find tools related to building environments on AWS
+
+Development
+===========
+
+Main document: :doc:`development_overview`.
+
+I don't use Windows very much, most of the development of Cobalt has been done on a Mac.
+Some development however, was done successfully on Windows up to a point. I switched from
+native Windows development, to using Windows Linux Subsystem after a while. The intermittent problems
+I had, mainly with file permissions, went away when I started using WLS.
+
+If you do want to develop on Windows that is fine, I recommend using WLS, but you don't have to, just
+watch out for Windows specific problems, especially related to file permissions.
+
+Note also that most of the command line utilities will only work on Unix style environments.
 
 Quirks and Things to Know
 =========================
 
+Static Files
+------------
+
+Normally for a Django project you would add /static to .gitignore and run ``collectstatic`` as part of the
+deployment process on each server. For Elastic Beanstalk with
+`manifeststaticfilesstorage <https://docs.djangoproject.com/en/3.2/ref/contrib/staticfiles/#manifeststaticfilesstorage>`_
+that will not work. You need to ensure that ``collectstatic`` is run within the development
+environment as Elasticbeanstalk gives all files the same create date which means that
+manifeststaticfilesstorage can’t tell which is the most recent one and doesn’t know which file to use.
+
 FAQ
 ===
 
-Resources
-=========
+**Q**: I have looked at the code and bits of it don't match what the documentation says. How come?
+
+**A**: The documentation reflects what we would like the code to look like and what we are building
+going forward. There are still bits of code that were build in a different style (especially non-HTMX code)
+which could be there for several years before they get re-done.
