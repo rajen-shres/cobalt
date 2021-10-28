@@ -34,6 +34,7 @@ class UserRegisterForm(UserCreationForm):
 
     def clean(self):
         """The validation will reject a duplicate user. We want to allow is_active=False users to sign up again"""
+        print("Rhubarb")
         pass
 
 
