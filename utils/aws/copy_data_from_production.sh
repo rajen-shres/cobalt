@@ -94,4 +94,3 @@ echo "Loading the data, this will take a while..."
 
 # check it works
 # ./manage.py count_users
-

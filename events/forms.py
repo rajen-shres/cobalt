@@ -310,9 +310,10 @@ class EventForm(forms.ModelForm):
         return data
 
     def clean_entry_youth_payment_discount(self):
+        """If we have a youth discount then check it is a positive number"""
 
         entry_youth_payment_discount = self.cleaned_data["entry_youth_payment_discount"]
-        if entry_youth_payment_discount < 0:
+        if entry_youth_payment_discount and entry_youth_payment_discount < 0:
             self.add_error(
                 "entry_youth_payment_discount", "Discount percentage cannot be negative"
             )

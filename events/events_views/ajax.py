@@ -913,7 +913,7 @@ def change_player_entry_ajax(request):
             event_entry_player.payment_status = "Unpaid"
             event_entry_player.save()
             event_entry.check_if_paid()
-            return_html = f"Player succesfully changed. There are {difference} credits required for this player entry."
+            return_html = f"Player successfully changed. There are {difference:.2f} credits required for this player entry."
 
         # Check if payment status should be paid. e.g. enter as Youth and swap to another, then back to Youth
         if event_entry_player.entry_fee == event_entry_player.payment_received:
