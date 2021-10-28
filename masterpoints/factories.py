@@ -77,6 +77,8 @@ class MasterpointDB(MasterpointFactory):
                 surname = result["Surname"]
                 return html.unescape(f"{given_name} {surname}")
 
+        return "Error: Invalid or inactive number"
+
 
 class MasterpointFile(MasterpointFactory):
     """Concrete implementation of a masterpoint factory using a file to get the data"""
