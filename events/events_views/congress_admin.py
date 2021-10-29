@@ -1885,6 +1885,7 @@ def admin_event_entry_change_category_htmx(request):
     )
 
 
+@login_required()
 def convener_settings(request, congress_id):
     """Allow conveners to manage their personal settings for congresses"""
 
@@ -1907,16 +1908,16 @@ def convener_settings(request, congress_id):
                 identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
                 model_id=None,
             ).save()
+            print("Turn all_off true")
 
         if request.GET.get("all_off") == "False":
             # Turn on all
             BlockNotification.objects.filter(
                 member=request.user,
-                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
-                model_id=None,
             ).delete()
+            print("Turn all_off false")
 
-        #
+        # This org
         if request.GET.get("this_org_off") == "True":
             # Turn off org and delete anything else
             BlockNotification.objects.filter(
@@ -1928,32 +1929,37 @@ def convener_settings(request, congress_id):
                 identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
                 model_id=congress.congress_master.org.id,
             ).save()
+            print("Turn this_org_off true")
 
-        if request.GET.get("this_org_off") == "True":
+        if request.GET.get("this_org_off") == "False":
             # Turn on org
             BlockNotification.objects.filter(
                 member=request.user,
                 identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
                 model_id=congress.congress_master.org.id,
             ).delete()
+            print("Turn this_org_off false")
 
         if request.GET.get("this_congress_off") == "True":
             # Turn off congress and delete anything else
-            BlockNotification.objects.filter(member=request.user).delete()
+            # BlockNotification.objects.filter(member=request.user).delete()
             BlockNotification(
                 member=request.user,
-                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
-                model_id=congress.congress_master.org.id,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+                model_id=congress.id,
             ).save()
+            print("Turn this_congress_off true")
 
-        if request.GET.get("this_org_off") == "True":
-            # Turn on org
+        if request.GET.get("this_congress_off") == "False":
+            # Turn on congress
             BlockNotification.objects.filter(
                 member=request.user,
-                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
-                model_id=congress.congress_master.org.id,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+                model_id=congress.id,
             ).delete()
+            print("Turn this_congress_off false")
 
+    # Build current state for view
     this_congress_off = BlockNotification.objects.filter(
         member=request.user,
         identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
@@ -1969,6 +1975,10 @@ def convener_settings(request, congress_id):
         identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
         model_id=None,
     ).exists()
+
+    print("all off", all_off)
+    print("this_org_off", this_org_off)
+    print("this_congress_off", this_congress_off)
 
     return render(
         request,
