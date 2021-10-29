@@ -456,6 +456,11 @@ urlpatterns = [
         congress_admin.admin_event_entry_change_category_htmx,
         name="admin_event_entry_change_category_htmx",
     ),
+    path(
+        "congress-admin/convener-settings/<int:congress_id>",
+        congress_admin.convener_settings,
+        name="admin_convener_settings",
+    ),
     #######################################################
     # higher level admin functions                        #
     #######################################################

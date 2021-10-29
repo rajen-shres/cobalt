@@ -12,6 +12,8 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone, dateformat
 from django.db.models import Sum, Q
+
+from notifications.models import BlockNotification
 from notifications.views import contact_member, CobaltEmail
 from logs.views import log_event
 from django.db import transaction
@@ -1880,4 +1882,101 @@ def admin_event_entry_change_category_htmx(request):
         request,
         "events/congress_admin/admin_event_entry_change_category_htmx.html",
         {"event": event, "event_entry": event_entry, "categories": categories},
+    )
+
+
+def convener_settings(request, congress_id):
+    """Allow conveners to manage their personal settings for congresses"""
+
+    congress = get_object_or_404(Congress, pk=congress_id)
+
+    # check access
+    role = "events.org.%s.edit" % congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    # We change settings through a GET so see if we need to do anything
+    if request.method == "GET":
+
+        # Everything
+        if request.GET.get("all_off") == "True":
+            # Turn off all and delete anything else
+            BlockNotification.objects.filter(member=request.user).delete()
+            BlockNotification(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+                model_id=None,
+            ).save()
+
+        if request.GET.get("all_off") == "False":
+            # Turn on all
+            BlockNotification.objects.filter(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+                model_id=None,
+            ).delete()
+
+        #
+        if request.GET.get("this_org_off") == "True":
+            # Turn off org and delete anything else
+            BlockNotification.objects.filter(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+            ).delete()
+            BlockNotification(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
+                model_id=congress.congress_master.org.id,
+            ).save()
+
+        if request.GET.get("this_org_off") == "True":
+            # Turn on org
+            BlockNotification.objects.filter(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
+                model_id=congress.congress_master.org.id,
+            ).delete()
+
+        if request.GET.get("this_congress_off") == "True":
+            # Turn off congress and delete anything else
+            BlockNotification.objects.filter(member=request.user).delete()
+            BlockNotification(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
+                model_id=congress.congress_master.org.id,
+            ).save()
+
+        if request.GET.get("this_org_off") == "True":
+            # Turn on org
+            BlockNotification.objects.filter(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
+                model_id=congress.congress_master.org.id,
+            ).delete()
+
+    this_congress_off = BlockNotification.objects.filter(
+        member=request.user,
+        identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+        model_id=congress.id,
+    ).exists()
+    this_org_off = BlockNotification.objects.filter(
+        member=request.user,
+        identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
+        model_id=congress.congress_master.org.id,
+    ).exists()
+    all_off = BlockNotification.objects.filter(
+        member=request.user,
+        identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+        model_id=None,
+    ).exists()
+
+    return render(
+        request,
+        "events/congress_admin/convener_settings.html",
+        {
+            "congress": congress,
+            "this_congress_off": this_congress_off,
+            "this_org_off": this_org_off,
+            "all_off": all_off,
+        },
     )

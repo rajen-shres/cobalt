@@ -188,3 +188,33 @@ class EmailBatchRBAC(models.Model):
 
     def __str__(self):
         return f"{self.batch_id} - {self.rbac_role}"
+
+
+class BlockNotification(models.Model):
+    """This is the opposite of what notifications originally did. This maintains a list of things that a user does
+    not want to be told about. Originally this was built for conveners who do not want email notifications.
+
+    Setting model_id to None and identifier to either CONVENER_EMAIL_BY_EVENT or CONVENER_EMAIL_BY_ORG has
+    the same effect, it stops you getting notified about anything related to any event. To turn this off
+    use CONVENER_EMAIL_BY_EVENT set to None so the admin function will work. Changing this manually through Django
+    admin is not recommended.
+
+    """
+
+    class Identifier(models.TextChoices):
+        # Conveners blocking emails by event_id
+        CONVENER_EMAIL_BY_EVENT = "CE"
+        # Conveners blocking emails by org_id
+        CONVENER_EMAIL_BY_ORG = "CO"
+
+    member = models.ForeignKey(User, on_delete=models.CASCADE)
+    """ User who doesn't want notified """
+
+    identifier = models.CharField(max_length=2, choices=Identifier.choices)
+    """ One of the enum values, eg CONVENER_EMAIL_BY_EVENT """
+
+    model_id = models.IntegerField(null=True, blank=True)
+    """ Specific model_id to block. None to block everything """
+
+    def __str__(self):
+        return f"{self.member.full_name} - {self.identifier} - {self.model_id}"

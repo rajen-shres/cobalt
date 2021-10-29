@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django.urls import reverse
 
@@ -7,6 +8,7 @@ import payments.payments_views.core as payments_core  # circular dependency
 from cobalt.settings import COBALT_HOSTNAME, BRIDGE_CREDITS, GLOBAL_ORG
 from events.models import PAYMENT_TYPES
 from logs.views import log_event
+from notifications.models import BlockNotification
 from notifications.views import CobaltEmail, contact_member_and_queue_email
 from rbac.core import rbac_get_users_with_role
 from events.models import (
@@ -441,6 +443,31 @@ def get_conveners_for_congress(congress):
     return rbac_get_users_with_role(role)
 
 
+def convener_wishes_to_be_notified(congress, convener):
+    """Checks with blocked notifications in Notifications to see if this convener wants to know about events that
+    happen or not. Currently it is binary (Yes, or No), later it could be extended to check for specific actions"""
+
+    # Get any blocks in place for notifications
+
+    # We want rows for this user, app=Events, and then either identifier is by Event and model_id is event.id OR
+    # identifier is by Org and model_id is org.id
+
+    return (
+        not BlockNotification.objects.filter(app=BlockNotification.App.EVENTS)
+        .filter(member=convener)
+        .filter(
+            (
+                (Q(model_id=congress.id) | Q(model_id=None))
+                & Q(identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT)
+            )
+            | (
+                (Q(model_id=congress.congress_master.org.id) | Q(model_id=None))
+                & Q(identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG)
+            )
+        )
+    )
+
+
 def notify_conveners(
     congress, event, subject, email_msg, notify_msg=None, email_obj=None
 ):
@@ -460,6 +487,10 @@ def notify_conveners(
     link = reverse("events:admin_event_summary", kwargs={"event_id": event.id})
 
     for convener in conveners:
+
+        # skip if this convener doesn't want the message
+        if not convener_wishes_to_be_notified(congress, convener):
+            continue
 
         context = {
             "name": convener.first_name,
