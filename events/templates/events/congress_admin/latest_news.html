@@ -5,17 +5,12 @@
 {% load cobalt_tags %}
 {% load humanize %}
 {% block title %} - Admin Latest News{% endblock %}
+
 {% block header %}
-    {% include "events/congress_builder/congress_wizard_include_header.html" %}
-{% endblock %}
+    <link href="{% static "assets/css/cobalt-summernote.css" %}" rel="stylesheet">
+{% endblock header %}
 {% block content %}
-    <link href="{% static "forums/summernote/summernote-bs4.css" %}" type="text/css" media="all" rel="stylesheet">
-    <link href="{% static "forums/summernote/django_summernote.css" %}" type="text/css" media="all" rel="stylesheet">
-    <script type="text/javascript" src="{% static "forums/summernote/jquery.ui.widget.js" %}"></script>
-    <script type="text/javascript" src="{% static "forums/summernote/jquery.iframe-transport.js" %}"></script>
-    <script type="text/javascript" src="{% static "forums/summernote/jquery.fileupload.js" %}"></script>
-    <script type="text/javascript" src="{% static "forums/summernote/summernote-bs4.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "forums/summernote/ResizeSensor.js" %}"></script>
+    {% include "utils/summernote_heading.html" %}
 
     <nav aria-label="breadcrumb" role="navigation">
         <ol class="breadcrumb">

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+{% load humanize %}
+{% block title %} - Admin Latest News{% endblock %}
+{% block content %}
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=congress.id %}">{{ congress.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Personal Settings</li>
+        </ol>
+    </nav>
+
+    <div class="container justify-content-center">
+        <div class="card">
+            <div class="card-header card-header-info">
+                <h3>Your Settings</h3>
+            </div>
+            <div class="card-body">
+                <h4>By default you will be notified about all entries and changes for congresses. Here you can turn notifications off.</h4>
+                <h4>This does not apply to your personal entries in an event.</h4>
+                <div class="table-responsive col-md-7">
+                    <table class="table table-condensed">
+                        <tr>
+                            <td class="text-left">
+                                Receive notifications for all congresses
+                            </td>
+                            <td>
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" name="all_off" id="id_all_off"
+                                            {% if not all_off %}
+                                                checked=""
+                                            {% endif %}
+                                            onclick="location.href='{% url "events:admin_convener_settings" congress_id=congress.id %}?all_off={{ all_off|yesno:"False,True" }}';"
+                                        >
+                                        <span class="form-check-sign">
+                                            <span class="check"></span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+
+                        {% if not all_off %}
+
+                            <tr>
+                                <td class="text-left">
+                                    Receive notifications for {{ congress.congress_master.org }} congresses
+                                </td>
+                                <td>
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input type="checkbox" class="form-check-input" name="this_org_off" id="id_this_org_off"
+                                                {% if this_org_off %}
+                                                    checked=""
+                                                {% endif %}
+                                            >
+                                            <span class="form-check-sign">
+                                                <span class="check"></span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {% if not this_org_off %}
+
+                                <tr>
+                                    <td class="text-left">
+                                        Turn off all notifications for this congress
+                                    </td>
+
+                                    <td>
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                                <input type="checkbox" class="form-check-input" name="this_congress_off" id="id_this_congress_off"
+                                                    {% if this_congress_off %}
+                                                        checked=""
+                                                    {% endif %}
+                                                >
+                                                <span class="form-check-sign">
+                                                    <span class="check"></span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                            {% endif %}
+
+                        {% endif %}
+
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

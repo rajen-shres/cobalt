@@ -14,9 +14,6 @@ def invalid_data_on_form(manager, test_name, test_description, element, error):
     # check error
     msg = manager.driver.find_element_by_id(element)
     validation_message = msg.get_attribute("validationMessage")
-    print("####")
-    print(validation_message)
-    print(error)
 
     # Check we get an error
     ok = error in validation_message
@@ -54,7 +51,7 @@ class Registration:
             test_name="Incomplete registration form no email",
             test_description="Test for registration form not having email address",
             element="id_email",
-            error="Please fill out this field",
+            error="Please fill",
         )
 
         # enter invalid email - no @
@@ -79,7 +76,7 @@ class Registration:
             test_name="Missing password1",
             test_description="Test for registration form not having password1",
             element="id_password1",
-            error="Please fill out this field",
+            error="Please fill",
         )
 
         # enter password1
@@ -90,16 +87,20 @@ class Registration:
             test_name="Missing password2",
             test_description="Test for registration form not having password2",
             element="id_password2",
-            error="Please fill out this field",
+            error="Please fill",
         )
 
         # enter password2, different from password1
-        self.manager.selenium_wait_for("id_password2").send_keys("Pencil")
+        self.manager.selenium_wait_for("id_password2").send_keys("Pencil5467")
+        self.manager.selenium_wait_for("id_signup").click()
 
-        invalid_data_on_form(
-            manager=self.manager,
-            test_name="Unmatched passwords",
-            test_description="Test for registration form not having matching passwords",
-            element="id_password1",
-            error="Please fill out this field",
+        string = "The two password fields"
+        error = self.manager.selenium_wait_for("id_password2_errors").text
+        ok = string in error
+
+        self.manager.save_results(
+            status=ok,
+            test_name="Non-matching passwords",
+            output=f"Looked for '{string}' in '{error}'. {ok}",
+            test_description="Enter two different passwords and check the validation works",
         )
