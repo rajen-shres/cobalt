@@ -1,0 +1,12 @@
+<div id="category">
+    <h3>Category - {{ event_entry.category }}
+        <button
+            class="btn btn-sm btn-secondary"
+            hx-post="{% url "events:admin_event_entry_change_category_htmx" %}"
+            hx-target="#category"
+            hx-vars="event_id:{{ event.id }},event_entry_id:{{ event_entry.id }}"
+        >
+            Change
+        </button>
+    </h3>
+</div>

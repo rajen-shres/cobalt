@@ -1090,6 +1090,20 @@ def change_category_on_existing_entry_ajax(request, event_entry_id, category_id)
         message=f"Changed category to {category} from {event_entry.category} in {event_entry.event.href}",
     )
 
+    # tell the conveners
+    email_msg = f"""{request.user.full_name} has changed an entry for {event_entry.event.event_name} in {event_entry.event.congress}.
+              <br><br>
+              <b>Changed category to {category} from {event_entry.category}.
+              <br><br>
+              """
+
+    notify_conveners(
+        congress=event_entry.event.congress,
+        event=event_entry.event,
+        subject=f"{event_entry.event} - {request.user.full_name} Changed category",
+        email_msg=email_msg,
+    )
+
     event_entry.category = category
     event_entry.save()
 

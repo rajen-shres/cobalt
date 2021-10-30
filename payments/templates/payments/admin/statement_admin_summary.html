@@ -78,7 +78,8 @@
                     </div>
                     <div class="card-body">
                         <a href="{% url "payments:admin_stripe_rec" %}" class="btn btn-sm btn-success">Stripe Reconciliation</a>
-                        <a href="{% url "payments:admin_view_manual_adjustments" %}" class="btn btn-sm btn-primary">View Manual Adjustments</a>
+                        <a href="{% url "payments:admin_view_specific_transactions" trans_type="manual_adjust" %}" class="btn btn-sm btn-primary">View Manual Adjustments</a>
+                        <a href="{% url "payments:admin_view_specific_transactions" trans_type="settlement" %}" class="btn btn-sm btn-warning">View Settlements</a>
                         <a href="{% url "payments:admin_payments_static" %}" class="btn btn-sm btn-danger">Edit Payment Settings</a>
                     </div>
                 </div>

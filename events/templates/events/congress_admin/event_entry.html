@@ -28,7 +28,7 @@
                         <div class="card-header card-header-info">
                             <h2>{{ event.event_name }} - Entry</h2>
                             {% if event_entry.category %}
-                                <h3>Category - {{ event_entry.category }}</h3>
+                                {% include "events/congress_admin/admin_event_entry_category_htmx.html" %}
                             {% endif %}
                             <h3>Entry by: {{ event_entry.primary_entrant }}</h3>
                             {% if event.player_format == "Teams" %}
@@ -61,7 +61,7 @@
                                             <td class="text-right">{{ event_entry_player.payment_status }}</td>
                                             <td class="text-right">{{ event_entry_player.get_payment_type_display }}</td>
                                             <td class="text-right">{{ event_entry_player.paid_by.href|safe }}</td>
-                                            <td class="text-right">{{ event_entry_player.reason|default_if_none:"" }}</td>
+                                            <td class="text-right">{{ event_entry_player.reason|safe|default_if_none:"" }}</td>
                                             <td class="text-right">{{ event_entry_player.entry_complete_date|cobalt_nice_datetime|default_if_none:"-" }}</td>
                                             <td class="text-right">
 
@@ -129,4 +129,8 @@
             </div>
         </div>
     </div>
+{% endblock %}
+{% block footer %}
+    <script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
+    {% include "utils/include_htmx.html" %}
 {% endblock %}

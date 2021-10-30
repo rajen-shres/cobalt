@@ -26,12 +26,13 @@ setup_test_environment()
 # List of tests to run format is "class": "location"
 LIST_OF_TESTS = {
     "TestURLsRequireLogin": "tests.01_system_wide_security",
-    #    "MemberTransfer": "payments.tests.member_actions",
+    "Registration": "accounts.tests.01_registration",
+    "MemberTransfer": "payments.tests.member_actions",
     "OrgHighLevelAdmin": "organisations.tests.01_high_level_admin",
     "ClubLevelAdmin": "organisations.tests.02_club_level_admin",
     "ClubSettings": "organisations.tests.03_club_settings",
     "ClubMembers": "organisations.tests.04_club_members",
-    "ClubComms": "organisations.tests.05_club_comms",
+    "ClubCongress": "organisations.tests.06_congress_setup",
 }
 
 
@@ -119,9 +120,6 @@ class CobaltTestManager:
 
         # Default system-wide pwd
         self.test_code = "F1shcake"
-
-        # Log user in
-        # self.login_user(self.test_user)
 
         # Variables for results of tests
         self.overall_success = True

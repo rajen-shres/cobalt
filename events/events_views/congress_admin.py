@@ -1,6 +1,7 @@
 """ The file has the code relating to a convener managing an existing event """
 
 import csv
+from itertools import chain
 from threading import Thread
 
 import bleach
@@ -10,7 +11,9 @@ from django.forms import formset_factory
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone, dateformat
-from django.db.models import Sum
+from django.db.models import Sum, Q
+
+from notifications.models import BlockNotification
 from notifications.views import contact_member, CobaltEmail
 from logs.views import log_event
 from django.db import transaction
@@ -1055,6 +1058,50 @@ def admin_event_email(request, event_id):
 
 
 @login_required()
+def admin_unpaid_email(request, event_id):
+    """Email all entrants to an event who have not paid"""
+
+    event = get_object_or_404(Event, pk=event_id)
+
+    # check access
+    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    # who will receive this
+
+    # Real people
+    all_recipients_real = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .exclude(player_id=TBA_PLAYER)
+        .exclude(payment_status="Paid")
+        .exclude(payment_status="Free")
+        .exclude(event_entry__entry_status="Cancelled")
+        .values_list("player__first_name", "player__last_name", "player__email")
+        .distinct()
+    )
+
+    # For TBAs get the primary entrant
+    all_recipients_tba = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .filter(player_id=TBA_PLAYER)
+        .exclude(payment_status="Paid")
+        .exclude(payment_status="Free")
+        .exclude(event_entry__entry_status="Cancelled")
+        .values_list(
+            "event_entry__primary_entrant__first_name",
+            "event_entry__primary_entrant__last_name",
+            "event_entry__primary_entrant__email",
+        )
+        .distinct()
+    )
+
+    all_recipients = list(chain(all_recipients_real, all_recipients_tba))
+
+    return _admin_email_common(request, all_recipients, event.congress, event)
+
+
+@login_required()
 def admin_congress_email(request, congress_id):
     """Email all entrants to an entire congress"""
 
@@ -1554,9 +1601,14 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
             event_entry=event_entry,
         ).save()
 
-        tba = User.objects.get(pk=TBA_PLAYER)
-        event_entry_player.player = tba
-        event_entry_player.save()
+        # Delete if payment_type is free (5th or 6th player) otherwise change to TBA
+
+        if event_entry_player.payment_type == "Free":
+            event_entry_player.delete()
+        else:
+            tba = User.objects.get(pk=TBA_PLAYER)
+            event_entry_player.player = tba
+            event_entry_player.save()
 
         messages.success(request, "Player Deleted", extra_tags="cobalt-message-success")
 
@@ -1789,3 +1841,152 @@ def admin_event_payment_methods_csv(request, event_id):
     event_entry_players = EventEntryPlayer.objects.filter(event_entry__event=event)
 
     return download_csv(request, event_entry_players)
+
+
+@login_required()
+def admin_event_entry_change_category_htmx(request):
+    """Allow admins to change categories for entries in an event that has categories defined"""
+
+    event_id = request.POST.get("event_id")
+    event = get_object_or_404(Event, pk=event_id)
+    event_entry_id = request.POST.get("event_entry_id")
+    event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
+
+    # check access
+    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    if "update" in request.POST:
+        new_category_id = request.POST.get("category")
+        new_category = get_object_or_404(Category, pk=new_category_id)
+        event_entry.category = new_category
+        event_entry.save()
+
+        EventLog(
+            event=event,
+            event_entry=event_entry,
+            actor=request.user,
+            action=f"Administrator changed category to {new_category}",
+        ).save()
+
+        return render(
+            request,
+            "events/congress_admin/admin_event_entry_category_htmx.html",
+            {"event": event, "event_entry": event_entry},
+        )
+
+    categories = Category.objects.filter(event=event)
+
+    return render(
+        request,
+        "events/congress_admin/admin_event_entry_change_category_htmx.html",
+        {"event": event, "event_entry": event_entry, "categories": categories},
+    )
+
+
+@login_required()
+def convener_settings(request, congress_id):
+    """Allow conveners to manage their personal settings for congresses"""
+
+    congress = get_object_or_404(Congress, pk=congress_id)
+
+    # check access
+    role = "events.org.%s.edit" % congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    # We change settings through a GET so see if we need to do anything
+    if request.method == "GET":
+
+        # Everything
+        if request.GET.get("all_off") == "True":
+            # Turn off all and delete anything else
+            BlockNotification.objects.filter(member=request.user).delete()
+            BlockNotification(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+                model_id=None,
+            ).save()
+            print("Turn all_off true")
+
+        if request.GET.get("all_off") == "False":
+            # Turn on all
+            BlockNotification.objects.filter(
+                member=request.user,
+            ).delete()
+            print("Turn all_off false")
+
+        # This org
+        if request.GET.get("this_org_off") == "True":
+            # Turn off org and delete anything else
+            BlockNotification.objects.filter(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+            ).delete()
+            BlockNotification(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
+                model_id=congress.congress_master.org.id,
+            ).save()
+            print("Turn this_org_off true")
+
+        if request.GET.get("this_org_off") == "False":
+            # Turn on org
+            BlockNotification.objects.filter(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
+                model_id=congress.congress_master.org.id,
+            ).delete()
+            print("Turn this_org_off false")
+
+        if request.GET.get("this_congress_off") == "True":
+            # Turn off congress and delete anything else
+            # BlockNotification.objects.filter(member=request.user).delete()
+            BlockNotification(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+                model_id=congress.id,
+            ).save()
+            print("Turn this_congress_off true")
+
+        if request.GET.get("this_congress_off") == "False":
+            # Turn on congress
+            BlockNotification.objects.filter(
+                member=request.user,
+                identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+                model_id=congress.id,
+            ).delete()
+            print("Turn this_congress_off false")
+
+    # Build current state for view
+    this_congress_off = BlockNotification.objects.filter(
+        member=request.user,
+        identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+        model_id=congress.id,
+    ).exists()
+    this_org_off = BlockNotification.objects.filter(
+        member=request.user,
+        identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
+        model_id=congress.congress_master.org.id,
+    ).exists()
+    all_off = BlockNotification.objects.filter(
+        member=request.user,
+        identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
+        model_id=None,
+    ).exists()
+
+    print("all off", all_off)
+    print("this_org_off", this_org_off)
+    print("this_congress_off", this_congress_off)
+
+    return render(
+        request,
+        "events/congress_admin/convener_settings.html",
+        {
+            "congress": congress,
+            "this_congress_off": this_congress_off,
+            "this_org_off": this_org_off,
+            "all_off": all_off,
+        },
+    )

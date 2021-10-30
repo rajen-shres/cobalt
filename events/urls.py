@@ -302,6 +302,11 @@ urlpatterns = [
         name="admin_congress_email",
     ),
     path(
+        "congress-admin/email/event-unpaid/<int:event_id>",
+        congress_admin.admin_unpaid_email,
+        name="admin_unpaid_email",
+    ),
+    path(
         "congress-admin/summary/event-player-discount/<int:event_id>",
         congress_admin.admin_event_player_discount,
         name="admin_event_player_discount",
@@ -445,6 +450,16 @@ urlpatterns = [
         "congress-admin/event-payment-methods-csv/<int:event_id>",
         congress_admin.admin_event_payment_methods_csv,
         name="admin_event_payment_methods_csv",
+    ),
+    path(
+        "congress-admin/event-entry/change-category",
+        congress_admin.admin_event_entry_change_category_htmx,
+        name="admin_event_entry_change_category_htmx",
+    ),
+    path(
+        "congress-admin/convener-settings/<int:congress_id>",
+        congress_admin.convener_settings,
+        name="admin_convener_settings",
     ),
     #######################################################
     # higher level admin functions                        #

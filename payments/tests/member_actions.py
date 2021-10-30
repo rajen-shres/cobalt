@@ -28,6 +28,9 @@ class MemberTransfer:
         self.manager = manager
         self.client = self.manager.client
 
+        # Log user in
+        self.manager.login_user(self.manager.test_user)
+
     def a1_member_transfer_with_sufficient_funds(self):
         """Transfer to another member with sufficient funds in account"""
 
@@ -155,7 +158,7 @@ class MemberTransfer:
         alan = self.manager.test_user
         betty = self.manager.get_user(username="101")
 
-        # set it ip
+        # set it up
         setup_auto_top_up(self.manager)
         self.manager.save_results(
             status=True,

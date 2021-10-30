@@ -51,7 +51,7 @@
                                         <div class="form-group">
                                             <span id="username_error" class="cobalt-form-error"></span>
                                             <span class="cobalt-form-error" id="id_username_errors">{{ user_form.username.errors|striptags }}</span>
-                                            <input type="number" name="username" id="id_username" class="form-control input-sm" placeholder="{{ GLOBAL_ORG }} Number" value="{{ user_form.username.value|default_if_none:'' }}">
+                                            <input type="number" required name="username" id="id_username" class="form-control input-sm" placeholder="{{ GLOBAL_ORG }} Number" value="{{ user_form.username.value|default_if_none:'' }}">
                                         </div>
                                         <div class="row">
                                             <div class="col-xs-6 col-sm-6 col-md-6">
@@ -70,17 +70,17 @@
                                         <div class="form-group">
                                             <span class="cobalt-form-error" id="id_email_errors">{{ user_form.email.errors|striptags }}</span>
 
-                                            <input type="email" name="email" id="id_email" class="form-control input-sm" placeholder="Email Address" value="{{ user_form.email.value|default_if_none:'' }}">
+                                            <input type="email" required name="email" id="id_email" class="form-control input-sm" placeholder="Email Address" value="{{ user_form.email.value|default_if_none:'' }}">
                                         </div>
                                         <div class="form-group">
                                             <span class="cobalt-form-error" id="id_password1_errors">{{ user_form.password1.errors|striptags }}</span>
-                                            <input type="password" name="password1" id="id_password1" minlength="8" class="form-control input-sm" placeholder="Password">
+                                            <input required type="password" name="password1" id="id_password1" minlength="8" class="form-control input-sm" placeholder="Password">
                                         </div>
                                         <div class="form-group">
                                             <span class="cobalt-form-error" id="id_password2_errors">{{ user_form.password2.errors|striptags }}</span>
-                                            <input type="password" name="password2" id="id_password2" minlength="8" class="form-control input-sm" placeholder="Confirm Password">
+                                            <input required type="password" name="password2" id="id_password2" minlength="8" class="form-control input-sm" placeholder="Confirm Password">
                                         </div>
-                                        <button type="submit" class="btn btn-block bg-info">Sign Up</button>
+                                        <button type="submit" id="id_signup" class="btn btn-block bg-info">Sign Up</button>
                                     </form>
                                     <span class="center-block">
                                         <a href="{% url "dashboard:dashboard" %}">

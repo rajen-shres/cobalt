@@ -476,7 +476,7 @@ def search_ajax(request):
                 msg = "Too many results (%s)" % members.count()
                 members = None
             elif members.count() == 0:
-                msg = "No matches found"
+                msg = f"No matches found. Have they registered for {GLOBAL_TITLE}? Registration is free."
             html = render_to_string(
                 template_name="accounts/search_results.html",
                 context={"members": members, "msg": msg},
@@ -555,7 +555,7 @@ def member_search_ajax(request):
                 msg = "Too many results (%s)" % members.count()
                 members = None
             elif members.count() == 0:
-                msg = "No matches found"
+                msg = f"No matches found. Have they registered for {GLOBAL_TITLE}? Registration is free."
             html = render_to_string(
                 template_name="accounts/search_results_ajax.html",
                 context={"members": members, "msg": msg, "search_id": search_id},
@@ -601,7 +601,7 @@ def system_number_search_ajax(request):
         member_id = member.id
     else:
         status = "Not Found"
-        msg = f"No matches found for that {GLOBAL_ORG} number"
+        msg = f"No matches found for that {GLOBAL_ORG} number. Check they have registered for <strong>{GLOBAL_TITLE}</strong>. Registration is free."
         member_id = 0
 
     data = {"member_id": member_id, "status": status, "msg": msg}

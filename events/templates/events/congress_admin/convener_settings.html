@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% load cobalt_tags %}
+{% load humanize %}
+{% block title %} - Admin Latest News{% endblock %}
+{% block content %}
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "events:admin_summary" congress_id=congress.id %}">{{ congress.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Personal Settings</li>
+        </ol>
+    </nav>
+
+    <div class="container justify-content-center">
+        <div class="card">
+            <div class="card-header card-header-info">
+                <h3>Your Settings</h3>
+            </div>
+            <div class="card-body">
+                <h4>By default you will be notified about all entries and changes for congresses. Here you can turn notifications off.</h4>
+                <h4>This does not apply to your personal entries in an event.</h4>
+                <div class="table-responsive col-md-7">
+                    <table class="table table-condensed">
+                        <tr>
+                            <td class="text-left">
+                                Receive notifications for all congresses
+                            </td>
+                            <td>
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" name="all_off" id="id_all_off"
+                                            {% if not all_off %}
+                                                checked=""
+                                            {% endif %}
+                                            onclick="location.href='{% url "events:admin_convener_settings" congress_id=congress.id %}?all_off={{ all_off|yesno:"False,True" }}';"
+                                        >
+                                        <span class="form-check-sign">
+                                            <span class="check"></span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)" onclick='help("All Congresses", "Untick this if you do not want to receive <strong>any</strong> email notifications about congress entries.");'>help</a>
+                        </td>
+
+                    </tr>
+
+                    {% if not all_off %}
+
+                        <tr>
+                            <td class="text-left">
+                                Receive notifications for {{ congress.congress_master.org }} congresses
+                            </td>
+                            <td>
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" name="this_org_off" id="id_this_org_off"
+                                            {% if not this_org_off %}
+                                                checked=""
+                                            {% endif %}
+                                            onclick="location.href='{% url "events:admin_convener_settings" congress_id=congress.id %}?this_org_off={{ this_org_off|yesno:"False,True" }}';"
+                                        >
+                                        <span class="form-check-sign">
+                                            <span class="check"></span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)" onclick='help("{{ congress.congress_master.org }}", "Untick this if you do not want to receive email notifications about congress entries for this club.");'>help</a>
+                            </td>
+                        </tr>
+
+                        {% if not this_org_off %}
+
+                            <tr>
+                                <td class="text-left">
+                                    Receive notifications for this congress
+                                </td>
+
+                                <td>
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input type="checkbox" class="form-check-input" name="this_congress_off" id="id_this_congress_off"
+                                                {% if not this_congress_off %}
+                                                    checked=""
+                                                {% endif %}
+                                                onclick="location.href='{% url "events:admin_convener_settings" congress_id=congress.id %}?this_congress_off={{ this_congress_off|yesno:"False,True" }}';"
+
+                                            >
+                                            <span class="form-check-sign">
+                                                <span class="check"></span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="javascript:void(0)" onclick='help("{{ congress }}", "Untick this if you want to mute notifications about entries to this specific congress for this specific year.");'>help</a>
+                                </td>
+
+                            </tr>
+
+                        {% endif %}
+
+                    {% endif %}
+
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+{% endblock %}
+
+{% block footer %}
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+    <script>
+        function help(title, html){
+            swal.fire({ title:title, html: html, icon: "info"})
+            return false;
+        }
+    </script>
+{% endblock %}

@@ -54,7 +54,8 @@
 
                                 {% if categories %}
                                     <label for="id_category">Category</label>
-                                    <select class="selectpicker" data-style="btn btn-info" id="id_category" name="category">
+                                    <select required class="selectpicker" data-style="btn btn-info" id="id_category" name="category">
+                                        <option value="">Select...</option>
                                         {% for category in categories %}
                                             <option value="{{ category.id }}">{{ category }}</option>
                                         {% endfor %}
@@ -155,7 +156,7 @@
                                                         <div class="row">
                                                             <div class="col text-center">
                                                                 <button id="id_checkout" type="submit" name="now" class="btn btn-success cobalt-save" style="width:200px" disabled>Confirm and Pay Now</button>
-                                                                <button id="id_cart" type="submit" name="cart" onclick="this.disabled=true,this.form.submit();" class="btn btn-success cobalt-save" style="width:200px" disabled>Save and Pay Later</button>
+                                                                <button id="id_cart" type="submit" name="cart" class="btn btn-success cobalt-save" style="width:200px" disabled>Save and Pay Later</button>
                                                             </div>
                                                         </div>
                                                     </form>

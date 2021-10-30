@@ -137,9 +137,9 @@ urlpatterns = [
         name="admin_orgs_with_balance_csv",
     ),
     path(
-        "admin-view-manual-adjustments",
-        payments.payments_views.admin.admin_view_manual_adjustments,
-        name="admin_view_manual_adjustments",
+        "admin-view-specific-transactions/<str:trans_type>",
+        payments.payments_views.admin.admin_view_specific_transactions,
+        name="admin_view_specific_transactions",
     ),
     path(
         "member-transfer",

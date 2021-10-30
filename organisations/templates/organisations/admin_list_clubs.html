@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load cobalt_tags %}
 {% block title %} - List Clubs{% endblock %}
 {% block header %}
     {% include "utils/data_tables_heading.html" %}
@@ -10,37 +11,50 @@
     <div class="">
         <div class="card col-md-12 align-content-center">
             <div class="card-header card-header-primary">
-                <h2>List Clubs</h2>
+                <h1>List Clubs</h1>
             </div>
+
             <div class="card-body">
-                <div class="table-responsive">
-                    <table id="clubs" class="table table-condensed" >
-                        <thead>
-                            <tr>
-                                <th class="text-left">State</th>
-                                <th class="text-left">Club Name</th>
-                                <th class="text-left">Club Secretary</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for club in clubs %}
-                                <tr>
-                                    <td class="text-left">{{ club.state }}</td>
-                                    <td class="text-left">{{ club.name }}</td>
-                                    <td class="text-left">{{ club.secretary|default_if_none:"-" }}</td>
-                                    <td>
-                                        {% if club.user_can_edit %}
-                                            <a href="{% url "organisations:club_menu" club_id=club.id %}"
-                                                class="btn btn-sm btn-info">Club Menu</a>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                {% for state, clubs in grouped_by_state.items %}
+                    <div class="card col-md-8 mb-5">
+                        <div class="card-header card-header-{% cobalt_random_colour %}">
+                            <h2>{{ state }}</h2>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="club-table table table-condensed" >
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">State</th>
+                                        <th class="text-left">Club Name</th>
+                                        <th class="text-left">Club Secretary</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for club in clubs %}
+                                        <tr>
+                                            <td class="text-left">{{ club.state }}</td>
+                                            <td class="text-left">{{ club.name }}</td>
+                                            <td class="text-left">{{ club.secretary|default_if_none:"-" }}</td>
+                                            <td>
+                                                {% if club.user_can_edit %}
+                                                    <a href="{% url "organisations:club_menu" club_id=club.id %}"
+                                                        class="btn btn-sm btn-info">Club Menu</a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                {% endfor %}
             </div>
+
+
+
+
         </div>
     </div>
 {% endblock content %}
@@ -50,17 +64,14 @@
     <script>
         $(document).ready(function () {
 
-            // Initialise datatable - only show pagination if more than one page, sort in reverse date order, column 0
-            $('#clubs').DataTable({
-                "order": [[1, "desc"]],
+            // Initialise datatable - only show pagination if more than one page, sort in name order, column 0
+            $('.club-table').DataTable({
+                "order": [[1, "asc"]],
                 drawCallback: function (settings) {
                     const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
                     pagination.toggle(this.api().page.info().pages > 1);
                 },
             });
-
-            // Unhide table now. This avoids the flicker
-            $('#clubs').show();
         });
     </script>
 
