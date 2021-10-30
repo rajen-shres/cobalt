@@ -178,11 +178,25 @@ def admin_list_clubs(request):
             .filter(group__rbacusergroup__member=request.user)
             .values_list("model_id", flat=True)
         )
+
         for club in clubs:
             if club.id in clubs_rbac:
                 club.user_can_edit = True
 
-    return render(request, "organisations/admin_list_clubs.html", {"clubs": clubs})
+    # Group by State
+    grouped_by_state = {}
+
+    for club in clubs:
+        if club.state in grouped_by_state:
+            grouped_by_state[club.state].append(club)
+        else:
+            grouped_by_state[club.state] = [club]
+
+    return render(
+        request,
+        "organisations/admin_list_clubs.html",
+        {"grouped_by_state": grouped_by_state},
+    )
 
 
 def _rbac_user_has_admin(club, user):

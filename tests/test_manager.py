@@ -32,7 +32,7 @@ LIST_OF_TESTS = {
     "ClubLevelAdmin": "organisations.tests.02_club_level_admin",
     "ClubSettings": "organisations.tests.03_club_settings",
     "ClubMembers": "organisations.tests.04_club_members",
-    "ClubComms": "organisations.tests.05_club_comms",
+    "ClubCongress": "organisations.tests.06_congress_setup",
 }
 
 
@@ -120,9 +120,6 @@ class CobaltTestManager:
 
         # Default system-wide pwd
         self.test_code = "F1shcake"
-
-        # Log user in
-        # self.login_user(self.test_user)
 
         # Variables for results of tests
         self.overall_success = True
