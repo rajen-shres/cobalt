@@ -22,3 +22,5 @@ bleach==3.3.0
 django-ses==2.2.1
 django-post-office==3.5.3
 django-model-utils==4.1.1
+django-otp==1.1.1
+qrcode==7.3.1

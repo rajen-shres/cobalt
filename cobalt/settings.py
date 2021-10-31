@@ -204,6 +204,8 @@ INSTALLED_APPS = [
     "django.contrib.admindocs",
     "post_office",
     "django_ses",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
 ]
 
 MIDDLEWARE = [
@@ -216,6 +218,7 @@ MIDDLEWARE = [
     "cobalt.middleware.MaintenanceModeMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_otp.middleware.OTPMiddleware",
 ]
 
 ROOT_URLCONF = "cobalt.urls"

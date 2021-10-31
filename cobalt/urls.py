@@ -3,6 +3,7 @@ from django.conf.urls.static import static
 from dashboard.views import logged_out, home
 from django.conf import settings
 from django.urls import include, path
+from django_otp.admin import OTPAdminSite
 
 from utils.views import download_csv
 
@@ -11,10 +12,12 @@ admin.site.site_title = f"{settings.GLOBAL_TITLE} Administration"
 
 admin.site.add_action(download_csv, "export_as_csv")
 
+admin.site.__class__ = OTPAdminSite
+
 urlpatterns = [
     path("view", logged_out, name="logged_out"),
     path("admin/doc/", include("django.contrib.admindocs.urls")),
-    path("admin/", admin.site.urls),
+    path("admin_1234567/", admin.site.urls),
     path("", home, name="home"),
     path("dashboard/", include("dashboard.urls")),
     path("results/", include("results.urls", namespace="results")),

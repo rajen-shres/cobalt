@@ -9,6 +9,15 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ("last_name", "system_number", "email")
 
 
+class TeamMateAdmin(admin.ModelAdmin):
+    """Show fields as searches rather than dropdowns"""
+
+    raw_id_fields = (
+        "user",
+        "team_mate",
+    )
+
+
 admin.site.register(User, UserAdmin)
-admin.site.register(TeamMate)
+admin.site.register(TeamMate, TeamMateAdmin)
 admin.site.register(UnregisteredUser, UserAdmin)
