@@ -12,7 +12,7 @@ admin.site.site_title = f"{settings.GLOBAL_TITLE} Administration"
 
 admin.site.add_action(download_csv, "export_as_csv")
 
-admin.site.__class__ = OTPAdminSite
+# admin.site.__class__ = OTPAdminSite
 
 urlpatterns = [
     path("view", logged_out, name="logged_out"),
