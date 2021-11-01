@@ -3,7 +3,7 @@
 <div class="card">
     <div class="card-header card-header-warning">
         <h2>Sessions</h2>
-        <form action="{% url "club_sessions:new_session" %}" method="post">
+        <form action="{% url "club_sessions:new_session" %}" method="post" target="_blank">
             {% csrf_token %}
             <input type="hidden" name="club_id" value="{{ club.id }}">
         <button type="submit"
