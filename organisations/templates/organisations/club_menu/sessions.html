@@ -3,15 +3,9 @@
 <div class="card">
     <div class="card-header card-header-warning">
         <h2>Sessions</h2>
-        <form action="{% url "club_sessions:new_session" %}" method="post" target="_blank">
-            {% csrf_token %}
-            <input type="hidden" name="club_id" value="{{ club.id }}">
-        <button type="submit"
-                class="btn btn-sm btn-secondary"
-        >
+        <a href="{% url "club_sessions:new_session"  club_id=club.id %}" target="_blank" class="btn btn-sm btn-secondary">
             New Session
-        </button>
-        </form>
+        </a>
 
     </div>
     <div class="card-body">

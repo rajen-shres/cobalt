@@ -51,7 +51,7 @@ def user_is_club_director():
             club_id = request.POST.get("club_id")
             club = get_object_or_404(Organisation, pk=club_id)
 
-            # Check for club level access - you must have explicit access to
+            # Check for access
             club_role = f"club_sessions.sessions.{club.id}.edit"
             if rbac_user_has_role(request.user, club_role):
                 return function(request, club, *args, **kwargs)
