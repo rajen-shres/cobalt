@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
+from club_sessions.models import Session
 from events.models import Congress
 from organisations.decorators import check_club_menu_access
 from organisations.models import (
@@ -67,6 +68,10 @@ def club_menu(request, club_id):
     show_congress = uber_admin or rbac_user_has_role(
         request.user, f"events.org.{club.id}.edit"
     )
+    # Check if we show the sessions tab
+    show_sessions = uber_admin or rbac_user_has_role(
+        request.user, f"club_sessions.directors.{club.id}.edit"
+    )
 
     # Check if staff member for other clubs - get all from tree that are like "clubs.generated"
     other_club_ids = (
@@ -89,6 +94,7 @@ def club_menu(request, club_id):
             "club": club,
             "show_finance": show_finance,
             "show_congress": show_congress,
+            "show_sessions": show_sessions,
             "other_clubs": other_clubs,
         },
     )
@@ -156,6 +162,19 @@ def tab_congress_htmx(request, club):
         request,
         "organisations/club_menu/congress/congress_htmx.html",
         {"club": club, "congresses": congresses},
+    )
+
+
+@check_club_menu_access()
+def tab_sessions_htmx(request, club):
+    """build the sessions tab in club menu"""
+
+    sessions = Session.objects.filter(session_type__organisation=club)
+
+    return render(
+        request,
+        "organisations/club_menu/sessions/sessions_htmx.html",
+        {"club": club, "sessions": sessions},
     )
 
 

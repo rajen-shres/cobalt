@@ -1,0 +1,31 @@
+{% if sessions %}
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Session</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in sessions %}
+                    <tr>
+                        <td>{{ session }}</td>
+                        <td>{{ session }}</td>
+                        <td>
+                            <a href="{% url "events:create_congress_wizard" step=2 congress_id=session.id %}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="{% url "events:admin_summary" congress_id=session.id %}" class="btn btn-sm btn-success">Manage</a>
+                        </td>
+
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% else %}
+    <h3>This club has not run any sessions yet</h3>
+
+{% endif %}

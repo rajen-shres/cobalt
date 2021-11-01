@@ -4,11 +4,11 @@ from accounts.models import User
 from django.utils import timezone
 from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator
 
-# Variable to control what is expected to be in the RBAC structure for Organisations
-# A management script runs to update RBAC structure for all clubs if a new option is found.
 from cobalt.settings import GLOBAL_ORG
 from organisations.model_managers import MemberMembershipTypeManager
 
+# Variable to control what is expected to be in the RBAC structure for Organisations
+# A management script runs to update RBAC structure for all clubs if a new option is found.
 ORGS_RBAC_GROUPS_AND_ROLES = {
     # Conveners for this orgs events
     # CONVENERS IS THE ANCHOR. THIS IS ASSUMED TO BE THERE WHEN TESTING FOR ADVANCED RBAC.
@@ -46,6 +46,13 @@ ORGS_RBAC_GROUPS_AND_ROLES = {
         "model": "orgcomms",
         "action": "edit",
         "description": "Manage communications",
+    },
+    # Directors
+    "directors": {
+        "app": "club_sessions",
+        "model": "directors",
+        "action": "edit",
+        "description": "Directors",
     },
 }
 

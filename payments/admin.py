@@ -8,6 +8,7 @@ from .models import (
     PaymentStatic,
     OrganisationSettlementFees,
     OrgPaymentMethod,
+    UserPendingPayment,
 )
 
 
@@ -35,3 +36,4 @@ admin.site.register(StripeLog, StripeLogAdmin)
 admin.site.register(OrganisationSettlementFees)
 admin.site.register(PaymentStatic)
 admin.site.register(OrgPaymentMethod)
+admin.site.register(UserPendingPayment)

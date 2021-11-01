@@ -1,0 +1,24 @@
+{% load static %}
+
+<div class="card">
+    <div class="card-header card-header-warning">
+        <h2>Sessions</h2>
+        <form action="{% url "club_sessions:new_session" %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="club_id" value="{{ club.id }}">
+        <button type="submit"
+                class="btn btn-sm btn-secondary"
+        >
+            New Session
+        </button>
+        </form>
+
+    </div>
+    <div class="card-body">
+        <div id="id_panel_sessions"
+            hx-post="{% url "organisations:club_menu_tab_sessions_htmx" %}"
+            hx-trigger="tab_load_event"
+            hx-vars="club_id:{{ club.id }}"
+        ></div>
+    </div>
+</div>

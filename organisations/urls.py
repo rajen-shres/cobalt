@@ -154,6 +154,11 @@ urlpatterns = [
         name="club_menu_tab_congress_htmx",
     ),
     path(
+        "club-menu/tabs/sessions",
+        club_menu.tab_sessions_htmx,
+        name="club_menu_tab_sessions_htmx",
+    ),
+    path(
         "club-menu/tabs/finance",
         club_menu.tab_finance_htmx,
         name="club_menu_tab_finance_htmx",

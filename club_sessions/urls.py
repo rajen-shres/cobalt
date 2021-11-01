@@ -1,7 +1,9 @@
 from django.urls import path
 
+from club_sessions.club_sessions_views import sessions
+
 app_name = "club_sessions"  # pylint: disable=invalid-name
 
 urlpatterns = [
-    #    path("helpdesk/admin", helpdesk.helpdesk_admin, name="helpdesk_admin"),
+    path("session", sessions.new_session, name="new_session"),
 ]
