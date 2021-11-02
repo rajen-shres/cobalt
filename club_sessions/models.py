@@ -5,7 +5,7 @@ from django.db import models
 from django.utils import timezone
 
 from accounts.models import User
-from organisations.models import Organisation, MembershipType
+from organisations.models import Organisation, MembershipType, OrgVenue
 from payments.models import OrgPaymentMethod, OrganisationTransaction, MemberTransaction
 from utils.models import Seat
 
@@ -22,6 +22,16 @@ class MasterSessionType(models.TextChoices):
     DUPLICATE = "DP", "Duplicate"
     MULTI_SESSION = "MS", "Multi-Session"
     WORKSHOP = "WS", "Workshop"
+
+
+class TimeOfDay(models.TextChoices):
+    """Master list of session names, may need to be changed to a list that clubs can edit
+    """
+
+    AM = "AM", "Morning"
+    PM = "PM", "Afternoon"
+    EVENING = "EV", "Evening"
+    ALL_DAY  = "AL", "All Day"
 
 
 class SessionType(models.Model):
@@ -84,6 +94,13 @@ class Session(models.Model):
     session_type = models.ForeignKey(SessionType, on_delete=models.CASCADE)
     session_date = models.DateField(default=timezone.now)
     description = models.CharField(max_length=30)
+    venue = models.ForeignKey(OrgVenue, blank=True, null=True, on_delete=models.CASCADE)
+    time_of_day = models.CharField(
+        max_length=2,
+        choices=TimeOfDay.choices,
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return f"{self.session_type} - {self.description}"

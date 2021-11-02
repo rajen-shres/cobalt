@@ -381,6 +381,7 @@ class OrgVenue(models.Model):
 
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     venue = models.CharField(max_length=15)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.organisation} - {self.venue}"

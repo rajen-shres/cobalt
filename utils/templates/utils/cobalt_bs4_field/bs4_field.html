@@ -1,0 +1,21 @@
+<div class="form-group">
+    {% if field.errors %}
+      <span class="cobalt-form-error">{striptags(field.errors)}</span>
+    {% endif %}
+    {% if widget_type == "checkbox" %}
+             <div class="form-check">
+                    <label class="form-check-label">
+                    {{ field }}
+                  {{ field.label }}
+                  <span class="form-check-sign">
+                    <span class="check"></span>
+                  </span>
+                </label>
+                 </div>
+        {% else %}
+        {% if show_label %}
+            <label class="bmd-label-floating" for="{{  field.id_for_label }}">{{ field.label }}</label>
+            {% endif %}
+        {{ field }}
+    {% endif %}
+</div>

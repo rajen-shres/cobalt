@@ -1,16 +1,133 @@
 {% extends "base.html" %}
+{% load cobalt_tags %}
+{% block title %} - New Session{% endblock %}
 
 {% block content %}
 
     <div class="jumbotron">
-        <div class="card">
+        <div class="card col-md-8 col-lg-8">
             <div class="card-header card-header-danger">
                 <h2>New Session for {{ club }}</h2>
             </div>
             <div class="card-body">
-                Stuff
+                <form method="post">
+                  {% csrf_token %}
+                    <div class="container">
+                        <div class="row align-items-center h-100 my-0">
+                            <div class="col-md-6">
+                                Director
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <input type="hidden" id="id_director" name="director" value="{{ session_form.director.value }}">
+                                    <span id="director_name">
+                                         {{ director_name }}
+                                    </span>
+                                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#userSearchModal">Change</button>
+                                </div>
+                            </div>
+                        </div>
+                        {% if session_form.venue %}
+                        <div class="row align-items-center h-100 mb-2">
+                            <div class="col-md-6">
+                                Venue
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {% cobalt_bs4_field session_form.venue %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="row align-items-center h-100 my-4">
+                            <div class="col-md-6">
+                                Session Type
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {% cobalt_bs4_field session_form.session_type %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row align-items-center h-100 my-4">
+                            <div class="col-md-6">
+                                Session Date
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {% cobalt_bs4_field session_form.session_date no_label=True %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row align-items-center h-100 my-4">
+                            <div class="col-md-6">
+                                Time of Day
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {% cobalt_bs4_field session_form.time_of_day %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row align-items-center h-100 my-4">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    {% cobalt_bs4_field session_form.description %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                  <button type="submit" class="btn btn-primary">Create</button>
+                </form>
             </div>
         </div>
     </div>
 
+
 {% endblock %}
+
+{% block footer %}
+{% include "utils/include_htmx.html" %}
+ {% include "accounts/search/user_search_include_htmx.html" with include_me=True callback="ChangeDirector" %}
+
+<script>
+    function ChangeDirector(search_id, user_id, user_name){
+    // do something
+        console.log(search_id);
+        console.log(user_id);
+        console.log(user_name);
+        $("#id_director").val(user_id);
+        $("#director_name").html(user_name);
+    }
+
+    function UpdateDescription(){
+        // Update the description field with other values on the page
+        // We use the browser time to set the time of day, not the server time.
+        // That also means we have to set the default description on the client side
+
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        const dt = new Date();
+        const day = days[dt.getDay()];
+        
+
+        if (dt.getHours() < 12) {
+            $("#id_time_of_day").val('AM');
+            $("#id_description").val(day + " AM");
+        } else if (dt.getHours() < 17) {
+            $("#id_time_of_day").val('PM');
+            $("#id_description").val(day + " PM");
+        } else {
+            $("#id_time_of_day").val('EV');
+            $("#id_description").val(day + " Evening");
+        }
+
+    }
+
+    $( document ).ready(function(){
+        UpdateDescription();
+    });
+
+</script>
+{% endblock footer %}

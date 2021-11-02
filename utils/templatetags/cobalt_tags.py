@@ -2,6 +2,7 @@ import random
 
 from django import template
 from django.template.defaultfilters import striptags
+from django.template.loader import get_template
 from django.utils.dateformat import DateFormat
 from django.urls import reverse
 from django.utils.html import format_html
@@ -161,39 +162,8 @@ def cobalt_dict_key(my_dict, my_keyname):
         return ""
 
 
-def _add_class(field):
-    """sub function to add class to HTML string"""
-
-    html = field.__str__()
-    # class to add depends on type of field
-    if field.widget_type == "checkbox":
-        class_to_add = "form-check-input"
-    else:
-        class_to_add = "form-control"
-
-    # Summernote is a special case
-    if "summernote" in field.widget_type:
-        loc = html.find("<textarea")
-        return f'{html[:loc + 10]}class="{class_to_add}" {html[loc + 10:]}'
-
-    # Add our bootstrap class to string
-    # If there is a class tag already then use that
-    loc = html.find("class=")
-    if loc >= 0:
-        return f"{html[:loc + 7]}{class_to_add} {html[loc + 7:]}"
-
-    # no class tag insert before name
-    loc = html.find("name=")
-    if loc >= 0:
-        return f'{html[:loc]}class="{class_to_add}" {html[loc:]}'
-
-    # no name either, sort if we get a real example of this
-    print("Error: cobalt_bs4_field cannot find class or name in object")
-    return html
-
-
 @register.simple_tag
-def cobalt_bs4_field(field):
+def cobalt_bs4_field(field, no_label=False):
     """Format a field for a standard Bootstrap 4 form element.
 
     Returns a form-group div with the field rendered inside
@@ -210,41 +180,28 @@ def cobalt_bs4_field(field):
     <div class="col-6">{% cobalt_bs4_field form.field2 %}</div>
     """
 
-    # We are going to use the field to generate most things, we just wrap around it
-
-    # Get string from field and add class
-    html = _add_class(field)
-
-    # handle checkboxes
+    # class to add depends on type of field
     if field.widget_type == "checkbox":
-        html = f"""
-                <span class="cobalt-form-error">{striptags(field.errors)}</span>
-                <div class="form-check">
-                    <label class="form-check-label">
-                    {html}
-                  {field.label}
-                  <span class="form-check-sign">
-                    <span class="check"></span>
-                  </span>
-                </label>
-                 </div>
-                """
-
+        class_to_add = " form-check-input"
     else:
+        class_to_add = " form-control"
 
-        # which widget types do not want a label
-        no_label_types = ["summernoteinplace", "select"]
+    # Add our bootstrap class
+    field_classes = field.field.widget.attrs.get('class', '')
+    field_classes += class_to_add
+    field.field.widget.attrs['class'] = field_classes
 
-        # Add errors
-        html = (
-            f'<span class="cobalt-form-error">{striptags(field.errors)}</span>\n{html}'
-        )
+    # See if we want a label
+    no_label_types = ["summernoteinplace", "select"]
 
-        # Add labels
-        if field.label and field.widget_type not in no_label_types:
-            html = f'<label class="bmd-label-floating" for="{field.id_for_label}">{field.label}</label>\n{html}'
+    if no_label or  not field.label or field.widget_type in no_label_types:
+        show_label = False
+    else:
+        show_label = True
 
-        # Now wrap in form group
-        html = f'<div class="form-group">\n{html}\n</div>'
 
-    return mark_safe(html)
+
+
+    field_template = get_template("utils/cobalt_bs4_field/bs4_field.html")
+
+    return field_template.render({"field": field, "show_label": show_label})

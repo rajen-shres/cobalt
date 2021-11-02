@@ -439,7 +439,7 @@ def club_menu_tab_settings_venues_htmx(request, club):
     else:
         form = VenueForm(club=club)
 
-    venues = OrgVenue.objects.filter(organisation=club)
+    venues = OrgVenue.objects.filter(organisation=club, is_active=True)
 
     # Add on htmx data for venues
     for venue in venues:
@@ -457,7 +457,7 @@ def club_menu_tab_settings_venues_htmx(request, club):
 
 @check_club_menu_access()
 def club_menu_tab_settings_delete_venue_htmx(request, club):
-    """Delete a venue"""
+    """Delete a venue - well, actually just marks it as inactive"""
 
     venue = get_object_or_404(OrgVenue, pk=request.POST.get("venue_id"))
 
@@ -465,7 +465,8 @@ def club_menu_tab_settings_delete_venue_htmx(request, club):
         organisation=club, actor=request.user, action=f"Deleted venue: {venue.venue}"
     ).save()
 
-    venue.delete()
+    venue.is_active = False
+    venue.save()
 
     return club_menu_tab_settings_venues_htmx(request)
 
