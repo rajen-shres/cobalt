@@ -199,9 +199,6 @@ def cobalt_bs4_field(field, no_label=False):
     else:
         show_label = True
 
-
-
-
     field_template = get_template("utils/cobalt_bs4_field/bs4_field.html")
 
-    return field_template.render({"field": field, "show_label": show_label})
+    return field_template.render({"field": field, "show_label": show_label, "widget_type": field.widget_type})

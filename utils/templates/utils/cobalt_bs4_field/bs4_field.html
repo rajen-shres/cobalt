@@ -1,20 +1,42 @@
 <div class="form-group">
+
+{# Handle errors if present #}
+
     {% if field.errors %}
-      <span class="cobalt-form-error">{striptags(field.errors)}</span>
+      <span class="cobalt-form-error">{{ field.errors|striptags }}</span>
     {% endif %}
+
+{# special field handling #}
+
     {% if widget_type == "checkbox" %}
-             <div class="form-check">
-                    <label class="form-check-label">
-                    {{ field }}
-                  {{ field.label }}
-                  <span class="form-check-sign">
-                    <span class="check"></span>
-                  </span>
+         <div class="form-check">
+                <label class="form-check-label">
+                {{ field }}
+              {{ field.label }}
+              <span class="form-check-sign">
+                <span class="check"></span>
+              </span>
+            </label>
+         </div>
+
+        {% elif widget_type == "date" %}
+        <input
+                type="date"
+                name="{{ field.name }}"
+                value="{{ field.value|date:"Y-m-d" }}"
+                class="dateinput form-control"
+                id="id_{{ field.name }}"
+        >
+
+    {% else %}
+
+            {% if show_label %}
+                <label
+                        class="bmd-label-floating"
+                        for="{{  field.id_for_label }}"
+                >
+                    {{ field.label }}
                 </label>
-                 </div>
-        {% else %}
-        {% if show_label %}
-            <label class="bmd-label-floating" for="{{  field.id_for_label }}">{{ field.label }}</label>
             {% endif %}
         {{ field }}
     {% endif %}

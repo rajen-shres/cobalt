@@ -7,7 +7,8 @@
     <div class="jumbotron">
         <div class="card col-md-8 col-lg-8">
             <div class="card-header card-header-danger">
-                <h2>New Session for {{ club }}</h2>
+                <h2>New Session</h2>
+                <h3>{{ club }}</h3>
             </div>
             <div class="card-body">
                 <form method="post">
@@ -19,17 +20,24 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <input type="hidden" id="id_director" name="director" value="{{ session_form.director.value }}">
+
+                                  <div class="float-left">
+                                      <input type="hidden" id="id_director" name="director" value="{{ session_form.director.value }}">
                                     <span id="director_name">
                                          {{ director_name }}
                                     </span>
-                                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#userSearchModal">Change</button>
+                                  </div>
+                                  <div class="float-right mt-0">
+                                      <span style="cursor:pointer;" class="material-icons" data-toggle="modal" data-target="#userSearchModal">
+                                            edit
+                                        </span>
                                 </div>
                             </div>
                         </div>
+                        </div>
                         {% if session_form.venue %}
                         <div class="row align-items-center h-100 mb-2">
-                            <div class="col-md-6">
+                            <div class="col-md-6 mt-4">
                                 Venue
                             </div>
                             <div class="col-md-6">
@@ -40,7 +48,7 @@
                         </div>
                         {% endif %}
                         <div class="row align-items-center h-100 my-4">
-                            <div class="col-md-6">
+                            <div class="col-md-6 mt-4">
                                 Session Type
                             </div>
                             <div class="col-md-6">
@@ -49,7 +57,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row align-items-center h-100 my-4">
+                        <div class="row align-items-center h-100 my-0">
                             <div class="col-md-6">
                                 Session Date
                             </div>
@@ -59,8 +67,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row align-items-center h-100 my-4">
-                            <div class="col-md-6">
+                        <div class="row align-items-center h-100 my-0">
+                            <div class="col-md-6 mt-4">
                                 Time of Day
                             </div>
                             <div class="col-md-6">
@@ -70,15 +78,16 @@
                             </div>
                         </div>
                         <div class="row align-items-center h-100 my-4">
-                            <div class="col-12">
+                            <div class="col-12 my-4">
                                 <div class="form-group">
                                     {% cobalt_bs4_field session_form.description %}
                                 </div>
                             </div>
                         </div>
                     </div>
-
+                    <div class="text-center">
                   <button type="submit" class="btn btn-primary">Create</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -93,10 +102,6 @@
 
 <script>
     function ChangeDirector(search_id, user_id, user_name){
-    // do something
-        console.log(search_id);
-        console.log(user_id);
-        console.log(user_name);
         $("#id_director").val(user_id);
         $("#director_name").html(user_name);
     }
@@ -108,9 +113,18 @@
 
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+        // get time on browser
         const dt = new Date();
-        const day = days[dt.getDay()];
-        
+
+        // get day of week from date field e.g. Monday
+        const session_date = new Date($('#id_session_date').val());
+        const day = days[session_date.getDay()];
+
+        // get venue if we have one
+        let venue = $("#id_venue option:selected").text();
+        if (venue.length > 0){
+            venue = venue + " ";
+        }
 
         if (dt.getHours() < 12) {
             $("#id_time_of_day").val('AM');
@@ -120,13 +134,22 @@
             $("#id_description").val(day + " PM");
         } else {
             $("#id_time_of_day").val('EV');
-            $("#id_description").val(day + " Evening");
+            $("#id_description").val(venue + day + " Evening");
         }
-
     }
 
     $( document ).ready(function(){
         UpdateDescription();
+
+        $("#id_session_date").change(function(){
+            UpdateDescription();
+        });
+        $("#id_venue").change(function(){
+            UpdateDescription();
+        });
+        $("#id_time_of_day").change(function(){
+            UpdateDescription();
+        });
     });
 
 </script>
