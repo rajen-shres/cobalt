@@ -1,19 +1,21 @@
 {% if sessions %}
 
     <div class="table-responsive">
-        <table class="table table-hover">
+        <table class="table table-hover table-condensed">
             <thead>
-                <tr>
+                <tr class="text-primary">
                     <th>Session</th>
                     <th>Date</th>
+                    <th>Director</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for session in sessions %}
                     <tr>
-                        <td>{{ session }}</td>
-                        <td>{{ session }}</td>
+                        <td>{{ session.description }}</td>
+                        <td>{{ session.session_date }}</td>
+                        <td>{{ session.director.full_name }}</td>
                         <td>
                             <a href="{% url "events:create_congress_wizard" step=2 congress_id=session.id %}" class="btn btn-sm btn-warning">Edit</a>
                             <a href="{% url "events:admin_summary" congress_id=session.id %}" class="btn btn-sm btn-success">Manage</a>

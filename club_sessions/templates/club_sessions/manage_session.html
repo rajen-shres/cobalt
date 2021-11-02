@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load cobalt_tags %}
+{% block title %} - Manage Session{% endblock %}
+
+{% block content %}
+
+    <div class="jumbotron">
+        <div class="card col-md-8 col-lg-8">
+            <div class="card-header card-header-danger">
+                <h2>{{ session.description }}</h2>
+                <h3>{{ club }}</h3>
+            </div>
+            <div class="card-body">
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block footer %}
+    {% include "utils/include_htmx.html" %}
+{% endblock footer %}

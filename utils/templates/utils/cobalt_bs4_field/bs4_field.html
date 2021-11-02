@@ -1,43 +1,44 @@
 <div class="form-group">
 
-{# Handle errors if present #}
+    {# Handle errors if present #}
 
     {% if field.errors %}
-      <span class="cobalt-form-error">{{ field.errors|striptags }}</span>
+        <span class="cobalt-form-error">{{ field.errors|striptags }}</span>
     {% endif %}
 
-{# special field handling #}
+    {# special field handling #}
 
     {% if widget_type == "checkbox" %}
-         <div class="form-check">
-                <label class="form-check-label">
+        <div class="form-check">
+            <label class="form-check-label">
                 {{ field }}
-              {{ field.label }}
-              <span class="form-check-sign">
-                <span class="check"></span>
-              </span>
+                {{ field.label }}
+                <span class="form-check-sign">
+                    <span class="check"></span>
+                </span>
             </label>
-         </div>
+        </div>
 
-        {% elif widget_type == "date" %}
+    {% elif widget_type == "date" %}
         <input
-                type="date"
-                name="{{ field.name }}"
-                value="{{ field.value|date:"Y-m-d" }}"
-                class="dateinput form-control"
-                id="id_{{ field.name }}"
+            type="date"
+            name="{{ field.name }}"
+            value="{{ field.value|date:"Y-m-d" }}"
+            raw="{{ field.value }}"
+            class="dateinput form-control"
+            id="id_{{ field.name }}"
         >
 
     {% else %}
 
-            {% if show_label %}
-                <label
-                        class="bmd-label-floating"
-                        for="{{  field.id_for_label }}"
-                >
-                    {{ field.label }}
-                </label>
-            {% endif %}
+        {% if show_label %}
+            <label
+                class="bmd-label-floating"
+                for="{{  field.id_for_label }}"
+            >
+                {{ field.label }}
+            </label>
+        {% endif %}
         {{ field }}
     {% endif %}
 </div>

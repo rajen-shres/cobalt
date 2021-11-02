@@ -9,13 +9,13 @@ class SessionForm(forms.ModelForm):
 
     class Meta:
         model = Session
-        fields=[
-            'director',
-            'session_type',
-            'session_date',
-            'description',
-            'venue',
-            'time_of_day',
+        fields = [
+            "director",
+            "session_type",
+            "session_date",
+            "description",
+            "venue",
+            "time_of_day",
         ]
 
     def __init__(self, *args, **kwargs):
@@ -26,16 +26,19 @@ class SessionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # See if there are venues
-        venues = OrgVenue.objects.filter(organisation=club, is_active=True).values_list("id", "venue")
+        venues = OrgVenue.objects.filter(organisation=club, is_active=True).values_list(
+            "id", "venue"
+        )
         if venues.count() > 0:
-            self.fields['venue'].choices = venues
+            self.fields["venue"].choices = venues
         else:
-            del self.fields['venue']
+            del self.fields["venue"]
 
         # Handle session types
-        session_types = SessionType.objects.filter(organisation=club, status=True).values_list("id", "name")
+        session_types = SessionType.objects.filter(
+            organisation=club, status=True
+        ).values_list("id", "name")
         if session_types.count() > 0:
-            self.fields['session_type'].choices = session_types
+            self.fields["session_type"].choices = session_types
         # else:
         #     self.add_error('session_type', "No session types defined")
-

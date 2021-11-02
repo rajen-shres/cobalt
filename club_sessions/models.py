@@ -25,13 +25,12 @@ class MasterSessionType(models.TextChoices):
 
 
 class TimeOfDay(models.TextChoices):
-    """Master list of session names, may need to be changed to a list that clubs can edit
-    """
+    """Master list of session names, may need to be changed to a list that clubs can edit"""
 
     AM = "AM", "Morning"
     PM = "PM", "Afternoon"
     EVENING = "EV", "Evening"
-    ALL_DAY  = "AL", "All Day"
+    ALL_DAY = "AL", "All Day"
 
 
 class SessionType(models.Model):
@@ -98,12 +97,12 @@ class Session(models.Model):
     time_of_day = models.CharField(
         max_length=2,
         choices=TimeOfDay.choices,
-        blank=True,
+        default=TimeOfDay.AM,
         null=True,
     )
 
     def __str__(self):
-        return f"{self.session_type} - {self.description}"
+        return f"{self.description} - {self.session_date}"
 
 
 class SessionEntry(models.Model):
