@@ -35,7 +35,7 @@ def new_session(request, club_id):
 
     return render(
         request,
-        "club_sessions/session.html",
+        "club_sessions/new_session.html",
         {
             "club": club,
             "session_form": session_form,

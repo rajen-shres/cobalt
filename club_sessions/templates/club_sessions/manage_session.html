@@ -1,22 +1,60 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
 {% load cobalt_tags %}
-{% block title %} - Manage Session{% endblock %}
+{% block title %}- Session @ {{ club }}{% endblock %}
+
 
 {% block content %}
 
-    <div class="jumbotron">
-        <div class="card col-md-8 col-lg-8">
-            <div class="card-header card-header-danger">
-                <h2>{{ session.description }}</h2>
-                <h3>{{ club }}</h3>
+
+    <h1 class="text-center pt-4"><span id="t_club_name">{{ club }}</span> - {{ club.state }}</h1>
+    <h2 class="text-center border-bottom-0"><span class="text-primary" style="font-size: 50px;">&hearts;</span>
+        {{ session.description}} <span class="text-danger" style="font-size: 50px;">&hearts;</span>
+    </h2>
+    <h3 class="text-center mx-0"><span class="text-dark" style="font-size: 40px;">&spades;</span>
+        {{ session.session_date }} <span class="text-dark" style="font-size: 40px;">&spades;</span>
+    </h3>
+
+    <div class="card-body">
+        <div class="card">
+            <div class="card-header card-header-secondary">
+                <ul id="id_menu" class="nav nav-pills nav-pills-icons" role="tablist">
+                    <li class="nav-item">
+                        <a id="id_tab_basics" class="nav-link active auto-refresh" href="#basics" role="tab" data-toggle="tab">
+                            <i class="material-icons">space_dashboard</i>
+                            Club
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a id="id_tab_stuff" class="nav-link auto-refresh" href="#stuff" role="tab" data-toggle="tab">
+                            <i class="material-icons">manage_accounts</i>
+                            Members
+                        </a>
+                    </li>
+
+                </ul>
+                <div class='justify-content-center text-center'>
+                    <span class="htmx-indicator">
+                        <img style="width: 40px" src="{% static "assets/img/spinners/bars.svg" %}"/>
+                    </span>
+                </div>
+
             </div>
-            <div class="card-body">
+            <div class="card-body" style="min-height: 500px;">
+                <div class="tab-content tab-space">
+                    <div class="tab-pane active" id="basics">
+                        <h3>Basics</h3>
+                    </div>
+                    <div class="tab-pane" id="stuff">
+                        <h3>Stuff</h3>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
 
-{% endblock %}
+{% endblock content %}
 
 {% block footer %}
     {% include "utils/include_htmx.html" %}
