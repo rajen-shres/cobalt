@@ -1133,8 +1133,6 @@ def _get_org_balance_at_date(ref_date):
         .order_by("organisation", "-id")
     )
 
-    print(org_balances)
-
     # Better to calculate total in Python as we already have the data loaded
     org_total_balance = 0.0
     for org_balance_amt in org_balances:

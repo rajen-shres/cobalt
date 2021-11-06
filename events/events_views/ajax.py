@@ -1431,6 +1431,7 @@ def edit_team_name_event_entry_ajax(request):
 
     # Log it
     EventLog(
+        event_entry=event_entry,
         event=event_entry.event,
         actor=request.user,
         action=f"Changed team name to '{new_team_name}' on {event_entry}",

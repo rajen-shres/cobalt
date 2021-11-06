@@ -526,11 +526,7 @@ def admin_event_csv_scoring(request, event_id):
     response["Content-Disposition"] = f"attachment; filename={event} - Scoring.csv"
 
     writer = csv.writer(response)
-    if event.player_format == "Pairs":
-        title = "Pair No"
-    else:
-        title = "Team No"
-
+    title = "Pair No" if event.player_format == "Pairs" else "Team No"
     # Event Entry details
     header = [
         title,
@@ -547,19 +543,21 @@ def admin_event_csv_scoring(request, event_id):
 
     writer.writerow(header)
 
-    count = 1
-
-    for entry in entries:
+    for count, entry in enumerate(entries, start=1):
         entry_line = 1
 
         for row in entry.evententryplayer_set.order_by("-player").all():
+            if event.allow_team_names:
+                team_name = row.event_entry.team_name.upper()
+            else:
+                team_name = row.event_entry.primary_entrant.last_name.upper()
             data_row = [
                 count,
                 row.player.full_name.upper(),
                 row.player.system_number,
                 row.player.mobile,
                 row.player.email,
-                row.event_entry.primary_entrant.last_name.upper(),
+                team_name,
             ]
             if entry_line == 1:
                 data_row.append(entry.category)
@@ -575,12 +573,8 @@ def admin_event_csv_scoring(request, event_id):
             entry_line += 1
         # add extra blank rows for teams if needed
         if event.player_format == "Teams":
-            for extra_lines in range(7 - entry_line):
-                writer.writerow(
-                    [count, "", "", "", "", entry.primary_entrant.last_name.upper()]
-                )
-
-        count += 1
+            for _ in range(7 - entry_line):
+                writer.writerow([count, "", "", "", "", team_name])
 
     # Log it
     EventLog(
