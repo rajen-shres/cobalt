@@ -48,6 +48,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         print("Creating ABF.")
         secretary = User.objects.get(pk=1)
+
+        # If the ABF (or whatever org this is), isn't PK=1, then change the entry for ABF_ORG in cobalt/settings.py
         self.CreateClubs(
             0,
             "ABF",

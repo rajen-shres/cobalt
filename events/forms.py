@@ -287,6 +287,13 @@ class NewCongressForm(forms.Form):
 
 
 class EventForm(forms.ModelForm):
+
+    entry_close_time = forms.TimeField(
+        input_formats=[
+            "%H:%M",
+        ]
+    )
+
     class Meta:
         model = Event
         fields = (
@@ -296,11 +303,13 @@ class EventForm(forms.ModelForm):
             "event_type",
             "entry_open_date",
             "entry_close_date",
+            "entry_close_time",
             "player_format",
             "entry_fee",
             "entry_early_payment_discount",
             "entry_youth_payment_discount",
             "free_format_question",
+            "allow_team_names",
         )
 
     def clean_entry_early_payment_discount(self):

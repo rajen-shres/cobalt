@@ -449,21 +449,17 @@ def convener_wishes_to_be_notified(congress, convener):
 
     # Get any blocks in place for notifications
 
-    # We want rows for this user, app=Events, and then either identifier is by Event and model_id is event.id OR
+    # We want rows for this user, and then either identifier is by Event and model_id is event.id OR
     # identifier is by Org and model_id is org.id
 
-    return (
-        not BlockNotification.objects.filter(app=BlockNotification.App.EVENTS)
-        .filter(member=convener)
-        .filter(
-            (
-                (Q(model_id=congress.id) | Q(model_id=None))
-                & Q(identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT)
-            )
-            | (
-                (Q(model_id=congress.congress_master.org.id) | Q(model_id=None))
-                & Q(identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG)
-            )
+    return not BlockNotification.objects.filter(member=convener).filter(
+        (
+            (Q(model_id=congress.id) | Q(model_id=None))
+            & Q(identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT)
+        )
+        | (
+            (Q(model_id=congress.congress_master.org.id) | Q(model_id=None))
+            & Q(identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG)
         )
     )
 

@@ -33,13 +33,13 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-5">
                                         <div>
                                             Congress Entry Open Date:
                                             {{ congress.entry_open_date|default_if_none:'Not Set'|date:"d/m/Y" }}
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-7">
                                         <div>
                                             Congress Entry Close Date:
                                             {{ congress.entry_close_date|default_if_none:'Not Set'|date:"d/m/Y" }}
@@ -56,17 +56,29 @@
                                     </button>
 
                                     <div class="row" id="override_dates" style="display:none;">
-                                        <div class="col-md-6">
+                                        <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="bmd-label-float" style="font-size:11px">Accept Event Entries from</label>
                                                 <input type="text" name="entry_open_date" id="id_entry_open_date" class="form-control datepicker" value="{{ form.entry_open_date.value|default_if_none:'' }}">
+                                                <span class="cobalt-form-error">{{ form.entry_open_date.errors|striptags }}</span>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="bmd-label-float" style="font-size:11px">Close Event Entries on</label>
                                                 <input type="text" name="entry_close_date" id="id_entry_close_date" class="form-control datepicker" value="{{ form.entry_close_date.value|default_if_none:'' }}">
+                                                <span class="cobalt-form-error">{{ form.entry_close_date.errors|striptags }}</span>
                                             </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="bmd-label-float" style="font-size:11px">Time of Day</label>
+                                                <input type="time" name="entry_close_time" id="id_entry_close_time" class="form-control " value="{{ form.entry_close_time.value|default_if_none:"23:59" }}">
+                                                <span class="cobalt-form-error">{{ form.entry_close_time.errors|striptags }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-2 justify-content-center align-self-center">
+                                            <a href="javascript:void(0)" onclick='help("Event Entry Dates", "The congress has open and close dates but you can override them here, just for this event. If you want to specify a time as well as a date to cut off entries then you need to use this option.");'>help</a>
                                         </div>
                                     </div>
 
@@ -210,6 +222,19 @@
                                         </div>
                                         <div class="col-2 justify-content-center align-self-center">
                                             <a href="javascript:void(0)" onclick='help("Question", "If you would like to get additional information from entrants such a dietary requirements, you can ask for that information here.");'>help</a>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-3 justify-content-center align-self-center">
+                                            Allow Players to Choose Team Name
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="pt-1 pb-3">
+                                                {% cobalt_bs4_field form.allow_team_names no_label=True %}
+                                            </div>
+                                        </div>
+                                        <div class="col-2 justify-content-center align-self-center">
+                                            <a href="javascript:void(0)" onclick='help("Allow Team Names", "Tick this to allow the players to set their team name on the entry.");'>help</a>
                                         </div>
                                     </div>
 

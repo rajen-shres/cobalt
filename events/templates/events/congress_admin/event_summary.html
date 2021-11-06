@@ -100,6 +100,9 @@
                                                     <a href="javascript:void(0)" onclick='editNotes({{ event_entry.id }});'>
                                                         <i class="material-icons">sticky_note_2</i></a>
                                                 {% endif %}
+                                                {% if event.allow_team_names %}
+                                                    <strong>{{ event_entry.team_name|default_if_none:event_entry.primary_entrant.last_name }} - </strong>
+                                                {% endif %}
                                                 {% for event_entry_player in event_entry.players %}
                                                     {{ event_entry_player.player.full_name }}{% if not forloop.last %}, {% endif %}
                                                 {% endfor %}

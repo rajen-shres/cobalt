@@ -15,20 +15,22 @@
     <div class="">
         <div class="card">
             <div class="card-header card-header-primary">
-                <h1>{{ BRIDGE_CREDITS }} - Organisation Open Balances</h1>
+                <h1>{{ BRIDGE_CREDITS }} - Organisation with Open Balances</h1>
             </div>
             <div class="card-body table-responsive">
                 <a href="{% url "payments:admin_orgs_with_balance_csv" %}" class="btn btn-sm btn-warning">Download All as CSV</a>
                 <table class="table table-responsive">
-                    <thead>
-                        <th>Member</th>
+                    <thead class="text-primary">
+                        <th>Organisation</th>
                         <th>Balance</th>
-                        <th></th>
+                        <th class="text-center">Action</th>
                     </thead>
                     <tbody>
                         {% for thing in things %}
                             <tr>
-                                <td><a href=" {% url "accounts:public_profile" pk=thing.member.id %}">{{ thing.organisation }}</a></td>
+                                <td>
+                                    <a href="{% url "organisations:general_org_profile" org_id=thing.organisation.id %}">{{ thing.organisation }}</a>
+                                </td>
                                 <td class="text-right">{{ thing.balance }}</td>
                                 <td><a href="{% url "payments:statement_org" org_id=thing.organisation.id %}" class="btn btn-sm btn-info">View Statement</a></td>
                             </tr>

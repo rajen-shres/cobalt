@@ -333,9 +333,18 @@
 
                         </div>
                         <!-- comments-->
-                        <label> Click to view or edit comment</lable>
+                        <label> Click to view or edit comment</label>
                         <a href="javascript:void(0)" onclick='editComment({{event_entry.id}}, "{{event_entry.comment}}");'>
                             <i class="material-icons" id="id_comment">comment</i></a>
+                        <!-- team name -->
+                        {% if event.allow_team_names %}
+                            <br>
+                            <label>Team Name: <strong class="text-dark">
+                                <span id="team_name_value">{{ event_entry.team_name|default_if_none:event_entry.primary_entrant.last_name }}</span>
+                            </strong></label>
+                            <i class="material-icons text-info" id="id_team_name" style="cursor: pointer">edit</i></a>
+                        {% endif %}
+
                     </div>
                 </div>
                 <div class="text-center">
@@ -568,10 +577,57 @@
                 $("#title").html("Edit");
                 $("#icon").show();
             {% endif %}
-        });
+
+            // edit team name
+            {% if event.allow_team_names %}
+
+                $("#id_team_name").click(function(){
+                    const team_name = $("#team_name_value").text()
+                    Swal.fire({
+                        title: 'Team Name',
+                        input: 'text',
+                        inputValue: team_name,
+                        showCancelButton: true
+                    }).then(function(result) {
+                        if(!result.isDismissed){
+
+                            var url = "{% url "events:edit_team_name_event_entry_ajax" %}";
+                            var serializedData = {
+                                "id": {{ event_entry.id }},
+                                "team_name": result.value
+                            };
+
+                            $.ajax({
+                                url: url,
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
+                                },
+                                type: "post",
+                                data: JSON.stringify(serializedData),
+                                dataType: "json",
+                                success: function(response) {
+                                    swal.fire({
+                                        title: "Team Name updated",
+                                        html: response.message,
+                                        icon: "success",
+                                    }).then(function() {
+                                        location.reload();
+                                    });
+                                },
+                            });
+                        } // dismissed dont do anything
+                    })
+                });
+            {% endif %}
+
+
+
+        }); // end doc ready
+
+
         // edit comment and show it as well
         function editComment(id, old_comment) {
-
 
             Swal.fire({
                 title: 'Comments',

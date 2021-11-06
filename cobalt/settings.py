@@ -396,6 +396,9 @@ TBA_PLAYER = 2
 # ABF User for Announcements
 ABF_USER = 3
 
+# ABF Organisation - used for Settlement transactions and other things. Assumed to be the first thing created.
+ABF_ORG = 1
+
 # Org id for the system account
 GLOBAL_ORG_ID = 1
 

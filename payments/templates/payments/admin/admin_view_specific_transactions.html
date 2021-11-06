@@ -62,7 +62,7 @@
                                                 <td>{{ member.created_date | cobalt_nice_datetime }}</td>
                                                 <td>{{ member.other_member }}</td>
                                                 <td>{{ member.type }}</td>
-                                                <td>{{ member.member }}</td>
+                                                <td>{{ member }}</td>
                                                 <td>{{ member.description }}</td>
                                                 <td class="text-right">{{ member.amount|intcomma }}</td>
                                             </tr>
@@ -97,7 +97,11 @@
                                         {% for org in manual_org %}
                                             <tr>
                                                 <td>{{ org.created_date | cobalt_nice_datetime }}</td>
-                                                <td>{{ org.member }}</td>
+                                                {% if org.member %}
+                                                    <td>{{ org.member }}</td>
+                                                {% else %}
+                                                    <td>{{ org.other_organisation }}</td>
+                                                {% endif %}
                                                 <td>{{ org.type }}</td>
                                                 <td>{{ org.organisation.org_id }}</td>
                                                 <td>{{ org.organisation }}</td>

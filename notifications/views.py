@@ -201,7 +201,7 @@ class CobaltEmail:
             connection.close()
 
 
-def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
+def send_cobalt_email(to_address, subject, message, member=None, reply_to=None):
     """Function in single statement to send email.
 
     Args:
@@ -217,6 +217,11 @@ def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
 
     plain_msg = strip_tags(message)
 
+    if reply_to:
+        headers = {"Reply-to": reply_to}
+    else:
+        headers = None
+
     po_email.send(
         sender=DEFAULT_FROM_EMAIL,
         recipients=[to_address],
@@ -224,6 +229,7 @@ def send_cobalt_email(to_address, subject, message, member=None, reply_to=""):
         message=plain_msg,
         html_message=message,
         priority="now",
+        headers=headers,
     )
 
 
@@ -920,7 +926,7 @@ def email_contact(request, member_id):
             subject=title,
             message=html_msg,
             member=member,
-            reply_to=f"{request.user.email}",
+            # reply_to=f"{request.user.email}",
         )
 
         messages.success(

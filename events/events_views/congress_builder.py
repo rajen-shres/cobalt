@@ -571,37 +571,6 @@ def _create_congress_wizard_errors(congress):
     return errors, warnings
 
 
-def _update_event(request, form, event, congress, msg):
-    """common shared function to update an event with form data"""
-
-    event.congress = congress
-    event.event_name = form.cleaned_data["event_name"]
-    event.description = form.cleaned_data["description"]
-    event.max_entries = form.cleaned_data["max_entries"]
-    event.event_type = form.cleaned_data["event_type"]
-    event.entry_open_date = form.cleaned_data["entry_open_date"]
-    event.entry_close_date = form.cleaned_data["entry_close_date"]
-    event.player_format = form.cleaned_data["player_format"]
-    event.entry_fee = form.cleaned_data["entry_fee"]
-    event.entry_early_payment_discount = form.cleaned_data[
-        "entry_early_payment_discount"
-    ]
-    event.entry_youth_payment_discount = form.cleaned_data[
-        "entry_youth_payment_discount"
-    ]
-    if (
-        event.entry_youth_payment_discount is None
-        and congress.allow_youth_payment_discount
-    ):
-        messages.warning(
-            request,
-            "Youth discount field has no value, you will get errors for this event !! please correct either the discount offered for the saved event or uncheck youth discount on step 5.",
-            extra_tags="cobalt-message-warning",
-        )
-    event.save()
-    messages.success(request, msg, extra_tags="cobalt-message-success")
-
-
 @login_required
 def create_event(request, congress_id):
     """create an event within a congress"""
@@ -620,8 +589,12 @@ def create_event(request, congress_id):
     if request.method == "POST":
 
         if form.is_valid():
-            event = Event()
-            _update_event(request, form, event, congress, "Event added")
+            event = form.save(commit=False)
+            event.congress = congress
+            event.save()
+            messages.success(
+                request, "Event added", extra_tags="cobalt-message-success"
+            )
             return redirect(
                 "events:edit_event", event_id=event.id, congress_id=congress_id
             )
@@ -660,14 +633,10 @@ def edit_event(request, congress_id, event_id):
         form = EventForm(request.POST, instance=event)
 
         if form.is_valid():
-            _update_event(request, form, event, congress, "Event updated")
-        else:
-            for er in form.errors:
-                messages.error(
-                    request,
-                    form.errors[er],
-                    extra_tags="cobalt-message-error",
-                )
+            form.save()
+            messages.success(
+                request, "Event updated", extra_tags="cobalt-message-success"
+            )
 
     else:
         # datepicker is very fussy about format
@@ -676,6 +645,8 @@ def edit_event(request, congress_id, event_id):
             initial["entry_open_date"] = event.entry_open_date.strftime("%d/%m/%Y")
         if event.entry_close_date:
             initial["entry_close_date"] = event.entry_close_date.strftime("%d/%m/%Y")
+        if event.entry_close_time:
+            initial["entry_close_time"] = event.entry_close_time.strftime("%H:%M")
         form = EventForm(instance=event, initial=initial)
 
     categories = Category.objects.filter(event=event)

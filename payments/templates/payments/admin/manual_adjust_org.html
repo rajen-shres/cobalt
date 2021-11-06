@@ -16,6 +16,7 @@
             <div class="card-header card-header-primary">
                 <h1>{{ BRIDGE_CREDITS }}</h1>
                 <h2>Manual Adjust Organisation Account<span id="org">{% if org %} - {{ org.name }}{% endif %}</span></h2>
+                <h3>Balance: {{ GLOBAL_CURRENCY_SYMBOL }}{{ balance|cobalt_number }}</h3>
                 <h3 >Use negative numbers to remove money from organisations account</h3>
             </div>
             <div class="card-body table-responsive">

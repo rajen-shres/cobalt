@@ -551,7 +551,8 @@ def admin_event_csv_scoring(request, event_id):
 
     for entry in entries:
         entry_line = 1
-        for row in entry.evententryplayer_set.order_by("pk").all():
+
+        for row in entry.evententryplayer_set.order_by("-player").all():
             data_row = [
                 count,
                 row.player.full_name.upper(),

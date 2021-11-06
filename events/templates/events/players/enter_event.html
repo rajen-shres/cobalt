@@ -15,6 +15,12 @@
             border: none;
         }
 
+        .error {
+            color: red;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
     </style>
 {% endblock %}
 
@@ -134,25 +140,39 @@
 
                                                             </tbody>
                                                         </table>
+                                                        <hr>
+
+                                                        {% if event.allow_team_names %}
+                                                            <div class="row">
+                                                                <label class="col-5 col-form-label">Team Name</label>
+                                                                <div class="col-5">
+                                                                    <div class="form-group has-success">
+                                                                        <input type="text"maxlength="15" class="form-control" id="id_team_name" autocomplete="off" name="team_name" value="{{ request.user.last_name }}" style="cursor: auto;">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        {% endif %}
+
+                                                        {% if event.free_format_question %}
+                                                            <div class="row">
+                                                                <label class="col-sm-5 col-form-label">{{ event.free_format_question }}</label>
+                                                                <div class="col-sm-7">
+                                                                    <div class="form-group has-success">
+                                                                        <input type="text" maxlength="60" class="form-control" id="id_free_format_answer" name="free_format_answer" autocomplete="off" style="cursor: auto;">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        {% endif %}
+
                                                         <div class="row">
-                                                            <label class="col-sm-2 col-form-label">Comments</label>
-                                                            <div class="col-sm-10">
+                                                            <label class="col-sm-5 col-form-label">Comments</label>
+                                                            <div class="col-sm-7">
                                                                 <div class="form-group has-success">
-                                                                    <label for="comment" class="bmd-label-floating">{{comment}}</label>
                                                                     <input type="text" class="form-control" id="id_comment" autocomplete="off" name="comment" style="cursor: auto;">
-                                                                    <span class="form-control-feedback">
-                                                                        <i class="material-icons">done</i>
-                                                                    </span>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <br>
-                                                        {% if event.free_format_question %}
-                                                            <label for="id_category">{{ event.free_format_question }}</label>
-                                                            <input type="text" size="60" id="id_free_format_answer" name="free_format_answer">
-                                                            <br>
-                                                            <br>
-                                                        {% endif %}
+
                                                         <div class="row">
                                                             <div class="col text-center">
                                                                 <button id="id_checkout" type="submit" name="now" class="btn btn-success cobalt-save" style="width:200px" disabled>Confirm and Pay Now</button>

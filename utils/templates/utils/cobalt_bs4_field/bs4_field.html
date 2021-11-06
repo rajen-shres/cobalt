@@ -12,7 +12,9 @@
         <div class="form-check">
             <label class="form-check-label">
                 {{ field }}
-                {{ field.label }}
+                {% if show_label %}
+                    {{ field.label }}
+                {% endif  %}
                 <span class="form-check-sign">
                     <span class="check"></span>
                 </span>

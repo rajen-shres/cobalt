@@ -189,6 +189,11 @@ urlpatterns = [
         ajax.edit_comment_event_entry_ajax,
         name="save_comment_for_event_entry_ajax",
     ),
+    path(
+        "congress/event/edit-team_name-for-entry",
+        ajax.edit_team_name_event_entry_ajax,
+        name="edit_team_name_event_entry_ajax",
+    ),
     ########################################################################
     # Congress Builder screens for conveners to create and edit congresses #
     ########################################################################

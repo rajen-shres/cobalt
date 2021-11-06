@@ -132,7 +132,7 @@ def global_admin_view_player_entries(request, member_id):
 
     event_entries = EventEntry.objects.select_related(
         "event", "event__congress"
-    ).filter(primary_entrant=member)
+    ).filter(evententryplayer__player=member)
 
     if not show_all:
         event_entries = event_entries.filter(

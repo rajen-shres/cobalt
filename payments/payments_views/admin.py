@@ -21,6 +21,7 @@ from cobalt.settings import (
     COBALT_HOSTNAME,
     GLOBAL_ORG_ID,
     GLOBAL_ORG,
+    ABF_ORG,
 )
 from logs.views import log_event
 from masterpoints.views import user_summary
@@ -49,6 +50,7 @@ from payments.payments_views.core import (
     update_account,
     TZ,
     statement_common,
+    org_balance,
 )
 from rbac.core import rbac_user_has_role
 from rbac.decorators import rbac_check_role
@@ -398,67 +400,70 @@ def _admin_view_specific_transactions_csv_download(
     )
 
     # Members
-    writer.writerow("")
-    writer.writerow(["Member Transactions"])
 
-    writer.writerow(
-        [
-            "Date",
-            "Administrator",
-            "Transaction Type",
-            f"{GLOBAL_ORG} Number",
-            "User",
-            "Description",
-            "Amount",
-        ]
-    )
-
-    for member in manual_member:
-        local_dt = timezone.localtime(member.created_date, TZ)
+    if manual_member:
+        writer.writerow("")
+        writer.writerow(["Member Transactions"])
 
         writer.writerow(
             [
-                dateformat.format(local_dt, "Y-m-d H:i:s"),
-                member.other_member,
-                member.type,
-                member.member.system_number,
-                member.member.full_name,
-                member.description,
-                member.amount,
+                "Date",
+                "Administrator",
+                "Transaction Type",
+                f"{GLOBAL_ORG} Number",
+                "User",
+                "Description",
+                "Amount",
             ]
         )
+
+        for member in manual_member:
+            local_dt = timezone.localtime(member.created_date, TZ)
+
+            writer.writerow(
+                [
+                    dateformat.format(local_dt, "Y-m-d H:i:s"),
+                    member.other_member,
+                    member.type,
+                    member.member.system_number,
+                    member.member.full_name,
+                    member.description,
+                    member.amount,
+                ]
+            )
+        writer.writerow("")
 
     # Organisations
-    writer.writerow("")
-    writer.writerow("")
-    writer.writerow(["Organisation Transactions"])
-
-    writer.writerow(
-        [
-            "Date",
-            "Administrator",
-            "Transaction Type",
-            "Club ID",
-            "Organisation",
-            "Description",
-            "Amount",
-        ]
-    )
-
-    for org in manual_org:
-        local_dt = timezone.localtime(org.created_date, TZ)
+    if manual_org:
+        writer.writerow("")
+        writer.writerow(["Organisation Transactions"])
 
         writer.writerow(
             [
-                dateformat.format(local_dt, "Y-m-d H:i:s"),
-                org.member,
-                org.type,
-                org.organisation.org_id,
-                org.organisation,
-                org.description,
-                org.amount,
+                "Date",
+                "Administrator",
+                "Transaction Type",
+                "Club ID",
+                "Organisation",
+                "Description",
+                "Amount",
             ]
         )
+
+        for org in manual_org:
+            local_dt = timezone.localtime(org.created_date, TZ)
+
+            writer.writerow(
+                [
+                    dateformat.format(local_dt, "Y-m-d H:i:s"),
+                    org.member,
+                    org.type,
+                    org.organisation.org_id,
+                    org.organisation,
+                    org.description,
+                    org.amount,
+                ]
+            )
 
     return response
 
@@ -1132,8 +1137,8 @@ def _get_org_balance_at_date(ref_date):
 
     # Better to calculate total in Python as we already have the data loaded
     org_total_balance = 0.0
-    for org_balance in org_balances:
-        org_total_balance += float(org_balance["balance"])
+    for org_balance_amt in org_balances:
+        org_total_balance += float(org_balance_amt["balance"])
 
     return org_total_balance, org_balances
 
@@ -1627,12 +1632,22 @@ def manual_adjust_org(request, org_id=None, default_transaction=None):
     if form.is_valid():
         org = form.cleaned_data["organisation"]
         amount = form.cleaned_data["amount"]
-        bank_settlement_amount = -float(amount) * (
-            1.0 - float(org.settlement_fee_percent) / 100.0
-        )
         description = form.cleaned_data["description"]
         adjustment_type = int(form.cleaned_data["adjustment_type"])
         payment_type = payment_type_dic[adjustment_type]
+
+        # For settlements we mark this as being done by the ABF, but for anything else we put the actual user name on it
+        if payment_type == "Settlement":
+            member = None
+            other_organisation = Organisation.objects.get(pk=ABF_ORG)
+            bank_settlement_amount = -float(amount) * (
+                1.0 - float(org.settlement_fee_percent) / 100.0
+            )
+        else:
+            member = request.User
+            other_organisation = None
+            bank_settlement_amount = None
+
         update_organisation(
             organisation=org,
             amount=amount,
@@ -1641,7 +1656,8 @@ def manual_adjust_org(request, org_id=None, default_transaction=None):
             source="payments",
             sub_source="manual_adjustment_org",
             payment_type=payment_type,
-            member=request.user,
+            member=member,
+            other_organisation=other_organisation,
             bank_settlement_amount=bank_settlement_amount,
         )
         msg = "Adjustment successful. %s adjusted by %s%s" % (
@@ -1655,6 +1671,10 @@ def manual_adjust_org(request, org_id=None, default_transaction=None):
         print(form.errors)
 
     org = get_object_or_404(Organisation, pk=org_id) if org_id else None
+    balance = org_balance(org)
+
     return render(
-        request, "payments/admin/manual_adjust_org.html", {"form": form, "org": org}
+        request,
+        "payments/admin/manual_adjust_org.html",
+        {"form": form, "org": org, "balance": balance},
     )

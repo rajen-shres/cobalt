@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+from django.utils.timezone import localdate, localtime
 
 from accounts.models import User
 from cobalt.settings import (
@@ -368,6 +369,7 @@ class Event(models.Model):
     # Open and close dates can be overridden at the event level
     entry_open_date = models.DateField(null=True, blank=True)
     entry_close_date = models.DateField(null=True, blank=True)
+    entry_close_time = models.TimeField(null=True, blank=True)
     entry_fee = models.DecimalField("Entry Fee", max_digits=12, decimal_places=2)
     entry_early_payment_discount = models.DecimalField(
         "Early Payment Discount",
@@ -388,6 +390,7 @@ class Event(models.Model):
     free_format_question = models.CharField(
         "Free Format Question", max_length=60, null=True, blank=True
     )
+    allow_team_names = models.BooleanField(default=False)
 
     def __str__(self):
         return "%s - %s" % (self.congress, self.event_name)
@@ -430,20 +433,26 @@ class Event(models.Model):
     def is_open(self):
         """check if this event is taking entries today"""
 
-        today = timezone.now().date()
+        today = localdate()
+        time_now = localtime().time()
 
         open_date = self.entry_open_date
         if not open_date:
             open_date = self.congress.entry_open_date
-            if open_date:
-                if today < open_date:
-                    return False
+            if open_date and today < open_date:
+                return False
 
         close_date = self.entry_close_date
         if not close_date:
             close_date = self.congress.entry_close_date
         if close_date:
             if today > close_date:
+                return False
+            if (
+                today == close_date
+                and self.entry_close_time
+                and self.entry_close_time < time_now
+            ):
                 return False
 
         # check start date of event
@@ -453,13 +462,7 @@ class Event(models.Model):
             return False
         elif start_date == today:
             start_time = self.start_time()
-            print("Start time:")
-            print(start_time)
-
-            print("Now:")
-            print(timezone.now().time())
-
-            if start_time and start_time < timezone.now().time():
+            if start_time and start_time < time_now:
                 return False
 
         return True
@@ -712,6 +715,7 @@ class EventEntry(models.Model):
     free_format_answer = models.CharField(
         "Free Format Answer", max_length=60, null=True, blank=True
     )
+    team_name = models.CharField(max_length=15, null=True, blank=True)
     notes = models.TextField("Notes", null=True, blank=True)
     comment = models.TextField("Comments", null=True, blank=True)
     first_created_date = models.DateTimeField(default=timezone.now)

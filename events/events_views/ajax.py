@@ -1,3 +1,4 @@
+import copy
 import json
 
 from django.contrib.auth.decorators import login_required
@@ -1021,16 +1022,24 @@ def delete_player_from_entry_ajax(request):
         )
 
         # if we got here everything is okay
-        event_entry_player.delete()
+        old_event_entry_player = copy.copy(event_entry_player)
 
-        if event_entry_player.player.id != TBA_PLAYER:
+        # If anything has been paid then change player to TBA, else delete
+        if event_entry_player.payment_received > 0.0:
+            tba = User.objects.get(pk=TBA_PLAYER)
+            event_entry_player.player = tba
+            event_entry_player.save()
+        else:
+            event_entry_player.delete()
 
-            event = event_entry_player.event_entry.event
-            congress = event_entry_player.event_entry.event.congress
+        if old_event_entry_player.player.id != TBA_PLAYER:
+
+            event = old_event_entry_player.event_entry.event
+            congress = old_event_entry_player.event_entry.event.congress
 
             # notify member
             context = {
-                "name": event_entry_player.player.first_name,
+                "name": old_event_entry_player.player.first_name,
                 "title": "Removal from Team in %s" % event,
                 "email_body": f"{request.user.full_name} has removed you from their team in {event}.<br><br>",
                 "host": COBALT_HOSTNAME,
@@ -1040,7 +1049,7 @@ def delete_player_from_entry_ajax(request):
 
             # send
             contact_member(
-                member=event_entry_player.player,
+                member=old_event_entry_player.player,
                 msg="Removal from %s" % event,
                 contact_type="Email",
                 html_msg=html_msg,
@@ -1049,7 +1058,7 @@ def delete_player_from_entry_ajax(request):
             )
 
             # tell the conveners
-            msg = f"""{event_entry_player.player.full_name} has been removed from the team
+            msg = f"""{old_event_entry_player.player.full_name} has been removed from the team
                       by {request.user.full_name} for {event.event_name} in {congress}.
                       <br><br>
                       The team is still complete.
@@ -1058,7 +1067,7 @@ def delete_player_from_entry_ajax(request):
             notify_conveners(
                 congress,
                 event,
-                f"{event} - Extra player {event_entry_player.player} removed",
+                f"{event} - Extra player {old_event_entry_player.player} removed",
                 msg,
             )
 
@@ -1392,5 +1401,39 @@ def edit_comment_event_entry_ajax(request):
         sub_source="change_event_entry",
         message=f"Changed comment to '{new_comment}' on {event_entry.href}",
     )
+
+    return JsonResponse({"message": "Success"})
+
+
+@login_required()
+def edit_team_name_event_entry_ajax(request):
+    """Edit team name on an event entry"""
+
+    if request.method != "POST":
+        return JsonResponse({"message": "Invalid call"})
+
+    data = json.loads(request.body.decode("utf-8"))
+    event_entry_id = int(data["id"])
+    event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
+
+    event_entry_player_me = (
+        EventEntryPlayer.objects.filter(event_entry=event_entry)
+        .filter(player=request.user)
+        .exists()
+    )
+
+    if not event_entry_player_me and event_entry.primary_entrant != request.user:
+        return JsonResponse({"message": "You cannot edit this entry"})
+
+    new_team_name = data["team_name"]
+    event_entry.team_name = new_team_name
+    event_entry.save()
+
+    # Log it
+    EventLog(
+        event=event_entry.event,
+        actor=request.user,
+        action=f"Changed team name to '{new_team_name}' on {event_entry}",
+    ).save()
 
     return JsonResponse({"message": "Success"})

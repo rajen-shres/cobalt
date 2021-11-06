@@ -91,9 +91,7 @@
                                         </td>
                                         <td>
                                             <div>
-
-                                                <span class="cobalt-form-error" id="id_reason_status_errors">{{ form.reason.errors|striptags }}</span>
-                                                {% render_field form.reason class+="form-control" %}
+                                                {% cobalt_bs4_field form.reason no_label=True %}
                                             </div>
                                         </td>
                                     </tr>

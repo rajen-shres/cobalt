@@ -36,6 +36,12 @@
                             {% endif %}
                         </div>
 
+                        {% if event.allow_team_names %}
+                            <div class="container">
+                                <h3>Team Name: {{ event_entry.team_name }}</h3>
+                            </div>
+                        {% endif %}
+
                         <div class="card-body table-responsive">
                             <table class="table table-hover">
                                 <thead class="text-info">

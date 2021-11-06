@@ -1374,8 +1374,6 @@ def enter_event_form(event, congress, request):
     # categories
     categories = Category.objects.filter(event=event)
 
-    # comment helptext
-    comment = "Comment/Additional request?"
     return render(
         request,
         "events/players/enter_event.html",
@@ -1391,7 +1389,6 @@ def enter_event_form(event, congress, request):
             "discount": discount,
             "description": description,
             "min_entries": min_entries,
-            "comment": comment,
         },
     )
 
@@ -1447,6 +1444,11 @@ def enter_event(request, congress_id, event_id):
         answer = request.POST.get("free_format_answer", None)
         if answer:
             event_entry.free_format_answer = answer[:60]
+
+        # see if we got a team name
+        team_name = request.POST.get("team_name", None)
+        if team_name:
+            event_entry.team_name = team_name
 
         event_entry.save()
 
