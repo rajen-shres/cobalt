@@ -42,7 +42,7 @@
 
                                 </div>
                                 <div class="card-body">
-                                    <form role="form" method="post">
+                                    <form id="login" role="form" method="post">
                                         {% csrf_token %}
 
                                         {% if form.non_field_errors %}
@@ -117,9 +117,19 @@
         <script type="text/javascript">
             $(document).ready(function() {
 
+                // set picture
                 pic = Math.floor(Math.random() * 10) + 1;
                 $('#bg').css('background-image', 'url(/static/assets/img/backgrounds/bg' + pic +'.jpg');
                 $('#bg').fadeIn(100);
+
+                // accept Enter to submit form
+                $(document).keypress(function (e) {
+                    if (e.which === 13) {
+                        $('form#login').submit();
+                        return false;
+                    }
+                });
+
 
             });
         </script>

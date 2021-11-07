@@ -466,6 +466,11 @@ urlpatterns = [
         congress_admin.convener_settings,
         name="admin_convener_settings",
     ),
+    path(
+        "congress-admin/edit-team-name-htmx",
+        congress_admin.edit_team_name_htmx,
+        name="admin_edit_team_name_htmx",
+    ),
     #######################################################
     # higher level admin functions                        #
     #######################################################

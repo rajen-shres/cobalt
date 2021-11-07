@@ -1,0 +1,19 @@
+<form
+    hx-post="{% url "events:admin_edit_team_name_htmx" %}"
+    hx-vars="event_entry_id:{{ event_entry.id }}"
+    hx-target="#team_edit"
+>
+    <h3>Team Name:
+
+        <input type="text"
+            name="team_name"
+            maxlength="15"
+            class=""
+            required
+            value="{{ event_entry.team_name|default_if_none:event_entry.primary_entrant.last_name }}">
+
+
+        <button type="submit" class="btn btn-sm btn-success" name="save">Save</button>
+        <button type="submit" class="btn btn-sm btn-info" name="cancel">Cancel</button>
+    </h3>
+</form>

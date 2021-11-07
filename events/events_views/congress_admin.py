@@ -1985,3 +1985,44 @@ def convener_settings(request, congress_id):
             "all_off": all_off,
         },
     )
+
+
+@login_required()
+def edit_team_name_htmx(request):
+    """HTMX snippet to edit the team name"""
+
+    event_entry = get_object_or_404(EventEntry, pk=request.POST.get("event_entry_id"))
+
+    # check access
+    role = "events.org.%s.edit" % event_entry.event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    if "cancel" in request.POST:
+        return render(
+            request,
+            "events/congress_admin/event_entry_team_name_htmx.html",
+            {"event_entry": event_entry},
+        )
+
+    if "save" in request.POST:
+        team_name = request.POST.get("team_name")
+        event_entry.team_name = team_name
+        event_entry.save()
+        EventLog(
+            event=event_entry.event,
+            event_entry=event_entry,
+            actor=request.user,
+            action=f"Admin changed team name to '{team_name}'",
+        ).save()
+        return render(
+            request,
+            "events/congress_admin/event_entry_team_name_htmx.html",
+            {"event_entry": event_entry},
+        )
+
+    return render(
+        request,
+        "events/congress_admin/event_entry_team_name_edit_htmx.html",
+        {"event_entry": event_entry},
+    )

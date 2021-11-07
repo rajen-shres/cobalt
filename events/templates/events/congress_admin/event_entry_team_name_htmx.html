@@ -1,0 +1,11 @@
+<h3>Team Name: {{ event_entry.team_name|default_if_none:event_entry.primary_entrant.last_name }}
+    <i
+        class="material-icons text-info"
+        style="cursor: pointer"
+        hx-post="{% url "events:admin_edit_team_name_htmx" %}"
+        hx-vars="event_entry_id:{{ event_entry.id }}"
+        hx-target="#team_edit"
+    >
+        edit
+    </i>
+</h3>

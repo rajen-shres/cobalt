@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
+
 {% load static %}
 {% load cobalt_tags %}
+
 {% block title %}- Session @ {{ club }}{% endblock %}
 
 
@@ -8,14 +10,17 @@
 
 
     <h1 class="text-center pt-4"><span id="t_club_name">{{ club }}</span> - {{ club.state }}</h1>
+
     <h2 class="text-center border-bottom-0"><span class="text-primary" style="font-size: 50px;">&hearts;</span>
         {{ session.description}} <span class="text-danger" style="font-size: 50px;">&hearts;</span>
     </h2>
+
     <h3 class="text-center mx-0"><span class="text-dark" style="font-size: 40px;">&spades;</span>
         {{ session.session_date }} <span class="text-dark" style="font-size: 40px;">&spades;</span>
     </h3>
 
     <div class="card-body">
+
         <div class="card">
             <div class="card-header card-header-secondary">
                 <ul id="id_menu" class="nav nav-pills nav-pills-icons" role="tablist">
@@ -51,11 +56,17 @@
                 </div>
             </div>
         </div>
+
     </div>
 
 
 {% endblock content %}
 
+
 {% block footer %}
+
+
     {% include "utils/include_htmx.html" %}
+
+
 {% endblock footer %}
