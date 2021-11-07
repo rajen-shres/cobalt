@@ -359,6 +359,8 @@ class EventEntryPlayerForm(forms.ModelForm):
             "entry_fee",
             "payment_received",
             "reason",
+            "override_tba_name",
+            "override_tba_system_number",
         )
 
     def __init__(self, *args, **kwargs):

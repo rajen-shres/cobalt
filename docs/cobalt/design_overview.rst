@@ -257,3 +257,33 @@ Avoid loading JavaScript in an HTMX page that gets incorporated in
 an existing page. The results can be variable. Better to load
 static functions in the initial page and call them from the loaded
 page.
+
+***************
+Users in Cobalt
+***************
+
+There are a number of different "*users*" in the system. The principle is that whoever has the interest
+in recording the existence of a user should be able to do so.
+
+Accounts.models.User
+    Real users who have registered with the system. These are people who register themselves and
+    wish to receive some benefit from doing so, such as being able to enter events or see their results or
+    contribute to forums. This is the normal user type.
+
+Accounts.models.UnregisteredUser
+    These are users who have valid memberships with the national organisation but have not registered
+    for an account on Cobalt. These exist so that others can interact with valid members. The main
+    reason is that clubs have real, paid-up members who they want to be able to manage through the
+    system, but who may not see any value in registering for Cobalt.
+
+Accounts.models.Visitor
+    These are people who are not members of the nation body but wish to play at a registered club.
+
+TBAs
+    This is purely a practical choice. Some players do not register for Cobalt but have their
+    team mates enter them in events. There is no clear reason for them not to register, but they
+    don't and the convener (being the accommodating people that they are) want to 'bridge' the
+    gap between the recalcitrant player and the poor suffering scorer. We allow the addition of
+    name and system number to an EventEntryPlayer record so that we can cope with this.
+
+

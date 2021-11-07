@@ -256,7 +256,6 @@ def admin_evententryplayer(request, evententryplayer_id):
     event_entry_player = get_object_or_404(EventEntryPlayer, pk=evententryplayer_id)
     old_user = copy.copy(event_entry_player.player)
     old_entry = copy.copy(event_entry_player)
-    print(old_user)
     event = event_entry_player.event_entry.event
 
     role = "events.org.%s.edit" % event.congress.congress_master.org.id
@@ -547,7 +546,8 @@ def admin_event_csv_scoring(request, event_id):
         entry_line = 1
 
         for row in entry.evententryplayer_set.order_by("-player").all():
-            if event.allow_team_names:
+            # Use team name if enabled and set, otherwise primary entrant last name
+            if event.allow_team_names and row.event_entry.team_name:
                 team_name = row.event_entry.team_name.upper()
             else:
                 team_name = row.event_entry.primary_entrant.last_name.upper()
