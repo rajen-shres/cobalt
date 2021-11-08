@@ -104,7 +104,11 @@
                                                     <strong>{{ event_entry.team_name|default_if_none:event_entry.primary_entrant.last_name }} - </strong>
                                                 {% endif %}
                                                 {% for event_entry_player in event_entry.players %}
-                                                    {{ event_entry_player.player.full_name }}{% if not forloop.last %}, {% endif %}
+                                                    {% if event_entry_player.player.id == TBA_PLAYER %}
+                                                        {{ event_entry_player.player.full_name }}{% if event_entry_player.override_tba_name %}({{ event_entry_player.override_tba_name }}){% endif %}{% if not forloop.last %}, {% endif %}
+                                                    {% else %}
+                                                        {{ event_entry_player.player.full_name }}{% if not forloop.last %}, {% endif %}
+                                                    {% endif %}
                                                 {% endfor %}
                                             </td>
                                             <td class="text-right">{{ event_entry.entry_fee|floatformat:2 }}</td>

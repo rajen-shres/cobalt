@@ -40,6 +40,7 @@ from events.forms import (
     BulletinForm,
     LatestNewsForm,
     OffSystemPPForm,
+    EventEntryPlayerTBAForm,
 )
 from rbac.views import rbac_user_has_role, rbac_forbidden
 from payments.payments_views.core import (
@@ -254,7 +255,7 @@ def admin_evententryplayer(request, evententryplayer_id):
     """Admin Event Entry Player View"""
 
     event_entry_player = get_object_or_404(EventEntryPlayer, pk=evententryplayer_id)
-    old_user = copy.copy(event_entry_player.player)
+
     old_entry = copy.copy(event_entry_player)
     event = event_entry_player.event_entry.event
 
@@ -265,7 +266,6 @@ def admin_evententryplayer(request, evententryplayer_id):
     if request.method == "POST":
         form = EventEntryPlayerForm(request.POST, instance=event_entry_player)
         if form.is_valid():
-            new_user = form.cleaned_data["player"]
             form.save()
 
             # check if event entry payment status has changed
@@ -282,11 +282,6 @@ def admin_evententryplayer(request, evententryplayer_id):
                 action = f"Convener Action: Changed {changed} from {old_value} to {new_value} on Entry:{old_entry.id} - {event_entry_player.event_entry}"
                 log_action = f"Convener Action: Changed {changed} from {old_value} to {new_value} on Entry:{event_entry_player.event_entry.href}"
 
-                # Don't understand this so hardcoding - other fields work but player doesnt
-                if changed == "player":
-                    action = f"Convener Action: Changed {changed} from {old_user} to {new_user} on Entry:{old_entry.id} - {event_entry_player.event_entry}"
-                    action = f"Convener Action: Changed {changed} from {old_user} to {new_user} on Entry:{event_entry_player.event_entry.href}"
-
                 EventLog(
                     event=event,
                     event_entry=event_entry_player.event_entry,
@@ -302,65 +297,21 @@ def admin_evententryplayer(request, evententryplayer_id):
                     message=log_action,
                 )
 
-            if new_user != old_user:
-
-                # notify deleted member
-                if old_user.id != TBA_PLAYER:
-                    context = {
-                        "name": old_user.first_name,
-                        "title": "Removed from event - %s" % event,
-                        "email_body": f"The convener, {request.user.full_name}, has removed you from this event.<br><br>",
-                        "host": COBALT_HOSTNAME,
-                    }
-
-                    html_msg = render_to_string("notifications/email.html", context)
-
-                    # send
-                    contact_member(
-                        member=old_user,
-                        msg="Removed from - %s" % event,
-                        contact_type="Email",
-                        html_msg=html_msg,
-                        link="/events/view",
-                        subject="Removed from - %s" % event,
-                    )
-
-                # notify added member
-                if new_user.id != TBA_PLAYER:
-                    context = {
-                        "name": new_user.first_name,
-                        "title": "Added to event - %s" % event,
-                        "email_body": f"The convener, {request.user.full_name}, has added you to this event.<br><br>",
-                        "host": COBALT_HOSTNAME,
-                        "link": "/events/view",
-                        "link_text": "View Entry",
-                    }
-
-                    html_msg = render_to_string(
-                        "notifications/email_with_button.html", context
-                    )
-
-                    # send
-                    contact_member(
-                        member=new_user,
-                        msg="Added to - %s" % event,
-                        contact_type="Email",
-                        html_msg=html_msg,
-                        link="/events/view",
-                        subject="Added to - %s" % event,
-                    )
-
             return redirect(
                 "events:admin_evententry",
                 evententry_id=event_entry_player.event_entry.id,
             )
+        else:
+            print(form.errors)
     else:
         form = EventEntryPlayerForm(instance=event_entry_player)
+
+    tba_form = EventEntryPlayerTBAForm(instance=event_entry_player)
 
     return render(
         request,
         "events/congress_admin/event_entry_player.html",
-        {"event_entry_player": event_entry_player, "form": form},
+        {"event_entry_player": event_entry_player, "form": form, "tba_form": tba_form},
     )
 
 
@@ -542,21 +493,33 @@ def admin_event_csv_scoring(request, event_id):
 
     writer.writerow(header)
 
+    team_name = "NOT SET"  # Keep IDE happy
+
     for count, entry in enumerate(entries, start=1):
         entry_line = 1
-
         for row in entry.evententryplayer_set.order_by("-player").all():
             # Use team name if enabled and set, otherwise primary entrant last name
             if event.allow_team_names and row.event_entry.team_name:
                 team_name = row.event_entry.team_name.upper()
             else:
                 team_name = row.event_entry.primary_entrant.last_name.upper()
+
+            # Handle overriding the TBA details
+            if row.player.id == TBA_PLAYER and row.override_tba_name:
+                player_name = row.override_tba_name
+                player_no = row.override_tba_system_number
+                player_email = ""
+            else:
+                player_name = row.player.full_name
+                player_no = row.player.system_number
+                player_email = row.player.email
+
             data_row = [
                 count,
-                row.player.full_name.upper(),
-                row.player.system_number,
+                player_name.upper(),
+                player_no,
                 row.player.mobile,
-                row.player.email,
+                player_email,
                 team_name,
             ]
             if entry_line == 1:
@@ -2025,4 +1988,124 @@ def edit_team_name_htmx(request):
         request,
         "events/congress_admin/event_entry_team_name_edit_htmx.html",
         {"event_entry": event_entry},
+    )
+
+
+@login_required()
+def edit_player_name_htmx(request):
+    """HTMX snippet to edit the player name on an EventEntryPlayer"""
+
+    event_entry_player = get_object_or_404(
+        EventEntryPlayer, pk=request.POST.get("event_entry_player_id")
+    )
+    event = event_entry_player.event_entry.event
+
+    # check access
+    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    old_user = copy.copy(event_entry_player.player)
+    new_user = get_object_or_404(User, pk=request.POST.get("player_id"))
+    event_entry_player.player = new_user
+    # replace any TBA data
+    event_entry_player.override_tba_name = None
+    event_entry_player.override_tba_system_number = 0
+    event_entry_player.save()
+    message = "User changed"
+
+    # notify deleted member
+    if old_user.id != TBA_PLAYER:
+        context = {
+            "name": old_user.first_name,
+            "title": "Removed from event - %s" % event,
+            "email_body": f"The convener, {request.user.full_name}, has removed you from this event.<br><br>",
+            "host": COBALT_HOSTNAME,
+        }
+
+        html_msg = render_to_string("notifications/email.html", context)
+
+        # send
+        contact_member(
+            member=old_user,
+            msg=f"Removed from - {event}",
+            contact_type="Email",
+            html_msg=html_msg,
+            link="/events/view",
+            subject=f"Removed from - {event}",
+        )
+
+    # notify added member
+    if new_user.id != TBA_PLAYER:
+        context = {
+            "name": new_user.first_name,
+            "title": f"Added to event - {event}",
+            "email_body": f"The convener, {request.user.full_name}, has added you to this event.<br><br>",
+            "host": COBALT_HOSTNAME,
+            "link": "/events/view",
+            "link_text": "View Entry",
+        }
+
+        html_msg = render_to_string("notifications/email_with_button.html", context)
+
+        # send
+        contact_member(
+            member=new_user,
+            msg="Added to - %s" % event,
+            contact_type="Email",
+            html_msg=html_msg,
+            link="/events/view",
+            subject="Added to - %s" % event,
+        )
+
+        EventLog(
+            event=event,
+            event_entry=event_entry_player.event_entry,
+            actor=request.user,
+            action=f"Convener Action: Changed player from {old_user} to {new_user} on Entry:{event_entry_player.event_entry.href}",
+        ).save()
+
+    tba_form = EventEntryPlayerTBAForm(instance=event_entry_player)
+
+    return render(
+        request,
+        "events/congress_admin/event_entry_player_name_htmx.html",
+        {
+            "event_entry_player": event_entry_player,
+            "tba_form": tba_form,
+            "message": message,
+        },
+    )
+
+
+@login_required()
+def edit_tba_player_details_htmx(request):
+    """Override the name and ABF number of a TBA player"""
+
+    event_entry_player = get_object_or_404(
+        EventEntryPlayer, pk=request.POST.get("event_entry_player_id")
+    )
+    event = event_entry_player.event_entry.event
+
+    # check access
+    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    tba_form = EventEntryPlayerTBAForm(request.POST, instance=event_entry_player)
+
+    message = ""
+
+    if tba_form.is_valid():
+        tba_form.save()
+        message = "Data saved"
+
+    return render(
+        request,
+        "events/congress_admin/event_entry_player_name_htmx.html",
+        {
+            "event_entry_player": event_entry_player,
+            "tba_form": tba_form,
+            "message": message,
+        },
     )

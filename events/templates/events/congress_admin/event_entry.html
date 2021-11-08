@@ -61,6 +61,12 @@
                                         <tr>
                                             <td>
                                                 {{ event_entry_player.player.href|safe }}
+                                                {% if event_entry_player.player.id == TBA_PLAYER %}
+                                                    {% if event_entry_player.override_tba_name %}
+                                                        <br>
+                                                        <span class="font-italic">{{ event_entry_player.override_tba_name }} ({{ event_entry_player.override_tba_system_number }})</span>
+                                                    {% endif %}
+                                                {% endif %}
                                             </td>
                                             <td class="text-right">{{ event_entry_player.payment_received }}</td>
                                             <td class="text-right">{{ event_entry_player.entry_fee }}</td>

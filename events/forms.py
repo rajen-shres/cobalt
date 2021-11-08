@@ -353,14 +353,11 @@ class EventEntryPlayerForm(forms.ModelForm):
     class Meta:
         model = EventEntryPlayer
         fields = (
-            "player",
             "payment_type",
             "payment_status",
             "entry_fee",
             "payment_received",
             "reason",
-            "override_tba_name",
-            "override_tba_system_number",
         )
 
     def __init__(self, *args, **kwargs):
@@ -377,6 +374,17 @@ class EventEntryPlayerForm(forms.ModelForm):
             ]
 
             self.fields["payment_type"].choices = clean_choices
+
+
+class EventEntryPlayerTBAForm(forms.ModelForm):
+    """Handle changing the TBA data (manual override)"""
+
+    class Meta:
+        model = EventEntryPlayer
+        fields = (
+            "override_tba_name",
+            "override_tba_system_number",
+        )
 
 
 class RefundForm(forms.Form):

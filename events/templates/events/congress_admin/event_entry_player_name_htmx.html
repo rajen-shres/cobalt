@@ -1,0 +1,80 @@
+{% load cobalt_tags %}
+
+<div id="ignore_cobalt_save"></div>
+
+<div class="card-header card-header-info">
+    <h3>Player: {{ event_entry_player.player }}</h3>
+</div>
+<div class="card-body">
+    <div class="row">
+        <div class="col-12 px-0 py-0 mx-0 my-0 text-center">
+            <img id="cobalt-pic-{{ event_entry_player.id }}"
+                class="cobalt-rounded text-center px-0 py-0 mx-0 my-0"
+                style="height: 60px; width: 60px;"
+                src="/media/{{ event_entry_player.player.pic }}" />
+            <p class="px-0 py-0  mx-0 my-0" id="player-name-{{ event_entry_player.id }}">
+                {{ event_entry_player.player.full_name }}
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 text-center">
+            <div class="text-primary font-weight-bold">{{ message }}</div>
+            {% include "accounts/search/user_search_include_htmx.html" with callback='changeMember' %}
+            <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#userSearchModal">Change</button>
+            {% if event_entry_player.player.id != TBA_PLAYER %}
+
+                <button type="button" class="btn btn-sm btn-danger" onclick="changeMember(0, {{ TBA_PLAYER }})">Make TBA</button>
+
+            {% else %}
+
+                {# Handle TBA overrides #}
+
+                </div>
+                <div class="col-12 text-center">
+
+                    {% if not event_entry_player.override_tba_name %}
+
+                        {# Not already set, so hide form to edit #}
+
+                        <a id="override_link" href="javascript:void(0)" onclick="$('#hidden-form').show(); $('#override_link').hide();" class="italic">Override TBA Details...</a>
+                        <div id="hidden-form" style="display: none;">
+                            <strong>It is much better to get players to register for {{ GLOBAL_TITLE }} so you can assign them properly.
+                                However, if you have to, you can enter a name and {{ GLOBAL_ORG }} Number here to be included in
+                                the scoring download. This does not register them for {{ GLOBAL_TITLE }}.</strong>
+
+                    {% else %}
+
+                        <div id="not-hidden-form">
+
+                    {% endif %}
+
+                    <hr>
+
+                    <form
+                        hx-post="{% url "events:admin_edit_tba_player_details_htmx" %}"
+                        hx-vars="event_entry_player_id:{{ event_entry_player.id }}"
+                        hx-target="#player_name"
+                    >
+
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-12">
+                                    {% cobalt_bs4_field tba_form.override_tba_name %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    {% cobalt_bs4_field tba_form.override_tba_system_number %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-sm btn-warn">Change</button>
+                    </form>
+                </div>
+
+            {% endif %}
+        </div>
+    </div>
+</div>

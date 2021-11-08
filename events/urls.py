@@ -194,6 +194,16 @@ urlpatterns = [
         ajax.edit_team_name_event_entry_ajax,
         name="edit_team_name_event_entry_ajax",
     ),
+    path(
+        "congress/event/edit-player_name-for-entry",
+        congress_admin.edit_player_name_htmx,
+        name="admin_edit_player_name_htmx",
+    ),
+    path(
+        "congress/event/edit-tba-player-for-entry",
+        congress_admin.edit_tba_player_details_htmx,
+        name="admin_edit_tba_player_details_htmx",
+    ),
     ########################################################################
     # Congress Builder screens for conveners to create and edit congresses #
     ########################################################################
