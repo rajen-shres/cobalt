@@ -226,6 +226,9 @@ def club_menu_tab_settings_membership_edit_htmx(request, club):
         # This throws a non fatal error but actually works!
         del form.fields["is_default"]
 
+    # Don't allow delete for last membership type
+    allow_delete = MembershipType.objects.filter(organisation=club).count() > 1
+
     return render(
         request,
         "organisations/club_menu/settings/membership_edit_htmx.html",
@@ -234,6 +237,7 @@ def club_menu_tab_settings_membership_edit_htmx(request, club):
             "membership_type": membership_type,
             "form": form,
             "message": message,
+            "allow_delete": allow_delete,
         },
     )
 
@@ -308,10 +312,10 @@ def club_menu_tab_settings_membership_delete_htmx(request, club):
             "organisations/club_menu/settings/membership_delete_confirm_htmx.html",
             {"membership_type": membership_type},
         )
-    else:
-        membership_type.delete()
-        # Delete any invalid session payment records
-        turn_off_payment_type(club)
+
+    membership_type.delete()
+    # Delete any invalid session payment records
+    turn_off_payment_type(club)
 
     return membership_htmx(request)
 
@@ -359,16 +363,19 @@ def club_menu_tab_settings_session_edit_htmx(request, club):
     hx_post = reverse("organisations:club_menu_tab_settings_session_delete_htmx")
     hx_vars = f"club_id:{club.id},session_id:{session_type.id}"
 
+    # Don't allow the last session to be deleted
+    allow_delete = SessionType.objects.filter(organisation=club).count() > 1
+
     return render(
         request,
         "organisations/club_menu/settings/session_edit_htmx.html",
         {
-            #       "session_type_payment_methods": session_type_payment_methods,
             "rates": rates,
             "session_type": session_type,
             "club": club,
             "hx_post": hx_post,
             "hx_vars": hx_vars,
+            "allow_delete": allow_delete,
         },
     )
 

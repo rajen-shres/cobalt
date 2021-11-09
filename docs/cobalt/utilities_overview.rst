@@ -187,7 +187,7 @@ Pagination Footer
 To use the same pagination footer (Next Page, Previous Page, etc at the bottom of a screen that is too big to show everything on one page.),
 you can use::
 
-  {% include 'pagination_footer.html' %}
+  {% include 'utils/pagination_footer.html' %}
 
 Your list must be called 'things' for this to work.
 
@@ -203,6 +203,15 @@ If you are paginating over a search list you will need to supply your search str
         "forums/post_search.html",
         {"filter": post_filter, "things": response, "searchparams": searchparams},
     )
+
+HTMX Pagination Footer
+----------------------
+
+For HTMX you can use::
+
+  {% include 'utils/pagination_footer_htmx.html' %}
+
+Your template should have ``tx_target``, ``hx_post`` and ``hx_vars`` set.
 
 Pagination Formatter
 --------------------

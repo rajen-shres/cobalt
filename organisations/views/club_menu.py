@@ -10,6 +10,7 @@ import datetime
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.utils import timezone
 
 from club_sessions.models import Session
@@ -34,6 +35,7 @@ from rbac.core import (
 )
 from rbac.models import RBACUserGroup, RBACGroupRole
 from rbac.views import rbac_forbidden
+from utils.utils import cobalt_paginator
 
 
 @login_required()
@@ -169,12 +171,17 @@ def tab_congress_htmx(request, club):
 def tab_sessions_htmx(request, club):
     """build the sessions tab in club menu"""
 
-    sessions = Session.objects.filter(session_type__organisation=club)
+    sessions = Session.objects.filter(session_type__organisation=club).order_by('-session_date', '-pk')
+
+    things = cobalt_paginator(request, sessions, 3)
+
+    hx_post = reverse("organisations:club_menu_tab_sessions_htmx")
+    hx_vars = f"club_id:{club.id}"
 
     return render(
         request,
         "organisations/club_menu/sessions/sessions_htmx.html",
-        {"club": club, "sessions": sessions},
+        {"club": club, "things": things, "hx_post": hx_post, "hx_vars": hx_vars},
     )
 
 

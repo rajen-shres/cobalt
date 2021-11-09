@@ -40,5 +40,5 @@ class SessionForm(forms.ModelForm):
         ).values_list("id", "name")
         if session_types.count() > 0:
             self.fields["session_type"].choices = session_types
-        # else:
-        #     self.add_error('session_type', "No session types defined")
+        else:
+            self.fields["session_type"].choices = [("", "Error - No session types defined")]

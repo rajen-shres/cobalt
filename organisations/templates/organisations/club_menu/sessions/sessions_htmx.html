@@ -1,4 +1,4 @@
-{% if sessions %}
+{% if things %}
 
     <div class="table-responsive">
         <table class="table table-hover table-condensed">
@@ -11,14 +11,13 @@
                 </tr>
             </thead>
             <tbody>
-                {% for session in sessions %}
+                {% for thing in things %}
                     <tr>
-                        <td>{{ session.description }}</td>
-                        <td>{{ session.session_date }}</td>
-                        <td>{{ session.director.full_name }}</td>
+                        <td>{{ thing.description }}</td>
+                        <td>{{ thing.session_date }}</td>
+                        <td>{{ thing.director.full_name }}</td>
                         <td>
-                            <a href="{% url "events:create_congress_wizard" step=2 congress_id=session.id %}" class="btn btn-sm btn-warning">Edit</a>
-                            <a href="{% url "events:admin_summary" congress_id=session.id %}" class="btn btn-sm btn-success">Manage</a>
+                            <a target="_blank" href="{% url "club_sessions:manage_session" session_id=thing.id %}" class="btn btn-sm btn-success">Edit</a>
                         </td>
 
                     </tr>
@@ -26,6 +25,8 @@
             </tbody>
         </table>
     </div>
+
+    {% include 'utils/pagination_footer_htmx.html' with target="#id_panel_sessions" %}
 
 {% else %}
     <h3>This club has not run any sessions yet</h3>

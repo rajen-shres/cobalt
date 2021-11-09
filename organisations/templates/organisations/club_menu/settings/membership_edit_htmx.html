@@ -14,14 +14,18 @@
             {% crispy form %}
 
             <button id="t_mtype_save" type="submit" name="save" class="btn btn-success">Save</button>
-            {#            <button type="reset" class="btn btn-info">Reset</button>#}
-            <a href="#"
-                class="btn btn-danger"
-                hx-post="{% url "organisations:club_menu_tab_settings_membership_delete_htmx" %}"
-                hx-indicator=".htmx-indicator"
-                hx-target="#id_membership_edit"
-                hx-vars="membership_type_id:{{ membership_type.id }}"
-            >Delete</a>
+
+            {% if allow_delete %}
+                <a href="#"
+                    class="btn btn-danger"
+                    hx-post="{% url "organisations:club_menu_tab_settings_membership_delete_htmx" %}"
+                    hx-indicator=".htmx-indicator"
+                    hx-target="#id_membership_edit"
+                    hx-vars="membership_type_id:{{ membership_type.id }}"
+                >Delete</a>
+            {% else %}
+            <p class="font-italic">This is your only membership type and cannot be deleted.</p>
+            {% endif %}
         </form>
         {% if membership_type.last_modified_by %}
             <div class="font-italic small">last updated {{ membership_type.updated_at|cobalt_nice_datetime }}
