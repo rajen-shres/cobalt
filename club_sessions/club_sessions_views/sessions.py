@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
@@ -45,7 +46,6 @@ def new_session(request, club_id):
     )
 
 
-# @user_is_club_director()
 @login_required()
 def manage_session(request, session_id):
     """Main page to manage a club session after it has been created"""
@@ -61,3 +61,10 @@ def manage_session(request, session_id):
     return render(
         request, "club_sessions/manage_session.html", {"club": club, "session": session}
     )
+
+
+@user_is_club_director()
+def tab_edit_session(request, club):
+    """Edit fields that were set up when the session was started"""
+
+    return HttpResponse("Hello")

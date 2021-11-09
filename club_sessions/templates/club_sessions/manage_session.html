@@ -5,9 +5,7 @@
 
 {% block title %}- Session @ {{ club }}{% endblock %}
 
-
 {% block content %}
-
 
     <h1 class="text-center pt-4"><span id="t_club_name">{{ club }}</span> - {{ club.state }}</h1>
 
@@ -25,15 +23,21 @@
             <div class="card-header card-header-secondary">
                 <ul id="id_menu" class="nav nav-pills nav-pills-icons" role="tablist">
                     <li class="nav-item">
-                        <a id="id_tab_basics" class="nav-link active auto-refresh" href="#basics" role="tab" data-toggle="tab">
-                            <i class="material-icons">space_dashboard</i>
-                            Club
+                        <a id="id_tab_basics" class="nav-link auto-refresh" href="#basics" role="tab" data-toggle="tab">
+                            <i class="material-icons">settings</i>
+                            Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a id="id_tab_stuff" class="nav-link active auto-refresh" href="#stuff" role="tab" data-toggle="tab">
+                            <i class="material-icons">upload_file</i>
+                            Imports
                         </a>
                     </li>
                     <li class="nav-item">
                         <a id="id_tab_stuff" class="nav-link auto-refresh" href="#stuff" role="tab" data-toggle="tab">
-                            <i class="material-icons">manage_accounts</i>
-                            Members
+                            <i class="material-icons">groups</i>
+                            Session
                         </a>
                     </li>
 
@@ -47,10 +51,10 @@
             </div>
             <div class="card-body" style="min-height: 500px;">
                 <div class="tab-content tab-space">
-                    <div class="tab-pane active" id="basics">
+                    <div class="tab-pane" id="basics">
                         <h3>Basics</h3>
                     </div>
-                    <div class="tab-pane" id="stuff">
+                    <div class="tab-pane active" id="stuff">
                         <h3>Stuff</h3>
                     </div>
                 </div>
