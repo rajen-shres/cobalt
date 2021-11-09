@@ -1,5 +1,5 @@
 """ This module has the views that are used by normal players """
-
+import operator
 from datetime import datetime
 from decimal import Decimal
 import uuid
@@ -252,8 +252,9 @@ def view_congress(request, congress_id, fullscreen=False):
     # <tr><td rowspan=2>Long Teams Event<td>Monday <td>13/09/2025 10am<td rowspan=2>Links</tr>
     # <tr> !Nothing!                    <td>Tuesday<td>14/09/2025 10am !Nothing! </tr>
 
-    # get all events for this congress so we can build the program table
-    events = congress.event_set.all()
+    # get all events for this congress so we can build the program table.
+    # We use list_priority_order to set the order within events on the same day if required
+    events = congress.event_set.all().order_by("-list_priority_order")
 
     if not events:
         return HttpResponseNotFound(

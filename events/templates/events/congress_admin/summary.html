@@ -7,22 +7,45 @@
 {% block content %}
     <div id="ignore_cobalt_save"></div>
 
-    <div class="container justify-content-center">
+    <div class="mx-3">
         <div class="row h-100 d-flex justify-content-center">
             <div class="card">
                 <div class="card-header card-header-warning">
                     <h2>Congress Admin View</h2>
                     <h3>{{ congress }}</h3>
                     <h4>{{ congress.congress_master.org }}</h4>
-                    <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}" class="btn btn-sm btn-secondary">Edit Congress</a>
-                    <a href="{% url "events:admin_bulletins" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Bulletins</a>
-                    <a href="{% url "events:admin_latest_news" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Latest News</a>
-                    <a href="{% url "events:admin_congress_email" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Email Congress</a>
-                    <a class="cobalt_generic_member btn btn-sm btn-secondary text-dark" data-toggle="modal" id="player_search" data-target="#cobalt_general_member_search1">Player Search</a>
+
+
+
+                    <div class="float-left">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary dropdown-toggle btn-round" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Actions
+                            </button>
+                            <div class="dropdown-menu">
+                                <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}" class="btn btn-sm btn-secondary">Edit Congress</a>
+                                <a href="{% url "events:admin_bulletins" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Bulletins</a>
+                                <a href="{% url "events:admin_latest_news" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Latest News</a>
+                                <a href="{% url "events:admin_congress_email" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Email Congress</a>
+                                <a class="cobalt_generic_member btn btn-sm btn-secondary text-dark" data-toggle="modal" id="player_search" data-target="#cobalt_general_member_search1">Player Search</a>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-secondary dropdown-toggle btn-round" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                CSV Downloads
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="{% url 'events:admin_congress_csv_scoring' congress_id=congress.id %}">Import to Scoring Program (All Events)</a>
+                            </div>
+                        </div>
+
+                    </div>
                     <div class="float-right">
-                        <a href="{% url "events:admin_convener_settings" congress_id=congress.id %}" class="btn btn-sm btn-secondary">Your Settings</a>
+                        <a href="{% url "events:admin_convener_settings" congress_id=congress.id %}" class="btn btn-rose">Your Settings</a>
                     </div>
                 </div>
+
+
                 <div class="card-body">
 
                     <table class="table table-responsive table-hover">
@@ -35,9 +58,9 @@
                                 <th>Early Entry Fee</th>
                                 <th>Entries</th>
                                 <th>Tables</th>
-                                <th>Due</th>
-                                <th>Paid</th>
-                                <th>Pending</th>
+                                <th class="text-right">Due</th>
+                                <th class="text-right">Paid</th>
+                                <th class="text-right">Pending</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -69,9 +92,9 @@
 
                                 <td class="text-right font-weight-bold">{{ total.entries }}</td>
                                 <td class="text-right font-weight-bold">{{ total.tables }}</td>
-                                <td class="text-right font-weight-bold">{{ total.due }}</td>
-                                <td class="text-right font-weight-bold">{{ total.paid }}</td>
-                                <td class="text-right font-weight-bold">{{ total.pending }}</td>
+                                <td class="text-right font-weight-bold">{{ total.due|cobalt_number }}</td>
+                                <td class="text-right font-weight-bold">{{ total.paid|cobalt_number }}</td>
+                                <td class="text-right font-weight-bold">{{ total.pending|cobalt_number }}</td>
                             </tr>
 
                         </tbody>

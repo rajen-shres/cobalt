@@ -310,6 +310,7 @@ class EventForm(forms.ModelForm):
             "entry_youth_payment_discount",
             "free_format_question",
             "allow_team_names",
+            "list_priority_order",
         )
 
     def clean_entry_early_payment_discount(self):

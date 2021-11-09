@@ -391,6 +391,7 @@ class Event(models.Model):
         "Free Format Question", max_length=60, null=True, blank=True
     )
     allow_team_names = models.BooleanField(default=False)
+    list_priority_order = models.IntegerField(default=0)
 
     def __str__(self):
         return "%s - %s" % (self.congress, self.event_name)

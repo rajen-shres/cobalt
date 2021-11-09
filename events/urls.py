@@ -357,6 +357,11 @@ urlpatterns = [
         name="admin_event_csv_scoring",
     ),
     path(
+        "congress-admin/congress-csv-scoring/<int:congress_id>",
+        congress_admin.admin_congress_csv_scoring,
+        name="admin_congress_csv_scoring",
+    ),
+    path(
         "congress-admin/event-log/<int:event_id>",
         congress_admin.admin_event_log,
         name="admin_event_log",

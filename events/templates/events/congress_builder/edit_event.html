@@ -226,6 +226,20 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-3 justify-content-center align-self-center">
+                                            Congress List Priority (optional)
+                                        </div>
+                                        <div class="col-7">
+                                            <div id="div_id_list_priority_order" class="form-group">
+                                                <span class="cobalt-form-error" id="id_list_priority_order_errors">{{ form.list_priority_order.errors|striptags }}</span>
+                                                {% render_field form.list_priority_order class+="form-control" %}
+                                            </div>
+                                        </div>
+                                        <div class="col-2 justify-content-center align-self-center">
+                                            <a href="javascript:void(0)" onclick='help("Congress List Priority", "If you have events that start on the same day, you can control the order in which they display in the congress listing here. The event with the highest priority will show first.");'>help</a>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-3 justify-content-center align-self-center">
                                             Allow Players to Choose Team Name
                                         </div>
                                         <div class="col-7">

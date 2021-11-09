@@ -14,6 +14,7 @@ from django.utils.html import strip_tags
 from cobalt.settings import (
     TIME_ZONE,
 )
+from events.events_views.core import sort_events_by_start_date
 from logs.views import log_event
 from organisations.models import Organisation
 from rbac.core import (
@@ -427,22 +428,7 @@ def create_congress_wizard_6(request, step_list, congress):
         )
 
     # add start date and sort by start date
-    events_list = {}
-    events_list_sorted = {}
-    for event in events:
-        event.event_start_date = event.start_date()
-        if event.event_start_date:
-            events_list[event] = event.event_start_date
-        else:
-            events_list[event] = date(year=1967, month=5, day=3)
-    print("\n\n\n")
-    print(congress)
-    print(events_list)
-    print("\n\n\n")
-    events_list_sorted = {
-        key: value
-        for key, value in sorted(events_list.items(), key=lambda item: item[1])
-    }
+    events_list_sorted = sort_events_by_start_date(events)
 
     return render(
         request,

@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone, dateformat
 from django.db.models import Sum, Q
 
+from events.events_views.core import sort_events_by_start_date
 from notifications.models import BlockNotification
 from notifications.views import contact_member, CobaltEmail
 from logs.views import log_event
@@ -148,10 +149,13 @@ def admin_summary(request, congress_id):
     if total["tables"] == int(total["tables"]):
         total["tables"] = int(total["tables"])
 
+    # add start date and sort by start date
+    events_list_sorted = sort_events_by_start_date(events)
+
     return render(
         request,
         "events/congress_admin/summary.html",
-        {"events": events, "total": total, "congress": congress},
+        {"events": events_list_sorted, "total": total, "congress": congress},
     )
 
 
@@ -329,6 +333,7 @@ def admin_event_csv(request, event_id):
     entries = event.evententry_set.exclude(entry_status="Cancelled").order_by(
         "first_created_date"
     )
+    entries.prefetch_related("evententryplayer_set")
 
     local_dt = timezone.localtime(timezone.now(), TZ)
     today = dateformat.format(local_dt, "Y-m-d H:i:s")
@@ -476,6 +481,59 @@ def admin_event_csv_scoring(request, event_id):
     response["Content-Disposition"] = f"attachment; filename={event} - Scoring.csv"
 
     writer = csv.writer(response)
+
+    _csv_event_writer(writer, entries, event)
+
+    # Log it
+    EventLog(
+        event=event, actor=request.user, action=f"CSV Download of scoring for {event}"
+    ).save()
+
+    return response
+
+
+@login_required()
+def admin_congress_csv_scoring(request, congress_id):
+    """Download a CSV file with info to import to a scoring program. For whole congress"""
+
+    congress = get_object_or_404(Congress, pk=congress_id)
+
+    role = "events.org.%s.edit" % congress.congress_master.org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = f"attachment; filename={congress} - Scoring.csv"
+
+    writer = csv.writer(response)
+
+    events = Event.objects.filter(congress=congress)
+    events.prefetch_related("evententry_set")
+
+    for event in events:
+        writer.writerow(
+            [
+                event,
+            ]
+        )
+        entries = event.evententry_set.exclude(entry_status="Cancelled").order_by(
+            "first_created_date"
+        )
+        _csv_event_writer(writer, entries, event)
+
+    # Log it
+    EventLog(
+        event=event,
+        actor=request.user,
+        action=f"CSV Download of scoring for whole congress. {congress}",
+    ).save()
+
+    return response
+
+
+def _csv_event_writer(writer, entries, event):
+    """sub task to create event listing for CSV output"""
+
     title = "Pair No" if event.player_format == "Pairs" else "Team No"
     # Event Entry details
     header = [
@@ -538,13 +596,6 @@ def admin_event_csv_scoring(request, event_id):
         if event.player_format == "Teams":
             for _ in range(7 - entry_line):
                 writer.writerow([count, "", "", "", "", team_name])
-
-    # Log it
-    EventLog(
-        event=event, actor=request.user, action=f"CSV Download of scoring for {event}"
-    ).save()
-
-    return response
 
 
 @login_required()

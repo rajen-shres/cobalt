@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from django.db.models import Q
 from django.template.loader import render_to_string
@@ -545,4 +545,22 @@ def events_status_summary():
         "upcoming_entries": upcoming_entries,
         "entries_last_24_hours": entries_last_24_hours,
         "entries_last_hour": entries_last_hour,
+    }
+
+
+def sort_events_by_start_date(events):
+    """Add the start date to a list of events and sort by start date"""
+
+    # add start date and sort by start date
+    events_list = {}
+    for event in events:
+        event.event_start_date = event.start_date()
+        if event.event_start_date:
+            events_list[event] = event.event_start_date
+        else:
+            events_list[event] = date(year=1967, month=5, day=3)
+
+    return {
+        key: value
+        for key, value in sorted(events_list.items(), key=lambda item: item[1])
     }
