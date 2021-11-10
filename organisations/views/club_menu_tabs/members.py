@@ -2,6 +2,7 @@ import csv
 import datetime
 from copy import copy
 
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render, get_object_or_404
@@ -28,9 +29,14 @@ from organisations.models import (
     ClubTag,
     MembershipType,
 )
-from organisations.views.general import _active_email_for_un_reg
+from organisations.views.general import (
+    _active_email_for_un_reg,
+    get_rbac_model_for_state,
+)
 from rbac.core import rbac_user_has_role
 from post_office.models import Email as PostOfficeEmail
+
+from rbac.views import rbac_forbidden
 
 
 @check_club_menu_access()
@@ -112,11 +118,25 @@ def reports_htmx(request, club):
     )
 
 
-@check_club_menu_access()
-def report_all_csv(request, club):
-    """CSV of all members"""
+@login_required()
+def report_all_csv(request, club_id):
+    """CSV of all members. We can't use the decorator as I can't get HTMX to treat this as a CSV"""
 
     # Get all ABF Numbers for members
+
+    club = get_object_or_404(Organisation, pk=club_id)
+
+    # Check for club level access - most common
+    club_role = f"orgs.org.{club.id}.edit"
+    if not rbac_user_has_role(request.user, club_role):
+
+        # Check for state level access or global
+        rbac_model_for_state = get_rbac_model_for_state(club.state)
+        state_role = "orgs.state.%s.edit" % rbac_model_for_state
+        if not rbac_user_has_role(request.user, state_role) and not rbac_user_has_role(
+            request.user, "orgs.admin.edit"
+        ):
+            return rbac_forbidden(request, club_role)
 
     now = timezone.now()
     club_members = (
