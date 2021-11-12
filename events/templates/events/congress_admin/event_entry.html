@@ -132,7 +132,7 @@
                                 <tr>
                                     <td>{{ event_log.action_date|cobalt_nice_datetime }}</td>
                                     <td>{{ event_log.actor }}</td>
-                                    <td>{{ event_log.action }}</td>
+                                    <td>{{ event_log.action|safe }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>

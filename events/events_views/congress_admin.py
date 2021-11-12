@@ -237,7 +237,7 @@ def admin_evententry(request, evententry_id):
 
     event_entry_players = EventEntryPlayer.objects.filter(
         event_entry=event_entry
-    ).order_by("id")
+    ).order_by("first_created_date")
 
     event_logs = EventLog.objects.filter(event_entry=event_entry).order_by("-id")
 
@@ -476,6 +476,9 @@ def admin_event_csv_scoring(request, event_id):
     entries = event.evententry_set.exclude(entry_status="Cancelled").order_by(
         "first_created_date"
     )
+    entries.select_related("event_entry_player")
+
+    print(entries.query)
 
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = f"attachment; filename={event} - Scoring.csv"
