@@ -199,7 +199,7 @@
 
         {% include 'utils/generic_user_search_footer.html' with search_id=0 %}
         {% for our_form_row in our_form %}
-            {% include 'utils/generic_user_search_footer.html' with search_id=our_form_row.player_no %}
+            {% include 'utils/generic_user_search_footer.html' with search_id=our_form_row.player_no include_me=True %}
         {% endfor %}
 
         // callback from generic search if user is chosen
