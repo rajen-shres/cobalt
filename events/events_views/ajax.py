@@ -1426,6 +1426,11 @@ def edit_team_name_event_entry_ajax(request):
         return JsonResponse({"message": "You cannot edit this entry"})
 
     new_team_name = data["team_name"]
+
+    # Don't store empty string, use None
+    if new_team_name == "":
+        new_team_name = None
+
     event_entry.team_name = new_team_name
     event_entry.save()
 

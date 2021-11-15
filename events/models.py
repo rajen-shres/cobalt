@@ -811,6 +811,15 @@ class EventEntry(models.Model):
 
         return self.evententryplayer_set.all().distinct("pk").order_by("pk")
 
+    def get_team_name(self):
+        """If the team name field is None we default the team name to the surname of the primary entrant.
+        We also return it in uppercase"""
+
+        if self.team_name:
+            return self.team_name.upper()
+
+        return self.primary_entrant.last_name.upper()
+
 
 class EventEntryPlayer(models.Model):
     """A player who is entering an event"""

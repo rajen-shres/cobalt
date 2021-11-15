@@ -10,7 +10,7 @@
             maxlength="15"
             class=""
             required
-            value="{{ event_entry.team_name|default_if_none:event_entry.primary_entrant.last_name }}">
+            value="{{ event_entry.get_team_name }}">
 
 
         <button type="submit" class="btn btn-sm btn-success" name="save">Save</button>

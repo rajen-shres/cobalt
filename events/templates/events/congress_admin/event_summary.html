@@ -101,7 +101,7 @@
                                                         <i class="material-icons">sticky_note_2</i></a>
                                                 {% endif %}
                                                 {% if event.allow_team_names %}
-                                                    <strong>{{ event_entry.team_name|default_if_none:event_entry.primary_entrant.last_name }} - </strong>
+                                                    <strong>{{ event_entry.get_team_name }} - </strong>
                                                 {% endif %}
                                                 {% for event_entry_player in event_entry.players %}
                                                     {% if event_entry_player.player.id == TBA_PLAYER %}

@@ -658,6 +658,17 @@ def view_event_entries(request, congress_id, event_id):
         .order_by("entry_complete_date")
     )
     entries.prefetch_related("evententryplayer_set")
+
+    # identify this users entry
+    if request.user.is_authenticated:
+        for entry in entries:
+            if entry.primary_entrant == request.user:
+                entry.my_entry = True
+                continue
+            for player in entry.evententryplayer_set.all():
+                if player.player == request.user:
+                    entry.my_entry = True
+
     categories = Category.objects.filter(event=event).exists()
     date_string = event.print_dates()
 
@@ -669,7 +680,6 @@ def view_event_entries(request, congress_id, event_id):
             .exclude(event_entry__entry_status="Cancelled")
             .exists()
         )
-        # TODO: Fix this bare exception!
     except TypeError:
         # may be anonymous
         user_entered = False
@@ -1448,7 +1458,7 @@ def enter_event(request, congress_id, event_id):
 
         # see if we got a team name
         team_name = request.POST.get("team_name", None)
-        if team_name:
+        if team_name and team_name != "":
             event_entry.team_name = team_name
 
         event_entry.save()

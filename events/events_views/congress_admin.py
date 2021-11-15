@@ -367,6 +367,9 @@ def admin_event_csv(request, event_id):
 
     header.append("Player comment")
     header.append("Organiser Notes")
+
+    if event.allow_team_names:
+        header = ["Team Name"] + header
     writer.writerow(header)
 
     for row in entries:
@@ -404,6 +407,10 @@ def admin_event_csv(request, event_id):
 
         this_row.append(row.comment)
         this_row.append(row.notes)
+
+        if event.allow_team_names:
+            this_row = [row.get_team_name()] + this_row
+
         writer.writerow(this_row)
 
     # Event Entry Player details
@@ -554,16 +561,10 @@ def _csv_event_writer(writer, entries, event):
 
     writer.writerow(header)
 
-    team_name = "NOT SET"  # Keep IDE happy
-
     for count, entry in enumerate(entries, start=1):
         entry_line = 1
+        team_name = entry.get_team_name()
         for row in entry.evententryplayer_set.order_by("-player").all():
-            # Use team name if enabled and set, otherwise primary entrant last name
-            if event.allow_team_names and row.event_entry.team_name:
-                team_name = row.event_entry.team_name.upper()
-            else:
-                team_name = row.event_entry.primary_entrant.last_name.upper()
 
             # Handle overriding the TBA details
             if row.player.id == TBA_PLAYER and row.override_tba_name:

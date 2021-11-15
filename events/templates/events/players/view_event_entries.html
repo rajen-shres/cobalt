@@ -8,10 +8,10 @@
         <div class="card">
             <div class="card-header card-header-primary">
                 <div class="text-center">
-                    <h2>{{ event.event_name}}</h2>
+                    <h2>{{ event.event_name }}</h2>
                     <h3>{{ congress }}</h3>
                     <h3>{{ date_string }} - {{ event.start_time|cobalt_time }} Start</h3>
-                    <h4>{{ entries|length }} entries
+                    <h4>{{ entries|length }} entr{{ entries|length|pluralize:"y,ies" }}
                         {% if event.max_entries %}
                             out of a maximum of {{ event.max_entries }}
                         {% endif %}
@@ -31,8 +31,8 @@
                         <table class="table table-responsive text-center">
                             <thead>
                                 <tr>
-                                    <th>Entry</th>
-                                    <th>Status</th>
+                                    <th class="text-left">Entry</th>
+                                    <th class="text-left">Status</th>
                                     {% if categories %}
                                         <th>Category</th>
                                     {% endif %}
@@ -42,13 +42,21 @@
 
                                 {% for entry in entries %}
                                     <tr>
-                                        <td class="py-1">
+                                        <td class="py-1 text-left">
+                                            {% if entry.my_entry %}
+                                                <a class="" href="{% url "events:edit_event_entry" event_id=event.id congress_id=congress.id %}">
+                                            {% endif %}
+                                            {% if event.allow_team_names %}
+                                                <strong>{{ entry.get_team_name }} - </strong>
+                                            {% endif %}
                                             {% for player in entry.ordered_event_entry_player %}
                                                 {{ player.player.full_name }}{% if not forloop.last %}, {% endif %}
                                             {% endfor %}
-
+                                            {% if entry.my_entry %}
+                                                </a>
+                                            {% endif %}
                                         </td>
-                                        <td class="py-1">
+                                        <td class="py-1 text-left"">
                                             {{ entry.entry_status }}
                                         </td>
 

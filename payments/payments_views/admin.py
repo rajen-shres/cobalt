@@ -441,6 +441,7 @@ def _admin_view_specific_transactions_csv_download(
         writer.writerow(
             [
                 "Date",
+                "Other Organisation",
                 "Administrator",
                 "Transaction Type",
                 "Club ID",
@@ -456,6 +457,7 @@ def _admin_view_specific_transactions_csv_download(
             writer.writerow(
                 [
                     dateformat.format(local_dt, "Y-m-d H:i:s"),
+                    org.other_organisation,
                     org.member,
                     org.type,
                     org.organisation.org_id,

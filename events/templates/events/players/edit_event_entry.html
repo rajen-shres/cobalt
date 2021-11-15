@@ -340,7 +340,7 @@
                         {% if event.allow_team_names %}
                             <br>
                             <label>Team Name: <strong class="text-dark">
-                                <span id="team_name_value">{{ event_entry.team_name|default_if_none:event_entry.primary_entrant.last_name }}</span>
+                                <span id="team_name_value">{{ event_entry.get_team_name }}</span>
                             </strong></label>
                             <i class="material-icons text-info" id="id_team_name" style="cursor: pointer">edit</i></a>
                         {% endif %}
