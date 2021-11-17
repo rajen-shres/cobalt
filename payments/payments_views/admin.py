@@ -1644,7 +1644,7 @@ def manual_adjust_org(request, org_id=None, default_transaction=None):
                 1.0 - float(org.settlement_fee_percent) / 100.0
             )
         else:
-            member = request.User
+            member = request.user
             other_organisation = None
             bank_settlement_amount = None
 

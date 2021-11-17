@@ -34,7 +34,7 @@
                                                     <option value="{{ event.id }}">{{ event.event_name }}
                                                         ({{ event.event_start_date|cobalt_nice_date|default_if_none:"No Sessions Defined" }})
                                                         {% if event.list_priority_order != 0 %}
-                                                            Priority {{ event.list_priority_order }}
+                                                            Sort Order {{ event.list_priority_order }}
                                                         {% endif %}
                                                     </option>
                                                 {% endfor %}
