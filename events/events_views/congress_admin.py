@@ -1139,7 +1139,7 @@ def admin_congress_email(request, congress_id):
 def _admin_email_common_thread(
     request, congress, subject, body, recipients, email_sender
 ):
-    """we run a thread so we can return to the user straight away"""
+    """we run a thread so we can return to the user straight away. Probably not necessary now we have Django Post Office"""
 
     for recipient in recipients:
         context = {
