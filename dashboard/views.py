@@ -49,6 +49,30 @@ def home(request):
         return redirect("logged_out")
 
 
+def experiment(request):
+    """Home page experimental"""
+
+    system_number = request.user.system_number
+    masterpoints = get_masterpoints(system_number)
+    payments = get_balance_detail(request.user)
+    posts = get_posts(request)
+    posts2 = get_announcements(request)
+    events, unpaid = get_events(request.user)
+
+    return render(
+        request,
+        "dashboard/experiment.html",
+        {
+            "mp": masterpoints,
+            "payments": payments,
+            "posts": posts,
+            "posts2": posts2,
+            "events": events,
+            "unpaid": unpaid,
+        },
+    )
+
+
 def logged_out(request):
     """Home screen for logged out users"""
 

@@ -5,6 +5,10 @@
 
 {% block title %} - Dashboard{% endblock %}
 
+{% block header %}
+    <link href="https://cdn.jsdelivr.net/npm/intro.js@4.3.0/introjs.css" rel="stylesheet" />
+{% endblock %}
+
 {% block content %}
 
     <div class="container">
@@ -258,14 +262,32 @@
                 </div>
             </div>
         </div>
+
     </div>
+
+
+
 
     <script src="{% static "assets/js/waypoints/jquery.waypoints.min.js" %}"></script>
     <script src="{% static "assets/js/waypoints/shortcuts/infinite.min.js" %}"></script>
     <script src="{% static "assets/js/countUp.2.0.7/countUp.umd.js" %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/intro.js@4.3.0/intro.min.js"></script>
 
     <script>
         $(document).ready(function() {
+            introJs().setOptions({
+                showBullets: false,
+                steps: [
+                    {
+                        element: document.querySelector('.navbar-wrapper'),
+                        intro: '<h3>My ABF Tour</h3>Welcome to the tour.',
+                    },                {
+                        element: document.querySelector('.navbar-wrapper'),
+                        intro: '<h3>My ABF Tour 2</h3>Welcome to the tour.',
+                    },
+                ]
+            }).start();
+
             // Infinite Scroll
             var infinite = new Waypoint.Infinite({
                 element: $('.infinite-container')[0],
