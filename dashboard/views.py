@@ -32,6 +32,9 @@ def home(request):
         posts2 = get_announcements(request)
         events, unpaid = get_events(request.user)
 
+        # Show tour for this page?
+        tour = request.GET.get("tour", None)
+
         return render(
             request,
             "dashboard/home.html",
@@ -42,6 +45,7 @@ def home(request):
                 "posts2": posts2,
                 "events": events,
                 "unpaid": unpaid,
+                "tour": tour,
             },
         )
 
@@ -61,7 +65,7 @@ def experiment(request):
 
     return render(
         request,
-        "dashboard/experiment.html",
+        "dashboard/home.html",
         {
             "mp": masterpoints,
             "payments": payments,

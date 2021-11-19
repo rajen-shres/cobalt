@@ -362,7 +362,7 @@
     <script>
 
         {% for event_entry_player in event_entry.evententryplayer_set.all %}
-            {% include "utils/generic_user_search_footer.html" with search_id=event_entry_player.id %}
+            {% include "utils/generic_user_search_footer.html" with search_id=event_entry_player.id include_me=True %}
         {% endfor %}
 
         // edit player

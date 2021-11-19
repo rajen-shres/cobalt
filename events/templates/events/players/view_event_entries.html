@@ -44,7 +44,7 @@
                                     <tr>
                                         <td class="py-1 text-left">
                                             {% if entry.my_entry %}
-                                                <a class="" href="{% url "events:edit_event_entry" event_id=event.id congress_id=congress.id %}">
+                                                <a class="" href="{% url "events:edit_event_entry" event_id=event.id congress_id=congress.id %}/edit=1">
                                             {% endif %}
                                             {% if event.allow_team_names %}
                                                 <strong>{{ entry.get_team_name }} - </strong>

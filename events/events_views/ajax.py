@@ -614,6 +614,21 @@ def delete_basket_item_ajax(request):
     basket_item = get_object_or_404(BasketItem, pk=basket_id)
 
     if basket_item.player == request.user:
+
+        # Check if payments have been made
+        if (
+            EventEntryPlayer.objects.filter(event_entry=basket_item.event_entry)
+            .exclude(payment_received=0.0)
+            .exists()
+        ):
+            return JsonResponse(
+                {
+                    "data": {
+                        "message": "Payments have been received for this entry. You can cancel it from the edit event screen."
+                    }
+                }
+            )
+
         basket_item.event_entry.delete()
         basket_item.delete()
 

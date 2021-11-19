@@ -340,6 +340,8 @@ def _send_notifications(route_payload, payment_user):
                 subject="Event Entry - %s" % congress,
             )
 
+            print(player)
+
     # Notify conveners
     for congress in email_dic.keys():
         for event in email_dic[congress].keys():

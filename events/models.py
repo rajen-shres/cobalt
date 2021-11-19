@@ -18,6 +18,7 @@ from cobalt.settings import (
     BLEACH_ALLOWED_TAGS,
     BLEACH_ALLOWED_ATTRIBUTES,
     BLEACH_ALLOWED_STYLES,
+    TBA_PLAYER,
 )
 from organisations.models import Organisation
 from payments.models import MemberTransaction
@@ -815,10 +816,13 @@ class EventEntry(models.Model):
         """If the team name field is None we default the team name to the surname of the primary entrant.
         We also return it in uppercase"""
 
-        if self.team_name:
+        if self.event.allow_team_names and self.team_name:
             return self.team_name.upper()
 
-        return self.primary_entrant.last_name.upper()
+        if self.primary_entrant.id == TBA_PLAYER:
+            return "TBA"
+        else:
+            return self.primary_entrant.last_name.upper()
 
 
 class EventEntryPlayer(models.Model):

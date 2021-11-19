@@ -1,0 +1,159 @@
+{#This file is the script for the tour. It is called by adding ?tour=anything to the URL#}
+
+{% load static %}
+<script src="{% static "assets/packages/intro.js.4.3.0/intro.min.js" %}"></script>
+<script>
+    $(document).ready(function() {
+
+        // This is the common bits that work the same on any size window
+        const steps_part1 = [
+            {
+                title: 'Dashboard Tour',
+                intro: '<img src="{% static "assets/img/abftechlogo.png" %}" style="width:170px ; display: block; margin-left: auto; margin-right: auto;">' +
+                '<br>This short tour will introduce you to the features available on the {{ GLOBAL_TITLE }} ' +
+                '<b>Dashboard</b>. This is the main screen in the system.',
+                element: document.querySelector('.wrapper'),
+            },
+            {
+                title: 'Your Name',
+                element: document.querySelector('#base-user-name'),
+                intro: 'Because you are logged in to the system, we can show you content ' +
+                'that is customised to you. For example, events you have entered and your masterpoints. ' +
+                '<br><br>In fact. Lets start there. Click on the <b>Next</b> button to move forwards in the tour.',
+                onchange: function(){
+                    console.log("changed");
+                },
+            },
+            {
+                element: document.querySelector('#dashboard-top-info'),
+                title: 'Top Information Row',
+                intro: 'This top part shows high level information about your {{ GLOBAL_TITLE }} account.',
+            },
+            {
+                element: document.querySelector('#dashboard-bridge-credits'),
+                title: 'Bridge Credits',
+                intro: 'You can use Bridge Credits to pay for your bridge.' +
+                'Your current balance shows here. <br><br>You can click on this to go to your statement ' +
+                'and you can top up your account any time you like or set up Auto Top Up for the ' +
+                'system to top you up automatically when required.',
+            },
+            {
+                element: document.querySelector('#dashboard-booked-events'),
+                title: 'Booked Events',
+                intro: 'This shows how many events you are booked to play in.' {% if not events %} +
+                    '<br><br>Hmmm... It looks like you are yet to enter an event. You can click on here to see what is coming up.'
+                {% endif %}
+            },
+            {
+                element: document.querySelector('#dashboard-masterpoints'),
+                title: 'Masterpoints',
+                intro: 'This shows how many masterpoints you currently have and ' +
+                'your ranking. Click on this to go to more detail.',
+            },
+            {
+                element: document.querySelector('#dashboard-results'),
+                title: 'Results',
+                intro: "We haven't added results to {{ GLOBAL_TITLE }} yet, but when "  +
+                "we do this is where your recent results will show."
+            },
+            {
+                element: document.querySelector('#dashboard-upcoming'),
+                title: 'Upcoming Events',
+                intro: 'This lists any events that you have entered. If you have any ' +
+                'then the first link takes you to the congress page and the second (event) ' +
+                'link takes you to your entry.',
+            },
+            {
+                element: document.querySelector('#dashboard-announce'),
+                title: 'Announcements',
+                intro: 'These are the latest announcements on {{ GLOBAL_TITLE }}. ' +
+                'You can control what announcements you receive from the <b>Forums</b> section.',
+            },
+            {
+                element: document.querySelector('#dashboard-discuss'),
+                title: 'Discussions',
+                intro: '{{ GLOBAL_TITLE }} users can discuss anything bridge related within ' +
+                'Forums. The latest posts appear here.',
+            },
+            {
+                title: "And There's More",
+                intro: "Let's look at what else you can do."
+            },
+        ]
+
+        // this is the bit for bigger windows
+        const steps_part2 = [
+            {
+                title: 'Search',
+                element: document.querySelector('#search_string'),
+                intro: 'You can search for people, clubs, forums, events, even payments.',
+            },
+        ]
+
+        // this is for smaller windows
+        const steps_small = [
+            {
+                element: document.querySelector('#base-navbar'),
+                title: 'Small Window',
+                intro: 'You are on a smaller screen and the next few things are contained under the three little ' +
+                'lines on the top right. Click <b>Next</b> and I will open them for you.',
+            },
+            {
+                element: document.querySelector('#sr-only'),
+                title: 'Small Window',
+                intro: 'To close the navigation bar you can click here ,but we need it open for now.',
+            },
+        ]
+
+        let steps = [];
+        const width = document.body.clientWidth;
+
+        if (width >= 992) {
+
+            // Big screens are fairly straightforward
+            steps = steps_part1.concat(steps_part2);
+            introJs().setOptions({
+                showBullets: false,
+                steps: steps,
+            }).start();
+
+        }else{
+
+            // Smaller screens need a bit more work
+            steps = steps_part1.concat(steps_small);
+
+            let tour = introJs().setOptions({
+                showBullets: false,
+                steps: steps,
+            });
+
+            tour.onbeforechange(function(event){
+                // we need to open the menu on the right on a small screen at the appropriate point
+
+                if (typeof event === "undefined") {
+                    return;
+                }
+                console.log(event.id);
+                if (event.id === "sr-only") {
+                    $('.navbar-toggler').click();
+                }
+            });
+
+            tour.oncomplete(function(){
+                // finish and then call part 2
+                console.log("Callback");
+                let tour_part2 = introJs().setOptions({
+                    showBullets: false,
+                    steps: steps_part2,
+                })
+                console.log(tour_part2);
+
+                tour_part2.start();
+
+            });
+
+            tour.start();
+
+        }
+    });
+</script>

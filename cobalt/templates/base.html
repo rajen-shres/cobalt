@@ -161,7 +161,7 @@ Environment: {{ COBALT_HOSTNAME }}
             <!-- Navbar -->
             <nav class="navbar navbar-expand-lg navbar-transparent navbar-absolute fixed-top">
                 <div class="container-fluid">
-                    <div class="navbar-wrapper">
+                    <div class="navbar-wrapper" id="base-user-name">
                         <span>
                             Hi
                             {% if request.user.first_name %}
@@ -171,8 +171,8 @@ Environment: {{ COBALT_HOSTNAME }}
                             {% endif %}
                         </span>
                     </div>
-                    <button class="navbar-toggler" type="button" data-toggle="collapse" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="sr-only">Toggle navigation</span>
+                    <button id='base-navbar' class="navbar-toggler" type="button" data-toggle="collapse" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
+                        <span id='sr-only' class="sr-only">Toggle navigation</span>
                         <span class="navbar-toggler-icon icon-bar"></span>
                         <span class="navbar-toggler-icon icon-bar"></span>
                         <span class="navbar-toggler-icon icon-bar"></span>
