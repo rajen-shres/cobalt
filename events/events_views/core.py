@@ -46,7 +46,9 @@ def events_payments_secondary_callback(status, route_payload, tran):
             .first()
             .event_entry.primary_entrant
         )
-    _update_entries(route_payload, primary_entrant)
+
+        event_entries = _update_entries(route_payload, primary_entrant)
+        _clean_up(event_entries)
 
 
 def events_payments_callback(status, route_payload, tran):
@@ -76,8 +78,9 @@ def events_payments_callback(status, route_payload, tran):
         payment_user = pbi.player
         pbi.delete()
 
-        _update_entries(route_payload, payment_user)
+        event_entries = _update_entries(route_payload, payment_user)
         _send_notifications(route_payload, payment_user)
+        _clean_up(event_entries)
 
 
 def _update_entries(route_payload, payment_user):
@@ -179,10 +182,7 @@ def _update_entries(route_payload, payment_user):
     for event_entry in event_entries:
         event_entry.check_if_paid()
 
-        # Any payments should remove the entry from the shopping basket
-        basket = BasketItem.objects.filter(event_entry=event_entry)
-        if basket:
-            basket.delete()
+    return event_entries
 
 
 def _send_notifications(route_payload, payment_user):
@@ -340,8 +340,6 @@ def _send_notifications(route_payload, payment_user):
                 subject="Event Entry - %s" % congress,
             )
 
-            print(player)
-
     # Notify conveners
     for congress in email_dic.keys():
         for event in email_dic[congress].keys():
@@ -382,6 +380,19 @@ def _send_notifications(route_payload, payment_user):
     #     sub_source="events_user",
     #     message=f"Entered event {event.href}",
     # )
+
+
+def _clean_up(event_entries):
+    """delete any left over basket items"""
+
+    # Check if EntryEvent is now complete
+    for event_entry in event_entries:
+        event_entry.check_if_paid()
+
+        # Any payments should remove the entry from the shopping basket
+        basket = BasketItem.objects.filter(event_entry=event_entry)
+        if basket:
+            basket.delete()
 
 
 def get_basket_for_user(user):
