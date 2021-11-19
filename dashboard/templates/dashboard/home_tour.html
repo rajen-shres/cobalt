@@ -13,6 +13,7 @@
                 '<br>This short tour will introduce you to the features available on the {{ GLOBAL_TITLE }} ' +
                 '<b>Dashboard</b>. This is the main screen in the system.',
                 element: document.querySelector('.wrapper'),
+                scrollTo: document.querySelector('.wrapper'),
             },
             {
                 title: 'Your Name',
@@ -41,7 +42,7 @@
                 element: document.querySelector('#dashboard-booked-events'),
                 title: 'Booked Events',
                 intro: 'This shows how many events you are booked to play in.' {% if not events %} +
-                    '<br><br>Hmmm... It looks like you are yet to enter an event. You can click on here to see what is coming up.'
+                    '<br><br>Hmmm... It looks like you are yet to enter an event. Later I will show you how to do that.'
                 {% endif %}
             },
             {
@@ -76,7 +77,7 @@
                 'Forums. The latest posts appear here.',
             },
             {
-                title: "And There's More",
+                title: "And There's More!",
                 intro: "Let's look at what else you can do."
             },
         ]
@@ -88,6 +89,39 @@
                 element: document.querySelector('#search_string'),
                 intro: 'You can search for people, clubs, forums, events, even payments.',
             },
+            {
+                title: 'Notifications',
+                element: document.querySelector('#navbarDropdownMenuLink'),
+                {% if notifications %}
+                    intro: 'Any messages for you will appear here.',
+                {% else %}
+                    intro: "You don't have any notifications, but if you did, they would appear next to the " +
+                    "search. <br><br>You will see a bell icon if you have any messages.",
+                {% endif %}
+            },
+            {
+                title: 'Shopping Cart',
+                element: document.querySelector('#navbarDropdownMenuLink2'),
+                {% if basket_items %}
+                    intro: 'Events you have started to enter, but not yet completed appear here.',
+                {% else %}
+                    intro: "You don't have anything in your shopping cart, but if you did, it would also appear next to the " +
+                    "search. <br><br>You will see a shopping trolley icon if you have anything in your cart.",
+                {% endif %}
+            },
+            {
+                title: 'Profile and Settings',
+                element: document.querySelector('#navbarDropdownProfile'),
+                intro: 'Under here you can find your <b>Profile</b>, <b>Settings</b> and the <b>Logout</b> button.',
+            },
+            {
+                title: "Navigation Bar",
+                element: document.querySelector('.sidebar-wrapper'),
+                intro: "Finally, we have the navigation bar.<br><br>This appears on every page and " +
+                "lets you navigate around the {{ GLOBAL_TITLE }} site.<br><br>You can click on anything here to " +
+                "go to that area. For example, if you click on <b>Congresses</b> it will take you to a list of " +
+                "upcoming events so you can enter something."
+            },
         ]
 
         // this is for smaller windows
@@ -95,13 +129,25 @@
             {
                 element: document.querySelector('#base-navbar'),
                 title: 'Small Window',
-                intro: 'You are on a smaller screen and the next few things are contained under the three little ' +
-                'lines on the top right. Click <b>Next</b> and I will open them for you.',
+                intro: "On a smaller screen like yours, you will see these three lines here. By clicking " +
+                "on this you can find the rest of the menu items including <b>Search</b>, " +
+                "<b>Notifications</b> and the <b>Navigation</b> menu.<br><br>For more details try taking this " +
+                "tour on a device with a larger screen.",
             },
+        ]
+        // this is for smaller windows
+        const steps_finish = [
             {
-                element: document.querySelector('#sr-only'),
-                title: 'Small Window',
-                intro: 'To close the navigation bar you can click here ,but we need it open for now.',
+                title: 'Dashboard Tour',
+                intro: '<img src="{% static "assets/img/abftechlogo.png" %}" ' +
+                'style="width:170px ; display: block; margin-left: auto; margin-right: auto;">' +
+                '<br>That is the end of the <b>Dashboard Tour</b> but you can take tours of other pages if ' +
+                'you like. Tours can be found under the <b>Support</b> menu.<br><br><ul>' +
+                '<li><a href="/"><b>Profile Tour</b></a>' +
+                '<li><a href="/"><b>Bridge Credits Tour</b></a>' +
+                '</ul>',
+                {#element: document.querySelector('#dummy'),#}
+                element: document.querySelector('.wrapper'),
             },
         ]
 
@@ -111,7 +157,7 @@
         if (width >= 992) {
 
             // Big screens are fairly straightforward
-            steps = steps_part1.concat(steps_part2);
+            steps = steps_part1.concat(steps_part2).concat(steps_finish);
             introJs().setOptions({
                 showBullets: false,
                 steps: steps,
@@ -120,39 +166,29 @@
         }else{
 
             // Smaller screens need a bit more work
-            steps = steps_part1.concat(steps_small);
+            steps = steps_part1.concat(steps_small).concat(steps_finish);
 
             let tour = introJs().setOptions({
                 showBullets: false,
                 steps: steps,
             });
 
-            tour.onbeforechange(function(event){
-                // we need to open the menu on the right on a small screen at the appropriate point
-
-                if (typeof event === "undefined") {
-                    return;
-                }
-                console.log(event.id);
-                if (event.id === "sr-only") {
-                    $('.navbar-toggler').click();
-                }
-            });
-
-            tour.oncomplete(function(){
-                // finish and then call part 2
-                console.log("Callback");
-                let tour_part2 = introJs().setOptions({
-                    showBullets: false,
-                    steps: steps_part2,
-                })
-                console.log(tour_part2);
-
-                tour_part2.start();
-
-            });
+            {#tour.onchange(function(event){#}
+            {#    // we need to open the menu on the right on a small screen at the appropriate point#}
+            {##}
+            {#    if (typeof event === "undefined") {#}
+            {#        return;#}
+            {#    }#}
+            {#    console.log(event.id);#}
+            {#    if (event.id === "base-navbar") {#}
+            {#        $('.navbar-toggler').click();#}
+            {#        tour.refresh();#}
+            {#    }#}
+            {#});#}
 
             tour.start();
+
+
 
         }
     });
