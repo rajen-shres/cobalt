@@ -650,6 +650,9 @@ def profile(request):
         "team_mate__first_name"
     )
 
+    # Show tour for this page?
+    tour = request.GET.get("tour", None)
+
     return render(
         request,
         "accounts/profile/profile.html",
@@ -658,6 +661,7 @@ def profile(request):
             "blurbform": blurbform,
             "photoform": photoform,
             "team_mates": team_mates,
+            "tour": tour,
         },
     )
 

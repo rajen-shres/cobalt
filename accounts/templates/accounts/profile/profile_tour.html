@@ -1,0 +1,123 @@
+{#This file is the script for the tour. It is called by adding ?tour=anything to the URL#}
+
+{% load static %}
+<script src="{% static "assets/packages/intro.js.4.3.0/intro.min.js" %}"></script>
+<script>
+    $(document).ready(function() {
+
+        const steps = [
+            {
+                title: 'Profile Tour',
+                intro: '<img src="{% static "assets/img/abftechlogo.png" %}" style="width:170px ; display: block; margin-left: auto; margin-right: auto;">' +
+                '<br>If this is your first time here, then welcome to {{ GLOBAL_TITLE }}! ' +
+                '<br><br>If you would like a quick tour click <b>Next</b>. If not, then press Escape or click the X at the top right. ',
+                element: document.querySelector('.wrapper'),
+            },
+            {
+                title: 'Profile Details',
+                element: document.querySelector('#profile-edit-profile'),
+                intro: 'In this section you can update your personal details.',
+            },
+            {
+                title: 'Email Address',
+                element: document.querySelector('#id_email'),
+                intro: 'You can login using your email address: <b>{{ request.user.email }}</b> or your {{ GLOBAL_ORG }} Number: ' +
+                '<b>{{ request.user.system_number }}</b>.' +
+                '<br><br>(<i>If you share an email address only the first person can login using it.</i>)' +
+                '<br><br>If you change your email you can update it here.',
+            },
+            {
+                title: 'Mobile Number',
+                element: document.querySelector('#id_mobile'),
+                intro: '<b>Optional.</b> Enter your mobile if you wish.',
+            },
+            {
+                title: 'Name',
+                element: document.querySelector('#id_first_name'),
+                intro: 'If you would like to be know by a different name, you can update it here. <br><br>Personally, ' +
+                'I like the name <b>{{ request.user.first_name }}</b>.',
+            },
+            {
+                title: 'BBO Username',
+                element: document.querySelector('#id_bbo_name'),
+                intro: "<b>Optional.</b> We don't currently use this for anything but may in future.",
+            },
+            {
+                title: 'Date of Birth',
+                element: document.querySelector('#id_dob'),
+                intro: 'Date of birth is not compulsory but is used to calculate things like youth discounts for events. ' +
+                'If you do enter you date of birth, please put in the correct year otherwise you may be given a youth ' +
+                'discount that will need to be adjusted  causing extra work.',
+            },
+            {
+                title: 'Submit Button',
+                element: document.querySelector('#id_profile_button'),
+                intro: 'This button will be enabled if you change any of these fields. Press it to save your changes..',
+            },
+            {
+                title: 'About You, {{ request.user.first_name }}.',
+                element: document.querySelector('#picture'),
+                intro: 'This section lets you set up a profile picture that people will see when they look for you. ' +
+                'You can also write a little about yourself if you like.',
+            },
+            {
+                title: 'Customise Your Picture',
+                element: document.querySelector('#id_pic'),
+                intro: 'Click here to upload a new picture. You can then resize it and crop it as you like.',
+            },
+            {
+                title: 'Delete Picture',
+                element: document.querySelector('#delete-photo'),
+                intro: "Don't like your picture after you upload it? No problem. Click here to reset it to the default and you can try again if you like.",
+            },
+            {
+                title: 'About You',
+                element: document.querySelector('#id_about'),
+                intro: "Write a little bit about yourself and your interests. This will be visible on your public profile when people look you up.",
+            },
+            {
+                title: 'Submit Button',
+                element: document.querySelector('#id_blurb_button'),
+                intro: 'Your picture will save immediately, but you need to click this button if you write about yourself.',
+            },
+            {
+                title: 'Covid',
+                element: document.querySelector('#covid-status'),
+                intro: 'Here you can record your Covid vaccination status. This is needed for some events.',
+            },
+            {
+                title: 'Team Mates',
+                element: document.querySelector('#teammates'),
+                intro: "Here you can set up the people that you play with regularly. They will be available on " +
+                "shortcuts so you don't have to search for them.<br><br>If you set them up as " +
+                "<b>Team Mate Plus</b> then they will be able to use your {{ GLOBAL_TITLE }} account to "  +
+                "enter you into events. That saves you doing it yourself and if there is a mistake it can " +
+                "easily be changed and the money returned to you.",
+            },
+            {
+                title: 'Password Change',
+                element: document.querySelector('#password-change'),
+                intro: 'Finally, you can click here to change your password.',
+            },
+
+            {
+                title: 'Profile Tour',
+                intro: '<img src="{% static "assets/img/abftechlogo.png" %}" ' +
+                'style="width:170px ; display: block; margin-left: auto; margin-right: auto;">' +
+                '<br>That is the end of the <b>Profile Tour</b> but you can take tours of other pages if ' +
+                'you like. Tours can be found under the <b>Support</b> menu. <br><br>The ' +
+                '<a href="{% url "dashboard:dashboard" %}?tour=yes"><b>Dashboard Tour</b></a> gives an overview of the whole system.' +
+                '<br><br><ul>' +
+                '<li><a href="{% url "dashboard:dashboard" %}?tour=yes"><b>Dashboard Tour</b></a>' +
+                '<li><a href="/"><b>Bridge Credits Tour</b></a>' +
+                '</ul>',
+            },
+        ]
+
+        introJs().setOptions({
+            showBullets: false,
+            steps: steps,
+        }).start();
+
+    });
+</script>

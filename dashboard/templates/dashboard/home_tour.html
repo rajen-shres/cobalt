@@ -21,9 +21,6 @@
                 intro: 'Because you are logged in to the system, we can show you content ' +
                 'that is customised to you. For example, events you have entered and your masterpoints. ' +
                 '<br><br>In fact. Lets start there. Click on the <b>Next</b> button to move forwards in the tour.',
-                onchange: function(){
-                    console.log("changed");
-                },
             },
             {
                 element: document.querySelector('#dashboard-top-info'),
@@ -143,7 +140,7 @@
                 'style="width:170px ; display: block; margin-left: auto; margin-right: auto;">' +
                 '<br>That is the end of the <b>Dashboard Tour</b> but you can take tours of other pages if ' +
                 'you like. Tours can be found under the <b>Support</b> menu.<br><br><ul>' +
-                '<li><a href="/"><b>Profile Tour</b></a>' +
+                '<li><a href="{% url "accounts:user_profile" %}?tour=yes"><b>Profile Tour</b></a>' +
                 '<li><a href="/"><b>Bridge Credits Tour</b></a>' +
                 '</ul>',
                 {#element: document.querySelector('#dummy'),#}
@@ -172,19 +169,6 @@
                 showBullets: false,
                 steps: steps,
             });
-
-            {#tour.onchange(function(event){#}
-            {#    // we need to open the menu on the right on a small screen at the appropriate point#}
-            {##}
-            {#    if (typeof event === "undefined") {#}
-            {#        return;#}
-            {#    }#}
-            {#    console.log(event.id);#}
-            {#    if (event.id === "base-navbar") {#}
-            {#        $('.navbar-toggler').click();#}
-            {#        tour.refresh();#}
-            {#    }#}
-            {#});#}
 
             tour.start();
 

@@ -5,6 +5,7 @@
 {% block header %}
     <link href="{% static 'assets/css/cropper.min.css' %}" rel="stylesheet">
     <script src="{% static 'assets/js/cropper.min.js' %}"></script>
+    <link href="{% static "assets/packages/intro.js.4.3.0/introjs.css" %}" rel="stylesheet" />
 {% endblock %}
 {% block content %}
 
@@ -12,7 +13,7 @@
         <p>You can edit your profile here. You can also change less personal things in <a href="{% url "accounts:user_settings" %}" class="btn btn-sm btn-danger">settings</a></p>
         <div class="row">
             <div class="col-md-8">
-                <div class="card">
+                <div class="card" id="profile-edit-profile">
                     <div class="card-header card-header-primary">
                         <h4 class="card-title">Edit Profile for {{ user.full_name }} ({{ user.system_number }})</h4>
                         <p class="card-category">Basic details</p>
@@ -102,7 +103,7 @@
 
 
 
-                <div class="card">
+                <div class="card" id="teammates">
                     <div class="card-header card-header-warning">
                         <h4>Team Mates</h4>
                         <p class="card-category">Add people you play with regularly to make it easier to enter events together. They need to be signed up to this system first.</p>
@@ -209,7 +210,7 @@
             </div>
 
             <div class="col-md-4">
-                <div class="card card-profile">
+                <div class="card card-profile" id="picture">
                     <div class="card-header card-header-info">
                         <h4 class="card-title">About {{ request.user.first_name}}</h4>
                         <p class="card-category">Picture and description</p>
@@ -230,7 +231,7 @@
                                         <input type="file" name="pic" accept="image/*" id="id_pic" value="{{ form.pic.value }}"/></span>
 
                                     <br>
-                                    <a href="{% url "accounts:delete_photo" %}" class="btn btn-sm">Delete Photo</a>
+                                    <a id="delete-photo" href="{% url "accounts:delete_photo" %}" class="btn btn-sm">Delete Photo</a>
                                     <br />
                                     <a href="javascript:" class="btn btn-danger btn-round fileinput-exists" data-dismiss="fileinput"><i class="fa fa-times"></i> Remove</a>
                                 </div>
@@ -251,7 +252,7 @@
             </div>
         </div>
         <div class="form-group">
-            <button onclick="location.href='/accounts/change-password';" class="btn-success btn">Change Password</button>
+            <button id="password-change" onclick="location.href='/accounts/change-password';" class="btn-success btn">Change Password</button>
         </div>
     </div>
 {% endblock %}
@@ -259,6 +260,11 @@
 {% block footer %}
     <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
     <script src="{% static "assets/packages/sweetalert2.11/sweetalert2.js" %}"></script>
+
+    {% if tour %}
+        {% include "accounts/profile/profile_tour.html" %}
+    {% endif %}
+
     {% include "utils/include_htmx.html" %}
 
     <script>
