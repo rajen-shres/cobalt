@@ -73,12 +73,12 @@ Environment: {{ COBALT_HOSTNAME }}
                             <p>Dashboard</p>
                         </a>
                     </li>
-                    <!-- <li class="nav-item {% if request.path|slice:":8" == "/results" %}active{% endif %} ">
-            <a class="nav-link" href="/results">
-              <i class="material-icons">content_paste</i>
-              <p>Results</p>
-            </a>
-          </li> -->
+                    {#                     <li class="nav-item {% if request.path|slice:":8" == "/results" %}active{% endif %} ">#}
+                    {#            <a class="nav-link" href="/results">#}
+                    {#              <i class="material-icons">content_paste</i>#}
+                    {#              <p>Results</p>#}
+                    {#            </a>#}
+                    {#          </li>#}
                     <li class="nav-item {% if request.path|slice:":13" == "/masterpoints" %}active{% endif %} ">
                         <a class="nav-link" href="/masterpoints">
                             <i class="material-icons">call_made</i>
@@ -120,14 +120,6 @@ Environment: {{ COBALT_HOSTNAME }}
                     {#                            </a>#}
                     {#                    {% endif %}#}
 
-                    {#                    {% if request.user.is_superuser %}#}
-                    {#                        <li class="nav-item {% if request.path|slice:":5" == "/logs" %}active{% endif %} ">#}
-                    {#                            <a class="nav-link" href="/logs">#}
-                    {#                                <i class="material-icons">build</i>#}
-                    {#                                <p>Logs</p>#}
-                    {#                            </a>#}
-                    {#                    {% endif %}#}
-                    {#                </li>#}
                     {% if show_admin_on_template %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url "rbac:admin_menu" %}">
