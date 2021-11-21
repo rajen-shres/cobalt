@@ -60,12 +60,22 @@
                         <div class="container">
                             <div class="row">
                                 <div class="col-12">
-                                    {% cobalt_bs4_field tba_form.override_tba_name %}
+                                    <div class="form-group bmd-form-group">
+                                        <label class="bmd-label-floating" for="id_override_tba_system_number">
+                                            Override ABF Number
+                                        </label>
+                                        <input type="number" name="override_tba_system_number"
+                                            value="{{ tba_form.override_tba_system_number.value }}"
+                                            class=" form-control"
+                                            required
+                                            id="id_override_tba_system_number"
+                                        >
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-12">
-                                    {% cobalt_bs4_field tba_form.override_tba_system_number %}
+                                    {% cobalt_bs4_field tba_form.override_tba_name %}
                                 </div>
                             </div>
                         </div>
@@ -78,3 +88,18 @@
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready(function(){
+        // update name if number changes
+        $('#id_override_tba_system_number').change(function(){
+            const system_number = $('#id_override_tba_system_number').val();
+
+            // get name or error
+            const url = '{% url "masterpoints:system_number_lookup" %}?system_number=' + system_number;
+            $.get(url, function(data, status){
+                $('#id_override_tba_name').val(data);
+            });
+        });
+    });
+</script>
