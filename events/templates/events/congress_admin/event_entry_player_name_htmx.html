@@ -92,7 +92,7 @@
 <script>
     $(document).ready(function(){
         // update name if number changes
-        $('#id_override_tba_system_number').change(function(){
+        $('#id_override_tba_system_number').keyup(function(){
             const system_number = $('#id_override_tba_system_number').val();
 
             // get name or error
