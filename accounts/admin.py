@@ -17,6 +17,8 @@ class TeamMateAdmin(admin.ModelAdmin):
         "team_mate",
     )
 
+    # autocomplete_fields = ['user', 'team_mate']
+
 
 admin.site.register(User, UserAdmin)
 admin.site.register(TeamMate, TeamMateAdmin)
