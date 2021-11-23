@@ -814,7 +814,7 @@ class EventEntry(models.Model):
 
     def get_team_name(self):
         """If the team name field is None we default the team name to the surname of the primary entrant.
-        We also return it in uppercase"""
+        We also return it in uppercase and truncate to 15 chars"""
 
         if self.event.allow_team_names and self.team_name:
             return self.team_name.upper()
@@ -822,7 +822,7 @@ class EventEntry(models.Model):
         if self.primary_entrant.id == TBA_PLAYER:
             return "TBA"
         else:
-            return self.primary_entrant.last_name.upper()
+            return self.primary_entrant.last_name.upper()[:15]
 
 
 class EventEntryPlayer(models.Model):
