@@ -379,12 +379,19 @@ def admin_event_csv(request, event_id):
         entry_fee = Decimal(0)
 
         for player in row.evententryplayer_set.order_by("pk").all():
-            players += player.player.full_name + " - "
+            if player.player.id == TBA_PLAYER and player.override_tba_name:
+                players += (
+                    player.override_tba_name + "(manually set by administrator) - "
+                )
+            else:
+                players += player.player.full_name + " - "
             try:
                 received += player.payment_received
             except TypeError:
                 pass  # ignore if payment_received is None
             entry_fee += player.entry_fee
+
+        # remove trailing " - "
         players = players[:-3]
 
         local_dt = timezone.localtime(row.first_created_date, TZ)
@@ -442,13 +449,29 @@ def admin_event_csv(request, event_id):
                 outstanding = row.entry_fee - row.payment_received
             else:
                 outstanding = row.entry_fee
+
             masterpoints, status = get_player_mp_stats(row.player)
+
+            # Use the override name if this is TBA and name is set
+            if row.player.id == TBA_PLAYER and row.override_tba_name:
+                names = row.override_tba_name.split(" ")
+                if len(names) > 1:
+                    player_first_name = names[0]
+                    player_last_name = " ".join(names[1:])
+                else:
+                    player_first_name = row.override_tba_name
+                    player_last_name = ""
+                player_last_name = f"{player_last_name}(manually set by administrator)"
+            else:
+                player_first_name = row.player.first_name
+                player_last_name = row.player.last_name
+
             writer.writerow(
                 [
                     entry.primary_entrant,
                     row.player,
-                    row.player.first_name,
-                    row.player.last_name,
+                    player_first_name,
+                    player_last_name,
                     row.player.email,
                     row.player.mobile,
                     row.player.system_number,
@@ -714,10 +737,11 @@ def get_player_mp_stats(player):
     """
     Get summary data
     """
+
     qry = "%s/mps/%s" % (
         GLOBAL_MPSERVER,
         player.system_number,
-    )  # player.player.system_number)
+    )
     try:
         r = requests.get(qry, timeout=5).json()
     except Exception as exc:

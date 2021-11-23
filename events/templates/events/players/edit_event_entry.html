@@ -587,6 +587,9 @@
                         title: 'Team Name',
                         input: 'text',
                         inputValue: team_name,
+                        inputAttributes: {
+                            maxlength: 15
+                        },
                         showCancelButton: true
                     }).then(function(result) {
                         if(!result.isDismissed){

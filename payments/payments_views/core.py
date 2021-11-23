@@ -1150,7 +1150,7 @@ def callback_router(route_code=None, route_payload=None, tran=None, status="Succ
         Nothing
     """
 
-    if route_code:  # do nothing in no route_code passed
+    if route_code:  # do nothing if no route_code passed
 
         if route_code == "EVT":
             events_payments_callback(status, route_payload, tran)

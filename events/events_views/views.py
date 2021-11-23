@@ -662,9 +662,10 @@ def view_event_entries(request, congress_id, event_id):
     # identify this users entry
     if request.user.is_authenticated:
         for entry in entries:
-            if entry.primary_entrant == request.user:
-                entry.my_entry = True
-                continue
+            # Commenting this out for now as doesn't go to the entry it is intended to go to
+            # if entry.primary_entrant == request.user:
+            #     entry.my_entry = True
+            #     continue
             for player in entry.evententryplayer_set.all():
                 if player.player == request.user:
                     entry.my_entry = True

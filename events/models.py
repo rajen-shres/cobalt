@@ -849,7 +849,7 @@ class EventEntryPlayer(models.Model):
     payment_received = models.DecimalField(
         "Payment Received", decimal_places=2, max_digits=10, default=0.0
     )
-    # See doco for more info, this allows a convener to enter meaningful date into the entry
+    # See doco for more info, this allows a convener to enter meaningful data into the entry
     # for download to a scoring program. It is a last resort for registered players who refuse to
     # sign up for Cobalt.
     override_tba_name = models.CharField(max_length=50, null=True, blank=True)

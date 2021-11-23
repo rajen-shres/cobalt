@@ -389,13 +389,8 @@ def _clean_up(event_entries):
     for event_entry in event_entries:
         event_entry.check_if_paid()
 
-        print("Deleiting basket")
-        print(event_entry)
-
         # Any payments should remove the entry from the shopping basket
         basket = BasketItem.objects.filter(event_entry=event_entry)
-
-        print(basket)
 
         if basket:
             basket.delete()
