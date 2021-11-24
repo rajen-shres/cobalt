@@ -12,12 +12,7 @@ class UserAdmin(admin.ModelAdmin):
 class TeamMateAdmin(admin.ModelAdmin):
     """Show fields as searches rather than dropdowns"""
 
-    raw_id_fields = (
-        "user",
-        "team_mate",
-    )
-
-    # autocomplete_fields = ['user', 'team_mate']
+    autocomplete_fields = ["user", "team_mate"]
 
 
 admin.site.register(User, UserAdmin)

@@ -10,7 +10,7 @@
 rm docs/cobalt_modules/*
 
 # Add warning
-echo "Changed made here will be lost the next time cgit_doco is run" > docs/cobalt_modules/DO_NOT_EDIT_THESE_FILES
+echo "Changed made here will be lost the next time cgit_doco is run" > docs/cobalt_modules/_DO_NOT_EDIT_THESE_FILES
 
 # Get directories but exclude ones that aren't apps
 APPS=$(ls -d */ | grep -v 'htmlcov|static|media' | tr -d "/")
