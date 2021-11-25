@@ -145,7 +145,7 @@ We use two packages to help us with this:
 * **Django Post-Office** (https://pypi.org/project/django-post-office/) installs as a replacement email backend and handles secure delivery and bulk emails. It actually uses any other email backend to do the sending so you can use this without relying on AWS SES.
 * **Django SES** (https://github.com/django-ses/django-ses) is a replacement email backend that tightly integrates with SES. You can send emails using SES simply through SMTP but Django SES can also receive status updates.
 
-.. image:: images/email-infra.png
+.. image:: ../images/email-infra.png
  :width: 900
  :alt: diagram
 
