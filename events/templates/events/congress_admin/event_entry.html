@@ -27,7 +27,7 @@
                     <div class="card">
                         <div class="card-header card-header-info">
                             <h2>{{ event.event_name }} - Entry</h2>
-                            {% if event_entry.category %}
+                            {% if has_categories %}
                                 {% include "events/congress_admin/admin_event_entry_category_htmx.html" %}
                             {% endif %}
                             <h3>Entry by: {{ event_entry.primary_entrant }}</h3>

@@ -239,6 +239,8 @@ def admin_evententry(request, evententry_id):
         event_entry=event_entry
     ).order_by("first_created_date")
 
+    has_categories = Category.objects.filter(event=event).exists()
+
     event_logs = EventLog.objects.filter(event_entry=event_entry).order_by("-id")
 
     return render(
@@ -250,6 +252,7 @@ def admin_evententry(request, evententry_id):
             "congress": congress,
             "event_entry_players": event_entry_players,
             "event_logs": event_logs,
+            "has_categories": has_categories,
         },
     )
 

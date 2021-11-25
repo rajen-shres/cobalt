@@ -1,5 +1,5 @@
 <div id="category">
-    <h3>Category - {{ event_entry.category }}
+    <h3>Category - {{ event_entry.category | default_if_none:"NOT SET" }}
         <button
             class="btn btn-sm btn-secondary"
             hx-post="{% url "events:admin_event_entry_change_category_htmx" %}"

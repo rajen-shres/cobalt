@@ -115,7 +115,7 @@
                                             <td class="text-right">{{ event_entry.received|floatformat:2 }}</td>
                                             <td class="text-right">{{ event_entry.outstanding|floatformat:2 }}</td>
                                             {% if categories %}
-                                                <td>{{ event_entry.category|default_if_none:"Not Entered!!!" }}</td>
+                                                <td>{{ event_entry.category|default_if_none:"-" }}</td>
                                             {% endif %}
                                             {% if event.free_format_question %}
                                                 <td class="text-center">

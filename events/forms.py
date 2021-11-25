@@ -291,7 +291,8 @@ class EventForm(forms.ModelForm):
     entry_close_time = forms.TimeField(
         input_formats=[
             "%H:%M",
-        ]
+        ],
+        required=False,
     )
 
     class Meta:
