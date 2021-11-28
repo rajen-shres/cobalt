@@ -37,4 +37,4 @@ class ClubCongress:
     def a1_comms_tags(self):
         """Do things with tags"""
 
-        time.sleep(600)
+        pass

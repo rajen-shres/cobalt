@@ -4,6 +4,7 @@ import time
 
 from django.urls import reverse
 
+from accounts.models import User
 from payments.payments_views.core import get_balance
 from payments.models import MemberTransaction
 from payments import forms
@@ -174,7 +175,7 @@ class MemberTransfer:
         self.manager.save_results(
             status=test,
             test_name="Check auto top up flag turned on for Alan",
-            output="Expected stripe_auto_confirmed=True",
+            output=f"Expected stripe_auto_confirmed=True. Found: {test}.",
             test_description="Looks at user object to see if auto top up has been enabled.",
         )
 
@@ -182,7 +183,12 @@ class MemberTransfer:
 
         # Check auto top up amount
         expected_amount = 100.0
-        test = alan.auto_amount == expected_amount
+
+        # No idea why we can't access the object directly here but we can above!
+        # Might be Django version related as it used to work
+        alan_after = User.objects.filter(system_number=100).first()
+        test = alan_after.auto_amount == expected_amount
+
         self.manager.save_results(
             status=test,
             test_name="Check auto top up amount for Alan",
@@ -191,9 +197,8 @@ class MemberTransfer:
         )
 
         #############################
-
         # Trigger auto top up
-        amt = 500.0
+        amt = 1000.0
         desc = "Trigger Auto"
         view_data = {
             "transfer_to": betty.id,
@@ -203,6 +208,9 @@ class MemberTransfer:
 
         url = reverse("payments:member_transfer")
         response = self.client.post(url, view_data)
+
+        print(response)
+        print(response.status_code)
 
         self.manager.save_results(
             status=response.status_code,
@@ -224,6 +232,9 @@ class MemberTransfer:
             .first()
         )
 
+        print(betty_tran.id)
+        print(betty_tran.amount)
+
         if betty_tran.description == desc and float(betty_tran.amount) == amt:
             test_result = True
         else:
@@ -242,6 +253,15 @@ class MemberTransfer:
 
         alan_balance = get_balance(alan)
 
+        # alan side
+        alan_tran = (
+            MemberTransaction.objects.filter(member=alan)
+            .order_by("-created_date")
+            .first()
+        )
+        print(alan_tran)
+        print(alan_tran.amount)
+
         test_result = alan_balance == 345.55
 
         self.manager.save_results(
@@ -250,3 +270,5 @@ class MemberTransfer:
             output=f"Expected ${alan_balance}. Got ${alan_balance}",
             test_description="tba",
         )
+
+        time.sleep(80000)
