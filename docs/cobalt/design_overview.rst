@@ -122,6 +122,7 @@ Summernote                          0.8.16                              WYSIWYG 
 animate                             4.0.0                               Web animation
 data tables                         1.10.25                             Client side table manipulation
 HTMX                                Latest                              Client updates
+HyperScript                         Latest                              Simple client side work, companion to HTMX
 ==========================          =============================       =======================================================================
 
 **Do not use any other significant client side code, e.g. React or Angular without proper discussion.**

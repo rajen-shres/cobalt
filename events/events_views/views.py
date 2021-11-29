@@ -320,12 +320,6 @@ def view_congress(request, congress_id, fullscreen=False):
                     "<a href='/events/congress/event/view-event-entries/{congress.id}/{event.id}' "
                     "class='btn btn-block btn-sm btn-info'>View Entries</a>"
                 )
-                if congress.allow_partnership_desk:
-                    program[
-                        "links"
-                    ] += f"<br><a href='/events/congress/event/view-event-partnership-desk/{congress.id}/{event.id}'>Partnership Desk</a>"
-                program["links"] += "</td>"
-
                 # Logged out needs extra breaks
                 if not request.user.is_authenticated:
                     program["links"] = program["links"].replace("</a>", "</a><br>")

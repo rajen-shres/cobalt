@@ -192,6 +192,36 @@
                                 </div>
                             {% endif %}
 
+                            {% if congress.allow_partnership_desk %}
+                                <div class="col-lg-10 mx-auto" id="partnership-show">
+                                    This congress is running a
+                                    <button _="on click show #partnership then remove #partnership-show" class="btn btn-sm btn-rose">
+                                        Partnership Desk
+                                    </button>
+                                </div>
+                                <div class="col-lg-10 mx-auto" style="display: none" id="partnership">
+                                    <div class="card">
+                                        <div class="card-header card-header-warning">
+                                            <h4 class="card-title">Partnership Desk</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <p>
+                                                Use the partnership desk to find partners or team mates for events
+                                                you would like to play in.
+                                            </p>
+                                            <ul>
+                                                {% for event in congress.event_set.all %}
+                                                    <li><a href="{% url "events:view_event_partnership_desk" congress_id=congress.id event_id=event.id %}">{{ event.event_name }}</a></li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+
+
+
                             <div class="col-lg-10 mx-auto">
                                 <div class="card">
                                     <div class="card-header card-header-success">
@@ -236,6 +266,7 @@
 
 {% block footer %}
     <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+    {% include "utils/include_htmx.html" %}
 
     <!--  Google Maps Plugin    -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDt0qnOZKvnJzLO83eg1KB0k8l5SH-NGzY"></script>
@@ -248,7 +279,7 @@
                 var mapOptions = {
                     zoom: 14,
                     center: myLatlng,
-                    scrollwheel: false, //we disable de scroll over the map, it is a really annoing when you scroll through page
+                    scrollwheel: false, //we disable the scroll over the map, it is a really annoying when you scroll through page
                 }
 
                 var map = new google.maps.Map(document.getElementById("regularMap"), mapOptions);
