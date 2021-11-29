@@ -5,6 +5,7 @@ import time
 from django.urls import reverse
 
 from accounts.models import User
+from notifications.tests.common_functions import check_email_sent
 from payments.payments_views.core import get_balance
 from payments.models import MemberTransaction
 from payments import forms
@@ -103,6 +104,25 @@ class MemberTransfer:
         )
 
         #############################
+        # Check the emails
+
+        check_email_sent(
+            manager=self.manager,
+            test_name="Check that Alan received an email for the transfer",
+            test_description="Doing a transfer should generate an email to Alan to confirm it has gone through.",
+            subject_search="Transfer to Betty Bunting (ABF: 101)",
+            body_search=f"You have transferred {amt}",
+        )
+
+        check_email_sent(
+            manager=self.manager,
+            test_name="Check that Betty received an email for the transfer",
+            test_description="Doing a transfer should generate an email to Betty to let her know.",
+            subject_search="Transfer from Alan",
+            body_search=f"has transferred {amt}",
+        )
+
+        #############################
 
         # Check after
 
@@ -168,6 +188,14 @@ class MemberTransfer:
             test_description="This step sets up auto top up using Selenium. Pass here just means that it didn't crash, subsequent steps check if it was really successful.",
         )
 
+        ###############################
+        # IMPORTANT!!!!
+        #
+        # Users seem to now be cached so we need to reload Alan again
+        ################################
+        alan = self.manager.get_user(username="100")
+        self.manager.login_user(alan)
+
         ##############################
 
         # Check auto top up
@@ -184,10 +212,7 @@ class MemberTransfer:
         # Check auto top up amount
         expected_amount = 100.0
 
-        # No idea why we can't access the object directly here but we can above!
-        # Might be Django version related as it used to work
-        alan_after = User.objects.filter(system_number=100).first()
-        test = alan_after.auto_amount == expected_amount
+        test = alan.auto_amount == expected_amount
 
         self.manager.save_results(
             status=test,
@@ -209,9 +234,6 @@ class MemberTransfer:
         url = reverse("payments:member_transfer")
         response = self.client.post(url, view_data)
 
-        print(response)
-        print(response.status_code)
-
         self.manager.save_results(
             status=response.status_code,
             test_name="Manual transfer to trigger auto top up - Alan to Betty",
@@ -221,7 +243,7 @@ class MemberTransfer:
         #############################
 
         # Give Stripe time to call us back
-        time.sleep(5)
+        time.sleep(30)
 
         # Check after
 
@@ -270,5 +292,3 @@ class MemberTransfer:
             output=f"Expected ${alan_balance}. Got ${alan_balance}",
             test_description="tba",
         )
-
-        time.sleep(80000)

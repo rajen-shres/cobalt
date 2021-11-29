@@ -12,5 +12,5 @@
 ./manage.py add_rbac_static_support
 ./manage.py add_rbac_static_club_sessions
 ./manage.py create_states
-./manage.py add_test_data
 ./manage.py add_notifications_templates
+./manage.py add_test_data

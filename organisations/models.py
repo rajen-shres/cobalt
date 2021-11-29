@@ -9,6 +9,9 @@ from organisations.model_managers import MemberMembershipTypeManager
 
 # Variable to control what is expected to be in the RBAC structure for Organisations
 # A management script runs to update RBAC structure for all clubs if a new option is found.
+# Note, if you change anything here you still need to set up the RBAC defaults and admin groups,
+# that doesn't happen automatically.
+
 ORGS_RBAC_GROUPS_AND_ROLES = {
     # Conveners for this orgs events
     # CONVENERS IS THE ANCHOR. THIS IS ASSUMED TO BE THERE WHEN TESTING FOR ADVANCED RBAC.
@@ -50,7 +53,7 @@ ORGS_RBAC_GROUPS_AND_ROLES = {
     # Directors
     "directors": {
         "app": "club_sessions",
-        "model": "directors",
+        "model": "sessions",
         "action": "edit",
         "description": "Directors",
     },

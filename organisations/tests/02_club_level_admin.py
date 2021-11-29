@@ -88,6 +88,7 @@ class ClubLevelAdmin:
             "id_tab_access",
             "id_tab_settings",
             "id_tab_finance",
+            "id_tab_sessions",
             #            "id_tab_forums",
         ]
 
@@ -207,6 +208,7 @@ class ClubLevelAdmin:
             "id_tab_access",
             "id_tab_settings",
             "id_tab_finance",
+            "id_tab_sessions",
             #            "id_tab_forums",
         ]
 
@@ -344,6 +346,7 @@ class ClubLevelAdmin:
             "id_tab_access",
             "id_tab_settings",
             "id_tab_finance",
+            "id_tab_sessions",
             #           "id_tab_forums",
         ]
 

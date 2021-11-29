@@ -72,7 +72,7 @@ def club_menu(request, club_id):
     )
     # Check if we show the sessions tab
     show_sessions = uber_admin or rbac_user_has_role(
-        request.user, f"club_sessions.directors.{club.id}.edit"
+        request.user, f"club_sessions.sessions.{club.id}.edit"
     )
 
     # Check if staff member for other clubs - get all from tree that are like "clubs.generated"
@@ -171,7 +171,9 @@ def tab_congress_htmx(request, club):
 def tab_sessions_htmx(request, club):
     """build the sessions tab in club menu"""
 
-    sessions = Session.objects.filter(session_type__organisation=club).order_by('-session_date', '-pk')
+    sessions = Session.objects.filter(session_type__organisation=club).order_by(
+        "-session_date", "-pk"
+    )
 
     things = cobalt_paginator(request, sessions, 3)
 

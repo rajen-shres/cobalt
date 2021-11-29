@@ -986,6 +986,7 @@ def stripe_webhook_autosetup(event):
 
     # check if we should make an auto top up now
     balance = get_balance(member)
+
     if balance < AUTO_TOP_UP_LOW_LIMIT:
         (return_code, message) = auto_topup_member(member)
         if return_code:  # success

@@ -49,6 +49,9 @@ def setup_auto_top_up(manager: CobaltTestManager, user: User = None):
     # Hit submit
     manager.driver.find_element(By.ID, "submit").click()
 
+    # Give Stripe some time to come back to us
+    time.sleep(5)
+
     # Login main user again
     if user:
         manager.login_selenium_user(manager.test_user)

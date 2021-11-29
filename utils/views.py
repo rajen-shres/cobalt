@@ -339,7 +339,7 @@ def database_view(request):
                         }
                     )
 
-                except ProgrammingError:
+                except (ProgrammingError, ModuleNotFoundError):
                     # We get some noise through, just ignore it
                     pass
 
