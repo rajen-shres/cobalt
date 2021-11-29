@@ -41,6 +41,8 @@ Cobalt is build using `Django <https://www.djangoproject.com/>`_.
 
 The source code can be found on `Github <https://github.com/abftech/cobalt>`_.
 
+**In a hurry?** Read :doc:`cobalt/cobalt_in_two_minutes`.
+
 User Guides
 ===========
 

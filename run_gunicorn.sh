@@ -1,4 +1,5 @@
 #!/bin/sh
+# This is only used for one-off test systems e.g. Lightsail.
 
 . /home/bitnami/django-env.sh
 cd /opt/bitnami/projects/cobalt

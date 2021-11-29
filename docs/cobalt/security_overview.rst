@@ -124,6 +124,23 @@ One useful decorator is::
 This will check that the user has a specific role (can be a selection) before allowing them
 access.
 
+It would be really nice to be able to add more parameters to this to allow more granular
+security. This would allow the following boilerplate code::
+
+    role = "events.org.%s.edit" % org.id
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+To be replaced with a decorator::
+
+    @rbac_check_role_with_details("events.org", "edit", org)
+
+The problem is you don't have the parameter **org** available until you have retrieved it from
+somewhere (GET or POST). We could somehow make these standard parameters, for example, have the
+decorator look for rbac_model_id in the POST but this is really just making the code more
+obscure and harder to support (Explicit is better than Implicit). It only saves two lines of code
+and probably adds another line or at least a bunch of characters somewhere else.
+
 Some modules provide their own specific decorators, for example, Organisations::
 
     from organisations.decorators import check_club_menu_access
@@ -132,3 +149,12 @@ Some modules provide their own specific decorators, for example, Organisations::
     def some_func(request, club):
 
         print(f"This user can access admin functions for club: {club}, or they wouldn't get here")
+
+*************************
+Two Factor Authentication
+*************************
+
+2FA is enabled for the Django Admin pages using the package
+`django-otp <https://django-otp-official.readthedocs.io/en/stable/>`_.
+We have also moved the
+Django Admin url away from the default to make it harder for hackers to find it.
