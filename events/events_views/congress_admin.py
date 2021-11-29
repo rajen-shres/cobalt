@@ -30,6 +30,7 @@ from events.models import (
     EventLog,
     EventPlayerDiscount,
     Bulletin,
+    BasketItem,
 )
 from accounts.models import User
 import requests
@@ -904,6 +905,9 @@ def admin_evententry_delete(request, evententry_id):
 
         event_entry.entry_status = "Cancelled"
         event_entry.save()
+
+        # Also remove from basket if still present
+        BasketItem.objects.filter(event_entry=event_entry).delete()
 
         messages.success(
             request, "Entry cancelled", extra_tags="cobalt-message-success"

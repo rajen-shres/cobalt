@@ -309,22 +309,29 @@ def view_congress(request, congress_id, fullscreen=False):
                 if program["entry"]:
                     program[
                         "links"
-                    ] = f"<td rowspan='{rows}'><a href='/events/congress/event/change-entry/{congress.id}/{event.id}'>View Your Entry</a><br><a href='/events/congress/event/view-event-entries/{congress.id}/{event.id}'>View Entries</a>"
-                    if congress.allow_partnership_desk:
-                        program[
-                            "links"
-                        ] += f"<br><a href='/events/congress/event/view-event-partnership-desk/{congress.id}/{event.id}'>Partnership Desk</a>"
-                    program["links"] += "</td>"
+                    ] = f"<td rowspan='{rows}'><a href='/events/congress/event/change-entry/{congress.id}/{event.id}' class='btn btn-block btn-sm btn-primary'>View Your Entry</a>"
                 else:
                     program[
                         "links"
-                    ] = f"<td rowspan='{rows}'><a href='/events/congress/event/enter/{congress.id}/{event.id}'>Enter</a><br><a href='/events/congress/event/view-event-entries/{congress.id}/{event.id}'>View Entries</a>"
-                    if congress.allow_partnership_desk:
-                        program[
-                            "links"
-                        ] += f"<br><a href='/events/congress/event/view-event-partnership-desk/{congress.id}/{event.id}'>Partnership Desk</a>"
-                    program["links"] += "</td>"
+                    ] = f"<td rowspan='{rows}'><a href='/events/congress/event/enter/{congress.id}/{event.id}' class='btn btn-block btn-sm btn-success'>Enter</a>"
+
+                # Handle common parts of links
+                program["links"] += (
+                    "<a href='/events/congress/event/view-event-entries/{congress.id}/{event.id}' "
+                    "class='btn btn-block btn-sm btn-info'>View Entries</a>"
+                )
+                if congress.allow_partnership_desk:
+                    program[
+                        "links"
+                    ] += f"<br><a href='/events/congress/event/view-event-partnership-desk/{congress.id}/{event.id}'>Partnership Desk</a>"
+                program["links"] += "</td>"
+
+                # Logged out needs extra breaks
+                if not request.user.is_authenticated:
+                    program["links"] = program["links"].replace("</a>", "</a><br>")
+
                 first_row_for_event = False
+
             program["day"] = "<td>%s</td>" % day.session_date.strftime("%A")
 
             # handle multiple times on same day
