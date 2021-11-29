@@ -295,6 +295,8 @@ def view_congress(request, congress_id, fullscreen=False):
             .exclude(entry_status="Cancelled")
             .count()
         )  # program["total_entries"] = event
+        program["event_id"] = event.id
+        program["event_name"] = event.event_name
         program[
             "entries_total"
         ] = f"<td rowspan='{rows}'><span class='title'>{total_entries}</td>"

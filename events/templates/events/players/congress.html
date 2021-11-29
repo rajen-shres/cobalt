@@ -210,8 +210,8 @@
                                                 you would like to play in.
                                             </p>
                                             <ul>
-                                                {% for event in congress.event_set.all %}
-                                                    <li><a href="{% url "events:view_event_partnership_desk" congress_id=congress.id event_id=event.id %}">{{ event.event_name }}</a></li>
+                                                {% for program in program_list %}
+                                                    <li><a href="{% url "events:view_event_partnership_desk" congress_id=congress.id event_id=program.event_id %}">{{ program.event_name }}</a></li>
                                                 {% endfor %}
                                             </ul>
                                         </div>
