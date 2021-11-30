@@ -222,8 +222,8 @@ class MemberTransfer:
         self.manager.selenium_wait_for_clickable("cobalt-button").click()
 
         # Wait for credit card entry screen (Stripe manual) to appear
-        self.manager.selenium_wait_for("id_credit_card_header")
-        stripe_manual_payment_screen(self.manager)
+        # self.manager.selenium_wait_for("id_credit_card_header")
+        # stripe_manual_payment_screen(self.manager)
 
     def a3_member_auto_top_up_enable(self):
         """Enable auto top up"""
