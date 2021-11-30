@@ -57,6 +57,35 @@ def setup_auto_top_up(manager: CobaltTestManager, user: User = None):
         manager.login_selenium_user(manager.test_user)
 
 
+def stripe_manual_payment_screen(manager: CobaltTestManager):
+    """Enter details on manual payment screen to confirm payment"""
+
+    # wait for iFrame to load the old fashioned way
+    time.sleep(3)
+    time.sleep(30000000)
+
+    # Stripe fields are in an iFrame, we need to switch to that to find them
+    manager.driver.switch_to.frame(manager.driver.find_element_by_tag_name("iframe"))
+
+    # Enter details
+    manager.driver.find_element_by_css_selector('input[id="card-element"]').send_keys(
+        "4242424242424242"
+    )
+    manager.driver.find_element_by_css_selector('input[name="exp-date"]').send_keys(
+        "0235"
+    )
+    manager.driver.find_element_by_css_selector('input[name="cvc"]').send_keys("999")
+
+    # Switch back to main part of document
+    manager.driver.switch_to.default_content()
+
+    # Hit submit
+    manager.driver.find_element(By.ID, "submit").click()
+
+    # Give Stripe some time to come back to us
+    time.sleep(5)
+
+
 def check_last_transaction_for_user(
     manager: CobaltTestManager,
     user: User,

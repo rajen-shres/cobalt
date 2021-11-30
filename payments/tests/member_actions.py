@@ -3,6 +3,7 @@
 import time
 
 from django.urls import reverse
+from selenium.webdriver.support.select import Select
 
 from accounts.models import User
 from notifications.tests.common_functions import check_email_sent
@@ -14,6 +15,7 @@ from payments.tests.common_functions import (
     setup_auto_top_up,
     check_balance_for_user,
     check_last_transaction_for_user,
+    stripe_manual_payment_screen,
 )
 from tests.test_manager import CobaltTestManager
 
@@ -174,7 +176,56 @@ class MemberTransfer:
 
     ##############################
 
-    def a2_member_auto_top_up_enable(self):
+    def a2_member_transfer_with_insufficient_funds(self):
+        """Member transfer action which triggers manual top up"""
+
+        colin = self.manager.get_user(username="102")
+        fiona = self.manager.get_user(username="105")
+        self.manager.login_user(colin)
+
+        # Check Colin
+        colin_expected_initial_balance = 408.88
+        check_balance_for_user(
+            manager=self.manager,
+            user=colin,
+            expected_balance=colin_expected_initial_balance,
+            test_name="Check initial balance for Colin",
+            test_description="This is the initial check of Colin's balance before we process the transfer.",
+        )
+
+        # Check Fiona
+        fiona_expected_initial_balance = 400.0
+        check_balance_for_user(
+            manager=self.manager,
+            user=fiona,
+            expected_balance=fiona_expected_initial_balance,
+            test_name="Check initial balance for Fiona",
+            test_description="This is the initial check of Fiona's balance before we process the transfer.",
+        )
+
+        # Get transfer url
+        transfer_url = self.manager.base_url + reverse("payments:member_transfer")
+
+        # Connect to page
+        self.manager.driver.get(transfer_url)
+
+        # Select Fiona from recent list
+
+        select = Select(self.manager.selenium_wait_for_clickable("id-cobalt-recent"))
+        select.select_by_value("11")
+
+        # Wait for refresh
+        self.manager.selenium_wait_for_clickable("id_amount").send_keys("500.34")
+        self.manager.selenium_wait_for_clickable("id_description").send_keys(
+            "Colin to Fiona 500.34"
+        )
+        self.manager.selenium_wait_for_clickable("cobalt-button").click()
+
+        # Wait for credit card entry screen (Stripe manual) to appear
+        self.manager.selenium_wait_for("id_credit_card_header")
+        stripe_manual_payment_screen(self.manager)
+
+    def a3_member_auto_top_up_enable(self):
         """Enable auto top up"""
         alan = self.manager.test_user
         betty = self.manager.get_user(username="101")
