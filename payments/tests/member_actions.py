@@ -5,6 +5,13 @@ import time
 from django.urls import reverse
 from selenium.webdriver.support.select import Select
 
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
 from accounts.models import User
 from notifications.tests.common_functions import check_email_sent
 from payments.payments_views.core import get_balance
@@ -31,6 +38,7 @@ class MemberTransfer:
     def __init__(self, manager: CobaltTestManager):
         self.manager = manager
         self.client = self.manager.client
+        self.driver = self.manager.driver
 
         # Log user in
         self.manager.login_user(self.manager.test_user)
@@ -203,6 +211,11 @@ class MemberTransfer:
             test_description="This is the initial check of Fiona's balance before we process the transfer.",
         )
 
+        #################
+        # Generated Selenium Code
+        ##################
+        print("Over to you")
+
         # Get transfer url
         transfer_url = self.manager.base_url + reverse("payments:member_transfer")
 
@@ -215,15 +228,16 @@ class MemberTransfer:
         select.select_by_value("11")
 
         # Wait for refresh
-        self.manager.selenium_wait_for_clickable("id_amount").send_keys("500.34")
+        self.manager.selenium_wait_for_clickable("id_amount").send_keys("500")
         self.manager.selenium_wait_for_clickable("id_description").send_keys(
-            "Colin to Fiona 500.34"
+            "Colin to Fiona 500"
         )
+
         self.manager.selenium_wait_for_clickable("cobalt-button").click()
 
         # Wait for credit card entry screen (Stripe manual) to appear
-        # self.manager.selenium_wait_for("id_credit_card_header")
-        # stripe_manual_payment_screen(self.manager)
+        self.manager.selenium_wait_for("id_credit_card_header")
+        stripe_manual_payment_screen(self.manager)
 
     def a3_member_auto_top_up_enable(self):
         """Enable auto top up"""
