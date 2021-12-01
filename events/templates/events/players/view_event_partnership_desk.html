@@ -22,46 +22,49 @@
                 <div class="card-body">
                     <div class="container">
                         <div class="row justify-content-center">
-                            <div class="col-auto">
+                            <div>
 
                                 {% if partnerships %}
 
-                                    <table class="table table-responsive table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Player</th>
-                                                <th>Comment</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for looking in partnerships %}
-                                                <tr>
-                                                    <td>
-                                                        {% if looking.private %}
-                                                            {% if admin %}
-                                                                {{ looking.player|cobalt_user_link }} (private)
-                                                            {% else %}
-                                                                Name Witheld
-                                                            {% endif %}
-                                                        {% else %}
-                                                            {{ looking.player|cobalt_user_link }}
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>{{ looking.comment }}</td>
-                                                    <td>
-                                                        {% if looking.player != request.user %}
-                                                            <button class="btn btn-sm btn-success contact_button" id="contact_{{ looking.id }}">Contact</button>
-                                                        {% endif %}
-                                                        {% if looking.player == request.user %}
-                                                            <button class="btn btn-sm btn-danger delete_button">Delete</button>
-                                                        {% endif %}
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-
+                                    <div class="container">
+                                        <div class="row">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Player</th>
+                                                        <th>Comment</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for looking in partnerships %}
+                                                        <tr>
+                                                            <td>
+                                                                {% if looking.private %}
+                                                                    {% if admin %}
+                                                                        {{ looking.player|cobalt_user_link }} (private)
+                                                                    {% else %}
+                                                                        Name Withheld
+                                                                    {% endif %}
+                                                                {% else %}
+                                                                    {{ looking.player|cobalt_user_link }}
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>{{ looking.comment }}</td>
+                                                            <td>
+                                                                {% if looking.player != request.user %}
+                                                                    <button class="btn btn-sm btn-success contact_button" id="contact_{{ looking.id }}">Contact</button>
+                                                                {% endif %}
+                                                                {% if looking.player == request.user %}
+                                                                    <button class="btn btn-sm btn-danger delete_button">Delete</button>
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 {% else %}
                                     <h3>There are no partnership requests yet.</h3>
                                 {% endif %}

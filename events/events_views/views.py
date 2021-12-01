@@ -294,7 +294,7 @@ def view_congress(request, congress_id, fullscreen=False):
             EventEntry.objects.filter(event=event)
             .exclude(entry_status="Cancelled")
             .count()
-        )  # program["total_entries"] = event
+        )
         program["event_id"] = event.id
         program["event_name"] = event.event_name
         program[
