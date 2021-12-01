@@ -211,7 +211,9 @@
                                             </p>
                                             <ul>
                                                 {% for program in program_list %}
-                                                    <li><a href="{% url "events:view_event_partnership_desk" congress_id=congress.id event_id=program.event_id %}">{{ program.event_name }}</a></li>
+                                                    {% if program.event_id %}
+                                                        <li><a href="{% url "events:view_event_partnership_desk" congress_id=congress.id event_id=program.event_id %}">{{ program.event_name }}</a></li>
+                                                    {% endif %}
                                                 {% endfor %}
                                             </ul>
                                         </div>
