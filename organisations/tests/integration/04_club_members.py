@@ -1,10 +1,10 @@
 import time
 
-from organisations.tests.common_functions import (
+from organisations.tests.integration.common_functions import (
     club_menu_go_to_tab,
     login_and_go_to_club_menu,
 )
-from tests.common_functions import cobalt_htmx_user_search
+from tests.integration.common_functions import cobalt_htmx_user_search
 from tests.test_manager import CobaltTestManager
 
 # TODO: See if these constants can be centrally stored

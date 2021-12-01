@@ -1,6 +1,6 @@
 import time
 
-from organisations.tests.common_functions import (
+from organisations.tests.integration.common_functions import (
     club_menu_go_to_tab,
     login_and_go_to_club_menu,
 )

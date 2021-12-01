@@ -1,9 +1,3 @@
-import time
-
-from organisations.tests.common_functions import (
-    club_menu_go_to_tab,
-    login_and_go_to_club_menu,
-)
 from tests.test_manager import CobaltTestManager
 
 # TODO: See if these constants can be centrally stored

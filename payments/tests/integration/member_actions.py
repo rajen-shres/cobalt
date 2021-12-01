@@ -5,20 +5,12 @@ import time
 from django.urls import reverse
 from selenium.webdriver.support.select import Select
 
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support import expected_conditions
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-
-from accounts.models import User
 from notifications.tests.common_functions import check_email_sent
 from payments.payments_views.core import get_balance
 from payments.models import MemberTransaction
 from payments import forms
 
-from payments.tests.common_functions import (
+from payments.tests.integration.common_functions import (
     setup_auto_top_up,
     check_balance_for_user,
     check_last_transaction_for_user,

@@ -1,11 +1,8 @@
-from pprint import pprint
-
 from django.urls import reverse
 
 from organisations.models import Organisation
-from organisations.tests.common_functions import (
+from organisations.tests.integration.common_functions import (
     add_club,
-    confirm_club_rbac_status,
     set_rbac_status_as_user,
     change_rbac_status_as_user,
 )
