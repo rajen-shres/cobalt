@@ -441,8 +441,8 @@ class Event(models.Model):
         open_date = self.entry_open_date
         if not open_date:
             open_date = self.congress.entry_open_date
-            if open_date and today < open_date:
-                return False
+        if open_date and today < open_date:
+            return False
 
         close_date = self.entry_close_date
         if not close_date:
