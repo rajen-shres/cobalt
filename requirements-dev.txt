@@ -7,3 +7,5 @@ selenium
 sphinx
 sphinx_rtd_theme
 ipdb
+pytest-django
+pytest-html
