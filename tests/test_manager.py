@@ -26,7 +26,9 @@ from accounts.models import User
 setup_test_environment()
 
 # List of tests to run format is "class": "location"
-LIST_OF_TESTS = {
+# For the integration tests we are telling a story and the order matters
+# For unit tests each test should stand alone and they are dynamically found
+LIST_OF_INTEGRATION_TESTS = {
     "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
     "Registration": "accounts.tests.integration.01_registration",
     "MemberTransfer": "payments.tests.integration.member_actions",
@@ -50,11 +52,6 @@ def run_methods(class_instance):
             pass
 
 
-def get_user(username):
-    """Get a user by username"""
-    return User.objects.filter(username=username).first()
-
-
 class CobaltTestManagerAbstract(ABC):
     """
     Abstract class to hold things that are common across the two types of testing:
@@ -62,17 +59,17 @@ class CobaltTestManagerAbstract(ABC):
     """
 
     def __init__(self, app=None):
-        self.alan = get_user("100")
-        self.betty = get_user("101")
-        self.colin = get_user("102")
-        self.debbie = get_user("103")
-        self.eric = get_user("104")
-        self.fiona = get_user("105")
-        self.gary = get_user("106")
-        self.heidi = get_user("107")
-        self.iain = get_user("108")
-        self.janet = get_user("109")
-        self.keith = get_user("110")
+        self.alan = self.get_user("100")
+        self.betty = self.get_user("101")
+        self.colin = self.get_user("102")
+        self.debbie = self.get_user("103")
+        self.eric = self.get_user("104")
+        self.fiona = self.get_user("105")
+        self.gary = self.get_user("106")
+        self.heidi = self.get_user("107")
+        self.iain = self.get_user("108")
+        self.janet = self.get_user("109")
+        self.keith = self.get_user("110")
 
         # First user - Alan Admin
         self.test_user = self.alan
@@ -86,6 +83,10 @@ class CobaltTestManagerAbstract(ABC):
 
         # Specify app to only run specific tests
         self.app_to_test = app
+
+    def get_user(self, username):
+        """Get a user by username"""
+        return User.objects.filter(username=username).first()
 
     def save_results(self, status, test_name, test_description=None, output=None):
         """handle logging results
@@ -250,7 +251,7 @@ class CobaltTestManagerAbstract(ABC):
                 toc.append(
                     {
                         "calling_class": display_calling_class,
-                        "calling_class_from": LIST_OF_TESTS[calling_class],
+                        "calling_class_from": self.list_of_tests[calling_class],
                         "calling_method": calling_method,
                         "pass_rate": f"{passing}/{length}",
                     }
@@ -316,9 +317,9 @@ class CobaltTestManagerAbstract(ABC):
         try:
 
             # go through list, import and instantiate
-            for test_list_item in LIST_OF_TESTS:
+            for test_list_item in self.list_of_tests:
                 test_class = getattr(
-                    importlib.import_module(LIST_OF_TESTS[test_list_item]),
+                    importlib.import_module(self.list_of_tests[test_list_item]),
                     test_list_item,
                 )
                 class_instance = test_class(self)
@@ -329,7 +330,7 @@ class CobaltTestManagerAbstract(ABC):
                     or self.app_to_test == type(class_instance).__name__
                 ):
                     print(
-                        f"\nRunning {LIST_OF_TESTS[test_list_item]} - {test_list_item}"
+                        f"\nRunning {self.list_of_tests[test_list_item]} - {test_list_item}"
                     )
                     run_methods(class_instance)
 
@@ -368,6 +369,8 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
         """Set up basic environment for individual tests"""
 
         super().__init__(app)
+
+        self.list_of_tests = LIST_OF_INTEGRATION_TESTS
 
         if not browser:
             browser = "chrome"
@@ -457,7 +460,7 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
 
     def run(self):
 
-        super(CobaltTestManagerIntegration, self).run()
+        super().run()
         self.driver.quit()
 
 
@@ -467,3 +470,7 @@ class CobaltTestManagerUnit(CobaltTestManagerAbstract):
     def __init__(self, app=None):
         super().__init__(app)
         print("Unit Test")
+
+        self.list_of_tests = {
+            "EventsTests": "events.tests.unit.unit_test_events",
+        }

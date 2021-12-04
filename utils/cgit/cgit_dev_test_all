@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Run unit and integration tests and produce coverage report
+
+# reset coverage
+coverage erase
+
+cgit_dev_test_unit
+cgit_dev_test_integration
+coverage combine
+coverage html
+open htmlcov/index.html
+coverage erase

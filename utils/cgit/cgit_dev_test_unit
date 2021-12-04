@@ -27,18 +27,4 @@ psql </tmp/drop_db
 
 psql test < ~/test.db >/dev/null
 
-echo "#########################################################################"
-echo "#                                                                       #"
-echo "# Here comes pytest (or is it pytest-django?). Hold on...               #"
-echo "#                                                                       #"
-echo "#########################################################################"
-
-pytest --html=/tmp/pytest-report.html --self-contained-html --import-mode=importlib
-
-echo "#########################################################################"
-echo "#                                                                       #"
-echo "# Opening pytest-html report...                                         #"
-echo "#                                                                       #"
-echo "#########################################################################"
-
-open /tmp/pytest-report.html
+coverage run -p ./manage.py run_tests_unit
