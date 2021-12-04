@@ -3,11 +3,11 @@ import time
 
 from selenium.common.exceptions import StaleElementReferenceException
 
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 
 def cobalt_htmx_user_search(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     search_button_id: str,
     user_system_id: str,
     search_id="",

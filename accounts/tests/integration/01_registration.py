@@ -2,7 +2,7 @@ import time
 
 from django.urls import reverse
 
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 
 def invalid_data_on_form(manager, test_name, test_description, element, error):
@@ -29,7 +29,7 @@ def invalid_data_on_form(manager, test_name, test_description, element, error):
 class Registration:
     """Tests for things on the user registration page"""
 
-    def __init__(self, manager: CobaltTestManager):
+    def __init__(self, manager: CobaltTestManagerIntegration):
         self.manager = manager
 
     def a1_basic_validate(self):

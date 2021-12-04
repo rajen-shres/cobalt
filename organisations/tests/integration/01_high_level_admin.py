@@ -7,7 +7,7 @@ from organisations.tests.integration.common_functions import (
     change_rbac_status_as_user,
 )
 from rbac.core import rbac_user_has_role
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 # State id numbers
 NSW = 3
@@ -41,7 +41,7 @@ class OrgHighLevelAdmin:
 
     """
 
-    def __init__(self, manager: CobaltTestManager):
+    def __init__(self, manager: CobaltTestManagerIntegration):
         self.manager = manager
         self.client = self.manager.client
         self.alan = self.manager.test_user

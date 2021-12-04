@@ -1,7 +1,7 @@
 import re
 import subprocess
 
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 # URLs that do not require authentication
 NON_AUTH_URLS = [
@@ -44,7 +44,7 @@ class TestURLsRequireLogin:
 
     """
 
-    def __init__(self, manager: CobaltTestManager):
+    def __init__(self, manager: CobaltTestManagerIntegration):
         self.manager = manager
         self.client = self.manager.client
 

@@ -1,10 +1,10 @@
 from post_office.models import Email
 
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 
 def check_email_sent(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     test_name: str,
     test_description: str,
     email_address: str = None,

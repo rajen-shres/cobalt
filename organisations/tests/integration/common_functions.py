@@ -9,11 +9,14 @@ from django.urls import reverse
 from accounts.models import User
 from organisations.models import Organisation
 from organisations.views.admin import rbac_get_basic_and_advanced
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 
 def add_club(
-    manager: CobaltTestManager, user: User = None, view_data=None, reverse_result=False
+    manager: CobaltTestManagerIntegration,
+    user: User = None,
+    view_data=None,
+    reverse_result=False,
 ):
     """Common function to try to add a club
 
@@ -70,7 +73,7 @@ def add_club(
 
 
 def confirm_club_rbac_status(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     club_org_id: int,
     expected_status: str,
     test_name: str,
@@ -115,7 +118,7 @@ def confirm_club_rbac_status(
 
 
 def set_rbac_status_as_user(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     user: User,
     club_org_id: int,
     new_status: str,
@@ -159,7 +162,7 @@ def set_rbac_status_as_user(
 
 
 def change_rbac_status_as_user(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     user: User,
     club_org_id: int,
     new_status: str,
@@ -203,7 +206,7 @@ def change_rbac_status_as_user(
 
 
 def access_club_menu(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     user: User,
     club_id: int,
     expected_club_name: str,
@@ -254,7 +257,7 @@ def access_club_menu(
 
 
 def club_menu_items(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     expected_tabs: list,
     test_name: str,
     test_description: str,
@@ -293,7 +296,7 @@ def club_menu_items(
 
 
 def club_menu_go_to_tab(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     tab: str,
     title_id: str,
     test_name: str,
@@ -347,7 +350,7 @@ def club_menu_go_to_tab(
 
 
 def login_and_go_to_club_menu(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     org_id: int,
     user: User,
     test_description: str,
@@ -398,7 +401,7 @@ def login_and_go_to_club_menu(
 
 
 def access_finance_for_club(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     club: Organisation,
     user: User,
     test_name: str,

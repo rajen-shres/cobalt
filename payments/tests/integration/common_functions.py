@@ -6,14 +6,14 @@ from payments.models import MemberTransaction
 
 from selenium.webdriver.common.by import By
 
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 """
     Common functions for payments.
 """
 
 
-def setup_auto_top_up(manager: CobaltTestManager, user: User = None):
+def setup_auto_top_up(manager: CobaltTestManagerIntegration, user: User = None):
     """Selenium function to set up auto top up
 
     Args:
@@ -57,7 +57,7 @@ def setup_auto_top_up(manager: CobaltTestManager, user: User = None):
         manager.login_selenium_user(manager.test_user)
 
 
-def stripe_manual_payment_screen(manager: CobaltTestManager):
+def stripe_manual_payment_screen(manager: CobaltTestManagerIntegration):
     """Enter details on manual payment screen to confirm payment"""
 
     print("Waiting a bit...")
@@ -78,7 +78,7 @@ def stripe_manual_payment_screen(manager: CobaltTestManager):
 
 
 def check_last_transaction_for_user(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     user: User,
     tran_desc,
     tran_amt,
@@ -119,7 +119,7 @@ def check_last_transaction_for_user(
 
 
 def check_balance_for_user(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     user: User = None,
     expected_balance=0,
     test_name=None,

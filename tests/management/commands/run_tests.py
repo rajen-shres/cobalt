@@ -5,7 +5,7 @@ from django.core.exceptions import SuspiciousOperation
 from django.core.management.base import BaseCommand
 
 from cobalt.settings import COBALT_HOSTNAME
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 
 class Command(BaseCommand):
@@ -34,7 +34,7 @@ class Command(BaseCommand):
         headless = options["headless"]
 
         # create testManager to oversee things
-        manager = CobaltTestManager(app, browser, base_url, headless)
+        manager = CobaltTestManagerIntegration(app, browser, base_url, headless)
         manager.run()
         #        if not manager.overall_success:
         with open("/tmp/test-output.html", "w") as html_file:

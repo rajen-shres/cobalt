@@ -12,7 +12,7 @@ from organisations.tests.integration.common_functions import (
     login_and_go_to_club_menu,
 )
 from tests.integration.common_functions import cobalt_htmx_user_search
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 # TODO: See if these constants can be centrally stored
 
@@ -44,7 +44,7 @@ class ClubLevelAdmin:
     NSW = 3
     QLD = 5
 
-    def __init__(self, manager: CobaltTestManager):
+    def __init__(self, manager: CobaltTestManagerIntegration):
         self.manager = manager
         self.client = self.manager.client
 

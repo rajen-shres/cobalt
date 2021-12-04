@@ -6,11 +6,11 @@ import time
 from django.urls import reverse
 
 from accounts.models import User
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 
 def register_user(
-    manager: CobaltTestManager,
+    manager: CobaltTestManagerIntegration,
     system_number: str,
 ):
     """Common function to register a user

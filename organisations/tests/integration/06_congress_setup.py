@@ -1,4 +1,4 @@
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 # TODO: See if these constants can be centrally stored
 
@@ -24,7 +24,7 @@ club_names = {
 class ClubCongress:
     """Tests for club congresses"""
 
-    def __init__(self, manager: CobaltTestManager):
+    def __init__(self, manager: CobaltTestManagerIntegration):
         self.manager = manager
         self.client = self.manager.client
 

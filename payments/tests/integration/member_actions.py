@@ -16,7 +16,7 @@ from payments.tests.integration.common_functions import (
     check_last_transaction_for_user,
     stripe_manual_payment_screen,
 )
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 
 class MemberTransfer:
@@ -27,7 +27,7 @@ class MemberTransfer:
     rules.
     """
 
-    def __init__(self, manager: CobaltTestManager):
+    def __init__(self, manager: CobaltTestManagerIntegration):
         self.manager = manager
         self.client = self.manager.client
         self.driver = self.manager.driver

@@ -143,7 +143,7 @@ run_tests just starts the tests off and when they complete it launches a web bro
 test_manager.py
 ---------------
 
-The CobaltTestManager class within test_manager.py orchestrates the testing. It has a list of tests to run and calls
+The CobaltTestManagerIntegration class within test_manager.py orchestrates the testing. It has a list of tests to run and calls
 those classes in order. It provides a basic environment for each test to be able to run, including users, login
 commands and Selenium scripts and a common way to report how the test worked.
 

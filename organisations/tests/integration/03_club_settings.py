@@ -4,7 +4,7 @@ from organisations.tests.integration.common_functions import (
     club_menu_go_to_tab,
     login_and_go_to_club_menu,
 )
-from tests.test_manager import CobaltTestManager
+from tests.test_manager import CobaltTestManagerIntegration
 
 # TODO: See if these constants can be centrally stored
 
@@ -30,7 +30,7 @@ club_names = {
 class ClubSettings:
     """Tests for club menu settings"""
 
-    def __init__(self, manager: CobaltTestManager):
+    def __init__(self, manager: CobaltTestManagerIntegration):
         self.manager = manager
         self.client = self.manager.client
 

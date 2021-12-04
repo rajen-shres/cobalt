@@ -50,6 +50,11 @@ def run_methods(class_instance):
             pass
 
 
+def get_user(username):
+    """Get a user by username"""
+    return User.objects.filter(username=username).first()
+
+
 class CobaltTestManagerAbstract(ABC):
     """
     Abstract class to hold things that are common across the two types of testing:
@@ -57,17 +62,17 @@ class CobaltTestManagerAbstract(ABC):
     """
 
     def __init__(self, app=None):
-        self.alan = self.get_user("100")
-        self.betty = self.get_user("101")
-        self.colin = self.get_user("102")
-        self.debbie = self.get_user("103")
-        self.eric = self.get_user("104")
-        self.fiona = self.get_user("105")
-        self.gary = self.get_user("106")
-        self.heidi = self.get_user("107")
-        self.iain = self.get_user("108")
-        self.janet = self.get_user("109")
-        self.keith = self.get_user("110")
+        self.alan = get_user("100")
+        self.betty = get_user("101")
+        self.colin = get_user("102")
+        self.debbie = get_user("103")
+        self.eric = get_user("104")
+        self.fiona = get_user("105")
+        self.gary = get_user("106")
+        self.heidi = get_user("107")
+        self.iain = get_user("108")
+        self.janet = get_user("109")
+        self.keith = get_user("110")
 
         # First user - Alan Admin
         self.test_user = self.alan
@@ -81,10 +86,6 @@ class CobaltTestManagerAbstract(ABC):
 
         # Specify app to only run specific tests
         self.app_to_test = app
-
-    def get_user(self, username):
-        """Get a user by username"""
-        return User.objects.filter(username=username).first()
 
     def save_results(self, status, test_name, test_description=None, output=None):
         """handle logging results
@@ -338,7 +339,7 @@ class CobaltTestManagerAbstract(ABC):
             print("\nInterrupted\n\n")
 
 
-class CobaltTestManager(CobaltTestManagerAbstract):
+class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
     """
     This orchestrates the automated tests.
 
@@ -456,5 +457,13 @@ class CobaltTestManager(CobaltTestManagerAbstract):
 
     def run(self):
 
-        super(CobaltTestManager, self).run()
+        super(CobaltTestManagerIntegration, self).run()
         self.driver.quit()
+
+
+class CobaltTestManagerUnit(CobaltTestManagerAbstract):
+    """Class to handle unit tests"""
+
+    def __init__(self, app=None):
+        super().__init__(app)
+        print("Unit Test")
