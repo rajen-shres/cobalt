@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.utils.timezone import localdate, localtime
 
 from accounts.models import User
-from events.models import CongressMaster, Congress, Event, Session
+from events.models import CongressMaster, Congress, Event, Session, EventPlayerDiscount
 from organisations.models import Organisation
 
 ENTRY_FEE = 100.0
@@ -12,6 +12,7 @@ EARLY_DISCOUNT = 20
 
 
 def events_model_functions():
+    """Tests for functions that are part of the Event model"""
 
     # Create a congress
     org = Organisation.objects.get(pk=6)
@@ -46,8 +47,7 @@ def events_model_functions():
     assert event.is_open()
 
     today = localdate()
-    time_now = localtime().time()
-    print(time_now)
+    # time_now = localtime().time()
 
     # Set Open date to yesterday - pass
     event.entry_open_date = today - timedelta(days=1)
@@ -141,3 +141,13 @@ def events_model_functions():
     fee, _, desc, *_ = event.entry_fee_for(player)
     assert fee == (ENTRY_FEE / 2) * (50 / 100)
     assert desc == "Youth discount"
+
+    # Specific player discounts
+    event_player_discount = EventPlayerDiscount(
+        player=player, admin=player, event=event, entry_fee=4.55, reason="ABC"
+    )
+    event_player_discount.save()
+
+    fee, _, desc, *_ = event.entry_fee_for(player)
+    assert fee == 4.55
+    assert desc == "ABC4", "My Error MSg"

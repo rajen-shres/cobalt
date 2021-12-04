@@ -2,6 +2,8 @@ import importlib
 import inspect
 import os
 
+from abc import ABC, abstractmethod
+
 from selenium.common.exceptions import (
     TimeoutException,
     NoSuchElementException,
@@ -48,34 +50,13 @@ def run_methods(class_instance):
             pass
 
 
-class CobaltTestManager:
+class CobaltTestManagerAbstract(ABC):
     """
-    This orchestrates the automated tests.
-
-    It assumes a fresh database is in place.
-
-    Three types of test can be performed:
-
-    1) Internal - using views and models to update and view the data, checking
-                  for core functionality
-    2) Client   - using Django's test client we can access the "screens" through
-                  an API, interacting with the system through POST and GET. This
-                  tests the external interfaces but runs no client side code.
-    3) Selenium - Selenium handles the UI tests. These tests interact with
-                  the UI in the same way as a user would and test both the server
-                  and client code, although ugly screens and typos will not be
-                  detected. This can also test different browsers.
-
-    This class provides basic set up for the tests that are run and collates the
-    results.
-
-    To add tests you can copy an existing one. Tests can use any combination of the
-    approaches mentioned above.
+    Abstract class to hold things that are common across the two types of testing:
+    Unit testing (single, short tests) and Integration testing (larger, connected stories).
     """
 
-    def __init__(self, app, browser, base_url, headless):
-        """Set up basic environment for individual tests"""
-
+    def __init__(self, app=None):
         self.alan = self.get_user("100")
         self.betty = self.get_user("101")
         self.colin = self.get_user("102")
@@ -91,36 +72,6 @@ class CobaltTestManager:
         # First user - Alan Admin
         self.test_user = self.alan
 
-        if not browser:
-            browser = "chrome"
-
-        if not base_url:
-            base_url = "http://127.0.0.1:8000"
-
-        self.base_url = base_url
-
-        # Specify app to only run specific tests
-        self.app_to_test = app
-
-        # Create test client
-        self.client = Client()
-
-        # Create Selenium client
-        if browser == "chrome":
-            options = ChromeOptions()
-            if headless:
-                options.headless = True
-            self.driver = webdriver.Chrome(options=options)
-
-        if browser == "firefox":
-            options = FirefoxOptions()
-            if headless:
-                options.headless = True
-            self.driver = webdriver.Firefox(options=options)
-
-        # Default system-wide pwd
-        self.test_code = "F1shcake"
-
         # Variables for results of tests
         self.overall_success = True
         self.test_results = {}  # actual results
@@ -128,68 +79,12 @@ class CobaltTestManager:
         self.class_docs = {}  # Doc strings for classes
         self.nice_function_names = {}  # turn function names into nice strings
 
+        # Specify app to only run specific tests
+        self.app_to_test = app
+
     def get_user(self, username):
         """Get a user by username"""
         return User.objects.filter(username=username).first()
-
-    def login_user(self, user):
-        """Login user to both test client and Pylenium"""
-        self.login_test_client(user)
-        self.login_selenium_user(user)
-
-    def login_test_client(self, user):
-        """login user through test client interface"""
-        self.client.force_login(user)
-
-    def login_selenium_user(self, user):
-        """login user through browser"""
-        self.driver.get(f"{self.base_url}/accounts/login")
-        self.driver.find_element(By.ID, "id_username").send_keys(user.username)
-        self.driver.find_element(By.ID, "id_password").send_keys(self.test_code)
-        self.driver.find_element_by_class_name("btn").click()
-
-    def _selenium_wait(self, wait_event, element_id, timeout):
-        """Wait for something and return it"""
-        try:
-            ignored_exceptions = (
-                NoSuchElementException,
-                StaleElementReferenceException,
-            )
-            WebDriverWait(
-                self.driver, timeout, ignored_exceptions=ignored_exceptions
-            ).until(wait_event)
-            return self.driver.find_element_by_id(element_id)
-        except TimeoutException:
-            return False
-
-    def selenium_wait_for(self, element_id, timeout=5):
-        """Wait for element_id to be on page and return it"""
-        element_present = expected_conditions.presence_of_element_located(
-            (By.ID, element_id)
-        )
-        return self._selenium_wait(element_present, element_id, timeout=timeout)
-
-    def selenium_wait_for_clickable(self, element_id, timeout=5):
-        """Wait for element_id to be clickable and return it. E.g. if element is hidden."""
-        element_clickable = expected_conditions.element_to_be_clickable(
-            (By.ID, element_id)
-        )
-        return self._selenium_wait(element_clickable, element_id, timeout=timeout)
-
-    def selenium_wait_for_clickable_by_name(self, element_name, timeout=5):
-        """Wait for element_name to be clickable and return it."""
-        element_clickable = expected_conditions.element_to_be_clickable(
-            (By.NAME, element_name)
-        )
-        return self._selenium_wait(element_clickable, element_name, timeout=timeout)
-
-    def selenium_wait_for_text(self, text, element_id, timeout=5):
-        """Wait for text to appear in element_id."""
-
-        element_has_text = expected_conditions.text_to_be_present_in_element(
-            (By.ID, element_id), text
-        )
-        return self._selenium_wait(element_has_text, element_id, timeout=timeout)
 
     def save_results(self, status, test_name, test_description=None, output=None):
         """handle logging results
@@ -442,4 +337,124 @@ class CobaltTestManager:
         except KeyboardInterrupt:
             print("\nInterrupted\n\n")
 
+
+class CobaltTestManager(CobaltTestManagerAbstract):
+    """
+    This orchestrates the automated tests.
+
+    It assumes a fresh database is in place.
+
+    Three types of test can be performed:
+
+    1) Internal - using views and models to update and view the data, checking
+                  for core functionality
+    2) Client   - using Django's test client we can access the "screens" through
+                  an API, interacting with the system through POST and GET. This
+                  tests the external interfaces but runs no client side code.
+    3) Selenium - Selenium handles the UI tests. These tests interact with
+                  the UI in the same way as a user would and test both the server
+                  and client code, although ugly screens and typos will not be
+                  detected. This can also test different browsers.
+
+    This class provides basic set up for the tests that are run and collates the
+    results.
+
+    To add tests you can copy an existing one. Tests can use any combination of the
+    approaches mentioned above.
+    """
+
+    def __init__(self, app, browser, base_url, headless):
+        """Set up basic environment for individual tests"""
+
+        super().__init__(app)
+
+        if not browser:
+            browser = "chrome"
+
+        if not base_url:
+            base_url = "http://127.0.0.1:8000"
+
+        self.base_url = base_url
+
+        # Create test client
+        self.client = Client()
+
+        # Create Selenium client
+        if browser == "chrome":
+            options = ChromeOptions()
+            if headless:
+                options.headless = True
+            self.driver = webdriver.Chrome(options=options)
+
+        if browser == "firefox":
+            options = FirefoxOptions()
+            if headless:
+                options.headless = True
+            self.driver = webdriver.Firefox(options=options)
+
+        # Default system-wide pwd
+        self.test_code = "F1shcake"
+
+    def login_user(self, user):
+        """Login user to both test client and Pylenium"""
+        self.login_test_client(user)
+        self.login_selenium_user(user)
+
+    def login_test_client(self, user):
+        """login user through test client interface"""
+        self.client.force_login(user)
+
+    def login_selenium_user(self, user):
+        """login user through browser"""
+        self.driver.get(f"{self.base_url}/accounts/login")
+        self.driver.find_element(By.ID, "id_username").send_keys(user.username)
+        self.driver.find_element(By.ID, "id_password").send_keys(self.test_code)
+        self.driver.find_element_by_class_name("btn").click()
+
+    def _selenium_wait(self, wait_event, element_id, timeout):
+        """Wait for something and return it"""
+        try:
+            ignored_exceptions = (
+                NoSuchElementException,
+                StaleElementReferenceException,
+            )
+            WebDriverWait(
+                self.driver, timeout, ignored_exceptions=ignored_exceptions
+            ).until(wait_event)
+            return self.driver.find_element_by_id(element_id)
+        except TimeoutException:
+            return False
+
+    def selenium_wait_for(self, element_id, timeout=5):
+        """Wait for element_id to be on page and return it"""
+        element_present = expected_conditions.presence_of_element_located(
+            (By.ID, element_id)
+        )
+        return self._selenium_wait(element_present, element_id, timeout=timeout)
+
+    def selenium_wait_for_clickable(self, element_id, timeout=5):
+        """Wait for element_id to be clickable and return it. E.g. if element is hidden."""
+        element_clickable = expected_conditions.element_to_be_clickable(
+            (By.ID, element_id)
+        )
+        return self._selenium_wait(element_clickable, element_id, timeout=timeout)
+
+    def selenium_wait_for_clickable_by_name(self, element_name, timeout=5):
+        """Wait for element_name to be clickable and return it."""
+        element_clickable = expected_conditions.element_to_be_clickable(
+            (By.NAME, element_name)
+        )
+        return self._selenium_wait(element_clickable, element_name, timeout=timeout)
+
+    def selenium_wait_for_text(self, text, element_id, timeout=5):
+        """Wait for text to appear in element_id."""
+
+        element_has_text = expected_conditions.text_to_be_present_in_element(
+            (By.ID, element_id), text
+        )
+        return self._selenium_wait(element_has_text, element_id, timeout=timeout)
+
+    def run(self):
+
+        super(CobaltTestManager, self).run()
         self.driver.quit()
