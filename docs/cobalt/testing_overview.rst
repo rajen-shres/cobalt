@@ -12,37 +12,18 @@ Testing Overview
 ================
 
 This page describes the testing strategy for Cobalt.
-Its not intended to be an essay on testing in general
-but just some practical information on how to approach
-testing in Cobalt.
 
 Basics
 ------
-We aren’t using Test Driven Development. While it
-is not a bad idea, it also isn’t particularly
-practical and I’ve never seen it work.
+We have a Test environment as well as a User Acceptance Testing (UAT) environment for the
+ABF instance of Cobalt (My ABF). Either of these can be used for testing, but generally Test is used for
+normal user testing by the core team and UAT is used for a wider group of people. In addition there
+is a build server that can be used for automated testing.
 
-The most important testing is done by humans.
-User testing can happen in either the Test or
-UAT environment, it doesn’t really matter,
-but all changes should be tested by people.
-The system is too large for regular regression
-tests to be performed so targeted testing
-is done for each change. Yes, this means that
-unforeseen consequences can get to production
-because they were not tested but it is the job
-of the developer to point out to the tester if
-they think there is a chance that something else
-might be affected and for the tester to take that
-into account when performing the testing.
+We have two types of automated tests, Unit tests and Integration tests.
 
-Automated testing exists to catch major issues.
-The automated test suite is run on the build server
-every time code is checked into the develop branch.
-The fundamental principle with automated testing is
-to keep it simple, not to worry about the UI, and
-to test a lot of common things rather than a few
-rare things. Payments gets priority.
+- **Unit Tests** are shorter
+
 
 Tests work off a clean, empty database. Production
 isn’t clean nor empty so we need to be careful with

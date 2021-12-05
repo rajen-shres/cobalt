@@ -248,8 +248,23 @@ class EventsTests:
         player.save()
 
         fee, _, desc, *_ = event.entry_fee_for(player)
-        assert fee == ((ENTRY_FEE - EARLY_DISCOUNT) / 2) * (50 / 100)
-        assert desc == "Youth+Early discount"
+
+        if (
+            fee == ((ENTRY_FEE - EARLY_DISCOUNT) / 2) * (50 / 100)
+            and desc == "Youth+Early discount"
+        ):
+            ok = True
+        else:
+            ok = False
+
+        self.manager.save_results(
+            status=ok,
+            test_name="Event entry fee. Pairs. Early entry discount and youth discount.",
+            test_description="Check the entry fee for a player in a pairs event with early entry discount and youth is "
+            "half the total entry fee after deducting the discount then the youth discount taken off.",
+            output=f"Checked event entry fee for {player}. Expected {((ENTRY_FEE - EARLY_DISCOUNT) / 2) * (50 / 100)}. "
+            f"Got {fee}. Expected description to be 'Youth+Early discount'. Got '{desc}'.",
+        )
 
         # Remove Early discount
         congress.allow_early_payment_discount = False
@@ -258,6 +273,20 @@ class EventsTests:
         fee, _, desc, *_ = event.entry_fee_for(player)
         assert fee == (ENTRY_FEE / 2) * (50 / 100)
         assert desc == "Youth discount"
+
+        if fee == (ENTRY_FEE / 2) * (50 / 100) and desc == "Youth discount":
+            ok = True
+        else:
+            ok = False
+
+        self.manager.save_results(
+            status=ok,
+            test_name="Event entry fee. Pairs. Only youth discount.",
+            test_description="Check the entry fee for a player in a pairs event with youth discount is "
+            "half the total entry fee with the youth discount taken off.",
+            output=f"Checked event entry fee for {player}. Expected {(ENTRY_FEE / 2) * (50 / 100)}. "
+            f"Got {fee}. Expected description to be 'Youth discount'. Got '{desc}'.",
+        )
 
         # Specific player discounts
         event_player_discount = EventPlayerDiscount(
@@ -268,3 +297,16 @@ class EventsTests:
         fee, _, desc, *_ = event.entry_fee_for(player)
         assert fee == 4.55
         assert desc == "ABC"
+
+        if fee == 4.55 and desc == "ABC":
+            ok = True
+        else:
+            ok = False
+
+        self.manager.save_results(
+            status=ok,
+            test_name="Event entry fee. Specific player setting.",
+            test_description="Check specific entry fee is picked up.",
+            output=f"Checked event entry fee for {player}. Expected 4.55. "
+            f"Got {fee}. Expected description to be 'ABC'. Got '{desc}'.",
+        )
