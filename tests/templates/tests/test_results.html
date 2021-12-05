@@ -23,9 +23,25 @@
         <title>Cobalt Test Report</title>
     </head>
     <body>
+        <!-- example 1 - using absolute position for center -->
+        <nav class="navbar navbar-expand-md navbar-dark bg-primary">
+            <div class="container-fluid">
+                <i class="material-icons" style="color: white;font-size: 40px;">{{ icon }}</i>
+
+                <div class="navbar-collapse collapse" id="collapseNavbar">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="http://127.0.0.1:8088">Test Site</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <h1 class="text-center pt-03" style="font-size: 70px">{{ document_title }}</h1>
         <div class="jumbotron">
             <div class="container">
-                <h1 class="text-center pt-03">Cobalt Test Results</h1>
+
 
                 {#  Overall Score  #}
                 <div class="container">
@@ -56,12 +72,7 @@
                     </div>
                 </div>
 
-
                 <h1 class="text-center">Pass Rate {{ total_passing }}/{{ total_length }}</h1>
-
-                <div class="float-end">
-                    <a href="http://127.0.0.1:8088">Test Site</a>
-                </div>
 
                 <h4 class="pt-4">Table of Contents</h4>
                 <div class="table-responsive col-md-9 mb-3">

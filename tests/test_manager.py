@@ -1,10 +1,11 @@
+import glob
 import importlib
 import inspect
 import os
+import re
 
-from abc import ABC, abstractmethod
+from abc import ABC
 
-from django.db.transaction import rollback
 from selenium.common.exceptions import (
     TimeoutException,
     NoSuchElementException,
@@ -61,6 +62,9 @@ class CobaltTestManagerAbstract(ABC):
     """
 
     def __init__(self, app=None):
+
+        self.list_of_tests = None
+
         self.alan = self.get_user("100")
         self.betty = self.get_user("101")
         self.colin = self.get_user("102")
@@ -88,6 +92,10 @@ class CobaltTestManagerAbstract(ABC):
 
         # Do we rollback transactions? Yes for Unit testing, No for Integration testing. Default is off.
         self.rollback_transactions = False
+
+        # Document Title and Icon
+        self.document_title = "Cobalt Test Results"
+        self.icon = "build"
 
     def get_user(self, username):
         """Get a user by username"""
@@ -316,6 +324,8 @@ class CobaltTestManagerAbstract(ABC):
                 "total_passing": total_passing,
                 "total_length": total_length,
                 "total_score": total_score,
+                "document_title": self.document_title,
+                "icon": self.icon,
             },
         )
 
@@ -341,6 +351,7 @@ class CobaltTestManagerAbstract(ABC):
                         f"\nRunning {self.list_of_tests[test_list_item]} - {test_list_item}"
                     )
 
+                    # We rollback any database changes if this is a unit test
                     if self.rollback_transactions:
                         save_point = transaction.savepoint()
                         run_methods(class_instance)
@@ -385,6 +396,8 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
         super().__init__(app)
 
         self.list_of_tests = LIST_OF_INTEGRATION_TESTS
+        self.document_title = "Integration Testing Report"
+        self.icon = "auto_stories"
 
         if not browser:
             browser = "chrome"
@@ -484,8 +497,20 @@ class CobaltTestManagerUnit(CobaltTestManagerAbstract):
     def __init__(self, app=None):
         super().__init__(app)
 
-        self.list_of_tests = {
-            "EventsTests": "events.tests.unit.unit_test_events",
-        }
+        self.list_of_tests = {}
+        print("Discovering test cases...")
+
+        for test_file in glob.glob("*/tests/unit/*.py"):
+            test_file_as_python_path = test_file[:-3].replace("/", ".")
+            with open(test_file) as unit_file:
+                for line in unit_file.readlines():
+                    class_name = re.search("^class (\\w+):", line)
+                    if class_name:
+                        print(f"  {class_name.group(1)} --> {test_file_as_python_path}")
+                        self.list_of_tests[
+                            class_name.group(1)
+                        ] = test_file_as_python_path
 
         self.rollback_transactions = True
+        self.document_title = "Unit Testing Report"
+        self.icon = "build"

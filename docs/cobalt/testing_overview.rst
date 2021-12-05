@@ -11,19 +11,31 @@
 Testing Overview
 ================
 
-This page describes the testing strategy for Cobalt.
+This page describes the testing strategy for Cobalt. Also see the documentation on building core test data -
+:doc:`test_data_overview`.
 
 Basics
 ------
 We have a Test environment as well as a User Acceptance Testing (UAT) environment for the
 ABF instance of Cobalt (My ABF). Either of these can be used for testing, but generally Test is used for
-normal user testing by the core team and UAT is used for a wider group of people. In addition there
+normal user testing by the core team and UAT is used for a wider group of people. UAT is also a core
+part of the release process to check that releases will work in production.
+
+In addition there
 is a build server that can be used for automated testing.
 
 We have two types of automated tests, Unit tests and Integration tests.
 
-- **Unit Tests** are shorter
+- **Unit Tests** are shorter, isolated tests that check the internal workings of the code
+- **Integration Tests** are developing stories. We start by creating a user in chapter 1, in chapter 4 we create a congress and in chapter 5 the user enters the congress.
 
+Both tests start with a basic database that has test data loaded.
+
+Unit tests can be run in any order and do not update the database (this is handled by the test harness,
+it just rolls back any changes).
+Integration tests do update the database and need to run in order.
+
+Shockingly we have our own test harness, but more on that below.
 
 Tests work off a clean, empty database. Production
 isn’t clean nor empty so we need to be careful with
@@ -35,13 +47,33 @@ User Testing
 * Humans can test in any environment, it doesn’t matter
 * UAT is intended for use by people outside the core team, Test is intended to be internal
 * Test should always run the code from the develop branch
-* Production should always run the code from the master branch
+* Production should always run the code from the master branch with a branch called release/x.x.x holding a point in time version of master
 * UAT should run the candidate code for the next release
 * All functionality should be supported by automatic test data than can be reset easily
 * Humans should do post-install testing on production whenever possible
+* Since we don't store anything particularly confidential, we can also test against copies of production data before releasing to production as data is the biggest cause of problems
 
-Automated Testing
------------------
+Automated Testing - General
+---------------------------
+
+To run the automated tests together you can use `cgit_dev_test_all`.
+
+This will run both types of test and also produce a coverage report. This is intended to be run
+as part of the development process.
+
+Automated Testing - Unit
+---------------------------
+
+The unit tests are generally short and work at the function level. You can run them with `cgit_dev_test_unit`.
+
+The easiest way to build new tests is to copy existing ones. Unit tests live in `<module>/tests/unit`.
+
+Unit tests are easier to write than integration tests and you are encouraged to write as many as possible.
+
+Unit tests are automatically discovered but can be run in any random order.
+
+Automated Testing - Integration
+--------------------------------
 
 There are two basic types of automated tests used:
 
@@ -51,7 +83,11 @@ There are two basic types of automated tests used:
 Both approaches are used together, so we might use Selenium to create something and then access
 the model directly to confirm it was successful.
 
-See below for instructions on running the tests.
+You can run them with `cgit_dev_test_integration`.
+
+The easiest way to build new tests is to copy existing ones. Integration tests live in `<module>/tests/integration`.
+
+Integration tests must run in order so they are manually configured in `tests/test_manager.py`.
 
 Performance Testing
 -------------------
@@ -71,61 +107,9 @@ require authorisation.
 Why Don't We Use a Testing Framework?
 -------------------------------------
 
-Both Django and Python itself come with large
-testing frameworks. While we use the Django test
-client module, we don't use Unittest or pytest.
-The reason for this is that our testing is fairly
-simplistic and doesn't need a large framework. The original author
-was not familiar with either framework (or any of
-the others) so the learning curve would have been
-greater than the effort required to implement a
-simple solution ourselves. This won't be good news
-for whoever is maintaining this if you already know
-these frameworks, but our approach is so simple
-that it shouldn't be hard for you.
+We started out with minimal testing and then added pytest. We quickly hit limitation with this and
+ended up building a very simple test framework ourselves.
 
-The Cobalt test framework also produces much nicer reports and includes
-``coverage`` automatically.
-
-Running Tests
-=============
-
-Most of the testing is done in the development environment,
-with the build server running confirmation tests when code
-is committed to develop.
-
-The testing scripts assume you are running on a Mac
-and have set up command windows to run the server and the
-Stripe client. You can take the commands from the script
-and run them separately if this is not the case.
-
-cgit_dev_test
--------------
-
-This is the wrapper script to start the tests. it does the following:
-
-* Rebuilds the test database (the ebdb database is not touched by testing)
-* Sets the RDS_DB_NAME to "test"
-* Sets the port to 8088 (usually development runs on 8000 so there is no conflict)
-* Starts the Mac Terminal Window Group "testing" which should be set to run two windows. One for ./manage runserver on port 8088 and one for Stripe connecting to port 8088.
-* After a keypress to confirm the windows are running it will run::
-
-    ./manage.py run_tests --base_url http://127.0.0.1:$PORT --headless true
-
-You can also run ``cgit_dev_test short`` after once running the full command and it will not rebuild the database from
-scratch (uses a copy from the last run). This saves a lot of time if there haven't been any schema changes since the
-last time it was run.
-
-run_tests.py management command
--------------------------------
-
-run_tests just starts the tests off and when they complete it launches a web browser to display the results.
-
-test_manager.py
----------------
-
-The CobaltTestManagerIntegration class within test_manager.py orchestrates the testing. It has a list of tests to run and calls
-those classes in order. It provides a basic environment for each test to be able to run, including users, login
-commands and Selenium scripts and a common way to report how the test worked.
-
+It is very easy to use (copy an example) and produces human readable HTML files that explain what
+was tested and what the outcome was. Neither pytest nor unittest can do this.
 

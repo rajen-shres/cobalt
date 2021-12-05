@@ -145,7 +145,7 @@ class EventsTests:
             test_description="Add a close time in the past. Check that the event is closed.",
             output=f"Checked event open. Status={bool(event.is_open())}. Today: {today}. Time: {localtime().time()} "
             f"Open date: {event.entry_open_date}. Close date: {event.entry_close_date}. "
-            f"Close date: {event.entry_close_time}",
+            f"Close time: {event.entry_close_time}",
         )
 
         # Set close date to today and close time to past (try 1 second) - fail
@@ -156,7 +156,7 @@ class EventsTests:
             test_description="Add a close time in the past (by 1 second). Check that the event is closed.",
             output=f"Checked event open. Status={bool(event.is_open())}. Today: {today}. Time: {localtime().time()} "
             f"Open date: {event.entry_open_date}. Close date: {event.entry_close_date}. "
-            f"Close date: {event.entry_close_time}",
+            f"Close time: {event.entry_close_time}",
         )
 
         # Open event again so we can test the start date
@@ -173,7 +173,7 @@ class EventsTests:
             test_description="The event entry dates are fine (event is open) and the session date is in the future.",
             output=f"Checked event open. Status={bool(event.is_open())}. Today: {today}. Time: {localtime().time()} "
             f"Open date: {event.entry_open_date}. Close date: {event.entry_close_date}. "
-            f"Close date: {event.entry_close_time}. Session date: {session.session_date}. "
+            f"Close time: {event.entry_close_time}. Session date: {session.session_date}. "
             f"Session start: {session.session_start}",
         )
 
@@ -187,7 +187,7 @@ class EventsTests:
             test_description="The event entry dates are fine (event is open) and the session date is in the past.",
             output=f"Checked event open. Status={bool(event.is_open())}. Today: {today}. Time: {localtime().time()} "
             f"Open date: {event.entry_open_date}. Close date: {event.entry_close_date}. "
-            f"Close date: {event.entry_close_time}. Session date: {session.session_date}. "
+            f"Close time: {event.entry_close_time}. Session date: {session.session_date}. "
             f"Session start: {session.session_start}",
         )
 

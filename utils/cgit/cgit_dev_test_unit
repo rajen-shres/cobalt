@@ -12,8 +12,6 @@ echo "#                                                                       #"
 echo "# If you have changed models or static data config then you should      #"
 echo "# run cgit_dev_test_reload_db first, to update the cached version.      #"
 echo "#                                                                       #"
-echo "# Apologies for the mess below, that is pytest.                         #"
-echo "#                                                                       #"
 echo "#########################################################################"
 
 # Rebuild database
