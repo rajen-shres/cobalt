@@ -6,13 +6,19 @@ from django.utils.timezone import localdate, localtime
 from accounts.models import User
 from events.models import CongressMaster, Congress, Event, Session, EventPlayerDiscount
 from organisations.models import Organisation
+from tests.test_manager import CobaltTestManagerIntegration
 
 ENTRY_FEE = 100.0
 EARLY_DISCOUNT = 20
 
 
 class EventsTests:
-    def events_model_functions():
+    """Unit tests for things related to Events"""
+
+    def __init__(self, manager: CobaltTestManagerIntegration):
+        self.manager = manager
+
+    def events_model_functions(self):
         """Tests for functions that are part of the Event model"""
 
         # Create a congress
@@ -22,7 +28,11 @@ class EventsTests:
         congress = Congress(congress_master=congress_master)
         congress.save()
 
-        assert congress
+        self.manager.save_results(
+            status=bool(congress),
+            test_name="Create congress",
+            test_description="Create a congress and check it works",
+        )
 
         # Create basic event
         event = Event(
@@ -35,7 +45,11 @@ class EventsTests:
         )
         event.save()
 
-        assert event
+        self.manager.save_results(
+            status=bool(event),
+            test_name="Create event",
+            test_description="Create an event and check it works",
+        )
 
         # Create session
         session = Session(event=event)
@@ -151,4 +165,4 @@ class EventsTests:
 
         fee, _, desc, *_ = event.entry_fee_for(player)
         assert fee == 4.55
-        assert desc == "ABC4", "My Error MSg"
+        assert desc == "ABC"

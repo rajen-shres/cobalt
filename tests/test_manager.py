@@ -4,12 +4,14 @@ import os
 
 from abc import ABC, abstractmethod
 
+from django.db.transaction import rollback
 from selenium.common.exceptions import (
     TimeoutException,
     NoSuchElementException,
     StaleElementReferenceException,
 )
 from termcolor import colored
+from django.db import transaction
 from django.template.loader import render_to_string
 from django.test import Client
 from django.test.utils import setup_test_environment
@@ -84,6 +86,9 @@ class CobaltTestManagerAbstract(ABC):
         # Specify app to only run specific tests
         self.app_to_test = app
 
+        # Do we rollback transactions? Yes for Unit testing, No for Integration testing. Default is off.
+        self.rollback_transactions = False
+
     def get_user(self, username):
         """Get a user by username"""
         return User.objects.filter(username=username).first()
@@ -131,7 +136,10 @@ class CobaltTestManagerAbstract(ABC):
 
         # dictionary for class doc strings
         if calling_class not in self.class_docs:
-            self.class_docs[calling_class] = calling_class_doc.replace("\n", "<br>")
+            if calling_class_doc:
+                self.class_docs[calling_class] = calling_class_doc.replace("\n", "<br>")
+            else:
+                self.class_docs[calling_class] = "Doc string missing"
 
         # dictionary for nice function names
         if calling_method not in self.nice_function_names:
@@ -332,7 +340,13 @@ class CobaltTestManagerAbstract(ABC):
                     print(
                         f"\nRunning {self.list_of_tests[test_list_item]} - {test_list_item}"
                     )
-                    run_methods(class_instance)
+
+                    if self.rollback_transactions:
+                        save_point = transaction.savepoint()
+                        run_methods(class_instance)
+                        transaction.savepoint_rollback(save_point)
+                    else:
+                        run_methods(class_instance)
 
             print("\nFinished running tests\n")
 
@@ -469,8 +483,9 @@ class CobaltTestManagerUnit(CobaltTestManagerAbstract):
 
     def __init__(self, app=None):
         super().__init__(app)
-        print("Unit Test")
 
         self.list_of_tests = {
             "EventsTests": "events.tests.unit.unit_test_events",
         }
+
+        self.rollback_transactions = True
