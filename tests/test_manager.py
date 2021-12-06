@@ -60,8 +60,6 @@ def run_methods(class_instance):
                 print(error)
                 traceback.print_exc()
                 raise error
-            else:
-                print("Skipping")
 
 
 class CobaltTestManagerAbstract(ABC):
@@ -376,7 +374,7 @@ class CobaltTestManagerAbstract(ABC):
 
 class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
     """
-    This orchestrates the automated tests.
+    This orchestrates the automated integration tests.
 
     It assumes a fresh database is in place.
 

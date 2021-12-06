@@ -12,29 +12,41 @@ def test_model_instance_is_safe(manager, model_instance, exclude_list=[]):
     """
 
     model_type = model_instance._meta.model.__name__
+    success_count = 0
+    skip_count = 0
+    non_text_count = 0
+    success_list = []
 
     # Get all of the fields on model_instance
     for model_field in model_instance._meta.fields:
 
         # Skip if in exclude list
         if model_field.name in exclude_list:
+            skip_count += 1
             continue
 
         # only test long char and text fields
-        if type(model_field) == TextField or (
-            type(model_field) == CharField and model_field.max_length >= 27
+        if not (
+            type(model_field) == TextField
+            or (type(model_field) == CharField and model_field.max_length > 27)
         ):
+            non_text_count += 1
+            continue
 
-            # set value to something dodgy
-            setattr(model_instance, model_field.name, "<script>alert('h')</script>")
+        # set value to something dodgy
+        setattr(model_instance, model_field.name, "<script>alert('h')</script>")
 
-            # save it
-            model_instance.save()
+        # save it
+        model_instance.save()
 
-            # Get the data back
-            new_value = getattr(model_instance, model_field.name)
+        # Get the data back
+        new_value = getattr(model_instance, model_field.name)
 
-            ok = new_value == "alert('h')"
+        ok = new_value == "alert('h')"
+
+        # Report errors now, report success as a summary
+        if not ok:
+
             manager.save_results(
                 status=ok,
                 test_name=f"Check Bleach prevents scripts -{model_type}.{model_field.name}",
@@ -42,3 +54,21 @@ def test_model_instance_is_safe(manager, model_instance, exclude_list=[]):
                 f"and check that it does not get saved. Bleach should filter it out.",
                 output=f"Expected code to be removed. Status={ok}. Field returned as '{new_value}'.",
             )
+
+        else:
+            success_list.append(model_field.name)
+            success_count += 1
+
+    # Summary after loop is complete
+    if success_list:
+        manager.save_results(
+            status=True,
+            test_name=f"Check Bleach prevents scripts - SUMMARY -{model_type}",
+            test_description=f"Add some unsafe code to the text fields of {model_type} "
+            f"and check that it does not get saved. Bleach should filter it out. "
+            f"This test is the summary of"
+            f"successes.",
+            output=f"Deliberately skipped: {skip_count}. Did not test non-text fields (or fields that "
+            f"were too short): {non_text_count}. Passed {success_count}. Successful fields tested "
+            f"were {success_list}",
+        )
