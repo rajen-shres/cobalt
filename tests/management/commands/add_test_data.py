@@ -1,6 +1,13 @@
 """ Script to create cobalt test data """
+from django.core.exceptions import SuspiciousOperation
 
-from cobalt.settings import RBAC_EVERYONE, TIME_ZONE, DUMMY_DATA_COUNT, TBA_PLAYER
+from cobalt.settings import (
+    RBAC_EVERYONE,
+    TIME_ZONE,
+    DUMMY_DATA_COUNT,
+    TBA_PLAYER,
+    COBALT_HOSTNAME,
+)
 from accounts.models import User
 from django.core.management.base import BaseCommand
 from accounts.management.commands.accounts_core import create_fake_user
@@ -319,6 +326,11 @@ class Command(BaseCommand):
         self.id_array["accounts.User"] = dic
 
     def handle(self, *args, **options):
+        if COBALT_HOSTNAME in ["myabf.com.au", "www.myabf.com.au"]:
+            raise SuspiciousOperation(
+                "Not for use in production. This cannot be used in a production system."
+            )
+
         print("Running add_rbac_test_data")
 
         try:

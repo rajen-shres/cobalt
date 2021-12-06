@@ -6,14 +6,84 @@ from django.utils.timezone import localdate, localtime
 from accounts.models import User
 from events.models import CongressMaster, Congress, Event, Session, EventPlayerDiscount
 from organisations.models import Organisation
+from rbac.tests.utils import unit_test_rbac_add_role_to_user
 from tests.test_manager import CobaltTestManagerIntegration
+from tests.unit.general_test_functions import test_model_instance_is_safe
 
 ENTRY_FEE = 100.0
 EARLY_DISCOUNT = 20
+TEST_ORG = 6
 
 
-class EventsTests:
-    """Unit tests for things related to Events"""
+def _create_congress():
+    org = Organisation.objects.get(pk=TEST_ORG)
+    congress_master = CongressMaster(org=org, name="Model Test Congress Master")
+    congress_master.save()
+    congress = Congress(congress_master=congress_master)
+    congress.save()
+    return congress
+
+
+def _create_player():
+    player = User(
+        first_name="Ready",
+        last_name="PlayerOne",
+        system_number=98989898,
+        email="a@b.com",
+    )
+    player.save()
+    return player
+
+
+class CongressModelTests:
+    """Unit tests for things related to the Congress model"""
+
+    def __init__(self, manager: CobaltTestManagerIntegration):
+        self.manager = manager
+
+    def congress_model_functions(self):
+        """Tests for functions that are part of the Congress model"""
+
+        # create congress
+        congress = _create_congress()
+
+        self.manager.save_results(
+            status=bool(congress),
+            test_name="Create congress",
+            test_description="Create a congress and check it works",
+            output=f"Created a congress. Status={bool(congress)}",
+        )
+
+        # Check bleach is working on all fields
+        test_model_instance_is_safe(self.manager, congress, ["additional_info"])
+
+        # Test user_is_convener
+        player = _create_player()
+
+        is_convener = congress.user_is_convener(player)
+
+        self.manager.save_results(
+            status=not is_convener,
+            test_name="User not a convener",
+            test_description="Check that a normal user is not a convener for this congress",
+            output=f"Checked normal user for convener status. Status={is_convener}",
+        )
+
+        # Now add them as a convener
+        unit_test_rbac_add_role_to_user(player, "events", "org", "edit", TEST_ORG)
+
+        is_convener = congress.user_is_convener(player)
+
+        self.manager.save_results(
+            status=is_convener,
+            test_name="User is a convener",
+            test_description="Add user as convener and check that they get convener status for this congress",
+            output=f"Checked convener user for convener status. Status={is_convener}",
+        )
+
+
+class EventModelTests:
+    """Unit tests for things related to the Event model"""
 
     def __init__(self, manager: CobaltTestManagerIntegration):
         self.manager = manager
@@ -22,18 +92,7 @@ class EventsTests:
         """Tests for functions that are part of the Event model"""
 
         # Create a congress
-        org = Organisation.objects.get(pk=6)
-        congress_master = CongressMaster(org=org, name="Model Test Congress Master")
-        congress_master.save()
-        congress = Congress(congress_master=congress_master)
-        congress.save()
-
-        self.manager.save_results(
-            status=bool(congress),
-            test_name="Create congress",
-            test_description="Create a congress and check it works",
-            output=f"Created a congress. Status={bool(congress)}",
-        )
+        congress = _create_congress()
 
         # Create basic event
         event = Event(
@@ -196,13 +255,7 @@ class EventsTests:
         ##################
 
         # No discount
-        player = User(
-            first_name="Ready",
-            last_name="PlayerOne",
-            system_number=98989898,
-            email="a@b.com",
-        )
-        player.save()
+        player = _create_player()
         fee, *_ = event.entry_fee_for(player)
 
         ok = fee == ENTRY_FEE / 2
@@ -231,7 +284,7 @@ class EventsTests:
             test_name="Event entry fee. Pairs. Early entry discount.",
             test_description="Check the entry fee for a player in a pairs event with early entry discount is "
             "half the total entry fee after deducting the discount.",
-            output=f"Checked event entry fee for {player}. Expected {(ENTRY_FEE - EARLY_DISCOUNT)/ 2}. "
+            output=f"Checked event entry fee for {player}. Expected {(ENTRY_FEE - EARLY_DISCOUNT) / 2}. "
             f"Got {fee}. Expected description to be 'Early discount'. Got '{desc}'.",
         )
 

@@ -3,6 +3,7 @@ import importlib
 import inspect
 import os
 import re
+import traceback
 
 from abc import ABC
 
@@ -50,9 +51,17 @@ def run_methods(class_instance):
     for method in methods:
         try:
             method()
-        except TypeError:
-            # Can't handle methods which required arguments
-            pass
+        except TypeError as error:
+            # Can't handle methods which required arguments. Skip those but report anything else
+            if (
+                "__init__() missing 1 required positional argument: 'manager'"
+                not in error.__str__()
+            ):
+                print(error)
+                traceback.print_exc()
+                raise error
+            else:
+                print("Skipping")
 
 
 class CobaltTestManagerAbstract(ABC):
@@ -353,9 +362,9 @@ class CobaltTestManagerAbstract(ABC):
 
                     # We rollback any database changes if this is a unit test
                     if self.rollback_transactions:
-                        save_point = transaction.savepoint()
-                        run_methods(class_instance)
-                        transaction.savepoint_rollback(save_point)
+                        with transaction.atomic():
+                            run_methods(class_instance)
+                            transaction.set_rollback(True)
                     else:
                         run_methods(class_instance)
 

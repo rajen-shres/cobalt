@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Assumes your environment is already set up and just changes the database
+
+export RDS_DB_NAME=prod_load
+
+./manage.py sanitise_production_data_for_testing
+
+echo ""
+echo "You should be okay now to use production data in a development environment."
+echo ""
+echo "To connect to the database you will need:"
+echo ""
+echo "   export RDS_DB_NAME=prod_load"
+echo ""
+echo "HINT: To change a users password you can use: ./manage.py changepassword username"
+echo ""
