@@ -25,6 +25,14 @@
                     {% if email_admin %}
                         <a href="{% url "notifications:global_admin_view_emails" member_id=profile.id %}" class="btn btn-sm btn-danger">Email Admin</a>
                     {% endif %}
+                    {% if user.is_superuser %}
+                        <button
+                            hx-post="{% url "login_as_user_login" user_id=profile.id %}"
+                            hx-target="body"
+                            class="btn btn-sm btn-danger"
+                        >Login As
+                        </button>
+                    {% endif %}
                 </div>
             </div>
 
@@ -225,4 +233,8 @@ paginations we are doing -->
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block footer %}
+    {% include "utils/include_htmx.html" %}
 {% endblock %}

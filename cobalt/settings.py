@@ -202,6 +202,7 @@ INSTALLED_APPS = [
     "django_ses",
     "django_otp",
     "django_otp.plugins.otp_totp",
+    "loginas",
 ]
 
 MIDDLEWARE = [
@@ -231,6 +232,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "cobalt.context_processors.global_settings",
+                "loginas.context_processors.impersonated_session_status",
             ],
         },
     },

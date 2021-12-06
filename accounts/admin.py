@@ -7,6 +7,7 @@ class UserAdmin(admin.ModelAdmin):
     """Controls the search fields in the Admin app"""
 
     search_fields = ("last_name", "system_number", "email")
+    change_form_template = "loginas/change_form.html"
 
 
 class TeamMateAdmin(admin.ModelAdmin):

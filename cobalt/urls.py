@@ -4,6 +4,7 @@ from dashboard.views import logged_out, home
 from django.conf import settings
 from django.urls import include, path
 from django_otp.admin import OTPAdminSite
+from loginas.views import user_login as user_login_as
 
 from utils.views import download_csv
 
@@ -17,6 +18,8 @@ admin.site.add_action(download_csv, "export_as_csv")
 urlpatterns = [
     path("view", logged_out, name="logged_out"),
     path("admin/doc/", include("django.contrib.admindocs.urls")),
+    path("login-as/user/<str:user_id>/", user_login_as, name="login_as_user_login"),
+    path("admin_1234567/", include("loginas.urls")),
     path("admin_1234567/", admin.site.urls),
     path("", home, name="home"),
     path("dashboard/", include("dashboard.urls")),
