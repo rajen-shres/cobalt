@@ -254,6 +254,8 @@ TEMPLATES = [
     },
 ]
 
+CAN_LOGIN_AS = "utils.can_login_as.check"
+
 CRISPY_TEMPLATE_PACK = "bootstrap4"
 
 WSGI_APPLICATION = "cobalt.wsgi.application"

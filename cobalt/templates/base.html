@@ -55,7 +55,7 @@ Environment: {{ COBALT_HOSTNAME }}
 
 <body>
     {% if is_impersonated_session %}
-        <div class="container-fluid bg-danger text-white">
+        <div class="card-body bg-danger text-white">
             <h1 class="text-center">!!!--Admin Override--!!!</h1>
             <p class="text-center font-italic">This session for {{ request.user }} is being controlled by an administrator</p>
         </div>
