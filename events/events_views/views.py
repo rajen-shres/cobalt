@@ -319,7 +319,7 @@ def view_congress(request, congress_id, fullscreen=False):
 
                 # Handle common parts of links
                 program["links"] += (
-                    "<a href='/events/congress/event/view-event-entries/{congress.id}/{event.id}' "
+                    f"<a href='/events/congress/event/view-event-entries/{congress.id}/{event.id}' "
                     "class='btn btn-block btn-sm btn-info'>View Entries</a>"
                 )
                 # Logged out needs extra breaks
