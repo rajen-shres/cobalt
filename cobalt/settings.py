@@ -170,6 +170,7 @@ if os.name == "posix":
 
 INSTALLED_APPS = [
     "calendar_app",
+    "api",
     "notifications",
     "events",
     "forums",

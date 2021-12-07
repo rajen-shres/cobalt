@@ -51,6 +51,7 @@ Here are pages that describe things relevant to Cobalt in general.
 * :doc:`cobalt/development_overview`
 * :doc:`cobalt/design_overview`
 * :doc:`cobalt/security_overview`
+* :doc:`cobalt/api_overview`
 * :doc:`cobalt/testing_overview`
 * :doc:`cobalt/test_data_overview`
 * :doc:`cobalt/aws_overview`

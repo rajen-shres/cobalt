@@ -25,3 +25,4 @@ django-model-utils==4.1.1
 django-otp==1.1.1
 qrcode==7.3.1
 django-loginas==0.3.10
+django-ninja==0.16.1

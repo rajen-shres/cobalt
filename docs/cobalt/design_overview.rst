@@ -97,15 +97,19 @@ boto3                               1.12.39                             AWS API
 botocore                            1.15.39                             AWS API
 geopy                               2.0.0                               Lat and Lon finder
 essential-generators                0.9.2                               Generating test data
+django-otp                          1.1.1                               2FA for Django Admin pages
+qrcode                              7.3.1                               QR Codes for Django OTP
+django-loginas                      0.3.10                              Allow admins to login as a user
+django-ninja                        0.16.1                              API development
 =======================             =============================       ========================================================
 
 Current Server-side Banned Technology Stack
 ===========================================
 
 =======================             =============================       =======================================================================
-Technology                          Version                             Purpose
+Technology                          Purpose                             Ban Reason
 =======================             =============================       =======================================================================
-django-rest-framework               Build APIs in Django                DRF is excellent technology but we don’t currently have a need for it.
+django-rest-framework               Build APIs in Django                DRF is widely used but is quite bloated and Django Ninja is much easier to use
 celery                              asynchronous task management        Too complicated for our needs. Use simple threads or cron instead.
 =======================             =============================       =======================================================================
 
