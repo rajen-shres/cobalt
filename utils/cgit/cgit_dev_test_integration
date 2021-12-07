@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Run tests on local machine
+# Run integration tests
+# Call with 1 parameter to show the web browser
+# Call with 2 parameters to generate coverage data
 
 # Variables
 PORT=8088
@@ -32,11 +34,16 @@ open . ~/Development/c2/cobalt/utils/cgit/tools/test_stripe_short.terminal
 sleep 3
 echo "Starting..."
 
-if [ $# -lt 1 ]
+# Call with 1 parameter to show the web browser
+# Call with 2 parameters to generate coverage data
+if [ $# -eq 2 ]
   then
   coverage run -p ./manage.py run_tests_integration --base_url http://127.0.0.1:$PORT --headless true
+elif [ $# eq 1 ]
+  then
+  ./manage.py run_tests_integration --base_url http://127.0.0.1:$PORT
   else
-  coverage run -p ./manage.py run_tests_integration --base_url http://127.0.0.1:$PORT
+  ./manage.py run_tests_integration --base_url http://127.0.0.1:$PORT --headless true
 fi
 
 # Stop the django server
