@@ -31,7 +31,7 @@ Things You May Find Unusual
 - Not built using Django Rest Framework. We use `Django Ninja <https://django-ninja.rest-framework.com/>`_ instead as it is much simpler and meets our needs better.
 - Not built with a heavyweight client side framework (*see below for more on the client side*).
 - No Celery. Too complicated for this project. We use cron instead.
-- No Docker. We don't need it.
+- No Docker. We don't need it. We deploy on a standardised VM environment and use a virtual environment.
 - No Class Based Views. In our opinion it was a mistake adding these to Django and they should be avoided. `This explains it well <https://lukeplant.me.uk/blog/posts/djangos-cbvs-were-a-mistake/>`_.
 - Custom testing framework (*See* :doc:`testing_overview` and :doc:`test_data_overview`).
 
