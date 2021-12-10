@@ -5,7 +5,7 @@ from decimal import Decimal
 import uuid
 import pytz
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, HttpResponse
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -661,6 +661,7 @@ def view_event_entries(request, congress_id, event_id):
         .order_by("entry_complete_date")
     )
     entries.prefetch_related("evententryplayer_set")
+    # entries.prefetch_related("evententryplayer_player_set")
 
     # identify this users entry
     if request.user.is_authenticated:

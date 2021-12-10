@@ -50,6 +50,7 @@
                                                 <strong>{{ entry.get_team_name }} - </strong>
                                             {% endif %}
                                             {% for player in entry.ordered_event_entry_player %}
+                                                {#                                            {% for player in entry.event_entry_player_all %}#}
                                                 {% if player.player.id == TBA_PLAYER and player.override_tba_name %}<span class="font-italic" title="This name was added by an administrator">{{ player.override_tba_name }}</span>{% else %}{{ player.player.full_name }}{% endif %}{% if not forloop.last %}, {% endif %}
                                             {% endfor %}
                                             {% if entry.my_entry %}

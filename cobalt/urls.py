@@ -49,3 +49,9 @@ handler404 = "cobalt.errors.not_found_404"
 handler500 = "cobalt.errors.server_error_500"
 handler403 = "cobalt.errors.permission_denied_403"
 handler400 = "cobalt.errors.bad_request_400"
+
+# Django debug toolbar
+if settings.DEBUG and settings.DEBUG_TOOLBAR_ENABLED:
+    import debug_toolbar
+
+    urlpatterns.insert(0, path("__debug__/", include(debug_toolbar.urls)))

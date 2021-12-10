@@ -50,6 +50,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # basics
 SECRET_KEY = set_value("SECRET_KEY")
 DEBUG = set_value("DEBUG", False)
+API_KEY_PREFIX = set_value("API_KEY_PREFIX", "API_")
 
 # Set up ADMINS list from string
 ADMINS = [
@@ -207,7 +208,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "utils.middleware.CobaltMiddleware",
+    # "utils.middleware.CobaltMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -228,7 +229,6 @@ TEMPLATES = [
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
-                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
@@ -526,3 +526,11 @@ else:
             },
         },
     }
+
+DEBUG_TOOLBAR_ENABLED = set_value("DEBUG_TOOLBAR_ENABLED", False)
+if DEBUG and DEBUG_TOOLBAR_ENABLED:
+    INSTALLED_APPS.append("debug_toolbar")
+    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+    INTERNAL_IPS = [
+        "127.0.0.1",
+    ]

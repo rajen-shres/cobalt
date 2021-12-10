@@ -1,5 +1,6 @@
 """ Models for our definitions of a user within the system. """
-
+import random
+import string
 from datetime import date
 
 from django.urls import reverse
@@ -12,6 +13,7 @@ from cobalt.settings import (
     TBA_PLAYER,
     RBAC_EVERYONE,
     ABF_USER,
+    API_KEY_PREFIX,
 )
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
@@ -233,3 +235,27 @@ class UserPaysFor(models.Model):
 
     def __str__(self):
         return f"{self.sponsor.full_name} pays for {self.lucky_person.full_name}"
+
+
+def _create_api_token():
+    string_size = 40 - len(API_KEY_PREFIX)
+    random_string = "".join(
+        random.SystemRandom().choice(
+            string.ascii_letters + string.digits + "!$^()-_{[}]|/"
+        )
+        for _ in range(string_size)
+    )
+    return f"{API_KEY_PREFIX}{random_string}"
+
+
+class APIToken(models.Model):
+    """API Tokens map to a user and are used by any API functions
+
+    We don't put an expiry on the token but this could be added later if required."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=40, default=_create_api_token())
+    created_date = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.created_date}"

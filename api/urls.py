@@ -5,7 +5,7 @@ spread across lots of modules."""
 from django.urls import path
 from ninja import NinjaAPI
 
-from accounts.models import User
+from accounts.models import User, APIToken
 from .apis import router as cobalt_router
 from ninja.security import (
     APIKeyQuery,
@@ -22,9 +22,9 @@ class AuthCheck:
 
     def authenticate(self, request, key):
         """Returns the user associated with this key or None (invalid)"""
-        if key == "supersecret":
-            user = User.objects.filter(first_name="Mark").first()
-            return user
+        api_key = APIToken.objects.filter(token=key).first()
+        if api_key:
+            return api_key.user
 
 
 class QueryKey(AuthCheck, APIKeyQuery):
