@@ -24,5 +24,6 @@ def key_check(request):
 
 @router.post("/upload")
 def upload_a_file(request, file: UploadedFile = File(...)):
-    data = file.read()
+    data = file.readlines()
+    print(data)
     return {"user": request.auth.__str__(), "name": file.name, "len": len(data)}
