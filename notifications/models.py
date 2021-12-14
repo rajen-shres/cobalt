@@ -220,9 +220,30 @@ class BlockNotification(models.Model):
         return f"{self.member.full_name} - {self.identifier} - {self.model_id}"
 
 
+class RealtimeNotificationHeader(models.Model):
+    """Optional meta data about RealtimeNotification for use when an administrator
+    sends a batch of messages such as the results of a round of an event."""
+
+    admin = models.ForeignKey(User, on_delete=models.CASCADE)
+    """Admin who sent the message"""
+    description = models.TextField()
+    message = models.TextField(null=True)
+    send_status = models.BooleanField(default=False)
+    attempted_send_number = models.IntegerField(default=0)
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        children = RealtimeNotification.objects.filter(header=self.pk).count()
+        return f"[{children}/{self.attempted_send_number}] {self.admin.full_name} - {self.created_time.strftime('%Y-%m-%d%H:%M:%S')} - {self.description}"
+
+
 class RealtimeNotification(models.Model):
     """Logging for realtime notifications such as SMS or in app messages to phones"""
 
+    header = models.ForeignKey(
+        RealtimeNotificationHeader, on_delete=models.CASCADE, null=True, blank=True
+    )
+    """Optional header record with meta data"""
     member = models.ForeignKey(User, on_delete=models.CASCADE, related_name="rt_member")
     """Member who received the message"""
     admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name="rt_admin")
@@ -230,3 +251,6 @@ class RealtimeNotification(models.Model):
     msg = models.TextField()
     status = models.BooleanField(default=False)
     created_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.member.full_name} - {self.created_time.strftime('%Y-%m-%d%H:%M:%S')} - {self.header.description}"

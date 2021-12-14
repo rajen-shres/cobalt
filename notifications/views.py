@@ -8,6 +8,7 @@
 """
 import logging
 import random
+import re
 import string
 from datetime import datetime, timedelta
 from threading import Thread
@@ -57,6 +58,7 @@ from .models import (
     BatchID,
     EmailBatchRBAC,
     RealtimeNotification,
+    RealtimeNotificationHeader,
 )
 from post_office import mail as po_email
 from post_office.models import Email as PostOfficeEmail
@@ -402,15 +404,28 @@ def send_cobalt_bulk_email_thread(bcc_addresses, subject, message, reply_to):
     connection.close()
 
 
-def send_bulk_sms(msg_dict, admin, from_name=GLOBAL_TITLE):
+def send_cobalt_bulk_sms(
+    msg_dict, admin, description, header_msg=None, from_name=GLOBAL_TITLE
+):
     """Try to send a bunch of SMS messages to users. Will only send if they are registered, want to receive SMS
     and have a valid phone number.
 
     Args:
-        msg_dict(list): dictionary of system number and message to send "system_number": "message"
+        msg_dict(dict): dictionary of system number and message to send "system_number": "message"
         admin(User): administrator responsible for sending these messages
+        description(str): Text description of this batch of messages
+        header_msg(str): Any message to be added to the header such as data that was invalid and ignored
         from_name(str): Name to use as the sender
     """
+
+    # Log this batch
+    header = RealtimeNotificationHeader(
+        admin=admin,
+        description=description,
+        attempted_send_number=len(msg_dict),
+        message=header_msg,
+    )
+    header.save()
 
     # Get system_numbers as list
     system_numbers = list(msg_dict)
@@ -437,6 +452,12 @@ def send_bulk_sms(msg_dict, admin, from_name=GLOBAL_TITLE):
             member=user, admin=admin, status=return_code, msg=msg
         ).save()
 
+    # Update header
+    header.send_status = True
+    header.save()
+
+    return users.count()
+
 
 def send_cobalt_sms(phone_number, msg, from_name=GLOBAL_TITLE):
     """Send single SMS. This will be replaced with a mobile app later
@@ -447,8 +468,21 @@ def send_cobalt_sms(phone_number, msg, from_name=GLOBAL_TITLE):
         from_name(str): Display name of sender
 
     Returns:
-        Nothing
+        Boolean
     """
+
+    # from_name must be alpha-numeric or hyphens only, must start and end with alphanumeric, 11 chars max
+    if len(from_name) > 11:
+        from_name = from_name[:11]
+
+    # replace non alphanumerics with -
+    from_name = re.sub("[^0-9a-zA-Z]+", "-", from_name)
+
+    # Check start and end
+    if from_name[0] == "-":
+        from_name[0] = "A"
+    if len(from_name) == 11 and from_name[10] == "-":
+        from_name[10] = "A"
 
     client = boto3.client(
         "sns",

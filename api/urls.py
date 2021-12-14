@@ -3,6 +3,7 @@ this makes things cleaner and easier to manage than having the (relatively small
 spread across lots of modules."""
 
 from django.urls import path
+import urllib.parse
 from ninja import NinjaAPI
 
 from accounts.models import User, APIToken
@@ -15,6 +16,8 @@ from ninja.security import (
     HttpBasicAuth,
 )
 
+from .models import ApiLog
+
 
 class AuthCheck:
     """This is the core authentication method. Other classes inherit from this and provide
@@ -24,6 +27,10 @@ class AuthCheck:
         """Returns the user associated with this key or None (invalid)"""
         api_key = APIToken.objects.filter(token=key).first()
         if api_key:
+            # All API calls are versioned. Log call details. Throw error if version not set
+            url_parts = urllib.parse.urlparse(request.path)
+            path_parts = url_parts[2].rpartition("/")
+            ApiLog(api=path_parts[0], version=path_parts[2], admin=api_key.user).save()
             return api_key.user
 
 
