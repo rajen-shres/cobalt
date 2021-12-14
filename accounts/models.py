@@ -47,8 +47,9 @@ class User(AbstractUser):
     )
 
     phone_regex = RegexValidator(
-        regex=r"^\+?1?\d{9,15}$",
-        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.",
+        #  regex=r"^\+?1?\d{9,15}$",
+        regex=r"^04\d{8}$",
+        message="We only accept Australian phone numbers starting 04 which are 10 numbers long.",
     )
     mobile = models.CharField(
         "Mobile Number",
@@ -87,7 +88,7 @@ class User(AbstractUser):
     system_number_search = models.BooleanField(
         "Show %s number on searches" % GLOBAL_ORG, default=True
     )
-    receive_sms_results = models.BooleanField("Receive SMS Results", default=False)
+    receive_sms_results = models.BooleanField("Receive SMS Results", default=True)
     receive_sms_reminders = models.BooleanField("Receive SMS Reminders", default=False)
     receive_abf_newsletter = models.BooleanField("Receive ABF Newsletter", default=True)
     receive_marketing = models.BooleanField("Receive Marketing", default=True)
@@ -254,8 +255,20 @@ class APIToken(models.Model):
     We don't put an expiry on the token but this could be added later if required."""
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    token = models.CharField(max_length=40, default=_create_api_token())
+    token = models.CharField(
+        max_length=40,
+        default="Overridden on save",
+        help_text="This is set when you first save it",
+    )
     created_date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.user} - {self.created_date}"
+
+    def save(self, *args, **kwargs):
+        """Create token on first save"""
+
+        if len(self.token) != 40:
+            self.token = _create_api_token()
+
+        super(APIToken, self).save(*args, **kwargs)

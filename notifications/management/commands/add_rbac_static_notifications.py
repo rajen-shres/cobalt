@@ -5,6 +5,7 @@ from rbac.management.commands.rbac_core import (
     create_RBAC_admin_group,
     create_RBAC_admin_tree,
     super_user_list,
+    create_rbac_together,
 )
 from rbac.core import (
     rbac_add_user_to_admin_group,
@@ -22,41 +23,36 @@ class Command(BaseCommand):
         print("Running add_rbac_static_notifications")
 
         # basic events behaviours
-        create_RBAC_default(self, "notifications", "admin", "Block")
-        create_RBAC_action(
+        create_rbac_together(
             self,
-            "notifications",
-            "admin",
-            "view",
-            "Allows a user to manage notifications such as emails",
+            app="notifications",
+            model="admin",
+            action_dict={
+                "view": "Allows a user to manage notifications such as emails"
+            },
+            admin_tree="admin.abf.notifications",
+            admin_name="admins",
+            admin_description="Group to create users who can manage notifications",
+            group_tree="rbac.orgs.abf.abf_roles",
+            group_name="email_view",
+            group_description="Ability to see all messages in notifications",
         )
 
-        # add myself as an admin and create tree and group
-        # This lets us create admins who can manage notifications
-        su_list = super_user_list(self)
-
-        group = create_RBAC_admin_group(
+        # SMS notifications - call them realtime in case we move to an app later
+        # We have a scorer role where they can send and view their own messages and an admin role to view all messages
+        create_rbac_together(
             self,
-            "admin.abf.notifications",
-            "admins",
-            "Group to create users who can manage notifications",
-        )
-        create_RBAC_admin_tree(self, group, "admin.abf.notifications")
-        for user in su_list:
-            rbac_add_user_to_admin_group(user, group)
-        rbac_add_role_to_admin_group(group, app="notifications", model="admin")
-
-        group = rbac_create_group(
-            "rbac.orgs.abf.abf_roles",
-            "email_view",
-            "Ability to see all messages in notifications",
-        )
-
-        for user in su_list:
-            rbac_add_user_to_group(user, group)
-
-        rbac_add_role_to_group(
-            group, app="notifications", model="admin", action="view", rule_type="Allow"
+            app="notifications",
+            model="realtime_send",
+            action_dict={
+                "edit": "Allows a scorer to send and view real time messages such as SMS."
+            },
+            admin_tree="admin.abf.notifications",
+            admin_name="realtime_admins",
+            admin_description="Group to create users who can send realtime messages (eg SMS).",
+            group_tree="rbac.orgs.abf.abf_roles",
+            group_name="realtime_send",
+            group_description="Ability to send realtime messages, eg SMS",
         )
 
         # Club comms roles

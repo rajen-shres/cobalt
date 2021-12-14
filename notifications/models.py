@@ -218,3 +218,15 @@ class BlockNotification(models.Model):
 
     def __str__(self):
         return f"{self.member.full_name} - {self.identifier} - {self.model_id}"
+
+
+class RealtimeNotification(models.Model):
+    """Logging for realtime notifications such as SMS or in app messages to phones"""
+
+    member = models.ForeignKey(User, on_delete=models.CASCADE, related_name="rt_member")
+    """Member who received the message"""
+    admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name="rt_admin")
+    """Admin who sent the message"""
+    msg = models.TextField()
+    status = models.BooleanField(default=False)
+    created_time = models.DateTimeField(auto_now_add=True)

@@ -1,5 +1,12 @@
 """ Functions to manipulate RBAC from command scripts """
 from accounts.models import User
+from rbac.core import (
+    rbac_add_role_to_admin_group,
+    rbac_create_group,
+    rbac_add_user_to_group,
+    rbac_add_role_to_group,
+    rbac_add_user_to_admin_group,
+)
 from rbac.models import (
     RBACModelDefault,
     RBACAppModelAction,
@@ -22,7 +29,7 @@ def create_RBAC_default(self, app, model, default_behaviour="Block"):
     Args:
         self(object): the calling management object
         app(str): the application
-        mdeol(str): the model
+        model(str): the model
         default_behaviour(str): Block or Allow
 
     Returns: Nothing
@@ -134,3 +141,79 @@ def create_RBAC_admin_group(self, qualifier, item, description):
             )
         )
         return r
+
+
+def create_rbac_together(
+    self,
+    app,
+    model,
+    action_dict,
+    admin_tree,
+    admin_name,
+    admin_description,
+    group_tree=None,
+    group_name=None,
+    group_description=None,
+    default="Block",
+):
+    """In management commands we often do the same thing repeatedly - create the defaults, create the admin
+    group, create the group. This does it as a single command.
+
+    Args:
+
+        self(object): Management object, used so we can do nice printing etc. Legacy from when these functions lived in the class
+        app(str): Name of the application e.g. Notifications
+        model(str): Model for this application e.g. admin
+        action_dict(dict): Dictionary of actions and descriptions. e.g. {"view": "Users an view this thing"}.
+        admin_tree(str): Path in tree for admin group
+        admin_name(str): Name for admin group
+        admin_description(str): Description for admin group
+        group_tree(str): Path in tree for group
+        group_name(str): Name for group
+        group_description(str): Description for group
+        default(str): "Block" or "Allow", defaults to Block.
+
+    """
+    # Get standard list of super users who get access automatically
+    su_list = super_user_list(self)
+
+    # Create the RBAC default
+    create_RBAC_default(self, app, model, default)
+
+    # Create the actions
+    for action_item in action_dict:
+        create_RBAC_action(
+            self,
+            app,
+            model,
+            action_item,
+            action_dict[action_item],
+        )
+
+    # Create admin group
+    admin_group = create_RBAC_admin_group(
+        self, admin_tree, admin_name, admin_description
+    )
+
+    # Create tree - should really be part of the call above
+    create_RBAC_admin_tree(self, admin_group, admin_tree)
+
+    for user in su_list:
+        rbac_add_user_to_admin_group(user, admin_group)
+
+    # Add the role to the admin group
+    rbac_add_role_to_admin_group(admin_group, app=app, model=model)
+
+    # Add the normal RBAC group if required
+    if group_tree:
+        group = rbac_create_group(group_tree, group_name, group_description)
+
+        # Put usual suspects in group
+        for user in su_list:
+            rbac_add_user_to_group(user, group)
+
+        # Add all actions to group
+        for action_item in action_dict:
+            rbac_add_role_to_group(
+                group, app=app, model=model, action=action_item, rule_type="Allow"
+            )

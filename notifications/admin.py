@@ -8,6 +8,7 @@ from .models import (
     Snooper,
     BatchID,
     BlockNotification,
+    RealtimeNotification,
 )
 
 
@@ -28,3 +29,4 @@ admin.site.register(EmailThread)
 admin.site.register(Snooper)
 admin.site.register(BatchID)
 admin.site.register(BlockNotification)
+admin.site.register(RealtimeNotification)

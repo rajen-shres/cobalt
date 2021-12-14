@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from threading import Thread
 
 import boto3
+from botocore.exceptions import ClientError
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMultiAlternatives, get_connection
@@ -55,6 +56,7 @@ from .models import (
     Snooper,
     BatchID,
     EmailBatchRBAC,
+    RealtimeNotification,
 )
 from post_office import mail as po_email
 from post_office.models import Email as PostOfficeEmail
@@ -400,12 +402,49 @@ def send_cobalt_bulk_email_thread(bcc_addresses, subject, message, reply_to):
     connection.close()
 
 
-def send_cobalt_sms(phone_number, msg):
-    """Send single SMS
+def send_bulk_sms(msg_dict, admin, from_name=GLOBAL_TITLE):
+    """Try to send a bunch of SMS messages to users. Will only send if they are registered, want to receive SMS
+    and have a valid phone number.
+
+    Args:
+        msg_dict(list): dictionary of system number and message to send "system_number": "message"
+        admin(User): administrator responsible for sending these messages
+        from_name(str): Name to use as the sender
+    """
+
+    # Get system_numbers as list
+    system_numbers = list(msg_dict)
+
+    # Get the users who want to be contacted and have phone numbers
+    users = (
+        User.objects.filter(system_number__in=system_numbers)
+        .filter(receive_sms_results=True)
+        .filter(mobile__isnull=False)
+    )
+
+    for user in users:
+        # Convert phone number to +61
+        phone_number = f"+61{user.mobile[1:]}"
+        msg = msg_dict[user.system_number]
+
+        # Send it
+        return_code = send_cobalt_sms(
+            phone_number=phone_number, msg=msg, from_name=from_name
+        )
+
+        # Log it
+        RealtimeNotification(
+            member=user, admin=admin, status=return_code, msg=msg
+        ).save()
+
+
+def send_cobalt_sms(phone_number, msg, from_name=GLOBAL_TITLE):
+    """Send single SMS. This will be replaced with a mobile app later
 
     Args:
         phone_number (str): who to send to
         msg (str): message to send
+        from_name(str): Display name of sender
 
     Returns:
         Nothing
@@ -418,13 +457,30 @@ def send_cobalt_sms(phone_number, msg):
         region_name=AWS_REGION_NAME,
     )
 
-    client.publish(
-        PhoneNumber=phone_number,
-        Message=msg,
-        MessageAttributes={
-            "AWS.SNS.SMS.SenderID": {"DataType": "String", "StringValue": GLOBAL_TITLE}
-        },
-    )
+    try:
+        return_values = client.publish(
+            PhoneNumber=phone_number,
+            Message=msg,
+            MessageAttributes={
+                "AWS.SNS.SMS.SenderID": {
+                    "DataType": "String",
+                    "StringValue": from_name,
+                },
+                "AWS.SNS.SMS.SMSType": {
+                    "DataType": "String",
+                    "StringValue": "Transactional",
+                },
+            },
+        )
+
+        if return_values["ResponseMetadata"]["HTTPStatusCode"] == 200:
+            return True
+
+        print(return_values)
+    except ClientError:
+        logger.exception(f"Couldn't publish message to {phone_number}")
+
+    return False
 
 
 def get_notifications_for_user(user):

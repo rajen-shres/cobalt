@@ -101,12 +101,12 @@ class UserUpdateForm(forms.ModelForm):
         if mobile_raw is None:
             return None
         mobile = mobile_raw.replace(" ", "")
-        mobile_regex = r"^[\+0]?1?\d{9,15}$"
+        mobile_regex = r"^04\d{8}$"
         if re.match(mobile_regex, mobile):
             return mobile
         else:
             raise ValidationError(
-                "Mobile number should be either starting with + or 0 and should be between 9-15 digits long"
+                "We only accept Australian phone numbers starting 04 which are 10 numbers long."
             )
 
 
