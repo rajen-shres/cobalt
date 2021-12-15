@@ -14,10 +14,12 @@ API Overview
 
 Cobalt uses `Django Ninja <https://django-ninja.rest-framework.com/>`_ for its Application
 Programming Interface (API). We don't use Django Rest Framework despite it being more popular
-simply because Django Ninja is better. It is fast, secure and very easy to use.
+simply because Django Ninja is better. It is fast, secure and very easy to use. Even if you
+haven't used it before, you should find it very easy. The format is similar to Flask.
 
 All of the authentication is handled by `api/urls.py`.
 
 All of the router definitions (/api/something) can be found in `api/apis.py`.
 
 You can test the APIs by going to `/api/docs`.
+

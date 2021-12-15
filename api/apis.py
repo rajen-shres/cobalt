@@ -4,21 +4,47 @@ Authentication is handled in the urls.py module, so by the time you get here you
 with an authenticated user. Functions in here are still responsible for rbac calls to
 handle access.
 
-"""
-import time
+Code here should be as short as possible, if anything more complex is required you should
+call a function in the 'home' module for the thing you are doing.
 
-from ninja import Router, File
+APIs should all be versioned with /vx.y at the end of the URI. This is automatically logged
+every time an API is called.
+
+APIs should all return JSON with at least one parameter e.g.
+
+    {'status': 'Success'}
+
+    or
+
+    {'status: 'Failure'}
+
+    or
+
+    {'status: 'Access Denied'}
+
+"""
+from ninja import Router, File, NinjaAPI, Schema
 from ninja.files import UploadedFile
 
-from cobalt.settings import GLOBAL_ORG
-from notifications.views import send_cobalt_bulk_sms
+from api.core import api_rbac
+from notifications.apis import notifications_api_sms_file_upload_v1
+
+
+class ErrorV1(Schema):
+    """Standard error format"""
+
+    status: str
+    message: str
+
+
+class UnauthorizedV1(Schema):
+    """Standard error format"""
+
+    detail: str
+
 
 router = Router()
-
-
-@router.get("/add")
-def add(request, a: int, b: int):
-    return {"result": a + b}
+api = NinjaAPI()
 
 
 @router.get("/keycheck/v1.0")
@@ -27,38 +53,34 @@ def key_check(request):
     return f"Your key is valid. You are authenticated as {request.auth}."
 
 
-@router.post("/sms-file-upload/v1.0")
-def upload_a_file(request, file: UploadedFile = File(...)):
+class SmsResponseV1(Schema):
+    """Success response format from sms_file_upload"""
+
+    status: str
+    sender: str
+    filename: str
+    attempted: int
+    sent: int
+
+
+@router.post(
+    "/sms-file-upload/v1.0",
+    response={200: SmsResponseV1, 401: UnauthorizedV1, 403: ErrorV1},
+)
+def sms_file_upload_v1(request, file: UploadedFile = File(...)):
     """Allow scorers to upload a file with ABF numbers and messages to send to members.
 
-    File format is <abf_number>\t<message>
+    File format is abf_number[tab character (\\t)]message
 
     The filename is used as the description.
 
-    If the message contains <NL> then change this to a \n.
+    If the message contains \\<NL\\> then we change this to a newline (\\n).
     """
-    data = {}
-    header_msg = ""
 
-    for line in file.readlines():
-        number, msg = line.decode("utf-8").split("\t")
-        number = int(number)
-        if isinstance(number, int):
-            data[number] = msg.replace("<NL>", "\n")
-        else:
-            header_msg += f"Invalid row, no {GLOBAL_ORG} number found\n -->{line}\n"
+    # Check access
+    role = "notifications.realtime_send.edit"
+    status, return_error = api_rbac(request, role)
+    if not status:
+        return return_error
 
-    if header_msg == "":
-        header_msg = None
-
-    success_count = send_cobalt_bulk_sms(
-        msg_dict=data, admin=request.auth, description=file.name, header_msg=header_msg
-    )
-
-    return {
-        "status": "Success",
-        "sender": request.auth.__str__(),
-        "filename": file.name,
-        "attempted": len(data),
-        "sent": success_count,
-    }
+    return notifications_api_sms_file_upload_v1(request, file)
