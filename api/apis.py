@@ -48,7 +48,7 @@ api = NinjaAPI()
 
 
 @router.get("/keycheck/v1.0")
-def key_check(request):
+def key_check_v1(request):
     """Allow a developer to check that their key is valid"""
     return f"Your key is valid. You are authenticated as {request.auth}."
 
@@ -66,6 +66,7 @@ class SmsResponseV1(Schema):
 @router.post(
     "/sms-file-upload/v1.0",
     response={200: SmsResponseV1, 401: UnauthorizedV1, 403: ErrorV1},
+    summary="SMS file upload API for distribution of different messages to a list of players.",
 )
 def sms_file_upload_v1(request, file: UploadedFile = File(...)):
     """Allow scorers to upload a file with ABF numbers and messages to send to members.
@@ -75,6 +76,8 @@ def sms_file_upload_v1(request, file: UploadedFile = File(...)):
     The filename is used as the description.
 
     If the message contains \\<NL\\> then we change this to a newline (\\n).
+
+    Messages over 140 characters will be sent as multiple SMSs.
     """
 
     # Check access

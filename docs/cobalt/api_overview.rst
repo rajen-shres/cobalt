@@ -23,3 +23,5 @@ All of the router definitions (/api/something) can be found in `api/apis.py`.
 
 You can test the APIs by going to `/api/docs`.
 
+All APIs should end with a version number, eg. /api/do-something/v4.5. The API call and the version
+are logged automatically so we know who is using it.

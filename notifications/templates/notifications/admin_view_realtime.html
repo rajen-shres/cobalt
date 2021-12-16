@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load cobalt_tags %}
+{% block title %} - Real Time Notifications{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h1>Real Time Notifications</h1>
+        </div>
+        <div class="card-body">
+            <table class="table-condensed table hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Administrator</th>
+                        <th class="text-left">Description</th>
+                        <th>Message</th>
+                        <th>Success</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for thing in things %}
+                        <tr>
+                            <td>{{ thing.created_time | cobalt_nice_datetime }}</td>
+                            <td>{{ thing.admin.full_name }}</td>
+                            <td class="text-left">{{ thing.description }}</td>
+                            <td>{{ thing.message|default_if_none:"" }}</td>
+                            <td>{{ thing.attempted_send_number }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% include 'utils/pagination_footer.html' %}
+{% endblock content %}

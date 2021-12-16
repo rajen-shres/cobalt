@@ -88,8 +88,8 @@
                             {% if email_site_admin %}
                                 <li class="nav-item">
                                     <a id="id_tab_email" class="nav-link" href="#email" role="tab" data-toggle="tab">
-                                        <i class="material-icons">email</i>
-                                        Email
+                                        <i class="material-icons">campaign</i>
+                                        Communications
                                     </a>
                                 </li>
                             {% endif %}
@@ -412,7 +412,7 @@
                                 {% endif %}
                             </div>
 
-                            <!-- Email -->
+                            <!-- Communications -->
 
                             <div class="tab-pane fade" id="email">
                                 <table class="table table-condensed">
@@ -423,6 +423,14 @@
                                             </td>
                                             <td class="text-left pl-5">
                                                 View status and content of sent emails
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:admin_view_realtime_notifications" %} ">View Real Time Notifications</a>
+                                            </td>
+                                            <td class="text-left pl-5">
+                                                View status and content of real time notifications you have sent
                                             </td>
                                         </tr>
                                     </tbody>

@@ -1085,3 +1085,20 @@ def global_admin_view_emails(request, member_id):
             "emails": email_list,
         },
     )
+
+
+@rbac_check_role("notifications.realtime_send.edit")
+def admin_view_realtime_notifications(request):
+    """Allow an admin to see their notifications
+
+    Args:
+        request (HTTPRequest): standard request object
+
+    Returns:
+        HTTPResponse
+    """
+    notification_headers = RealtimeNotificationHeader.objects.filter(admin=request.user)
+
+    things = cobalt_paginator(request, notification_headers, 10)
+
+    return render(request, "notifications/admin_view_realtime.html", {"things": things})

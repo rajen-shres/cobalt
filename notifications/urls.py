@@ -32,6 +32,11 @@ urlpatterns = [
         views.admin_send_email_copy_to_admin,
         name="admin_send_email_copy_to_admin",
     ),
+    path(
+        "admin/realtime/view",
+        views.admin_view_realtime_notifications,
+        name="admin_view_realtime_notifications",
+    ),
     path("admin/email/view-email", views.admin_view_email, name="admin_view_email"),
     path("email/send-email/<int:member_id>", views.email_contact, name="email_contact"),
     path("email/watch_emails/<str:batch_id>", views.watch_emails, name="watch_emails"),
