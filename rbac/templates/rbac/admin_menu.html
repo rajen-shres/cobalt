@@ -85,7 +85,7 @@
                                 </li>
                             {% endif %}
 
-                            {% if email_site_admin %}
+                            {% if email_site_admin or realtime_sender %}
                                 <li class="nav-item">
                                     <a id="id_tab_email" class="nav-link" href="#email" role="tab" data-toggle="tab">
                                         <i class="material-icons">campaign</i>
@@ -417,22 +417,36 @@
                             <div class="tab-pane fade" id="email">
                                 <table class="table table-condensed">
                                     <tbody>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:admin_view_all" %} ">View Emails</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                View status and content of sent emails
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:admin_view_realtime_notifications" %} ">View Real Time Notifications</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                View status and content of real time notifications you have sent
-                                            </td>
-                                        </tr>
+                                        {% if email_site_admin %}
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:admin_view_all" %} ">View Emails</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    View status and content of sent emails
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                        {% if realtime_sender %}
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:admin_view_realtime_notifications" %} ">View Real Time Notifications</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    View status and content of real time notifications you have sent
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                        {% if email_site_admin %}
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:global_admin_view_realtime_notifications" %} ">View All Real Time Notifications</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    View status and content of real time notifications sent by anyone
+                                                </td>
+                                            </tr>
+                                        {% endif %}
                                     </tbody>
                                 </table>
                             </div>

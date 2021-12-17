@@ -230,11 +230,11 @@ class RealtimeNotificationHeader(models.Model):
     message = models.TextField(null=True)
     send_status = models.BooleanField(default=False)
     attempted_send_number = models.IntegerField(default=0)
+    successful_send_number = models.IntegerField(default=0)
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        children = RealtimeNotification.objects.filter(header=self.pk).count()
-        return f"[{children}/{self.attempted_send_number}] {self.admin.full_name} - {self.created_time.strftime('%Y-%m-%d%H:%M:%S')} - {self.description}"
+        return f"[{self.successful_send_number}/{self.attempted_send_number}] {self.admin.full_name} - {self.created_time.strftime('%Y-%m-%d%H:%M:%S')} - {self.description}"
 
 
 class RealtimeNotification(models.Model):
@@ -253,4 +253,4 @@ class RealtimeNotification(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.member.full_name} - {self.created_time.strftime('%Y-%m-%d%H:%M:%S')} - {self.header.description}"
+        return f"{self.member.full_name} - {self.created_time.strftime('%Y-%m-%d%H:%M:%S')}"

@@ -437,6 +437,8 @@ def send_cobalt_bulk_sms(
         .filter(mobile__isnull=False)
     )
 
+    success_count = 0
+
     for user in users:
         # Convert phone number to +61
         phone_number = f"+61{user.mobile[1:]}"
@@ -449,11 +451,14 @@ def send_cobalt_bulk_sms(
 
         # Log it
         RealtimeNotification(
-            member=user, admin=admin, status=return_code, msg=msg
+            member=user, admin=admin, status=return_code, msg=msg, header=header
         ).save()
+
+        success_count += 1
 
     # Update header
     header.send_status = True
+    header.successful_send_number = success_count
     header.save()
 
     return users.count()
@@ -1097,8 +1102,46 @@ def admin_view_realtime_notifications(request):
     Returns:
         HTTPResponse
     """
-    notification_headers = RealtimeNotificationHeader.objects.filter(admin=request.user)
-
-    things = cobalt_paginator(request, notification_headers, 10)
+    notification_headers = RealtimeNotificationHeader.objects.filter(
+        admin=request.user
+    ).order_by("-pk")
+    things = cobalt_paginator(request, notification_headers)
 
     return render(request, "notifications/admin_view_realtime.html", {"things": things})
+
+
+@rbac_check_role("notifications.admin.view")
+def global_admin_view_realtime_notifications(request):
+    """Allow a global admin to see all real time notifications
+
+    Args:
+        request (HTTPRequest): standard request object
+
+    Returns:
+        HTTPResponse
+    """
+    notification_headers = RealtimeNotificationHeader.objects.order_by("-pk")
+    things = cobalt_paginator(request, notification_headers)
+
+    return render(request, "notifications/admin_view_realtime.html", {"things": things})
+
+
+@rbac_check_role("notifications.realtime_send.edit", "notifications.admin.view")
+def admin_view_realtime_notification_detail(request, header_id):
+    """Show the detail of a batch of messages
+
+    Args:
+        request (HTTPRequest): standard request object
+        header_id (int): id of the RealtimeNotificationHeader to show
+
+    Returns:
+        HTTPResponse
+    """
+    notification_header = get_object_or_404(RealtimeNotificationHeader, pk=header_id)
+    notifications = RealtimeNotification.objects.filter(header=notification_header)
+
+    return render(
+        request,
+        "notifications/admin_view_realtime_detail.html",
+        {"notification_header": notification_header, "notifications": notifications},
+    )

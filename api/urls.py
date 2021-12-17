@@ -58,20 +58,12 @@ class BearerKey(AuthCheck, HttpBearer):
     pass
 
 
-class BasicAuthKey(HttpBasicAuth):
-    """Get the key from basic Authentication. This one is a little different. Has userid and password"""
-
-    def authenticate(self, request, username, password):
-        if username == "key" and password == "secret":
-            return password
-
-
 app_name = "api"
 
 api = NinjaAPI(
     urls_namespace=f"{app_name}:api",
     docs_url="/docs/",
-    auth=[QueryKey(), HeaderKey(), BearerKey(), BasicAuthKey()],
+    auth=[QueryKey(), HeaderKey(), BearerKey()],
 )
 
 # You can have multiple routers so if this gets too big it can be split up.

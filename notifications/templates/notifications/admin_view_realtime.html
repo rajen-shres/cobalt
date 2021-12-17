@@ -9,30 +9,47 @@
             <h1>Real Time Notifications</h1>
         </div>
         <div class="card-body">
-            <table class="table-condensed table hover">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Administrator</th>
-                        <th class="text-left">Description</th>
-                        <th>Message</th>
-                        <th>Success</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for thing in things %}
+            {% if things %}
+                <table class="table-condensed table hover">
+                    <thead>
                         <tr>
-                            <td>{{ thing.created_time | cobalt_nice_datetime }}</td>
-                            <td>{{ thing.admin.full_name }}</td>
-                            <td class="text-left">{{ thing.description }}</td>
-                            <td>{{ thing.message|default_if_none:"" }}</td>
-                            <td>{{ thing.attempted_send_number }}</td>
+                            <th class="text-left">Date</th>
+                            <th class="text-left">Administrator</th>
+                            <th class="text-left">Description</th>
+                            <th class="text-left">Message</th>
+                            <th>Success</th>
+                            <th>Status</th>
+                            <th>Action</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for thing in things %}
+                            <tr>
+                                <td class="text-left">{{ thing.created_time | cobalt_nice_datetime }}</td>
+                                <td class="text-left">{{ thing.admin.full_name }}</td>
+                                <td class="text-left">{{ thing.description }}</td>
+                                <td class="text-left"><pre>{{ thing.message|default_if_none:"" }}</pre></td>
+                                <td>{{ thing.successful_send_number }}/{{ thing.attempted_send_number }}</td>
+                                <td>
+                                    {% if thing.send_status %}
+                                        <span class="text-success"><i class="material-icons">check_circle</i></span>
+                                    {% else %}
+                                        <span class="text-primary"><i class="material-icons">warning</i></span>
+                                    {% endif %}
+                                </td>
+                                <td><a href="{% url "notifications:admin_view_realtime_notification_detail" header_id=thing.pk %}" class="btn btn-sm btn-info">View</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <h3>There are no messages to show</h3>
+            {% endif %}
         </div>
     </div>
 
     {% include 'utils/pagination_footer.html' %}
 {% endblock content %}
+{% block footer %}
+    {% include 'utils/include_htmx.html' %}
+{% endblock footer %}

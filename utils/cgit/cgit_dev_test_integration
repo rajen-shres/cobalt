@@ -39,7 +39,7 @@ echo "Starting..."
 if [ $# -eq 2 ]
   then
   coverage run -p ./manage.py run_tests_integration --base_url http://127.0.0.1:$PORT --headless true
-elif [ $# eq 1 ]
+elif [ $# -eq 1 ]
   then
   ./manage.py run_tests_integration --base_url http://127.0.0.1:$PORT
   else

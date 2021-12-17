@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load cobalt_tags %}
+{% block title %} - Real Time Notifications Details{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h1>Real Time Notifications - Details</h1>
+            <h2>{{ notification_header.description }}</h2>
+            <h3>Sent {{ notification_header.successful_send_number }} out of {{ notification_header.attempted_send_number }}</h3>
+            <h3>{{ notification_header.created_time|cobalt_nice_datetime }}</h3>
+        </div>
+        <div class="card-body">
+            {% if notification_header.message %}
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-10">
+                            <div class="card">
+                                <div class="card-header card-header-danger">
+                                    Messages
+                                </div>
+                                <div class="card-body">
+                                    <pre>{{ notification_header.message }}</pre>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            <table class="table-condensed table hover">
+                <thead>
+                    <tr>
+                        <th class="text-left">Date</th>
+                        <th class="text-left">Member</th>
+                        <th class="text-left">Sender</th>
+                        <th class="text-left">Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for notification in notifications %}
+                        <tr>
+                            <td class="text-left">{{ notification.created_time|cobalt_nice_datetime }}</td>
+                            <td class="text-left">{{ notification.member }}</td>
+                            <td class="text-left">{{ notification.admin }}</td>
+                            <td class="text-left"><pre>{{ notification.msg }}</pre></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% include 'utils/pagination_footer.html' %}
+
+{% endblock content %}

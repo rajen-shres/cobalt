@@ -72,6 +72,9 @@ def admin_menu(request):
         and request.user.is_superuser
     )
     forums_admin = rbac_user_has_role(request.user, "forums.admin.edit")
+    realtime_sender = rbac_user_has_role(
+        request.user, "notifications.realtime_send.edit"
+    )
 
     # Get build time of this release
     tz = pytz.timezone(TIME_ZONE)
@@ -91,6 +94,7 @@ def admin_menu(request):
             "development_admin": development_admin,
             "forums_admin": forums_admin,
             "build_date": build_date,
+            "realtime_sender": realtime_sender,
         },
     )
 

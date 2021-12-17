@@ -61,6 +61,7 @@ class SmsResponseV1(Schema):
     filename: str
     attempted: int
     sent: int
+    message: str
 
 
 @router.post(
