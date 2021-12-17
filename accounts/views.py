@@ -30,7 +30,7 @@ from logs.views import get_client_ip, log_event
 from organisations.models import Organisation
 from organisations.views.general import replace_unregistered_user_with_real_user
 from rbac.core import rbac_user_has_role
-from .models import User, TeamMate, UnregisteredUser
+from .models import User, TeamMate, UnregisteredUser, APIToken
 from .tokens import account_activation_token
 from .forms import (
     UserRegisterForm,
@@ -832,10 +832,18 @@ def user_settings(request):
 
     notifications_list = notifications_in_english(request.user)
 
+    # Check if user is a developer. When we have more than one role we may need a better approach such as a specific
+    # RBAC role for developers.
+    is_developer = rbac_user_has_role(request.user, "notifications.realtime_send.edit")
+
     return render(
         request,
         "accounts/user_settings.html",
-        {"form": form, "notifications_list": notifications_list},
+        {
+            "form": form,
+            "notifications_list": notifications_list,
+            "is_developer": is_developer,
+        },
     )
 
 
@@ -1298,3 +1306,30 @@ def covid_user_exempt_htmx(request):
     request.user.covid_status = request.user.CovidStatus.USER_EXEMPT
     request.user.save()
     return render(request, "accounts/profile/covid_htmx.html")
+
+
+@login_required()
+def developer_settings_htmx(request):
+    """Manage settings for developers. Built into the normal settings page"""
+
+    if "add" in request.POST:
+        APIToken(user=request.user).save()
+
+    api_tokens = APIToken.objects.filter(user=request.user)
+
+    return render(
+        request, "accounts/developer/settings.html", {"api_tokens": api_tokens}
+    )
+
+
+@login_required()
+def developer_settings_delete_token_htmx(request):
+    """Delete a token for a developer"""
+
+    APIToken.objects.filter(pk=request.POST.get("token_id"), user=request.user).delete()
+
+    api_tokens = APIToken.objects.filter(user=request.user)
+
+    return render(
+        request, "accounts/developer/settings.html", {"api_tokens": api_tokens}
+    )

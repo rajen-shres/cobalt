@@ -61,4 +61,14 @@ urlpatterns = [
         views.member_match_summary_htmx,
         name="member_match_summary_htmx",
     ),
+    path(
+        "developer/settings",
+        views.developer_settings_htmx,
+        name="developer_settings_htmx",
+    ),
+    path(
+        "developer/settings-delete-token",
+        views.developer_settings_delete_token_htmx,
+        name="developer_settings_delete_token_htmx",
+    ),
 ]

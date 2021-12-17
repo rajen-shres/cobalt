@@ -342,8 +342,30 @@
                             </div>
                         </div>
                     </div>
+
+                    {% if is_developer %}
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header card-header-rose">
+                                    <h2>Developer Settings</h2>
+                                </div>
+                                <div
+                                    id="dev-settings"
+                                    class="card-body"
+                                    hx-post="{% url "accounts:developer_settings_htmx" %}"
+                                    hx-trigger="load"
+                                >
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
                 </div>
             </div>
         </div>
     </div>
 {% endblock %}
+{% block footer %}
+    {% include "utils/include_htmx.html" %}
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+{% endblock footer %}

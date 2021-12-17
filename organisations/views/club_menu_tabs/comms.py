@@ -351,7 +351,6 @@ def public_info_htmx(request, club):
         front_page_form = FrontPageForm(request.POST, instance=front_page)
         if front_page_form.is_valid():
             front_page_form.save()
-            print("saved")
             message = "Data saved"
         else:
             print(front_page_form.errors)
