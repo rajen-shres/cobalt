@@ -5,7 +5,7 @@ from notifications.views import send_cobalt_bulk_sms
 def notifications_api_sms_file_upload_v1(request, file):
     """API call to upload a file and send SMS messages"""
 
-    data = {}
+    data = []
     header_msg = ""
 
     for line in file.readlines():
@@ -14,7 +14,7 @@ def notifications_api_sms_file_upload_v1(request, file):
             number = int(number)
             if isinstance(number, int):
                 if len(msg.strip()) > 0:
-                    data[number] = msg.replace("<NL>", "\n")
+                    data.append((number, msg.replace("<NL>", "\n")))
                 else:
                     header_msg += f"No message found.\n -->{line}\n"
             else:
@@ -27,7 +27,7 @@ def notifications_api_sms_file_upload_v1(request, file):
     header_msg_send = None if header_msg == "" else header_msg
 
     success_count = send_cobalt_bulk_sms(
-        msg_dict=data,
+        msg_list=data,
         admin=request.auth,
         description=file.name,
         header_msg=header_msg_send,

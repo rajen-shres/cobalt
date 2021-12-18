@@ -1,0 +1,12 @@
+999999	This file has 5 valid rows with non exitant abf numbers
+AND	7 invalid rows
+999999	Valid row 2
+999999	Valid row 3
+
+abc	inval
+abc	inval
+abc	inval
+abc	inval
+999999	Valid row 4
+999999	Valid row 5
+invalid	invalid	invalid

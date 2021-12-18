@@ -405,13 +405,13 @@ def send_cobalt_bulk_email_thread(bcc_addresses, subject, message, reply_to):
 
 
 def send_cobalt_bulk_sms(
-    msg_dict, admin, description, header_msg=None, from_name=GLOBAL_TITLE
+    msg_list, admin, description, header_msg=None, from_name=GLOBAL_TITLE
 ):
     """Try to send a bunch of SMS messages to users. Will only send if they are registered, want to receive SMS
     and have a valid phone number.
 
     Args:
-        msg_dict(dict): dictionary of system number and message to send "system_number": "message"
+        msg_list(list): list of tuples of system number and message to send (system_number, "message")
         admin(User): administrator responsible for sending these messages
         description(str): Text description of this batch of messages
         header_msg(str): Any message to be added to the header such as data that was invalid and ignored
@@ -422,13 +422,13 @@ def send_cobalt_bulk_sms(
     header = RealtimeNotificationHeader(
         admin=admin,
         description=description,
-        attempted_send_number=len(msg_dict),
+        attempted_send_number=len(msg_list),
         message=header_msg,
     )
     header.save()
 
     # Get system_numbers as list
-    system_numbers = list(msg_dict)
+    system_numbers = [item[0] for item in msg_list]
 
     # Get the users who want to be contacted and have phone numbers
     users = (
@@ -437,12 +437,22 @@ def send_cobalt_bulk_sms(
         .filter(mobile__isnull=False)
     )
 
+    # Create dict of Abf number to phone number
+    phone_lookup = {}
+    for user in users:
+        # Convert to international
+        phone_lookup[user.system_number] = f"+61{user.mobile[1:]}"
+
     success_count = 0
 
-    for user in users:
-        # Convert phone number to +61
-        phone_number = f"+61{user.mobile[1:]}"
-        msg = msg_dict[user.system_number]
+    for item in msg_list:
+        system_number, msg = item
+
+        if system_number not in phone_lookup:
+            continue
+
+        phone_number = phone_lookup[item[0]]
+        msg = item[1]
 
         # Send it
         return_code = send_cobalt_sms(
