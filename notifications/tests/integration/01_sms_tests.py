@@ -69,15 +69,16 @@ class SMSTests:
                 "notifications/tests/integration/test_data/empty_file.txt", "rb"
             )
         }
+
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
 
-        ok = response["status"] == "Failure"
+        ok = response["status"] == "failure"
 
         self.manager.save_results(
             status=ok,
             test_name="Call SMS API with an empty file",
             test_description="Call the API with an empty file.",
-            output=f"Expected status = Failure. Got {response['status']}. Response was {response}",
+            output=f"Expected status = failure. Got {response['status']}. Response was {response}",
         )
 
         # Not tab separated row
@@ -88,13 +89,13 @@ class SMSTests:
         }
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
 
-        ok = response["status"] == "Failure"
+        ok = response["status"] == "failure"
 
         self.manager.save_results(
             status=ok,
             test_name="Call SMS API with no tab character in row",
             test_description="Call the API with a file that is missing tab delimiter.",
-            output=f"Expected status = Failure. Got {response['status']}. Response was {response}",
+            output=f"Expected status = failure. Got {response['status']}. Response was {response}",
         )
 
         # Multiple tabs
@@ -105,13 +106,13 @@ class SMSTests:
         }
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
 
-        ok = response["status"] == "Failure"
+        ok = response["status"] == "failure"
 
         self.manager.save_results(
             status=ok,
             test_name="Call SMS API with multiple tab characters in row",
             test_description="Call the API with a file that has multiple tab delimiter.",
-            output=f"Expected status = Failure. Got {response['status']}. Response was {response}",
+            output=f"Expected status = failure. Got {response['status']}. Response was {response}",
         )
 
         # No message
@@ -121,13 +122,13 @@ class SMSTests:
             )
         }
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
-        ok = response["status"] == "Failure"
+        ok = response["status"] == "failure"
 
         self.manager.save_results(
             status=ok,
             test_name="Call SMS API with missing message",
             test_description="Call the API with a file that has no message.",
-            output=f"Expected status = Failure. Got {response['status']}. Response was {response}",
+            output=f"Expected status = failure. Got {response['status']}. Response was {response}",
         )
 
         # Missing ABF Number
@@ -138,13 +139,13 @@ class SMSTests:
         }
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
 
-        ok = response["status"] == "Failure"
+        ok = response["status"] == "failure"
 
         self.manager.save_results(
             status=ok,
             test_name="Call SMS API with an invalid number e.g. string instead of number",
             test_description="Call the API with the number missing.",
-            output=f"Expected status = Failure. Got {response['status']}. Response was {response}",
+            output=f"Expected status = failure. Got {response['status']}. Response was {response}",
         )
 
         # Count test
@@ -153,13 +154,16 @@ class SMSTests:
                 "notifications/tests/integration/test_data/count_test.txt", "rb"
             )
         }
+        # response = requests.post(self.sms_url, headers=self.headers, files=files)
+        # print(response)
+        # time.sleep(99999)
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
 
-        ok = response["attempted"] == 5
+        ok = response["counts"]["valid_lines_in_file"] == 5
 
         self.manager.save_results(
             status=ok,
             test_name="Call SMS API with a mixed file",
             test_description="Call the API with a file that has 5 valid and 7 invalid rows.",
-            output=f"Expected status = 5 attempts. Got {response['attempted']}. Response was {response}",
+            output=f"Expected status = 5 attempts. Got {response['counts']['valid_lines_in_file']}. Response was {response}",
         )

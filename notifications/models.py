@@ -1,3 +1,4 @@
+import json
 import random
 import string
 
@@ -227,14 +228,41 @@ class RealtimeNotificationHeader(models.Model):
     admin = models.ForeignKey(User, on_delete=models.CASCADE)
     """Admin who sent the message"""
     description = models.TextField()
-    message = models.TextField(null=True)
     send_status = models.BooleanField(default=False)
+    total_record_number = models.IntegerField(default=0)
+    """Used for file uploads. Total number of records received through API"""
+    invalid_records_number = models.IntegerField(default=0)
+    """Used for file uploads. Count of invalid rows"""
     attempted_send_number = models.IntegerField(default=0)
+    """Number of users we tried to contact. Total - invalid"""
     successful_send_number = models.IntegerField(default=0)
+    """How many we think we managed to send"""
+    unregistered_users = models.TextField(null=True, blank=True)
+    """List of users we couldn't send to as they are unregistered. JSON stored as string"""
+    uncontactable_users = models.TextField(null=True, blank=True)
+    """List of users we couldn't send to as they aren't set up for it. JSON stored as string"""
+    invalid_lines = models.TextField(null=True, blank=True)
+    """List of invalid lines in the upload file"""
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"[{self.successful_send_number}/{self.attempted_send_number}] {self.admin.full_name} - {self.created_time.strftime('%Y-%m-%d%H:%M:%S')} - {self.description}"
+
+    def set_unregistered_users(self, data):
+        """Convert list to string to save"""
+        self.unregistered_users = json.dumps(data)
+
+    def get_unregistered_users(self):
+        """Convert string to list to load"""
+        return json.loads(self.unregistered_users)
+
+    def set_uncontactable_users(self, data):
+        """Convert list to string to save"""
+        self.uncontactable_users = json.dumps(data)
+
+    def get_uncontactable_users(self):
+        """Convert string to list to load"""
+        return json.loads(self.uncontactable_users)
 
 
 class RealtimeNotification(models.Model):

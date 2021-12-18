@@ -405,7 +405,7 @@ def send_cobalt_bulk_email_thread(bcc_addresses, subject, message, reply_to):
 
 
 def send_cobalt_bulk_sms(
-    msg_list, admin, description, header_msg=None, from_name=GLOBAL_TITLE
+    msg_list, admin, description, invalid_lines=None, from_name=GLOBAL_TITLE
 ):
     """Try to send a bunch of SMS messages to users. Will only send if they are registered, want to receive SMS
     and have a valid phone number.
@@ -414,16 +414,24 @@ def send_cobalt_bulk_sms(
         msg_list(list): list of tuples of system number and message to send (system_number, "message")
         admin(User): administrator responsible for sending these messages
         description(str): Text description of this batch of messages
-        header_msg(str): Any message to be added to the header such as data that was invalid and ignored
+        invalid_lines(list): list of invalid lines in upload file
         from_name(str): Name to use as the sender
+
+    Returns:
+        success_count(int): How many messages we sent
+        unregistered_users(list): list of users who we do not know about
+        un_contactable_users(list): list of users who don't have mobiles or haven't ticked to receive SMS
     """
+
+    unregistered_users = []
+    uncontactable_users = ["do later"]
 
     # Log this batch
     header = RealtimeNotificationHeader(
         admin=admin,
         description=description,
         attempted_send_number=len(msg_list),
-        message=header_msg,
+        invalid_lines=invalid_lines,
     )
     header.save()
 
@@ -437,7 +445,7 @@ def send_cobalt_bulk_sms(
         .filter(mobile__isnull=False)
     )
 
-    # Create dict of Abf number to phone number
+    # Create dict of ABF number to phone number
     phone_lookup = {}
     for user in users:
         # Convert to international
@@ -449,6 +457,7 @@ def send_cobalt_bulk_sms(
         system_number, msg = item
 
         if system_number not in phone_lookup:
+            uncontactable_users.append(system_number)
             continue
 
         phone_number = phone_lookup[item[0]]
@@ -469,9 +478,13 @@ def send_cobalt_bulk_sms(
     # Update header
     header.send_status = True
     header.successful_send_number = success_count
+
+    # Save lists as strings using model functions
+    header.set_uncontactable_users(uncontactable_users)
+    header.set_unregistered_users(unregistered_users)
     header.save()
 
-    return users.count()
+    return users.count(), unregistered_users, uncontactable_users
 
 
 def send_cobalt_sms(phone_number, msg, from_name=GLOBAL_TITLE):

@@ -53,20 +53,19 @@ def key_check_v1(request):
     return f"Your key is valid. You are authenticated as {request.auth}."
 
 
-class SmsResponseV1(Schema):
-    """Success response format from sms_file_upload"""
-
-    status: str
-    sender: str
-    filename: str
-    attempted: int
-    sent: int
-    message: str
+# class SmsResponseV1(Schema):
+#     """Success response format from sms_file_upload"""
+#
+#     status: str
+#     sender: str
+#     filename: str
+#     attempted: int
+#     sent: int
 
 
 @router.post(
     "/sms-file-upload/v1.0",
-    response={200: SmsResponseV1, 401: UnauthorizedV1, 403: ErrorV1},
+    # response={200: SmsResponseV1, 401: UnauthorizedV1, 403: ErrorV1},
     summary="SMS file upload API for distribution of different messages to a list of players.",
 )
 def sms_file_upload_v1(request, file: UploadedFile = File(...)):

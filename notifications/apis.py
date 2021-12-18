@@ -6,7 +6,7 @@ def notifications_api_sms_file_upload_v1(request, file):
     """API call to upload a file and send SMS messages"""
 
     data = []
-    header_msg = ""
+    invalid_lines = []
 
     for line in file.readlines():
         try:
@@ -16,30 +16,40 @@ def notifications_api_sms_file_upload_v1(request, file):
                 if len(msg.strip()) > 0:
                     data.append((number, msg.replace("<NL>", "\n")))
                 else:
-                    header_msg += f"No message found.\n -->{line}\n"
+                    invalid_lines.append("No message found. -->{line}")
             else:
-                header_msg += f"Invalid row, no {GLOBAL_ORG} number found\n -->{line}\n"
+                invalid_lines.append(
+                    f"Invalid row, no {GLOBAL_ORG} number found -->{line}"
+                )
         except Exception as exc:
             print(f"Exception found {exc}")
-            header_msg += f"Invalid row {exc}: {line}\n"
+            invalid_lines.append(f"Invalid row {exc}: {line}")
 
-    # Return empty string for no errors but use None for the database record
-    header_msg_send = None if header_msg == "" else header_msg
-
-    success_count = send_cobalt_bulk_sms(
+    success_count, unregistered_users, uncontactable_users = send_cobalt_bulk_sms(
         msg_list=data,
         admin=request.auth,
         description=file.name,
-        header_msg=header_msg_send,
+        invalid_lines=invalid_lines,
     )
 
-    status = "Success" if success_count > 0 else "Failure"
+    # If we sent anything, we were successful
+    status = "success" if success_count > 0 else "failure"
 
     return {
         "status": status,
         "sender": request.auth.__str__(),
         "filename": file.name,
-        "attempted": len(data),
-        "sent": success_count,
-        "message": header_msg,
+        "counts": {
+            "total_lines_in_file": len(file.read()),
+            "valid_lines_in_file": len(data),
+            "invalid_lines_in_file": len(file.read()) - len(data),
+            "registered_users_in_file": 99,
+            "registered_contactable_users_in_file": 99,
+            "sent": success_count,
+        },
+        "errors": {
+            "invalid_lines": invalid_lines,
+            "unregistered_users": unregistered_users,
+            "uncontactable_users": uncontactable_users,
+        },
     }
