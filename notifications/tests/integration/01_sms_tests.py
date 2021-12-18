@@ -155,12 +155,11 @@ class SMSTests:
         }
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
 
-        print(response)
         ok = response["attempted"] == 5
 
         self.manager.save_results(
             status=ok,
             test_name="Call SMS API with a mixed file",
             test_description="Call the API with a file that has 5 valid and 7 invalid rows.",
-            output=f"Expected status = Failure. Got {response['status']}. Response was {response}",
+            output=f"Expected status = 5 attempts. Got {response['attempted']}. Response was {response}",
         )
