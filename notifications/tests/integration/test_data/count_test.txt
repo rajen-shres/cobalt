@@ -3,7 +3,7 @@ AND	7 invalid rows
 999999	Valid row 2
 999999	Valid row 3
 
-abc	inval
+100	valid but not registered
 abc	inval
 abc	inval
 abc	inval

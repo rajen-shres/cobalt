@@ -405,7 +405,12 @@ def send_cobalt_bulk_email_thread(bcc_addresses, subject, message, reply_to):
 
 
 def send_cobalt_bulk_sms(
-    msg_list, admin, description, invalid_lines=None, from_name=GLOBAL_TITLE
+    msg_list,
+    admin,
+    description,
+    invalid_lines=None,
+    total_file_rows=0,
+    from_name=GLOBAL_TITLE,
 ):
     """Try to send a bunch of SMS messages to users. Will only send if they are registered, want to receive SMS
     and have a valid phone number.
@@ -416,15 +421,17 @@ def send_cobalt_bulk_sms(
         description(str): Text description of this batch of messages
         invalid_lines(list): list of invalid lines in upload file
         from_name(str): Name to use as the sender
+        total_file_rows(int): Number of rows in original file
 
     Returns:
-        success_count(int): How many messages we sent
+        sent_users(list): Who we think we sent messages to
         unregistered_users(list): list of users who we do not know about
         un_contactable_users(list): list of users who don't have mobiles or haven't ticked to receive SMS
     """
 
     unregistered_users = []
-    uncontactable_users = ["do later"]
+    uncontactable_users = []
+    sent_users = []
 
     # Log this batch
     header = RealtimeNotificationHeader(
@@ -432,6 +439,7 @@ def send_cobalt_bulk_sms(
         description=description,
         attempted_send_number=len(msg_list),
         invalid_lines=invalid_lines,
+        total_record_number=total_file_rows,
     )
     header.save()
 
@@ -445,19 +453,29 @@ def send_cobalt_bulk_sms(
         .filter(mobile__isnull=False)
     )
 
+    # Get the users who are in the system
+    registered_users = User.objects.filter(
+        system_number__in=system_numbers
+    ).values_list("system_number", flat=True)
+    registered_users = list(registered_users)
+
     # Create dict of ABF number to phone number
     phone_lookup = {}
     for user in users:
         # Convert to international
         phone_lookup[user.system_number] = f"+61{user.mobile[1:]}"
 
-    success_count = 0
-
     for item in msg_list:
         system_number, msg = item
 
+        # See if we can send this
         if system_number not in phone_lookup:
-            uncontactable_users.append(system_number)
+            if (
+                system_number in registered_users
+            ):  # This one is registered but not contactable
+                uncontactable_users.append(system_number)
+            else:  # This one is not registered
+                unregistered_users.append(system_number)
             continue
 
         phone_number = phone_lookup[item[0]]
@@ -473,18 +491,19 @@ def send_cobalt_bulk_sms(
             member=user, admin=admin, status=return_code, msg=msg, header=header
         ).save()
 
-        success_count += 1
+        sent_users.append(user.system_number)
 
     # Update header
-    header.send_status = True
-    header.successful_send_number = success_count
+    header.send_status = bool(sent_users)
+    header.successful_send_number = len(sent_users)
 
     # Save lists as strings using model functions
     header.set_uncontactable_users(uncontactable_users)
     header.set_unregistered_users(unregistered_users)
+    header.set_invalid_lines(invalid_lines)
     header.save()
 
-    return users.count(), unregistered_users, uncontactable_users
+    return sent_users, unregistered_users, uncontactable_users
 
 
 def send_cobalt_sms(phone_number, msg, from_name=GLOBAL_TITLE):
@@ -1151,7 +1170,8 @@ def global_admin_view_realtime_notifications(request):
 
 @rbac_check_role("notifications.realtime_send.edit", "notifications.admin.view")
 def admin_view_realtime_notification_detail(request, header_id):
-    """Show the detail of a batch of messages
+    """Show the detail of a batch of messages. Actually allows anyone with
+       notifications.realtime_send.edit to see any batch, but that is okay.
 
     Args:
         request (HTTPRequest): standard request object
@@ -1161,7 +1181,19 @@ def admin_view_realtime_notification_detail(request, header_id):
         HTTPResponse
     """
     notification_header = get_object_or_404(RealtimeNotificationHeader, pk=header_id)
-    notifications = RealtimeNotification.objects.filter(header=notification_header)
+
+    # Convert string to json
+    notification_header.uncontactable_users = (
+        notification_header.get_uncontactable_users()
+    )
+    notification_header.unregistered_users = (
+        notification_header.get_unregistered_users()
+    )
+    notification_header.invalid_lines = notification_header.get_invalid_lines()
+
+    notifications = RealtimeNotification.objects.filter(
+        header=notification_header
+    ).select_related("member")
 
     return render(
         request,

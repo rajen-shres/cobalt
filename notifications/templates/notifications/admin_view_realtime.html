@@ -8,7 +8,7 @@
         <div class="card-header card-header-primary">
             <h1>Real Time Notifications</h1>
         </div>
-        <div class="card-body">
+        <div class="card-body table-responsive">
             {% if things %}
                 <table class="table-condensed table hover">
                     <thead>
@@ -29,7 +29,7 @@
                                 <td class="text-left">{{ thing.admin.full_name }}</td>
                                 <td class="text-left">{{ thing.description }}</td>
                                 <td class="text-left"><pre>{{ thing.message|default_if_none:"" }}</pre></td>
-                                <td>{{ thing.successful_send_number }}/{{ thing.attempted_send_number }}</td>
+                                <td>{{ thing.successful_send_number }}/{{ thing.total_record_number }}</td>
                                 <td>
                                     {% if thing.send_status %}
                                         <span class="text-success"><i class="material-icons">check_circle</i></span>

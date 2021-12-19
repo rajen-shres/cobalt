@@ -3,55 +3,151 @@
 {% load cobalt_tags %}
 {% block title %} - Real Time Notifications Details{% endblock %}
 
+{% block header %}
+    <style>
+        .cobalt-hidden {
+            display: none;
+        }
+    </style>
+{% endblock header %}
+
 {% block content %}
     <div class="card">
         <div class="card-header card-header-primary">
             <h1>Real Time Notifications - Details</h1>
             <h2>{{ notification_header.description }}</h2>
-            <h3>Sent {{ notification_header.successful_send_number }} out of {{ notification_header.attempted_send_number }}</h3>
+            <h3>Sent {{ notification_header.successful_send_number }} out of {{ notification_header.total_record_number }}</h3>
             <h3>{{ notification_header.created_time|cobalt_nice_datetime }}</h3>
         </div>
         <div class="card-body">
-            {% if notification_header.message %}
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-10">
-                            <div class="card">
-                                <div class="card-header card-header-danger">
-                                    Messages
-                                </div>
-                                <div class="card-body">
-                                    <pre>{{ notification_header.message }}</pre>
-                                </div>
-                            </div>
 
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="card">
+                            <div class="card-header card-header-danger">
+                                <h3>General Information</h3>
+                                <h4>Sent by {{ notification_header.admin }}</h4>
+                            </div>
+                            <div class="card-body table-responsive">
+                                <table class="table table-condensed table-hover">
+                                    <thead>
+                                        <tr class="text-primary">
+                                            <th class="text-left">Item</th>
+                                            <th class="text-right">Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-left">Total Rows in File</td>
+                                            <td class="text-right">{{ notification_header.total_record_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-left">
+                                                {% if notification_header.invalid_lines %}
+                                                    <a href="javascript:void(0)" _="on click toggle .cobalt-hidden on #invalid-rows">Invalid Rows in File</a>
+                                                    <div id="invalid-rows" class="cobalt-hidden bg-warning">
+                                                        <h5>These rows were ignored as they had errors</h5>
+                                                        <ul>
+                                                            {% for invalid_line in notification_header.invalid_lines %}
+                                                                <li>{{ invalid_line }}</li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </div>
+                                                {% else %}
+                                                    Invalid Rows in File
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-right align-text-top">{{ notification_header.invalid_lines|length }}</td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="text-left">
+                                                {% if notification_header.unregistered_users %}
+                                                    <a href="javascript:void(0)" _="on click toggle .cobalt-hidden on #unreg-rows">Unregistered {{ GLOBAL_ORG }} Numbers</a>
+                                                    <div id="unreg-rows" class="cobalt-hidden bg-warning">
+                                                        <h5>These {{ GLOBAL_ORG }} Numbers are not registered and were ignored</h5>
+                                                        <ul>
+                                                            {% for invalid_line in notification_header.unregistered_users %}
+                                                                <li>{{ invalid_line }}</li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </div>
+                                                {% else %}
+                                                    Unregistered {{ GLOBAL_ORG }} Numbers
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-right align-text-top">{{ notification_header.unregistered_users|length }}</td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="text-left">
+                                                {% if notification_header.uncontactable_users %}
+                                                    <a href="javascript:void(0)" _="on click toggle .cobalt-hidden on #uncontact-rows">Uncontactable</a>
+                                                    <div id="uncontact-rows" class="cobalt-hidden bg-warning">
+                                                        <h5>These users are registered but either don't have a valid phone number or have asked not to receive notifications</h5>
+                                                        <ul>
+                                                            {% for invalid_line in notification_header.uncontactable_users %}
+                                                                <li>{{ invalid_line }}</li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </div>
+                                                {% else %}
+                                                    Uncontactable
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-right align-text-top">{{ notification_header.uncontactable_users|length }}</td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="text-left">Sent</td>
+                                            <td class="text-right">{{ notification_header.successful_send_number }}</td>
+                                        </tr>
+
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
+
                     </div>
                 </div>
-            {% endif %}
-            <table class="table-condensed table hover">
-                <thead>
-                    <tr>
-                        <th class="text-left">Date</th>
-                        <th class="text-left">Member</th>
-                        <th class="text-left">Sender</th>
-                        <th class="text-left">Message</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for notification in notifications %}
+            </div>
+
+            {% if notifications %}
+
+                <table class="table-condensed table hover">
+                    <thead>
                         <tr>
-                            <td class="text-left">{{ notification.created_time|cobalt_nice_datetime }}</td>
-                            <td class="text-left">{{ notification.member }}</td>
-                            <td class="text-left">{{ notification.admin }}</td>
-                            <td class="text-left"><pre>{{ notification.msg }}</pre></td>
+                            <th class="text-left">Date</th>
+                            <th class="text-left">Member</th>
+                            <th class="text-left">Sender</th>
+                            <th class="text-left">Message</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for notification in notifications %}
+                            <tr>
+                                <td class="text-left">{{ notification.created_time|cobalt_nice_datetime }}</td>
+                                <td class="text-left">{{ notification.member }}</td>
+                                <td class="text-left">{{ notification.admin }}</td>
+                                <td class="text-left"><pre>{{ notification.msg }}</pre></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            {% else %}
+                <h5>No messages sent</h5>
+
+            {% endif %}
+
         </div>
     </div>
 
     {% include 'utils/pagination_footer.html' %}
 
 {% endblock content %}
+
+{% block footer %}
+    {% include "utils/include_htmx.html" %}
+{% endblock footer %}

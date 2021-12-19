@@ -231,8 +231,6 @@ class RealtimeNotificationHeader(models.Model):
     send_status = models.BooleanField(default=False)
     total_record_number = models.IntegerField(default=0)
     """Used for file uploads. Total number of records received through API"""
-    invalid_records_number = models.IntegerField(default=0)
-    """Used for file uploads. Count of invalid rows"""
     attempted_send_number = models.IntegerField(default=0)
     """Number of users we tried to contact. Total - invalid"""
     successful_send_number = models.IntegerField(default=0)
@@ -246,7 +244,7 @@ class RealtimeNotificationHeader(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"[{self.successful_send_number}/{self.attempted_send_number}] {self.admin.full_name} - {self.created_time.strftime('%Y-%m-%d%H:%M:%S')} - {self.description}"
+        return f"[{self.successful_send_number}/{self.total_record_number}] {self.admin.full_name} - {self.created_time.strftime('%Y-%m-%d%H:%M:%S')} - {self.description}"
 
     def set_unregistered_users(self, data):
         """Convert list to string to save"""
@@ -263,6 +261,14 @@ class RealtimeNotificationHeader(models.Model):
     def get_uncontactable_users(self):
         """Convert string to list to load"""
         return json.loads(self.uncontactable_users)
+
+    def set_invalid_lines(self, data):
+        """Convert list to string to save"""
+        self.invalid_lines = json.dumps(data)
+
+    def get_invalid_lines(self):
+        """Convert string to list to load"""
+        return json.loads(self.invalid_lines)
 
 
 class RealtimeNotification(models.Model):
