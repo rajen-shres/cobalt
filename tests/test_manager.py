@@ -7,6 +7,7 @@ import traceback
 
 from abc import ABC
 
+from django.utils.safestring import SafeString
 from selenium.common.exceptions import (
     TimeoutException,
     NoSuchElementException,
@@ -175,7 +176,7 @@ class CobaltTestManagerAbstract(ABC):
         self.test_results[calling_class][calling_method][test_name] = {
             "status": status,
             "test_description": test_description,
-            "output": output,
+            "output": SafeString(output),
             "file": calling_file,
             "line_no": calling_line_no,
         }

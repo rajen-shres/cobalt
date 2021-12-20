@@ -6,41 +6,43 @@
     API that you could do using your own account.</p>
 
 {% if api_tokens %}
-    <table class="table-condensed table-hover table-full-width">
-        <thead>
-            <tr>
-                <th>Token</th>
-                <th>Date Created</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for api_token in api_tokens %}
+    <div class="table-responsive">
+        <table class="table-condensed table-hover table-full-width">
+            <thead>
                 <tr>
-                    <td class="pr-4">
-                        <kbd>
-                            <span id="token_{{ api_token.pk }}">
-                                {{ api_token.token }}
-                            </span>
-                        </kbd>
-                        <span class="text-success"><i class="material-icons pl-1" style="font-size: 17px" onclick="copyToClipboard('#token_{{ api_token.pk }}')" title="Copy to clipboard">content_copy</i></span>
-                    </td>
-                    <td class="pr-3">{{ api_token.created_date|cobalt_nice_datetime }}</td>
-                    <td>
-                        <button
-                            hx-post="{% url "accounts:developer_settings_delete_token_htmx" %}"
-                            hx-vars="token_id:{{ api_token.pk }}"
-                            hx-target="#dev-settings"
-                            class="btn btn-sm btn-danger"
-                        >
-                            Delete
-                        </button>
-                    </td>
+                    <th>Token</th>
+                    <th>Date Created</th>
+                    <th>Action</th>
                 </tr>
-            {% endfor %}
+            </thead>
+            <tbody>
+                {% for api_token in api_tokens %}
+                    <tr>
+                        <td class="pr-4">
+                            <kbd>
+                                <span id="token_{{ api_token.pk }}">
+                                    {{ api_token.token }}
+                                </span>
+                            </kbd>
+                            <span class="text-success"><i class="material-icons pl-1" style="font-size: 17px" onclick="copyToClipboard('#token_{{ api_token.pk }}')" title="Copy to clipboard">content_copy</i></span>
+                        </td>
+                        <td class="pr-3">{{ api_token.created_date|cobalt_nice_datetime_short }}</td>
+                        <td>
+                            <button
+                                hx-post="{% url "accounts:developer_settings_delete_token_htmx" %}"
+                                hx-vars="token_id:{{ api_token.pk }}"
+                                hx-target="#dev-settings"
+                                class="btn btn-sm btn-danger"
+                            >
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
 
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 {% else %}
     <h3>You do not have any tokens set up yet</h3>
 {% endif %}
@@ -52,7 +54,7 @@
     function copyToClipboard(element) {
         const $temp = $("<input>");
         $("body").append($temp);
-        $temp.val($(element).text()).select();
+        $temp.val($(element).text().trim()).select();
         document.execCommand("copy");
         $temp.remove();
         swal.fire({ title:"Copied", html: "Token copied to clipboard", icon: "success"})

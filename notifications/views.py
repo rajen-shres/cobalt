@@ -554,10 +554,12 @@ def send_cobalt_sms(phone_number, msg, from_name=GLOBAL_TITLE):
             },
         )
 
+        print(phone_number, msg)
+        print(return_values)
+
         if return_values["ResponseMetadata"]["HTTPStatusCode"] == 200:
             return True
 
-        print(return_values)
     except ClientError:
         logger.exception(f"Couldn't publish message to {phone_number}")
 

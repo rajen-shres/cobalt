@@ -1,12 +1,12 @@
-999999	This file has 5 valid rows with non exitant abf numbers
+9999991	This file has 6 valid rows, 5 with non-existent abf numbers and 1 not set up for SMS
 AND	7 invalid rows
-999999	Valid row 2
-999999	Valid row 3
+9999992	Valid row 2
+9999993	Valid row 3
 
 100	valid but not registered
 abc	inval
 abc	inval
 abc	inval
-999999	Valid row 4
-999999	Valid row 5
+9999994	Valid row 4
+9999991	Valid row 5
 invalid	invalid	invalid

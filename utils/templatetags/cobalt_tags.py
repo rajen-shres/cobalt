@@ -44,13 +44,34 @@ def cobalt_nice_date(value):
     return DateFormat(value).format("l jS M Y")
 
 
+@register.filter(name="cobalt_nice_date_short", expects_localtime=True)
+def cobalt_nice_date_short(value):
+    """custom filter for date to format as full date and time"""
+    if not value:
+        return None
+
+    return DateFormat(value).format("j-M-y")
+
+
 @register.filter(name="cobalt_nice_datetime", expects_localtime=True)
 def cobalt_nice_datetime(value):
-    """Custom filter for datetime to format as full date"""
+    """Custom filter for datetime to format as date and time"""
     if not value:
         return None
 
     date_part = cobalt_nice_date(value)
+    time_part = cobalt_time(value)
+
+    return f"{date_part} {time_part}"
+
+
+@register.filter(name="cobalt_nice_datetime_short", expects_localtime=True)
+def cobalt_nice_datetime_short(value):
+    """Custom filter for datetime to format as short date and time"""
+    if not value:
+        return None
+
+    date_part = cobalt_nice_date_short(value)
     time_part = cobalt_time(value)
 
     return f"{date_part} {time_part}"
@@ -187,18 +208,20 @@ def cobalt_bs4_field(field, no_label=False):
         class_to_add = " form-control"
 
     # Add our bootstrap class
-    field_classes = field.field.widget.attrs.get('class', '')
+    field_classes = field.field.widget.attrs.get("class", "")
     field_classes += class_to_add
-    field.field.widget.attrs['class'] = field_classes
+    field.field.widget.attrs["class"] = field_classes
 
     # See if we want a label
     no_label_types = ["summernoteinplace", "select"]
 
-    if no_label or  not field.label or field.widget_type in no_label_types:
+    if no_label or not field.label or field.widget_type in no_label_types:
         show_label = False
     else:
         show_label = True
 
     field_template = get_template("utils/cobalt_bs4_field/bs4_field.html")
 
-    return field_template.render({"field": field, "show_label": show_label, "widget_type": field.widget_type})
+    return field_template.render(
+        {"field": field, "show_label": show_label, "widget_type": field.widget_type}
+    )

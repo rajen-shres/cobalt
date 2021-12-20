@@ -1,4 +1,5 @@
 """This is really a unit test but it needs a Django server in order to work so runs as an integration test"""
+import json
 import time
 
 import requests
@@ -78,7 +79,7 @@ class SMSTests:
             status=ok,
             test_name="Call SMS API with an empty file",
             test_description="Call the API with an empty file.",
-            output=f"Expected status = failure. Got {response['status']}. Response was {response}",
+            output=f"Expected status = failure. Got {response['status']}. Response was <pre>{json.dumps(response, indent=4)}</pre>",
         )
 
         # Not tab separated row
@@ -95,7 +96,7 @@ class SMSTests:
             status=ok,
             test_name="Call SMS API with no tab character in row",
             test_description="Call the API with a file that is missing tab delimiter.",
-            output=f"Expected status = failure. Got {response['status']}. Response was {response}",
+            output=f"Expected status = failure. Got {response['status']}. Response was <pre>{json.dumps(response, indent=4)}</pre>",
         )
 
         # Multiple tabs
@@ -112,7 +113,7 @@ class SMSTests:
             status=ok,
             test_name="Call SMS API with multiple tab characters in row",
             test_description="Call the API with a file that has multiple tab delimiter.",
-            output=f"Expected status = failure. Got {response['status']}. Response was {response}",
+            output=f"Expected status = failure. Got {response['status']}. Response was <pre>{json.dumps(response, indent=4)}</pre>",
         )
 
         # No message
@@ -128,7 +129,7 @@ class SMSTests:
             status=ok,
             test_name="Call SMS API with missing message",
             test_description="Call the API with a file that has no message.",
-            output=f"Expected status = failure. Got {response['status']}. Response was {response}",
+            output=f"Expected status = failure. Got {response['status']}. Response was <pre>{json.dumps(response, indent=4)}</pre>",
         )
 
         # Missing ABF Number
@@ -145,7 +146,7 @@ class SMSTests:
             status=ok,
             test_name="Call SMS API with an invalid number e.g. string instead of number",
             test_description="Call the API with the number missing.",
-            output=f"Expected status = failure. Got {response['status']}. Response was {response}",
+            output=f"Expected status = failure. Got {response['status']}. Response was <pre>{json.dumps(response, indent=4)}</pre>",
         )
 
         # Count test
@@ -159,11 +160,19 @@ class SMSTests:
         # time.sleep(99999)
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
 
-        ok = response["counts"]["valid_lines_in_file"] == 5
+        if (
+            response["counts"]["valid_lines_in_file"] == 6
+            and response["counts"]["registered_users_in_file"] == 1
+            and response["counts"]["registered_contactable_users_in_file"] == 0
+        ):
+            ok = True
+        else:
+            ok = False
 
         self.manager.save_results(
             status=ok,
             test_name="Call SMS API with a mixed file",
-            test_description="Call the API with a file that has 5 valid and 7 invalid rows.",
-            output=f"Expected status = 5 attempts. Got {response['counts']['valid_lines_in_file']}. Response was {response}",
+            test_description="Call the API with a file that has 5 unregistered numbers, 1 registered but not "
+            "enabled and 6 invalid rows.",
+            output=f"Expected 6 valid, 1 registered and 0 contactable. Response was <pre>{json.dumps(response, indent=4)}</pre>",
         )

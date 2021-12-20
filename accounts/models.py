@@ -242,7 +242,7 @@ def _create_api_token():
     string_size = 40 - len(API_KEY_PREFIX)
     random_string = "".join(
         random.SystemRandom().choice(
-            string.ascii_letters + string.digits + "!$^()-_{[}]|/"
+            string.ascii_letters + string.digits + "!$^()-_{}|/"
         )
         for _ in range(string_size)
     )
