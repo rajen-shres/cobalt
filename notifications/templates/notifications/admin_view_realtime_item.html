@@ -8,14 +8,41 @@
         <div class="card-header card-header-primary">
             <h1>Real Time Notifications - Item</h1>
             <h2>Sent To: {{ notification.member }}</h2>
-            <h3>Sent By: {{ notification.admin }}</h3>
+            <h3>Sent by {{ notification.admin }} on {{ notification.created_time|cobalt_nice_datetime }}</h3>
             <h3>Description: {{ notification.header.description }}</h3>
         </div>
         <div class="card-body">
-            Message: {{ notification.msg }}
-            {{ cloudwatch }}
-            <h3>Raw</h3>
-            {{ raw_cloudwatch }}
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header card-header-warning">
+                                <h3>Message</h3>
+                            </div>
+                            <div class="card-body">
+                                {{ notification.msg }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header card-header-danger">
+                                <h3>Errors</h3>
+                            </div>
+                            <div class="card-body">
+                                <h3>Fields</h3>
+                                {{ cloudwatch }}
+                                <h3>Raw Data</h3>
+                                {{ raw_cloudwatch }}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
         </div>
     </div>
 

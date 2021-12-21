@@ -1268,13 +1268,10 @@ def admin_view_realtime_notification_item(request, notification_id):
         filterPattern=filter_pattern,
     )
 
-    print("#######")
-    print(response)
     results = response["events"]
 
     # Continue to build results if we got a nextToken
     while "nextToken" in response:
-        print("Found next token")
         response = client.filter_log_events(
             logGroupName=log_group,
             # startTime=start_time,
@@ -1283,33 +1280,16 @@ def admin_view_realtime_notification_item(request, notification_id):
             nextToken=response["nextToken"],
         )
         results.extend(response["events"])
-        print("----- #######")
-        print(response)
 
-    print("---Results---")
-    print(results)
-    print("-------")
-    print("---Results[0]---")
-    print(results[0])
-    print("-------")
-    print("---Results[0]message---")
-    print(results[0]["message"])
-    print("-------")
-    print("---Results[0]message removed---")
-    print(results[0]["message"].replace("\\", ""))
-    print("-------")
-    r2 = json.dumps(results[0]["message"].replace("\\", ""))
-    print("---Results[0]message removed dump---")
-    print(r2)
-    print("-------")
+    if results:
+        message = results[0]["message"]
+        message_json = json.loads(message)
+        delivery = message_json["delivery"]
 
-    message = results[0]["message"]
-    message_json = json.loads(message)
-    print(message_json)
-    # aws_notification = message_json["notification"]
-    delivery = message_json["delivery"]
+        cloudwatch = SafeString(f"<pre>{json.dumps(delivery, indent=4)}</pre>")
+    else:
+        cloudwatch = "No data found"
 
-    cloudwatch = SafeString(f"<pre>{json.dumps(delivery, indent=4)}</pre>")
     raw_cloudwatch = SafeString(f"<pre>{json.dumps(results, indent=4)}</pre>")
 
     return render(
