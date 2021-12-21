@@ -284,6 +284,8 @@ class RealtimeNotification(models.Model):
     """Admin who sent the message"""
     msg = models.TextField()
     status = models.BooleanField(default=False)
+    aws_message_id = models.CharField(max_length=50, null=True, blank=True)
+    """AWS message id from SMS call"""
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

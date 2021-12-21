@@ -6,10 +6,13 @@
    ./notifications_overview.html
 
 """
+import json
 import logging
 import random
 import re
 import string
+import time
+from calendar import timegm
 from datetime import datetime, timedelta
 from threading import Thread
 
@@ -25,6 +28,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
+from django.utils.safestring import SafeString
 
 from accounts.models import User
 from cobalt.settings import (
@@ -461,9 +465,11 @@ def send_cobalt_bulk_sms(
 
     # Create dict of ABF number to phone number
     phone_lookup = {}
+    user_lookup = {}
     for user in users:
         # Convert to international
         phone_lookup[user.system_number] = f"+61{user.mobile[1:]}"
+        user_lookup[user.system_number] = user
 
     for item in msg_list:
         system_number, msg = item
@@ -478,20 +484,21 @@ def send_cobalt_bulk_sms(
                 unregistered_users.append(system_number)
             continue
 
+        user = user_lookup[system_number]
+
         phone_number = phone_lookup[item[0]]
         msg = item[1]
 
         # Send it
-        return_code = send_cobalt_sms(
-            phone_number=phone_number, msg=msg, from_name=from_name
+        send_cobalt_sms(
+            phone_number=phone_number,
+            msg=msg,
+            from_name=from_name,
+            header=header,
+            member=user,
         )
 
-        # Log it
-        RealtimeNotification(
-            member=user, admin=admin, status=return_code, msg=msg, header=header
-        ).save()
-
-        sent_users.append(user.system_number)
+        sent_users.append(system_number)
 
     # Update header
     header.send_status = bool(sent_users)
@@ -506,16 +513,20 @@ def send_cobalt_bulk_sms(
     return sent_users, unregistered_users, uncontactable_users
 
 
-def send_cobalt_sms(phone_number, msg, from_name=GLOBAL_TITLE):
+def send_cobalt_sms(
+    phone_number, msg, from_name=GLOBAL_TITLE, header=None, member=None
+):
     """Send single SMS. This will be replaced with a mobile app later
 
     Args:
         phone_number (str): who to send to
         msg (str): message to send
         from_name(str): Display name of sender
+        header(RealtimeNotificationHeader): parent for this message
+        member(User): user for this message
 
     Returns:
-        Boolean
+        None
     """
 
     # from_name must be alpha-numeric or hyphens only, must start and end with alphanumeric, 11 chars max
@@ -538,6 +549,9 @@ def send_cobalt_sms(phone_number, msg, from_name=GLOBAL_TITLE):
         region_name=AWS_REGION_NAME,
     )
 
+    # Assume the worst
+    return_code = False
+
     try:
         return_values = client.publish(
             PhoneNumber=phone_number,
@@ -554,16 +568,21 @@ def send_cobalt_sms(phone_number, msg, from_name=GLOBAL_TITLE):
             },
         )
 
-        print(phone_number, msg)
-        print(return_values)
-
         if return_values["ResponseMetadata"]["HTTPStatusCode"] == 200:
-            return True
+            return_code = True
 
     except ClientError:
         logger.exception(f"Couldn't publish message to {phone_number}")
 
-    return False
+    # Log it
+    RealtimeNotification(
+        member=member,
+        admin=header.admin,
+        status=return_code,
+        msg=msg,
+        header=header,
+        aws_message_id=return_values["MessageId"],
+    ).save()
 
 
 def get_notifications_for_user(user):
@@ -1201,4 +1220,104 @@ def admin_view_realtime_notification_detail(request, header_id):
         request,
         "notifications/admin_view_realtime_detail.html",
         {"notification_header": notification_header, "notifications": notifications},
+    )
+
+
+@rbac_check_role("notifications.realtime_send.edit", "notifications.admin.view")
+def admin_view_realtime_notification_item(request, notification_id):
+    """Show the detail of a single message. Actually allows anyone with
+       notifications.realtime_send.edit to see the message, but that is okay.
+       We save the AWS Message Id when we send the message, this looks in the
+       AWS Cloudwatch logs to find out what happened subsequently.
+
+    Args:
+        request (HTTPRequest): standard request object
+        notification_id (int): id of the RealtimeNotification to show
+
+    Returns:
+        HTTPResponse
+    """
+    notification = get_object_or_404(RealtimeNotification, pk=notification_id)
+
+    client = boto3.client(
+        "logs",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION_NAME,
+    )
+
+    # TODO: Move this to a global variable
+    log_group = "sns/ap-southeast-2/730536189139/DirectPublishToPhoneNumber/Failure"
+
+    filter_pattern = f'{{ $.notification.messageId = "{notification.aws_message_id}" }}'
+
+    start_time = int((datetime.now() - timedelta(hours=24)).timestamp()) * 1000
+    end_time = int((datetime.now() + timedelta(hours=24)).timestamp()) * 1000
+
+    print(start_time, end_time)
+
+    #    print(int(time.time()))
+
+    # It is possible to get multiple messages and to need a cursor (nextToken) to get all messages
+
+    # Get first response
+    response = client.filter_log_events(
+        logGroupName=log_group,
+        # startTime=start_time,
+        # endTime=end_time,
+        filterPattern=filter_pattern,
+    )
+
+    print("#######")
+    print(response)
+    results = response["events"]
+
+    # Continue to build results if we got a nextToken
+    while "nextToken" in response:
+        print("Found next token")
+        response = client.filter_log_events(
+            logGroupName=log_group,
+            # startTime=start_time,
+            # endTime=end_time,
+            filterPattern=filter_pattern,
+            nextToken=response["nextToken"],
+        )
+        results.extend(response["events"])
+        print("----- #######")
+        print(response)
+
+    print("---Results---")
+    print(results)
+    print("-------")
+    print("---Results[0]---")
+    print(results[0])
+    print("-------")
+    print("---Results[0]message---")
+    print(results[0]["message"])
+    print("-------")
+    print("---Results[0]message removed---")
+    print(results[0]["message"].replace("\\", ""))
+    print("-------")
+    r2 = json.dumps(results[0]["message"].replace("\\", ""))
+    print("---Results[0]message removed dump---")
+    print(r2)
+    print("-------")
+
+    message = results[0]["message"]
+    message_json = json.loads(message)
+    print(message_json)
+    # aws_notification = message_json["notification"]
+    delivery = message_json["delivery"]
+
+    cloudwatch = SafeString(f"<pre>{json.dumps(delivery, indent=4)}</pre>")
+    raw_cloudwatch = SafeString(f"<pre>{json.dumps(results, indent=4)}</pre>")
+
+    return render(
+        request,
+        "notifications/admin_view_realtime_item.html",
+        {
+            "notification": notification,
+            "cloudwatch": cloudwatch,
+            "raw_cloudwatch": raw_cloudwatch,
+        },
     )

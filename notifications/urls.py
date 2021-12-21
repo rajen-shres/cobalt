@@ -43,6 +43,11 @@ urlpatterns = [
         name="admin_view_realtime_notification_detail",
     ),
     path(
+        "admin/realtime/view-item/<int:notification_id>",
+        views.admin_view_realtime_notification_item,
+        name="admin_view_realtime_notification_item",
+    ),
+    path(
         "admin/realtime/global-view",
         views.global_admin_view_realtime_notifications,
         name="global_admin_view_realtime_notifications",

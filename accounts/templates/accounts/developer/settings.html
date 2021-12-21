@@ -11,7 +11,7 @@
             <thead>
                 <tr>
                     <th>Token</th>
-                    <th>Date Created</th>
+                    <th class="text-left">Date Created</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -26,7 +26,7 @@
                             </kbd>
                             <span class="text-success"><i class="material-icons pl-1" style="font-size: 17px" onclick="copyToClipboard('#token_{{ api_token.pk }}')" title="Copy to clipboard">content_copy</i></span>
                         </td>
-                        <td class="pr-3">{{ api_token.created_date|cobalt_nice_datetime_short }}</td>
+                        <td class="text-left pr-3">{{ api_token.created_date|cobalt_nice_datetime_short }}</td>
                         <td>
                             <button
                                 hx-post="{% url "accounts:developer_settings_delete_token_htmx" %}"

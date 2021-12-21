@@ -122,6 +122,7 @@
                             <th class="text-left">Member</th>
                             <th class="text-left">Sender</th>
                             <th class="text-left">Message</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -131,6 +132,7 @@
                                 <td class="text-left">{{ notification.member }}</td>
                                 <td class="text-left">{{ notification.admin }}</td>
                                 <td class="text-left"><pre>{{ notification.msg }}</pre></td>
+                                <td><a href="{% url "notifications:admin_view_realtime_notification_item" notification_id=notification.id %}" class="btn btn-sm btn-info">Detail</a></td>
                             </tr>
                         {% endfor %}
                     </tbody>

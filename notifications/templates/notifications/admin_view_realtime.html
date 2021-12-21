@@ -16,8 +16,7 @@
                             <th class="text-left">Date</th>
                             <th class="text-left">Administrator</th>
                             <th class="text-left">Description</th>
-                            <th class="text-left">Message</th>
-                            <th>Success</th>
+                            <th>Successfully Queued</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
@@ -28,7 +27,6 @@
                                 <td class="text-left">{{ thing.created_time | cobalt_nice_datetime }}</td>
                                 <td class="text-left">{{ thing.admin.full_name }}</td>
                                 <td class="text-left">{{ thing.description }}</td>
-                                <td class="text-left"><pre>{{ thing.message|default_if_none:"" }}</pre></td>
                                 <td>{{ thing.successful_send_number }}/{{ thing.total_record_number }}</td>
                                 <td>
                                     {% if thing.send_status %}
