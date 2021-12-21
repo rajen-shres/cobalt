@@ -131,9 +131,13 @@
                                 <td class="text-left">{{ notification.created_time|cobalt_nice_datetime }}</td>
                                 <td class="text-left">{{ notification.member }}</td>
                                 <td class="text-left">{{ notification.admin }}</td>
-                                <td class="text-left"><pre>{{ notification.msg }}</pre></td>
-                                <td><a href="{% url "notifications:admin_view_realtime_notification_item" notification_id=notification.id %}" class="btn btn-sm btn-info">Detail</a></td>
-                            </tr>
+                                <td class="text-left">
+                                    <a id="msg-text-{{ notification.id }}" href="javascript:void(0)" _="on click show #msg-{{ notification.id }} then hide me">+ Show message</a>
+                                    <div id="msg-{{ notification.id }}" style="display: none" _="on click show #msg-text-{{ notification.id }} then hide me">
+                                        <pre>{{ notification.msg }}</pre>
+                                    </td>
+                                    <td><a href="{% url "notifications:admin_view_realtime_notification_item" notification_id=notification.id %}" class="btn btn-sm btn-info">Detail</a></td>
+                                </tr>
                         {% endfor %}
                     </tbody>
                 </table>

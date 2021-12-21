@@ -27,14 +27,29 @@
 
                     <div class="col-md-6">
                         <div class="card">
-                            <div class="card-header card-header-danger">
-                                <h3>Errors</h3>
-                            </div>
+                            {% if successful %}
+                                <div class="card-header card-header-success">
+                                    <h3>Successfully Sent to Carrier</h3>
+                                </div>
+                            {% else %}
+                                <div class="card-header card-header-danger">
+                                    <h3>Error</h3>
+                                </div>
+                            {% endif %}
                             <div class="card-body">
-                                <h3>Fields</h3>
-                                {{ cloudwatch }}
-                                <h3>Raw Data</h3>
-                                {{ raw_cloudwatch }}
+                                <h3>{{ provider_response }}</h3>
+                                <a id="fields-text" href="javascript:void(0)" _="on click show #fields then hide me">+ Show fields</a>
+                                <div id="fields" style="display: none" _="on click show #fields-text then hide me">
+                                    <h3>Fields</h3>
+                                    {{ cloudwatch }}
+                                </div>
+                                <br>
+                                <a id="raw-text" href="javascript:void(0)" _="on click show #raw then hide me">+ Show raw data</a>
+                                <div id="raw" style="display: none" _="on click show #raw-text then hide me">
+
+                                    <h3>Raw Data</h3>
+                                    {{ raw_cloudwatch }}
+                                </div>
                             </div>
                         </div>
                     </div>

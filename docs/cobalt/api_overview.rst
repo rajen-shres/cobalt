@@ -25,3 +25,18 @@ You can test the APIs by going to `/api/docs`.
 
 All APIs should end with a version number, eg. /api/do-something/v4.5. The API call and the version
 are logged automatically so we know who is using it.
+
+Usage
+=====
+
+Windows Example
+---------------
+
+You can use a batch file to access the APIs, for example::
+
+    @echo off
+    cd "\AJ SMS\"
+    for %%a in (*) do curl -X "POST" https://test.myabf.com.au/api/cobalt/sms-file-upload/v1.0 -H "accept: */*" -H "key: test_RPbRG7MH2j()UiLfaHNEOZGSprybGMzG^rh" -H "Content-Type: multipart/form-data" -F "file=@%%a;type=text/plain"
+    move *.* archive
+    exit
+

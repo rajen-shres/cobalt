@@ -1239,6 +1239,49 @@ def admin_view_realtime_notification_item(request, notification_id):
     """
     notification = get_object_or_404(RealtimeNotification, pk=notification_id)
 
+    # TODO: Move this to a global variable
+    success_log_group = "sns/ap-southeast-2/730536189139/DirectPublishToPhoneNumber"
+    error_log_group = (
+        "sns/ap-southeast-2/730536189139/DirectPublishToPhoneNumber/Failure"
+    )
+
+    success_results = _cloudwatch_reader(success_log_group, notification)
+
+    if success_results:
+        results = success_results
+        successful = True
+    else:  # Try for errors, format is the same
+        results = _cloudwatch_reader(error_log_group, notification)
+        successful = False
+
+    if results:
+        message = results[0]["message"]
+        message_json = json.loads(message)
+        delivery = message_json["delivery"]
+        cloudwatch = SafeString(f"<pre>{json.dumps(delivery, indent=4)}</pre>")
+        provider_response = delivery["providerResponse"]
+    else:
+        cloudwatch = "No data found"
+        provider_response = "No data found"
+
+    raw_cloudwatch = SafeString(f"<pre>{json.dumps(results, indent=4)}</pre>")
+
+    return render(
+        request,
+        "notifications/admin_view_realtime_item.html",
+        {
+            "notification": notification,
+            "provider_response": provider_response,
+            "cloudwatch": cloudwatch,
+            "raw_cloudwatch": raw_cloudwatch,
+            "successful": successful,
+        },
+    )
+
+
+def _cloudwatch_reader(log_group, notification):
+    """Get data from Cloudwatch"""
+
     client = boto3.client(
         "logs",
         aws_access_key_id=AWS_ACCESS_KEY_ID,
@@ -1246,20 +1289,13 @@ def admin_view_realtime_notification_item(request, notification_id):
         region_name=AWS_REGION_NAME,
     )
 
-    # TODO: Move this to a global variable
-    log_group = "sns/ap-southeast-2/730536189139/DirectPublishToPhoneNumber/Failure"
-
     filter_pattern = f'{{ $.notification.messageId = "{notification.aws_message_id}" }}'
 
-    start_time = int((datetime.now() - timedelta(hours=24)).timestamp()) * 1000
-    end_time = int((datetime.now() + timedelta(hours=24)).timestamp()) * 1000
-
-    print(start_time, end_time)
-
-    #    print(int(time.time()))
+    # TODO: Start and end times need investigated. Probably okay not to use them.
+    # start_time = int((datetime.now() - timedelta(hours=240)).timestamp()) * 1000
+    # end_time = int((datetime.now() + timedelta(hours=240)).timestamp()) * 1000
 
     # It is possible to get multiple messages and to need a cursor (nextToken) to get all messages
-
     # Get first response
     response = client.filter_log_events(
         logGroupName=log_group,
@@ -1281,23 +1317,4 @@ def admin_view_realtime_notification_item(request, notification_id):
         )
         results.extend(response["events"])
 
-    if results:
-        message = results[0]["message"]
-        message_json = json.loads(message)
-        delivery = message_json["delivery"]
-
-        cloudwatch = SafeString(f"<pre>{json.dumps(delivery, indent=4)}</pre>")
-    else:
-        cloudwatch = "No data found"
-
-    raw_cloudwatch = SafeString(f"<pre>{json.dumps(results, indent=4)}</pre>")
-
-    return render(
-        request,
-        "notifications/admin_view_realtime_item.html",
-        {
-            "notification": notification,
-            "cloudwatch": cloudwatch,
-            "raw_cloudwatch": raw_cloudwatch,
-        },
-    )
+    return results
