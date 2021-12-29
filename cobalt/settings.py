@@ -21,6 +21,7 @@ values) within this file.
 import os
 import ast
 from django.contrib.messages import constants as messages
+from firebase_admin import initialize_app
 
 
 ###########################################
@@ -205,6 +206,7 @@ INSTALLED_APPS = [
     "django_otp",
     "django_otp.plugins.otp_totp",
     "loginas",
+    "fcm_django",
 ]
 
 MIDDLEWARE = [
@@ -526,6 +528,9 @@ else:
             },
         },
     }
+
+FIREBASE_APP = initialize_app()
+# GOOGLE_APPLICATION_CREDENTIALS = "~/Dropbox/bin/abf-fcm-dev-firebase-adminsdk-key.json"
 
 DEBUG_TOOLBAR_ENABLED = set_value("DEBUG_TOOLBAR_ENABLED", False)
 if DEBUG and DEBUG_TOOLBAR_ENABLED:
