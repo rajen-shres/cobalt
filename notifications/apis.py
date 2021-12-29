@@ -5,6 +5,8 @@ from notifications.views import send_cobalt_bulk_sms
 def notifications_api_sms_file_upload_v1(request, file):
     """API call to upload a file and send SMS messages"""
 
+    from api.apis import APIStatus
+
     data = []
     invalid_lines = []
     lines_in_file = 0
@@ -51,7 +53,7 @@ def notifications_api_sms_file_upload_v1(request, file):
     )
 
     # If we sent anything, we were successful
-    status = "success" if len(sent_users) > 0 else "failure"
+    status = APIStatus.SUCCESS if len(sent_users) > 0 else APIStatus.FAILURE
 
     return {
         "status": status,

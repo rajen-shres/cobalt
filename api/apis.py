@@ -23,11 +23,23 @@ APIs should all return JSON with at least one parameter e.g.
     {'status: 'Access Denied'}
 
 """
+from enum import Enum
+
+from fcm_django.models import FCMDevice
 from ninja import Router, File, NinjaAPI, Schema
 from ninja.files import UploadedFile
 
+from accounts.backend import CobaltBackend
 from api.core import api_rbac
 from notifications.apis import notifications_api_sms_file_upload_v1
+
+
+class APIStatus:
+    """Status messages from the API"""
+
+    SUCCESS = "Success"
+    FAILURE = "Failure"
+    ACCESS_DENIED = "Access Denied"
 
 
 class ErrorV1(Schema):
@@ -87,3 +99,44 @@ def sms_file_upload_v1(request, file: UploadedFile = File(...)):
         return return_error
 
     return notifications_api_sms_file_upload_v1(request, file)
+
+
+@router.post(
+    "/mobile-client-register/v1.0",
+    summary="Register a mobile client to receive notifications.",
+    # Disable global authorisation, we will check this ourselves
+    auth=None,
+)
+def mobile_client_register_v1(request, username: str, password: str, fcm_token: str):
+    """
+    Called by the Flutter front end to register a new FCM Token for a user.
+    User is NOT authenticated, but username and password are passed in.
+
+    Args:
+          request - standard request object
+          username - username of this user, can be ABF No, email or actual username, same as login
+          password - as provided by user
+          fcm_token - client device's Google Firebase Cloud Messaging token. Used to send messages to this user/device
+
+    """
+
+    # Try to Authenticate the user
+    user = CobaltBackend().authenticate(request, username, password)
+
+    if user:
+        # Save device
+        FCMDevice(user=user, registration_id=fcm_token).save()
+
+        return {
+            "status": APIStatus.SUCCESS,
+            "user": {
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "system_number": user.system_number,
+            },
+        }
+
+    # Don't provide any details about failures for security reasons
+    return {
+        "status": APIStatus.FAILURE,
+    }

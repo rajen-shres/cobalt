@@ -36,6 +36,7 @@ setup_test_environment()
 LIST_OF_INTEGRATION_TESTS = {
     "APITests": "api.tests.integration.01_authorisation_tests",
     "SMSTests": "notifications.tests.integration.01_sms_tests",
+    "FCMTokenAPITests": "api.test.integration.02_fcm_token_tests",
     # "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
     # "Registration": "accounts.tests.integration.01_registration",
     # "MemberTransfer": "payments.tests.integration.member_actions",

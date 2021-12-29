@@ -35,12 +35,15 @@ def home(request):
         posts2 = get_announcements(request)
         events, unpaid = get_events(request.user)
 
-        msg = Message(
-            notification=Notification(title="title", body="text"),
-        )
-        device = FCMDevice.objects.all().first()
-        rc = device.send_message(msg)
-        print(rc)
+        # TODO: Remove this code
+        # Test for sending messages
+
+        # msg = Message(
+        #     notification=Notification(title="title", body="text"),
+        # )
+        # device = FCMDevice.objects.all().first()
+        # rc = device.send_message(msg)
+        # print(rc)
 
         # Show tour for this page?
         tour = request.GET.get("tour", None)
