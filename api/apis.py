@@ -31,6 +31,7 @@ from ninja.files import UploadedFile
 
 from accounts.backend import CobaltBackend
 from api.core import api_rbac
+from masterpoints.factories import masterpoint_factory_creator
 from notifications.apis import notifications_api_sms_file_upload_v1
 
 
@@ -101,7 +102,7 @@ def sms_file_upload_v1(request, file: UploadedFile = File(...)):
     return notifications_api_sms_file_upload_v1(request, file)
 
 
-class MobileClientRegisterResponseV1(Schema):
+class UserDataResponseV1(Schema):
     """Response format from mobile_client_register_v1"""
 
     class UserResponse(Schema):
@@ -125,7 +126,7 @@ class MobileClientRegisterRequestV1(Schema):
     "/mobile-client-register/v1.0",
     summary="Register a mobile client to receive notifications.",
     response={
-        200: MobileClientRegisterResponseV1,
+        200: UserDataResponseV1,
         403: ErrorV1,
     },
     # Disable global authorisation, we will check this ourselves
@@ -164,3 +165,35 @@ def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
 
     # Don't provide any details about failures for security reasons
     return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+
+
+@router.get(
+    "/system-number-lookup/v1.0",
+    summary="Get name from system number",
+    response={
+        200: UserDataResponseV1,
+        404: ErrorV1,
+    },
+    # Disable global authorisation, this can be called by anyone
+    auth=None,
+)
+def system_number_lookup_v1(request, system_number: int):
+
+    # Masterpoints uses a factory - get an instance to talk to
+    mp_source = masterpoint_factory_creator()
+
+    # Call function to lookup system_number
+    status, return_value = mp_source.system_number_lookup_api(system_number)
+
+    if status:
+        return 200, {
+            "status": APIStatus.SUCCESS,
+            "user": {
+                "first_name": return_value[0],
+                "last_name": return_value[1],
+                "system_number": system_number,
+            },
+        }
+
+    else:
+        return 404, {"status": APIStatus.FAILURE, "message": return_value}

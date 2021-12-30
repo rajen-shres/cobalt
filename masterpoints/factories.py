@@ -79,6 +79,22 @@ class MasterpointDB(MasterpointFactory):
 
         return "Error: Invalid or inactive number"
 
+    def system_number_lookup_api(self, system_number):
+        """Called by the API"""
+        result = masterpoint_query_row(f"id/{system_number}")
+        if result:
+            if User.objects.filter(
+                system_number=system_number, is_active=True
+            ).exists():
+                return False, "User already registered"
+            if result["IsActive"] == "Y":
+                # only use first name from given names
+                given_name = result["GivenNames"].split(" ")[0]
+                surname = result["Surname"]
+                return True, (given_name, surname)
+
+        return False, "Invalid or inactive number"
+
 
 class MasterpointFile(MasterpointFactory):
     """Concrete implementation of a masterpoint factory using a file to get the data"""
