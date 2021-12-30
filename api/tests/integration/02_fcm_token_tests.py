@@ -137,3 +137,50 @@ class FCMTokenAPITests:
             test_description="Call the API with correct data and check it saves token",
             output=f"Expected token to be '123456789044'. Got '{token}'",
         )
+
+
+class FCMTokenUpdateAPITests:
+    """Test the Google Firebase Cloud Messaging (FCM) token API from a mobile client. This API is used
+    to update a token for a user when the token changes"""
+
+    def __init__(self, manager: CobaltTestManagerIntegration):
+        self.manager = manager
+
+        # URL needs to be hardcoded, reverse() won't work with Django Ninja
+        self.fcm_url = (
+            f"{self.manager.base_url}/api/cobalt/mobile-client-update/{API_VERSION}"
+        )
+
+    def a1_api_update_tests(self):
+        """Test the API"""
+
+        # Use token from last step for Alan
+        data = {
+            "old_fcm_token": "123456789044",
+            "new_fcm_token": "NEW TOKEN",
+        }
+
+        response = requests.post(self.fcm_url, json=data)
+
+        self.manager.save_results(
+            status=response.status_code,
+            test_name="Call FCM Token Update API with valid data.",
+            test_description="Call the API with correct data",
+            output=f"status code={response.status_code}. Expected 200.",
+        )
+
+        # Check it worked
+        fcm_token = FCMDevice.objects.filter(user=self.manager.alan).last()
+        if fcm_token and fcm_token.registration_id == "NEW TOKEN":
+            ok = True
+            token = fcm_token.registration_id
+        else:
+            ok = False
+            token = "FCMDevice object token not found"
+
+        self.manager.save_results(
+            status=ok,
+            test_name="Call FCM Token Update API with valid data - check token is saved",
+            test_description="Call the API with correct data and check it saves token",
+            output=f"Expected token to be 'NEW TOKEN'. Got '{token}'",
+        )

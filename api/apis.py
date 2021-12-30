@@ -197,3 +197,42 @@ def system_number_lookup_v1(request, system_number: int):
 
     else:
         return 404, {"status": APIStatus.FAILURE, "message": return_value}
+
+
+class MobileClientUpdateRequestV1(Schema):
+    """Request format from mobile_client_update_v1"""
+
+    old_fcm_token: str = ""
+    new_fcm_token: str = ""
+
+
+@router.post(
+    "/mobile-client-update/v1.0",
+    summary="Update a users FCM Token, takes old token as security check",
+    response={
+        200: UserDataResponseV1,
+        404: ErrorV1,
+    },
+    # Disable global authorisation, we use the old token as the authentication method
+    auth=None,
+)
+def mobile_client_update_v1(request, data: MobileClientUpdateRequestV1):
+
+    old_fcm_token = FCMDevice.objects.filter(registration_id=data.old_fcm_token).first()
+
+    if not old_fcm_token:
+        return 404, {
+            "status": APIStatus.FAILURE,
+            "message": f"Existing token not found ({data.old_fcm_token})",
+        }
+
+    FCMDevice(user=old_fcm_token.user, registration_id=data.new_fcm_token).save()
+
+    return 200, {
+        "status": APIStatus.SUCCESS,
+        "user": {
+            "first_name": old_fcm_token.user.first_name,
+            "last_name": old_fcm_token.user.last_name,
+            "system_number": old_fcm_token.user.system_number,
+        },
+    }
