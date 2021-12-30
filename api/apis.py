@@ -101,33 +101,59 @@ def sms_file_upload_v1(request, file: UploadedFile = File(...)):
     return notifications_api_sms_file_upload_v1(request, file)
 
 
+class MobileClientRegisterResponseV1(Schema):
+    """Response format from mobile_client_register_v1"""
+
+    class UserResponse(Schema):
+        first_name: str
+        last_name: str
+        system_number: int
+
+    status: str
+    user: UserResponse
+
+
+class MobileClientRegisterRequestV1(Schema):
+    """Request format from mobile_client_register_v1"""
+
+    username: str = ""
+    password: str = ""
+    fcm_token: str = ""
+
+
 @router.post(
     "/mobile-client-register/v1.0",
     summary="Register a mobile client to receive notifications.",
+    response={
+        200: MobileClientRegisterResponseV1,
+        403: ErrorV1,
+    },
     # Disable global authorisation, we will check this ourselves
     auth=None,
 )
-def mobile_client_register_v1(request, username: str, password: str, fcm_token: str):
+def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
     """
     Called by the Flutter front end to register a new FCM Token for a user.
     User is NOT authenticated, but username and password are passed in.
 
     Args:
-          request - standard request object
+
           username - username of this user, can be ABF No, email or actual username, same as login
+
           password - as provided by user
+
           fcm_token - client device's Google Firebase Cloud Messaging token. Used to send messages to this user/device
 
     """
 
     # Try to Authenticate the user
-    user = CobaltBackend().authenticate(request, username, password)
+    user = CobaltBackend().authenticate(request, data.username, data.password)
 
     if user:
         # Save device
-        FCMDevice(user=user, registration_id=fcm_token).save()
+        FCMDevice(user=user, registration_id=data.fcm_token).save()
 
-        return {
+        return 200, {
             "status": APIStatus.SUCCESS,
             "user": {
                 "first_name": user.first_name,
@@ -137,6 +163,4 @@ def mobile_client_register_v1(request, username: str, password: str, fcm_token: 
         }
 
     # Don't provide any details about failures for security reasons
-    return {
-        "status": APIStatus.FAILURE,
-    }
+    return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}

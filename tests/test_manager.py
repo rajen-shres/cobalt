@@ -36,15 +36,15 @@ setup_test_environment()
 LIST_OF_INTEGRATION_TESTS = {
     "APITests": "api.tests.integration.01_authorisation_tests",
     "SMSTests": "notifications.tests.integration.01_sms_tests",
-    "FCMTokenAPITests": "api.test.integration.02_fcm_token_tests",
-    # "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
-    # "Registration": "accounts.tests.integration.01_registration",
-    # "MemberTransfer": "payments.tests.integration.member_actions",
-    # "OrgHighLevelAdmin": "organisations.tests.integration.01_high_level_admin",
-    # "ClubLevelAdmin": "organisations.tests.integration.02_club_level_admin",
-    # "ClubSettings": "organisations.tests.integration.03_club_settings",
-    # "ClubMembers": "organisations.tests.integration.04_club_members",
-    # "ClubCongress": "organisations.tests.integration.06_congress_setup",
+    "FCMTokenAPITests": "api.tests.integration.02_fcm_token_tests",
+    "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
+    "Registration": "accounts.tests.integration.01_registration",
+    "MemberTransfer": "payments.tests.integration.member_actions",
+    "OrgHighLevelAdmin": "organisations.tests.integration.01_high_level_admin",
+    "ClubLevelAdmin": "organisations.tests.integration.02_club_level_admin",
+    "ClubSettings": "organisations.tests.integration.03_club_settings",
+    "ClubMembers": "organisations.tests.integration.04_club_members",
+    "ClubCongress": "organisations.tests.integration.06_congress_setup",
 }
 
 
@@ -124,8 +124,13 @@ class CobaltTestManagerAbstract(ABC):
         """
 
         # If we got a number for status, convert to True or False from success HTTP codes
-        if isinstance(status, str):
-            status = status in ["200", "301", "302"]
+
+        # Boolean True is an int unfortunately
+        if not isinstance(status, bool):
+            if isinstance(status, str):
+                status = status in ["200", "301", "302"]
+            elif isinstance(status, int):
+                status = status in [200, 301, 302]
 
         # work out who called us
         # - if the level up isn't a class we could be in a common helper functions so try next level

@@ -5,6 +5,7 @@ import time
 import requests
 
 from accounts.models import APIToken
+from api.apis import APIStatus
 from rbac.tests.utils import unit_test_rbac_add_role_to_user
 from tests.test_manager import CobaltTestManagerIntegration
 
@@ -73,7 +74,7 @@ class SMSTests:
 
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
 
-        ok = response["status"] == "failure"
+        ok = response["status"] == APIStatus.FAILURE
 
         self.manager.save_results(
             status=ok,
@@ -90,7 +91,7 @@ class SMSTests:
         }
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
 
-        ok = response["status"] == "failure"
+        ok = response["status"] == APIStatus.FAILURE
 
         self.manager.save_results(
             status=ok,
@@ -107,7 +108,7 @@ class SMSTests:
         }
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
 
-        ok = response["status"] == "failure"
+        ok = response["status"] == APIStatus.FAILURE
 
         self.manager.save_results(
             status=ok,
@@ -123,7 +124,7 @@ class SMSTests:
             )
         }
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
-        ok = response["status"] == "failure"
+        ok = response["status"] == APIStatus.FAILURE
 
         self.manager.save_results(
             status=ok,
@@ -140,7 +141,7 @@ class SMSTests:
         }
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
 
-        ok = response["status"] == "failure"
+        ok = response["status"] == APIStatus.FAILURE
 
         self.manager.save_results(
             status=ok,
