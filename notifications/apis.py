@@ -1,4 +1,10 @@
+from copy import copy
+
+from fcm_django.models import FCMDevice
+
+import api.apis as api_app
 from cobalt.settings import GLOBAL_ORG
+from notifications.models import RealtimeNotification
 from notifications.views import send_cobalt_bulk_sms
 
 
@@ -76,3 +82,54 @@ def notifications_api_sms_file_upload_v1(request, file):
             "sent_users": sent_users,
         },
     }
+
+
+def _notifications_api_common_messages_for_user_v1(fcm_token_object, messages):
+    """Common code to handle returning messages"""
+
+    if not messages:
+        return 404, {"status": api_app.APIStatus.FAILURE, "message": "No data found"}
+
+    # return messages as list
+    return_messages = []
+
+    # mark messages as read now
+    for message in messages:
+        return_messages.append(message.msg)
+        message.has_been_read = True
+        message.save()
+
+    return 200, {
+        "status": api_app.APIStatus.SUCCESS,
+        "un_read_messages": return_messages,
+    }
+
+
+def notifications_api_unread_messages_for_user_v1(fcm_token):
+    """Send any unread notifications (FCM) for a user"""
+
+    fcm_token_object = FCMDevice.objects.filter(registration_id=fcm_token).first()
+    if not fcm_token_object:
+        return 403, {
+            "status": api_app.APIStatus.ACCESS_DENIED,
+            "message": "Token is invalid",
+        }
+
+    messages = RealtimeNotification.objects.filter(has_been_read=False).filter(member=fcm_token_object.user).order_by('-pk')
+
+    return _notifications_api_common_messages_for_user_v1(fcm_token_object, messages)
+
+
+def notifications_api_latest_messages_for_user_v1(fcm_token):
+    """Send latest notifications (FCM) for a user regardless if read or not"""
+
+    fcm_token_object = FCMDevice.objects.filter(registration_id=fcm_token).first()
+    if not fcm_token_object:
+        return 403, {
+            "status": api_app.APIStatus.ACCESS_DENIED,
+            "message": "Token is invalid",
+        }
+
+    messages = RealtimeNotification.objects.filter(member=fcm_token_object.user).order_by('-pk')[:50]
+
+    return _notifications_api_common_messages_for_user_v1(fcm_token_object, messages)

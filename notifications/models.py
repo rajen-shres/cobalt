@@ -286,6 +286,8 @@ class RealtimeNotification(models.Model):
     status = models.BooleanField(default=False)
     aws_message_id = models.CharField(max_length=50, null=True, blank=True)
     """AWS message id from SMS call"""
+    has_been_read = models.BooleanField(default=False)
+    """ Whether message has been read or not by the client app. For SMS we don't know so this is always false"""
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

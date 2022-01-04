@@ -13,7 +13,6 @@ from forums.models import Post, ForumFollow
 from rbac.core import rbac_user_blocked_for_model
 from django.shortcuts import redirect
 import logging
-from firebase_admin.messaging import Message, Notification
 
 logger = logging.getLogger("django")
 
@@ -34,16 +33,6 @@ def home(request):
         posts = get_posts(request)
         posts2 = get_announcements(request)
         events, unpaid = get_events(request.user)
-
-        # TODO: Remove this code
-        # Test for sending messages
-
-        # msg = Message(
-        #     notification=Notification(title="title", body="text"),
-        # )
-        # device = FCMDevice.objects.all().first()
-        # rc = device.send_message(msg)
-        # print(rc)
 
         # Show tour for this page?
         tour = request.GET.get("tour", None)

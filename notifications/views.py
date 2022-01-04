@@ -29,6 +29,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
 from django.utils.safestring import SafeString
+from fcm_django.models import FCMDevice
+from firebase_admin.messaging import Notification, Message
 
 from accounts.models import User
 from cobalt.settings import (
@@ -1318,3 +1320,23 @@ def _cloudwatch_reader(log_group, notification):
         results.extend(response["events"])
 
     return results
+
+
+@login_required()
+def send_test_fcm_message(request, fcm_device_id):
+    """Send a test message to a users registered FCM device"""
+
+    fcm_device = FCMDevice.objects.filter(pk=fcm_device_id).first()
+
+    # Check access
+    if fcm_device and (fcm_device.user == request.user or rbac_user_has_role(member=request.user, role="notifications.admin.view")):
+
+        msg = Message(
+            notification=Notification(title="Test Message", body="This is the body of the test message.\nIt has a few lines of data.\n\nSuch as this one\nThis one.\n\nAnd this one."),
+        )
+        rc = fcm_device.send_message(msg)
+        print(rc)
+
+        return HttpResponse(f"Message sent: {rc}")
+
+    return HttpResponse("Device not found or access denied")

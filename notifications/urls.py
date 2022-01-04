@@ -60,4 +60,5 @@ urlpatterns = [
         views.global_admin_view_emails,
         name="global_admin_view_emails",
     ),
+    path("mobile-device/send-test/<int:fcm_device_id>", views.send_test_fcm_message, name="send_test_fcm_message")
 ]

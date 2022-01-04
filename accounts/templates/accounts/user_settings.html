@@ -360,6 +360,49 @@
                         </div>
                     {% endif %}
 
+                    {% if fcm_devices %}
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header card-header-rose">
+                                    <h2>Mobile Devices</h2>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-condensed table-hover">
+                                            <thead>
+                                            <tr class="text-primary">
+                                                <th>Device ID</th>
+                                                <th>Date Created</th>
+                                                <th>Action</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for fcm_device in fcm_devices %}
+                                            <tr>
+{#                                                <td>{{ fcm_device.registration_id }}</td>#}
+                                                <td>ADD ID LATER</td>
+                                                <td>{{ fcm_device.date_created }}</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-danger">Delete</button>
+                                                    <button
+                                                            class="btn btn-sm btn-info"
+                                                            hx-get="{% url "notifications:send_test_fcm_message" fcm_device_id=fcm_device.id %}"
+                                                            hx-target="#test-msg-{{ fcm_device.id }}"
+                                                    >Test</button>
+                                                    <div id="test-msg-{{ fcm_device.id }}">
+
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
                 </div>
             </div>
         </div>

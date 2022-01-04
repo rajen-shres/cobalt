@@ -23,7 +23,7 @@ APIs should all return JSON with at least one parameter e.g.
     {'status: 'Access Denied'}
 
 """
-from enum import Enum
+from typing import List
 
 from fcm_django.models import FCMDevice
 from ninja import Router, File, NinjaAPI, Schema
@@ -32,7 +32,9 @@ from ninja.files import UploadedFile
 from accounts.backend import CobaltBackend
 from api.core import api_rbac
 from masterpoints.factories import masterpoint_factory_creator
-from notifications.apis import notifications_api_sms_file_upload_v1
+from notifications.apis import notifications_api_sms_file_upload_v1, notifications_api_unread_messages_for_user_v1, \
+    notifications_api_latest_messages_for_user_v1
+from notifications.models import RealtimeNotification
 
 
 class APIStatus:
@@ -154,6 +156,9 @@ def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
         # Save device
         FCMDevice(user=user, registration_id=data.fcm_token).save()
 
+        # Mark all messages previously sent to the user as read to prevent swamping them with old messages
+        RealtimeNotification.objects.filter(member=user).update(has_been_read=True)
+
         return 200, {
             "status": APIStatus.SUCCESS,
             "user": {
@@ -178,7 +183,6 @@ def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
     auth=None,
 )
 def system_number_lookup_v1(request, system_number: int):
-
     # Masterpoints uses a factory - get an instance to talk to
     mp_source = masterpoint_factory_creator()
 
@@ -217,7 +221,6 @@ class MobileClientUpdateRequestV1(Schema):
     auth=None,
 )
 def mobile_client_update_v1(request, data: MobileClientUpdateRequestV1):
-
     old_fcm_token = FCMDevice.objects.filter(registration_id=data.old_fcm_token).first()
 
     if not old_fcm_token:
@@ -236,3 +239,47 @@ def mobile_client_update_v1(request, data: MobileClientUpdateRequestV1):
             "system_number": old_fcm_token.user.system_number,
         },
     }
+
+
+class MobileClientUnreadMessagesRequestV1(Schema):
+
+    fcm_token: str
+
+
+class MobileClientUnreadMessagesResponseV1(Schema):
+
+    status: str
+    un_read_messages: List[str]
+
+
+@router.post(
+    "/mobile-client-get-unread-messages/v1.0",
+    summary="Get unread messages for a user by passing FCM_token",
+    response={
+        200: MobileClientUnreadMessagesResponseV1,
+        403: ErrorV1,
+        404: ErrorV1,
+    },
+    # Disable global authorisation, we use the token as the authentication method
+    auth=None,
+)
+def api_notifications_unread_messages_for_user_v1(request, data: MobileClientUnreadMessagesRequestV1):
+    """ Return any unread messages for this user"""
+
+    return notifications_api_unread_messages_for_user_v1(data.fcm_token)
+
+@router.post(
+    "/mobile-client-get-latest-messages/v1.0",
+    summary="Get latest messages (max 50) for a user, regardless of if they are read, by passing FCM_token",
+    response={
+        200: MobileClientUnreadMessagesResponseV1,
+        403: ErrorV1,
+        404: ErrorV1,
+    },
+    # Disable global authorisation, we use the token as the authentication method
+    auth=None,
+)
+def api_notifications_latest_messages_for_user_v1(request, data: MobileClientUnreadMessagesRequestV1):
+    """ Return last 50 messages for this user"""
+
+    return notifications_api_latest_messages_for_user_v1(data.fcm_token)

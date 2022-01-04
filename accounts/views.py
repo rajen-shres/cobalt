@@ -24,6 +24,7 @@ from django.contrib.auth.forms import PasswordChangeForm, PasswordResetForm
 from django.http import JsonResponse
 from django.contrib.auth.views import PasswordResetView
 from django.views.decorators.http import require_POST
+from fcm_django.models import FCMDevice
 
 from notifications.views import send_cobalt_email, notifications_in_english, CobaltEmail
 from logs.views import get_client_ip, log_event
@@ -836,6 +837,10 @@ def user_settings(request):
     # RBAC role for developers.
     is_developer = rbac_user_has_role(request.user, "notifications.realtime_send.edit")
 
+    # If user has a registered FCM device, show them the option to send a test message
+
+    fcm_devices = FCMDevice.objects.filter(user=request.user).order_by('-date_created')
+
     return render(
         request,
         "accounts/user_settings.html",
@@ -843,6 +848,7 @@ def user_settings(request):
             "form": form,
             "notifications_list": notifications_list,
             "is_developer": is_developer,
+            "fcm_devices": fcm_devices,
         },
     )
 
