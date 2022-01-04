@@ -95,7 +95,8 @@ def _notifications_api_common_messages_for_user_v1(fcm_token_object, messages):
 
     # mark messages as read now
     for message in messages:
-        return_messages.append(message.msg)
+        item = api_app.UnreadMessage(id=message.id, message=message.msg)
+        return_messages.append(item)
         message.has_been_read = True
         message.save()
 

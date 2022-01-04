@@ -246,10 +246,15 @@ class MobileClientUnreadMessagesRequestV1(Schema):
     fcm_token: str
 
 
+class UnreadMessage(Schema):
+    id: int
+    message: str
+
+
 class MobileClientUnreadMessagesResponseV1(Schema):
 
     status: str
-    un_read_messages: List[str]
+    un_read_messages: List[UnreadMessage]
 
 
 @router.post(
@@ -267,6 +272,7 @@ def api_notifications_unread_messages_for_user_v1(request, data: MobileClientUnr
     """ Return any unread messages for this user"""
 
     return notifications_api_unread_messages_for_user_v1(data.fcm_token)
+
 
 @router.post(
     "/mobile-client-get-latest-messages/v1.0",
