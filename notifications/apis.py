@@ -1,11 +1,38 @@
 from copy import copy
 
+import pytz
 from fcm_django.models import FCMDevice
 
 import api.apis as api_app
-from cobalt.settings import GLOBAL_ORG
+from cobalt.settings import GLOBAL_ORG, TIME_ZONE
 from notifications.models import RealtimeNotification
 from notifications.views import send_cobalt_bulk_sms
+
+TZ = pytz.timezone(TIME_ZONE)
+
+
+def fcm_token_get_user_v1(fcm_token):
+    """Helper function to validate an FCM token
+
+    Args:
+        fcm_token: str. FCM token usually passed from mobile client. Not trusted.
+
+    Returns:
+        user(User): either a valid user associated with this token or False
+        return_error_code (int or None): if user is invalid this will be the return code
+        return_error_msg_structure (struct or None): if user is invalid this will be the return structure (StatusResponseV1)
+
+    """
+
+    fcm_token_object = FCMDevice.objects.filter(registration_id=fcm_token).first()
+
+    if fcm_token_object:
+        return fcm_token_object.user, None, None
+
+    return False, 403, {
+        "status": api_app.APIStatus.ACCESS_DENIED,
+        "message": "Token is invalid",
+    }
 
 
 def notifications_api_sms_file_upload_v1(request, file):
@@ -84,7 +111,7 @@ def notifications_api_sms_file_upload_v1(request, file):
     }
 
 
-def _notifications_api_common_messages_for_user_v1(fcm_token_object, messages):
+def _notifications_api_common_messages_for_user_v1(messages):
     """Common code to handle returning messages"""
 
     if not messages:
@@ -95,7 +122,8 @@ def _notifications_api_common_messages_for_user_v1(fcm_token_object, messages):
 
     # mark messages as read now
     for message in messages:
-        item = api_app.UnreadMessage(id=message.id, message=message.msg)
+        created_datetime = message.created_time.astimezone(TZ).strftime("%a %d-%b-%Y %I:%M%p")
+        item = api_app.UnreadMessageV1(id=message.id, message=message.msg, created_datetime=created_datetime)
         return_messages.append(item)
         message.has_been_read = True
         message.save()
@@ -109,28 +137,82 @@ def _notifications_api_common_messages_for_user_v1(fcm_token_object, messages):
 def notifications_api_unread_messages_for_user_v1(fcm_token):
     """Send any unread notifications (FCM) for a user"""
 
-    fcm_token_object = FCMDevice.objects.filter(registration_id=fcm_token).first()
-    if not fcm_token_object:
-        return 403, {
-            "status": api_app.APIStatus.ACCESS_DENIED,
-            "message": "Token is invalid",
-        }
+    user, error_code, error_struct = fcm_token_get_user_v1(fcm_token)
 
-    messages = RealtimeNotification.objects.filter(has_been_read=False).filter(member=fcm_token_object.user).order_by('-pk')
+    if not user:
+        return error_code, error_struct
 
-    return _notifications_api_common_messages_for_user_v1(fcm_token_object, messages)
+    messages = RealtimeNotification.objects.filter(has_been_read=False).filter(member=user).order_by('-pk')
+
+    return _notifications_api_common_messages_for_user_v1(messages)
 
 
 def notifications_api_latest_messages_for_user_v1(fcm_token):
     """Send latest notifications (FCM) for a user regardless if read or not"""
 
-    fcm_token_object = FCMDevice.objects.filter(registration_id=fcm_token).first()
-    if not fcm_token_object:
-        return 403, {
-            "status": api_app.APIStatus.ACCESS_DENIED,
-            "message": "Token is invalid",
+    user, error_code, error_struct = fcm_token_get_user_v1(fcm_token)
+
+    if not user:
+        return error_code, error_struct
+
+    messages = RealtimeNotification.objects.filter(member=user).order_by('-pk')[:50]
+
+    return _notifications_api_common_messages_for_user_v1(messages)
+
+
+def notifications_delete_message_for_user_v1(data):
+    """ Delete a single message """
+
+    user, error_code, error_struct = fcm_token_get_user_v1(data.fcm_token)
+
+    if not user:
+        return error_code, error_struct
+
+    # Get message
+    msg = RealtimeNotification.objects.filter(pk=data.message_id).first()
+
+    if not msg:
+        return 404, {
+            "status": api_app.APIStatus.FAILURE,
+            "message": "No match found",
         }
 
-    messages = RealtimeNotification.objects.filter(member=fcm_token_object.user).order_by('-pk')[:50]
+    if msg.member != user:
+        return 403, {
+            "status": api_app.APIStatus.ACCESS_DENIED,
+            "message": "Message does not belong to this user",
+        }
 
-    return _notifications_api_common_messages_for_user_v1(fcm_token_object, messages)
+    # TODO: Add a status and keep the message but exclude from other queries
+    msg.delete()
+
+    return 200, {
+        "status": api_app.APIStatus.SUCCESS,
+        "message": "Message deleted",
+    }
+
+
+def notifications_delete_all_messages_for_user_v1(data):
+    """ Delete all messages for a user """
+
+    user, error_code, error_struct = fcm_token_get_user_v1(data.fcm_token)
+
+    if not user:
+        return error_code, error_struct
+
+    # Get messages
+    msgs = RealtimeNotification.objects.filter(member=user)
+
+    if not msgs:
+        return 404, {
+            "status": api_app.APIStatus.FAILURE,
+            "message": "No matches found",
+        }
+
+    # TODO: Add a status and keep the messages but exclude from other queries
+    msgs.delete()
+
+    return 200, {
+        "status": api_app.APIStatus.SUCCESS,
+        "message": "Message(s) deleted",
+    }

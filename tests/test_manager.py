@@ -38,6 +38,7 @@ LIST_OF_INTEGRATION_TESTS = {
     "SMSTests": "notifications.tests.integration.01_sms_tests",
     "FCMTokenAPITests": "api.tests.integration.02_fcm_token_tests",
     "FCMTokenUpdateAPITests": "api.tests.integration.02_fcm_token_tests",
+    "FCMAPITests": "api.tests.integration.03_fcm_api_tests",
     "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
     "Registration": "accounts.tests.integration.01_registration",
     "MemberTransfer": "payments.tests.integration.member_actions",

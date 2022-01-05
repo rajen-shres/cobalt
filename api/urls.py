@@ -19,6 +19,14 @@ from ninja.security import (
 from .models import ApiLog
 
 
+def log_api_call(request, user=None):
+    """ Log a call to the API. For anonymous calls the user will be empty """
+
+    # All API calls are versioned. Log call details. Throw error if version not set
+    url_parts = urllib.parse.urlparse(request.path)
+    path_parts = url_parts[2].rpartition("/")
+    ApiLog(api=path_parts[0], version=path_parts[2], admin=user).save()
+
 class AuthCheck:
     """This is the core authentication method. Other classes inherit from this and provide
     different ways to obtain the same key from the client."""
@@ -27,10 +35,7 @@ class AuthCheck:
         """Returns the user associated with this key or None (invalid)"""
         api_key = APIToken.objects.filter(token=key).first()
         if api_key:
-            # All API calls are versioned. Log call details. Throw error if version not set
-            url_parts = urllib.parse.urlparse(request.path)
-            path_parts = url_parts[2].rpartition("/")
-            ApiLog(api=path_parts[0], version=path_parts[2], admin=api_key.user).save()
+            log_api_call(request, api_key.user)
             return api_key.user
 
 

@@ -32,6 +32,10 @@ NON_AUTH_URLS = [
     "/support/guidelines",
     "/view",
     "/summernote/editor/<id>/",  # TODO: Double check this one
+    "/api/cobalt/keycheck/v1.0",
+    "/api/cobalt/system-number-lookup/v1.0",
+    "/api/docs/",
+    "/api/openapi.json",
 ]
 
 # URLs that we do not test
