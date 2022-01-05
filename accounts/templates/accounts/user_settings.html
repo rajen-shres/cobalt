@@ -36,12 +36,15 @@
                                                             </div>
                                                             <label class="form-check-label">
                                                                 <input class="form-check-input" id="id_receive_sms_results" name="receive_sms_results" type="checkbox" {% if form.receive_sms_results.value %}checked="Checked"{% endif %}>
-                                                                Receive SMS notifications of results
+                                                                Receive SMS notifications from events (results, draws, etc). PILOT FOR GOLD COAST CONGRESS ONLY.
                                                                 <span class="form-check-sign">
                                                                     <span class="check"></span>
                                                                 </span>
                                                             </label>
                                                         </div>
+                                                        {% if form.receive_sms_results.value and not request.user.mobile %}
+                                                            <span class="font-weight-bold">You must also add an Australian phone number to your profile for this to work. You do not have a phone number recorded.</span>
+                                                        {% endif %}
                                                     </div>
                                                 </div>
                                                 {#                  <div class="col-md-12">#}
@@ -370,31 +373,31 @@
                                     <div class="table-responsive">
                                         <table class="table table-condensed table-hover">
                                             <thead>
-                                            <tr class="text-primary">
-                                                <th>Device ID</th>
-                                                <th>Date Created</th>
-                                                <th>Action</th>
-                                            </tr>
+                                                <tr class="text-primary">
+                                                    <th>Device ID</th>
+                                                    <th>Date Created</th>
+                                                    <th>Action</th>
+                                                </tr>
                                             </thead>
                                             <tbody>
-                                            {% for fcm_device in fcm_devices %}
-                                            <tr>
-{#                                                <td>{{ fcm_device.registration_id }}</td>#}
-                                                <td>ADD ID LATER</td>
-                                                <td>{{ fcm_device.date_created }}</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-danger">Delete</button>
-                                                    <button
-                                                            class="btn btn-sm btn-info"
-                                                            hx-get="{% url "notifications:send_test_fcm_message" fcm_device_id=fcm_device.id %}"
-                                                            hx-target="#test-msg-{{ fcm_device.id }}"
-                                                    >Test</button>
-                                                    <div id="test-msg-{{ fcm_device.id }}">
+                                                {% for fcm_device in fcm_devices %}
+                                                    <tr>
+                                                        {#                                                <td>{{ fcm_device.registration_id }}</td>#}
+                                                        <td>ADD ID LATER</td>
+                                                        <td>{{ fcm_device.date_created }}</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-danger">Delete</button>
+                                                            <button
+                                                                class="btn btn-sm btn-info"
+                                                                hx-get="{% url "notifications:send_test_fcm_message" fcm_device_id=fcm_device.id %}"
+                                                                hx-target="#test-msg-{{ fcm_device.id }}"
+                                                            >Test</button>
+                                                            <div id="test-msg-{{ fcm_device.id }}">
 
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            {% endfor %}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
                                             </tbody>
                                         </table>
                                     </div>
