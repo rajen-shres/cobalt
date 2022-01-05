@@ -71,4 +71,9 @@ urlpatterns = [
         views.developer_settings_delete_token_htmx,
         name="developer_settings_delete_token_htmx",
     ),
+    path(
+        "admin/toggle-user-is-active",
+        views.admin_toggle_user_is_active,
+        name="admin_toggle_user_is_active",
+    ),
 ]

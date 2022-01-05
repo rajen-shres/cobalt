@@ -461,6 +461,10 @@ def _checkout_perform_action(request):
 
     else:  # no payment required go straight to the callback
 
+        # If there is nothing to pay then we can remove this from the users shopping basket now. Basket will be empty
+        # If something is to be paid then the callback will handle this, but if nothing to pay we need to do it here
+        BasketItem.objects.filter(player=request.user).delete()
+
         events_payments_callback("Success", unique_id, None)
         messages.success(
             request, "Entry successful", extra_tags="cobalt-message-success"

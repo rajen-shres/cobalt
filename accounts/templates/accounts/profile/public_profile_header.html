@@ -1,5 +1,5 @@
 {% load cobalt_tags %}
-<div class="col-md-8">
+<h4 class="col-md-8">
     <div class="card card-profile">
         <div class="card-header card-header-warning">
             <h3 class="card-title">{{ profile.full_name }}</h3>
@@ -22,9 +22,14 @@
                 {{ profile.about|default_if_none:"" }}
             </p>
         </div>
+
+        {% if email_admin  or payments_admin or events_admin or tickets %}
+            <h4 class="text-center">Last Login: {{ profile.last_login|cobalt_nice_datetime|default_if_none:"Never Logged In" }}</h4>
+            <h4 class="text-center">Last Activity: {{ profile.last_activity|cobalt_nice_datetime|default_if_none:"Never Seen" }}</h4>
+            <div id="active-status">
+                {% include "accounts/profile/public_profile_header_admin.html" %}
+            </div>
+
+        {% endif %}
     </div>
-    {% if email_admin  or payments_admin or events_admin or tickets %}
-        <h4 class="text-center">Last Activity: {{ profile.last_activity|cobalt_nice_datetime|default_if_none:"Never Seen" }}</h4>
-    {% endif %}
-</div>
 

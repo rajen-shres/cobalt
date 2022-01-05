@@ -768,25 +768,14 @@ def public_profile(request, pk):
     summary = user_summary(pub_profile.system_number)
 
     # Admins get more
-    if rbac_user_has_role(request.user, "payments.global.edit"):
-        payments_admin = True
-    else:
-        payments_admin = False
-
-    if rbac_user_has_role(request.user, "events.global.view"):
-        events_admin = True
-    else:
-        events_admin = False
-
+    payments_admin = bool(rbac_user_has_role(request.user, "payments.global.edit"))
+    events_admin = bool(rbac_user_has_role(request.user, "events.global.view"))
     if rbac_user_has_role(request.user, "support.helpdesk.edit"):
         tickets = Incident.objects.filter(reported_by_user=pub_profile.id)
     else:
         tickets = False
 
-    if rbac_user_has_role(request.user, "notifications.admin.view"):
-        email_admin = True
-    else:
-        email_admin = False
+    email_admin = bool(rbac_user_has_role(request.user, "notifications.admin.view"))
 
     return render(
         request,
@@ -839,7 +828,7 @@ def user_settings(request):
 
     # If user has a registered FCM device, show them the option to send a test message
 
-    fcm_devices = FCMDevice.objects.filter(user=request.user).order_by('-date_created')
+    fcm_devices = FCMDevice.objects.filter(user=request.user).order_by("-date_created")
 
     return render(
         request,
@@ -1338,4 +1327,32 @@ def developer_settings_delete_token_htmx(request):
 
     return render(
         request, "accounts/developer/settings.html", {"api_tokens": api_tokens}
+    )
+
+
+@login_required()
+@require_POST
+def admin_toggle_user_is_active(request):
+    """Activate or deactivate a user"""
+
+    if not request.user.is_superuser:
+        return HttpResponse("Forbidden")
+
+    if "user_id" in request.POST:
+
+        user_id = request.POST.get("user_id")
+        user = get_object_or_404(User, pk=user_id)
+        user.is_active = not user.is_active
+        user.save()
+
+        log_event(
+            request.user,
+            "WARN",
+            "Accounts",
+            "admin-activate",
+            f"{user} is_active status changed to {user.is_active}",
+        )
+
+    return render(
+        request, "accounts/profile/public_profile_header_admin.html", {"profile": user}
     )

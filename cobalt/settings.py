@@ -210,7 +210,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    # "utils.middleware.CobaltMiddleware",
+    "utils.middleware.CobaltMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

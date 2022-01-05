@@ -264,7 +264,9 @@ def search(request):
         # Users
         if include_people:
             people = User.objects.filter(
-                Q(first_name__icontains=query) | Q(last_name__icontains=query)
+                Q(first_name__icontains=query)
+                | Q(last_name__icontains=query)
+                | Q(system_number__icontains=query)
             )
             searchparams += "include_people=1&"
         else:
