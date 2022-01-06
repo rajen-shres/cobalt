@@ -29,10 +29,14 @@ def fcm_token_get_user_v1(fcm_token):
     if fcm_token_object:
         return fcm_token_object.user, None, None
 
-    return False, 403, {
-        "status": api_app.APIStatus.ACCESS_DENIED,
-        "message": "Token is invalid",
-    }
+    return (
+        False,
+        403,
+        {
+            "status": api_app.APIStatus.ACCESS_DENIED,
+            "message": "Token is invalid",
+        },
+    )
 
 
 def notifications_api_sms_file_upload_v1(request, file):
@@ -122,8 +126,14 @@ def _notifications_api_common_messages_for_user_v1(messages):
 
     # mark messages as read now
     for message in messages:
-        created_datetime = message.created_time.astimezone(TZ).strftime("%a %d-%b-%Y %I:%M%p")
-        item = api_app.UnreadMessageV1(id=message.id, message=message.msg, created_datetime=created_datetime)
+        created_datetime = message.created_time.astimezone(TZ).strftime(
+            "%a %d-%b-%Y %-I:%M"
+        )
+        # Make am/pm lowercase
+        created_datetime += message.created_time.astimezone(TZ).strftime("%p").lower()
+        item = api_app.UnreadMessageV1(
+            id=message.id, message=message.msg, created_datetime=created_datetime
+        )
         return_messages.append(item)
         message.has_been_read = True
         message.save()
@@ -142,7 +152,11 @@ def notifications_api_unread_messages_for_user_v1(fcm_token):
     if not user:
         return error_code, error_struct
 
-    messages = RealtimeNotification.objects.filter(has_been_read=False).filter(member=user).order_by('-pk')
+    messages = (
+        RealtimeNotification.objects.filter(has_been_read=False)
+        .filter(member=user)
+        .order_by("-pk")
+    )
 
     return _notifications_api_common_messages_for_user_v1(messages)
 
@@ -155,13 +169,13 @@ def notifications_api_latest_messages_for_user_v1(fcm_token):
     if not user:
         return error_code, error_struct
 
-    messages = RealtimeNotification.objects.filter(member=user).order_by('-pk')[:50]
+    messages = RealtimeNotification.objects.filter(member=user).order_by("-pk")[:50]
 
     return _notifications_api_common_messages_for_user_v1(messages)
 
 
 def notifications_delete_message_for_user_v1(data):
-    """ Delete a single message """
+    """Delete a single message"""
 
     user, error_code, error_struct = fcm_token_get_user_v1(data.fcm_token)
 
@@ -193,7 +207,7 @@ def notifications_delete_message_for_user_v1(data):
 
 
 def notifications_delete_all_messages_for_user_v1(data):
-    """ Delete all messages for a user """
+    """Delete all messages for a user"""
 
     user, error_code, error_struct = fcm_token_get_user_v1(data.fcm_token)
 
