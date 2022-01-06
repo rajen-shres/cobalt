@@ -1329,11 +1329,22 @@ def send_test_fcm_message(request, fcm_device_id):
     fcm_device = FCMDevice.objects.filter(pk=fcm_device_id).first()
 
     # Check access
-    if fcm_device and (fcm_device.user == request.user or rbac_user_has_role(member=request.user, role="notifications.admin.view")):
+    if fcm_device and (
+        fcm_device.user == request.user
+        or rbac_user_has_role(member=request.user, role="notifications.admin.view")
+    ):
 
-        msg = Message(
-            notification=Notification(title="Test Message", body="This is the body of the test message.\nIt has a few lines of data.\n\nSuch as this one\nThis one.\n\nAnd this one."),
+        test_msg = (
+            f"This is a test message.\n\n"
+            f"It was sent to {fcm_device.user}\n\n"
+            f"It was sent by {request.user}."
         )
+
+        RealtimeNotification(
+            member=fcm_device.user, admin=request.user, msg=test_msg
+        ).save()
+
+        msg = Message(notification=Notification(title="Test Message", body=test_msg))
         rc = fcm_device.send_message(msg)
         print(rc)
 
