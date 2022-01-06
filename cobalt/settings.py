@@ -529,7 +529,7 @@ else:
         },
     }
 
-GOOGLE_APPLICATION_CREDENTIALS = "~/Dropbox/bin/abf-fcm-dev-firebase-adminsdk-key.json"
+GOOGLE_APPLICATION_CREDENTIALS = set_value("GOOGLE_APPLICATION_CREDENTIALS", "NOTSET")
 FIREBASE_APP = initialize_app()
 
 DEBUG_TOOLBAR_ENABLED = set_value("DEBUG_TOOLBAR_ENABLED", False)
