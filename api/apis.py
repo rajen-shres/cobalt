@@ -26,16 +26,22 @@ APIs should all return JSON with at least one parameter e.g.
 from typing import List
 
 from fcm_django.models import FCMDevice
+from firebase_admin.messaging import Message, Notification
 from ninja import Router, File, NinjaAPI, Schema
 from ninja.files import UploadedFile
 
 from accounts.backend import CobaltBackend
 from api.core import api_rbac
 import api.urls as api_urls
+from cobalt.settings import GLOBAL_TITLE
 from masterpoints.factories import masterpoint_factory_creator
-from notifications.apis import notifications_api_sms_file_upload_v1, notifications_api_unread_messages_for_user_v1, \
-    notifications_api_latest_messages_for_user_v1, notifications_delete_message_for_user_v1, \
-    notifications_delete_all_messages_for_user_v1
+from notifications.apis import (
+    notifications_api_sms_file_upload_v1,
+    notifications_api_unread_messages_for_user_v1,
+    notifications_api_latest_messages_for_user_v1,
+    notifications_delete_message_for_user_v1,
+    notifications_delete_all_messages_for_user_v1,
+)
 from notifications.models import RealtimeNotification
 
 router = Router()
@@ -48,6 +54,7 @@ api = NinjaAPI()
 
 class APIStatus:
     """Status messages from the API"""
+
     SUCCESS = "Success"
     FAILURE = "Failure"
     ACCESS_DENIED = "Access Denied"
@@ -55,12 +62,14 @@ class APIStatus:
 
 class StatusResponseV1(Schema):
     """Standard error/response format when no data is returned"""
+
     status: str
     message: str
 
 
 class UnauthorizedV1(Schema):
     """Standard error format"""
+
     detail: str
 
 
@@ -73,8 +82,10 @@ class UnauthorizedV1(Schema):
 #     attempted: int
 #     sent: int
 
+
 class UserDataResponseV1(Schema):
     """Response format from mobile_client_register_v1"""
+
     class UserResponseV1(Schema):
         first_name: str
         last_name: str
@@ -86,14 +97,18 @@ class UserDataResponseV1(Schema):
 
 class MobileClientRegisterRequestV1(Schema):
     """Request format from mobile_client_register_v1"""
+
     username: str = ""
     password: str = ""
     fcm_token: str = ""
 
+
 class MobileClientUpdateRequestV1(Schema):
     """Request format from mobile_client_update_v1"""
+
     old_fcm_token: str = ""
     new_fcm_token: str = ""
+
 
 class MobileClientFCMRequestV1(Schema):
     fcm_token: str
@@ -111,7 +126,7 @@ class MobileClientUnreadMessagesResponseV1(Schema):
 
 
 class MobileClientSingleMessageRequestV1(Schema):
-    """ Structure for requests that access a single message by id """
+    """Structure for requests that access a single message by id"""
 
     fcm_token: str
     message_id: int
@@ -182,10 +197,30 @@ def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
 
     if user:
         # Save device
-        FCMDevice(user=user, registration_id=data.fcm_token).save()
+        fcm_device = FCMDevice(user=user, registration_id=data.fcm_token)
+        fcm_device.save()
 
         # Mark all messages previously sent to the user as read to prevent swamping them with old messages
         RealtimeNotification.objects.filter(member=user).update(has_been_read=True)
+
+        # Create a welcome message
+        welcome_msg = (
+            f"Hi {user.first_name},\n"
+            f"This device is now set up to receive messages from {GLOBAL_TITLE}.\n\n"
+            f"You can manage your devices through Settings within {GLOBAL_TITLE}, "
+            f"or simply delete this app to turn them off."
+        )
+        RealtimeNotification(
+            member=user,
+            admin=user,
+            msg="Welcome!\n\nNew device successfully registered.",
+        )
+        msg = Message(
+            notification=Notification(
+                title=f"Welcome to {GLOBAL_TITLE} messaging.", body=welcome_msg
+            )
+        )
+        fcm_device.send_message(msg)
 
         return 200, {
             "status": APIStatus.SUCCESS,
@@ -231,7 +266,6 @@ def system_number_lookup_v1(request, system_number: int):
         return 404, {"status": APIStatus.FAILURE, "message": return_value}
 
 
-
 @router.post(
     "/mobile-client-update/v1.0",
     summary="Update a users FCM Token, takes old token as security check",
@@ -243,7 +277,7 @@ def system_number_lookup_v1(request, system_number: int):
     auth=None,
 )
 def mobile_client_update_v1(request, data: MobileClientUpdateRequestV1):
-    """ Called to update the FCM token"""
+    """Called to update the FCM token"""
 
     # Log Api call ourselves as we aren't going through authentication
     api_urls.log_api_call(request)
@@ -268,9 +302,6 @@ def mobile_client_update_v1(request, data: MobileClientUpdateRequestV1):
     }
 
 
-
-
-
 @router.post(
     "/mobile-client-get-unread-messages/v1.0",
     summary="Get unread messages for a user by passing FCM_token",
@@ -282,8 +313,10 @@ def mobile_client_update_v1(request, data: MobileClientUpdateRequestV1):
     # Disable global authorisation, we use the token as the authentication method
     auth=None,
 )
-def api_notifications_unread_messages_for_user_v1(request, data: MobileClientFCMRequestV1):
-    """ Return any unread messages for this user"""
+def api_notifications_unread_messages_for_user_v1(
+    request, data: MobileClientFCMRequestV1
+):
+    """Return any unread messages for this user"""
 
     # Log Api call ourselves as we aren't going through authentication
     api_urls.log_api_call(request)
@@ -302,8 +335,10 @@ def api_notifications_unread_messages_for_user_v1(request, data: MobileClientFCM
     # Disable global authorisation, we use the token as the authentication method
     auth=None,
 )
-def api_notifications_latest_messages_for_user_v1(request, data: MobileClientFCMRequestV1):
-    """ Return last 50 messages for this user"""
+def api_notifications_latest_messages_for_user_v1(
+    request, data: MobileClientFCMRequestV1
+):
+    """Return last 50 messages for this user"""
 
     # Log Api call ourselves as we aren't going through authentication
     api_urls.log_api_call(request)
@@ -322,8 +357,10 @@ def api_notifications_latest_messages_for_user_v1(request, data: MobileClientFCM
     # Disable global authorisation, we use the token as the authentication method
     auth=None,
 )
-def api_notifications_delete_message_for_user_v1(request, data: MobileClientSingleMessageRequestV1):
-    """ Delete a single message """
+def api_notifications_delete_message_for_user_v1(
+    request, data: MobileClientSingleMessageRequestV1
+):
+    """Delete a single message"""
 
     # Log Api call ourselves as we aren't going through authentication
     api_urls.log_api_call(request)
@@ -342,8 +379,10 @@ def api_notifications_delete_message_for_user_v1(request, data: MobileClientSing
     # Disable global authorisation, we use the token as the authentication method
     auth=None,
 )
-def api_notifications_delete_all_messages_for_user_v1(request, data: MobileClientFCMRequestV1):
-    """ Delete all message """
+def api_notifications_delete_all_messages_for_user_v1(
+    request, data: MobileClientFCMRequestV1
+):
+    """Delete all message"""
 
     # Log Api call ourselves as we aren't going through authentication
     api_urls.log_api_call(request)
