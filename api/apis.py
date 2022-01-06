@@ -213,11 +213,12 @@ def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
         RealtimeNotification(
             member=user,
             admin=user,
-            msg="Welcome!\n\nNew device successfully registered.",
-        )
+            msg=welcome_msg,
+        ).save()
         msg = Message(
             notification=Notification(
-                title=f"Welcome to {GLOBAL_TITLE} messaging.", body=welcome_msg
+                title=f"Welcome to {GLOBAL_TITLE} messaging.",
+                body="Welcome!\n\nNew device successfully registered.",
             )
         )
         fcm_device.send_message(msg)
