@@ -1334,11 +1334,17 @@ def send_test_fcm_message(request, fcm_device_id):
         or rbac_user_has_role(member=request.user, role="notifications.admin.view")
     ):
 
+        now = timezone.localtime().strftime("%a %d-%b-%Y %-I:%M")
+        now += timezone.localtime().strftime("%p").lower()
+
         test_msg = (
             f"This is a test message.\n\n"
-            f"It was sent to {fcm_device.user}\n\n"
-            f"It was sent by {request.user}."
+            f"It was sent to {fcm_device.user}.\n\n"
+            f"It was sent by {request.user}.\n\n"
+            f"It was sent at {now}. https://goggle.com"
         )
+
+        print(test_msg)
 
         RealtimeNotification(
             member=fcm_device.user, admin=request.user, msg=test_msg
