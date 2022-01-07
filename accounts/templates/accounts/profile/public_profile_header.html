@@ -24,6 +24,7 @@
         </div>
 
         {% if email_admin  or payments_admin or events_admin or tickets %}
+            <h4 class="text-center">Date Joined: {{ profile.date_joined|cobalt_nice_datetime }}</h4>
             <h4 class="text-center">Last Login: {{ profile.last_login|cobalt_nice_datetime|default_if_none:"Never Logged In" }}</h4>
             <h4 class="text-center">Last Activity: {{ profile.last_activity|cobalt_nice_datetime|default_if_none:"Never Seen" }}</h4>
             <div id="active-status">

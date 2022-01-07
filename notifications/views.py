@@ -1341,7 +1341,7 @@ def send_test_fcm_message(request, fcm_device_id):
             f"This is a test message.\n\n"
             f"It was sent to {fcm_device.user}.\n\n"
             f"It was sent by {request.user}.\n\n"
-            f"It was sent at {now}."
+            f"It was sent on {now}."
         )
 
         print(test_msg)
