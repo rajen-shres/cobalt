@@ -5,7 +5,7 @@ from decimal import Decimal
 import uuid
 import pytz
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponseNotFound, HttpResponse
+from django.http import HttpResponseNotFound
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -463,7 +463,7 @@ def _checkout_perform_action(request):
 
         # If there is nothing to pay then we can remove this from the users shopping basket now. Basket will be empty
         # If something is to be paid then the callback will handle this, but if nothing to pay we need to do it here
-        BasketItem.objects.filter(player=request.user).delete()
+        # BasketItem.objects.filter(player=request.user).delete()
 
         events_payments_callback("Success", unique_id, None)
         messages.success(
