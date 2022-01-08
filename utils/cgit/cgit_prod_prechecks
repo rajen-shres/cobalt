@@ -1,9 +1,6 @@
 #!/bin/bash
 
-RED='\033[0;31m'
-BLUE='\033[0;34m'
-YELLOW='\033[0;33m'
-NC='\033[0m' # No Color
+source utils/cgit/_cgit_include_vars
 
 STEPS=5
 
@@ -55,6 +52,13 @@ get_response 4 "Did you review any changes to models.py that could prevent rollb
 # Rollback
 echo "You can test the rollback to see if the code works with any database changes."
 echo "To do this simple checkout the version of code running in production "
-Are you happy?"
+get_response 5 "Are you happy?"
 
-printf "${YELLOW}
+# Final checks
+get_response 6 "Are there any environment variables that still need to be applied to production?"
+
+echo ""
+echo "Ok, you are good to do the release."
+echo "Use cgit_prod_publish to deploy your code."
+echo "Good luck!"
+echo ""

@@ -2,12 +2,19 @@
 
 # Compare current branch with a released branch
 
+if [ $# -ne 1 ];then
+  echo ""
+  echo "Usage: $0 environment [test|uat|production]"
+  echo ""
+ exit 1
+fi
+
 BRANCH=$(git branch --show-current)
 
 echo "You are on branch $BRANCH"
 echo ""
 
-OLD_BRANCH=$(cgit_branch_for_environment $* | tail -1)
+OLD_BRANCH=$(cgit_branch_for_environment $1 | tail -1)
 
 if [ $? -eq 0 ]
 then
