@@ -37,6 +37,8 @@ get_response 1 "Did backups completed successfully?"
 
 # Prod copy
 echo ""
+echo "#########################################"
+echo "Running migrations to update database..."
 export RDS_DB_NAME=prod_load
 ./manage.py migrate
 echo "Santising production data so you can do a basic smoke test..."
@@ -44,6 +46,8 @@ cgit_dev_run_prod_copy
 get_response 2 "Did you complete the smoke test?"
 
 # Compare versions
+echo ""
+echo "#########################################"
 echo "Comparing this version with production..."
 cgit_util_compare_env production
 get_response 3 "Are you happy with the changes?"
