@@ -37,7 +37,7 @@ cgit_prod_hotfix_finish   - releases hotfix to production
 General
 -------
 
-cgit_compare              - compare this branch to what is running in test, uat or production
+cgit_util_compare              - compare this branch to what is running in test, uat or production
 
 Current Status
 --------------

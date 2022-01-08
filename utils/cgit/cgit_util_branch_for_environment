@@ -64,7 +64,7 @@ then
   echo "Unable to get the version of code running in $ENV from AWS."
   echo "This could be because there have been too many release done since $ENV was last updated."
   echo "AWS only keeps a certain number of application versions."
-  echo "You can run cgit_compare instead using the branch rather than the environment."
+  echo "You can run cgit_util_compare instead using the branch rather than the environment."
   echo ""
   exit 1
 fi

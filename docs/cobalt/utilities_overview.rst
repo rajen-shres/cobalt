@@ -445,12 +445,12 @@ using cgit try to include this information anyway if you can::
 
 
 
-cgit_compare
-^^^^^^^^^^^^
+cgit_util_compare
+^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
-  $ cgit_compare production
+  $ cgit_util_compare production
 
 **Purpose**: Compares the current branch with test, UAT or production.
 

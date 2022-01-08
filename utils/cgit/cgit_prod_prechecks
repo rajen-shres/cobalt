@@ -45,7 +45,7 @@ get_response 2 "Did you complete the smoke test?"
 
 # Compare versions
 echo "Comparing this version with production..."
-cgit_compare_env production
+cgit_util_compare_env production
 get_response 3 "Are you happy with the changes?"
 get_response 4 "Did you review any changes to models.py that could prevent rollback?"
 
