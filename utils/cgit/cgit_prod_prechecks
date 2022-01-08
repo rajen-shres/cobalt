@@ -2,8 +2,9 @@
 
 source utils/cgit/_cgit_include_vars
 
-STEPS=5
+STEPS=6
 
+# Function to get response from user, a beautiful piece of shell scripting
 get_response () {
 # $1 = step no, $2 = message
     printf "${YELLOW}[${1}/${STEPS}] ${2}${NC}"
@@ -21,6 +22,9 @@ get_response () {
     fi
 }
 
+echo "starting..."
+THIS_BRANCH=$(git branch --show-current)
+PROD_BRANCH=$(cgit_util_branch_for_environment production| tail -1)
 clear
 printf "${RED}###########################################################\n"
 echo "#                                                         #"
@@ -30,7 +34,21 @@ echo "#                                                         #"
 echo "#  Make sure you are on the branch you intend to release  #"
 echo "#                                                         #"
 echo "###########################################################"
-printf "${NC}\n"
+printf "${NC}\n\n"
+printf "  You are on branch    : ${YELLOW}${THIS_BRANCH}${NC}\n"
+printf "  Production is running: ${RED}${PROD_BRANCH}${NC}\n\n"
+
+MODELS=$(git diff "$THIS_BRANCH" "$PROD_BRANCH" --name-only | grep models.py)
+
+if [ $? -eq 1 ]
+then
+  echo "There are no model changes in this release."
+  echo ""
+else
+  echo "There are model changes in this release:"
+  echo "$MODELS"
+  echo
+fi
 
 # Backups
 get_response 1 "Did backups completed successfully?"
@@ -59,7 +77,7 @@ echo "To do this simple checkout the version of code running in production "
 get_response 5 "Are you happy?"
 
 # Final checks
-get_response 6 "Are there any environment variables that still need to be applied to production?"
+get_response 6 "Have you checked if there are any environment variables that still need to be applied to production?"
 
 echo ""
 echo "Ok, you are good to do the release."
