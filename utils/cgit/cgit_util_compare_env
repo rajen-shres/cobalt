@@ -14,7 +14,7 @@ BRANCH=$(git branch --show-current)
 echo "You are on branch $BRANCH"
 echo ""
 
-OLD_BRANCH=$(cgit_branch_for_environment $1 | tail -1)
+OLD_BRANCH=$(cgit_util_branch_for_environment $1 | tail -1)
 
 if [ $? -eq 0 ]
 then
