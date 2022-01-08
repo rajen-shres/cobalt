@@ -1,0 +1,60 @@
+#!/bin/bash
+
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
+STEPS=5
+
+get_response () {
+# $1 = step no, $2 = message
+    printf "${YELLOW}[${1}/${STEPS}] ${2}${NC}"
+    read -r -p " [Y/n] " response
+    if [ "$response" == "" ]
+    then
+      response="Y"
+     fi
+    if ! [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
+    then
+        echo ""
+        echo "Step failed - exiting"
+        echo ""
+        exit
+    fi
+}
+
+clear
+printf "${RED}###########################################################\n"
+echo "#                                                         #"
+echo "#           Pre-Release Checks for Production             #"
+echo "#           =================================             #"
+echo "#                                                         #"
+echo "#  Make sure you are on the branch you intend to release  #"
+echo "#                                                         #"
+echo "###########################################################"
+printf "${NC}\n"
+
+# Backups
+get_response 1 "Did backups completed successfully?"
+
+# Prod copy
+echo ""
+export RDS_DB_NAME=prod_load
+./manage.py migrate
+echo "Santising production data so you can do a basic smoke test..."
+cgit_dev_run_prod_copy
+get_response 2 "Did you complete the smoke test?"
+
+# Compare versions
+echo "Comparing this version with production..."
+cgit_compare_env production
+get_response 3 "Are you happy with the changes?"
+get_response 4 "Did you review any changes to models.py that could prevent rollback?"
+
+# Rollback
+echo "You can test the rollback to see if the code works with any database changes."
+echo "To do this simple checkout the version of code running in production "
+Are you happy?"
+
+printf "${YELLOW}

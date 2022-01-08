@@ -11,10 +11,10 @@ NEW=$2
 
 if [ $# -lt 2 ]
 then
-  echo "Usage: $0 branch1 branch2 --ignore 'pattern'"
+  echo "Usage: $0 new_branch old_branch --ignore 'pattern'"
   echo ""
-  echo "e.g. $0 develop my_branch --ignore '^static'"
-  echo "e.g. $0 develop my_branch --ignore '^static|html$|docs'"
+  echo "e.g. $0 develop release/1.1.1 --ignore '^static'"
+  echo "e.g. $0 develop release/1.1.2 --ignore '^static|html$|docs'"
   exit
 fi
 
