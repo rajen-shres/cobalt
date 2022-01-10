@@ -11,12 +11,17 @@ hosted by {{ congress.congress_master.org }}.</p>
         <td style='text-align: left'><b>Event</b><td style='text-align:left'><b>Players</b></td>
             <td style='text-align: right'><b>Entry Status</b></td>
         </tr>
-        <tr>
-            <td style='text-align: left' class='receipt-figure'>{{ event.event_name }}</td>
-            <td style='text-align: left' class='receipt-figure'>
-                {% for event in events %}
-                    {{ event }}
-                {% endfor %}
-            </td>
-        </tr>
+
+        {% for event, players in events_struct %}
+            <tr>
+                <td style='text-align: left' class='receipt-figure'>{{ event.event_name }}</td>
+                <td style='text-align: left' class='receipt-figure'>
+                    {% for player in players %}
+                        {{ player }},
+                    {% endfor %}
+
+                </td>
+            </tr>
+        {% endfor %}
+
     </table>

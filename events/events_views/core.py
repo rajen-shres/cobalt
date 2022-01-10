@@ -100,11 +100,16 @@ def events_payments_callback(status, route_payload):
         paid_event_entry_players
     )
 
+    # Update them
     _update_entries(paid_event_entry_players, paid_event_entries, payment_user)
 
     # Get all players that are included in this bunch of entries
     notify_event_entry_players = _get_event_entry_players_from_basket(payment_user)
+
+    # Notify them
     _send_notifications(notify_event_entry_players, payment_user)
+
+    # Tidy up
     _clean_up(paid_event_entries)
 
 
@@ -119,8 +124,17 @@ def _get_event_entry_players_from_payload(route_payload):
 
 
 def _get_event_entry_players_from_basket(payment_user):
-    """Get all of the EventEntryPlayer records that need to be notified"""
-    return []
+    """Get all of the EventEntryPlayer records that need to be notified. Use the primary players basket.
+
+    If a user goes to the checkout and then goes to another screen and adds to the basket, then it
+    will checkout what is shown on the checkout screen (missing the later added items) and those items
+    will be checked out too but not paid for.
+
+    """
+
+    return EventEntryPlayer.objects.filter(
+        event_entry__basketitem__player=payment_user
+    ).exclude(event_entry__entry_status="Cancelled")
 
 
 def _get_event_entries_for_event_entry_players(event_entry_players):
@@ -277,32 +291,29 @@ def _send_notifications(event_entry_players, payment_user):
         # Add players to struct[player][congress][event][event_entry_player]
         struct[player][congress][event].append(event_entry_player)
 
-    print(struct)
+    # Loop through by player, then congress and send email. 1 email per player per congress
+    for player, value in struct.items():
+        for congress in value:
+            # Use the template to build the email for this user and this congress
+            html = loader.render_to_string(
+                "events/players/email/player_event_entry.html",
+                {
+                    "player": player,
+                    "events_struct": struct[player][congress],
+                    "payment_user": payment_user,
+                },
+            )
 
-    for player in struct:
-        print(player)
+            context = {
+                "name": player.first_name,
+                "title": f"Event Entry - {congress}",
+                "email_body": html,
+                "link": "/events/view",
+                "link_text": "View Entry",
+                "subject": f"Event Entry - {congress}",
+            }
 
-        #
-        # # Use the template to build the email for this user and this congress
-        # html = loader.render_to_string(
-        #     "events/players/email/player_event_entry.html",
-        #     {
-        #         "player": player,
-        #         "congress_struct": congress_struct,
-        #         "payment_user": payment_user,
-        #     },
-        # )
-        #
-        # context = {
-        #     "name": player.first_name,
-        #     "title": f"Event Entry - {congress}",
-        #     "email_body": html,
-        #     "link": "/events/view",
-        #     "link_text": "View Entry",
-        #     "subject": f"Event Entry - {congress}",
-        # }
-        #
-        # send_cobalt_email_with_template(to_address=player.email, context=context)
+            send_cobalt_email_with_template(to_address=player.email, context=context)
 
 
 def _send_notifications_populate_email_dictionary_by_congress(
