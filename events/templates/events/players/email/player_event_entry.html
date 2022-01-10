@@ -1,0 +1,23 @@
+{% if player == payment_user %}
+    <p>We have received your entry into <b>{{ congress.name }}</b>
+{% else %}
+    <p>{{ payment_user.full_name }} has entered you into <b>{{ congress.name }}</b>
+{% endif %}
+
+hosted by {{ congress.congress_master.org }}.</p>
+
+<table class="receipt" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td style='text-align: left'><b>Event</b><td style='text-align:left'><b>Players</b></td>
+            <td style='text-align: right'><b>Entry Status</b></td>
+        </tr>
+        <tr>
+            <td style='text-align: left' class='receipt-figure'>{{ event.event_name }}</td>
+            <td style='text-align: left' class='receipt-figure'>
+                {% for event, players in events %}
+                    {{ event }} - {{ players }}
+                    {{ player.player.full_name }}
+                {% endfor %}
+            </td>
+        </tr>
+    </table>

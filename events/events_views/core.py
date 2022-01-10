@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, date
 
 from django.db.models import Q
+from django.template import loader
 from django.template.loader import render_to_string
 from django.urls import reverse
 
@@ -43,7 +44,6 @@ def events_payments_secondary_callback(status, route_payload, tran):
     )
 
     if status == "Success":
-
         # get name of person who made the entry
         primary_entrant = (
             EventEntryPlayer.objects.filter(batch_id=route_payload)
@@ -52,8 +52,9 @@ def events_payments_secondary_callback(status, route_payload, tran):
         )
 
         event_entry_players = _get_event_entry_players_from_payload(route_payload)
+        event_entries = _get_event_entries_for_event_entry_players(event_entry_players)
         _update_entries(event_entry_players, primary_entrant)
-        _clean_up(event_entry_players)
+        _clean_up(event_entries)
 
 
 def events_payments_callback(status, route_payload):
@@ -84,9 +85,10 @@ def events_payments_callback(status, route_payload):
         pbi.delete()
 
         event_entry_players = _get_event_entry_players_from_payload(route_payload)
-        _update_entries(event_entry_players, payment_user)
+        event_entries = _get_event_entries_for_event_entry_players(event_entry_players)
+        _update_entries(event_entry_players, event_entries, payment_user)
         _send_notifications(payment_user)
-        _clean_up(event_entry_players)
+        _clean_up(event_entries)
 
 
 def _get_event_entry_players_from_payload(route_payload):
@@ -96,9 +98,41 @@ def _get_event_entry_players_from_payload(route_payload):
     return EventEntryPlayer.objects.filter(batch_id=route_payload)
 
 
-def _update_entries(event_entry_players, payment_user):
+def _get_event_entries_for_event_entry_players(event_entry_players):
+    """Takes a list of event entry players and returns the parent event entries
+
+    Args:
+        event_entry_players: a query set of EventEntryPlayers
+
+    Returns:
+        event_entries: a query set of EventEntries
+    """
+
+    # Get all EventEntries for changed EventEntryPlayers
+    event_entry_list = (
+        event_entry_players.order_by("event_entry")
+        .distinct("event_entry")
+        .values_list("event_entry")
+    )
+
+    return EventEntry.objects.filter(pk__in=event_entry_list).exclude(
+        entry_status="Cancelled"
+    )
+
+
+def _update_entries(event_entry_players, event_entries, payment_user):
     """Update the database to reflect changes and make payments for
     other members if we have access."""
+
+    # Change the entries that have been paid for
+    _update_entries_change_entries(event_entry_players, payment_user)
+
+    # Check if we can now pay using "their system dollars"
+    _update_entries_process_their_system_dollars(event_entries)
+
+
+def _update_entries_change_entries(event_entry_players, payment_user):
+    """First part of _update_entries. This changes the entries themselves"""
 
     # Update EntryEventPlayer objects
 
@@ -151,19 +185,10 @@ def _update_entries(event_entry_players, payment_user):
             organisation=event_entry_player.event_entry.event.congress.congress_master.org,
         )
 
-    # Get all EventEntries for changed EventEntryPlayers
-    event_entry_list = (
-        event_entry_players.order_by("event_entry")
-        .distinct("event_entry")
-        .values_list("event_entry")
-    )
 
-    event_entries = EventEntry.objects.filter(pk__in=event_entry_list).exclude(
-        entry_status="Cancelled"
-    )
+def _update_entries_process_their_system_dollars(event_entries):
+    """Now process their system dollar transactions (if any)"""
 
-    # Now process their system dollar transactions - same loop as below but
-    # easier to understand as 2 separate bits of code
     for event_entry in event_entries:
         for event_entry_player in event_entry.evententryplayer_set.all():
             if (
@@ -191,12 +216,6 @@ def _update_entries(event_entry_players, payment_user):
                     event_entry=event_entry,
                 ).save()
 
-    # Check if EntryEvent is now complete
-    for event_entry in event_entries:
-        event_entry.check_if_paid()
-
-    return event_entries
-
 
 def _send_notifications(payment_user):
     """Send the notification emails for a particular set of events that has just been paid for"""
@@ -204,6 +223,145 @@ def _send_notifications(payment_user):
     # Go through the basket and notify people
     # We send one email per congress
     # email_dic will be email_dic[congress][event][player]
+
+    email_dic = _send_notifications_build_email_dictionary(payment_user)
+
+    # now build the emails, remember, one email per congress per person
+    for congress in email_dic:
+        _send_notifications_populate_email_dictionary_by_congress(
+            email_dic, congress, payment_user
+        )
+
+
+def _send_notifications_populate_email_dictionary_by_congress(
+    email_dic, congress, payment_user
+):
+    """
+    Sub-process to handle things at the congress level
+
+    Args:
+        email_dic: dictionary
+
+    Returns: email_dic
+    """
+
+    # build a list of all players so we can set them each up with a custom email
+    player_email = {}  # email to send keyed by player
+    player_included = (
+        {}
+    )  # flag for whether player is in this event. Don't tell them if they aren't playing
+
+    for event in email_dic[congress]:
+        for player in email_dic[congress][event]:
+            if player.player not in player_email:
+                player_email[player.player] = ""
+                player_included[player.player] = False
+
+    # build start of email for this congress
+    for player in player_email:
+        print(email_dic[congress])
+        player_email[player] = loader.render_to_string(
+            "events/players/email/player_event_entry.html",
+            {
+                "player": player,
+                "payment_user": payment_user,
+                "congress": congress,
+                "events": email_dic[congress],
+            },
+        )
+
+    # for event in email_dic[congress]:
+
+    # sub_msg = (
+    #     f"<tr><td style='text-align: left' class='receipt-figure'>{event.event_name}<td style='text"
+    #     f"-align: left' class='receipt-figure'> "
+    # )
+
+    # for player in email_dic[congress][event]:
+    #     sub_msg += f"{player.player.full_name}<br>"
+    #     player_included[player.player] = True
+    #
+    # sub_msg += f"<td style='text-align: right' class='receipt-figure'>{player.event_entry.entry_status}</tr>"
+    #
+    # # add this row if player is in the event - no point otherwise
+    # for player in player_email:
+    #
+    #     if player_included[player]:
+    #         player_email[player] += sub_msg
+    #         player_included[player] = False
+
+    for player in player_email:
+
+        # Close table
+        # player_email[player] += "</table><br>"
+
+        # Get details
+        event_entry_players = (
+            EventEntryPlayer.objects.exclude(payment_status="Paid")
+            .exclude(payment_status="Free")
+            .filter(player=player)
+            .filter(event_entry__event__congress=congress)
+            .exclude(event_entry__entry_status="Cancelled")
+        )
+
+        # Check status
+        if event_entry_players.exists():
+
+            # Outstanding payments due. Check for bank and cheque
+            if event_entry_players.filter(payment_type="bank-transfer").exists():
+                player_email[player] += (
+                    "<p>We are expecting payment by bank transfer.</p><h3>Bank Details</h3> %s<br><br>"
+                    % event_entry_players[
+                        0
+                    ].event_entry.event.congress.bank_transfer_details
+                )
+
+            if event_entry_players.filter(payment_type="cheque").exists():
+                player_email[player] += (
+                    "<p>We are expecting payment by cheque.</p><h3>Cheques</h3> %s<br><br>"
+                    % event_entry_players[0].event_entry.event.congress.cheque_details
+                )
+
+            if event_entry_players.filter(payment_type="off-system-pp").exists():
+                player_email[player] += (
+                    "<p>We are expecting payment from another pre-paid system. The convener will handle this for "
+                    "you.</p><br><br> "
+                )
+
+            player_email[player] += (
+                "You have outstanding payments to make to complete this entry. Click on the button below to view "
+                "your payments. Note that entries are not complete until all payments have been received.<br><br> "
+            )
+        else:
+            player_email[player] += (
+                "Your entries are all paid for however other players in the entry may still need to pay. You can "
+                "see overall entry status above. You have nothing more to do. If you need to view the entry or "
+                "change anything you can use the link below.<br><br> "
+            )
+
+        # build email
+        context = {
+            "name": player.first_name,
+            "title": "Event Entry - %s" % congress,
+            "email_body": player_email[player],
+            "link": "/events/view",
+            "link_text": "View Entry",
+            "subject": f"Event Entry - {congress}",
+        }
+
+        send_cobalt_email_with_template(to_address=player.email, context=context)
+
+    _send_notifications_notify_conveners(email_dic)
+
+    return email_dic
+
+
+def _send_notifications_build_email_dictionary(payment_user):
+    """sub process to build the email dictionary. Format is:
+
+    email_dic[congress][event][player]
+
+    """
     email_dic = {}
 
     basket_items = BasketItem.objects.filter(player=payment_user)
@@ -215,144 +373,33 @@ def _send_notifications(payment_user):
         for player in players:
             event = basket_item.event_entry.event
             congress = event.congress
-            if congress not in email_dic.keys():
+            if congress not in email_dic:
                 email_dic[congress] = {}
-            if event not in email_dic[congress].keys():
+            if event not in email_dic[congress]:
                 email_dic[congress][event] = []
             email_dic[congress][event].append(player)
 
-    # now build the emails
-    for congress in email_dic:
+    return email_dic
 
-        # build a list of all players so we can set them each up a custom email
-        player_email = {}  # email to send keyed by player
-        player_included = {}  # flag for whether player is in this event
 
-        for event in email_dic[congress].keys():
-            for player in email_dic[congress][event]:
-                if player.player not in player_email.keys():
-                    player_email[player.player] = ""
-                    player_included[player.player] = False
-
-        # build start of email for this congress
-        for player in player_email:
-            if player == payment_user:
-                player_email[
-                    player
-                ] = f"""
-                    <p>We have received your entry into <b>{congress.name}</b>
-                    """
-            else:
-                player_email[
-                    player
-                ] = f"""
-                    <p>{payment_user.full_name} has entered you into <b>{congress.name}</b>
-                    """
-
-            player_email[
-                player
-            ] += f"""
-                hosted by {congress.congress_master.org}.</p>
-                <table class="receipt" border="0" cellpadding="0" cellspacing="0">
-                <tr><td style='text-align: left'><b>Event</b><td style='text-align:
-                left'><b>Players</b><td style='text-align: right'><b>Entry Status</b></tr>
-                """
-
-        for event in email_dic[congress].keys():
-
-            sub_msg = (
-                f"<tr><td style='text-align: left' class='receipt-figure'>{event.event_name}<td style='text"
-                f"-align: left' class='receipt-figure'> "
-            )
-
-            for player in email_dic[congress][event]:
-                sub_msg += f"{player.player.full_name}<br>"
-                player_included[player.player] = True
-
-            sub_msg += f"<td style='text-align: right' class='receipt-figure'>{player.event_entry.entry_status}</tr>"
-
-            # add this row if player is in the event - no point otherwise
-            for player in player_email:
-
-                if player_included[player]:
-                    player_email[player] += sub_msg
-                    player_included[player] = False
-
-        for player in player_email:
-
-            # Close table
-            player_email[player] += "</table><br>"
-
-            # Get details
-            event_entry_players = (
-                EventEntryPlayer.objects.exclude(payment_status="Paid")
-                .exclude(payment_status="Free")
-                .filter(player=player)
-                .filter(event_entry__event__congress=congress)
-                .exclude(event_entry__entry_status="Cancelled")
-            )
-
-            # Check status
-            if event_entry_players.exists():
-
-                # Outstanding payments due. Check for bank and cheque
-                if event_entry_players.filter(payment_type="bank-transfer").exists():
-                    player_email[player] += (
-                        "<p>We are expecting payment by bank transfer.</p><h3>Bank Details</h3> %s<br><br>"
-                        % event_entry_players[
-                            0
-                        ].event_entry.event.congress.bank_transfer_details
-                    )
-
-                if event_entry_players.filter(payment_type="cheque").exists():
-                    player_email[player] += (
-                        "<p>We are expecting payment by cheque.</p><h3>Cheques</h3> %s<br><br>"
-                        % event_entry_players[
-                            0
-                        ].event_entry.event.congress.cheque_details
-                    )
-
-                if event_entry_players.filter(payment_type="off-system-pp").exists():
-                    player_email[player] += (
-                        "<p>We are expecting payment from another pre-paid system. The convener will handle this for "
-                        "you.</p><br><br> "
-                    )
-
-                player_email[player] += (
-                    "You have outstanding payments to make to complete this entry. Click on the button below to view "
-                    "your payments. Note that entries are not complete until all payments have been received.<br><br> "
-                )
-            else:
-                player_email[player] += (
-                    "Your entries are all paid for however other players in the entry may still need to pay. You can "
-                    "see overall entry status above. You have nothing more to do. If you need to view the entry or "
-                    "change anything you can use the link below.<br><br> "
-                )
-
-            # build email
-            context = {
-                "name": player.first_name,
-                "title": "Event Entry - %s" % congress,
-                "email_body": player_email[player],
-                "link": "/events/view",
-                "link_text": "View Entry",
-                "subject": f"Event Entry - {congress}",
-            }
-
-            send_cobalt_email_with_template(to_address=player.email, context=context)
+def _send_notifications_notify_conveners(email_dic):
+    """Notify conveners about an entry coming in"""
 
     # Notify conveners
     for congress in email_dic:
         for event in email_dic[congress].keys():
+
             player_string = (
                 f"<table><tr><td><b>Name</b><td><b>{GLOBAL_ORG} No.</b><td><b>Payment "
                 f"Method</b><td><b>Status</b></tr> "
             )
+
             for player in email_dic[congress][event]:
-                PAYMENT_TYPES_DICT = dict(PAYMENT_TYPES)
-                payment_type_str = PAYMENT_TYPES_DICT[player.payment_type]
+                payment_type_dict = dict(PAYMENT_TYPES)
+                payment_type_str = payment_type_dict[player.payment_type]
                 player_string += f"<tr><td>{player.player.full_name}<td>{player.player.system_number}<td>{payment_type_str}<td>{player.payment_status}</tr> "
             player_string += "</table>"
+
             message = "New entry received.<br><br> %s" % player_string
 
             notify_conveners(
@@ -363,18 +410,18 @@ def _send_notifications(payment_user):
             )
 
 
-def _clean_up(event_entry_players):
+def _clean_up(event_entries):
     """delete any left over basket items"""
 
     # Check if EntryEvent is now complete
-    for event_entry_player in event_entry_players:
-        event_entry_player.event_entry.check_if_paid()
+    for event_entry in event_entries:
+        event_entry.check_if_paid()
 
         # Any payments should remove the entry from the shopping basket
-        # basket = BasketItem.objects.filter(event_entry=event_entry)
-        #
-        # if basket:
-        #     basket.delete()
+        basket = BasketItem.objects.filter(event_entry=event_entry)
+
+        if basket:
+            basket.delete()
 
 
 def get_basket_for_user(user):
@@ -459,20 +506,8 @@ def convener_wishes_to_be_notified(congress, convener):
     )
 
 
-def notify_conveners(
-    congress, event, subject, email_msg, notify_msg=None, email_obj=None
-):
-    """Let conveners know about things that change. This can be called with an optional CobaltEmail object
-    in which case it will queue the messages to that. If not provided then it will create its own.
-    """
-
-    if not notify_msg:
-        notify_msg = subject
-
-    send_it = False
-    if not email_obj:
-        email_obj = CobaltEmail()
-        send_it = True
+def notify_conveners(congress, event, subject, email_msg):
+    """Let conveners know about things that change."""
 
     conveners = get_conveners_for_congress(congress)
     link = reverse("events:admin_event_summary", kwargs={"event_id": event.id})
@@ -487,25 +522,11 @@ def notify_conveners(
             "name": convener.first_name,
             "title": "Convener Msg: " + subject,
             "email_body": f"{email_msg}<br><br>",
-            "host": COBALT_HOSTNAME,
             "link": link,
             "link_text": "View Event",
         }
 
-        html_msg = render_to_string("notifications/email_with_button.html", context)
-
-        # send
-        contact_member_and_queue_email(
-            member=convener,
-            email_object=email_obj,
-            msg=notify_msg,
-            html_msg=html_msg,
-            link=link,
-            subject=subject,
-        )
-
-    if send_it:
-        email_obj.send()
+        send_cobalt_email_with_template(to_address=convener.email, context=context)
 
 
 def events_status_summary():
