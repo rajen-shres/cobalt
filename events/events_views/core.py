@@ -294,6 +294,9 @@ def _send_notifications(event_entry_players, payment_user):
     # Loop through by player, then congress and send email. 1 email per player per congress
     for player, value in struct.items():
         for congress in value:
+
+            print(struct[player][congress])
+
             # Use the template to build the email for this user and this congress
             html = loader.render_to_string(
                 "events/players/email/player_event_entry.html",
