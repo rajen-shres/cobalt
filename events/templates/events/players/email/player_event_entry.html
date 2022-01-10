@@ -14,9 +14,8 @@ hosted by {{ congress.congress_master.org }}.</p>
         <tr>
             <td style='text-align: left' class='receipt-figure'>{{ event.event_name }}</td>
             <td style='text-align: left' class='receipt-figure'>
-                {% for event, players in events %}
-                    {{ event }} - {{ players }}
-                    {{ player.player.full_name }}
+                {% for event in events %}
+                    {{ event }}
                 {% endfor %}
             </td>
         </tr>

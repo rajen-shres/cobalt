@@ -64,38 +64,63 @@ def events_payments_callback(status, route_payload):
     use it to update the status of payments.
 
     This gets called when the primary user who is entering the congress
-    has made a payment."""
+    has made a payment.
 
-    if status == "Success":
-        # Find who is making this payment
-        pbi = PlayerBatchId.objects.filter(batch_id=route_payload).first()
+    We can use the route_payload to find the payment_user (who entered and paid)
+    as well as to find all of the EventEntryPlayer records that have been paid for if this was successful.
 
-        # catch error
-        if pbi is None:
-            log_event(
-                user="Unknown",
-                severity="CRITICAL",
-                source="Events",
-                sub_source="events_payments_callback",
-                message=f"No matching player for route_payload: {route_payload}",
-            )
-            return
+    We also need to notify everyone who has been entered which will include people who were not
+    paid for by this payment. For that we use the basket of the primary user, which we then empty.
 
-        payment_user = pbi.player
-        pbi.delete()
+    """
 
-        event_entry_players = _get_event_entry_players_from_payload(route_payload)
-        event_entries = _get_event_entries_for_event_entry_players(event_entry_players)
-        _update_entries(event_entry_players, event_entries, payment_user)
-        _send_notifications(payment_user)
-        _clean_up(event_entries)
+    if status != "Success":
+        return
+
+    # Find who is making this payment
+    player_batch_id = PlayerBatchId.objects.filter(batch_id=route_payload).first()
+
+    # catch error
+    if player_batch_id is None:
+        log_event(
+            user="Unknown",
+            severity="CRITICAL",
+            source="Events",
+            sub_source="events_payments_callback",
+            message=f"No matching player for route_payload: {route_payload}",
+        )
+        return
+
+    payment_user = player_batch_id.player
+    player_batch_id.delete()
+
+    # Get players and entries that have been paid for
+    paid_event_entry_players = _get_event_entry_players_from_payload(route_payload)
+    paid_event_entries = _get_event_entries_for_event_entry_players(
+        paid_event_entry_players
+    )
+
+    _update_entries(paid_event_entry_players, paid_event_entries, payment_user)
+
+    # Get all players that are included in this bunch of entries
+    notify_event_entry_players = _get_event_entry_players_from_basket(payment_user)
+    _send_notifications(notify_event_entry_players, payment_user)
+    _clean_up(paid_event_entries)
 
 
 def _get_event_entry_players_from_payload(route_payload):
-    """Returns the entries that are associated with the route_payload. Route_payload is sent as a paramter
-    to Stripe so we when a payment is made we can find the corresponding entries."""
+    """Returns the entries that are associated with the route_payload. Route_payload is sent as a parameter
+    to Stripe so we when a payment is made we can find the corresponding entries.
+
+    Note: These are the evententry_player records that were paid for, not the total entries.
+          There could be other entries in this that were paid for using a different method."""
 
     return EventEntryPlayer.objects.filter(batch_id=route_payload)
+
+
+def _get_event_entry_players_from_basket(payment_user):
+    """Get all of the EventEntryPlayer records that need to be notified"""
+    return []
 
 
 def _get_event_entries_for_event_entry_players(event_entry_players):
@@ -217,20 +242,67 @@ def _update_entries_process_their_system_dollars(event_entries):
                 ).save()
 
 
-def _send_notifications(payment_user):
-    """Send the notification emails for a particular set of events that has just been paid for"""
+def _send_notifications(event_entry_players, payment_user):
+    """Send the notification emails for a particular set of events that has just been paid for
 
-    # Go through the basket and notify people
-    # We send one email per congress
-    # email_dic will be email_dic[congress][event][player]
+    Args:
+        event_entry_players: queryset of EventEntryPlayer. This is a list of people who have
+                             just been entered in events and need to be informed
+        payment_user: User. The person who paid
 
-    email_dic = _send_notifications_build_email_dictionary(payment_user)
+    """
 
-    # now build the emails, remember, one email per congress per person
-    for congress in email_dic:
-        _send_notifications_populate_email_dictionary_by_congress(
-            email_dic, congress, payment_user
-        )
+    # First we want to structure our data to be player.congress.event.event_entry_player
+    struct = {}
+
+    print("EEPlayers:", event_entry_players)
+
+    for event_entry_player in event_entry_players:
+        player = event_entry_player.player
+        event = event_entry_player.event_entry.event
+        congress = event.congress
+
+        # Add if not present struct[player]
+        if player not in struct:
+            struct[player] = {}
+
+        # Add if not present struct[player][congress]
+        if congress not in struct[player]:
+            struct[player][congress] = {}
+
+        # Add if not present struct[player][congress][event]
+        if event not in struct[player][congress]:
+            struct[player][congress][event] = []
+
+        # Add players to struct[player][congress][event][event_entry_player]
+        struct[player][congress][event].append(event_entry_player)
+
+    print(struct)
+
+    for player in struct:
+        print(player)
+
+        #
+        # # Use the template to build the email for this user and this congress
+        # html = loader.render_to_string(
+        #     "events/players/email/player_event_entry.html",
+        #     {
+        #         "player": player,
+        #         "congress_struct": congress_struct,
+        #         "payment_user": payment_user,
+        #     },
+        # )
+        #
+        # context = {
+        #     "name": player.first_name,
+        #     "title": f"Event Entry - {congress}",
+        #     "email_body": html,
+        #     "link": "/events/view",
+        #     "link_text": "View Entry",
+        #     "subject": f"Event Entry - {congress}",
+        # }
+        #
+        # send_cobalt_email_with_template(to_address=player.email, context=context)
 
 
 def _send_notifications_populate_email_dictionary_by_congress(
@@ -242,7 +314,6 @@ def _send_notifications_populate_email_dictionary_by_congress(
     Args:
         email_dic: dictionary
 
-    Returns: email_dic
     """
 
     # build a list of all players so we can set them each up with a custom email
@@ -352,8 +423,6 @@ def _send_notifications_populate_email_dictionary_by_congress(
         send_cobalt_email_with_template(to_address=player.email, context=context)
 
     _send_notifications_notify_conveners(email_dic)
-
-    return email_dic
 
 
 def _send_notifications_build_email_dictionary(payment_user):
