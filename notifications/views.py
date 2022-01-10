@@ -227,10 +227,7 @@ def send_cobalt_email(to_address, subject, message, member=None, reply_to=None):
 
     plain_msg = strip_tags(message)
 
-    if reply_to:
-        headers = {"Reply-to": reply_to}
-    else:
-        headers = None
+    headers = {"Reply-to": reply_to} if reply_to else None
 
     po_email.send(
         sender=DEFAULT_FROM_EMAIL,
@@ -256,7 +253,6 @@ def send_cobalt_email_with_template(
     Args:
         to_address (str or list): who to send to
         context (dict): values to substitute into email template
-
         template (str or EmailTemplate instance): it is more efficient to use an instance for multiple calls
         sender (str): who to send from (None will use default from settings file)
         priority (str): Django Post Office priority

@@ -3,7 +3,7 @@
 <!doctype html>
 <html lang="en">
 
-    {% include "notifications/po_include_head.html" %}
+    {% include "notifications/django_post_office_core_templates/po_include_head.html" %}
 
     <body>
         <table border="0" cellpadding="0" cellspacing="0" class="body">
@@ -49,22 +49,6 @@
                                             <td>
                                                 <p>Hi {{ name }},</p>
                                                 {{ email_body|safe }}
-                                                <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td align="center">
-                                                                <table border="0" cellpadding="0" cellspacing="0">
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <td> <a href="http://{{ host }}{{ link }}" target="_blank">{{ link_text }}</a> </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                                <p>{{ additional_words }}</p>
                                             </td>
                                         </tr>
                                     </table>
@@ -74,7 +58,7 @@
                             <!-- END MAIN CONTENT AREA -->
                         </table>
 
-                        {% include "notifications/po_include_footer.html" %}
+                        {% include "notifications/django_post_office_core_templates/po_include_footer.html" %}
 
                         <!-- END CENTERED WHITE CONTAINER --></div>
                 </td>

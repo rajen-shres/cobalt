@@ -9,7 +9,11 @@ from cobalt.settings import COBALT_HOSTNAME, BRIDGE_CREDITS, GLOBAL_ORG
 from events.models import PAYMENT_TYPES
 from logs.views import log_event
 from notifications.models import BlockNotification
-from notifications.views import CobaltEmail, contact_member_and_queue_email
+from notifications.views import (
+    CobaltEmail,
+    contact_member_and_queue_email,
+    send_cobalt_email_with_template,
+)
 from rbac.core import rbac_get_users_with_role
 from events.models import (
     BasketItem,
@@ -47,11 +51,12 @@ def events_payments_secondary_callback(status, route_payload, tran):
             .event_entry.primary_entrant
         )
 
-        event_entries = _update_entries(route_payload, primary_entrant)
-        _clean_up(event_entries)
+        event_entry_players = _get_event_entry_players_from_payload(route_payload)
+        _update_entries(event_entry_players, primary_entrant)
+        _clean_up(event_entry_players)
 
 
-def events_payments_callback(status, route_payload, tran):
+def events_payments_callback(status, route_payload):
     """This gets called when a payment has been made for us.
 
     We supply the route_payload when we ask for the payment to be made and
@@ -78,17 +83,25 @@ def events_payments_callback(status, route_payload, tran):
         payment_user = pbi.player
         pbi.delete()
 
-        event_entries = _update_entries(route_payload, payment_user)
-        _send_notifications(route_payload, payment_user)
-        _clean_up(event_entries)
+        event_entry_players = _get_event_entry_players_from_payload(route_payload)
+        _update_entries(event_entry_players, payment_user)
+        _send_notifications(payment_user)
+        _clean_up(event_entry_players)
 
 
-def _update_entries(route_payload, payment_user):
+def _get_event_entry_players_from_payload(route_payload):
+    """Returns the entries that are associated with the route_payload. Route_payload is sent as a paramter
+    to Stripe so we when a payment is made we can find the corresponding entries."""
+
+    return EventEntryPlayer.objects.filter(batch_id=route_payload)
+
+
+def _update_entries(event_entry_players, payment_user):
     """Update the database to reflect changes and make payments for
     other members if we have access."""
 
     # Update EntryEventPlayer objects
-    event_entry_players = EventEntryPlayer.objects.filter(batch_id=route_payload)
+
     for event_entry_player in event_entry_players:
         # this could be a partial payment
         amount = event_entry_player.entry_fee - event_entry_player.payment_received
@@ -185,10 +198,8 @@ def _update_entries(route_payload, payment_user):
     return event_entries
 
 
-def _send_notifications(route_payload, payment_user):
-    """Send the notification emails"""
-
-    email_sender = CobaltEmail()
+def _send_notifications(payment_user):
+    """Send the notification emails for a particular set of events that has just been paid for"""
 
     # Go through the basket and notify people
     # We send one email per congress
@@ -211,7 +222,7 @@ def _send_notifications(route_payload, payment_user):
             email_dic[congress][event].append(player)
 
     # now build the emails
-    for congress in email_dic.keys():
+    for congress in email_dic:
 
         # build a list of all players so we can set them each up a custom email
         player_email = {}  # email to send keyed by player
@@ -224,7 +235,7 @@ def _send_notifications(route_payload, payment_user):
                     player_included[player.player] = False
 
         # build start of email for this congress
-        for player in player_email.keys():
+        for player in player_email:
             if player == payment_user:
                 player_email[
                     player
@@ -261,13 +272,13 @@ def _send_notifications(route_payload, payment_user):
             sub_msg += f"<td style='text-align: right' class='receipt-figure'>{player.event_entry.entry_status}</tr>"
 
             # add this row if player is in the event - no point otherwise
-            for player in player_email.keys():
+            for player in player_email:
 
                 if player_included[player]:
                     player_email[player] += sub_msg
                     player_included[player] = False
 
-        for player in player_email.keys():
+        for player in player_email:
 
             # Close table
             player_email[player] += "</table><br>"
@@ -323,25 +334,15 @@ def _send_notifications(route_payload, payment_user):
                 "name": player.first_name,
                 "title": "Event Entry - %s" % congress,
                 "email_body": player_email[player],
-                "host": COBALT_HOSTNAME,
                 "link": "/events/view",
                 "link_text": "View Entry",
+                "subject": f"Event Entry - {congress}",
             }
 
-            html_msg = render_to_string("notifications/email_with_button.html", context)
-
-            # Queue email and notify user
-            contact_member_and_queue_email(
-                member=player,
-                email_object=email_sender,
-                msg="Entry to %s" % congress,
-                html_msg=html_msg,
-                link="/events/view",
-                subject="Event Entry - %s" % congress,
-            )
+            send_cobalt_email_with_template(to_address=player.email, context=context)
 
     # Notify conveners
-    for congress in email_dic.keys():
+    for congress in email_dic:
         for event in email_dic[congress].keys():
             player_string = (
                 f"<table><tr><td><b>Name</b><td><b>{GLOBAL_ORG} No.</b><td><b>Payment "
@@ -361,39 +362,19 @@ def _send_notifications(route_payload, payment_user):
                 message,
             )
 
-    email_sender.send()
 
-    # empty basket - if user added things after they went to the
-    # checkout screen then they will be lost
-    # basket_items.delete()
-    #
-    # EventLog(
-    #     event=event,
-    #     actor=payment_user,
-    #     action=f"Entered event",
-    # ).save()
-    #
-    # log_event(
-    #     user=payment_user,
-    #     severity="INFO",
-    #     source="Events",
-    #     sub_source="events_user",
-    #     message=f"Entered event {event.href}",
-    # )
-
-
-def _clean_up(event_entries):
+def _clean_up(event_entry_players):
     """delete any left over basket items"""
 
     # Check if EntryEvent is now complete
-    for event_entry in event_entries:
-        event_entry.check_if_paid()
+    for event_entry_player in event_entry_players:
+        event_entry_player.event_entry.check_if_paid()
 
         # Any payments should remove the entry from the shopping basket
-        basket = BasketItem.objects.filter(event_entry=event_entry)
-
-        if basket:
-            basket.delete()
+        # basket = BasketItem.objects.filter(event_entry=event_entry)
+        #
+        # if basket:
+        #     basket.delete()
 
 
 def get_basket_for_user(user):
