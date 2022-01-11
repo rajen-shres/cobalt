@@ -1,0 +1,24 @@
+{#This is the body of the email to notify conveners about people entering events#}
+
+<p>{{ event_entry.primary_entrant.full_name }} has entered this event.</p>
+
+<table>
+    <tr>
+        <td><b>Name</b></td>
+        <td><b>ABF No.</b></td>
+        <td><b>Payment Method</b></td>
+        <td><b>Status</b>
+        </tr>
+
+        {% for player in players %}
+            <tr>
+                <td>{{ player.player.full_name }}</td>
+                <td>{{ player.player.system_number }}</td>
+                <td>{{ player.get_payment_type_display }}</td>
+                <td>{{ player.payment_status }}</td>
+            </tr>
+
+        {% endfor %}
+    </table>
+
+

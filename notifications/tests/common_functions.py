@@ -28,18 +28,23 @@ def check_email_sent(
 
     emails = Email.objects.filter(id__gt=last_email - email_count)
 
+    output = f"Looked through last {email_count} emails for an email with "
+
     if email_address:
         emails = emails.filter(to=email_address)
+        output += f"to={email_address} "
 
     if subject_search:
         emails = emails.filter(subject__icontains=subject_search)
+        output += f"subject has '{subject_search}' "
 
     if body_search:
         emails = emails.filter(html_message__icontains=body_search)
+        output += f"body contains '{body_search} "
 
     ok = emails.exists()
 
-    output = f"Looked for email with to={email_address} subject has '{subject_search}' and body contains '{body_search}. Result was {ok}'"
+    output += f"Result was {ok}"
 
     manager.save_results(
         status=ok,

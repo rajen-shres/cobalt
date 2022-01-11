@@ -1,0 +1,16 @@
+{#This is the body of the email for people withdrawing from events#}
+
+{% load cobalt_tags %}
+
+{% if member == user %}
+    <p>You have
+{% else %}
+    <p>{{ user.full_name }} has
+{% endif %}
+cancelled your entry to {{ event_entry.event }}.</p>
+
+{% if value > 0 %}
+    <p>
+        You had already paid {{ value|cobalt_credits }} which have been refunded to your Bridge Credits account.
+    </p>
+{% endif %}

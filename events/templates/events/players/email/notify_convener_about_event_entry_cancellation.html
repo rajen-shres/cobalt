@@ -1,0 +1,27 @@
+{% load humanize %}
+{#This is the body of the email to notify conveners about people cancelling entries from events#}
+
+<p>{{ user.full_name }} has cancelled this event entry.</p>
+
+<table>
+    <tr>
+        <td><b>Name</b></td>
+        <td><b>ABF No.</b></td>
+        <td><b>Payment Method</b></td>
+        <td><b>Status</b>
+            <td><b>Payment Received</b>
+            </tr>
+
+            {% for player in event_entry_players %}
+                <tr>
+                    <td>{{ player.player.full_name }}</td>
+                    <td>{{ player.player.system_number }}</td>
+                    <td>{{ player.get_payment_type_display }}</td>
+                    <td>{{ player.payment_status }}</td>
+                    <td>{{ player.payment_received|floatformat:2|intcomma }}</td>
+                </tr>
+
+            {% endfor %}
+        </table>
+
+

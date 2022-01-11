@@ -6,6 +6,7 @@ import uuid
 import pytz
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseNotFound
+from django.template import loader
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -15,7 +16,7 @@ from django.db import transaction
 
 from logs.views import log_event
 from utils.templatetags.cobalt_tags import cobalt_credits
-from notifications.views import contact_member
+from notifications.views import contact_member, send_cobalt_email_with_template
 from accounts.models import User, TeamMate
 from rbac.core import (
     rbac_user_allowed_for_model,
@@ -461,11 +462,7 @@ def _checkout_perform_action(request):
 
     else:  # no payment required go straight to the callback
 
-        # If there is nothing to pay then we can remove this from the users shopping basket now. Basket will be empty
-        # If something is to be paid then the callback will handle this, but if nothing to pay we need to do it here
-        # BasketItem.objects.filter(player=request.user).delete()
-
-        events_payments_callback("Success", unique_id, None)
+        events_payments_callback("Success", unique_id)
         messages.success(
             request, "Entry successful", extra_tags="cobalt-message-success"
         )
@@ -821,47 +818,16 @@ def edit_event_entry(request, congress_id, event_id, edit_flag=None, pay_status=
 def delete_event_entry(request, event_entry_id):
     """Delete an entry to an event"""
 
+    # Get data
     event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
+    event_entry_players = EventEntryPlayer.objects.filter(
+        event_entry=event_entry
+    ).order_by("-pk")
 
-    # check if already cancelled
-    if event_entry.entry_status == "Cancelled":
-        error = "This entry is already in a cancelled state."
-        title = "This entry is already cancelled"
-        return render(
-            request, "events/players/error.html", {"title": title, "error": error}
-        )
-
-    # check if in future
-    if event_entry.event.start_date() < datetime.now().date():
-        error = "You cannot change an entry after the start date of the event."
-        title = "This Event has already started"
-        return render(
-            request, "events/players/error.html", {"title": title, "error": error}
-        )
-
-    # check if passed the automatic refund date
-    if (
-        event_entry.event.congress.automatic_refund_cutoff
-        and event_entry.event.congress.automatic_refund_cutoff < datetime.now().date()
-    ):
-        error = "You need to contact the tournament organiser directly to make any changes to this entry."
-        title = "It is too near to the start of this event"
-        return render(
-            request, "events/players/error.html", {"title": title, "error": error}
-        )
-
-    event_entry_players = EventEntryPlayer.objects.filter(event_entry=event_entry)
-
-    event_entry_players_me = event_entry_players.filter(player=request.user)
-
-    if not event_entry_players_me and event_entry.primary_entrant != request.user:
-        error = """You are not the person who made this entry or one of the players.
-                   You cannot change this entry."""
-
-        title = "You do not have permission"
-        return render(
-            request, "events/players/error.html", {"title": title, "error": error}
-        )
+    # Validate
+    status, response = _delete_event_entry_validation(request, event_entry)
+    if not status:
+        return response
 
     # get total paid
     amount = event_entry_players.aggregate(Sum("payment_received"))
@@ -870,229 +836,11 @@ def delete_event_entry(request, event_entry_id):
     # check if still in basket
     basket_item = BasketItem.objects.filter(event_entry=event_entry).first()
 
+    # handle a post request
     if request.method == "POST":
-
-        # This was never a real entry - delete everything
-        if basket_item:
-            EventLog(
-                event=event_entry.event,
-                actor=request.user,
-                action="Deleted event from cart",
-            ).save()
-            messages.success(
-                request,
-                "Event deleted from shopping cart",
-                extra_tags="cobalt-message-success",
-            )
-            basket_item.delete()
-            event_entry.delete()
-
-            log_event(
-                user=request.user,
-                severity="INFO",
-                source="Events",
-                sub_source="events_delete_from_basket",
-                message=f"Entry into {event_entry.event} by {request.user.href} deleted from basket",
-            )
-
-            return redirect("events:view_events")
-
-        event_entry.entry_status = "Cancelled"
-        event_entry.save()
-
-        EventLog(
-            event=event_entry.event,
-            actor=request.user,
-            action=f"Event entry {event_entry.id} cancelled",
-            event_entry=event_entry,
-        ).save()
-
-        log_event(
-            user=request.user.full_name,
-            severity="INFO",
-            source="Events",
-            sub_source="events_delete_entry",
-            message=f"Entry into {event_entry.event.href} by {request.user.href} deleted",
+        return _delete_event_entry_handle_post(
+            request, event_entry, event_entry_players, basket_item
         )
-
-        messages.success(
-            request,
-            f"Event entry for {event_entry.event} deleted",
-            extra_tags="cobalt-message-success",
-        )
-
-        # Notify conveners
-        player_string = f"<table><tr><td><b>Name</b><td><b>{GLOBAL_ORG} No.</b><td><b>Payment Method</b><td><b>Status</b></tr>"
-        PAYMENT_TYPES_DICT = dict(PAYMENT_TYPES)
-        for event_entry_player in event_entry_players:
-            payment_type_str = PAYMENT_TYPES_DICT.get(
-                event_entry_player.payment_type, event_entry_player.payment_type
-            )
-            player_string += f"<tr><td>{event_entry_player.player.full_name}<td>{event_entry_player.player.system_number}<td>{payment_type_str}<td>{event_entry_player.payment_status}</tr>"
-        player_string += "</table>"
-        message = "Entry cancelled.<br><br> %s" % player_string
-        notify_conveners(
-            event_entry.event.congress,
-            event_entry.event,
-            f"Entry cancelled to {event_entry.event.event_name}",
-            message,
-        )
-
-        # dict of people getting money and what they are getting
-        refunds = {}
-
-        # list of people getting cancelled
-        cancelled = []
-
-        # Update records and return paid money
-        for event_entry_player in event_entry_players:
-
-            # check for refunds
-            amount = float(event_entry_player.payment_received)
-            if amount > 0.0:
-                event_entry_player.payment_received = Decimal(0)
-                event_entry_player.save()
-
-                amount_str = "%.2f credits" % amount
-
-                # Check for blank paid_by - can happen if manually edited
-                if not event_entry_player.paid_by:
-                    event_entry_player.paid_by = event_entry_player.player
-
-                # Check for TBA - if set electrocute the Convener and pay to primary entrant
-                if event_entry_player.paid_by.id == TBA_PLAYER:
-                    event_entry_player.paid_by = event_entry.primary_entrant
-
-                # create payments in org account
-                update_organisation(
-                    organisation=event_entry.event.congress.congress_master.org,
-                    amount=-amount,
-                    description=f"Refund to {event_entry_player.paid_by} for {event_entry.event.event_name}",
-                    source="Events",
-                    log_msg=f"Refund to {event_entry_player.paid_by.href} for {event_entry.event.href}",
-                    sub_source="refund",
-                    payment_type="Refund",
-                    member=event_entry_player.paid_by,
-                )
-
-                # create payment for member
-                update_account(
-                    organisation=event_entry.event.congress.congress_master.org,
-                    amount=amount,
-                    description=f"Refund for {event_entry.event}",
-                    source="Events",
-                    log_msg=f"Refund from {event_entry.event.congress.congress_master.org} for {event_entry.event.event_name}",
-                    sub_source="refund",
-                    payment_type="Refund",
-                    member=event_entry_player.paid_by,
-                )
-
-                # Log it
-                EventLog(
-                    event=event_entry.event,
-                    actor=request.user,
-                    action=f"Refund of {amount_str} to {event_entry_player.paid_by}",
-                    event_entry=event_entry,
-                ).save()
-
-                log_event(
-                    user=request.user,
-                    severity="INFO",
-                    source="Events",
-                    sub_source="events_refund",
-                    message=f"Refund of {amount_str} to {event_entry_player.player.href} for {event_entry_player.event_entry.event.href}",
-                )
-
-                messages.success(
-                    request,
-                    f"Refund of {amount_str} to {event_entry_player.paid_by} successful",
-                    extra_tags="cobalt-message-success",
-                )
-
-                # record refund amount
-                if event_entry_player.paid_by in refunds:
-                    refunds[event_entry_player.paid_by] += amount
-                else:
-                    refunds[event_entry_player.paid_by] = amount
-
-            # also record players getting cancelled
-            if event_entry_player.player not in cancelled:
-                cancelled.append(event_entry_player.player)
-
-        # new loop, refunds have been made so notify people
-        for member in refunds:
-
-            # Notify users
-
-            # tailor message to recipient
-            if member == request.user:
-                start_msg = "You have"
-            else:
-                start_msg = f"{request.user.full_name} has"
-
-            # cancelled and refunds are not necessarily the same
-            # someone can enter an event and then be swapped out
-            if member in cancelled:
-                msg = (
-                    f"{start_msg} cancelled your entry to {event_entry.event}.<br><br>"
-                )
-                cancelled.remove(member)  # already taken care of
-            else:
-                msg = f"{start_msg} cancelled an entry to {event_entry.event} which you paid for.<br><br>"
-
-            msg += f"You have been refunded {refunds[member]} credits.<br><br>"
-
-            context = {
-                "name": member.first_name,
-                "title": "Event Entry - %s Cancelled" % event_entry.event.congress,
-                "email_body": msg,
-                "host": COBALT_HOSTNAME,
-                "link": "/events/view",
-                "link_text": "View Entry",
-            }
-
-            html_msg = render_to_string("notifications/email.html", context)
-
-            # send
-            contact_member(
-                member=member,
-                msg="Entry to %s" % event_entry.event.congress,
-                contact_type="Email",
-                html_msg=html_msg,
-                link="/events/view",
-                subject="Entry Cancelled - %s" % event_entry.event,
-            )
-
-        # There can be people left on cancelled who didn't pay for their entry - let them know
-        for member in cancelled:
-
-            if member == request.user:
-                msg = f"You have cancelled your entry to {event_entry.event}.<br><br>"
-            else:
-                msg = f"{request.user.full_name} has cancelled your entry to {event_entry.event}.<br><br>"
-
-            context = {
-                "name": member.first_name,
-                "title": "Event Entry - %s Cancelled" % event_entry.event.congress,
-                "email_body": msg,
-                "host": COBALT_HOSTNAME,
-                "link": "/events/view",
-                "link_text": "View Entry",
-            }
-
-            html_msg = render_to_string("notifications/email.html", context)
-
-            # send
-            contact_member(
-                member=member,
-                msg="Entry to %s" % event_entry.event.congress,
-                contact_type="Email",
-                html_msg=html_msg,
-                link="/events/view",
-                subject="Entry Cancelled - %s" % event_entry.event,
-            )
-
-        return redirect("events:view_events")
 
     return render(
         request,
@@ -1104,6 +852,273 @@ def delete_event_entry(request, event_entry_id):
             "basket_item": basket_item,
         },
     )
+
+
+def _delete_event_entry_validation(request, event_entry):
+    """Perform validation for the delete entry screen"""
+
+    # check if already cancelled
+    if event_entry.entry_status == "Cancelled":
+        error = "This entry is already in a cancelled state."
+        title = "This entry is already cancelled"
+        return False, render(
+            request, "events/players/error.html", {"title": title, "error": error}
+        )
+
+    # check if in future
+    if event_entry.event.start_date() < datetime.now().date():
+        error = "You cannot change an entry after the start date of the event."
+        title = "This Event has already started"
+        return False, render(
+            request, "events/players/error.html", {"title": title, "error": error}
+        )
+
+    # check if passed the automatic refund date
+    if (
+        event_entry.event.congress.automatic_refund_cutoff
+        and event_entry.event.congress.automatic_refund_cutoff < datetime.now().date()
+    ):
+        error = "You need to contact the tournament organiser directly to make any changes to this entry."
+        title = "It is too near to the start of this event"
+        return False, render(
+            request, "events/players/error.html", {"title": title, "error": error}
+        )
+
+    # Check if this is their entry to edit
+    if not event_entry.user_can_change(request.user):
+        error = """You are not the person who made this entry or one of the players.
+                   You cannot change this entry."""
+
+        title = "You do not have permission"
+        return False, render(
+            request, "events/players/error.html", {"title": title, "error": error}
+        )
+
+    # If we got here it is okay
+    return True, True
+
+
+def _delete_event_entry_handle_post(
+    request, event_entry, event_entry_players, basket_item
+):
+    """Handle a user posting a delete request to the delete event entry screen"""
+
+    # If in basket and no payments then delete
+    if basket_item and not event_entry_players.exclude(payment_received=0).exists():
+        return _delete_event_entry_handle_post_basket(event_entry, request, basket_item)
+
+    event_entry.entry_status = "Cancelled"
+    event_entry.save()
+
+    EventLog(
+        event=event_entry.event,
+        actor=request.user,
+        action=f"Event entry {event_entry.id} cancelled",
+        event_entry=event_entry,
+    ).save()
+
+    messages.success(
+        request,
+        f"Event entry for {event_entry.event} deleted",
+        extra_tags="cobalt-message-success",
+    )
+
+    # Notify conveners
+    _delete_event_entry_handle_post_notify_conveners(
+        request, event_entry, event_entry_players
+    )
+
+    # Handle refunds
+    refunds, cancelled = _delete_event_entry_handle_post_refunds(
+        request, event_entry, event_entry_players
+    )
+
+    # Notify people
+    _delete_event_entry_handle_post_notify_users(
+        request, event_entry, event_entry_players, refunds, cancelled
+    )
+
+    return redirect("events:view_events")
+
+
+def _delete_event_entry_handle_post_basket(event_entry, request, basket_item):
+    """Delete an entry that was in the basket and had no payments made"""
+
+    EventLog(
+        event=event_entry.event,
+        actor=request.user,
+        action="Deleted event from cart",
+    ).save()
+    messages.success(
+        request,
+        "Event deleted from shopping cart",
+        extra_tags="cobalt-message-success",
+    )
+    basket_item.delete()
+    event_entry.delete()
+
+    return redirect("events:view_events")
+
+
+def _delete_event_entry_handle_post_notify_conveners(
+    request, event_entry, event_entry_players
+):
+    """Notify conveners when entry is deleted"""
+
+    html = loader.render_to_string(
+        "events/players/email/notify_convener_about_event_entry_cancellation.html",
+        {
+            "event_entry": event_entry,
+            "event_entry_players": event_entry_players,
+            "user": request.user,
+        },
+    )
+
+    notify_conveners(
+        event_entry.event.congress,
+        event_entry.event,
+        f"Entry cancelled to {event_entry.event.event_name}",
+        html,
+    )
+
+
+def _delete_event_entry_handle_post_refunds(request, event_entry, event_entry_players):
+    """Handle refunds to players who withdraw from events"""
+
+    # dict of people getting money and what they are getting
+    refunds = {}
+
+    # list of people getting cancelled
+    cancelled = []
+
+    # Update records and return paid money
+    for event_entry_player in event_entry_players:
+
+        # check for refunds
+        amount = float(event_entry_player.payment_received)
+        if amount > 0.0:
+            event_entry_player.payment_received = Decimal(0)
+            event_entry_player.save()
+
+            amount_str = "%.2f credits" % amount
+
+            # Check for blank paid_by - can happen if manually edited
+            if not event_entry_player.paid_by:
+                event_entry_player.paid_by = event_entry_player.player
+
+            # Check for TBA - if set electrocute the Convener and pay to primary entrant
+            if event_entry_player.paid_by.id == TBA_PLAYER:
+                event_entry_player.paid_by = event_entry.primary_entrant
+
+            # create payments in org account
+            update_organisation(
+                organisation=event_entry.event.congress.congress_master.org,
+                amount=-amount,
+                description=f"Refund to {event_entry_player.paid_by} for {event_entry.event.event_name}",
+                source="Events",
+                log_msg=f"Refund to {event_entry_player.paid_by.href} for {event_entry.event.href}",
+                sub_source="refund",
+                payment_type="Refund",
+                member=event_entry_player.paid_by,
+            )
+
+            # create payment for member
+            update_account(
+                organisation=event_entry.event.congress.congress_master.org,
+                amount=amount,
+                description=f"Refund for {event_entry.event}",
+                source="Events",
+                log_msg=f"Refund from {event_entry.event.congress.congress_master.org} for {event_entry.event.event_name}",
+                sub_source="refund",
+                payment_type="Refund",
+                member=event_entry_player.paid_by,
+            )
+
+            # Log it
+            EventLog(
+                event=event_entry.event,
+                actor=request.user,
+                action=f"Refund of {amount_str} to {event_entry_player.paid_by}",
+                event_entry=event_entry,
+            ).save()
+
+            messages.success(
+                request,
+                f"Refund of {amount_str} to {event_entry_player.paid_by} successful",
+                extra_tags="cobalt-message-success",
+            )
+
+            # record refund amount
+            if event_entry_player.paid_by in refunds:
+                refunds[event_entry_player.paid_by] += amount
+            else:
+                refunds[event_entry_player.paid_by] = amount
+
+        # also record players getting cancelled
+        if event_entry_player.player not in cancelled:
+            cancelled.append(event_entry_player.player)
+
+    return refunds, cancelled
+
+
+def _delete_event_entry_handle_post_notify_users(
+    request, event_entry, event_entry_players, refunds, cancelled
+):
+    """After the refunds have been done and the entry cancelled we let them know"""
+
+    for member, value in refunds.items():
+
+        # cancelled and refunds are not necessarily the same
+        # someone can enter an event and then be swapped out
+        if member in cancelled:
+            cancelled.remove(member)  # already taken care of
+
+        html = loader.render_to_string(
+            "events/players/email/player_event_entry_cancellation.html",
+            {
+                "event_entry": event_entry,
+                "event_entry_players": event_entry_players,
+                "user": request.user,
+                "member": member,
+                "value": value,
+            },
+        )
+
+        context = {
+            "name": member.first_name,
+            "title": "Event Entry - %s Cancelled" % event_entry.event.congress,
+            "email_body": html,
+            "link": "/events/view",
+            "link_text": "View Congress Entries",
+            "subject": "Entry Cancelled - %s" % event_entry.event,
+        }
+
+        send_cobalt_email_with_template(to_address=member.email, context=context)
+
+    # There can be people left on cancelled who didn't pay for their entry - let them know
+    for member in cancelled:
+
+        html = loader.render_to_string(
+            "events/players/email/player_event_entry_cancellation.html",
+            {
+                "event_entry": event_entry,
+                "event_entry_players": event_entry_players,
+                "user": request.user,
+                "member": member,
+                "value": 0,
+            },
+        )
+
+        context = {
+            "name": member.first_name,
+            "title": "Event Entry - %s Cancelled" % event_entry.event.congress,
+            "email_body": html,
+            "link": "/events/view",
+            "link_text": "View Congress Entries",
+            "subject": "Entry Cancelled - %s" % event_entry.event,
+        }
+
+        send_cobalt_email_with_template(to_address=member.email, context=context)
 
 
 @login_required()

@@ -795,7 +795,7 @@ class EventEntry(models.Model):
             EventEntryPlayer.objects.filter(event_entry=self)
             .filter(player=member)
             .exclude(event_entry__entry_status="Cancelled")
-            .count()
+            .exists()
         )
 
         return allowed
