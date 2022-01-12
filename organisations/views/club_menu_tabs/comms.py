@@ -8,7 +8,10 @@ from django.urls import reverse
 from accounts.models import User, UnregisteredUser
 from notifications.forms import EmailForm
 from notifications.models import Snooper, EmailBatchRBAC
-from notifications.views import create_rbac_batch_id, send_cobalt_email_with_template
+from notifications.notifications_views.core import (
+    send_cobalt_email_with_template,
+    create_rbac_batch_id,
+)
 from organisations.decorators import check_club_menu_access
 from organisations.forms import TagForm, TagMultiForm, FrontPageForm
 from organisations.models import (

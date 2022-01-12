@@ -10,7 +10,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone, dateformat
 
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS, COBALT_HOSTNAME
-from notifications.views import contact_member
+from notifications.notifications_views.core import contact_member
 
 from organisations.models import Organisation
 from organisations.views.general import org_balance

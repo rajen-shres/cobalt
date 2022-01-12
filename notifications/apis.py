@@ -6,7 +6,7 @@ from fcm_django.models import FCMDevice
 import api.apis as api_app
 from cobalt.settings import GLOBAL_ORG, TIME_ZONE
 from notifications.models import RealtimeNotification
-from notifications.views import send_cobalt_bulk_sms
+from notifications.notifications_views.core import send_cobalt_bulk_sms
 
 TZ = pytz.timezone(TIME_ZONE)
 

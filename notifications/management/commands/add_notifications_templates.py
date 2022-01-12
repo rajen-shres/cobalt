@@ -16,6 +16,11 @@ SYSTEM_EMAIL_TEMPLATES = [
         "po_email_no_button.html",
         "This is the main system email without a button.",
     ),
+    (
+        "two headings",
+        "po_email_with_two_headings.html",
+        "System email with a heading and a sub-heading",
+    ),
 ]
 
 

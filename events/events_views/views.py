@@ -16,7 +16,10 @@ from django.db import transaction
 
 from logs.views import log_event
 from utils.templatetags.cobalt_tags import cobalt_credits
-from notifications.views import contact_member, send_cobalt_email_with_template
+from notifications.notifications_views.core import (
+    send_cobalt_email_with_template,
+    contact_member,
+)
 from accounts.models import User, TeamMate
 from rbac.core import (
     rbac_user_allowed_for_model,
@@ -1116,6 +1119,7 @@ def _delete_event_entry_handle_post_notify_users(
             "link": "/events/view",
             "link_text": "View Congress Entries",
             "subject": "Entry Cancelled - %s" % event_entry.event,
+            "box_colour": "danger",
         }
 
         send_cobalt_email_with_template(to_address=member.email, context=context)

@@ -59,7 +59,7 @@ from events.events_views.core import (
     events_payments_secondary_callback,
 )
 from logs.views import log_event
-from notifications.views import contact_member
+from notifications.notifications_views.core import contact_member
 from payments.models import (
     StripeTransaction,
     MemberTransaction,

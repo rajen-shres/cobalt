@@ -15,9 +15,13 @@ from django.db.models import Sum, Q
 
 from events.events_views.core import sort_events_by_start_date
 from notifications.models import BlockNotification
-from notifications.views import contact_member, CobaltEmail
+from notifications.notifications_views.core import (
+    contact_member,
+    send_cobalt_email_with_template,
+    create_rbac_batch_id,
+)
 from logs.views import log_event
-from django.db import transaction
+from django.db import transaction, connection
 
 from utils.views import download_csv
 from events.models import (
@@ -1167,32 +1171,30 @@ def admin_congress_email(request, congress_id):
     return _admin_email_common(request, all_recipients, congress, event=None)
 
 
-def _admin_email_common_thread(
-    request, congress, subject, body, recipients, email_sender
-):
-    """we run a thread so we can return to the user straight away. Probably not necessary now we have Django Post Office"""
+def _admin_email_common_thread(request, congress, subject, body, recipients, batch_id):
+    """we run a thread so we can return to the user straight away.
+    Probably not necessary now we have Django Post Office"""
 
     for recipient in recipients:
+
         context = {
             "name": recipient[0],
             "title1": f"Message from {request.user.full_name} on behalf of {congress}",
             "title2": subject,
             "email_body": body,
-            "host": COBALT_HOSTNAME,
+            "subject": subject,
         }
 
-        html_msg = render_to_string("notifications/email_with_2_headings.html", context)
-
-        email_sender.queue_email(
-            recipient[2],
-            subject,
-            html_msg,
+        send_cobalt_email_with_template(
+            to_address=recipient[2],
+            context=context,
+            template="system - two headings",
             reply_to=request.user.email,
-            sender=request.user,
+            batch_id=batch_id,
         )
 
-    # send
-    email_sender.send()
+    # Django creates a new database connection for this thread so close it
+    connection.close()
 
 
 def _admin_email_common(request, all_recipients, congress, event=None):
@@ -1218,17 +1220,18 @@ def _admin_email_common(request, all_recipients, congress, event=None):
             else all_recipients
         )
 
+        batch_id = create_rbac_batch_id(
+            f"events.org.{congress.congress_master.org.id}.view"
+        )
+
         # start thread
-
-        email_sender = CobaltEmail()
-
         args = {
             "request": request,
             "congress": congress,
             "subject": subject,
             "body": body,
             "recipients": recipients,
-            "email_sender": email_sender,
+            "batch_id": batch_id,
         }
 
         thread = Thread(target=_admin_email_common_thread, kwargs=args)
@@ -1272,9 +1275,7 @@ def _admin_email_common(request, all_recipients, congress, event=None):
                     message=f"Sent email to whole congress {congress.href}",
                 )
 
-            return redirect(
-                "notifications:watch_emails", batch_id=email_sender.batch_id
-            )
+            return redirect("notifications:watch_emails", batch_id=batch_id)
 
     recipient_count = len(all_recipients)
 

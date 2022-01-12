@@ -19,7 +19,7 @@ from cobalt.settings import (
     COBALT_HOSTNAME,
 )
 from logs.views import log_event
-from notifications.views import contact_member
+from notifications.notifications_views.core import contact_member
 from payments.forms import MemberTransfer, ManualTopup
 from payments.models import MemberTransaction, PaymentStatic, StripeTransaction
 from payments.payments_views.admin import refund_stripe_transaction_sub
@@ -681,25 +681,16 @@ def refund_stripe_transaction(request, stripe_transaction_id):
          Your {BRIDGE_CREDITS} account balance has been reduced to reflect this refund. You can check your new balance
          using the link below.<br><br>
          """
-        context = {
-            "name": stripe_item.member.first_name,
-            "title": "Card Refund",
-            "email_body": email_body,
-            "host": COBALT_HOSTNAME,
-            "link": "/payments",
-            "link_text": "View Statement",
-        }
-
-        html_msg = render_to_string("notifications/email_with_button.html", context)
 
         # send
         contact_member(
             member=stripe_item.member,
             msg="Card Refund - %s%s" % (GLOBAL_CURRENCY_SYMBOL, member_card_refund),
             contact_type="Email",
-            html_msg=html_msg,
+            html_msg=email_body,
             link="/payments",
             subject="Card Refund",
+            link_text="View Statement",
         )
 
         messages.success(

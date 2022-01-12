@@ -10,11 +10,7 @@ from cobalt.settings import COBALT_HOSTNAME, BRIDGE_CREDITS, GLOBAL_ORG
 from events.models import PAYMENT_TYPES
 from logs.views import log_event
 from notifications.models import BlockNotification
-from notifications.views import (
-    CobaltEmail,
-    contact_member_and_queue_email,
-    send_cobalt_email_with_template,
-)
+from notifications.notifications_views.core import send_cobalt_email_with_template
 from rbac.core import rbac_get_users_with_role
 from events.models import (
     BasketItem,

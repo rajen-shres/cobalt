@@ -18,7 +18,7 @@ from accounts.models import User
 from cobalt.settings import TIME_ZONE
 from events.events_views.core import events_status_summary
 from forums.views import forums_status_summary
-from notifications.views import notifications_status_summary
+from notifications.notifications_views.user import notifications_status_summary
 from payments.payments_views.core import payments_status_summary
 from utils.utils import cobalt_paginator
 from .models import Batch, Lock

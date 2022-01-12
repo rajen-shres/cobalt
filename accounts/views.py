@@ -11,7 +11,6 @@ from django.core.exceptions import SuspiciousOperation
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -26,7 +25,8 @@ from django.contrib.auth.views import PasswordResetView
 from django.views.decorators.http import require_POST
 from fcm_django.models import FCMDevice
 
-from notifications.views import send_cobalt_email, notifications_in_english, CobaltEmail
+from notifications.notifications_views.user import notifications_in_english
+from notifications.notifications_views.core import send_cobalt_email_with_template
 from logs.views import get_client_ip, log_event
 from organisations.models import Organisation
 from organisations.views.general import replace_unregistered_user_with_real_user
@@ -69,32 +69,23 @@ def _check_duplicate_email(user):
     others_same_email = (
         User.objects.filter(email=user.email).exclude(id=user.id).order_by("id")
     )
+
     for other_same_email in others_same_email:
-        msg = f"""A user - {user} - is using the same email address as you.
-        This is supported to allow couples to share the same email address. Only the first
-        registered user can login using the email address. All users can login with their
-        {GLOBAL_ORG} number.<br><br>
-        All messages for any of the users will be sent to the same email address but will
-        usually have the first name present to allow you to determine who the message was
-        intended for.<br><br>
-        We recommend that every user has a unique email address, but understand that some
-        people wish to share an email.<br><br><br>
-        The {GLOBAL_ORG} Technology Team
-        """
+
+        html = render_to_string("accounts/duplicate_email.html", {"user": user})
+
         context = {
             "name": other_same_email.first_name,
-            "title": "Someone Using Your Email Address",
-            "email_body": msg,
-            "host": COBALT_HOSTNAME,
+            "title": "Someone is Using Your Email Address",
+            "email_body": html,
+            "subject": "Email notification",
+            "box_colour": "danger",
         }
 
-        html_msg = render_to_string("notifications/email.html", context)
-
-        # send
-        send_cobalt_email(
-            other_same_email.email,
-            f"{user} is using your email address",
-            html_msg,
+        send_cobalt_email_with_template(
+            to_address=other_same_email.email,
+            context=context,
+            template="system - no button",
         )
 
     return others_same_email.exists()
@@ -162,20 +153,27 @@ def _register_handle_valid_form(form, request):
 
     _check_duplicate_email(user)
 
-    current_site = get_current_site(request)
-    mail_subject = "Activate your account."
-    message = render_to_string(
-        "accounts/acc_active_email.html",
-        {
-            "user": user,
-            "domain": current_site.domain,
-            "org": settings.GLOBAL_ORG,
-            "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-            "token": account_activation_token.make_token(user),
-        },
-    )
     to_email = form.cleaned_data.get("email")
-    send_cobalt_email(to_email, mail_subject, message)
+    html = (
+        f"Thank you for signing up to the {GLOBAL_TITLE} site. "
+        f"Please click on the link below to activate your account."
+    )
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = account_activation_token.make_token(user)
+    link = reverse("accounts:activate", kwargs={"uidb64": uid, "token": token})
+
+    context = {
+        "name": user.first_name,
+        "title": f"Welcome to {GLOBAL_TITLE}",
+        "email_body": html,
+        "link": link,
+        "link_text": "Activate Account",
+        "subject": "Activate your Account",
+    }
+
+    send_cobalt_email_with_template(
+        to_address=to_email, context=context, priority="now"
+    )
 
     # Check if we have a matching UnregisteredUser object and copy data across
     _check_unregistered_user_match(user)
@@ -280,19 +278,18 @@ def password_reset_request(request):
             },
         )
 
-        message = render_to_string(
-            "notifications/email_with_button.html",
-            {
-                "name": user.first_name,
-                "title": "Password Reset",
-                "email_body": email_body,
-                "host": COBALT_HOSTNAME,
-                "link": link,
-                "link_text": link_text,
-            },
-        )
+        context = {
+            "name": user.first_name,
+            "subject": "Password Reset",
+            "title": "Password Reset Requested",
+            "email_body": email_body,
+            "link": link,
+            "link_text": link_text,
+        }
 
-        send_cobalt_email(user.email, "Password Reset Requested", message)
+        send_cobalt_email_with_template(
+            to_address=user.email, context=context, priority="now"
+        )
 
     return redirect("password_reset_done")
 
@@ -970,47 +967,6 @@ def delete_photo(request):
     return redirect("accounts:user_profile")
 
 
-def test_email_send(request):
-    """Usually commented out! Used to test email"""
-
-    if COBALT_HOSTNAME in ["myabf.com.au", "www.myabf.com.au"]:
-        raise SuspiciousOperation(
-            "Not for use in production. This cannot be used in a production system."
-        )
-
-    # Send emails
-    email_sender = CobaltEmail()
-    subject = "Bulk Email"
-    body = "I am a big test email to mimic production. Most of my size comes from the template"
-
-    user_list = User.objects.filter(last_name="TestUserEmailThing")
-
-    for recipient in user_list:
-        context = {
-            "name": recipient.first_name,
-            "title1": "Message from Someone",
-            "title2": subject,
-            "email_body": body,
-            "host": COBALT_HOSTNAME,
-        }
-
-        html_msg = render_to_string("notifications/email_with_2_headings.html", context)
-
-        email_sender.queue_email(
-            recipient.email,
-            subject + recipient.email,
-            html_msg,
-            recipient,
-        )
-
-        print(f"Queued email to {recipient}")
-
-        # send
-    email_sender.send()
-
-    return HttpResponse("Ok")
-
-
 def _get_exclude_list_for_search(request):
     """get the exclude list. System IDs and this user are excluded unless include_me is set"""
 
@@ -1258,19 +1214,15 @@ def invite_to_join(
     """
     link = reverse("accounts:register")
 
-    html_msg = render_to_string(
-        "notifications/email_with_button.html",
-        {
-            "name": un_reg.first_name,
-            "title": f"Sign Up for {GLOBAL_TITLE}",
-            "host": COBALT_HOSTNAME,
-            "link_text": "Sign Up",
-            "link": link,
-            "email_body": email_body,
-        },
-    )
+    context = {
+        "name": un_reg.first_name,
+        "title": f"Sign Up for {GLOBAL_TITLE}",
+        "link_text": "Sign Up",
+        "link": link,
+        "email_body": email_body,
+    }
 
-    send_cobalt_email(email, f"Sign Up for {GLOBAL_TITLE}", html_msg)
+    send_cobalt_email_with_template(to_address=email, context=context)
 
     un_reg.last_registration_invite_sent = timezone.now()
     un_reg.last_registration_invite_by_user = requested_by_user

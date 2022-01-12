@@ -8,6 +8,7 @@
        ./rbac_overview.html
 """
 from django.db.models import Q
+
 from .models import (
     RBACGroup,
     RBACUserGroup,

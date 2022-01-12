@@ -25,7 +25,7 @@ from cobalt.settings import (
 )
 from logs.views import log_event
 from masterpoints.views import user_summary
-from notifications.views import contact_member
+from notifications.notifications_views.core import contact_member
 from organisations.models import Organisation
 from payments.forms import (
     DateForm,

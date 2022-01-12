@@ -23,7 +23,10 @@ from cobalt.settings import (
     ABF_USER,
     GLOBAL_TITLE,
 )
-from notifications.views import send_cobalt_email, CobaltEmail
+from notifications.notifications_views.core import (
+    send_cobalt_email_with_template,
+    send_cobalt_email_preformatted,
+)
 from rbac.core import (
     rbac_get_users_with_role,
     rbac_add_user_to_group,
@@ -106,20 +109,18 @@ def _notify_user_common(ticket, subject, email_ticket_msg, email_ticket_footer="
         f"<br><i><span style='color: #778899;'>{GLOBAL_TITLE} support hours are 9-5 Monday to Friday (excluding public holidays).</i></span>"
     )
 
-    html_msg = render_to_string(
-        "notifications/email_with_button.html",
-        {
-            "name": first_name,
-            "title": subject,
-            "host": COBALT_HOSTNAME,
-            "link_text": "Open Ticket",
-            "link": link,
-            "email_body": email_body,
-            "additional_words": additional_words,
-        },
-    )
+    context = {
+        "box_colour": "warn",
+        "name": first_name,
+        "title": subject,
+        "host": COBALT_HOSTNAME,
+        "link_text": "Open Ticket",
+        "link": link,
+        "email_body": email_body,
+        "additional_words": additional_words,
+    }
 
-    send_cobalt_email(email, subject, html_msg, member=ticket.reported_by_user)
+    send_cobalt_email_with_template(to_address=email, context=context)
 
 
 def notify_user_new_ticket_by_form(request, ticket):
@@ -202,8 +203,6 @@ def _notify_group_common(ticket, subject, email_ticket_msg, exclude=None):
         incident_type__in=["All", ticket.incident_type]
     )
 
-    email_sender = CobaltEmail()
-
     for recipient in recipients:
 
         if recipient.staff == exclude:
@@ -220,11 +219,9 @@ def _notify_group_common(ticket, subject, email_ticket_msg, exclude=None):
                 "email_body": email_body,
             },
         )
-        email_sender.queue_email(
-            recipient.staff.email, subject, html_msg, member=recipient.staff
+        send_cobalt_email_preformatted(
+            to_address=recipient.staff.email, subject=subject, msg=html_msg
         )
-
-    email_sender.send()
 
 
 def notify_group_new_ticket(request, ticket):
@@ -285,29 +282,23 @@ def _notify_staff_common(
 
     first_name, email, full_name = _get_user_details_from_ticket(ticket)
 
-    if first_name_override:
-        staff_first_name = first_name_override
-    else:
-        staff_first_name = ticket.assigned_to.first_name
-
+    staff_first_name = first_name_override or ticket.assigned_to.first_name
     email_table = _email_table(ticket, full_name)
     email_body = f"""{email_ticket_msg}{email_table}{email_ticket_footer}"""
     link = reverse("support:helpdesk_edit", kwargs={"ticket_id": ticket.id})
 
-    html_msg = render_to_string(
-        "notifications/email_with_button.html",
-        {
-            "name": staff_first_name,
-            "title": subject,
-            "host": COBALT_HOSTNAME,
-            "link_text": "Open Ticket",
-            "link": link,
-            "email_body": email_body,
-        },
-    )
+    context = {
+        "box_colour": "danger",
+        "name": staff_first_name,
+        "title": subject,
+        "host": COBALT_HOSTNAME,
+        "link_text": "Open Ticket",
+        "link": link,
+        "email_body": email_body,
+    }
 
-    send_cobalt_email(
-        ticket.assigned_to.email, subject, html_msg, member=ticket.assigned_to
+    send_cobalt_email_with_template(
+        to_address=ticket.assigned_to.email, context=context
     )
 
 

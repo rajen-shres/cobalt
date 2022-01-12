@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.contrib import messages
 from django.db import transaction
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 from rbac.core import (
     rbac_user_blocked_for_model,
     rbac_user_has_role,
@@ -18,9 +19,9 @@ from rbac.core import (
     rbac_get_users_in_group_by_name,
 )
 from cobalt.settings import COBALT_HOSTNAME
-from notifications.views import contact_member
+from notifications.notifications_views.core import contact_member
 from rbac.models import RBACGroup, RBACGroupRole, RBACUserGroup
-from notifications.views import (
+from notifications.notifications_views.listeners import (
     notify_happening,
     add_listener,
     remove_listener,

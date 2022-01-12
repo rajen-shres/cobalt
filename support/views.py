@@ -8,25 +8,21 @@ from django.core.exceptions import SuspiciousOperation
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 
 from accounts.models import User
 from cobalt.settings import (
-    ADMINS,
     COBALT_HOSTNAME,
     RECAPTCHA_SITE_KEY,
     RECAPTCHA_SECRET_KEY,
 )
 from events.models import Congress
 from forums.models import Post, Forum
-from notifications.views import send_cobalt_email
 from organisations.models import Organisation
 from payments.models import MemberTransaction
 from rbac.core import rbac_user_has_role
 from utils.utils import cobalt_paginator
 from .forms import (
-    ContactForm,
     HelpdeskLoggedInContactForm,
     HelpdeskLoggedOutContactForm,
 )
@@ -160,65 +156,6 @@ def contact_logged_out(request):
             "site_key": RECAPTCHA_SITE_KEY,
             "is_human": is_human,
         },
-    )
-
-
-def contact(request):
-    """Contact form"""
-
-    form = ContactForm(request.POST or None)
-
-    if request.method == "POST":
-        title = request.POST["title"]
-        message = request.POST["message"].replace("\n", "<br>")
-        email = request.POST["email"].replace("\n", "<br>")
-        username = request.POST["UserName"].replace("\n", "<br>")
-        # next_page = "support:support"
-        try:
-            email = request.user.email
-            username = request.user
-        except:  # noqa: E722
-            pass
-        msg = f"""
-                  {username} - {email}<br><br>
-                  <b>{title}</b>
-                  <br><br>
-                  {message}
-        """
-
-        for admin in ADMINS:
-
-            context = {
-                "name": admin[0].split()[0],
-                "title": f"Support Request: {title}",
-                "email_body": msg,
-                "host": COBALT_HOSTNAME,
-            }
-
-            html_msg = render_to_string(
-                "notifications/email-notification-no-button-error.html", context
-            )
-
-            send_cobalt_email(admin[1], f"Support Request: {title}", html_msg)
-
-        messages.success(
-            request,
-            "Message sent successfully",
-            extra_tags="cobalt-message-success",
-        )
-        return redirect("support:support")
-        # return redirect(next_page)
-
-    try:
-        email = request.user.email
-        username = request.user
-    except:  # noqa: E722
-        email = None
-        username = None
-    return render(
-        request,
-        "support/contact/contact.html",
-        {"form": form, "email": email, "username": username},
     )
 
 
