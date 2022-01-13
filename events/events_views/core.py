@@ -1,12 +1,15 @@
+import logging
 from datetime import datetime, timedelta, date
 
+import pytz
 from django.db.models import Q
 from django.template import loader
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
 
 import payments.payments_views.core as payments_core  # circular dependency
-from cobalt.settings import COBALT_HOSTNAME, BRIDGE_CREDITS, GLOBAL_ORG
+from cobalt.settings import COBALT_HOSTNAME, BRIDGE_CREDITS, GLOBAL_ORG, TIME_ZONE
 from events.models import PAYMENT_TYPES
 from logs.views import log_event
 from notifications.models import BlockNotification
@@ -20,6 +23,10 @@ from events.models import (
     EventLog,
     Congress,
 )
+
+TZ = pytz.timezone(TIME_ZONE)
+
+logger = logging.getLogger("cobalt")
 
 
 def events_payments_secondary_callback(status, route_payload, tran):
@@ -68,9 +75,15 @@ def events_payments_callback(status, route_payload):
     We also need to notify everyone who has been entered which will include people who were not
     paid for by this payment. For that we use the basket of the primary user, which we then empty.
 
+    This requires an EventEntry, a group of EventEntryPlayers with the route_payload attached,
+    A PlayerBatchId to find the player who made this entry, and the BasketItems for that player.
+
     """
 
     if status != "Success":
+        logger.warning(
+            f"Received callback with status {status}. Payload {route_payload}. Ignoring."
+        )
         return
 
     # Find who is making this payment
@@ -85,6 +98,7 @@ def events_payments_callback(status, route_payload):
             sub_source="events_payments_callback",
             message=f"No matching player for route_payload: {route_payload}",
         )
+        logger.critical(f"No matching player for route_payload: {route_payload}")
         return
 
     payment_user = player_batch_id.player
@@ -179,7 +193,7 @@ def _update_entries_change_entries(event_entry_players, payment_user):
         event_entry_player.payment_status = "Paid"
         event_entry_player.payment_received = event_entry_player.entry_fee
         event_entry_player.paid_by = payment_user
-        event_entry_player.entry_complete_date = datetime.now()
+        event_entry_player.entry_complete_date = timezone.now().astimezone(TZ)
         event_entry_player.save()
 
         EventLog(
@@ -268,6 +282,8 @@ def _send_notifications(event_entry_players, event_entries, payment_user):
     # any event they are in (in a congress) and who else is in that entry
     struct = _send_notifications_build_struct(event_entry_players)
 
+    print(struct)
+
     # Loop through by player, then congress and send email. 1 email per player per congress
     for player, value in struct.items():
         for congress in value:
@@ -310,6 +326,7 @@ def _send_notifications(event_entry_players, event_entries, payment_user):
                 "subject": f"Event Entry - {congress}",
             }
 
+            logger.info(f"Sending email to {player}")
             send_cobalt_email_with_template(to_address=player.email, context=context)
 
     # Notify conveners as well

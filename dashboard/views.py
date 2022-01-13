@@ -14,7 +14,7 @@ from rbac.core import rbac_user_blocked_for_model
 from django.shortcuts import redirect
 import logging
 
-logger = logging.getLogger("django")
+logger = logging.getLogger("cobalt")
 
 
 @login_required()

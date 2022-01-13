@@ -112,7 +112,9 @@
                     {#        we need to get the alternatives (bits) and we want the first one (HTML). We get#}
                     {#        the content and the type, so again take the first part of that for just the content.#}
 
-                    {{ email.email_message.alternatives.0.0|safe }}
+                    <h2>{{ email.email_message.body }}</h2>
+
+                    {#                    {{ email.email_message.alternatives.0.0|safe }}#}
                 </div>
                 <br>
                 <p>To save space we don't store the whole email when it has been sent. As a result, images are

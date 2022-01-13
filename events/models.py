@@ -322,6 +322,51 @@ class Congress(models.Model):
                 styles=BLEACH_ALLOWED_STYLES,
             )
 
+        if self.name and getattr(self, "_name_changed", True):
+            self.name = bleach.clean(
+                self.name,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.date_string and getattr(self, "_date_string_changed", True):
+            self.date_string = bleach.clean(
+                self.date_string,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.venue_location and getattr(self, "_venue_location_changed", True):
+            self.venue_location = bleach.clean(
+                self.venue_location,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.venue_name and getattr(self, "_venue_name_changed", True):
+            self.venue_name = bleach.clean(
+                self.venue_name,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        if self.congress_type and getattr(self, "_congress_type_changed", True):
+            self.congress_type = bleach.clean(
+                self.congress_type,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
         super(Congress, self).save(*args, **kwargs)
 
     def user_is_convener(self, user):

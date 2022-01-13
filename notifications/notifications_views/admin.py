@@ -121,6 +121,7 @@ def admin_send_email_copy_to_admin(request, email_id):
     else:
         from_name = f"Email Copy from {GLOBAL_TITLE}<{DEFAULT_FROM_EMAIL}>"
 
+    # We don't send this through the normal method
     po_email.send(
         request.user.email,
         from_name,
