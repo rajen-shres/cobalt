@@ -50,6 +50,45 @@ MAX_EMAILS = 45
 MAX_EMAIL_THREADS = 20
 
 
+def _to_address_checker(to_address, context):
+    """Check environment to see what the to_address should be. This protects us from sending to
+    real users from test environments
+    Args:
+        to_address(str): email address to verify based upon environment
+        context(dict): dict with email_body (hopefully)
+    """
+    # If DISABLE_PLAYPEN is set, then just return this unmodified, e.g. production
+    if DISABLE_PLAYPEN == "ON":
+        return to_address, context
+    # TODO: Change this to a variable if we ever use anything other than AWS SES
+    # https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-simulator.html
+    safe_address = "success@simulator.amazonses.com"
+    # If the everyone user is set to a valid email then we send to that
+    # If still set to the default (a@b.com) then we ignore
+    everyone = User.objects.get(pk=RBAC_EVERYONE)
+    if everyone.email == "a@b.com":
+        return_address = safe_address
+        if "email_body" in context:
+            context[
+                "email_body"
+            ] = f"""<h1>Non-production environment<h1>
+                                        <h2>This email was not sent</h2>
+                                        <h3>To send this in future, update the email address of EVERYONE
+                                        from a@b.com to a real email address.</h3>
+                                        {context["email_body"]}
+                                     """
+        logger.warning(
+            f"DISABLE_PLAYPEN is OFF. Overriding email address from '{to_address}' to '{return_address}' "
+            f"We will use the email address of the EVERYONE user if it is not set to a@b.com."
+        )
+    else:
+        return_address = everyone.email
+        logger.warning(
+            f"DISABLE_PLAYPEN is OFF. Overriding email address from '{to_address}' to '{return_address}'"
+        )
+    return return_address, context
+
+
 def _email_address_on_bounce_list(to_address):
     """Check if we are not sending to this address"""
 
@@ -113,12 +152,8 @@ def send_cobalt_email_with_template(
     if "subject" not in context and "title" in context:
         context["subject"] = context["title"]
 
-    # Check for playpen - don't send emails to users unless on production. Send to EVERYONE id
-    if DISABLE_PLAYPEN != "ON":
-        to_address = User.objects.get(pk=RBAC_EVERYONE).email
-        logger.warning(
-            f"DISABLE_PLAYPEN is OFF. Overriding email address to {to_address}"
-        )
+    # Check for playpen - don't send emails to users unless on production or similar
+    to_address, context = _to_address_checker(to_address, context)
 
     headers = {"Reply-to": reply_to} if reply_to else None
     email = po_email.send(
@@ -165,6 +200,14 @@ def send_cobalt_email_preformatted(
         return
 
     headers = {"Reply-to": reply_to} if reply_to else None
+
+    # Check for playpen - don't send emails to users unless on production or similar
+    # We are the poor cousin and don't have a dict to send (which would normally hold
+    # email body) so we send a cut down one and convert the response
+    to_address, return_dict = _to_address_checker(
+        to_address=to_address, context={"email_body": msg}
+    )
+    msg = return_dict["email_body"]
 
     email = po_email.send(
         recipients=to_address,
