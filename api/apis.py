@@ -284,7 +284,7 @@ def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
     if user:
         # Save device
         fcm_device = FCMDevice(
-            user=user, registration_id=data.fcm_token, type=data.OS, name=data.name
+            user=user, registration_id=data.fcm_token, type=data.OS, device_id=data.name
         )
         fcm_device.save()
 
