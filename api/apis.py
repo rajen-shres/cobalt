@@ -282,10 +282,11 @@ def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
     user = CobaltBackend().authenticate(request, data.username, data.password)
 
     if user:
-        # Save device
-        fcm_device = FCMDevice(
-            user=user, registration_id=data.fcm_token, type=data.OS, device_id=data.name
+        # Save or update device
+        fcm_device, _ = FCMDevice.objects.get_or_create(
+            user=user, type=data.OS, name=data.name
         )
+        fcm_device.registration_id = data.fcm_token
         fcm_device.save()
 
         # Mark all messages previously sent to the user as read to prevent swamping them with old messages

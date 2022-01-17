@@ -366,8 +366,7 @@
                                             <tbody>
                                                 {% for fcm_device in fcm_devices %}
                                                     <tr>
-                                                        {#                                                <td>{{ fcm_device.registration_id }}</td>#}
-                                                        <td>ADD ID LATER</td>
+                                                        <td>{{ fcm_device.name }} ({{ fcm_device.type }})</td>
                                                         <td>{{ fcm_device.date_created }}</td>
                                                         <td>
                                                             <button class="btn btn-sm btn-danger">Delete</button>
