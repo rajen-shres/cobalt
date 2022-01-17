@@ -103,6 +103,16 @@ class MobileClientRegisterRequestV1(Schema):
     fcm_token: str = ""
 
 
+class MobileClientRegisterRequestV11(Schema):
+    """Request format from mobile_client_register_v1.1"""
+
+    username: str = ""
+    password: str = ""
+    fcm_token: str = ""
+    OS: str = ""
+    name: str = ""
+
+
 class MobileClientUpdateRequestV1(Schema):
     """Request format from mobile_client_update_v1"""
 
@@ -207,6 +217,84 @@ def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
         welcome_msg = (
             f"Hi {user.first_name},\n"
             f"This device is now set up to receive messages from {GLOBAL_TITLE}.\n\n"
+            f"You can manage your devices through Settings within {GLOBAL_TITLE}, "
+            f"or simply delete this app to turn them off."
+        )
+        RealtimeNotification(
+            member=user,
+            admin=user,
+            msg=welcome_msg,
+        ).save()
+        msg = Message(
+            notification=Notification(
+                title=f"Welcome to {GLOBAL_TITLE} messaging.",
+                body="Welcome!\n\nNew device successfully registered.",
+            )
+        )
+        fcm_device.send_message(msg)
+
+        return 200, {
+            "status": APIStatus.SUCCESS,
+            "user": {
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "system_number": user.system_number,
+            },
+        }
+
+    # Don't provide any details about failures for security reasons
+    return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+
+
+@router.post(
+    "/mobile-client-register/v1.1",
+    summary="Register a mobile client to receive notifications.",
+    response={
+        200: UserDataResponseV1,
+        403: StatusResponseV1,
+    },
+    # Disable global authorisation, we will check this ourselves
+    auth=None,
+)
+def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
+    """
+    Called by the Flutter front end to register a new FCM Token for a user.
+    User is NOT authenticated, but username and password are passed in.
+
+    Args:
+
+          username - username of this user, can be ABF No, email or actual username, same as login
+
+          password - as provided by user
+
+          fcm_token - client device's Google Firebase Cloud Messaging token. Used to send messages to this user/device
+
+          OS - operating system of mobile device
+
+          name - name of mobile device
+
+    """
+
+    # Log Api call ourselves as we aren't going through authentication
+    api_urls.log_api_call(request)
+
+    # Try to Authenticate the user
+    user = CobaltBackend().authenticate(request, data.username, data.password)
+
+    if user:
+        # Save device
+        fcm_device = FCMDevice(
+            user=user, registration_id=data.fcm_token, type=data.OS, device_id=data.name
+        )
+        fcm_device.save()
+
+        # Mark all messages previously sent to the user as read to prevent swamping them with old messages
+        RealtimeNotification.objects.filter(member=user).update(has_been_read=True)
+
+        # Create a welcome message
+        welcome_msg = (
+            f"Hi {user.first_name},\n"
+            f"This device ({data.name}) is now set up to receive messages from {GLOBAL_TITLE}.\n\n"
             f"You can manage your devices through Settings within {GLOBAL_TITLE}, "
             f"or simply delete this app to turn them off."
         )
