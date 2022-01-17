@@ -31,7 +31,7 @@ from logs.views import get_client_ip, log_event
 from organisations.models import Organisation
 from organisations.views.general import replace_unregistered_user_with_real_user
 from rbac.core import rbac_user_has_role
-from .models import User, TeamMate, UnregisteredUser, APIToken
+from .models import User, TeamMate, UnregisteredUser, APIToken, UserAdditionalInfo
 from .tokens import account_activation_token
 from .forms import (
     UserRegisterForm,
@@ -626,13 +626,23 @@ def profile(request):
     if request.method == "POST" and form.is_valid():
 
         form.save()
-        if "email" in form.changed_data and _check_duplicate_email(request.user):
-            messages.warning(
-                request,
-                "This email is also being used by another member. This is allowed, but please check the "
-                "name on the email to see who it was intended for.",
-                extra_tags="cobalt-message-warning",
-            )
+        if "email" in form.changed_data:
+            if _check_duplicate_email(request.user):
+                messages.warning(
+                    request,
+                    "This email is also being used by another member. This is allowed, but please check the "
+                    "name on the email to see who it was intended for.",
+                    extra_tags="cobalt-message-warning",
+                )
+
+            # Clear the bounce flag if set
+            user_additional_info = UserAdditionalInfo.objects.filter(
+                user=request.user
+            ).first()
+            if user_additional_info and user_additional_info.email_hard_bounce:
+                user_additional_info.email_hard_bounce = False
+                user_additional_info.email_hard_bounce_reason = None
+                user_additional_info.save()
 
         messages.success(
             request, "Profile Updated", extra_tags="cobalt-message-success"
@@ -648,6 +658,9 @@ def profile(request):
         "team_mate__first_name"
     )
 
+    user_additional_info = UserAdditionalInfo.objects.filter(user=request.user).first()
+    print(user_additional_info)
+
     # Show tour for this page?
     tour = request.GET.get("tour", None)
 
@@ -659,6 +672,7 @@ def profile(request):
             "blurbform": blurbform,
             "photoform": photoform,
             "team_mates": team_mates,
+            "user_additional_info": user_additional_info,
             "tour": tour,
         },
     )
@@ -774,6 +788,8 @@ def public_profile(request, pk):
 
     email_admin = bool(rbac_user_has_role(request.user, "notifications.admin.view"))
 
+    user_additional_info = UserAdditionalInfo.objects.filter(user=pub_profile).first()
+
     return render(
         request,
         "accounts/profile/public_profile.html",
@@ -790,6 +806,7 @@ def public_profile(request, pk):
             "events_admin": events_admin,
             "email_admin": email_admin,
             "tickets": tickets,
+            "user_additional_info": user_additional_info,
         },
     )
 

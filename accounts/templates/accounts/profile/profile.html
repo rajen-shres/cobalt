@@ -30,6 +30,13 @@
                                         <span class="cobalt-form-error" id="id_email_errors">{{ form.email.errors|striptags }}</span>
 
                                         <input type="email" name="email" id="id_email" class="form-control profile_form_element" value="{{ form.email.value }}">
+
+                                        {% if user_additional_info.email_hard_bounce %}
+                                            <span><h4 class="text-danger">This email address does not work</h4>
+                                                <p>We tried to send an email to this address but it either bounced or there was a complaint made by
+                                                    the recipient. Please correct this email address.</p>
+                                            </span>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-6">

@@ -24,9 +24,25 @@
         </div>
 
         {% if email_admin  or payments_admin or events_admin or tickets %}
+
+            {% if user_additional_info.email_hard_bounce %}
+                <div class="card col-10 mx-auto">
+                    <div class="card-header card-header-info">
+                        <h4>Email Bounced!!!</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-danger">We are not sending emails to this address ({{ profile.email }})
+                            as we got a hard bounce when we last tried to send on {{ user_additional_info.email_hard_bounce_date|cobalt_nice_datetime }}.</p>
+                        <p>The reason returned was: {{ user_additional_info.email_hard_bounce_reason }}</p>
+
+                    </div>
+                </div>
+            {% endif %}
+
             <h4 class="text-center">Date Joined: {{ profile.date_joined|cobalt_nice_datetime }}</h4>
             <h4 class="text-center">Last Login: {{ profile.last_login|cobalt_nice_datetime|default_if_none:"Never Logged In" }}</h4>
             <h4 class="text-center">Last Activity: {{ profile.last_activity|cobalt_nice_datetime|default_if_none:"Never Seen" }}</h4>
+
             <div id="active-status">
                 {% include "accounts/profile/public_profile_header_admin.html" %}
             </div>

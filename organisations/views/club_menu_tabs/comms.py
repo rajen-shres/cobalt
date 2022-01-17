@@ -364,5 +364,10 @@ def public_info_htmx(request, club):
     return render(
         request,
         "organisations/club_menu/comms/public_info_htmx.html",
-        {"club": club, "front_page_form": front_page_form, "message": message},
+        {
+            "club": club,
+            "front_page_form": front_page_form,
+            "message": message,
+            "front_page": front_page,
+        },
     )

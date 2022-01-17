@@ -4,7 +4,6 @@ import logging
 
 # TODO: This code always makes me want to take a shower after I look at it.
 # TODO: I'm not going to fix it. I'm just going to have a shower.
-
 logger = logging.getLogger("cobalt")
 
 
@@ -49,7 +48,7 @@ class NotificationsConfig(AppConfig):
         from post_office.models import Email as PostOfficeEmail
         from logs.views import log_event
         from django.utils.inspect import func_accepts_kwargs
-        from support.helpdesk import create_ticket_api
+        from accounts.models import UserAdditionalInfo, User
 
         def _get_message_id(mail_obj):
             """Utility to get the message_id from the message"""
@@ -62,6 +61,22 @@ class NotificationsConfig(AppConfig):
                     return header["value"]
 
             return None
+
+        def _hard_bounce_received(email_address, message):
+            """Utility to record a permanent bounce, could be a bounce or a complaint. Either way we shouldn't send
+            any more emails to this address
+            """
+
+            # Mark user as bounced, could be multiple users with this email address
+            users = User.objects.filter(email=email_address)
+            for user in users:
+                user_additional_info, _ = UserAdditionalInfo.objects.get_or_create(
+                    user=user
+                )
+                user_additional_info.email_hard_bounce = True
+                user_additional_info.email_hard_bounce_reason = message
+                user_additional_info.email_hard_bounce_date = timezone.now()
+                user_additional_info.save()
 
         @receiver(send_received)
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
@@ -179,6 +194,11 @@ class NotificationsConfig(AppConfig):
                     message=message,
                 )
 
+                _hard_bounce_received(
+                    email_address=bounce_obj["bouncedRecipients"][0]["emailAddress"],
+                    message=bounce_obj["bouncedRecipients"][0]["diagnosticCode"],
+                )
+
         @receiver(complaint_received)
         def complaint_handler(
             sender, mail_obj, complaint_obj, raw_message, *args, **kwargs
@@ -187,10 +207,10 @@ class NotificationsConfig(AppConfig):
 
             message_id = _get_message_id(mail_obj)
 
-            logger.info(f"COMPLAINT: Received Message-ID: {message_id}")
+            logger.error(f"COMPLAINT: Received Message-ID: {message_id}")
             logger.error("Email Complaint")
 
-            print(complaint_obj, flush=True)
+            logger.error(complaint_obj)
 
             try:
                 post_office_email = PostOfficeEmail.objects.get(message_id=message_id)
@@ -204,6 +224,11 @@ class NotificationsConfig(AppConfig):
                 )
             except (AttributeError, PostOfficeEmail.DoesNotExist):
                 logger.info(f"COMPLAINT: No matching message found for :{message_id}")
+
+            _hard_bounce_received(
+                email_address=complaint_obj["complainedRecipients"][0]["emailAddress"],
+                message="User complaint received",
+            )
 
         # See comments at the top of the file about this
         send_received.connect(send_handler)

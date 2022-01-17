@@ -272,3 +272,21 @@ class APIToken(models.Model):
             self.token = _create_api_token()
 
         super(APIToken, self).save(*args, **kwargs)
+
+
+class UserAdditionalInfo(models.Model):
+    """Additional information about a user that is not regularly accessed.
+    The intention is to move all of the extras from the User class into here over time
+    as the User is getting overloaded and is accessed constantly by Django so we should
+    try to keep it clean.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    email_hard_bounce = models.BooleanField(default=False)
+    """ Set this flag if we get a hard bounce from sending an email """
+    email_hard_bounce_reason = models.TextField(null=True, blank=True)
+    """ Reason for the bounce """
+    email_hard_bounce_date = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.user.__str__()

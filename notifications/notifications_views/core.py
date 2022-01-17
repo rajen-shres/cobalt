@@ -16,7 +16,7 @@ from fcm_django.models import FCMDevice
 from firebase_admin.messaging import Message, Notification
 from post_office import mail as po_email
 
-from accounts.models import User
+from accounts.models import User, UserAdditionalInfo
 from cobalt.settings import (
     COBALT_HOSTNAME,
     DISABLE_PLAYPEN,
@@ -42,10 +42,26 @@ from organisations.models import Organisation
 from rbac.core import rbac_user_has_role
 
 logger = logging.getLogger("cobalt")
+
+# Max no of emails to send in a batch
 MAX_EMAILS = 45
 
 # Max number of threads
 MAX_EMAIL_THREADS = 20
+
+
+def _email_address_on_bounce_list(to_address):
+    """Check if we are not sending to this address"""
+
+    user_additional_info = UserAdditionalInfo.objects.filter(
+        user__email=to_address
+    ).first()
+
+    if user_additional_info and user_additional_info.email_hard_bounce:
+        logger.info(f"Not sending email to suppressed address - {to_address}")
+        return True
+
+    return False
 
 
 def send_cobalt_email_with_template(
@@ -83,6 +99,10 @@ def send_cobalt_email_with_template(
     box_colour: default, primary, warning, danger, success, info
 
     """
+
+    # Check if on bounce list
+    if _email_address_on_bounce_list(to_address):
+        return
 
     # Augment context
     context["host"] = COBALT_HOSTNAME
@@ -139,6 +159,10 @@ def send_cobalt_email_preformatted(
     Returns:
         Nothing
     """
+
+    # Check if on bounce list
+    if _email_address_on_bounce_list(to_address):
+        return
 
     headers = {"Reply-to": reply_to} if reply_to else None
 

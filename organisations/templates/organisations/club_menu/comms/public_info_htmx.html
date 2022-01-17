@@ -9,6 +9,10 @@
     <div class="card-body" id="id_comms_email_tab">
 
         <h3>Public Information</h3>
+        {% if front_page.summary == "" %}
+            <p>Here you can build a page that your members and others will see when they look up your club on {{ GLOBAL_TITLE }}.</p>
+            <p>Use the editor below to add text, images and links to your Public Profile.</p>
+        {% endif %}
         <a href="{% url "organisations:general_org_profile" org_id=club.id %}" target="_blank" class="btn btn-rose btn-sm">show public profile</a>
         <h3 class="text-info font-weight-bold settings_message">{{ message }}</h3>
         <form

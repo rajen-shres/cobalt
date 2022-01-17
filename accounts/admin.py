@@ -1,6 +1,6 @@
 """ Admin definitions """
 from django.contrib import admin
-from .models import User, TeamMate, UnregisteredUser, APIToken
+from .models import User, TeamMate, UnregisteredUser, APIToken, UserAdditionalInfo
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -22,7 +22,14 @@ class APITokenAdmin(admin.ModelAdmin):
     autocomplete_fields = ["user"]
 
 
+class UserAdditionalInfoAdmin(admin.ModelAdmin):
+    """Show fields as searches rather than dropdowns"""
+
+    autocomplete_fields = ["user"]
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(TeamMate, TeamMateAdmin)
 admin.site.register(UnregisteredUser, UserAdmin)
 admin.site.register(APIToken, APITokenAdmin)
+admin.site.register(UserAdditionalInfo, UserAdditionalInfoAdmin)

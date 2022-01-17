@@ -10,6 +10,7 @@ from .models import (
     BlockNotification,
     RealtimeNotification,
     RealtimeNotificationHeader,
+    EmailBatchRBAC,
 )
 
 
@@ -36,6 +37,7 @@ class RealtimeNotificationHeaderAdmin(admin.ModelAdmin):
 admin.site.register(InAppNotification, InAppNotificationAdmin)
 admin.site.register(NotificationMapping, NotificationMappingAdmin)
 admin.site.register(Email)
+admin.site.register(EmailBatchRBAC)
 admin.site.register(EmailArchive)
 admin.site.register(EmailThread)
 admin.site.register(Snooper)
