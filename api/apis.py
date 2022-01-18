@@ -282,6 +282,9 @@ def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
     user = CobaltBackend().authenticate(request, data.username, data.password)
 
     if user:
+        # Delete token if used before (token will be the same if a user logs out and another logs in, same device)
+        FCMDevice.objects.filter(registration_id=data.fcm_token).delete()
+
         # Save or update device
         fcm_device, _ = FCMDevice.objects.get_or_create(
             user=user, type=data.OS, name=data.name
