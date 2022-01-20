@@ -43,21 +43,21 @@ hosted by {{ congress.congress_master.org }}.</p>
 </table>
 
 {% if "bank-transfer" in payment_types %}
-    <p>We are expecting payment by bank transfer.</p>
+    <p>We are expecting some payments for this entry by bank transfer.</p>
     <h3>Bank Details</h3>
     {{ congress.bank_transfer_details }}
     <br><br>
 {% endif %}
 
 {% if "cheque" in payment_types %}
-    <p>We are expecting payment by cheque.</p>
+    <p>We are expecting some payments for this entry by cheque.</p>
     <h3>Cheques</h3>
     {{ congress.cheque_details }}
     <br><br>
 {% endif %}
 
 {% if "off-system-pp" in payment_types %}
-    <p>We are expecting payment from another pre-paid system. The convener will handle this for you.</p>
+    <p>We are expecting some payments for this entry from another pre-paid system. The convener will handle this for you.</p>
     <br><br>
 {% endif %}
 

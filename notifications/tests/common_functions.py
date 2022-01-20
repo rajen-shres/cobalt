@@ -29,8 +29,6 @@ def check_email_sent(
 
     last_email = Email.objects.order_by("-pk")[0].pk
 
-    print("Last email:", last_email)
-
     # We can't use the ORM to filter emails, we need to call Django Post Office functions
     emails = Email.objects.filter(id__gt=last_email - email_count)
 
@@ -56,21 +54,37 @@ def _check_email_sent_tests(email_count, email_to, emails, subject_search, body_
 
     if email_to:
         output += f"to={email_to} "
-        ok = any(email.context["name"] == email_to for email in emails)
+        for email in emails:
+            if email.context["name"] == email_to:
+                ok = True
+            else:
+                emails.exclude(pk=email.id)
         if not ok:
             output += "Failed on email_to. "
             return ok, output
 
     if subject_search:
+        ok = False
         output += f"subject has '{subject_search}' "
-        ok = any(email.context["subject"].find(subject_search) for email in emails)
+        for email in emails:
+            if email.context["subject"].find(subject_search) >= 0:
+                ok = True
+            else:
+                emails.exclude(pk=email.id)
         if not ok:
             output += "Failed on subject_search. "
             return ok, output
 
     if body_search:
-        output += f"body contains '{body_search} "
-        ok = any(email.context["email_body"].find(body_search) for email in emails)
+        ok = False
+        output += f"body contains '{body_search}' "
+        for email in emails:
+            print("###########################")
+            print(email.context["email_body"].find(body_search))
+            print(body_search)
+            print(email.context["email_body"])
+            if email.context["email_body"].find(body_search) >= 0:
+                ok = True
         if not ok:
             output += "Failed on body_search. "
             return ok, output

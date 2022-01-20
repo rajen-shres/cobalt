@@ -467,9 +467,6 @@ def payment_api(
                 organisation=organisation,
                 other_member=other_member,
                 description=description,
-                log_msg=log_msg,
-                source="Payments",
-                sub_source="payments_api",
                 payment_type=payment_type,
             )
 
@@ -1252,15 +1249,6 @@ def update_organisation(
 
     act.save()
 
-    user = member.href if member else "Unknown"
-    log_event(
-        user=user,
-        severity="INFO",
-        source=source,
-        sub_source=sub_source,
-        message=f"{log_msg} Entry - Payment of {GLOBAL_CURRENCY_SYMBOL}{amount} to {organisation}",
-    )
-
     return act
 
 
@@ -1289,10 +1277,10 @@ def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
     stripe.api_key = STRIPE_SECRET_KEY
 
     if not member.stripe_auto_confirmed == "On":
-        return (False, "Member not set up for Auto Top Up")
+        return False, "Member not set up for Auto Top Up"
 
     if not member.stripe_customer_id:
-        return (False, "No Stripe customer id found")
+        return False, "No Stripe customer id found"
 
     if topup_required:
         amount = topup_required

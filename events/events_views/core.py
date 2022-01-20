@@ -14,6 +14,7 @@ from events.models import PAYMENT_TYPES
 from logs.views import log_event
 from notifications.models import BlockNotification
 from notifications.notifications_views.core import send_cobalt_email_with_template
+from payments.payments_views.payments_api import payment_api_batch
 from rbac.core import rbac_get_users_with_role
 from events.models import (
     BasketItem,
@@ -237,6 +238,7 @@ def _update_entries_change_entries(event_entry_players, payment_user):
 
 
 def _update_entries_process_their_system_dollars(event_entries):
+    # sourcery skip: extract-method
     """Now process their system dollar transactions (if any)"""
 
     for event_entry in event_entries:
@@ -245,26 +247,34 @@ def _update_entries_process_their_system_dollars(event_entries):
                 event_entry_player.payment_type == "their-system-dollars"
                 and event_entry_player.payment_status not in ["Paid", "Free"]
             ):
-                payments_core.payment_api(
-                    request=None,
+
+                if payment_api_batch(
                     member=event_entry_player.player,
                     description=event_entry.event.event_name,
                     amount=event_entry_player.entry_fee,
                     organisation=event_entry_player.event_entry.event.congress.congress_master.org,
                     payment_type="Entry to an event",
-                )
-                event_entry_player.payment_status = "Paid"
-                event_entry_player.entry_complete_date = datetime.now()
-                event_entry_player.paid_by = event_entry_player.player
-                event_entry_player.payment_received = event_entry_player.entry_fee
-                event_entry_player.save()
+                ):
+                    event_entry_player.payment_status = "Paid"
+                    event_entry_player.entry_complete_date = datetime.now()
+                    event_entry_player.paid_by = event_entry_player.player
+                    event_entry_player.payment_received = event_entry_player.entry_fee
+                    event_entry_player.save()
 
-                EventLog(
-                    event=event_entry.event,
-                    actor=event_entry_player.player,
-                    action=f"Paid with {BRIDGE_CREDITS}",
-                    event_entry=event_entry,
-                ).save()
+                    EventLog(
+                        event=event_entry.event,
+                        actor=event_entry_player.player,
+                        action=f"Paid with {BRIDGE_CREDITS}",
+                        event_entry=event_entry,
+                    ).save()
+
+                    logger.info(
+                        f"{event_entry_player.player} paid with their-system-dollars for {event_entry}"
+                    )
+                else:
+                    logger.warning(
+                        f"{event_entry_player.player} payment failed for their-system-dollars for {event_entry}"
+                    )
 
 
 def _send_notifications(event_entry_players, event_entries, payment_user):
@@ -281,8 +291,6 @@ def _send_notifications(event_entry_players, event_entries, payment_user):
     # This gives us the player (who we will send an email to), any congress they are in,
     # any event they are in (in a congress) and who else is in that entry
     struct = _send_notifications_build_struct(event_entry_players)
-
-    print(struct)
 
     # Loop through by player, then congress and send email. 1 email per player per congress
     for player, value in struct.items():
