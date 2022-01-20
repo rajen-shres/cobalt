@@ -868,8 +868,8 @@ def add_team_mate_ajax(request):
     """
 
     if request.method == "GET":
-        member_id = request.GET["member_id"]
-        member = User.objects.get(pk=member_id)
+        member_id = request.GET.get("member_id")
+        member = get_object_or_404(User, pk=member_id)
         team_mate = TeamMate.objects.filter(user=request.user, team_mate=member)
         if team_mate:  # already exists
             msg = f"{member.first_name} is already a team mate"
@@ -895,10 +895,9 @@ def delete_team_mate_ajax(request):
     Returns:
         HTTPResponse: success, failure or error
     """
-
     if request.method == "GET":
-        member_id = request.GET["member_id"]
-        member = User.objects.get(pk=member_id)
+        member_id = request.GET.get("member_id")
+        member = get_object_or_404(User, pk=member_id)
         team_mate = TeamMate.objects.filter(team_mate=member, user=request.user)
         team_mate.delete()
         msg = "Success"

@@ -1,3 +1,5 @@
+import time
+
 from accounts.models import User
 from events.events_views.core import events_payments_callback
 from events.models import (
@@ -20,8 +22,8 @@ class CallbackTests:
         self.congress = Congress.objects.get(pk=1)
         self.event = Event.objects.get(pk=1)
 
-    def primary_functions(self):
-        """Tests for the callback for the primary entrant"""
+    def primary_functions_pairs(self):
+        """Tests for the callback for the primary entrant - pairs"""
 
         lucy = self.manager.lucy
         morris = self.manager.morris
@@ -73,5 +75,24 @@ class CallbackTests:
             manager=self.manager,
             test_name="Pairs entry (Lucy, Morris) My Bridge Credits. Lucy Email.",
             test_description="Check the email for Lucy was sent",
-            subject_search="Entry",
+            subject_search="Event Entry - Our Big Congress",
+            email_to="Lucy",
         )
+
+        check_email_sent(
+            manager=self.manager,
+            test_name="Pairs entry (Lucy, Morris) My Bridge Credits. Morris Email.",
+            test_description="Check the email for Morris was sent",
+            subject_search="Event Entry - Our Big Congress",
+            email_to="Morris",
+        )
+
+        # Check convener emails
+        for convener in ["Colin", "Eric", "Fiona", "Gary", "Mark"]:
+            check_email_sent(
+                manager=self.manager,
+                test_name=f"Pairs entry (Lucy, Morris) My Bridge Credits. Convener Email - {convener}.",
+                test_description="Check the email for the convener was sent",
+                subject_search="New Entry to Welcome Pairs in Our Big Congress",
+                email_to=convener,
+            )

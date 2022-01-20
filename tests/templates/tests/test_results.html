@@ -81,6 +81,7 @@
                             <tr>
                                 <th>Class</th>
                                 <th>Function</th>
+                                <th>Outcome</th>
                                 <th>Pass Rate</th>
                             </tr>
                         </thead>
@@ -96,6 +97,18 @@
                                     <td><a href="#{{ row.calling_method }}">
                                         {{ nice_function_names|cobalt_dict_key:row.calling_method }}
                                     </a>
+                                    </td>
+                                    <td>
+                                        {% if row.overall_pass %}
+                                            <span class="material-icons" style="color: blue">
+                                                check_circle
+                                            </span>
+                                        {% else %}
+                                            <span class="material-icons" style="color: red">
+                                                error
+                                            </span>
+                                        {% endif %}
+
                                     </td>
                                     <td>{{ row.pass_rate }}</td>
                                 </tr>

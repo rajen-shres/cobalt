@@ -206,7 +206,6 @@ class MemberTransfer:
         #################
         # Generated Selenium Code
         ##################
-        print("Over to you")
 
         # Get transfer url
         transfer_url = self.manager.base_url + reverse("payments:member_transfer")

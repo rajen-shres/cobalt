@@ -60,7 +60,6 @@ def setup_auto_top_up(manager: CobaltTestManagerIntegration, user: User = None):
 def stripe_manual_payment_screen(manager: CobaltTestManagerIntegration):
     """Enter details on manual payment screen to confirm payment"""
 
-    print("Waiting a bit...")
     time.sleep(5)
 
     #    manager.driver.switch_to.frame(2)

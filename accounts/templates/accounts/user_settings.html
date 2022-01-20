@@ -262,15 +262,19 @@
 
 
                                     <div class="col-md-12">
-                                        <button type="submit" class="btn btn-primary cobalt-save">Update Settings</button>
-                                        <div class="clearfix"></div>
-                                    </div>
-                                </form>
-                            </div>
+                                        <button type="submit" class="btn btn-primary cobalt-save" disabled
+                                            {# Hyperscript to remove disabled attribute if form changes #}
+                                            _="on change from closest <form/> remove @disabled"
+                                        >
+                                        Update Settings</button>
+                                    <div class="clearfix"></div>
+                                </div>
+                            </form>
                         </div>
-                        <!-- system notifications -->
+                    </div>
+                    <!-- system notifications -->
 
-                        <!-- <br>
+                    <!-- <br>
           <div class="card">
             <div class="card-header card-header-success">
               <h4 class="card-title">Manage Notifications</h4>
@@ -313,85 +317,85 @@
               </div>
             </div>
           </div> -->
-                        <!-- system notifications -->
-
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card card-profile">
-                            <div class="card-body">
-                                <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 140px; width: 140px;" src="/media/{{ request.user.pic }}" />
-
-                                <h4 class="card-title">{{ request.user.full_name }}</h4>
-                                <p class="card-description">
-                                    {{ request.user.about|default_if_none:"You haven't added anything yet. Visit Profile to change this." }}
-                                </p>
-                                <a href="{% url "accounts:user_profile" %}">Edit...</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    {% if is_developer %}
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header card-header-rose">
-                                    <h2>Developer Settings</h2>
-                                </div>
-                                <div
-                                    id="dev-settings"
-                                    class="card-body"
-                                    hx-post="{% url "accounts:developer_settings_htmx" %}"
-                                    hx-trigger="load"
-                                >
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    {% if fcm_devices %}
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header card-header-rose">
-                                    <h2>Mobile Devices</h2>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-condensed table-hover">
-                                            <thead>
-                                                <tr class="text-primary">
-                                                    <th>Device ID</th>
-                                                    <th>Date Created</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for fcm_device in fcm_devices %}
-                                                    <tr>
-                                                        <td>{{ fcm_device.name }} ({{ fcm_device.type }})</td>
-                                                        <td>{{ fcm_device.date_created }}</td>
-                                                        <td>
-                                                            <button class="btn btn-sm btn-danger">Delete</button>
-                                                            <button
-                                                                class="btn btn-sm btn-info"
-                                                                hx-get="{% url "notifications:send_test_fcm_message" fcm_device_id=fcm_device.id %}"
-                                                                hx-target="#test-msg-{{ fcm_device.id }}"
-                                                            >Test</button>
-                                                            <div id="test-msg-{{ fcm_device.id }}">
-
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
+                    <!-- system notifications -->
 
                 </div>
+                <div class="col-md-4">
+                    <div class="card card-profile">
+                        <div class="card-body">
+                            <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 140px; width: 140px;" src="/media/{{ request.user.pic }}" />
+
+                            <h4 class="card-title">{{ request.user.full_name }}</h4>
+                            <p class="card-description">
+                                {{ request.user.about|default_if_none:"You haven't added anything yet. Visit Profile to change this." }}
+                            </p>
+                            <a href="{% url "accounts:user_profile" %}">Edit...</a>
+                        </div>
+                    </div>
+                </div>
+
+                {% if is_developer %}
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header card-header-rose">
+                                <h2>Developer Settings</h2>
+                            </div>
+                            <div
+                                id="dev-settings"
+                                class="card-body"
+                                hx-post="{% url "accounts:developer_settings_htmx" %}"
+                                hx-trigger="load"
+                            >
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if fcm_devices %}
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header card-header-rose">
+                                <h2>Mobile Devices</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-condensed table-hover">
+                                        <thead>
+                                            <tr class="text-primary">
+                                                <th>Device ID</th>
+                                                <th>Date Created</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for fcm_device in fcm_devices %}
+                                                <tr>
+                                                    <td>{{ fcm_device.name }} ({{ fcm_device.type }})</td>
+                                                    <td>{{ fcm_device.date_created }}</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-danger">Delete</button>
+                                                        <button
+                                                            class="btn btn-sm btn-info"
+                                                            hx-get="{% url "notifications:send_test_fcm_message" fcm_device_id=fcm_device.id %}"
+                                                            hx-target="#test-msg-{{ fcm_device.id }}"
+                                                        >Test</button>
+                                                        <div id="test-msg-{{ fcm_device.id }}">
+
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
             </div>
         </div>
+    </div>
     </div>
 {% endblock %}
 {% block footer %}
