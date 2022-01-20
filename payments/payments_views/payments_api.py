@@ -1,13 +1,168 @@
 import logging
 
-from django.template.loader import render_to_string
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.urls import reverse
 
-from cobalt.settings import AUTO_TOP_UP_LOW_LIMIT, BRIDGE_CREDITS
+from cobalt.settings import (
+    AUTO_TOP_UP_LOW_LIMIT,
+    BRIDGE_CREDITS,
+    GLOBAL_CURRENCY_SYMBOL,
+)
 from logs.views import log_event
 from notifications.notifications_views.core import send_cobalt_email_with_template
 import payments.payments_views.core as payments_core
+from payments.models import StripeTransaction
 
 logger = logging.getLogger("cobalt")
+
+
+def payment_api_interactive(
+    request,
+    member,
+    description,
+    amount,
+    organisation=None,
+    other_member=None,
+    payment_type="Miscellaneous",
+    next_url=None,
+    route_code=None,
+    route_payload=None,
+):
+    """Payments API when we have an attached user. This will try to make a payment and if need be
+        take the user to the Stripe payment screen to handle a manual payment.
+
+        For auto top up users, or users with enough money, this is a synchronous process and
+        we will return the next_url to the user.
+
+        For manual payments, the Stripe process is asynchronous. We hand the user off to Stripe
+        and only know if their payment worked when Stripe calls us back through the webhook. We use
+        a route_code to know what function to call when the webhook is triggered and the route_payload
+        is passed so the calling module knows what this refers to.
+
+        args:
+            request - Standard request object
+            description - text description of the payment
+            amount - A positive amount is a charge, a negative amount is an incoming payment.
+            member - User object related to the payment
+            organisation - linked organisation
+            other_member - User object
+            payment_type - description of payment
+            next_url - where to take the user next
+            route_code - used by the callback to know which function to call upon the payment going through
+            route_payload - identifier to pass when making the callback
+
+    returns:
+        HttpResponse - either the Stripe manual payment screen or the next_url
+
+    """
+
+    if not next_url:  # where to next
+        next_url = reverse("dashboard:dashboard")
+
+    # First try to make the payment without the user's involvement
+    if payment_api_batch(
+        member=member,
+        description=description,
+        amount=amount,
+        organisation=organisation,
+        other_member=other_member,
+        payment_type=payment_type,
+    ):
+        logger.info(f"{request.user} paid {amount:.2f} for {description}")
+
+        # Call the callback
+        payments_core.callback_router(
+            route_code=route_code, route_payload=route_payload, tran=None
+        )
+
+        # Return
+        msg = _success_msg_for_user(amount, other_member, organisation)
+        messages.success(request, msg, extra_tags="cobalt-message-success")
+        return redirect(next_url)
+
+    # Didn't work automatically, we need to get the user to pay manually
+    balance = float(payments_core.get_balance(member))
+    amount = float(amount)
+
+    # Create Stripe Transaction
+    trans = StripeTransaction()
+    trans.description = description
+    trans.amount = amount - balance
+    trans.member = member
+    trans.route_code = route_code
+    trans.route_payload = route_payload
+    trans.linked_amount = amount
+    trans.linked_member = other_member
+    trans.linked_organisation = organisation
+    trans.linked_transaction_type = payment_type
+    trans.save()
+
+    msg = _manual_payment_description(balance, amount, other_member, description)
+
+    next_url_name = _next_url_name_from_url(next_url)
+
+    logger.info(
+        f"{request.user} handed to Stripe manual screen to pay {amount:.2f} for {description}"
+    )
+
+    return render(
+        request,
+        "payments/players/checkout.html",
+        {
+            "trans": trans,
+            "msg": msg,
+            "next_url": next_url,
+            "next_url_name": next_url_name,
+        },
+    )
+
+
+def _manual_payment_description(balance, amount, other_member, description):
+    """Format the message correctly"""
+    if other_member:  # transfer to another member
+        if balance > 0.0:
+            return f"""Partial payment for transfer to {other_member} ({description}).
+                      <br>
+                      Also using your current balance
+                      of {GLOBAL_CURRENCY_SYMBOL}{balance:.2f} to make a total payment of
+                      {GLOBAL_CURRENCY_SYMBOL}{amount:.2f}.
+                 """
+
+        return f"Payment to {other_member} ({description})"
+
+    if balance > 0.0:  # Use existing balance
+        return f"""Partial payment for {description}.
+                  <br>
+                  Also using your current balance
+                  of {GLOBAL_CURRENCY_SYMBOL}{balance:.2f} to make a total payment of
+                  {GLOBAL_CURRENCY_SYMBOL}{amount:.2f}.
+             """
+
+    return f"Payment for: {description}"
+
+
+def _next_url_name_from_url(next_url):
+    """Try to work out what to describe the next_url as"""
+    # TODO: Move this to the calling function to provide as a parameter
+
+    if next_url.find("events") >= 0:
+        return "Events"
+    elif next_url.find("dashboard") >= 0:
+        return "Dashboard"
+    elif next_url.find("payments") >= 0:
+        return "your statement"
+    return "Next"
+
+
+def _success_msg_for_user(amount, other_member, organisation):
+    """Build message to show on user's next screen"""
+    if other_member:
+        return f"Payment of {amount:.2f} to {other_member} successful"
+    if organisation:
+        return f"Payment of {amount:.2f} to {organisation} successful"
+    # Shouldn't get here
+    return f"Payment of {amount:.2f} successful"
 
 
 def payment_api_batch(
@@ -20,7 +175,7 @@ def payment_api_batch(
 ):
     """This API is used by other parts of the system to make payments or
     fail. It will use existing funds or try to initiate an auto top up.
-    Use another API call if you wish the user to be taken to the manual
+    Use payment_api_interactive() if you wish the user to be taken to the manual
     payment screen.
 
     We accept either organisation as the counterpart for this payment or
@@ -93,7 +248,7 @@ def _payment_with_sufficient_funds(
 
     # For member to member transfers, we notify both parties
     if other_member:
-        _notify_member_to_member_transfer(member, amount, description, organisation)
+        _notify_member_to_member_transfer(member, other_member, amount, description)
 
     # check for auto top up required - if user not set for auto topup then ignore
     _check_for_auto_topup(member, amount, balance)
@@ -145,7 +300,7 @@ def _update_account_entries_for_member_payment(
         )
 
 
-def _notify_member_to_member_transfer(member, amount, description, other_member):
+def _notify_member_to_member_transfer(member, other_member, amount, description):
     """For member to member transfers we email both members to confirm"""
 
     # Member email
@@ -226,7 +381,7 @@ def _payment_with_insufficient_funds(
             _update_account_entries_for_member_payment(
                 member, amount, description, organisation, other_member, payment_type
             )
-            _notify_member_to_member_transfer(member, amount, description, organisation)
+            _notify_member_to_member_transfer(member, other_member, amount, description)
             return True
 
     return False

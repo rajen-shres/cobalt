@@ -81,8 +81,8 @@
                             <tr>
                                 <th>Class</th>
                                 <th>Function</th>
-                                <th>Outcome</th>
-                                <th>Pass Rate</th>
+                                <th class="text-center">Outcome</th>
+                                <th class="text-center">Pass Rate</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -98,7 +98,7 @@
                                         {{ nice_function_names|cobalt_dict_key:row.calling_method }}
                                     </a>
                                     </td>
-                                    <td>
+                                    <td class="text-center">
                                         {% if row.overall_pass %}
                                             <span class="material-icons" style="color: blue">
                                                 check_circle
@@ -110,7 +110,7 @@
                                         {% endif %}
 
                                     </td>
-                                    <td>{{ row.pass_rate }}</td>
+                                    <td class="text-center">{{ row.pass_rate }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -143,7 +143,7 @@
                                                     <thead>
                                                         <tr class="d-flex">
                                                             <th class="col-6">Test</th>
-                                                            <th class="col-2">Status</th>
+                                                            <th class="col-2 text-center">Status</th>
                                                             <th class="col-4">Output</th>
                                                         </tr>
                                                     </thead>
@@ -177,7 +177,7 @@
 
                                                                         {#  hide output for Pass but allow click on icon to reveal it #}
 
-                                                                        <td class="col-2">
+                                                                        <td class="col-2 text-center">
 
                                                                             {% if row.status == "Pass" %}
 

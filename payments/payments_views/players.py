@@ -31,6 +31,7 @@ from payments.payments_views.core import (
     TZ,
     statement_common,
 )
+from payments.payments_views.payments_api import payment_api_interactive
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
@@ -320,7 +321,7 @@ def member_transfer(request):
     if request.method == "POST":
         form = MemberTransfer(request.POST, user=request.user)
         if form.is_valid():
-            return payment_api(
+            return payment_api_interactive(
                 request=request,
                 description=form.cleaned_data["description"],
                 amount=form.cleaned_data["amount"],
@@ -335,11 +336,7 @@ def member_transfer(request):
 
     # get balance
     last_tran = MemberTransaction.objects.filter(member=request.user).last()
-    if last_tran:
-        balance = last_tran.balance
-    else:
-        balance = "Nil"
-
+    balance = last_tran.balance if last_tran else "Nil"
     recents = (
         MemberTransaction.objects.filter(member=request.user)
         .exclude(other_member=None)

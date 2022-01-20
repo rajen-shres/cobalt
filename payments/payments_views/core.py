@@ -468,6 +468,9 @@ def payment_api(
                 other_member=other_member,
                 description=description,
                 payment_type=payment_type,
+                log_msg=None,
+                source=None,
+                sub_source=None,
             )
 
             # If we got an organisation then make their payment too
