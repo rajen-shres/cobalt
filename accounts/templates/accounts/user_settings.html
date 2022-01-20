@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load cobalt_tags %}
 
 {% block content %}
 
@@ -362,7 +363,7 @@
                                     <table class="table table-condensed table-hover">
                                         <thead>
                                             <tr class="text-primary">
-                                                <th>Device ID</th>
+                                                <th>Device</th>
                                                 <th>Date Created</th>
                                                 <th>Action</th>
                                             </tr>
@@ -371,7 +372,7 @@
                                             {% for fcm_device in fcm_devices %}
                                                 <tr>
                                                     <td>{{ fcm_device.name }} ({{ fcm_device.type }})</td>
-                                                    <td>{{ fcm_device.date_created }}</td>
+                                                    <td>{{ fcm_device.date_created|cobalt_nice_datetime }}</td>
                                                     <td>
                                                         <button class="btn btn-sm btn-danger">Delete</button>
                                                         <button

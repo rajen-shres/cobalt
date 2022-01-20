@@ -13,7 +13,15 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.html import strip_tags
 from fcm_django.models import FCMDevice
-from firebase_admin.messaging import Message, Notification
+from firebase_admin.messaging import (
+    Message,
+    Notification,
+    AndroidConfig,
+    AndroidNotification,
+    APNSConfig,
+    APNSPayload,
+    Aps,
+)
 from post_office import mail as po_email
 
 from accounts.models import User, UserAdditionalInfo
@@ -663,16 +671,37 @@ def send_test_fcm_message(request, fcm_device_id):
             f"It was sent on {now}."
         )
 
-        print(test_msg)
+        rc = send_fcm_message(fcm_device, test_msg, request.user)
 
-        RealtimeNotification(
-            member=fcm_device.user, admin=request.user, msg=test_msg
-        ).save()
-
-        msg = Message(notification=Notification(title="Test Message", body=test_msg))
-        rc = fcm_device.send_message(msg)
-        print(rc)
-
-        return HttpResponse(f"Message sent: {rc}")
+        return HttpResponse(f"Message sent {rc}")
 
     return HttpResponse("Device not found or access denied")
+
+
+def send_fcm_message(fcm_device, msg, admin=None):
+    """Send a message to a users registered FCM device"""
+
+    if not admin:
+        admin = User.objects.get(pk=RBAC_EVERYONE)
+
+    RealtimeNotification(member=fcm_device.user, admin=admin, msg=msg).save()
+
+    msg = Message(
+        notification=Notification(
+            title=f"Test Message for {fcm_device.user.first_name}", body=msg
+        ),
+        android=AndroidConfig(
+            priority="high",
+            notification=AndroidNotification(sound="default", default_sound=True),
+        ),
+        apns=APNSConfig(
+            payload=APNSPayload(
+                aps=Aps(sound="default"),
+            ),
+        ),
+    )
+
+    rc = fcm_device.send_message(msg)
+    logger.info(rc)
+
+    return rc
