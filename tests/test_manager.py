@@ -35,20 +35,20 @@ setup_test_environment()
 # For the integration tests we are telling a story and the order matters
 # For unit tests each test should stand alone and they are dynamically found
 LIST_OF_INTEGRATION_TESTS = {
-    "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
+    # "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
     "EventEntry": "events.tests.integration.01_user_event_entry",
-    "APITests": "api.tests.integration.01_authorisation_tests",
-    "SMSTests": "notifications.tests.integration.01_sms_tests",
-    "FCMTokenAPITests": "api.tests.integration.02_fcm_token_tests",
-    "FCMTokenUpdateAPITests": "api.tests.integration.02_fcm_token_tests",
-    "FCMAPITests": "api.tests.integration.03_fcm_api_tests",
-    "Registration": "accounts.tests.integration.01_registration",
-    "MemberTransfer": "payments.tests.integration.member_actions",
-    "OrgHighLevelAdmin": "organisations.tests.integration.01_high_level_admin",
-    "ClubLevelAdmin": "organisations.tests.integration.02_club_level_admin",
-    "ClubSettings": "organisations.tests.integration.03_club_settings",
-    "ClubMembers": "organisations.tests.integration.04_club_members",
-    "ClubCongress": "organisations.tests.integration.06_congress_setup",
+    # "APITests": "api.tests.integration.01_authorisation_tests",
+    # "SMSTests": "notifications.tests.integration.01_sms_tests",
+    # "FCMTokenAPITests": "api.tests.integration.02_fcm_token_tests",
+    # "FCMTokenUpdateAPITests": "api.tests.integration.02_fcm_token_tests",
+    # "FCMAPITests": "api.tests.integration.03_fcm_api_tests",
+    # "Registration": "accounts.tests.integration.01_registration",
+    # "MemberTransfer": "payments.tests.integration.member_actions",
+    # "OrgHighLevelAdmin": "organisations.tests.integration.01_high_level_admin",
+    # "ClubLevelAdmin": "organisations.tests.integration.02_club_level_admin",
+    # "ClubSettings": "organisations.tests.integration.03_club_settings",
+    # "ClubMembers": "organisations.tests.integration.04_club_members",
+    # "ClubCongress": "organisations.tests.integration.06_congress_setup",
 }
 
 
@@ -512,9 +512,9 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
         )
         return self._selenium_wait(element_has_text, element_id, timeout=timeout)
 
-    def sleep(self):
+    def sleep(self, duration=99999999):
         """Util to sleep for a long time to allow DB to be investigated when there are problems with tests"""
-        time.sleep(99999999999)
+        time.sleep(duration)
 
     def run(self):
 
