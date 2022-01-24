@@ -35,20 +35,20 @@ setup_test_environment()
 # For the integration tests we are telling a story and the order matters
 # For unit tests each test should stand alone and they are dynamically found
 LIST_OF_INTEGRATION_TESTS = {
-    "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
+    # "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
     "EventEntry": "events.tests.integration.01_user_event_entry",
-    "APITests": "api.tests.integration.01_authorisation_tests",
-    "SMSTests": "notifications.tests.integration.01_sms_tests",
-    "FCMTokenAPITests": "api.tests.integration.02_fcm_token_tests",
-    "FCMTokenUpdateAPITests": "api.tests.integration.02_fcm_token_tests",
-    "FCMAPITests": "api.tests.integration.03_fcm_api_tests",
-    "Registration": "accounts.tests.integration.01_registration",
-    "MemberTransfer": "payments.tests.integration.member_actions",
-    "OrgHighLevelAdmin": "organisations.tests.integration.01_high_level_admin",
-    "ClubLevelAdmin": "organisations.tests.integration.02_club_level_admin",
-    "ClubSettings": "organisations.tests.integration.03_club_settings",
-    "ClubMembers": "organisations.tests.integration.04_club_members",
-    "ClubCongress": "organisations.tests.integration.06_congress_setup",
+    # "APITests": "api.tests.integration.01_authorisation_tests",
+    # "SMSTests": "notifications.tests.integration.01_sms_tests",
+    # "FCMTokenAPITests": "api.tests.integration.02_fcm_token_tests",
+    # "FCMTokenUpdateAPITests": "api.tests.integration.02_fcm_token_tests",
+    # "FCMAPITests": "api.tests.integration.03_fcm_api_tests",
+    # "Registration": "accounts.tests.integration.01_registration",
+    # "MemberTransfer": "payments.tests.integration.member_actions",
+    # "OrgHighLevelAdmin": "organisations.tests.integration.01_high_level_admin",
+    # "ClubLevelAdmin": "organisations.tests.integration.02_club_level_admin",
+    # "ClubSettings": "organisations.tests.integration.03_club_settings",
+    # "ClubMembers": "organisations.tests.integration.04_club_members",
+    # "ClubCongress": "organisations.tests.integration.06_congress_setup",
 }
 
 
@@ -145,6 +145,9 @@ class CobaltTestManagerAbstract(ABC):
         # - if the level up isn't a class we could be in a common helper functions so try next level
         # - if that fails try another level
         stack = inspect.stack()
+
+        # TODO: Use recursion for this
+
         try:
             calling_class = stack[1][0].f_locals["self"].__class__.__name__
             calling_class_doc = stack[1][0].f_locals["self"].__class__.__doc__
@@ -159,11 +162,18 @@ class CobaltTestManagerAbstract(ABC):
                 calling_line_no = stack[2][0].f_lineno
                 calling_file = stack[2][0].f_code.co_filename
             except KeyError:
-                calling_class = stack[3][0].f_locals["self"].__class__.__name__
-                calling_class_doc = stack[3][0].f_locals["self"].__class__.__doc__
-                calling_method = stack[3][0].f_code.co_name
-                calling_line_no = stack[3][0].f_lineno
-                calling_file = stack[3][0].f_code.co_filename
+                try:
+                    calling_class = stack[3][0].f_locals["self"].__class__.__name__
+                    calling_class_doc = stack[3][0].f_locals["self"].__class__.__doc__
+                    calling_method = stack[3][0].f_code.co_name
+                    calling_line_no = stack[3][0].f_lineno
+                    calling_file = stack[3][0].f_code.co_filename
+                except KeyError:
+                    calling_class = stack[4][0].f_locals["self"].__class__.__name__
+                    calling_class_doc = stack[4][0].f_locals["self"].__class__.__doc__
+                    calling_method = stack[4][0].f_code.co_name
+                    calling_line_no = stack[4][0].f_lineno
+                    calling_file = stack[4][0].f_code.co_filename
 
         calling_file = os.path.basename(calling_file)
 
@@ -190,7 +200,7 @@ class CobaltTestManagerAbstract(ABC):
 
         # Handle test name not being unique
         if test_name in self.test_results[calling_class][calling_method]:
-            test_name += " Duplicate Name"
+            test_name += " DUPLICATE TEST NAME"
 
         self.test_results[calling_class][calling_method][test_name] = {
             "status": status,

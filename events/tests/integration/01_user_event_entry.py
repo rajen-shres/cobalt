@@ -1,111 +1,13 @@
-import time
-
 from django.urls import reverse
-from post_office import mail
-from post_office.models import Email
-from selenium.webdriver.support.select import Select
 
 from accounts.models import TeamMate
-from events.models import Event, Congress, EventEntryPlayer
-from notifications.tests.common_functions import check_email_sent
-from payments.payments_views.core import update_account
+from events.models import Event, Congress
+from events.tests.integration.common_functions import (
+    enter_event_and_check,
+    enter_event_then_pay_and_check,
+)
+from payments.payments_views.core import update_account, get_balance
 from tests.test_manager import CobaltTestManagerIntegration
-
-
-def _enter_event_and_check(
-    test_instance,
-    event,
-    entry_url,
-    test_name,
-    test_description,
-    player_list,
-    player0_payment_type=None,
-):
-    """Helper function for entering an event
-
-    Args:
-        test_instance(Klass): the calling class. We use some of its variables
-        event(Event): event to enter
-        entry_url(str): URL of the entry page
-        player_list(list of lists):
-                                    player,
-                                    payment type to select
-                                    expected payment_status afterwards
-        player0_payment_type (str): payment type for main entrant
-    """
-
-    # Go to Entry page
-    test_instance.manager.driver.get(entry_url)
-
-    # set payment type for primary entrant if provided
-    if player0_payment_type:
-        test_instance.manager.selenium_wait_for_clickable("id_player0_payment")
-        # select payment type field
-        select_payment_type = Select(
-            test_instance.manager.driver.find_element_by_id("id_player0_payment")
-        )
-        # select payment type value
-        select_payment_type.select_by_value(player0_payment_type)
-
-    for player_no, player in enumerate(player_list, start=1):
-        # Wait
-        test_instance.manager.selenium_wait_for_clickable(f"id_player{player_no}")
-        # Select Player field
-        select_player = Select(
-            test_instance.manager.driver.find_element_by_id(f"id_player{player_no}")
-        )
-        # select Player value
-        select_player.select_by_value(f"{player[0].id}")
-        # Wait for JavaScript to catch up
-        test_instance.manager.selenium_wait_for_clickable(
-            f"id_player{player_no}_payment"
-        )
-        # select payment type field
-        select_payment_type = Select(
-            test_instance.manager.driver.find_element_by_id(
-                f"id_player{player_no}_payment"
-            )
-        )
-        # select payment type value
-        select_payment_type.select_by_value(player[1])
-
-    # Enter
-    test_instance.manager.selenium_wait_for_clickable("id_checkout").click()
-
-    # Wait for success screen
-    test_instance.manager.selenium_wait_for_text(
-        "Congresses", element_id="t_congress_heading"
-    )
-
-    # Check if it worked as expected
-
-    for player in player_list:
-        # Check event entry player
-        event_entry_player = EventEntryPlayer.objects.filter(
-            event_entry__event=event, player=player[0]
-        ).first()
-
-        test_instance.manager.save_results(
-            status=event_entry_player.payment_status == player[2],
-            output=f"Checked status of {player[0]} entry. Expected 'Paid', got '{event_entry_player.payment_status}'",
-            test_name=f"{test_name}. Check event entry player - {player[0].first_name}",
-            test_description=test_description,
-        )
-
-        # Check email
-        check_email_sent(
-            manager=test_instance.manager,
-            test_name=f"{test_name} - {player[0].first_name} email",
-            email_to=player[0].first_name,
-            test_description=test_description,
-            subject_search="Event Entry",
-        )
-
-    # Delete event entry for next time, use last event_entry_player
-    event_entry_player.event_entry.delete()
-
-    # Delete emails too
-    Email.objects.all().delete()
 
 
 class EventEntry:
@@ -180,7 +82,7 @@ class EventEntry:
         """Simple pairs entry scenarios"""
 
         # Both Bridge Credits
-        _enter_event_and_check(
+        enter_event_and_check(
             test_name="Pairs entry for Keith - pays for both",
             test_description="Keith enters event and pays for Lucy",
             test_instance=self,
@@ -190,7 +92,7 @@ class EventEntry:
         )
 
         # Bank Transfer
-        _enter_event_and_check(
+        enter_event_and_check(
             test_name="Pairs entry for Keith - Bridge Credits and Bank Transfer",
             test_description="Keith enters event and sets Lucy to Bank Transfer",
             test_instance=self,
@@ -200,7 +102,7 @@ class EventEntry:
         )
 
         # cash and bank transfer
-        _enter_event_and_check(
+        enter_event_and_check(
             test_name="Pairs entry for Keith - Cash and Bank Transfer",
             test_description="Keith enters event with cash and sets Lucy to Bank Transfer",
             test_instance=self,
@@ -210,11 +112,43 @@ class EventEntry:
             player0_payment_type="cash",
         )
 
+        # Go to checkout and pay using stripe
+        # Empty Keith's bank account
+        update_account(
+            member=self.manager.keith,
+            amount=-get_balance(self.manager.keith),
+            description="Empty Keith out",
+            log_msg=None,
+            source=None,
+            sub_source=None,
+            payment_type="Refund",
+        )
+
+        enter_event_then_pay_and_check(
+            test_name="Pairs entry for Keith - Insufficient funds",
+            test_description="Keith enters event and pays with Stripe",
+            test_instance=self,
+            event=self.pairs_event,
+            entry_url=self.pairs_entry_url,
+            player_list=[[self.manager.lucy, "my-system-dollars", "Paid", True]],
+        )
+
     def a2_teams_entry(self):
         """Simple teams entry scenarios"""
 
+        # Give Keith some money
+        update_account(
+            member=self.manager.keith,
+            amount=1000.0,
+            description="Cash",
+            log_msg=None,
+            source=None,
+            sub_source=None,
+            payment_type="Refund",
+        )
+
         # All Bridge Credits
-        _enter_event_and_check(
+        enter_event_and_check(
             test_name="Teams entry for Keith - pays for all",
             test_description="Keith enters event and pays for everyone",
             test_instance=self,

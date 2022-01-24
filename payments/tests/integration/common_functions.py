@@ -66,9 +66,21 @@ def stripe_manual_payment_screen(manager: CobaltTestManagerIntegration):
     manager.driver.switch_to.frame(manager.driver.find_element_by_tag_name("iframe"))
 
     manager.driver.find_element(By.NAME, "cardnumber").click()
-    manager.driver.find_element(By.NAME, "cardnumber").send_keys("4242 4242 4242 4242")
-    manager.driver.find_element(By.NAME, "exp-date").send_keys("04 / 22")
+
+    # send in blocks to slow down a little
+    manager.driver.find_element(By.NAME, "cardnumber").send_keys("4242")
+    manager.driver.find_element(By.NAME, "cardnumber").send_keys("4242")
+    manager.driver.find_element(By.NAME, "cardnumber").send_keys("4242")
+    manager.driver.find_element(By.NAME, "cardnumber").send_keys("4242")
+
+    time.sleep(1)
+
+    manager.driver.find_element(By.NAME, "exp-date").send_keys("12 / 28")
+
+    time.sleep(1)
+
     manager.driver.find_element(By.NAME, "cvc").send_keys("422")
+
     manager.driver.switch_to.default_content()
     manager.driver.find_element(By.ID, "button-text").click()
 
