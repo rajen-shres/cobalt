@@ -188,6 +188,10 @@ class CobaltTestManagerAbstract(ABC):
         if calling_method not in self.test_results[calling_class]:
             self.test_results[calling_class][calling_method] = {}
 
+        # Handle test name not being unique
+        if test_name in self.test_results[calling_class][calling_method]:
+            test_name += " Duplicate Name"
+
         self.test_results[calling_class][calling_method][test_name] = {
             "status": status,
             "test_description": test_description,
