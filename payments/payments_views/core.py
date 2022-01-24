@@ -27,6 +27,7 @@ Key Points:
 
 """
 import json
+import logging
 from json import JSONDecodeError
 
 import pytz
@@ -68,6 +69,8 @@ from payments.models import (
 )
 
 TZ = pytz.timezone(TIME_ZONE)
+
+logger = logging.getLogger("cobalt")
 
 
 #######################
@@ -138,11 +141,7 @@ def get_balance_and_recent_trans_org(org):
 
     last_tran = trans.first()
 
-    if last_tran:
-        balance = float(last_tran.balance)
-    else:
-        balance = 0.0
-
+    balance = float(last_tran.balance) if last_tran else 0.0
     return balance, trans
 
 
@@ -227,6 +226,7 @@ def stripe_manual_payment_intent(request):
     stripe.api_key = STRIPE_SECRET_KEY
 
     # Create a customer so we get the email and name on the Stripe side
+    # We create a new Stripe customer each time
     stripe_customer = stripe.Customer.create(
         name=request.user,
         email=request.user.email,
@@ -304,7 +304,6 @@ def stripe_auto_payment_intent(request):
     """
 
     if request.method == "POST":
-
         stripe.api_key = STRIPE_SECRET_KEY
         intent = stripe.SetupIntent.create(
             customer=request.user.stripe_customer_id,
@@ -346,443 +345,6 @@ def stripe_current_balance():
     # Will be in cents so convert to dollars
     # TODO: make this international
     return float(ret.available[0].amount / 100.0)
-
-
-#####################
-# payment_api       #
-#####################
-def payment_api(
-    request,
-    description,
-    amount,
-    member,
-    route_code=None,
-    route_payload=None,
-    organisation=None,
-    other_member=None,
-    log_msg=None,
-    payment_type=None,
-    url=None,
-    url_fail=None,
-    book_internals=True,
-):
-    """API for payments from other parts of the application.
-
-    There is a user on the end of this who needs to know what is happening,
-    so we return a page that tells them. It could be:
-
-    1) A payment page for one off payments
-    2) A failed auto payment message
-    3) A success page from auto topup
-    4) A success page because they had enough funds in the account
-
-    The route_code provides a callback and the route_payload is the string
-    to return. For 3 and 4, the callback will be called before the page is
-    returned.
-
-    Payments should be the last step in the process for the calling application
-    as there is no way to return control to the application after payments is
-    done. Note: This would be possible if required.
-
-    amount is the amount to be deducted from the users account. A positive
-    amount is a charge, a negative amount is an incoming payment.
-
-    We accept either organisation as the counterpart for this payment or
-    other_member. Some clients only do one side of the transaction through
-    this API so we also accept neither.
-
-    This is generally expected to return a page giving the user information,
-    but it can also be called headlessly by setting request to None.
-
-    For Events the booking of the internal transactions is done in the callback
-    so that we can have individual transactions that are easier to map. The
-    optional parameter book_internals handles this. If this is set to false
-    then only the necessary Stripe transactions are executed by payment_api.
-
-    args:
-        request - standard request object (optional)
-        description - text description of the payment
-        amount - how much
-        member - User object related to the payment
-        route_code - code to map to a callback
-        route_payload - value to return on completion
-        organisation - linked organisation
-        other_member - User object
-        log_msg - message for the log
-        payment_type - description of payment
-        url - next url to go to
-        url_fail - url to go to if payment fails
-        book_internals - create internal transactions
-
-    returns:
-        request - page for user
-
-    """
-
-    if other_member and organisation and book_internals:  # one or the other, not both
-        log_event(
-            user="Stripe API",
-            severity="CRITICAL",
-            source="Payments",
-            sub_source="payments_api",
-            message="Received both other_member and organisation. Code Error.",
-        )
-        return HttpResponse(status=500)
-
-    return_msg = None  # for non user interactive calls
-
-    # We need to allow having neither other_member or org for Events.
-    # Events needs to split the payments potentially between different
-    # orgs so it creates its own org payments which won't be a single
-    # match for the user payment.
-
-    # if not other_member and not organisation:  # must have one
-    #     log_event(
-    #         user="Stripe API",
-    #         severity="CRITICAL",
-    #         source="Payments",
-    #         sub_source="payments_api",
-    #         message="Received neither other_member nor organisation. Code Error.",
-    #     )
-    #     return HttpResponse(status=500)
-
-    balance = float(get_balance(member))
-    amount = float(amount)
-
-    if not log_msg:
-        log_msg = description
-
-    if not payment_type:
-        payment_type = "Miscellaneous"
-
-    if not url:  # where to next
-        url = reverse("dashboard:dashboard")
-
-    if amount <= balance:  # sufficient funds
-
-        if book_internals:
-            update_account(
-                member=member,
-                amount=-amount,
-                organisation=organisation,
-                other_member=other_member,
-                description=description,
-                payment_type=payment_type,
-                log_msg=None,
-                source=None,
-                sub_source=None,
-            )
-
-            # If we got an organisation then make their payment too
-            if organisation:
-                update_organisation(
-                    organisation=organisation,
-                    amount=amount,
-                    description=description,
-                    log_msg=log_msg,
-                    source="Payments",
-                    sub_source="payments_api",
-                    payment_type=payment_type,
-                    member=member,
-                )
-
-                if request:
-                    messages.success(
-                        request,
-                        f"Payment successful! You paid ${amount:.2f} to {organisation}.",
-                        extra_tags="cobalt-message-success",
-                    )
-
-        # If we got an other_member then make their payment too
-        if other_member:
-            update_account(
-                amount=amount,
-                description=description,
-                log_msg=log_msg,
-                source="Payments",
-                sub_source="payments_api",
-                payment_type=payment_type,
-                other_member=member,
-                member=other_member,
-            )
-
-            # Notify member
-            email_body = f"You have transferred {amount:.2f} credits into the {BRIDGE_CREDITS} account of {other_member}.<br><br>The description was: {description}.<br><br>Please contact us immediately if you do not recognise this transaction.<br><br>"
-            context = {
-                "name": member.first_name,
-                "title": "Transfer to %s" % other_member.full_name,
-                "email_body": email_body,
-                "host": COBALT_HOSTNAME,
-                "link": "/payments",
-                "link_text": "View Statement",
-            }
-
-            html_msg = render_to_string("notifications/email_with_button.html", context)
-
-            # send
-            contact_member(
-                member=member,
-                msg="Transfer to %s - %s credits" % (other_member.full_name, amount),
-                contact_type="Email",
-                html_msg=html_msg,
-                link="/payments",
-                subject="Transfer to %s" % other_member,
-            )
-
-            # Notify other member
-            email_body = f"<b>{member}</b> has transferred {amount:.2f} credits into your {BRIDGE_CREDITS} account.<br><br>The description was: {description}.<br><br>Please contact {member.first_name} directly if you have any queries.<br><br>"
-            context = {
-                "name": other_member.first_name,
-                "title": "Transfer from %s" % member.full_name,
-                "email_body": email_body,
-                "host": COBALT_HOSTNAME,
-                "link": "/payments",
-                "link_text": "View Statement",
-            }
-
-            html_msg = render_to_string("notifications/email_with_button.html", context)
-
-            # send
-            contact_member(
-                member=other_member,
-                msg="Transfer from %s - %s" % (member.full_name, amount),
-                contact_type="Email",
-                html_msg=html_msg,
-                link="/payments",
-                subject="Transfer from %s" % member,
-            )
-
-            if request:
-                messages.success(
-                    request,
-                    f"Payment successful! You paid ${amount:.2f} to {other_member}.",
-                    extra_tags="cobalt-message-success",
-                )
-
-        callback_router(route_code=route_code, route_payload=route_payload, tran=None)
-
-        # check for auto top up required - if user not set for auto topup then ignore
-
-        if member.stripe_auto_confirmed == "On":
-            if balance - amount < AUTO_TOP_UP_LOW_LIMIT:
-                (return_code, msg) = auto_topup_member(member)
-                if return_code:  # Success
-                    if request:
-                        messages.success(
-                            request, msg, extra_tags="cobalt-message-success"
-                        )
-                else:  # Failure
-                    if request:
-                        return_msg = msg
-                        messages.error(request, msg, extra_tags="cobalt-message-error")
-
-        print(url)
-        return redirect(url)
-
-    else:  # insufficient funds
-        if member.stripe_auto_confirmed == "On":
-
-            # calculate required top up amount
-            # Generally top by the largest of amount and auto_amount, BUT if the
-            # balance after that will be low enough to require another top up then
-            # we top up by increments of the top up amount.
-            topup_required = amount  # normal top up
-            if balance < AUTO_TOP_UP_LOW_LIMIT:
-
-                if member.auto_amount >= amount:  # use biggest
-                    topup_required = member.auto_amount
-                else:
-                    topup_required = amount
-                # check if we will still be under threshold
-                if balance + topup_required - amount < AUTO_TOP_UP_LOW_LIMIT:
-                    topup_required = member.auto_amount - balance + amount
-
-                    # Change from magic number to multiples of auto top up
-
-                    min_required_amt = amount - balance + AUTO_TOP_UP_LOW_LIMIT
-                    n = int(min_required_amt / member.auto_amount) + 1
-                    topup_required = member.auto_amount * n
-
-            else:  # not below auto limit, but insufficient funds - use largest of amt and auto
-                if member.auto_amount >= amount:  # use biggest
-                    topup_required = member.auto_amount
-
-            (return_code, msg) = auto_topup_member(
-                member, topup_required=topup_required
-            )
-
-            if return_code:  # success
-                if book_internals:
-                    update_account(
-                        member=member,
-                        other_member=other_member,
-                        amount=-amount,
-                        organisation=organisation,
-                        description=description,
-                        log_msg=log_msg,
-                        source="Payments",
-                        sub_source="payments_api",
-                        payment_type=payment_type,
-                    )
-
-                    # If we got an organisation then make their payment too
-                    if organisation:
-                        update_organisation(
-                            organisation=organisation,
-                            amount=amount,
-                            description=description,
-                            log_msg=log_msg,
-                            source="Payments",
-                            sub_source="payments_api",
-                            payment_type=payment_type,
-                            member=member,
-                        )
-
-                        if request:
-                            messages.success(
-                                request,
-                                f"Payment successful! You paid \
-                                             ${amount:.2f} to {organisation}.",
-                                extra_tags="cobalt-message-success",
-                            )
-
-                # If we got an other_member then make their payment too
-                if other_member:
-                    update_account(
-                        amount=amount,
-                        description=description,
-                        log_msg=log_msg,
-                        source="Payments",
-                        sub_source="payments_api",
-                        payment_type=payment_type,
-                        other_member=member,
-                        member=other_member,
-                    )
-
-                    if request:
-                        messages.success(
-                            request,
-                            f"Payment successful! You paid ${amount:.2f} to {other_member}.",
-                            extra_tags="cobalt-message-success",
-                        )
-
-                if request:
-                    messages.success(request, msg, extra_tags="cobalt-message-success")
-                callback_router(
-                    route_code=route_code, route_payload=route_payload, tran=None
-                )
-                return redirect(url)
-
-            else:  # auto top up failed
-                if request:
-                    messages.error(request, msg, extra_tags="cobalt-message-error")
-                    return_msg = msg
-
-                # notify user
-                email_body = f"""Auto top up of {GLOBAL_CURRENCY_SYMBOL}{topup_required:.2f}
-                                 into your {BRIDGE_CREDITS} account failed.<br><br>
-                                 If your card has expired please use the link below
-                                 to update your details.<br><br>"""
-                context = {
-                    "name": member.first_name,
-                    "title": "Auto top up failed",
-                    "email_body": email_body,
-                    "host": COBALT_HOSTNAME,
-                    "link": "/payments",
-                    "link_text": "View Statement",
-                }
-
-                html_msg = render_to_string(
-                    "notifications/email_with_button.html", context
-                )
-
-                # send
-                contact_member(
-                    member=member,
-                    msg="Auto top up failed",
-                    contact_type="Email",
-                    html_msg=html_msg,
-                    link="/payments",
-                    subject="Auto top up failed",
-                )
-
-                callback_router(
-                    route_code=route_code,
-                    route_payload=route_payload,
-                    tran=None,
-                    status="Failed",
-                )
-                if url_fail:
-                    return redirect(url_fail)
-                else:
-                    return redirect(url)
-
-        else:  # not set up for auto top up - manual payment
-
-            # Create Stripe Transaction
-            trans = StripeTransaction()
-            trans.description = description
-            trans.amount = amount - balance
-            trans.member = member
-            trans.route_code = route_code
-            trans.route_payload = route_payload
-            trans.linked_amount = amount
-            trans.linked_member = other_member
-            trans.linked_organisation = organisation
-            trans.linked_transaction_type = payment_type
-            trans.save()
-
-            if other_member:  # transfer to another member
-                if balance > 0.0:
-                    msg = "Partial payment for transfer to %s (%s). <br>\
-                           Also using your current balance \
-                           of %s%.2f to make total payment of %s%.2f." % (
-                        other_member,
-                        description,
-                        GLOBAL_CURRENCY_SYMBOL,
-                        balance,
-                        GLOBAL_CURRENCY_SYMBOL,
-                        amount,
-                    )
-                else:
-                    msg = "Payment to %s (%s)" % (other_member, description)
-
-            else:
-                if balance > 0.0:
-                    msg = "Partial payment for %s. <br>\
-                           Also using your current balance \
-                           of %s%.2f to make total payment of %s%.2f." % (
-                        description,
-                        GLOBAL_CURRENCY_SYMBOL,
-                        balance,
-                        GLOBAL_CURRENCY_SYMBOL,
-                        amount,
-                    )
-                else:
-                    msg = "Payment for: " + description
-
-            if request:
-                next_url_name = ""
-                if url:
-                    if url.find("events") >= 0:
-                        next_url_name = "Events"
-                    elif url.find("dashboard") >= 0:
-                        next_url_name = "Dashboard"
-                    elif url.find("payments") >= 0:
-                        next_url_name = "your statement"
-
-                return render(
-                    request,
-                    "payments/players/checkout.html",
-                    {
-                        "trans": trans,
-                        "msg": msg,
-                        "next_url": url,
-                        "next_url_name": next_url_name,
-                    },
-                )
-            else:
-                return return_msg
 
 
 #########################
@@ -884,7 +446,6 @@ def stripe_webhook_manual(event):
 
         # We could be linked to a member payment or an organisation payment
         if tran.linked_organisation:
-
             update_account(
                 member=tran.member,
                 amount=-tran.linked_amount,
@@ -909,7 +470,6 @@ def stripe_webhook_manual(event):
             )
 
         if tran.linked_member:
-
             update_account(
                 member=tran.member,
                 amount=-tran.linked_amount,
@@ -936,7 +496,7 @@ def stripe_webhook_manual(event):
     # make Callback
     callback_router(tran.route_code, tran.route_payload, tran)
 
-    # succcess
+    # success
     return HttpResponse(status=200)
 
 
@@ -1259,7 +819,7 @@ def update_organisation(
 # auto_topup_member       #
 ###########################
 def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
-    """process an a member.
+    """process an auto top up for a member.
 
     Internal function to handle a member needing to process an auto top up.
     This function deals with successful top ups and failed top ups. For
@@ -1268,8 +828,12 @@ def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
 
     Args:
         member - a User object.
-        topup_required - the amount of the top up (optional). This is required if the payment is larger than the top up amount. e.g. balance is 25, top up amount is 50, payment is 300.
-        payment_type - defaults to Auto Top Up. We allow this to be overridden so that a member manually topping up their account using their registered auto top up card get the payment type of Manual Top Up on their statement.
+        topup_required - the amount of the top up (optional). This is required if the payment
+                            is larger than the top up amount. e.g. balance is 25, top up amount
+                            is 50, payment is 300.
+        payment_type - defaults to Auto Top Up. We allow this to be overridden so that a member
+                            manually topping up their account using their registered auto top
+                            up card get the payment type of Manual Top Up on their statement.
 
     Returns:
         return_code - True for success, False for failure
@@ -1279,24 +843,26 @@ def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
 
     stripe.api_key = STRIPE_SECRET_KEY
 
-    if not member.stripe_auto_confirmed == "On":
+    if member.stripe_auto_confirmed != "On":
+        logger.warning(f"{member} not set up for auto top up")
         return False, "Member not set up for Auto Top Up"
 
     if not member.stripe_customer_id:
+        logger.warning(f"{member} no stripe customer id found for auto top up")
         return False, "No Stripe customer id found"
 
-    if topup_required:
-        amount = topup_required
-    else:
-        amount = member.auto_amount
+    amount = topup_required or member.auto_amount
 
     # Get payment method id for this customer from Stripe
     try:
-        paylist = stripe.PaymentMethod.list(
+        pay_list = stripe.PaymentMethod.list(
             customer=member.stripe_customer_id,
             type="card",
         )
-        pay_method_id = paylist.data[0].id
+
+        # Use most recent payment if multiple found
+        pay_method_id = pay_list.data[0].id
+
     except stripe.error.InvalidRequestError:
         log_event(
             user=member,
@@ -1306,145 +872,163 @@ def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
             message="Error from stripe - see logs",
         )
 
-        return (False, "Error retreiving customer details from Stripe")
+        logger.warning(f"{member} error retrieving payment method from stripe")
+        return False, "Error retrieving customer details from Stripe"
 
     # try payment
     try:
-        stripe_return = stripe.PaymentIntent.create(
-            amount=int(amount * 100),
-            currency="aud",
-            customer=member.stripe_customer_id,
-            payment_method=pay_method_id,
-            description=f"Auto Top Up for {member}",
-            off_session=True,
-            confirm=True,
-            metadata={"cobalt_tran_type": "Auto"},
-        )
-
-        # It worked so create a stripe record
-        payload = stripe_return.charges.data[0]
-
-        stripe_tran = StripeTransaction()
-        stripe_tran.description = "Auto Top Up"
-        stripe_tran.amount = amount
-        stripe_tran.member = member
-        stripe_tran.route_code = None
-        stripe_tran.route_payload = None
-        stripe_tran.stripe_reference = payload.id
-        stripe_tran.stripe_method = payload.payment_method
-        stripe_tran.stripe_currency = payload.currency
-        stripe_tran.stripe_receipt_url = payload.receipt_url
-        stripe_tran.stripe_brand = payload.payment_method_details.card.brand
-        stripe_tran.stripe_country = payload.payment_method_details.card.country
-        stripe_tran.stripe_exp_month = payload.payment_method_details.card.exp_month
-        stripe_tran.stripe_exp_year = payload.payment_method_details.card.exp_year
-        stripe_tran.stripe_last4 = payload.payment_method_details.card.last4
-        stripe_tran.stripe_balance_transaction = payload.balance_transaction
-        stripe_tran.last_change_date = timezone.now()
-        stripe_tran.status = "Success"
-        stripe_tran.save()
-
-        # Update members account
-        update_account(
-            member=member,
-            amount=amount,
-            description="Payment from %s card **** **** ***** %s Exp %s/%s"
-            % (
-                payload.payment_method_details.card.brand,
-                payload.payment_method_details.card.last4,
-                payload.payment_method_details.card.exp_month,
-                abs(payload.payment_method_details.card.exp_year) % 100,
-            ),
-            log_msg="$%s %s" % (amount, payment_type),
-            source="Payments",
-            sub_source="auto_topup_member",
-            payment_type=payment_type,
-            stripe_transaction=stripe_tran,
-        )
-
-        # Notify member
-        email_body = f"Auto top up of {GLOBAL_CURRENCY_SYMBOL}{amount:.2f} into your {BRIDGE_CREDITS} account was successful.<br><br>"
-        context = {
-            "name": member.first_name,
-            "title": "Auto top up successful",
-            "email_body": email_body,
-            "host": COBALT_HOSTNAME,
-            "link": "/payments",
-            "link_text": "View Statement",
-        }
-
-        html_msg = render_to_string("notifications/email_with_button.html", context)
-
-        # send
-        contact_member(
-            member=member,
-            msg="Auto top up of %s%s successful" % (GLOBAL_CURRENCY_SYMBOL, amount),
-            contact_type="Email",
-            html_msg=html_msg,
-            link="/payments",
-            subject="Auto top up successful",
-        )
-
-        return (
-            True,
-            "Top up successful. %s%.2f added to your account \
-                     from %s card **** **** ***** %s Exp %s/%s"
-            % (
-                GLOBAL_CURRENCY_SYMBOL,
-                amount,
-                payload.payment_method_details.card.brand,
-                payload.payment_method_details.card.last4,
-                payload.payment_method_details.card.exp_month,
-                abs(payload.payment_method_details.card.exp_year) % 100,
-            ),
+        return _auto_topup_member_stripe_transaction(
+            amount, member, pay_method_id, payment_type
         )
 
     except stripe.error.CardError as error:
-        err = error.error
-        print(err.message)
-        # Error code will be authentication_required if authentication is needed
-        log_event(
-            user=member.full_name,
-            severity="WARN",
-            source="Payments",
-            sub_source="test_autotopup",
-            message="Error from stripe - %s" % err.message,
-        )
+        return _auto_topup_member_handle_failure(error, member, amount)
 
-        msg = "%s Auto Top Up has been disabled." % err.message
-        email_body = """We tried to take a payment of $%.2f from your credit card
+
+def _auto_topup_member_stripe_transaction(amount, member, pay_method_id, payment_type):
+    """
+    Sub process of auto_topup_member to process the happy path of the stripe transaction working,
+    If we fail, we throw a stripe exception and auto_topup_member will invoke the error handling,
+    """
+    stripe_return = stripe.PaymentIntent.create(
+        amount=int(amount * 100),
+        currency="aud",
+        customer=member.stripe_customer_id,
+        payment_method=pay_method_id,
+        description=f"Auto Top Up for {member}",
+        off_session=True,
+        confirm=True,
+        metadata={"cobalt_tran_type": "Auto"},
+    )
+
+    # It worked so create a stripe record
+    payload = stripe_return.charges.data[0]
+
+    stripe_tran = StripeTransaction()
+    stripe_tran.description = "Auto Top Up"
+    stripe_tran.amount = amount
+    stripe_tran.member = member
+    stripe_tran.route_code = None
+    stripe_tran.route_payload = None
+    stripe_tran.stripe_reference = payload.id
+    stripe_tran.stripe_method = payload.payment_method
+    stripe_tran.stripe_currency = payload.currency
+    stripe_tran.stripe_receipt_url = payload.receipt_url
+    stripe_tran.stripe_brand = payload.payment_method_details.card.brand
+    stripe_tran.stripe_country = payload.payment_method_details.card.country
+    stripe_tran.stripe_exp_month = payload.payment_method_details.card.exp_month
+    stripe_tran.stripe_exp_year = payload.payment_method_details.card.exp_year
+    stripe_tran.stripe_last4 = payload.payment_method_details.card.last4
+    stripe_tran.stripe_balance_transaction = payload.balance_transaction
+    stripe_tran.last_change_date = timezone.now()
+    stripe_tran.status = "Success"
+    stripe_tran.save()
+
+    # Update members account
+    update_account(
+        member=member,
+        amount=amount,
+        description="Payment from %s card **** **** ***** %s Exp %s/%s"
+        % (
+            payload.payment_method_details.card.brand,
+            payload.payment_method_details.card.last4,
+            payload.payment_method_details.card.exp_month,
+            abs(payload.payment_method_details.card.exp_year) % 100,
+        ),
+        log_msg="$%s %s" % (amount, payment_type),
+        source="Payments",
+        sub_source="auto_topup_member",
+        payment_type=payment_type,
+        stripe_transaction=stripe_tran,
+    )
+
+    # Notify member
+    email_body = f"Auto top up of {GLOBAL_CURRENCY_SYMBOL}{amount:.2f} into your {BRIDGE_CREDITS} account was successful.<br><br>"
+    context = {
+        "name": member.first_name,
+        "title": "Auto top up successful",
+        "email_body": email_body,
+        "host": COBALT_HOSTNAME,
+        "link": "/payments",
+        "link_text": "View Statement",
+    }
+
+    html_msg = render_to_string("notifications/email_with_button.html", context)
+
+    # send
+    contact_member(
+        member=member,
+        msg="Auto top up of %s%s successful" % (GLOBAL_CURRENCY_SYMBOL, amount),
+        contact_type="Email",
+        html_msg=html_msg,
+        link="/payments",
+        subject="Auto top up successful",
+    )
+
+    return (
+        True,
+        "Top up successful. %s%.2f added to your account \
+                     from %s card **** **** ***** %s Exp %s/%s"
+        % (
+            GLOBAL_CURRENCY_SYMBOL,
+            amount,
+            payload.payment_method_details.card.brand,
+            payload.payment_method_details.card.last4,
+            payload.payment_method_details.card.exp_month,
+            abs(payload.payment_method_details.card.exp_year) % 100,
+        ),
+    )
+
+
+def _auto_topup_member_handle_failure(error, member, amount):
+    """
+    Sub process of auto_topup_member to handle errors when processing the payment
+    """
+    err = error.error
+    logger.error(err.message)
+    # Error code will be authentication_required if authentication is needed
+    log_event(
+        user=member.full_name,
+        severity="WARN",
+        source="Payments",
+        sub_source="test_autotopup",
+        message="Error from stripe - %s" % err.message,
+    )
+
+    msg = "%s Auto Top Up has been disabled." % err.message
+    email_body = """We tried to take a payment of $%.2f from your credit card
         but we received this message:
         %s
         Auto Top Up has been disabled for the time being, but you can
         enable it again by clicking below.
         """ % (
-            amount,
-            err.message,
-        )
+        amount,
+        err.message,
+    )
 
-        link = reverse("payments:setup_autotopup")
-        absolute_link = "%s%s" % (COBALT_HOSTNAME, link)
+    link = reverse("payments:setup_autotopup")
+    absolute_link = "%s%s" % (COBALT_HOSTNAME, link)
 
-        context = {
-            "name": member.first_name,
-            "title": "Auto Top Up Failed",
-            "email_body": email_body,
-            "absolute_link": absolute_link,
-            "host": COBALT_HOSTNAME,
-            "link_text": "Set Up Card",
-        }
+    context = {
+        "name": member.first_name,
+        "title": "Auto Top Up Failed",
+        "email_body": email_body,
+        "absolute_link": absolute_link,
+        "host": COBALT_HOSTNAME,
+        "link_text": "Set Up Card",
+    }
 
-        html_msg = render_to_string("notifications/email-notification.html", context)
-        contact_member(
-            member=member,
-            msg=msg,
-            html_msg=html_msg,
-            contact_type="Email",
-            subject="Auto Top Up Failure",
-        )
-        member.stripe_auto_confirmed = "No"
-        member.save()
-        return (False, "%s Auto Top has been disabled." % err.message)
+    html_msg = render_to_string("notifications/email-notification.html", context)
+    contact_member(
+        member=member,
+        msg=msg,
+        html_msg=html_msg,
+        contact_type="Email",
+        subject="Auto Top Up Failure",
+    )
+    member.stripe_auto_confirmed = "No"
+    member.save()
+    return False, "%s Auto Top has been disabled." % err.message
 
 
 ###################################

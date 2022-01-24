@@ -59,12 +59,6 @@ ADMINS = [
     #   ("Julian Foster", "julianrfoster@gmail.com"),
 ]
 
-# Fix later
-# admin_string = set_value("ADMINS", '("Mark Guthrie", "m@rkguthrie.com")')
-# print("admin_string: " + admin_string)
-# ADMINS = list(ast.literal_eval(admin_string))
-# print(ADMINS[0])
-
 SERVER_EMAIL = set_value("SERVER_EMAIL", "notset@myabf.com.au")
 
 # masterpoints server
@@ -257,6 +251,7 @@ TEMPLATES = [
     },
 ]
 
+# We use django-loginas to allow admins to take over sessions
 CAN_LOGIN_AS = "utils.can_login_as.check"
 
 CRISPY_TEMPLATE_PACK = "bootstrap4"
@@ -302,10 +297,6 @@ DATE_INPUT_FORMATS = ["%d %b %Y", "%d/%m/%Y", "%d %b %Y"]
 TIME_INPUT_FORMATS = [
     "%I:%M %p",
 ]
-
-# app specific static lives in app_name/static/app_name
-# general static lives in STATICFILES_DIRS
-# STATICFILES_DIRS = [os.path.join(BASE_DIR, "cobalt/static/")]
 
 # This is where collectstatic will put the static files it finds
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
@@ -488,50 +479,46 @@ ABF_STATES = {
 # Check for default value of COBALT_HOSTNAME. If this is not set to something else then we could be on Read The Docs
 # Read the Docs will fail writing to the log file
 if COBALT_HOSTNAME == "127.0.0.1:8000":
-
-    LOGGING = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "handlers": {
-            "console": {
-                "class": "logging.StreamHandler",
-            },
-        },
-        "loggers": {
-            "cobalt": {
-                "handlers": ["console"],
-                "level": "DEBUG",
-                "propagate": True,
-            },
-        },
-    }
-
+    LOGFILE = "/tmp/cobalt.log"
 else:
+    LOGFILE = "/var/log/cobalt.log"
 
-    LOGGING = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "handlers": {
-            "console": {
-                "class": "logging.StreamHandler",
-            },
-            "file": {
-                "class": "logging.FileHandler",
-                "filename": "/var/log/cobalt.log",
-            },
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "cobalt": {
+            "format": "[%(levelname)-8s] %(asctime)s [%(module)s %(funcName)s %(lineno)d] %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
         },
-        "loggers": {
-            "cobalt": {
-                "handlers": ["console", "file"],
-                "level": "DEBUG",
-                "propagate": True,
-            },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "cobalt",
         },
-    }
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": LOGFILE,
+            "formatter": "cobalt",
+        },
+    },
+    "loggers": {
+        "cobalt": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+        },
+        "post_office": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+        },
+    },
+}
 
 GOOGLE_APPLICATION_CREDENTIALS = set_value("GOOGLE_APPLICATION_CREDENTIALS", "NOTSET")
 FIREBASE_APP = initialize_app()
 
+# Check if we want to enable the debug toolbar
 DEBUG_TOOLBAR_ENABLED = set_value("DEBUG_TOOLBAR_ENABLED", False)
 if DEBUG and DEBUG_TOOLBAR_ENABLED:
     INSTALLED_APPS.append("debug_toolbar")
