@@ -25,7 +25,6 @@ from payments.models import MemberTransaction, PaymentStatic, StripeTransaction
 from payments.payments_views.admin import refund_stripe_transaction_sub
 from payments.payments_views.core import (
     get_balance,
-    payment_api,
     auto_topup_member,
     stripe_current_balance,
     TZ,

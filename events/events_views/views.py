@@ -15,6 +15,7 @@ from django.db.models import Sum
 from django.db import transaction
 
 from logs.views import log_event
+from payments.payments_views.payments_api import payment_api_interactive
 from utils.templatetags.cobalt_tags import cobalt_credits
 from notifications.notifications_views.core import (
     send_cobalt_email_with_template,
@@ -27,7 +28,6 @@ from rbac.core import (
 )
 from rbac.views import rbac_forbidden
 from payments.payments_views.core import (
-    payment_api,
     update_account,
     update_organisation,
 )
@@ -450,17 +450,17 @@ def _checkout_perform_action(request):
                 event_entry=event_entry_player.event_entry,
             ).save()
 
-        return payment_api(
+        return payment_api_interactive(
             request=request,
             member=request.user,
             description="Congress Entry",
             amount=amount["entry_fee__sum"],
             route_code="EVT",
             route_payload=unique_id,
-            url=reverse("events:enter_event_success"),
-            url_fail=reverse("events:enter_event_payment_fail"),
+            next_url=reverse("events:enter_event_success"),
+            # url_fail=reverse("events:enter_event_payment_fail"),
+            # book_internals=False,
             payment_type="Entry to an event",
-            book_internals=False,
         )
 
     else:  # no payment required go straight to the callback
@@ -641,16 +641,16 @@ def pay_outstanding(request):
     PlayerBatchId(player=request.user, batch_id=unique_id).save()
 
     # let payments API handle getting the money
-    return payment_api(
+    return payment_api_interactive(
         request=request,
         member=request.user,
         description="Congress Entry",
         amount=amount["entry_fee__sum"],
         route_code="EVT",
         route_payload=unique_id,
-        url=reverse("events:enter_event_success"),
+        next_url=reverse("events:enter_event_success"),
         payment_type="Entry to an event",
-        book_internals=False,
+        # book_internals=False,
     )
 
 
@@ -1161,14 +1161,14 @@ def third_party_checkout_player(request, event_entry_player_id):
         event_entry_player.save()
 
         # make payment
-        return payment_api(
+        return payment_api_interactive(
             request=request,
             member=request.user,
             description="Congress Entry",
             amount=amount,
             route_code="EVT",
             route_payload=unique_id,
-            url=reverse(
+            next_url=reverse(
                 "events:edit_event_entry",
                 kwargs={
                     "event_id": event_entry_player.event_entry.event.id,
@@ -1177,17 +1177,17 @@ def third_party_checkout_player(request, event_entry_player_id):
                     "pay_status": "success",
                 },
             ),
-            url_fail=reverse(
-                "events:edit_event_entry",
-                kwargs={
-                    "event_id": event_entry_player.event_entry.event.id,
-                    "congress_id": event_entry_player.event_entry.event.congress.id,
-                    "edit_flag": 1,
-                    "pay_status": "fail",
-                },
-            ),
+            # url_fail=reverse(
+            #     "events:edit_event_entry",
+            #     kwargs={
+            #         "event_id": event_entry_player.event_entry.event.id,
+            #         "congress_id": event_entry_player.event_entry.event.congress.id,
+            #         "edit_flag": 1,
+            #         "pay_status": "fail",
+            #     },
+            # ),
             payment_type="Entry to an event",
-            book_internals=False,
+            # book_internals=False,
         )
 
     else:
@@ -1252,14 +1252,14 @@ def third_party_checkout_entry(request, event_entry_id):
             event_entry_player.save()
 
         # make payment
-        return payment_api(
+        return payment_api_interactive(
             request=request,
             member=request.user,
             description="Congress Entry",
             amount=amount,
             route_code="EVT",
             route_payload=unique_id,
-            url=reverse(
+            next_url=reverse(
                 "events:edit_event_entry",
                 kwargs={
                     "event_id": event_entry_player.event_entry.event.id,
@@ -1268,17 +1268,17 @@ def third_party_checkout_entry(request, event_entry_id):
                     "pay_status": "success",
                 },
             ),
-            url_fail=reverse(
-                "events:edit_event_entry",
-                kwargs={
-                    "event_id": event_entry_player.event_entry.event.id,
-                    "congress_id": event_entry_player.event_entry.event.congress.id,
-                    "edit_flag": 1,
-                    "pay_status": "fail",
-                },
-            ),
+            # url_fail=reverse(
+            #     "events:edit_event_entry",
+            #     kwargs={
+            #         "event_id": event_entry_player.event_entry.event.id,
+            #         "congress_id": event_entry_player.event_entry.event.congress.id,
+            #         "edit_flag": 1,
+            #         "pay_status": "fail",
+            #     },
+            # ),
             payment_type="Entry to an event",
-            book_internals=False,
+            # book_internals=False,
         )
 
 
@@ -1597,10 +1597,7 @@ def view_event_partnership_desk(request, congress_id, event_id):
     role = "events.org.%s.edit" % event.congress.congress_master.org.id
     admin = rbac_user_has_role(request.user, role)
 
-    if partnerships.filter(player=request.user):
-        already = True
-    else:
-        already = False
+    already = bool(partnerships.filter(player=request.user))
 
     return render(
         request,
