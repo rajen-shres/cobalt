@@ -9,8 +9,6 @@ from fcm_django.models import FCMDevice
 from accounts.models import APIToken
 from tests.test_manager import CobaltTestManagerIntegration
 
-API_VERSION = "v1.0"
-
 
 class FCMTokenAPITests:
     """Test the Google Firebase Cloud Messaging (FCM) token API from a mobile client. This API is used
@@ -20,9 +18,7 @@ class FCMTokenAPITests:
         self.manager = manager
 
         # URL needs to be hardcoded, reverse() won't work with Django Ninja
-        self.fcm_url = (
-            f"{self.manager.base_url}/api/cobalt/mobile-client-register/{API_VERSION}"
-        )
+        self.fcm_url = f"{self.manager.base_url}/api/cobalt/mobile-client-register/v1.1"
 
     def a1_api_tests(self):
         """Test the API"""
@@ -44,6 +40,8 @@ class FCMTokenAPITests:
             "username": "Invalid",
             "password": self.manager.test_code,
             "fcm_token": "1234567890",
+            "OS": "android",
+            "name": "Barry Manilow",
         }
 
         response = requests.post(self.fcm_url, json=data)
@@ -60,6 +58,8 @@ class FCMTokenAPITests:
             "username": self.manager.alan.system_number,
             "password": "invalid",
             "fcm_token": "1234567890",
+            "OS": "android",
+            "name": "Barry Manilow",
         }
 
         response = requests.post(self.fcm_url, json=data)
@@ -76,6 +76,8 @@ class FCMTokenAPITests:
             "username": self.manager.alan.system_number,
             "password": self.manager.test_code,
             "fcm_token": "1234567890",
+            "OS": "android",
+            "name": "Barry Manilow",
         }
 
         response = requests.post(self.fcm_url, json=data)
@@ -111,6 +113,8 @@ class FCMTokenAPITests:
             "username": "fish@chips.com",
             "password": self.manager.test_code,
             "fcm_token": "123456789044",
+            "OS": "android",
+            "name": "Barry Manilow",
         }
 
         response = requests.post(self.fcm_url, json=data)
@@ -147,9 +151,7 @@ class FCMTokenUpdateAPITests:
         self.manager = manager
 
         # URL needs to be hardcoded, reverse() won't work with Django Ninja
-        self.fcm_url = (
-            f"{self.manager.base_url}/api/cobalt/mobile-client-update/{API_VERSION}"
-        )
+        self.fcm_url = f"{self.manager.base_url}/api/cobalt/mobile-client-update/v1.0"
 
     def a1_api_update_tests(self):
         """Test the API"""

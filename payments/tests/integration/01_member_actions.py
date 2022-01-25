@@ -112,8 +112,9 @@ class MemberTransfer:
             manager=self.manager,
             test_name="Check that Alan received an email for the transfer",
             test_description="Doing a transfer should generate an email to Alan to confirm it has gone through.",
-            subject_search="Transfer to Betty Bunting (ABF: 101)",
-            body_search=f"You have transferred {amt}",
+            subject_search="Transfer to Betty Bunting",
+            #            body_search=f"You have transferred {amt}",
+            email_to="Alan",
         )
 
         check_email_sent(
@@ -299,7 +300,7 @@ class MemberTransfer:
         #############################
 
         # Give Stripe time to call us back
-        time.sleep(30)
+        time.sleep(5)
 
         # Check after
 

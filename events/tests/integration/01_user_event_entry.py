@@ -126,7 +126,7 @@ class EventEntry:
 
         enter_event_then_pay_and_check(
             test_name="Pairs entry for Keith - Insufficient funds",
-            test_description="Keith enters event and pays with Stripe",
+            test_description="Keith enters event and pays for himself and Lucy with Stripe",
             test_instance=self,
             event=self.pairs_event,
             entry_url=self.pairs_entry_url,
