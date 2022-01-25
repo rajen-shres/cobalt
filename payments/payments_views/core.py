@@ -526,6 +526,7 @@ def stripe_webhook_autosetup(event):
             sub_source="stripe_webhook",
             message="Error retrieving Stripe customer id from message",
         )
+        logger.critical("No customer found on stripe API call")
         return HttpResponse(status=400)
 
     # find member
@@ -538,7 +539,10 @@ def stripe_webhook_autosetup(event):
             sub_source="stripe_webhook",
             message=f"Error cannot find member with stripe_customer_id={stripe_customer}",
         )
+        logger.critical(f"Member not found for stripe customer: {stripe_customer}")
         return HttpResponse(status=400)
+
+    logger.info(f"{member} got auto top up response from Stripe")
 
     # confirm card set up
     member.stripe_auto_confirmed = "On"
@@ -887,8 +891,8 @@ def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
 
 def _auto_topup_member_stripe_transaction(amount, member, pay_method_id, payment_type):
     """
-    Sub process of auto_topup_member to process the happy path of the stripe transaction working,
-    If we fail, we throw a stripe exception and auto_topup_member will invoke the error handling,
+    Sub process of auto_topup_member to process the happy path of the stripe transaction working.
+    If we fail, we throw a stripe exception and auto_topup_member will invoke the error handling.
     """
     stripe_return = stripe.PaymentIntent.create(
         amount=int(amount * 100),
@@ -923,6 +927,8 @@ def _auto_topup_member_stripe_transaction(amount, member, pay_method_id, payment
     stripe_tran.last_change_date = timezone.now()
     stripe_tran.status = "Success"
     stripe_tran.save()
+
+    logger.info(f"Auto top up successful for {member}. Amount={amount}")
 
     # Update members account
     update_account(

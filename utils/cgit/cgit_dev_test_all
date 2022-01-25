@@ -8,8 +8,8 @@ coverage erase
 # pass 2 parameters to get the coverage output
 cgit_dev_test_unit with coverage
 
-# pass 1 parameter to get the coverage output
-cgit_dev_test_integration output
+# pass 2 parameters to get the coverage output
+cgit_dev_test_integration with coverage
 coverage combine
 coverage html
 open htmlcov/index.html

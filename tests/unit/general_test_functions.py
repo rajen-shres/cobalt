@@ -1,4 +1,5 @@
 from django.db.models import TextField, CharField
+from django.test import Client
 
 
 def test_model_instance_is_safe(manager, model_instance, exclude_list=[]):
@@ -72,3 +73,12 @@ def test_model_instance_is_safe(manager, model_instance, exclude_list=[]):
             f"were too short): {non_text_count}. Passed {success_count}. Successful fields tested "
             f"were {success_list}",
         )
+
+
+def get_django_request_object(user):
+    """return a valid request object for a user"""
+
+    client = Client()
+    client.force_login(user)
+    response = client.get("/")
+    return response.wsgi_request

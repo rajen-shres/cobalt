@@ -45,11 +45,11 @@ LIST_OF_INTEGRATION_TESTS = {
     "Registration": "accounts.tests.integration.01_registration",
     "MemberTransfer": "payments.tests.integration.01_member_actions",
     "PaymentAPITests": "payments.tests.integration.02_payment_api_tests",
-    # "OrgHighLevelAdmin": "organisations.tests.integration.01_high_level_admin",
-    # "ClubLevelAdmin": "organisations.tests.integration.02_club_level_admin",
-    # "ClubSettings": "organisations.tests.integration.03_club_settings",
-    # "ClubMembers": "organisations.tests.integration.04_club_members",
-    # "ClubCongress": "organisations.tests.integration.06_congress_setup",
+    "OrgHighLevelAdmin": "organisations.tests.integration.01_high_level_admin",
+    "ClubLevelAdmin": "organisations.tests.integration.02_club_level_admin",
+    "ClubSettings": "organisations.tests.integration.03_club_settings",
+    "ClubMembers": "organisations.tests.integration.04_club_members",
+    "ClubCongress": "organisations.tests.integration.06_congress_setup",
 }
 
 
@@ -529,6 +529,21 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
 
     def sleep(self, duration=99999999):
         """Util to sleep for a long time to allow DB to be investigated when there are problems with tests"""
+
+        stack = inspect.stack()
+        calling_lineno = stack[1][0].f_lineno
+        calling_file = stack[1][0].f_code.co_filename
+
+        print(
+            "\n\n------------------------------------------------------------------\n"
+        )
+        print("Sleeping so you can investigate a test issue.")
+        print("Connect through a web browser at http://127.0.0.1:8088")
+        print("Or use manage.py shell_plus with export RDS_DB_NAME=test\n")
+        print(f"Stopped by {calling_file} at line {calling_lineno}.")
+        print(
+            "\n\n------------------------------------------------------------------\n"
+        )
         time.sleep(duration)
 
     def run(self):

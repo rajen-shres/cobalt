@@ -195,7 +195,7 @@ class MemberTransfer:
         )
 
         # Check Fiona
-        fiona_expected_initial_balance = 400.0
+        fiona_expected_initial_balance = 305.26
         check_balance_for_user(
             manager=self.manager,
             user=fiona,
@@ -233,8 +233,11 @@ class MemberTransfer:
 
     def a3_member_auto_top_up_enable(self):
         """Enable auto top up"""
-        alan = self.manager.test_user
-        betty = self.manager.get_user(username="101")
+        alan = self.manager.alan
+        betty = self.manager.betty
+
+        # Log Alan in
+        self.manager.login_user(alan)
 
         # set it up
         setup_auto_top_up(self.manager)
@@ -256,11 +259,11 @@ class MemberTransfer:
         ##############################
 
         # Check auto top up
-        test = bool(alan.stripe_auto_confirmed)
+        test = alan.stripe_auto_confirmed == "On"
         self.manager.save_results(
             status=test,
             test_name="Check auto top up flag turned on for Alan",
-            output=f"Expected stripe_auto_confirmed=True. Found: {test}.",
+            output=f"Expected stripe_auto_confirmed='On'. Found: {alan.stripe_auto_confirmed}.",
             test_description="Looks at user object to see if auto top up has been enabled.",
         )
 
@@ -311,9 +314,6 @@ class MemberTransfer:
             .first()
         )
 
-        print(betty_tran.id)
-        print(betty_tran.amount)
-
         if betty_tran.description == desc and float(betty_tran.amount) == amt:
             test_result = True
         else:
@@ -333,13 +333,11 @@ class MemberTransfer:
         alan_balance = get_balance(alan)
 
         # alan side
-        alan_tran = (
-            MemberTransaction.objects.filter(member=alan)
-            .order_by("-created_date")
-            .first()
-        )
-        print(alan_tran)
-        print(alan_tran.amount)
+        # alan_tran = (
+        #     MemberTransaction.objects.filter(member=alan)
+        #     .order_by("-created_date")
+        #     .first()
+        # )
 
         test_result = alan_balance == 345.55
 

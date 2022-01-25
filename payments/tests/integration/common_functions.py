@@ -1,8 +1,9 @@
 import time
 
 from accounts.models import User
-from payments.payments_views.core import get_balance
-from payments.models import MemberTransaction
+from organisations.models import Organisation
+from payments.payments_views.core import get_balance, org_balance
+from payments.models import MemberTransaction, OrganisationTransaction
 
 from selenium.webdriver.common.by import By
 
@@ -149,3 +150,65 @@ def check_balance_for_user(
     )
 
     return user_balance
+
+
+def check_balance_for_org(
+    manager: CobaltTestManagerIntegration,
+    org: Organisation,
+    expected_balance=0,
+    test_name=None,
+    test_description=None,
+):
+    """Check and return balance"""
+
+    organisation_balance = org_balance(org)
+    test_result = organisation_balance == expected_balance
+
+    manager.save_results(
+        status=test_result,
+        test_name=test_name,
+        output=f"Expected ${expected_balance}, got ${organisation_balance}",
+        test_description=test_description,
+    )
+
+    return organisation_balance
+
+
+def set_balance_for_member(member: User, balance: float):
+
+    last_transaction = (
+        MemberTransaction.objects.filter(member=member).order_by("-pk").first()
+    )
+
+    if last_transaction:
+        last_transaction.balance = balance
+    else:
+        last_transaction = MemberTransaction(
+            member=member,
+            balance=balance,
+            amount=balance,
+            description="Setting balance",
+            type="Refund",
+        )
+
+    last_transaction.save()
+
+
+def set_balance_for_org(org: Organisation, balance: float):
+
+    last_transaction = (
+        OrganisationTransaction.objects.filter(organisation=org).order_by("-pk").first()
+    )
+
+    if last_transaction:
+        last_transaction.balance = balance
+    else:
+        last_transaction = MemberTransaction(
+            org=org,
+            balance=balance,
+            amount=balance,
+            description="Setting balance",
+            type="Refund",
+        )
+
+    last_transaction.save()
