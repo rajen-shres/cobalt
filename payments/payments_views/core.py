@@ -365,16 +365,18 @@ def stripe_webhook_manual(event):
     # get data from payload
     charge = event.data.object
 
+    message = f"Received charge.succeeded for Manual payment. Our id={charge.metadata.cobalt_pay_id}. Their id={charge.id}"
+
     # TODO: catch error if ids not present
     log_event(
         user="Stripe API",
         severity="INFO",
         source="Payments",
         sub_source="stripe_webhook",
-        message="Received charge.succeeded for Manual payment. Our id=%s - \
-                       Their id=%s"
-        % (charge.metadata.cobalt_pay_id, charge.id),
+        message=message,
     )
+
+    logger.info(message)
 
     # Update StripeTransaction
     try:
@@ -641,12 +643,19 @@ def stripe_webhook(request):
             sub_source="stripe_webhook",
             message=f"Invalid Payload in message from Stripe: {error}",
         )
+        logger.critical(f"Invalid Payload in message from Stripe: {error}")
 
         return HttpResponse(status=400)
 
     # Log message
     stripe_log = StripeLog(event=event)
     stripe_log.save()
+
+    # We get some noise in test environments so filter that out
+    if event.type not in ["charge.succeeded", "payment_method.attached"]:
+        logger.info(
+            f"Ignoring event type from Stripe that we do not want: {event.type}"
+        )
 
     try:
         tran_type = event.data.object.metadata.cobalt_tran_type
@@ -657,6 +666,9 @@ def stripe_webhook(request):
             source="Payments",
             sub_source="stripe_webhook",
             message="cobalt_tran_type missing from Stripe webhook",
+        )
+        logger.critical(
+            f"cobalt_tran_type missing from Stripe webhook. metadata was {event.data}"
         )
         # TODO: change to 400
         return HttpResponse(status=200)
