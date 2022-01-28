@@ -73,7 +73,7 @@ def payment_api_interactive(
 
         # Call the callback
         payments_core.callback_router(
-            route_code=route_code, route_payload=route_payload, tran=None
+            route_code=route_code, route_payload=route_payload
         )
 
         # Return
@@ -248,7 +248,7 @@ def _payment_with_sufficient_funds(
 
     # For member to member transfers, we notify both parties
     if other_member:
-        _notify_member_to_member_transfer(member, other_member, amount, description)
+        notify_member_to_member_transfer(member, other_member, amount, description)
 
     # check for auto top up required - if user not set for auto topup then ignore
     _check_for_auto_topup(member, amount, balance)
@@ -300,8 +300,10 @@ def _update_account_entries_for_member_payment(
         )
 
 
-def _notify_member_to_member_transfer(member, other_member, amount, description):
+def notify_member_to_member_transfer(member, other_member, amount, description):
     """For member to member transfers we email both members to confirm"""
+
+    logger.info(f"{member} transfer to {other_member} {amount}")
 
     # Member email
     email_body = f"""You have transferred {amount:.2f} credits into the {BRIDGE_CREDITS} account
@@ -381,7 +383,7 @@ def _payment_with_insufficient_funds(
             _update_account_entries_for_member_payment(
                 member, amount, description, organisation, other_member, payment_type
             )
-            _notify_member_to_member_transfer(member, other_member, amount, description)
+            notify_member_to_member_transfer(member, other_member, amount, description)
             return True
 
     return False

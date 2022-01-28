@@ -67,6 +67,7 @@ from payments.models import (
     OrganisationTransaction,
     StripeLog,
 )
+from payments.payments_views.payments_api import notify_member_to_member_transfer
 
 TZ = pytz.timezone(TIME_ZONE)
 
@@ -427,7 +428,7 @@ def stripe_webhook_manual(event):
     # Set the payment type - this could be for a linked transaction or a manual
     # payment.
 
-    paytype = "CC Payment" if tran.linked_transaction_type else "Manual Top Up"
+    pay_type = "CC Payment" if tran.linked_transaction_type else "Manual Top Up"
     update_account(
         member=tran.member,
         amount=tran.amount,
@@ -437,7 +438,7 @@ def stripe_webhook_manual(event):
         log_msg="$%s Payment from Stripe Transaction=%s" % (tran.amount, tran.id),
         source="Payments",
         sub_source="stripe_webhook",
-        payment_type=paytype,
+        payment_type=pay_type,
     )
 
     # Money in from stripe so we can now process the original transaction, if
@@ -656,6 +657,7 @@ def stripe_webhook(request):
         logger.info(
             f"Ignoring event type from Stripe that we do not want: {event.type}"
         )
+        return HttpResponse()
 
     try:
         tran_type = event.data.object.metadata.cobalt_tran_type
@@ -705,23 +707,23 @@ def stripe_webhook(request):
 #########################
 # callback_router       #
 #########################
-def callback_router(route_code=None, route_payload=None, tran=None, status="Success"):
+def callback_router(
+    route_code, route_payload, stripe_transaction=None, status="Success"
+):
     """Central function to handle callbacks
 
     Callbacks are an asynchronous way for us to let the calling application
-    know if a payment successed or not.
+    know if a payment succeeded or not.
 
     We could use a routing table for this but there will only ever be a small
     number of callbacks in Cobalt so we are okay to hardcode it.
 
-    We should not get tran provided but do for early testing. This will be
-    removed later, but for now allows us to reverse the transaction for testing.
-
     Args:
-        route_code - hard coded value to map to a function call
-        route_payload - value to return to function
-        tran - for testing only. remove later
-        status - Success (default) or Failure. Did the payment work or not.
+        route_code: (str) hard coded value to map to a function call
+        route_payload (str) value to return to function
+        stripe_transaction: StripeTransaction. Optional. Sometimes (e.g. member transfer) we want to get the data from
+                            the Stripe transaction rather than the payload.
+        status: Success (default) or Failure. Did the payment work or not.
 
     Returns:
         Nothing
@@ -729,11 +731,17 @@ def callback_router(route_code=None, route_payload=None, tran=None, status="Succ
 
     if route_code:  # do nothing if no route_code passed
 
+        # Payments made by the main entrant to an event
         if route_code == "EVT":
             events_payments_callback(status, route_payload)
 
+        # Payments made by other entrants to an event
         elif route_code == "EV2":
-            events_payments_secondary_callback(status, route_payload, tran)
+            events_payments_secondary_callback(status, route_payload)
+
+        # Member to member transfers - we also pass the Stripe transaction
+        elif route_code == "M2M":
+            member_to_member_transfer_callback(stripe_transaction)
 
         else:
             log_event(
@@ -1154,3 +1162,58 @@ def statement_common(user):
     )
 
     return summary, club, balance, auto_button, events_list
+
+
+def member_to_member_transfer_callback(stripe_transaction=None):
+    """Callback for member to member transfers. We have already made the payments, so just let people know.
+
+    We will get a stripe_transaction from the manual payment screen (callback from stripe webhook).
+    If we don't get one that is because this was handled already so ignore.
+
+    """
+
+    # We use the same function in payments API that is used for sufficient funds
+
+    if not stripe_transaction:
+        return
+    logger.info(f"Callback received with {stripe_transaction}")
+
+    # Get other member
+    # We will have a stripe_transaction that is linked to a member_transaction, that is the member_transaction for
+    # this member (the one who paid). The very next transaction in their account will be the outgoing payment.
+    this_member_transaction = MemberTransaction.objects.filter(
+        stripe_transaction=stripe_transaction
+    ).first()
+    if not this_member_transaction:
+        logger.info(
+            f"Could not find matching member transaction for {stripe_transaction}"
+        )
+        return HttpResponse()
+
+    logger.info(
+        f"Found member transaction: {this_member_transaction.id} {this_member_transaction}"
+    )
+    other_member_transaction = (
+        MemberTransaction.objects.filter(amount=-this_member_transaction.amount)
+        .filter(member=this_member_transaction.member)
+        .filter(id__gt=this_member_transaction.id)
+        .first()
+    )
+
+    if not other_member_transaction:
+        logger.info(
+            f"Could not find matching outgoing member transaction for {stripe_transaction}"
+        )
+        return HttpResponse()
+
+    if not other_member_transaction.other_member:
+        logger.info(f"No other_member found on {other_member_transaction}")
+        return HttpResponse()
+
+    notify_member_to_member_transfer(
+        stripe_transaction.member,
+        other_member_transaction.other_member,
+        stripe_transaction.amount,
+        stripe_transaction.description,
+    )
+    return HttpResponse()

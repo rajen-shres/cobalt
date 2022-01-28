@@ -30,7 +30,7 @@ TZ = pytz.timezone(TIME_ZONE)
 logger = logging.getLogger("cobalt")
 
 
-def events_payments_secondary_callback(status, route_payload, tran):
+def events_payments_secondary_callback(status, route_payload):
     """This gets called when a payment has been made for us.
 
     We supply the route_payload when we ask for the payment to be made and

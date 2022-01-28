@@ -320,13 +320,18 @@ def member_transfer(request):
     if request.method == "POST":
         form = MemberTransfer(request.POST, user=request.user)
         if form.is_valid():
+            description = form.cleaned_data["description"]
+            amount = form.cleaned_data["amount"]
+            other_member = form.cleaned_data["transfer_to"]
+
             return payment_api_interactive(
                 request=request,
-                description=form.cleaned_data["description"],
-                amount=form.cleaned_data["amount"],
+                description=description,
+                amount=amount,
                 member=request.user,
-                other_member=form.cleaned_data["transfer_to"],
+                other_member=other_member,
                 payment_type="Member Transfer",
+                route_code="M2M",
             )
         else:
             print(form.errors)
