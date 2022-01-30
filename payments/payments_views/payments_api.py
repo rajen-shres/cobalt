@@ -319,7 +319,7 @@ def notify_member_to_member_transfer(member, other_member, amount, description):
         "email_body": email_body,
         "link": "/payments",
         "link_text": "View Statement",
-        "box_colour": "rose",
+        "box_colour": "primary",
     }
 
     send_cobalt_email_with_template(
@@ -340,7 +340,7 @@ def notify_member_to_member_transfer(member, other_member, amount, description):
         "email_body": email_body,
         "link": "/payments",
         "link_text": "View Statement",
-        "box_colour": "rose",
+        "box_colour": "primary",
     }
 
     send_cobalt_email_with_template(

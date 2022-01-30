@@ -20,16 +20,21 @@ def get_client_ip(request):
 
 
 def log_event(user, severity, source, sub_source, message, request=None):
-    # TODO: cope with None and other problems. Move try to top level
-    ip = get_client_ip(request)[:15] if request else None
-    logevent = Log()
-    logevent.user = user
-    logevent.ip = ip
-    logevent.severity = severity[:8]
-    logevent.source = source[:30]
-    logevent.sub_source = sub_source[:50]
-    logevent.message = message
-    logevent.save()
+    """Old event logging - should be replaced"""
+
+    try:
+        ip = get_client_ip(request)[:15] if request else None
+    except TypeError:
+        ip = None
+
+    log_event = Log()
+    log_event.user = user
+    log_event.ip = ip
+    log_event.severity = severity[:8]
+    log_event.source = source[:30]
+    log_event.sub_source = sub_source[:50]
+    log_event.message = message
+    log_event.save()
 
     if severity == "CRITICAL":
 

@@ -1170,12 +1170,17 @@ def member_to_member_transfer_callback(stripe_transaction=None):
     We will get a stripe_transaction from the manual payment screen (callback from stripe webhook).
     If we don't get one that is because this was handled already so ignore.
 
-    """
+    Three scenarios:
 
-    # We use the same function in payments API that is used for sufficient funds
+    1. The user had enough funds to pay the other member - emails already sent, stripe_tran = None
+    2. The user paid the full amount on their credit card - stripe amount = transfer amount
+    3. The user had some funds and paid the rest on their credit card - stripe amt + previous bal = transfer amount
+
+    """
 
     if not stripe_transaction:
         return
+
     logger.info(f"Callback received with {stripe_transaction}")
 
     # Get other member
@@ -1193,6 +1198,9 @@ def member_to_member_transfer_callback(stripe_transaction=None):
     logger.info(
         f"Found member transaction: {this_member_transaction.id} {this_member_transaction}"
     )
+
+    # Get transaction after this_member_transaction (id>) for this member and opposite
+    # amount. This will be the other member transaction
     other_member_transaction = (
         MemberTransaction.objects.filter(amount=-this_member_transaction.amount)
         .filter(member=this_member_transaction.member)
@@ -1201,15 +1209,16 @@ def member_to_member_transfer_callback(stripe_transaction=None):
     )
 
     if not other_member_transaction:
-        logger.info(
+        logger.error(
             f"Could not find matching outgoing member transaction for {stripe_transaction}"
         )
         return HttpResponse()
 
     if not other_member_transaction.other_member:
-        logger.info(f"No other_member found on {other_member_transaction}")
+        logger.error(f"No other_member found on {other_member_transaction}")
         return HttpResponse()
 
+    # We use the same function in payments API that is used for sufficient funds
     notify_member_to_member_transfer(
         stripe_transaction.member,
         other_member_transaction.other_member,
