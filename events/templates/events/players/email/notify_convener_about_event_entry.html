@@ -2,6 +2,10 @@
 
 <p>{{ event_entry.primary_entrant.full_name }} has entered this event.</p>
 
+{% if event_entry.comment %}
+    <p><b>Comment: </b>{{ event_entry.comment }}</p>
+{% endif %}
+
 <table>
     <tr>
         <td><b>Name</b></td>

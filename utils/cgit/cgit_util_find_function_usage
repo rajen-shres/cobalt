@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+# Find where a function is used so you know what to test if you change it
+# The IDE should be able to do this for you, but this gives a command line printout
+import sys
+from pathlib import Path
+
+
+if len(sys.argv) != 2:
+    print(f"\n\nUsage: {sys.argv[0]} function_name\n")
+    sys.exit()
+
+search_function = sys.argv[1] + "("
+
+# Search all .py files and look for my_func( but exclude def my_func(
+
+print(f"\n\nMatches for {sys.argv[1]}\n\n")
+
+for path in Path(".").rglob("*.py"):
+    with open(path) as test_file:
+        caller_name = ""
+        for line in test_file.readlines():
+            loc = line.find("def ")
+            if loc >= 0:
+                caller_name = line[loc + 4 :].split("(")[0]  # noqa: E203
+
+            # look for calls to this function but exclude def this_function(
+            if line.find(search_function) >= 0 and line.find("def " + search_function):
+                print(path, caller_name)
+
+print()

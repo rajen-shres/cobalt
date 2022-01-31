@@ -269,17 +269,14 @@ def member_transfer_org(request, org_id):
             )
 
             # Notify member
-            email_body = f"<b>{organisation}</b> has transferred {GLOBAL_CURRENCY_SYMBOL}{amount:.2f} into your {BRIDGE_CREDITS} account.<br><br>The description was: {description}.<br><br>Please contact {organisation} directly if you have any queries. This transfer was made by {request.user}.<br><br>"
-            context = {
-                "name": member.first_name,
-                "title": "Transfer from %s" % organisation,
-                "email_body": email_body,
-                "host": COBALT_HOSTNAME,
-                "link": "/payments",
-                "link_text": "View Statement",
-            }
-
-            html_msg = render_to_string("notifications/email_with_button.html", context)
+            email_body = f"""<b>{organisation}</b> has transferred {GLOBAL_CURRENCY_SYMBOL}{amount:.2f}
+                            into your {BRIDGE_CREDITS} account.
+                            <br><br>
+                            The description was: {description}.
+                            <br><br>
+                            Please contact {organisation} directly if you have any queries.
+                            This transfer was made by {request.user}.
+                            <br><br>"""
 
             # send
             contact_member(
@@ -287,7 +284,7 @@ def member_transfer_org(request, org_id):
                 msg="Transfer from %s - %s%s"
                 % (organisation, GLOBAL_CURRENCY_SYMBOL, amount),
                 contact_type="Email",
-                html_msg=html_msg,
+                html_msg=email_body,
                 link="/payments",
                 subject="Transfer from %s" % organisation,
             )

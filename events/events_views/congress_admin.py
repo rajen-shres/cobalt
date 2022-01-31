@@ -876,25 +876,12 @@ def admin_evententry_delete(request, evententry_id):
 
                 email_body += f"Please contact {request.user.first_name} directly if you have any queries.<br><br>"
 
-                context = {
-                    "name": player.first_name,
-                    "title": "Entry to %s cancelled" % event_entry.event,
-                    "email_body": email_body,
-                    "host": COBALT_HOSTNAME,
-                    "link": "/events/view",
-                    "link_text": "View Congresses",
-                }
-
-                html_msg = render_to_string(
-                    "notifications/email_with_button.html", context
-                )
-
                 # send
                 contact_member(
                     member=player,
                     msg="Entry to %s cancelled" % event_entry.event.event_name,
                     contact_type="Email",
-                    html_msg=html_msg,
+                    html_msg=email_body,
                     link="/events/view",
                     subject="Event Entry Cancelled - %s" % event_entry.event,
                 )
@@ -1421,23 +1408,13 @@ def admin_move_entry(request, event_entry_id):
         # Notify players
 
         for recipient in event_entry.evententryplayer_set.all():
-            context = {
-                "name": recipient.player.first_name,
-                "title": "Entry moved to new event",
-                "email_body": f"{request.user.full_name} has moved your entry to {event_entry.event}.<br><br>",
-                "host": COBALT_HOSTNAME,
-                "link": "/events/view",
-                "link_text": "View Entry",
-            }
-
-            html_msg = render_to_string("notifications/email_with_button.html", context)
 
             # send
             contact_member(
                 member=recipient.player,
                 msg="Entry moved to new event",
                 contact_type="Email",
-                html_msg=html_msg,
+                html_msg=f"{request.user.full_name} has moved your entry to {event_entry.event}.<br><br>",
                 link="/events/view",
                 subject="Entry moved to new event",
             )
@@ -1523,23 +1500,13 @@ def admin_event_entry_add(request, event_id):
 
         # notify players
         for recipient in players:
-            context = {
-                "name": recipient.first_name,
-                "title": "New convener entry",
-                "email_body": f"{request.user.full_name} has entered you into {event}.<br><br>",
-                "host": COBALT_HOSTNAME,
-                "link": "/events/view",
-                "link_text": "View Entry",
-            }
-
-            html_msg = render_to_string("notifications/email_with_button.html", context)
 
             # send
             contact_member(
                 member=recipient,
                 msg="New convener entry",
                 contact_type="Email",
-                html_msg=html_msg,
+                html_msg=f"{request.user.full_name} has entered you into {event}.<br><br>",
                 link="/events/view",
                 subject="New convener entry",
             )
@@ -2103,44 +2070,26 @@ def edit_player_name_htmx(request):
 
     # notify deleted member
     if old_user.id != TBA_PLAYER:
-        context = {
-            "name": old_user.first_name,
-            "title": "Removed from event - %s" % event,
-            "email_body": f"The convener, {request.user.full_name}, has removed you from this event.<br><br>",
-            "host": COBALT_HOSTNAME,
-        }
-
-        html_msg = render_to_string("notifications/email.html", context)
 
         # send
         contact_member(
             member=old_user,
             msg=f"Removed from - {event}",
             contact_type="Email",
-            html_msg=html_msg,
+            html_msg=f"The convener, {request.user.full_name}, has removed you from this event.<br><br>",
             link="/events/view",
             subject=f"Removed from - {event}",
         )
 
     # notify added member
     if new_user.id != TBA_PLAYER:
-        context = {
-            "name": new_user.first_name,
-            "title": f"Added to event - {event}",
-            "email_body": f"The convener, {request.user.full_name}, has added you to this event.<br><br>",
-            "host": COBALT_HOSTNAME,
-            "link": "/events/view",
-            "link_text": "View Entry",
-        }
-
-        html_msg = render_to_string("notifications/email_with_button.html", context)
 
         # send
         contact_member(
             member=new_user,
             msg="Added to - %s" % event,
             contact_type="Email",
-            html_msg=html_msg,
+            html_msg=f"The convener, {request.user.full_name}, has added you to this event.<br><br>",
             link="/events/view",
             subject="Added to - %s" % event,
         )

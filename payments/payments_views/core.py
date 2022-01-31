@@ -969,24 +969,17 @@ def _auto_topup_member_stripe_transaction(amount, member, pay_method_id, payment
     )
 
     # Notify member
-    email_body = f"Auto top up of {GLOBAL_CURRENCY_SYMBOL}{amount:.2f} into your {BRIDGE_CREDITS} account was successful.<br><br>"
-    context = {
-        "name": member.first_name,
-        "title": "Auto top up successful",
-        "email_body": email_body,
-        "host": COBALT_HOSTNAME,
-        "link": "/payments",
-        "link_text": "View Statement",
-    }
-
-    html_msg = render_to_string("notifications/email_with_button.html", context)
+    email_body = (
+        f"Auto top up of {GLOBAL_CURRENCY_SYMBOL}{amount:.2f} into your {BRIDGE_CREDITS} "
+        f"account was successful.<br><br>"
+    )
 
     # send
     contact_member(
         member=member,
         msg="Auto top up of %s%s successful" % (GLOBAL_CURRENCY_SYMBOL, amount),
         contact_type="Email",
-        html_msg=html_msg,
+        html_msg=email_body,
         link="/payments",
         subject="Auto top up successful",
     )
@@ -1033,24 +1026,15 @@ def _auto_topup_member_handle_failure(error, member, amount):
     )
 
     link = reverse("payments:setup_autotopup")
-    absolute_link = "%s%s" % (COBALT_HOSTNAME, link)
 
-    context = {
-        "name": member.first_name,
-        "title": "Auto Top Up Failed",
-        "email_body": email_body,
-        "absolute_link": absolute_link,
-        "host": COBALT_HOSTNAME,
-        "link_text": "Set Up Card",
-    }
-
-    html_msg = render_to_string("notifications/email-notification.html", context)
     contact_member(
         member=member,
         msg=msg,
-        html_msg=html_msg,
+        html_msg=email_body,
         contact_type="Email",
         subject="Auto Top Up Failure",
+        link=link,
+        link_text="Auto Top Up",
     )
     member.stripe_auto_confirmed = "No"
     member.save()
@@ -1170,7 +1154,7 @@ def member_to_member_transfer_callback(stripe_transaction=None):
     We will get a stripe_transaction from the manual payment screen (callback from stripe webhook).
     If we don't get one that is because this was handled already so ignore.
 
-    Three scenarios:
+    Three scenarios (doesn't matter if manual or auto top up):
 
     1. The user had enough funds to pay the other member - emails already sent, stripe_tran = None
     2. The user paid the full amount on their credit card - stripe amount = transfer amount
@@ -1199,11 +1183,11 @@ def member_to_member_transfer_callback(stripe_transaction=None):
         f"Found member transaction: {this_member_transaction.id} {this_member_transaction}"
     )
 
-    # Get transaction after this_member_transaction (id>) for this member and opposite
-    # amount. This will be the other member transaction
+    # Get transaction after this_member_transaction (id>) for this member This will be the other member transaction
+    # as these are booked simultaneously, and only moments before this code runs
+
     other_member_transaction = (
-        MemberTransaction.objects.filter(amount=-this_member_transaction.amount)
-        .filter(member=this_member_transaction.member)
+        MemberTransaction.objects.filter(member=this_member_transaction.member)
         .filter(id__gt=this_member_transaction.id)
         .first()
     )

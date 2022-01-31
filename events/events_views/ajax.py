@@ -766,21 +766,12 @@ def change_player_entry_ajax(request):
         subject="Event Entry - %s" % congress,
     )
 
-    context = {
-        "name": old_player.first_name,
-        "title": "Event Entry - %s" % congress,
-        "email_body": f"{request.user.full_name} has removed you from {event}.<br><br>",
-        "host": COBALT_HOSTNAME,
-    }
-
-    html_msg = render_to_string("notifications/email.html", context)
-
     # send
     contact_member(
         member=old_player,
         msg="Entry to %s" % congress,
         contact_type="Email",
-        html_msg=html_msg,
+        html_msg=f"{request.user.full_name} has removed you from {event}.<br><br>",
         link="/events/view",
         subject="Event Entry - %s" % congress,
     )
@@ -875,23 +866,11 @@ def change_player_entry_ajax(request):
         )
 
         # notify member of refund
-        context = {
-            "name": event_entry_player.paid_by.first_name,
-            "title": "Refund from - %s" % event,
-            "email_body": f"A refund of {difference} credits has been made to your {BRIDGE_CREDITS} accounts from {event}.<br><br>",
-            "host": COBALT_HOSTNAME,
-            "link": "/events/view",
-            "link_text": "View Entry",
-        }
-
-        html_msg = render_to_string("notifications/email_with_button.html", context)
-
-        # send
         contact_member(
             member=event_entry_player.paid_by,
             msg="Refund from - %s" % event,
             contact_type="Email",
-            html_msg=html_msg,
+            html_msg=f"A refund of {difference} credits has been made to your {BRIDGE_CREDITS} accounts from {event}.<br><br>",
             link="/events/view",
             subject="Refund from  %s" % event,
         )
@@ -1039,21 +1018,11 @@ def delete_player_from_entry_ajax(request):
             congress = old_event_entry_player.event_entry.event.congress
 
             # notify member
-            context = {
-                "name": old_event_entry_player.player.first_name,
-                "title": "Removal from Team in %s" % event,
-                "email_body": f"{request.user.full_name} has removed you from their team in {event}.<br><br>",
-                "host": COBALT_HOSTNAME,
-            }
-
-            html_msg = render_to_string("notifications/email.html", context)
-
-            # send
             contact_member(
                 member=old_event_entry_player.player,
                 msg="Removal from %s" % event,
                 contact_type="Email",
-                html_msg=html_msg,
+                html_msg=f"{request.user.full_name} has removed you from their team in {event}.<br><br>",
                 link="/events/view",
                 subject="Removal from %s" % event,
             )
@@ -1272,23 +1241,12 @@ def contact_partnership_desk_person_ajax(request):
                         Phone: {request.user.mobile}<br><br>
         """
 
-        context = {
-            "name": partnership_desk.player.first_name,
-            "title": "Partner Request",
-            "email_body": email_body,
-            "host": COBALT_HOSTNAME,
-            "link": "/events/view",
-            "link_text": "View Event",
-        }
-
-        html_msg = render_to_string("notifications/email_with_button.html", context)
-
         # send
         contact_member(
             member=partnership_desk.player,
             msg="Partnership Message from %s" % request.user.full_name,
             contact_type="Email",
-            html_msg=html_msg,
+            html_msg=email_body,
             link="/events/view",
             subject="Partnership Message",
         )

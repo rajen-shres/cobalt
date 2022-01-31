@@ -953,23 +953,12 @@ def notify_moderators_of_abuse(post, c1, c2, user, author, reason):
 
     for moderator in moderators:
 
-        context = {
-            "name": moderator.first_name,
-            "title": f"Report on {author.full_name} by {user.full_name}",
-            "email_body": email_body,
-            "host": COBALT_HOSTNAME,
-            "link": link,
-            "link_text": "View Post",
-        }
-
-        html_msg = render_to_string("notifications/email_with_button.html", context)
-
         # send
         contact_member(
             member=moderator,
             msg=f"Report on {author.full_name} by {user.full_name}",
             contact_type="Email",
-            html_msg=html_msg,
+            html_msg=email_body,
             link=link,
             subject=f"Report on {author.full_name} by {user.full_name}",
         )

@@ -560,11 +560,9 @@ def contact_member(
 
 
 def add_in_app_notification(member, msg, link=None):
-    note = InAppNotification()
-    note.member = member
-    note.message = msg[:100]
-    note.link = link
-    note.save()
+    """Add a notification to the menu bar telling a user they have a message"""
+
+    InAppNotification(member=member, message=msg[:100], link=link).save()
 
 
 @login_required()
