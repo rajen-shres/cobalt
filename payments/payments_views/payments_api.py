@@ -71,7 +71,7 @@ def payment_api_interactive(
     ):
         logger.info(f"{request.user} paid {amount:.2f} for {description}")
 
-        # Call the callback
+        # Call the callback, but don't
         payments_core.callback_router(
             route_code=route_code, route_payload=route_payload
         )
@@ -370,7 +370,7 @@ def _payment_with_insufficient_funds(
     if member.stripe_auto_confirmed != "On":
         return False
 
-    topup_required = _calculate_auto_topup_amount(member, amount, balance)
+    topup_required = calculate_auto_topup_amount(member, amount, balance)
     return_code, _ = payments_core.auto_topup_member(
         member, topup_required=topup_required
     )
@@ -389,7 +389,7 @@ def _payment_with_insufficient_funds(
     return False
 
 
-def _calculate_auto_topup_amount(member, amount, balance):
+def calculate_auto_topup_amount(member, amount, balance):
     """calculate required top up amount
     Generally top by the largest of amount and auto_amount, BUT if the
     balance after that will be low enough to require another top up then

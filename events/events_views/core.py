@@ -14,7 +14,10 @@ from events.models import PAYMENT_TYPES
 from logs.views import log_event
 from notifications.models import BlockNotification
 from notifications.notifications_views.core import send_cobalt_email_with_template
-from payments.payments_views.payments_api import payment_api_batch
+from payments.payments_views.payments_api import (
+    payment_api_batch,
+    calculate_auto_topup_amount,
+)
 from rbac.core import rbac_get_users_with_role
 from events.models import (
     BasketItem,
@@ -239,42 +242,86 @@ def _update_entries_change_entries(event_entry_players, payment_user):
 
 def _update_entries_process_their_system_dollars(event_entries):
     # sourcery skip: extract-method
-    """Now process their system dollar transactions (if any)"""
+    """Now process their system dollar transactions (if any)
+    We want to batch these up by player and congress so we don't do excessive auto top ups
+    """
 
+    # Start by building a dictionary with player then list of event_entry_players to pay for
+    event_entries_by_player = {}
     for event_entry in event_entries:
         for event_entry_player in event_entry.evententryplayer_set.all():
             if (
                 event_entry_player.payment_type == "their-system-dollars"
                 and event_entry_player.payment_status not in ["Paid", "Free"]
             ):
+                this_player = event_entry_player.player
 
-                if payment_api_batch(
-                    member=event_entry_player.player,
-                    description=event_entry.event.event_name,
-                    amount=event_entry_player.entry_fee,
-                    organisation=event_entry_player.event_entry.event.congress.congress_master.org,
-                    payment_type="Entry to an event",
-                ):
-                    event_entry_player.payment_status = "Paid"
-                    event_entry_player.entry_complete_date = datetime.now()
-                    event_entry_player.paid_by = event_entry_player.player
-                    event_entry_player.payment_received = event_entry_player.entry_fee
-                    event_entry_player.save()
+                # Add key if not present
+                if this_player not in event_entries_by_player:
+                    event_entries_by_player[this_player] = []
 
-                    EventLog(
-                        event=event_entry.event,
-                        actor=event_entry_player.player,
-                        action=f"Paid with {BRIDGE_CREDITS}",
-                        event_entry=event_entry,
-                    ).save()
+                # Add event_entry_player to list
+                event_entries_by_player[this_player].append(event_entry_player)
 
-                    logger.info(
-                        f"{event_entry_player.player} paid with their-system-dollars for {event_entry}"
-                    )
-                else:
-                    logger.warning(
-                        f"{event_entry_player.player} payment failed for their-system-dollars for {event_entry}"
-                    )
+    # Now go through each player and do auto top up for full amount if required
+    for this_player in event_entries_by_player:
+        print("Player is", this_player)
+        total_amount_for_player = 0.0
+        for event_entry_player in event_entries_by_player[this_player]:
+            total_amount_for_player += float(
+                event_entry_player.payment_received
+            ) - float(event_entry_player.entry_fee)
+
+        # we now have the players total for all events in all congresses. See if this is enough.
+        player_balance = payments_core.get_balance(this_player)
+
+        if total_amount_for_player > player_balance:
+
+            # Top up required
+            topup_amount = calculate_auto_topup_amount(
+                this_player, total_amount_for_player, player_balance
+            )
+            status, msg = payments_core.auto_topup_member(this_player, topup_amount)
+
+            if not status:
+                # Payment failed - abandon for this user. the called functions will handle notifying them
+                logger.error(f"Auto top up for {this_player} failed: {msg}")
+                continue
+
+        # Check if we need to do an auto top up
+
+        # Now go through and make all of the payments, they should work as there is enough money
+        for event_entry_player in event_entries_by_player[this_player]:
+
+            event_entry = event_entry_player.event_entry
+
+            if payment_api_batch(
+                member=event_entry_player.player,
+                description=event_entry.event.event_name,
+                amount=event_entry_player.entry_fee,
+                organisation=event_entry_player.event_entry.event.congress.congress_master.org,
+                payment_type="Entry to an event",
+            ):
+                event_entry_player.payment_status = "Paid"
+                event_entry_player.entry_complete_date = datetime.now()
+                event_entry_player.paid_by = event_entry_player.player
+                event_entry_player.payment_received = event_entry_player.entry_fee
+                event_entry_player.save()
+
+                EventLog(
+                    event=event_entry.event,
+                    actor=event_entry_player.player,
+                    action=f"Paid with {BRIDGE_CREDITS}",
+                    event_entry=event_entry,
+                ).save()
+
+                logger.info(
+                    f"{event_entry_player.player} paid with their-system-dollars for {event_entry}"
+                )
+            else:
+                logger.warning(
+                    f"{event_entry_player.player} payment failed for their-system-dollars for {event_entry}"
+                )
 
 
 def _send_notifications(event_entry_players, event_entries, payment_user):
