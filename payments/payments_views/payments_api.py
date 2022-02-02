@@ -28,6 +28,7 @@ def payment_api_interactive(
     next_url=None,
     route_code=None,
     route_payload=None,
+    book_internals=True,
 ):
     """Payments API when we have an attached user. This will try to make a payment and if need be
         take the user to the Stripe payment screen to handle a manual payment.
@@ -51,6 +52,10 @@ def payment_api_interactive(
             next_url - where to take the user next
             route_code - used by the callback to know which function to call upon the payment going through
             route_payload - identifier to pass when making the callback
+            book_internals - sometimes the calling module wants to book the internal deals (not Stripe) themselves
+                             for example, event entry may be booking a whole team of entries as part of this so we
+                             only want the stripe transaction to go through and the call back will book all of the
+                             individual deals. Default is to have us book the internals too.
 
     returns:
         HttpResponse - either the Stripe manual payment screen or the next_url
@@ -68,6 +73,7 @@ def payment_api_interactive(
         organisation=organisation,
         other_member=other_member,
         payment_type=payment_type,
+        book_internals=book_internals,
     ):
         logger.info(f"{request.user} paid {amount:.2f} for {description}")
 
@@ -172,6 +178,7 @@ def payment_api_batch(
     organisation=None,
     other_member=None,
     payment_type=None,
+    book_internals=True,
 ):
     """This API is used by other parts of the system to make payments or
     fail. It will use existing funds or try to initiate an auto top up.
@@ -194,6 +201,10 @@ def payment_api_batch(
         organisation - linked organisation
         other_member - User object
         payment_type - description of payment
+        book_internals - sometimes the calling module wants to book the internal deals (not Stripe) themselves
+                         for example, event entry may be booking a whole team of entries as part of this so we
+                         only want the stripe transaction to go through and the call back will book all of the
+                         individual deals. Default is to have us book the internals too.
 
     returns:
         bool - success or failure
@@ -224,6 +235,7 @@ def payment_api_batch(
             other_member,
             payment_type,
             balance,
+            book_internals,
         )
     else:
         return _payment_with_insufficient_funds(
@@ -234,17 +246,27 @@ def payment_api_batch(
             other_member,
             payment_type,
             balance,
+            book_internals,
         )
 
 
 def _payment_with_sufficient_funds(
-    member, amount, description, organisation, other_member, payment_type, balance
+    member,
+    amount,
+    description,
+    organisation,
+    other_member,
+    payment_type,
+    balance,
+    book_internals,
 ):
     """Handle a payment when the user has enough money to cover it"""
 
-    _update_account_entries_for_member_payment(
-        member, amount, description, organisation, other_member, payment_type
-    )
+    # Record the internal transactions unless asked not to by calling module
+    if book_internals:
+        _update_account_entries_for_member_payment(
+            member, amount, description, organisation, other_member, payment_type
+        )
 
     # For member to member transfers, we notify both parties
     if other_member:
@@ -362,7 +384,14 @@ def _check_for_auto_topup(member, amount, balance):
 
 
 def _payment_with_insufficient_funds(
-    member, amount, description, organisation, other_member, payment_type, balance
+    member,
+    amount,
+    description,
+    organisation,
+    other_member,
+    payment_type,
+    balance,
+    book_internals,
 ):
     """Handle a member not having enough money to pay"""
 
@@ -379,11 +408,15 @@ def _payment_with_insufficient_funds(
         # We should now have sufficient funds but lets check just to be sure
         balance = float(payments_core.get_balance(member))
 
-        if amount <= balance:
+        if amount <= balance and book_internals:
             _update_account_entries_for_member_payment(
                 member, amount, description, organisation, other_member, payment_type
             )
-            notify_member_to_member_transfer(member, other_member, amount, description)
+            # For member to member transfers, we notify both parties
+            if other_member:
+                notify_member_to_member_transfer(
+                    member, other_member, amount, description
+                )
             return True
 
     return False
