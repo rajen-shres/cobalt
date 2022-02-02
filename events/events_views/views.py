@@ -1076,6 +1076,10 @@ def _delete_event_entry_handle_post_notify_users(
         if member in cancelled:
             cancelled.remove(member)  # already taken care of
 
+        # skip TBA
+        if member.id == TBA_PLAYER:
+            continue
+
         html = loader.render_to_string(
             "events/players/email/player_event_entry_cancellation.html",
             {
@@ -1100,6 +1104,10 @@ def _delete_event_entry_handle_post_notify_users(
 
     # There can be people left on cancelled who didn't pay for their entry - let them know
     for member in cancelled:
+
+        # skip TBA
+        if member.id == TBA_PLAYER:
+            continue
 
         html = loader.render_to_string(
             "events/players/email/player_event_entry_cancellation.html",

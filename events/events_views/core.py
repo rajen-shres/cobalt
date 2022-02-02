@@ -9,7 +9,13 @@ from django.urls import reverse
 from django.utils import timezone
 
 import payments.payments_views.core as payments_core  # circular dependency
-from cobalt.settings import COBALT_HOSTNAME, BRIDGE_CREDITS, GLOBAL_ORG, TIME_ZONE
+from cobalt.settings import (
+    COBALT_HOSTNAME,
+    BRIDGE_CREDITS,
+    GLOBAL_ORG,
+    TIME_ZONE,
+    TBA_PLAYER,
+)
 from events.models import PAYMENT_TYPES
 from logs.views import log_event
 from notifications.models import BlockNotification
@@ -399,6 +405,10 @@ def _send_notifications_build_struct(event_entry_players):
         event = event_entry_player.event_entry.event
         congress = event.congress
 
+        # Skip TBA
+        if player.id == TBA_PLAYER:
+            continue
+
         # Add if not present struct[player]
         if player not in struct:
             struct[player] = {}
@@ -438,7 +448,6 @@ def _send_notifications_notify_conveners(event_entries):
     # Notify conveners
 
     for event_entry in event_entries:
-
         players = EventEntryPlayer.objects.filter(event_entry=event_entry).order_by(
             "-pk"
         )

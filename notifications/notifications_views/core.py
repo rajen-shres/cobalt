@@ -149,6 +149,7 @@ def send_cobalt_email_with_template(
 
     # Check if on bounce list
     if _email_address_on_bounce_list(to_address):
+        logger.info(f"Ignoring email on bounce list {to_address}")
         return
 
     # Augment context

@@ -348,7 +348,16 @@
                     </div>
                 </div>
                 <div class="text-center">
-                    <a href="{% url "events:delete_event_entry" event_entry_id=event_entry.id %}" class="btn btn-danger cobalt-save">Withdraw From Event</a>
+                    <a href="{% url "events:delete_event_entry" event_entry_id=event_entry.id %}"
+                        class="btn btn-danger cobalt-save">
+                        Withdraw
+                        {% if event.player_format == "Pairs" %}
+                            Pair
+                        {% else %}
+                            Whole Team
+                        {% endif %}
+                        From Event
+                    </a>
                     <a href="{% url "events:events" %}" class="btn btn-success">Exit</a>
                 </div>
             </div>
