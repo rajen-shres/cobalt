@@ -31,6 +31,7 @@ from ninja import Router, File, NinjaAPI, Schema
 from ninja.files import UploadedFile
 
 from accounts.backend import CobaltBackend
+from accounts.views import create_user_session_id
 from api.core import api_rbac
 import api.urls as api_urls
 from cobalt.settings import GLOBAL_TITLE
@@ -46,6 +47,7 @@ from notifications.models import RealtimeNotification
 
 router = Router()
 api = NinjaAPI()
+
 
 #########################################################
 # Data Structures                                       #
@@ -90,6 +92,19 @@ class UserDataResponseV1(Schema):
         first_name: str
         last_name: str
         system_number: int
+
+    status: str
+    user: UserResponseV1
+
+
+class UserDataResponseV11(Schema):
+    """Response format from mobile_client_register_v1.1"""
+
+    class UserResponseV1(Schema):
+        first_name: str
+        last_name: str
+        system_number: int
+        session_id: str
 
     status: str
     user: UserResponseV1
@@ -250,7 +265,7 @@ def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
     "/mobile-client-register/v1.1",
     summary="Register a mobile client to receive notifications.",
     response={
-        200: UserDataResponseV1,
+        200: UserDataResponseV11,
         403: StatusResponseV1,
     },
     # Disable global authorisation, we will check this ourselves
@@ -281,51 +296,55 @@ def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
     # Try to Authenticate the user
     user = CobaltBackend().authenticate(request, data.username, data.password)
 
-    if user:
-        # Delete token if used before (token will be the same if a user logs out and another logs in, same device)
-        FCMDevice.objects.filter(registration_id=data.fcm_token).delete()
+    if not user:
+        # Don't provide any details about failures for security reasons
+        return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
 
-        # Save or update device
-        fcm_device, _ = FCMDevice.objects.get_or_create(
-            user=user, type=data.OS, name=data.name
+    # Delete token if used before (token will be the same if a user logs out and another logs in, same device)
+    FCMDevice.objects.filter(registration_id=data.fcm_token).delete()
+
+    # Save or update device
+    fcm_device, _ = FCMDevice.objects.get_or_create(
+        user=user, type=data.OS, name=data.name
+    )
+    fcm_device.registration_id = data.fcm_token
+    fcm_device.save()
+
+    # Mark all messages previously sent to the user as read to prevent swamping them with old messages
+    RealtimeNotification.objects.filter(member=user).update(has_been_read=True)
+
+    # Create a welcome message
+    welcome_msg = (
+        f"Hi {user.first_name},\n"
+        f"This device ({data.name}) is now set up to receive messages from {GLOBAL_TITLE}.\n\n"
+        f"You can manage your devices through Settings within {GLOBAL_TITLE}, "
+        f"or simply delete this app to turn them off."
+    )
+    RealtimeNotification(
+        member=user,
+        admin=user,
+        msg=welcome_msg,
+    ).save()
+    msg = Message(
+        notification=Notification(
+            title=f"Welcome to {GLOBAL_TITLE} messaging.",
+            body="Welcome!\n\nNew device successfully registered.",
         )
-        fcm_device.registration_id = data.fcm_token
-        fcm_device.save()
+    )
+    fcm_device.send_message(msg)
 
-        # Mark all messages previously sent to the user as read to prevent swamping them with old messages
-        RealtimeNotification.objects.filter(member=user).update(has_been_read=True)
+    # Get a session id for this user
+    session_id = create_user_session_id(user)
 
-        # Create a welcome message
-        welcome_msg = (
-            f"Hi {user.first_name},\n"
-            f"This device ({data.name}) is now set up to receive messages from {GLOBAL_TITLE}.\n\n"
-            f"You can manage your devices through Settings within {GLOBAL_TITLE}, "
-            f"or simply delete this app to turn them off."
-        )
-        RealtimeNotification(
-            member=user,
-            admin=user,
-            msg=welcome_msg,
-        ).save()
-        msg = Message(
-            notification=Notification(
-                title=f"Welcome to {GLOBAL_TITLE} messaging.",
-                body="Welcome!\n\nNew device successfully registered.",
-            )
-        )
-        fcm_device.send_message(msg)
-
-        return 200, {
-            "status": APIStatus.SUCCESS,
-            "user": {
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "system_number": user.system_number,
-            },
-        }
-
-    # Don't provide any details about failures for security reasons
-    return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+    return 200, {
+        "status": APIStatus.SUCCESS,
+        "user": {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "system_number": user.system_number,
+            "session_id": session_id,
+        },
+    }
 
 
 @router.get(

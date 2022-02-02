@@ -52,6 +52,8 @@ from cobalt.settings import (
     GLOBAL_TITLE,
 )
 from masterpoints.views import user_summary
+from django.contrib import auth
+from django.contrib.sessions.backends.db import SessionStore
 
 
 def html_email_reset(request):
@@ -1324,3 +1326,21 @@ def admin_toggle_user_is_active(request):
     return render(
         request, "accounts/profile/public_profile_header_admin.html", {"profile": user}
     )
+
+
+def create_user_session_id(user):
+    """Create a new session for a user. Used by the mobile API when we register a new device
+    so it can login the webpage view using only the session_id and doesn't need to come in through
+    the login page.
+    """
+
+    # Create new session for user
+    session = SessionStore(None)
+    session.clear()
+    session.cycle_key()
+    session[auth.SESSION_KEY] = user._meta.pk.value_to_string(user)
+    session[auth.BACKEND_SESSION_KEY] = "accounts.backend.CobaltBackend"
+    session[auth.HASH_SESSION_KEY] = user.get_session_auth_hash()
+    session.save()
+
+    return session.session_key
