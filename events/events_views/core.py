@@ -166,7 +166,7 @@ def _get_event_entries_for_event_entry_players(event_entry_players):
 
     # Get all EventEntries for changed EventEntryPlayers
     event_entry_list = (
-        event_entry_players.order_by("event_entry")
+        event_entry_players.order_by("event_entry", "-id")
         .distinct("event_entry")
         .values_list("event_entry")
     )
@@ -307,6 +307,7 @@ def _update_entries_process_their_system_dollars(event_entries):
                 amount=event_entry_player.entry_fee,
                 organisation=event_entry_player.event_entry.event.congress.congress_master.org,
                 payment_type="Entry to an event",
+                book_internals=True,
             ):
                 event_entry_player.payment_status = "Paid"
                 event_entry_player.entry_complete_date = datetime.now()
@@ -449,7 +450,7 @@ def _send_notifications_notify_conveners(event_entries):
 
     for event_entry in event_entries:
         players = EventEntryPlayer.objects.filter(event_entry=event_entry).order_by(
-            "-pk"
+            "pk"
         )
 
         html = loader.render_to_string(

@@ -459,7 +459,7 @@ def _checkout_perform_action(request):
             route_payload=unique_id,
             next_url=reverse("events:enter_event_success"),
             # url_fail=reverse("events:enter_event_payment_fail"),
-            # book_internals=False,
+            book_internals=False,
             payment_type="Entry to an event",
         )
 
@@ -650,7 +650,7 @@ def pay_outstanding(request):
         route_payload=unique_id,
         next_url=reverse("events:enter_event_success"),
         payment_type="Entry to an event",
-        # book_internals=False,
+        book_internals=False,
     )
 
 
@@ -1195,7 +1195,7 @@ def third_party_checkout_player(request, event_entry_player_id):
             #     },
             # ),
             payment_type="Entry to an event",
-            # book_internals=False,
+            book_internals=False,
         )
 
     else:
@@ -1286,7 +1286,7 @@ def third_party_checkout_entry(request, event_entry_id):
             #     },
             # ),
             payment_type="Entry to an event",
-            # book_internals=False,
+            book_internals=False,
         )
 
 
