@@ -808,7 +808,8 @@ def edit_event_entry(request, congress_id, event_id, edit_flag=None, pay_status=
             "event_entry": event_entry,
             "event_entry_players": event_entry_players,
             "categories": categories,
-            "edit_flag": edit_flag,
+            # Easiest way to get rid of edit/view is to hardcode the edit_flag
+            "edit_flag": True,
             "in_basket": in_basket,
             "pay_all": pay_all,
             "payment_methods": payment_methods,
@@ -1159,12 +1160,6 @@ def third_party_checkout_player(request, event_entry_player_id):
     amount = float(event_entry_player.entry_fee - event_entry_player.payment_received)
 
     if amount > 0:
-        unique_id = str(uuid.uuid4())
-
-        # map this user (who is paying) to the batch id
-        PlayerBatchId(player=request.user, batch_id=unique_id).save()
-
-        event_entry_player.batch_id = unique_id
         event_entry_player.payment_type = "my-system-dollars"
         event_entry_player.save()
 
@@ -1174,8 +1169,8 @@ def third_party_checkout_player(request, event_entry_player_id):
             member=request.user,
             description="Congress Entry",
             amount=amount,
-            route_code="EVT",
-            route_payload=unique_id,
+            route_code="EV2",
+            route_payload=f"{event_entry_player.id} {request.user.id}",
             next_url=reverse(
                 "events:edit_event_entry",
                 kwargs={
@@ -1265,7 +1260,7 @@ def third_party_checkout_entry(request, event_entry_id):
             member=request.user,
             description="Congress Entry",
             amount=amount,
-            route_code="EVT",
+            route_code="EV2",
             route_payload=unique_id,
             next_url=reverse(
                 "events:edit_event_entry",

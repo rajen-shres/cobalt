@@ -77,7 +77,7 @@ def payment_api_interactive(
     ):
         logger.info(f"{request.user} paid {amount:.2f} for {description}")
 
-        # Call the callback, but don't
+        # Call the callback
         payments_core.callback_router(
             route_code=route_code, route_payload=route_payload
         )

@@ -19,8 +19,7 @@
                     {% if member.id == TBA_PLAYER or member.id == RBAC_EVERYONE %}
                         <h2>That's not a real user, you probably don't want to do this</h2>
                     {% endif %}
-                    {#        <h4>Replies will go to {{ request.user.email }}</h4>#}
-                    <h4>Please put your reply email in the message (this will be fixed in a later release)</h4>
+                    <h4>Replies will go to {{ request.user.email }}</h4>
                 </div>
                 <div class="card-body">
                     <form method="post">

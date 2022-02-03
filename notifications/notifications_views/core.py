@@ -591,7 +591,10 @@ def email_contact(request, member_id):
         }
 
         send_cobalt_email_with_template(
-            to_address=member.email, context=context, template="system - no button"
+            to_address=member.email,
+            context=context,
+            template="system - no button",
+            reply_to=request.user.email,
         )
 
         messages.success(

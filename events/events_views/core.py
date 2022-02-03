@@ -3,12 +3,14 @@ from datetime import datetime, timedelta, date
 
 import pytz
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.template import loader
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 
 import payments.payments_views.core as payments_core  # circular dependency
+from accounts.models import User
 from cobalt.settings import (
     COBALT_HOSTNAME,
     BRIDGE_CREDITS,
@@ -40,34 +42,97 @@ logger = logging.getLogger("cobalt")
 
 
 def events_payments_secondary_callback(status, route_payload):
-    """This gets called when a payment has been made for us.
+    """This gets called when a single payment has been made for an event_entry_player by
+    someone other than the primary entrant.
 
-    We supply the route_payload when we ask for the payment to be made and
-    use it to update the status of payments.
+    The route_payload is the id of the event_entry_player and the id of the user who paid.
+    We don't check this with the entry, if some random wants to pay we let them.
+    """
 
-    This is for the case where a secondary user (not the person making
-    the initial entry) has made their payment."""
+    logger.info(f"Secondary Callback - Status: {status} route_payload: {route_payload}")
 
-    log_event(
-        user="Unknown",
-        severity="INFO",
-        source="Events",
-        sub_source="events_payments_secondary_callback",
-        message=f"Secondary Callback - Status: {status} route_payload: {route_payload}",
+    if status != "Success":
+        return
+
+    # route_payload needs to be a string in case it gets passed through Stripe.
+    # We expect to get <event_entry_player.id> <user.id>
+    #  - event_entry_player.id   is the id for the entry that has been paid for
+    #  - user.id                 is the id for the user who paid for this entry
+
+    event_entry_player_id_str, paid_by_id_str = route_payload.split(" ")
+    event_entry_player_id = int(event_entry_player_id_str)
+    paid_by_id = int(paid_by_id_str)
+
+    # load objects
+    event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
+    paid_by = get_object_or_404(User, pk=paid_by_id)
+    event_entry = event_entry_player.event_entry
+
+    # Update entry
+    _mark_event_entry_player_as_paid_and_book_payments(event_entry_player, paid_by)
+
+    # Check if still in primary entrants basket and handle
+    _events_payments_secondary_callback_process_basket(event_entry, event_entry_player)
+
+
+def _events_payments_secondary_callback_process_basket(event_entry, event_entry_player):
+    """Handle this event still being in the primary users basket when a team mate makes a payment"""
+
+    # This entry could have been in the primary players basket
+    basket_item = BasketItem.objects.filter(event_entry=event_entry).first()
+
+    if not basket_item:
+        return
+
+    # Delete from primary entrants basket if it was still there
+    basket_item.delete()
+
+    # Get the primary entrant, we now need to look at things from their point of view as if they had
+    # checked out the entry
+    primary_entrant = event_entry.primary_entrant
+
+    # We should try to make any payments for this entry that would have been made if the primary entrant had
+    # checked out, but only if we can do it without manual payment. And also send the emails.
+    # We probably shouldn't do any team mate allowed payments as this user may not have access
+
+    # get all event_entry_players for this entry
+    event_entry_all_players = EventEntryPlayer.objects.filter(event_entry=event_entry)
+
+    for event_entry_all_player in event_entry_all_players:
+
+        # Skip this one, already handled
+        if event_entry_all_player == event_entry_player:
+            continue
+
+        # From the point of view of the primary entrant
+        if (
+            # primary entrant said they would pay
+            event_entry_all_player.payment_type == "my-system-dollars"
+            # entry isn't yet paid
+            and event_entry_all_player.payment_status not in ["Paid", "Free"]
+            # payment works
+            and payment_api_batch(
+                member=primary_entrant,
+                description=event_entry.event.event_name,
+                amount=event_entry_all_player.entry_fee
+                - event_entry_all_player.payment_received,
+                organisation=event_entry.event.congress.congress_master.org,
+                payment_type="Entry to an event",
+                book_internals=False,
+            )
+        ):
+            _mark_event_entry_player_as_paid_and_book_payments(
+                event_entry_all_player, primary_entrant
+            )
+
+    # Let people know
+    _send_notifications(
+        event_entry_all_players,
+        [event_entry],
+        primary_entrant,
+        triggered_by_team_mate_payment=True,
+        team_mate_who_triggered=event_entry_player.player,
     )
-
-    if status == "Success":
-        # get name of person who made the entry
-        primary_entrant = (
-            EventEntryPlayer.objects.filter(batch_id=route_payload)
-            .first()
-            .event_entry.primary_entrant
-        )
-
-        event_entry_players = _get_event_entry_players_from_payload(route_payload)
-        event_entries = _get_event_entries_for_event_entry_players(event_entry_players)
-        _update_entries(event_entry_players, primary_entrant)
-        _clean_up(event_entries)
 
 
 def events_payments_callback(status, route_payload):
@@ -195,55 +260,63 @@ def _update_entries_change_entries(event_entry_players, payment_user):
     """First part of _update_entries. This changes the entries themselves"""
 
     # Update EntryEventPlayer objects
-
     for event_entry_player in event_entry_players:
-        # this could be a partial payment
-        amount = event_entry_player.entry_fee - event_entry_player.payment_received
-
-        event_entry_player.payment_status = "Paid"
-        event_entry_player.payment_received = event_entry_player.entry_fee
-        event_entry_player.paid_by = payment_user
-        event_entry_player.entry_complete_date = timezone.now().astimezone(TZ)
-        event_entry_player.save()
-
-        EventLog(
-            event=event_entry_player.event_entry.event,
-            actor=event_entry_player.paid_by,
-            action=f"Paid for {event_entry_player.player} with {amount} {BRIDGE_CREDITS}",
-            event_entry=event_entry_player.event_entry,
-        ).save()
-
-        log_event(
-            user=event_entry_player.paid_by.href,
-            severity="INFO",
-            source="Events",
-            sub_source="events_entry",
-            message=f"{event_entry_player.paid_by.href} paid for {event_entry_player.player.href} to enter {event_entry_player.event_entry.event.href}",
+        _mark_event_entry_player_as_paid_and_book_payments(
+            event_entry_player, payment_user
         )
 
-        # create payments in org account
-        payments_core.update_organisation(
-            organisation=event_entry_player.event_entry.event.congress.congress_master.org,
-            amount=amount,
-            description=f"{event_entry_player.event_entry.event.event_name} - {event_entry_player.player}",
-            source="Events",
-            log_msg=event_entry_player.event_entry.event.href,
-            sub_source="events_callback",
-            payment_type="Entry to an event",
-            member=payment_user,
-        )
 
-        # create payment for user
-        payments_core.update_account(
-            member=payment_user,
-            amount=-amount,
-            description=f"{event_entry_player.event_entry.event.event_name} - {event_entry_player.player}",
-            source="Events",
-            sub_source="events_callback",
-            payment_type="Entry to an event",
-            log_msg=event_entry_player.event_entry.event.href,
-            organisation=event_entry_player.event_entry.event.congress.congress_master.org,
-        )
+def _mark_event_entry_player_as_paid_and_book_payments(event_entry_player, who_paid):
+    """Update a single event_entry_player record to be paid, and create the payments for the
+    user and the organisation"""
+
+    # this could be a partial payment
+    amount = event_entry_player.entry_fee - event_entry_player.payment_received
+
+    event_entry_player.payment_status = "Paid"
+    event_entry_player.payment_received = event_entry_player.entry_fee
+    event_entry_player.paid_by = who_paid
+    event_entry_player.entry_complete_date = timezone.now().astimezone(TZ)
+    event_entry_player.save()
+
+    EventLog(
+        event=event_entry_player.event_entry.event,
+        actor=event_entry_player.paid_by,
+        action=f"Paid for {event_entry_player.player} with {amount} {BRIDGE_CREDITS}",
+        event_entry=event_entry_player.event_entry,
+    ).save()
+
+    log_event(
+        user=event_entry_player.paid_by.href,
+        severity="INFO",
+        source="Events",
+        sub_source="events_entry",
+        message=f"{event_entry_player.paid_by.href} paid for {event_entry_player.player.href} to enter {event_entry_player.event_entry.event.href}",
+    )
+
+    # create payments in org account
+    payments_core.update_organisation(
+        organisation=event_entry_player.event_entry.event.congress.congress_master.org,
+        amount=amount,
+        description=f"{event_entry_player.event_entry.event.event_name} - {event_entry_player.player}",
+        source="Events",
+        log_msg=event_entry_player.event_entry.event.href,
+        sub_source="events_callback",
+        payment_type="Entry to an event",
+        member=who_paid,
+    )
+
+    # create payment for user
+    payments_core.update_account(
+        member=who_paid,
+        amount=-amount,
+        description=f"{event_entry_player.event_entry.event.event_name} - {event_entry_player.player}",
+        source="Events",
+        sub_source="events_callback",
+        payment_type="Entry to an event",
+        log_msg=event_entry_player.event_entry.event.href,
+        organisation=event_entry_player.event_entry.event.congress.congress_master.org,
+    )
 
 
 def _update_entries_process_their_system_dollars(event_entries):
@@ -331,13 +404,22 @@ def _update_entries_process_their_system_dollars(event_entries):
                 )
 
 
-def _send_notifications(event_entry_players, event_entries, payment_user):
+def _send_notifications(
+    event_entry_players,
+    event_entries,
+    payment_user,
+    triggered_by_team_mate_payment=False,
+    team_mate_who_triggered=None,
+):
     """Send the notification emails for a particular set of events that has just been paid for
 
     Args:
         event_entry_players: queryset of EventEntryPlayer. This is a list of people who have
                              just been entered in events and need to be informed
+        event_entries: list of event entries that fit with this payment
         payment_user: User. The person who paid
+        triggered_by_team_mate_payment: whether this set of notifications was caused by someone other than the
+                            primary entrant making a payment (was in the primary entrants basket)
 
     """
 
@@ -374,8 +456,11 @@ def _send_notifications(event_entry_players, event_entries, payment_user):
                     "events_struct": struct[player][congress],
                     "payment_user": payment_user,
                     "congress": congress,
+                    "event": event_entries,
                     "payment_types": payment_types,
                     "user_owes_money": user_owes_money,
+                    "triggered_by_team_mate_payment": triggered_by_team_mate_payment,
+                    "team_mate_who_triggered": team_mate_who_triggered,
                 },
             )
 

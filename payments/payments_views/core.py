@@ -729,28 +729,29 @@ def callback_router(
         Nothing
     """
 
-    if route_code:  # do nothing if no route_code passed
+    if not route_code:  # do nothing if no route_code passed
+        return
 
-        # Payments made by the main entrant to an event
-        if route_code == "EVT":
-            events_payments_callback(status, route_payload)
+    # Payments made by the main entrant to an event
+    if route_code == "EVT":
+        events_payments_callback(status, route_payload)
 
-        # Payments made by other entrants to an event
-        elif route_code == "EV2":
-            events_payments_secondary_callback(status, route_payload)
+    # Payments made by other entrants to an event
+    elif route_code == "EV2":
+        events_payments_secondary_callback(status, route_payload)
 
-        # Member to member transfers - we also pass the Stripe transaction
-        elif route_code == "M2M":
-            member_to_member_transfer_callback(stripe_transaction)
+    # Member to member transfers - we also pass the Stripe transaction
+    elif route_code == "M2M":
+        member_to_member_transfer_callback(stripe_transaction)
 
-        else:
-            log_event(
-                user="Stripe API",
-                severity="CRITICAL",
-                source="Payments",
-                sub_source="stripe_webhook",
-                message="Unable to make callback. Invalid route_code: %s" % route_code,
-            )
+    else:
+        log_event(
+            user="Stripe API",
+            severity="CRITICAL",
+            source="Payments",
+            sub_source="stripe_webhook",
+            message="Unable to make callback. Invalid route_code: %s" % route_code,
+        )
 
 
 ######################
@@ -887,7 +888,7 @@ def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
         # Use most recent payment if multiple found
         pay_method_id = pay_list.data[0].id
 
-    except stripe.error.InvalidRequestError:
+    except stripe.error.InvalidRequestError as error:
         log_event(
             user=member,
             severity="WARN",
@@ -897,7 +898,7 @@ def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
         )
 
         logger.warning(f"{member} error retrieving payment method from stripe")
-        return False, "Error retrieving customer details from Stripe"
+        return _auto_topup_member_handle_failure(error, member, amount)
 
     # try payment
     try:
@@ -1020,6 +1021,7 @@ def _auto_topup_member_handle_failure(error, member, amount):
         %s
         Auto Top Up has been disabled for the time being, but you can
         enable it again by clicking below.
+        <br><br>
         """ % (
         amount,
         err.message,

@@ -1,5 +1,21 @@
 {#This is the body of the email for people entering events#}
 
+{% if player == payment_user and triggered_by_team_mate_payment %}
+
+    <p>
+        <b>
+            Why are you getting this email?
+        </b>
+    </p>
+    <p>
+        You made an entry to this event but left it in your shopping cart.
+    </p>
+    <p>
+        One of your nominated team mates {{ team_mate_who_triggered.full_name|default_if_none:""}} has entered this
+        event, which triggers your entry to go through.
+    </p>
+{% endif %}
+
 {% if player == payment_user %}
     <p>We have received your entry into <b>{{ congress.name }}</b>
 {% else %}

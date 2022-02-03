@@ -31,6 +31,9 @@ from accounts.models import User
 # Stop sending emails plus some other things we don't care about
 setup_test_environment()
 
+# TODO: Add link to github code. e.g.
+# https://github.com/abftech/cobalt/blob/evententry/club_sessions/club_sessions_views/admin.py#L14
+
 # List of tests to run format is "class": "location"
 # For the integration tests we are telling a story and the order matters
 # For unit tests each test should stand alone and they are dynamically found
