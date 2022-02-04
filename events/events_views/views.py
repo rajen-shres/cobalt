@@ -1140,7 +1140,7 @@ def third_party_checkout_player(request, event_entry_player_id):
 
     event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
 
-    _third_party_checkout_entry_common(
+    return _third_party_checkout_entry_common(
         request, event_entry_player.event_entry, [event_entry_player]
     )
 
@@ -1152,7 +1152,7 @@ def third_party_checkout_entry(request, event_entry_id):
     event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
     event_entry_players = EventEntryPlayer.objects.filter(event_entry=event_entry)
 
-    _third_party_checkout_entry_common(request, event_entry, event_entry_players)
+    return _third_party_checkout_entry_common(request, event_entry, event_entry_players)
 
 
 def _third_party_checkout_entry_common(request, event_entry, event_entry_players):
@@ -1168,7 +1168,6 @@ def _third_party_checkout_entry_common(request, event_entry, event_entry_players
     if not event_entry_players_me and event_entry.primary_entrant != request.user:
         error = """You are not the person who made this entry or one of the players.
                    You cannot change this entry."""
-
         title = "You do not have permission"
         return render(
             request, "events/players/error.html", {"title": title, "error": error}
@@ -1217,7 +1216,7 @@ def _third_party_checkout_entry_common(request, event_entry, event_entry_players
         member=request.user,
         description="Congress Entry",
         amount=amount,
-        route_code="EV3",
+        route_code="EV2",
         route_payload=unique_id,
         next_url=reverse(
             "events:edit_event_entry",
