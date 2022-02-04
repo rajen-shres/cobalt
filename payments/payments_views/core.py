@@ -33,12 +33,9 @@ from json import JSONDecodeError
 import pytz
 import requests
 import stripe
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, redirect
-from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -49,14 +46,13 @@ from cobalt.settings import (
     STRIPE_SECRET_KEY,
     STRIPE_PUBLISHABLE_KEY,
     AUTO_TOP_UP_LOW_LIMIT,
-    COBALT_HOSTNAME,
     BRIDGE_CREDITS,
     GLOBAL_CURRENCY_SYMBOL,
     TIME_ZONE,
     GLOBAL_MPSERVER,
 )
 from events.events_views.core import (
-    events_payments_callback,
+    events_payments_primary_callback,
     events_payments_secondary_callback,
 )
 from logs.views import log_event
@@ -734,7 +730,7 @@ def callback_router(
 
     # Payments made by the main entrant to an event
     if route_code == "EVT":
-        events_payments_callback(status, route_payload)
+        events_payments_primary_callback(status, route_payload)
 
     # Payments made by other entrants to an event
     elif route_code == "EV2":

@@ -2,7 +2,7 @@ import random
 import string
 
 from accounts.models import User
-from events.events_views.core import events_payments_callback
+from events.events_views.core import events_payments_primary_callback
 from events.models import (
     Congress,
     Event,
@@ -62,7 +62,7 @@ def _event_entry_test_helper(manager, test_name, event, entrants, expected_statu
     BasketItem(player=primary_entrant, event_entry=event_entry).save()
 
     # Call the callback
-    events_payments_callback("Success", route_payload)
+    events_payments_primary_callback("Success", route_payload)
 
     # reload
     event_entry = EventEntry.objects.get(pk=event_entry.id)

@@ -42,40 +42,43 @@ logger = logging.getLogger("cobalt")
 
 
 def events_payments_secondary_callback(status, route_payload):
-    """This gets called when a single payment has been made for an event_entry_player by
+    """This gets called when (potentially) multiple payments have been made for an event_entry_player by
     someone other than the primary entrant.
 
-    The route_payload is the id of the event_entry_player and the id of the user who paid.
-    We don't check this with the entry, if some random wants to pay we let them.
+    This is called when a user hits Pay All on the edit screen or when they click to pay only one players entry
+
+    The only difference is number of items in the list of entries with matching batch ids
+
     """
 
-    logger.info(f"Secondary Callback - Status: {status} route_payload: {route_payload}")
+    payment_user = _get_player_who_is_paying(status, route_payload)
 
-    if status != "Success":
+    if not payment_user:
         return
 
-    # route_payload needs to be a string in case it gets passed through Stripe.
-    # We expect to get <event_entry_player.id> <user.id>
-    #  - event_entry_player.id   is the id for the entry that has been paid for
-    #  - user.id                 is the id for the user who paid for this entry
+    # Get players and entries that have been paid for (could be ab empty list, but shouldn't be)
+    paid_event_entry_players = _get_event_entry_players_from_payload(route_payload)
 
-    event_entry_player_id_str, paid_by_id_str = route_payload.split(" ")
-    event_entry_player_id = int(event_entry_player_id_str)
-    paid_by_id = int(paid_by_id_str)
+    if not paid_event_entry_players:
+        return
 
-    # load objects
-    event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
-    paid_by = get_object_or_404(User, pk=paid_by_id)
-    event_entry = event_entry_player.event_entry
-
-    # Update entry
-    _mark_event_entry_player_as_paid_and_book_payments(event_entry_player, paid_by)
+    # Update entries
+    for paid_event_entry_player in paid_event_entry_players:
+        _mark_event_entry_player_as_paid_and_book_payments(
+            paid_event_entry_player, payment_user
+        )
 
     # Check if still in primary entrants basket and handle
-    _events_payments_secondary_callback_process_basket(event_entry, event_entry_player)
+    _events_payments_secondary_callback_process_basket(
+        event_entry=paid_event_entry_players[0].event_entry,
+        already_handled_event_entry_players=paid_event_entry_players,
+        team_mate_who_triggered=payment_user,
+    )
 
 
-def _events_payments_secondary_callback_process_basket(event_entry, event_entry_player):
+def _events_payments_secondary_callback_process_basket(
+    event_entry, already_handled_event_entry_players, team_mate_who_triggered
+):
     """Handle this event still being in the primary users basket when a team mate makes a payment"""
 
     # This entry could have been in the primary players basket
@@ -100,8 +103,8 @@ def _events_payments_secondary_callback_process_basket(event_entry, event_entry_
 
     for event_entry_all_player in event_entry_all_players:
 
-        # Skip this one, already handled
-        if event_entry_all_player == event_entry_player:
+        # Skip any that have already been handled
+        if event_entry_all_player in already_handled_event_entry_players:
             continue
 
         # From the point of view of the primary entrant
@@ -127,15 +130,15 @@ def _events_payments_secondary_callback_process_basket(event_entry, event_entry_
 
     # Let people know
     _send_notifications(
-        event_entry_all_players,
-        [event_entry],
-        primary_entrant,
+        event_entry_players=event_entry_all_players,
+        event_entries=event_entry_all_players,
+        payment_user=primary_entrant,
         triggered_by_team_mate_payment=True,
-        team_mate_who_triggered=event_entry_player.player,
+        team_mate_who_triggered=team_mate_who_triggered,
     )
 
 
-def events_payments_callback(status, route_payload):
+def events_payments_primary_callback(status, route_payload):
     """This gets called when a payment has been made for us.
 
     We supply the route_payload when we ask for the payment to be made and
@@ -155,29 +158,10 @@ def events_payments_callback(status, route_payload):
 
     """
 
-    if status != "Success":
-        logger.warning(
-            f"Received callback with status {status}. Payload {route_payload}. Ignoring."
-        )
+    payment_user = _get_player_who_is_paying(status, route_payload)
+
+    if not payment_user:
         return
-
-    # Find who is making this payment
-    player_batch_id = PlayerBatchId.objects.filter(batch_id=route_payload).first()
-
-    # catch error
-    if player_batch_id is None:
-        log_event(
-            user="Unknown",
-            severity="CRITICAL",
-            source="Events",
-            sub_source="events_payments_callback",
-            message=f"No matching player for route_payload: {route_payload}",
-        )
-        logger.critical(f"No matching player for route_payload: {route_payload}")
-        return
-
-    payment_user = player_batch_id.player
-    player_batch_id.delete()
 
     # Get players and entries that have been paid for
     paid_event_entry_players = _get_event_entry_players_from_payload(route_payload)
@@ -199,6 +183,38 @@ def events_payments_callback(status, route_payload):
 
     # Tidy up
     _clean_up(payment_user)
+
+
+def _get_player_who_is_paying(status, route_payload):
+    """Use the route_payload to find the player who is paying for this batch of entries
+    Also checks the status (to avoid duplicate code) and deletes the PlayerBatchId object
+    """
+
+    if status != "Success":
+        logger.warning(
+            f"Received callback with status {status}. Payload {route_payload}. Ignoring."
+        )
+        return False
+
+    # Find who is making this payment
+    player_batch_id = PlayerBatchId.objects.filter(batch_id=route_payload).first()
+
+    # catch error
+    if not player_batch_id:
+        log_event(
+            user="Unknown",
+            severity="CRITICAL",
+            source="Events",
+            sub_source="events_payments_callback",
+            message=f"No matching player for route_payload: {route_payload}",
+        )
+        logger.critical(f"No matching player for route_payload: {route_payload}")
+        return False
+
+    payment_user = player_batch_id.player
+    player_batch_id.delete()
+
+    return payment_user
 
 
 def _get_event_entry_players_from_payload(route_payload):

@@ -58,7 +58,7 @@ from events.forms import (
     PartnershipForm,
 )
 from events.events_views.core import (
-    events_payments_callback,
+    events_payments_primary_callback,
     notify_conveners,
     get_basket_for_user,
 )
@@ -465,7 +465,7 @@ def _checkout_perform_action(request):
 
     else:  # no payment required go straight to the callback
 
-        events_payments_callback("Success", unique_id)
+        events_payments_primary_callback("Success", unique_id)
         messages.success(
             request, "Entry successful", extra_tags="cobalt-message-success"
         )
@@ -1140,66 +1140,9 @@ def third_party_checkout_player(request, event_entry_player_id):
 
     event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
 
-    event_entry_players_me = EventEntryPlayer.objects.filter(
-        event_entry=event_entry_player.event_entry
-    ).filter(player=request.user)
-
-    if (
-        not event_entry_players_me
-        and event_entry_player.event_entry.primary_entrant != request.user
-    ):
-        error = """You are not the person who made this entry or one of the players.
-                   You cannot change this entry."""
-
-        title = "You do not have permission"
-        return render(
-            request, "events/players/error.html", {"title": title, "error": error}
-        )
-
-    # check amount
-    amount = float(event_entry_player.entry_fee - event_entry_player.payment_received)
-
-    if amount > 0:
-        event_entry_player.payment_type = "my-system-dollars"
-        event_entry_player.save()
-
-        # make payment
-        return payment_api_interactive(
-            request=request,
-            member=request.user,
-            description="Congress Entry",
-            amount=amount,
-            route_code="EV2",
-            route_payload=f"{event_entry_player.id} {request.user.id}",
-            next_url=reverse(
-                "events:edit_event_entry",
-                kwargs={
-                    "event_id": event_entry_player.event_entry.event.id,
-                    "congress_id": event_entry_player.event_entry.event.congress.id,
-                    "edit_flag": 1,
-                    "pay_status": "success",
-                },
-            ),
-            # url_fail=reverse(
-            #     "events:edit_event_entry",
-            #     kwargs={
-            #         "event_id": event_entry_player.event_entry.event.id,
-            #         "congress_id": event_entry_player.event_entry.event.congress.id,
-            #         "edit_flag": 1,
-            #         "pay_status": "fail",
-            #     },
-            # ),
-            payment_type="Entry to an event",
-            book_internals=False,
-        )
-
-    else:
-        error = """You have tried to pay for an entry, but there is nothing owing. Don't worry, everything seems fine.
-                """
-        title = "Nothing owing"
-        return render(
-            request, "events/players/error.html", {"title": title, "error": error}
-        )
+    _third_party_checkout_entry_common(
+        request, event_entry_player.event_entry, [event_entry_player]
+    )
 
 
 @login_required()
@@ -1207,7 +1150,16 @@ def third_party_checkout_entry(request, event_entry_id):
     """Used by edit entry screen to pay for all outstanding fees on an entry"""
 
     event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
+    event_entry_players = EventEntryPlayer.objects.filter(event_entry=event_entry)
 
+    _third_party_checkout_entry_common(request, event_entry, event_entry_players)
+
+
+def _third_party_checkout_entry_common(request, event_entry, event_entry_players):
+    """Takes a list of event_entry_players for a single event_entry and handles the checkout process for this user
+    to pay for them"""
+
+    # Get this user's event_entry_player object for this event entry if there is one
     event_entry_players_me = EventEntryPlayer.objects.filter(
         event_entry=event_entry
     ).filter(player=request.user)
@@ -1231,58 +1183,54 @@ def third_party_checkout_entry(request, event_entry_id):
         )
 
     # check amount
-    event_entry_players = EventEntryPlayer.objects.filter(event_entry=event_entry)
     amount = 0.0
     for event_entry_player in event_entry_players:
         amount += float(
             event_entry_player.entry_fee - event_entry_player.payment_received
         )
 
-    if amount > 0:
-
-        unique_id = str(uuid.uuid4())
-
-        # map this user (who is paying) to the batch id
-        PlayerBatchId(player=request.user, batch_id=unique_id).save()
-
-        for event_entry_player in event_entry_players:
-            if (
-                event_entry_player.payment_received - event_entry_player.entry_fee == 0
-            ):  # player had already paid don't do anything
-                continue
-            event_entry_player.batch_id = unique_id
-            event_entry_player.payment_type = "my-system-dollars"
-            event_entry_player.save()
-
-        # make payment
-        return payment_api_interactive(
-            request=request,
-            member=request.user,
-            description="Congress Entry",
-            amount=amount,
-            route_code="EV2",
-            route_payload=unique_id,
-            next_url=reverse(
-                "events:edit_event_entry",
-                kwargs={
-                    "event_id": event_entry_player.event_entry.event.id,
-                    "congress_id": event_entry_player.event_entry.event.congress.id,
-                    "edit_flag": 1,
-                    "pay_status": "success",
-                },
-            ),
-            # url_fail=reverse(
-            #     "events:edit_event_entry",
-            #     kwargs={
-            #         "event_id": event_entry_player.event_entry.event.id,
-            #         "congress_id": event_entry_player.event_entry.event.congress.id,
-            #         "edit_flag": 1,
-            #         "pay_status": "fail",
-            #     },
-            # ),
-            payment_type="Entry to an event",
-            book_internals=False,
+    if amount <= 0:
+        error = """You have tried to pay for an entry, but there is nothing owing. Don't worry, everything seems fine.
+                """
+        title = "Nothing owing"
+        return render(
+            request, "events/players/error.html", {"title": title, "error": error}
         )
+
+    unique_id = str(uuid.uuid4())
+
+    # map this user (who is paying) to the batch id
+    PlayerBatchId(player=request.user, batch_id=unique_id).save()
+
+    # add batch id to the event_entry_player objects who are getting paid for
+    for event_entry_player in event_entry_players:
+        if event_entry_player.payment_received - event_entry_player.entry_fee == 0:
+            # player had already paid don't do anything
+            continue
+        event_entry_player.batch_id = unique_id
+        event_entry_player.payment_type = "my-system-dollars"
+        event_entry_player.save()
+
+    # make payment
+    return payment_api_interactive(
+        request=request,
+        member=request.user,
+        description="Congress Entry",
+        amount=amount,
+        route_code="EV3",
+        route_payload=unique_id,
+        next_url=reverse(
+            "events:edit_event_entry",
+            kwargs={
+                "event_id": event_entry.event.id,
+                "congress_id": event_entry.event.congress.id,
+                "edit_flag": 1,
+                "pay_status": "success",
+            },
+        ),
+        payment_type="Entry to an event",
+        book_internals=False,
+    )
 
 
 @login_required()
