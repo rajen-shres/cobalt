@@ -1156,8 +1156,8 @@ def third_party_checkout_entry(request, event_entry_id):
 
 
 def _third_party_checkout_entry_common(request, event_entry, event_entry_players):
-    """Takes a list of event_entry_players for a single event_entry and handles the checkout process for this user
-    to pay for them"""
+    """Takes a list of event_entry_players (or a Queryset, as long as it is iterable and returns EventEntryPlayer)
+    for a single event_entry and handles the checkout process for this user to pay for them"""
 
     # Get this user's event_entry_player object for this event entry if there is one
     event_entry_players_me = EventEntryPlayer.objects.filter(
