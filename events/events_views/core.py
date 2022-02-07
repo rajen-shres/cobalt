@@ -42,7 +42,7 @@ logger = logging.getLogger("cobalt")
 
 
 def events_payments_secondary_callback(status, route_payload):
-    """This gets called when (potentially) multiple payments have been made for an event_entry_player by
+    """This gets called when (potentially) multiple payments have been made for an event_entry by
     someone other than the primary entrant.
 
     This is called when a user hits Pay All on the edit screen or when they click to pay only one players entry
@@ -56,7 +56,7 @@ def events_payments_secondary_callback(status, route_payload):
     if not payment_user:
         return
 
-    # Get players and entries that have been paid for (could be ab empty list, but shouldn't be)
+    # Get players and entries that have been paid for (could be an empty list, but shouldn't be)
     paid_event_entry_players = _get_event_entry_players_from_payload(route_payload)
 
     if not paid_event_entry_players:
@@ -74,9 +74,6 @@ def events_payments_secondary_callback(status, route_payload):
         already_handled_event_entry_players=paid_event_entry_players,
         team_mate_who_triggered=payment_user,
     )
-
-    # Check if this now paid
-    paid_event_entry_players[0].event_entry.check_if_paid()
 
 
 def _events_payments_secondary_callback_process_basket(
@@ -131,10 +128,13 @@ def _events_payments_secondary_callback_process_basket(
                 event_entry_all_player, primary_entrant
             )
 
+    # Check if status has changed
+    event_entry.check_if_paid()
+
     # Let people know
     _send_notifications(
         event_entry_players=event_entry_all_players,
-        event_entries=event_entry_all_players,
+        event_entries=[event_entry],
         payment_user=primary_entrant,
         triggered_by_team_mate_payment=True,
         team_mate_who_triggered=team_mate_who_triggered,
@@ -173,7 +173,9 @@ def events_payments_primary_callback(status, route_payload):
     )
 
     # Update them
-    _update_entries(paid_event_entry_players, paid_event_entries, payment_user)
+    _update_entries(
+        paid_event_entry_players, paid_event_entries, payment_user, route_payload
+    )
 
     # Get all players that are included in this bunch of entries
     notify_event_entry_players = _get_event_entry_players_from_basket(payment_user)
@@ -260,7 +262,7 @@ def _get_event_entries_for_event_entry_players(event_entry_players):
     )
 
 
-def _update_entries(event_entry_players, event_entries, payment_user):
+def _update_entries(event_entry_players, event_entries, payment_user, route_payload):
     """Update the database to reflect changes and make payments for
     other members if we have access."""
 
@@ -268,7 +270,7 @@ def _update_entries(event_entry_players, event_entries, payment_user):
     _update_entries_change_entries(event_entry_players, payment_user)
 
     # Check if we can now pay using "their system dollars"
-    _update_entries_process_their_system_dollars(event_entries)
+    _update_entries_process_their_system_dollars(payment_user)
 
     # Update status
     for event_entry in event_entries:
@@ -338,15 +340,51 @@ def _mark_event_entry_player_as_paid_and_book_payments(event_entry_player, who_p
     )
 
 
-def _update_entries_process_their_system_dollars(event_entries):
+def _update_entries_process_their_system_dollars(payment_user):
     # sourcery skip: extract-method
     """Now process their system dollar transactions (if any)
-    We want to batch these up by player and congress so we don't do excessive auto top ups
+    We want to batch these up by player and congress so we don't do excessive auto top ups.
+
+    We need to get the list of possible entries to check, which may not be entries that had a payment made as
+    part of the primary entrant checking out. For example, if the primary entrant chooses to pay cash, but uses
+    their-system-dollars for their partner, then we won't find their partner's entry by looking at the
+    entries with payments (there aren't any). In fact the callback is no use at all at finding them based upon the
+    route_payload. The only thing we can do is to use the payment_user (who entered) and look in their basket.
+    (Obviously, we are using the route_payload to find the payment_user, so it is still useful.)
+
+    What if someone puts two entries in with cash and their partner paying using their-system-dollars and then
+    only checks out one of those entries? The second entry (in the basket) will also process their partners
+    my-system-dollars payment. However, it is not actually possible to do this. You can checkout all entries in
+    your basket or you can click pay now on one entry which will pay with bridge credits, not the entered payment
+    method.
+
     """
+
+    # build a dictionary with players
+    (
+        event_entries,
+        event_entries_by_player,
+    ) = _update_entries_process_their_system_dollars_build_dict(payment_user)
+
+    # Now go through each player and do auto top up for full amount if required
+    _update_entries_process_their_system_dollars_make_payments(event_entries_by_player)
+
+
+def _update_entries_process_their_system_dollars_build_dict(payment_user):
+    """Sub process for handling their system dollars. This builds the dictionary of players"""
+
+    event_entries_as_dict = BasketItem.objects.filter(player=payment_user).values(
+        "event_entry"
+    )
 
     # Start by building a dictionary with player then list of event_entry_players to pay for
     event_entries_by_player = {}
-    for event_entry in event_entries:
+    event_entries = []
+
+    for event_entry_id in event_entries_as_dict:
+        event_entry = EventEntry.objects.get(pk=event_entry_id["event_entry"])
+        event_entries.append(event_entry)
+
         for event_entry_player in event_entry.evententryplayer_set.all():
             if (
                 event_entry_player.payment_type == "their-system-dollars"
@@ -361,9 +399,13 @@ def _update_entries_process_their_system_dollars(event_entries):
                 # Add event_entry_player to list
                 event_entries_by_player[this_player].append(event_entry_player)
 
-    # Now go through each player and do auto top up for full amount if required
+    return event_entries, event_entries_by_player
+
+
+def _update_entries_process_their_system_dollars_make_payments(event_entries_by_player):
+    """Sub process for handling their system dollars - make payments"""
+
     for this_player in event_entries_by_player:
-        print("Player is", this_player)
         total_amount_for_player = 0.0
         for event_entry_player in event_entries_by_player[this_player]:
             total_amount_for_player += float(
@@ -385,8 +427,6 @@ def _update_entries_process_their_system_dollars(event_entries):
                 # Payment failed - abandon for this user. the called functions will handle notifying them
                 logger.error(f"Auto top up for {this_player} failed: {msg}")
                 continue
-
-        # Check if we need to do an auto top up
 
         # Now go through and make all of the payments, they should work as there is enough money
         for event_entry_player in event_entries_by_player[this_player]:
@@ -553,6 +593,7 @@ def _send_notifications_notify_conveners(event_entries):
     # Notify conveners
 
     for event_entry in event_entries:
+        print(event_entry)
         players = EventEntryPlayer.objects.filter(event_entry=event_entry).order_by(
             "pk"
         )

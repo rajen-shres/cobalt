@@ -56,11 +56,10 @@
                         {% if in_basket %}
                             <h3>This item is still in
                                 {% if event_entry.primary_entrant == request.user %}
-                                    your
+                                    your shopping cart <a class="btn btn-sm btn-secondary" href="{% url "events:checkout" %}">Checkout</a></h3>
                                 {% else %}
-                                    {{ event_entry.primary_entrant.full_name }}'s
+                                    {{ event_entry.primary_entrant.full_name }}'s shopping cart</h3>
                                 {% endif %}
-                                shopping cart <a class="btn btn-sm btn-secondary" href="{% url "events:checkout" %}">Checkout</a></h3>
                         {% endif %}
                     </div>
                     <div class="card-body text-center mx-auto">

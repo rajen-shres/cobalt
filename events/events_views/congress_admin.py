@@ -1988,10 +1988,6 @@ def convener_settings(request, congress_id):
         model_id=None,
     ).exists()
 
-    print("all off", all_off)
-    print("this_org_off", this_org_off)
-    print("this_congress_off", this_congress_off)
-
     return render(
         request,
         "events/congress_admin/convener_settings.html",

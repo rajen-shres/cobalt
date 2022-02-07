@@ -162,9 +162,9 @@
                                         <td class="font-weight-bold">
                                             TOTAL
                                         </td>
-                                        <td class="text-right font-weight-bold">{{ total_entry_fee|floatformat:2 }}</td>
-                                        <td class="text-right font-weight-bold">{{ total_received|floatformat:2 }}</td>
-                                        <td class="text-right font-weight-bold">{{ total_outstanding|floatformat:2 }}</td>
+                                        <td class="text-right font-weight-bold">{{ total_entry_fee|floatformat:2|intcomma }}</td>
+                                        <td class="text-right font-weight-bold">{{ total_received|floatformat:2|intcomma }}</td>
+                                        <td class="text-right font-weight-bold">{{ total_outstanding|floatformat:2|intcomma }}</td>
                                         <td></td>
                                         {% if categories %}
                                             <td></td>
