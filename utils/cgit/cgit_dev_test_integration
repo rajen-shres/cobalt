@@ -25,11 +25,21 @@ drop database IF EXISTS $RDS_DB_NAME;
 create database $RDS_DB_NAME with owner cobalt;
 EOF
 
-psql </tmp/drop_db
+psql test </tmp/drop_db
 psql test < ~/test.db >/dev/null
 
-open . ~/Development/c2/cobalt/utils/cgit/tools/test_manage_short.terminal
-open . ~/Development/c2/cobalt/utils/cgit/tools/test_stripe_short.terminal
+# Check if we are on WSL
+uname -r | grep Microsoft > /dev/null
+
+if [ $? -eq 0 ]
+then
+  utils/cgit/tools/test_manage_short.sh &
+
+else
+open . utils/cgit/tools/test_manage_short.terminal
+open . utils/cgit/tools/test_stripe_short.terminal
+fi
+
 
 # Wait for port to be open
 echo "Waiting for Webserver to start..."
