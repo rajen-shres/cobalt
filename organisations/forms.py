@@ -4,6 +4,7 @@ import bleach
 from crispy_forms.helper import FormHelper
 from django import forms
 from django_summernote.widgets import SummernoteInplaceWidget
+from post_office.models import EmailTemplate
 
 from accounts.models import User, UnregisteredUser
 import accounts.views as accounts_views
@@ -360,6 +361,35 @@ class TagMultiForm(forms.Form):
             self.add_error("tags", "You must select at least one tag")
 
         return tags
+
+
+class TemplateForm(forms.ModelForm):
+    """Form for editing email templates"""
+
+    class Meta:
+        model = EmailTemplate
+        fields = (
+            "name",
+            "description",
+            "subject",
+            "html_content",
+        )
+
+    html_content = forms.CharField(
+        widget=SummernoteInplaceWidget(
+            attrs={
+                "summernote": {
+                    "height": "250",
+                    "codemirror": {"theme": "monokai"},
+                    "placeholder": "<br><br>Enter your template.",
+                }
+            }
+        )
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        super().__init__(*args, **kwargs)
 
 
 class UnregisteredUserMembershipForm(forms.Form):

@@ -129,6 +129,11 @@ urlpatterns = [
         name="club_menu_tab_comms_tags_htmx",
     ),
     path(
+        "club-menu/tabs/comms/templates",
+        organisations.views.club_menu_tabs.comms.templates_htmx,
+        name="club_menu_tab_comms_templates_htmx",
+    ),
+    path(
         "club-menu/tabs/comms/tag-delete",
         organisations.views.club_menu_tabs.comms.delete_tag_htmx,
         name="club_menu_tab_comms_tags_delete_tag_htmx",

@@ -4,6 +4,7 @@ from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
+from post_office.models import EmailTemplate
 
 from accounts.models import User, UnregisteredUser
 from notifications.forms import EmailForm
@@ -13,7 +14,7 @@ from notifications.notifications_views.core import (
     create_rbac_batch_id,
 )
 from organisations.decorators import check_club_menu_access
-from organisations.forms import TagForm, TagMultiForm, FrontPageForm
+from organisations.forms import TagForm, TagMultiForm, FrontPageForm, TemplateForm
 from organisations.models import (
     ClubTag,
     MemberClubTag,
@@ -294,6 +295,35 @@ def tags_htmx(request, club):
         request,
         "organisations/club_menu/comms/tags_htmx.html",
         {"club": club, "tags": tags, "form": form},
+    )
+
+
+@check_club_menu_access()
+def templates_htmx(request, club):
+    """build the comms template tab in club menu"""
+
+    if "add" in request.POST:
+        form = TemplateForm(request.POST, club=club)
+
+        if form.is_valid():
+            # ClubTag.objects.get_or_create(
+            #     organisation=club, tag_name=form.cleaned_data["tag_name"]
+            # )
+            # # reset form
+            # form = TagForm(club=club)
+            print("ok")
+            form.save()
+        else:
+            print(form.errors)
+    else:
+        form = TemplateForm(club=club)
+
+    templates = EmailTemplate.objects.all()
+
+    return render(
+        request,
+        "organisations/club_menu/comms/templates_htmx.html",
+        {"club": club, "templates": templates, "form": form},
     )
 
 

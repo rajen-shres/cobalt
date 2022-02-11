@@ -10,8 +10,33 @@
     <link href="{% static "assets/css/cobalt-summernote.css" %}" rel="stylesheet">
     {% include "utils/data_tables_heading.html" %}
     <style>
+
+        {#Styles need to be loaded in the header so they have to cover all sub pages. Please document them.#}
+
+        {#disable buttons when they are waiting for HTMX#}
         .htmx-request .btn {
             display: none;
+        }
+
+        {#disable showing dropzone for drag and drop in summernote. Used by email send. #}
+        {#Otherwise it looks like we want the user to drop into the email body. #}
+        .note-editor .note-dropzone { opacity: 0 !important; }
+
+        {#The empty drag classes are used by sending emails for drag and drop#}
+        .empty-drag {
+            border: 2px dashed #ccc;
+        }
+
+        .empty-drag:before{
+            content: "Drag tags here to send";
+        }
+
+        .empty-drag-available {
+            border: 2px dashed grey;
+        }
+
+        .empty-drag-available:before{
+            content: "Drag tags here to remove from email";
         }
 
     </style>

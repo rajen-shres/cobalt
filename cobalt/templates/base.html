@@ -255,7 +255,8 @@ Environment: {{ COBALT_HOSTNAME }}
                 {% endblock %}
 
             </div>
-            <footer class="footer">
+            <!-- Show on large screens, not small for the mobile app -->
+            <footer class="footer d-none d-md-block d-lg-block">
                 <div class="container-fluid">
                     <nav class="float-left">
                         <ul>

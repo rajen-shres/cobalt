@@ -1,4 +1,4 @@
-{% if congresses %}
+{% if congress_masters %}
 
     <div class="table-responsive">
         <table class="table table-hover">
@@ -10,16 +10,16 @@
                 </tr>
             </thead>
             <tbody>
-                {% for congress in congresses %}
+                {% for congress_master in congress_masters %}
                     <tr>
-                        <td>{{ congress.name }}</td>
-                        <td>{{ congress.date_string }}</td>
+                        <td>{{ congress_master.name }}</td>
+                        <td>{{ congress_master.org }}</td>
                         <td>
-                            <a href="{% url "events:create_congress_wizard" step=2 congress_id=congress.id %}" class="btn btn-sm btn-warning">Edit</a>
-                            <a href="{% url "events:admin_summary" congress_id=congress.id %}" class="btn btn-sm btn-success">Manage</a>
-                        </td>
+                            {#                            <a href="{% url "events:create_congress_wizard" step=2 congress_id=congress.id %}" class="btn btn-sm btn-warning">Edit</a>#}
+                            {#                            <a href="{% url "events:admin_summary" congress_id=congress.id %}" class="btn btn-sm btn-success">Manage</a>#}
+                            {#                        </td>#}
 
-                    </tr>
+                        </tr>
                 {% endfor %}
             </tbody>
         </table>

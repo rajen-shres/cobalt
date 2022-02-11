@@ -2,6 +2,12 @@
 {% load widget_tweaks %}
 {% load cobalt_tags %}
 
+<style>
+    #drop-wrapper {
+        border: 2px dashed #ccc;
+    }
+</style>
+
 <form hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}">
     <div class="col-md-9 col-lg-9">
         <h3>Send a New Email</h3>
@@ -12,7 +18,7 @@
                 <div class="col-md-6">
                     <div class="card mx-2">
                         <h4>To</h4>
-                        <div id="send_tags" class="card-body" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <div id="send_tags" class="card-body empty-drag" ondrop="drop(event)" ondragover="allowDrop(event)">
 
                         </div>
                     </div>
@@ -23,8 +29,9 @@
                 </div>
 
                 <div class="col-md-6">
-                    <div class="card">
-                        Available Tags (Drag across to send)
+                    <div class="card mx-2">
+                        <h4>Tags</h4>
+
                         <div class="card-body" id="available_tags" ondrop="drop(event)" ondragover="allowDrop(event)">
 
                             {# Special everyone tag #}
@@ -73,6 +80,9 @@
                 $('#' + this.id).prop('checked', true);
             }
         });
+
+        checkForEmptyDragDropBoxes()
+
     }
 
     function removeTag(tag_id, item) {
@@ -94,6 +104,9 @@
                 $('#' + this.id).prop('checked', false);
             }
         });
+
+        checkForEmptyDragDropBoxes()
+
     }
 
     function clearTags() {
@@ -163,6 +176,22 @@
             removeTag(id, item);
 
         }
+    }
+
+    function checkForEmptyDragDropBoxes() {
+        // check if to box is now empty
+        if ( $('#send_tags').children().length === 0 ) {
+            $("#send_tags").addClass("empty-drag")
+        } else {
+            $("#send_tags").removeClass("empty-drag")
+        }
+        // check if tag box is now empty
+        if ( $('#available_tags').children().length === 0 ) {
+            $("#available_tags").addClass("empty-drag-available")
+        } else {
+            $("#available_tags").removeClass("empty-drag-available")
+        }
+
     }
 
 </script>
