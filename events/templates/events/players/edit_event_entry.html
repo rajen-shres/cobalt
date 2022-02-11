@@ -318,12 +318,14 @@
                                             <!-- Show pay all if valid option -->
                                             {% if pay_all %}
                                                 <td class="editable" style="display:none">
-                                                    <button class="btn btn-sm btn-info font-weight-bold"
-                                                        style="font-size: 105%;"
-                                                        id="pay_all"
-                                                        data-toggle="tooltip"
-                                                        title="Pay all outstanding now using your bridge credits"
-                                                    >Pay For Everyone</button>
+                                                    <div class="row table-responsive text-left pb-5 px-0 mx-0">
+                                                        <button class="btn btn-sm btn-info font-weight-bold"
+                                                            {#                                                        style="font-size: 105%;"#}
+                                                            id="pay_all"
+                                                            data-toggle="tooltip"
+                                                            title="Pay all outstanding now using your bridge credits"
+                                                        >Pay For Everyone</button>
+                                                    </div>
                                                 </td>
                                             {% endif %}
                                         </tr>
@@ -563,7 +565,7 @@
 
                 Swal.fire({
                     title: 'Pay with Your Bridge Credits',
-                    text: "Pay for this player now using your your Bridge Credits?",
+                    text: "Pay for this player now using your Bridge Credits?",
                     icon: 'info',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
@@ -581,8 +583,23 @@
 
             // handle pay all
             $("#pay_all").click(function(){
-                $(this).prop('disabled', true);
-                window.location.href = "{% url "events:third_party_checkout_entry" event_entry_id=event_entry.id %}";
+
+
+                Swal.fire({
+                    title: 'Pay with Your Bridge Credits',
+                    text: "Pay for all outstanding players now using your Bridge Credits?",
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Pay with My Bridge Credits'
+                }).then((result) => {
+                    if (result.value) {
+
+                        $(this).prop('disabled', true);
+                        window.location.href = "{% url "events:third_party_checkout_entry" event_entry_id=event_entry.id %}";
+                    }
+                });
             });
 
             // handle question changing
