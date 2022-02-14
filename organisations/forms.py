@@ -6,8 +6,8 @@ from django import forms
 from django_summernote.widgets import SummernoteInplaceWidget
 from post_office.models import EmailTemplate
 
-from accounts.models import User, UnregisteredUser
-import accounts.views as accounts_views
+import accounts.accounts_views.admin
+from accounts.models import User
 from cobalt.settings import (
     ABF_STATES,
     BLEACH_ALLOWED_TAGS,
@@ -251,7 +251,9 @@ class UnregisteredUserAddForm(forms.Form):
     def clean_system_number(self):
         system_number = self.cleaned_data["system_number"]
 
-        is_valid, is_member, _ = accounts_views.check_system_number(system_number)
+        is_valid, is_member, _ = accounts.accounts_views.admin.check_system_number(
+            system_number
+        )
 
         if not is_valid:
             self.add_error("system_number", "Invalid number")
