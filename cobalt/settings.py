@@ -404,9 +404,9 @@ ABF_ORG = 1
 # Org id for the system account
 GLOBAL_ORG_ID = 1
 
-# Logout users every 100 years
+# Logout users every 100 years or so
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_COOKIE_AGE = 52560000
+SESSION_COOKIE_AGE = 5256000000
 
 # Upgrade to Django 3.2 requires this setting. Not clear if BigAutoField would be better
 # This is the current default so using that

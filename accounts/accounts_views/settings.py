@@ -49,19 +49,11 @@ def user_settings(request):
     session_list = []
 
     for session in all_sessions:
-        print(session)
-        print(session.get_decoded())
-        print("user", request.user.id)
-        if "_auth_user_id" in session.get_decoded():
-            print("sess", session.get_decoded()["_auth_user_id"])
         if (
             "_auth_user_id" in session.get_decoded()
             and int(session.get_decoded()["_auth_user_id"]) == request.user.id
         ):
-            print("ok")
             session_list.append(session)
-
-        print(session_list)
 
     return render(
         request,

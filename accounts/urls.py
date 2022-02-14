@@ -160,4 +160,9 @@ urlpatterns = [
         accounts.accounts_views.api.delete_fcm_device_ajax,
         name="delete_fcm_device_ajax",
     ),
+    path(
+        "delete-session",
+        accounts.accounts_views.api.delete_session_ajax,
+        name="delete_session_token_ajax",
+    ),
 ]

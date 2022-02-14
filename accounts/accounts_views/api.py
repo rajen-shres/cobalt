@@ -1,5 +1,6 @@
 from django.contrib import auth
 from django.contrib.sessions.backends.db import SessionStore
+from django.contrib.sessions.models import Session
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from fcm_django.models import FCMDevice
@@ -34,4 +35,22 @@ def delete_fcm_device_ajax(request):
 
     device.delete()
     response_data = {"message": "Success"}
+    return JsonResponse({"data": response_data})
+
+
+def delete_session_ajax(request):
+    """Ajax call to delete a session"""
+
+    session_id = request.GET.get("session_id")
+
+    session = get_object_or_404(Session, pk=session_id)
+
+    if (
+        "_auth_user_id" in session.get_decoded()
+        and int(session.get_decoded()["_auth_user_id"]) == request.user.id
+    ):
+        session.delete()
+        response_data = {"message": "Success"}
+    else:
+        response_data = {"message": "Error. No matching session found."}
     return JsonResponse({"data": response_data})
