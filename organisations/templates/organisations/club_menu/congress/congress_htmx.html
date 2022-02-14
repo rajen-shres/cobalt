@@ -1,31 +1,41 @@
-{% if congress_masters %}
+<div class="container">
+    <div class="row align-content-end">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header card-header-info">
+                    <h3>Congress Series</h3>
+                </div>
+                <div class="card-body">
+                    {% if congress_masters %}
 
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Congress</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for congress_master in congress_masters %}
-                    <tr>
-                        <td>{{ congress_master.name }}</td>
-                        <td>{{ congress_master.org }}</td>
-                        <td>
-                            {#                            <a href="{% url "events:create_congress_wizard" step=2 congress_id=congress.id %}" class="btn btn-sm btn-warning">Edit</a>#}
-                            {#                            <a href="{% url "events:admin_summary" congress_id=congress.id %}" class="btn btn-sm btn-success">Manage</a>#}
-                            {#                        </td>#}
+                        <ul>
 
-                        </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            {% for congress_master in congress_masters %}
+                                <li>
+                                    <a href="javascript:void()"
+                                        hx-post="{% url "organisations:club_menu_tab_dashboard_members_htmx" %}"
+                                        hx-vars="club_id:{{ club.id }},congress_master_id:{{ congress_master.id }}"
+                                        hx-trigger="click"
+                                        hx-target="#congress-list"
+                                    >
+                                        {{ congress_master.name }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+
+                        </ul>
+
+                    {% else %}
+
+                        <h3>This club has no congresses set up</h3>
+
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+        <div id="congress-list" class="col-md-6">
+            hi
+        </div>
     </div>
-
-{% else %}
-    <h3>This club has no congresses set up</h3>
-
-{% endif %}
+</div>

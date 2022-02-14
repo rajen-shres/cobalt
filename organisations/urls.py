@@ -358,4 +358,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.club_menu_tab_settings_session_add_htmx,
         name="club_menu_tab_settings_session_add_htmx",
     ),
+    path(
+        "club-menu/congress/congress-list",
+        organisations.views.club_menu_tabs.congresses.congress_list_htmx,
+        name="club_menu_tab_congress_list_htmx",
+    ),
 ]
