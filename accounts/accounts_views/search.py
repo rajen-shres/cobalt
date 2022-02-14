@@ -79,7 +79,7 @@ def member_search_ajax(request):
             elif members.count() == 0:
                 msg = f"No matches found. Have they registered for {GLOBAL_TITLE}? Registration is free."
             html = render_to_string(
-                template_name="accounts/search_results_ajax.html",
+                template_name="accounts/search/search_results_ajax.html",
                 context={"members": members, "msg": msg, "search_id": search_id},
             )
 
@@ -89,7 +89,7 @@ def member_search_ajax(request):
 
     return render(
         request,
-        "accounts/search_results_ajax.html",
+        "accounts/search/search_results_ajax.html",
         context={"members": members, "msg": msg},
     )
 
@@ -323,7 +323,7 @@ def member_detail_m2m_ajax(request):
         if request.is_ajax:
             global_org = settings.GLOBAL_ORG
             html = render_to_string(
-                template_name="accounts/member_ajax.html",
+                template_name="accounts/search/member_ajax.html",
                 context={
                     "member": member,
                     "global_org": global_org,
@@ -363,7 +363,7 @@ def member_details_ajax(request):
             if request.is_ajax:
                 global_org = settings.GLOBAL_ORG
                 html = render_to_string(
-                    template_name="accounts/member_details_ajax.html",
+                    template_name="accounts/search/member_details_ajax.html",
                     context={
                         "member": member,
                         "global_org": global_org,
@@ -430,7 +430,7 @@ def search_ajax(request):
             elif members.count() == 0:
                 msg = f"No matches found. Have they registered for {GLOBAL_TITLE}? Registration is free."
             html = render_to_string(
-                template_name="accounts/search_results.html",
+                template_name="accounts/search/search_results.html",
                 context={"members": members, "msg": msg},
             )
 
@@ -440,7 +440,7 @@ def search_ajax(request):
 
     return render(
         request,
-        "accounts/search_results.html",
+        "accounts/search/search_results.html",
         context={"members": members, "msg": msg},
     )
 

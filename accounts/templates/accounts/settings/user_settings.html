@@ -394,6 +394,36 @@
                     </div>
                 {% endif %}
 
+                {% if sessions %}
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header card-header-warning">
+                                <h2>Sessions</h2>
+                                <h3>{{ request.session.session_key }}</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-condensed table-hover">
+                                        <thead>
+                                            <tr class="text-primary">
+                                                <th>Session</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for session in sessions %}
+                                                <tr>
+                                                    <td>{{ session }})</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+
             </div>
         </div>
     </div>

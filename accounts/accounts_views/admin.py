@@ -61,7 +61,7 @@ def user_signed_up_list(request):
 
     return render(
         request,
-        "accounts/user_signed_up_list.html",
+        "accounts/general/user_signed_up_list.html",
         {"things": things, "total_users": total_users},
     )
 

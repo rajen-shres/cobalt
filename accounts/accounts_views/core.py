@@ -52,7 +52,7 @@ def register_user(request):
         if form.is_valid():
             return _register_handle_valid_form(form, request)
 
-    return render(request, "accounts/register.html", {"user_form": form})
+    return render(request, "accounts/core/register.html", {"user_form": form})
 
 
 def _register_handle_valid_form(form, request):
@@ -89,7 +89,7 @@ def _register_handle_valid_form(form, request):
     _check_unregistered_user_match(user)
 
     return render(
-        request, "accounts/register_complete.html", {"email_address": to_email}
+        request, "accounts/core/register_complete.html", {"email_address": to_email}
     )
 
 
@@ -123,7 +123,7 @@ def activate(request, uidb64, token):
         )
         return render(
             request,
-            "accounts/activate_complete.html",
+            "accounts/core/activate_complete.html",
             {"user": user, "others_same_email": others_same_email},
         )
     else:
@@ -206,7 +206,7 @@ def password_reset_request(request):
 
 def loggedout(request):
     """Should review if this is really needed."""
-    return render(request, "accounts/loggedout.html")
+    return render(request, "accounts/core/loggedout.html")
 
 
 @login_required()
@@ -256,7 +256,7 @@ def change_password(request):
             )
     else:
         form = PasswordChangeForm(request.user)
-    return render(request, "accounts/change_password.html", {"form": form})
+    return render(request, "accounts/core/change_password.html", {"form": form})
 
 
 def html_email_reset(request):
@@ -277,7 +277,7 @@ def _check_duplicate_email(user):
 
     for other_same_email in others_same_email:
 
-        html = render_to_string("accounts/duplicate_email.html", {"user": user})
+        html = render_to_string("accounts/core/duplicate_email.html", {"user": user})
 
         context = {
             "name": other_same_email.first_name,

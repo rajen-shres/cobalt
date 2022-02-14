@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.sessions.models import Session
 from django.shortcuts import render
 from fcm_django.models import FCMDevice
 
@@ -42,14 +43,35 @@ def user_settings(request):
 
     fcm_devices = FCMDevice.objects.filter(user=request.user).order_by("-date_created")
 
+    # Get user sessions so they can manage them - maybe
+    all_sessions = Session.objects.all()
+
+    session_list = []
+
+    for session in all_sessions:
+        print(session)
+        print(session.get_decoded())
+        print("user", request.user.id)
+        if "_auth_user_id" in session.get_decoded():
+            print("sess", session.get_decoded()["_auth_user_id"])
+        if (
+            "_auth_user_id" in session.get_decoded()
+            and int(session.get_decoded()["_auth_user_id"]) == request.user.id
+        ):
+            print("ok")
+            session_list.append(session)
+
+        print(session_list)
+
     return render(
         request,
-        "accounts/user_settings.html",
+        "accounts/settings/user_settings.html",
         {
             "form": form,
             "notifications_list": notifications_list,
             "is_developer": is_developer,
             "fcm_devices": fcm_devices,
+            "sessions": session_list,
         },
     )
 
