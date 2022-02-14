@@ -153,7 +153,7 @@ ALLOWED_HOSTS = [
     ".eba-4ngvp62w.ap-southeast-2.elasticbeanstalk.com",
 ]
 
-# ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*"]
 
 # For AWS we also need to add the local IP address as this is used by the health checks
 # We do this dynamically

@@ -75,4 +75,9 @@ urlpatterns = [
         views.admin_toggle_user_is_active,
         name="admin_toggle_user_is_active",
     ),
+    path(
+        "delete-device",
+        views.delete_fcm_device_ajax,
+        name="delete_fcm_device_ajax",
+    ),
 ]

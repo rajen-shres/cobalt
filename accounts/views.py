@@ -1344,3 +1344,17 @@ def create_user_session_id(user):
     session.save()
 
     return session.session_key
+
+
+def delete_fcm_device_ajax(request):
+    """Ajax call to delete an FCM device"""
+
+    device_id = request.GET.get("device_id")
+    device = get_object_or_404(FCMDevice, id=device_id)
+    if device.user != request.user:
+        response_data = {"message": "Error. This is not your device."}
+        return JsonResponse({"data": response_data})
+
+    device.delete()
+    response_data = {"message": "Success"}
+    return JsonResponse({"data": response_data})
