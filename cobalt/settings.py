@@ -153,7 +153,9 @@ ALLOWED_HOSTS = [
     ".eba-4ngvp62w.ap-southeast-2.elasticbeanstalk.com",
 ]
 
-ALLOWED_HOSTS = ["*"]
+# In development, allow any connections
+if COBALT_HOSTNAME == "127.0.0.1:8000":
+    ALLOWED_HOSTS = ["*"]
 
 # For AWS we also need to add the local IP address as this is used by the health checks
 # We do this dynamically
