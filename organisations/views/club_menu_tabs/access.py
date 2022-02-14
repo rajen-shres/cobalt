@@ -1,13 +1,11 @@
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
 from accounts.models import User
 from organisations.decorators import check_club_menu_access
-from organisations.models import Organisation, ORGS_RBAC_GROUPS_AND_ROLES
+from organisations.models import ORGS_RBAC_GROUPS_AND_ROLES
 from organisations.views.club_menu_tabs.utils import (
-    _menu_rbac_has_access,
     _menu_rbac_advanced_is_admin,
 )
 from rbac.core import (
@@ -21,7 +19,6 @@ from rbac.core import (
     rbac_get_admin_users_in_group,
 )
 from rbac.models import RBACUserGroup, RBACAdminUserGroup
-from rbac.views import rbac_forbidden
 
 
 @check_club_menu_access()

@@ -1,0 +1,12 @@
+{% load static %}
+
+<form
+    hx-post="{% url "organisations:club_menu_tab_congress_create_master_htmx" %}"
+    hx-vars="club_id:{{ club.id }}"
+    hx-target="#id_panel_congress"
+>
+    <input type="text" name="congress_master" placeholder="Add new series" maxlength="100" class=" form-control" required>
+    <button class="btn btn-primary">Create</button>
+
+</form>
+

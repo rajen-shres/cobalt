@@ -4,6 +4,7 @@ from django.urls import path
 import organisations.views.club_menu
 import organisations.views.club_menu_tabs.access
 import organisations.views.club_menu_tabs.comms
+import organisations.views.club_menu_tabs.congresses
 import organisations.views.club_menu_tabs.dashboard
 import organisations.views.club_menu_tabs.import_data
 import organisations.views.club_menu_tabs.members
@@ -362,5 +363,35 @@ urlpatterns = [
         "club-menu/congress/congress-list",
         organisations.views.club_menu_tabs.congresses.congress_list_htmx,
         name="club_menu_tab_congress_list_htmx",
+    ),
+    path(
+        "club-menu/congress/create-series-form",
+        organisations.views.club_menu_tabs.congresses.create_series_htmx,
+        name="club_menu_tab_congress_create_series_htmx",
+    ),
+    path(
+        "club-menu/congress/create-series-action",
+        organisations.views.club_menu_tabs.congresses.create_master_htmx,
+        name="club_menu_tab_congress_create_master_htmx",
+    ),
+    path(
+        "club-menu/congress/create-congress",
+        organisations.views.club_menu_tabs.congresses.create_congress_htmx,
+        name="club_menu_tab_congress_create_congress_htmx",
+    ),
+    path(
+        "club-menu/congress/copy-congress",
+        organisations.views.club_menu_tabs.congresses.copy_congress_htmx,
+        name="club_menu_tab_congress_copy_congress_htmx",
+    ),
+    path(
+        "club-menu/congress/rename-series-form",
+        organisations.views.club_menu_tabs.congresses.rename_series_form_htmx,
+        name="club_menu_tab_congress_rename_series_form_htmx",
+    ),
+    path(
+        "club-menu/congress/rename-series",
+        organisations.views.club_menu_tabs.congresses.rename_series_htmx,
+        name="club_menu_tab_congress_rename_series_htmx",
     ),
 ]

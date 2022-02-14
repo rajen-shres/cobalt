@@ -41,6 +41,29 @@ from events.models import (
 TZ = pytz.timezone(TIME_ZONE)
 
 
+def copy_congress_from_another(congress_id: int):
+    """Copy a congress from another congress. Also copy events."""
+
+    congress = get_object_or_404(Congress, pk=congress_id)
+    original_congress = get_object_or_404(Congress, pk=congress_id)
+    congress.pk = None
+    congress.status = "Draft"
+    congress.save()
+
+    # Also copy events and sessions
+    events = Event.objects.filter(congress=original_congress)
+
+    for event in events:
+        sessions = Session.objects.filter(event=event)
+        event.pk = None
+        event.congress = congress
+        event.save()
+        for session in sessions:
+            session.pk = None
+            session.event = event
+            session.save()
+
+
 @login_required()
 def delete_congress(request, congress_id):
     """delete a congress
@@ -96,9 +119,7 @@ def create_congress_wizard(request, step=1, congress_id=None):
     """
 
     # handle stepper on screen
-    step_list = {}
-    for i in range(1, 8):
-        step_list[i] = "btn-default"
+    step_list = {i: "btn-default" for i in range(1, 8)}
     step_list[step] = "btn-primary"
 
     # Step 1 - Create
@@ -158,23 +179,13 @@ def create_congress_wizard_1(request, step_list):
             if "copy" in request.POST:
                 congress_id = form.cleaned_data["congress"]
                 congress = get_object_or_404(Congress, pk=congress_id)
-                original_congress = get_object_or_404(Congress, pk=congress_id)
-                congress.pk = None
-                congress.status = "Draft"
-                congress.save()
 
-                # Also copy events and sessions
-                events = Event.objects.filter(congress=original_congress)
+                # check access
+                role = "events.org.%s.edit" % congress.congress_master.org.id
+                if not rbac_user_has_role(request.user, role):
+                    return rbac_forbidden(request, role)
 
-                for event in events:
-                    sessions = Session.objects.filter(event=event)
-                    event.pk = None
-                    event.congress = congress
-                    event.save()
-                    for session in sessions:
-                        session.pk = None
-                        session.event = event
-                        session.save()
+                copy_congress_from_another(congress_id)
 
                 messages.success(
                     request, "Congress Copied", extra_tags="cobalt-message-success"
