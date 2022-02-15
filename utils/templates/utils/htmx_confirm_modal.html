@@ -1,10 +1,11 @@
 {# Bootstrap confirm item modal with HTMX #}
 
 {# include this and specify parameters: #}
-{# hx_post   - URL to go to in order to delete item #}
-{# hx_target - CSS identifier of what to replace when done #}
-{# id        - unique identifier for this item #}
-{# message   - message to show to user #}
+{# hx_post         - URL to go to in order to delete item #}
+{# hx_target       - CSS identifier of what to replace when done #}
+{# id              - unique identifier for this item #}
+{# message         - message to show to user #}
+{# delete_button   - text for delete button (defaults to Delete) #}
 
 {# ensure HTMX is included #}
 
@@ -33,7 +34,7 @@
                     hx-target="{{ hx_target }}"
                     {% if hx_vars %}hx-vars="{{ hx_vars }}"{% endif %}
                     class="btn btn-danger">
-                    Delete
+                    {{ delete_button|default_if_none:"Delete" }}
                 </button>
             </div>
         </div>
