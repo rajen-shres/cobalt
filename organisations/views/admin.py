@@ -471,45 +471,65 @@ def admin_club_rbac_convert_basic_to_advanced(request, club_id):
     if not has_access:
         return rbac_forbidden(request, role)
 
-    # Check rbac setup
-    rbac_basic, rbac_advanced = rbac_get_basic_and_advanced(club)
+    status, msg = admin_club_rbac_convert_basic_to_advanced_sub(club)
 
-    # Double check before creating
-    if rbac_advanced:
-        messages.error(
-            request,
-            "This club is already set up with advanced RBAC.",
-            extra_tags="cobalt-message-error",
-        )
-    else:
-        # set up advanced structure
-        _admin_club_rbac_add_advanced_sub(club)
-
-        # migrate across - any users get all access
-        old_group_name = "rbac.orgs.clubs.generated.%s.%s.basic" % (
-            club.state.lower(),
-            club.id,
-        )
-        users = rbac_get_users_in_group_by_name(old_group_name)
-
-        # add all users to all advanced groups. Admin can filter out later. This is the same access they had before
-        for user in users:
-            for rule in ORGS_RBAC_GROUPS_AND_ROLES:
-                group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
-                rbac_add_user_to_group(user, group)
-
-        # delete basic
-        rbac_delete_group_by_name(old_group_name)
-
-        # Admin groups are the same whether basic or advanced so leave alone
-
+    if status:
         messages.success(
             request,
             "Club set up with Advanced RBAC. Check permissions, all users will have every access.",
             extra_tags="cobalt-message-success",
         )
+    else:
+        messages.error(
+            request,
+            msg,
+            extra_tags="cobalt-message-error",
+        )
 
     return redirect("organisations:admin_club_rbac", club_id=club.id)
+
+
+def admin_club_rbac_convert_basic_to_advanced_sub(club):
+    """Change rbac from basic to advanced. Do the actual changes. Does not check for permissions, the calling
+    function must handle that.
+
+    Args:
+        club: Organisation
+
+    Returns:
+        Boolean - success or failure
+        Str - error message or None
+    """
+
+    # Check rbac setup
+    rbac_basic, rbac_advanced = rbac_get_basic_and_advanced(club)
+
+    # Double check before creating
+    if rbac_advanced:
+        return False, "This club is already set up with advanced RBAC."
+
+    # set up advanced structure
+    _admin_club_rbac_add_advanced_sub(club)
+
+    # migrate across - any users get all access
+    old_group_name = "rbac.orgs.clubs.generated.%s.%s.basic" % (
+        club.state.lower(),
+        club.id,
+    )
+    users = rbac_get_users_in_group_by_name(old_group_name)
+
+    # add all users to all advanced groups. Admin can filter out later. This is the same access they had before
+    for user in users:
+        for rule in ORGS_RBAC_GROUPS_AND_ROLES:
+            group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
+            rbac_add_user_to_group(user, group)
+
+    # delete basic
+    rbac_delete_group_by_name(old_group_name)
+
+    # Admin groups are the same whether basic or advanced so leave alone
+
+    return True, None
 
 
 @login_required()
@@ -523,40 +543,59 @@ def admin_club_rbac_convert_advanced_to_basic(request, club_id):
     if not has_access:
         return rbac_forbidden(request, role)
 
+    status, msg = admin_club_rbac_convert_advanced_to_basic_sub(club)
+
+    if status:
+        messages.success(
+            request,
+            "Club set up with Basic RBAC.",
+            extra_tags="cobalt-message-success",
+        )
+    else:
+        messages.error(
+            request,
+            msg,
+            extra_tags="cobalt-message-error",
+        )
+    return redirect("organisations:admin_club_rbac", club_id=club.id)
+
+
+def admin_club_rbac_convert_advanced_to_basic_sub(club):
+    """Change rbac from advanced to basic. Do the actual changes. Does not check for permissions, the calling
+    function must handle that.
+
+    Args:
+        club: Organisation
+
+    Returns:
+        Boolean - success or failure
+        Str - error message or None
+    """
+
     # Check rbac setup
     rbac_basic, rbac_advanced = rbac_get_basic_and_advanced(club)
 
     # Double check before creating
     if rbac_basic:
-        messages.error(
-            request,
-            "This club is already set up with basic RBAC.",
-            extra_tags="cobalt-message-error",
-        )
-    else:
-        # set up basic structure
-        _admin_club_rbac_add_basic_sub(club)
+        return False, "This club is already set up with basic RBAC."
 
-        # migrate access across - any user goes into the one group
-        # find the newly created basic group
-        new_group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
+    # set up basic structure
+    _admin_club_rbac_add_basic_sub(club)
 
-        # Go through adding users from old structure to basic group and deleting old groups
-        for rule in ORGS_RBAC_GROUPS_AND_ROLES:
-            old_group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
-            users = rbac_get_users_in_group(old_group)
-            # Add all users to group
-            for user in users:
-                rbac_add_user_to_group(user, new_group)
-            # delete group
-            rbac_delete_group(old_group)
+    # migrate access across - any user goes into the one group
+    # find the newly created basic group
+    new_group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
 
-        # Admin groups are the same whether basic or advanced so leave alone
+    # Go through adding users from old structure to basic group and deleting old groups
+    for rule in ORGS_RBAC_GROUPS_AND_ROLES:
+        old_group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
+        users = rbac_get_users_in_group(old_group)
+        # Add all users to group
+        for user in users:
+            rbac_add_user_to_group(user, new_group)
+        # delete group
+        rbac_delete_group(old_group)
 
-        messages.success(
-            request,
-            "Club changed to Basic RBAC.",
-            extra_tags="cobalt-message-success",
-        )
+    # Admin groups are the same whether basic or advanced so leave alone
 
-    return redirect("organisations:admin_club_rbac", club_id=club.id)
+    return True, None

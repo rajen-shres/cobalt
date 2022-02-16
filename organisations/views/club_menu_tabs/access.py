@@ -5,6 +5,10 @@ from django.urls import reverse
 from accounts.models import User
 from organisations.decorators import check_club_menu_access
 from organisations.models import ORGS_RBAC_GROUPS_AND_ROLES
+from organisations.views.admin import (
+    admin_club_rbac_convert_advanced_to_basic_sub,
+    admin_club_rbac_convert_basic_to_advanced_sub,
+)
 from organisations.views.club_menu_tabs.utils import (
     _menu_rbac_advanced_is_admin,
 )
@@ -248,3 +252,25 @@ def access_advanced(request, club, errors={}):
             "errors": errors,
         },
     )
+
+
+@check_club_menu_access()
+def change_rbac_to_advanced_htmx(request, club):
+    """Allow admin to change RBAC mode to advanced from basic"""
+
+    # TODO: Work out best security check to perform
+    _, msg = admin_club_rbac_convert_basic_to_advanced_sub(club)
+
+    return access_advanced(request, club, msg)
+
+
+@check_club_menu_access()
+def change_rbac_to_basic_htmx(request, club):
+    """Allow admin to change RBAC mode to basic from advanced"""
+
+    if _menu_rbac_advanced_is_admin(club, request.user):
+        _, msg = admin_club_rbac_convert_advanced_to_basic_sub(club)
+    else:
+        msg = "Access denied"
+
+    return access_basic(request, club, msg)

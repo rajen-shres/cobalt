@@ -100,6 +100,16 @@ urlpatterns = [
         name="club_admin_access_advanced_add_user_htmx",
     ),
     path(
+        "admin/change-rbac-to-advanced",
+        organisations.views.club_menu_tabs.access.change_rbac_to_advanced_htmx,
+        name="club_admin_access_change_rbac_to_advanced_htmx",
+    ),
+    path(
+        "admin/change-rbac-to-basic",
+        organisations.views.club_menu_tabs.access.change_rbac_to_basic_htmx,
+        name="club_admin_access_change_rbac_to_basic_htmx",
+    ),
+    path(
         "club-menu/tabs/dashboard",
         club_menu.tab_dashboard_htmx,
         name="club_menu_tab_dashboard_htmx",
@@ -125,13 +135,13 @@ urlpatterns = [
         name="club_menu_tab_comms_email_view_htmx",
     ),
     path(
-        "club-menu/tabs/comms/tags",
-        organisations.views.club_menu_tabs.comms.tags_htmx,
+        "club-menu/tabs/settings/tags",
+        organisations.views.club_menu_tabs.settings.tags_htmx,
         name="club_menu_tab_comms_tags_htmx",
     ),
     path(
-        "club-menu/tabs/comms/templates",
-        organisations.views.club_menu_tabs.comms.templates_htmx,
+        "club-menu/tabs/settings/templates",
+        organisations.views.club_menu_tabs.settings.templates_htmx,
         name="club_menu_tab_comms_templates_htmx",
     ),
     path(

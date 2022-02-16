@@ -5,7 +5,14 @@
 You are using the basic Role Based Access Control (RBAC) set up. This gives everyone access to all functions and makes everyone an
 administrator (able to grant access to others). This is the recommended configuration for most clubs.
 
-<a href="{% url "organisations:admin_club_rbac" club_id=club.id %}">Change RBAC Set Up</a>
+<a
+    href="javascript:void()"
+    hx-post="{% url "organisations:club_admin_access_change_rbac_to_advanced_htmx" %}"
+    hx-vars="club_id:{{ club.id }}"
+    hx-target="#id_panel_access"
+>
+    Change to Advanced RBAC.
+</a>
 
 <h3 class="font-weight-bold" style="color: red">{{ message|default_if_none:"" }}</h3>
 

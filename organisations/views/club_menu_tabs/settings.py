@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
+from post_office.models import EmailTemplate
 
 from club_sessions.club_sessions_views.admin import (
     add_club_session,
@@ -22,6 +23,8 @@ from organisations.forms import (
     MembershipTypeForm,
     VenueForm,
     PaymentTypeForm,
+    TagForm,
+    TemplateForm,
 )
 from organisations.models import (
     ClubLog,
@@ -29,6 +32,8 @@ from organisations.models import (
     MemberMembershipType,
     OrgVenue,
     MiscPayType,
+    ClubTag,
+    MemberClubTag,
 )
 from organisations.views.admin import get_secretary_from_org_form
 from organisations.views.club_menu_tabs.utils import _user_is_uber_admin
@@ -600,3 +605,68 @@ def club_menu_tab_settings_session_add_htmx(request, club):
     ).save()
 
     return club_menu_tab_settings_sessions_htmx(request)
+
+
+@check_club_menu_access()
+def tags_htmx(request, club):
+    """build the comms tags tab in club menu"""
+
+    if "add" in request.POST:
+        form = TagForm(request.POST, club=club)
+
+        if form.is_valid():
+            ClubTag.objects.get_or_create(
+                organisation=club, tag_name=form.cleaned_data["tag_name"]
+            )
+            # reset form
+            form = TagForm(club=club)
+    else:
+        form = TagForm(club=club)
+
+    tags = (
+        ClubTag.objects.prefetch_related("memberclubtag_set")
+        .filter(organisation=club)
+        .order_by("tag_name")
+    )
+
+    # Add on count of how many members have this tag
+    for tag in tags:
+        uses = MemberClubTag.objects.filter(club_tag=tag).count()
+        tag.uses = uses
+        tag.hx_post = reverse("organisations:club_menu_tab_comms_tags_delete_tag_htmx")
+        tag.hx_vars = f"club_id:{club.id},tag_id:{tag.id}"
+
+    return render(
+        request,
+        "organisations/club_menu/settings/tags_htmx.html",
+        {"club": club, "tags": tags, "form": form},
+    )
+
+
+@check_club_menu_access()
+def templates_htmx(request, club):
+    """build the comms template tab in club menu"""
+
+    if "add" in request.POST:
+        form = TemplateForm(request.POST, club=club)
+
+        if form.is_valid():
+            # ClubTag.objects.get_or_create(
+            #     organisation=club, tag_name=form.cleaned_data["tag_name"]
+            # )
+            # # reset form
+            # form = TagForm(club=club)
+            print("ok")
+            form.save()
+        else:
+            print(form.errors)
+    else:
+        form = TemplateForm(club=club)
+
+    templates = EmailTemplate.objects.all()
+
+    return render(
+        request,
+        "organisations/club_menu/settings/templates_htmx.html",
+        {"club": club, "templates": templates, "form": form},
+    )
