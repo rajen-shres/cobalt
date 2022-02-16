@@ -1,5 +1,5 @@
 """ views for dashboard """
-
+from django.http import HttpResponse, Http404
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from fcm_django.models import FCMDevice
@@ -7,6 +7,7 @@ from fcm_django.models import FCMDevice
 from masterpoints.views import get_masterpoints
 from payments.payments_views.core import get_balance_detail
 from events.events_views.core import get_events
+from utils.models import Slug
 
 from utils.utils import cobalt_paginator
 from forums.models import Post, ForumFollow
@@ -139,9 +140,7 @@ def get_posts(request):
             .order_by("-created_date")
         )
 
-    posts = cobalt_paginator(request, posts_list, 20)
-
-    return posts
+    return cobalt_paginator(request, posts_list, 20)
 
 
 def get_announcements_logged_out():
@@ -149,5 +148,15 @@ def get_announcements_logged_out():
     For now just return the latest 3 posts in Forum id=1
     """
 
-    posts = Post.objects.all().order_by("-created_date")[:3]
-    return posts
+    return Post.objects.all().order_by("-created_date")[:3]
+
+
+def slug(request, slug_name):
+    """We come last in the list of URLs and try to convert the slug to a redirected path"""
+
+    slug_item = Slug.objects.filter(slug=slug_name).first()
+
+    if slug_item:
+        return redirect("/" + slug_item.redirect_path)
+
+    raise Http404()
