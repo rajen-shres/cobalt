@@ -8,7 +8,7 @@
         <div class="card">
             <div class="card-header card-header-primary">
                 <div class="text-center">
-                    <h2>{{ event.event_name }}</h2>
+                    <h2>{{ event.event_name|safe }}</h2>
                     <h3>{{ congress }}</h3>
                     <h3>{{ date_string }} - {{ event.start_time|cobalt_time }} Start</h3>
                     <h4>{{ entries|length }} entr{{ entries|length|pluralize:"y,ies" }}

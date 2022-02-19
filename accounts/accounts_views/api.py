@@ -5,6 +5,9 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from fcm_django.models import FCMDevice
 
+from accounts.models import User, UnregisteredUser
+from masterpoints.views import search_mpc_users_by_name
+
 
 def create_user_session_id(user):
     """Create a new session for a user. Used by the mobile API when we register a new device
@@ -54,3 +57,85 @@ def delete_session_ajax(request):
     else:
         response_data = {"message": "Error. No matching session found."}
     return JsonResponse({"data": response_data})
+
+
+def search_for_user_in_cobalt_and_mpc(first_name_search, last_name_search):
+    """Search for a user in Cobalt or MPC"""
+
+    # Cobalt registered users
+    registered_users = User.objects.all()
+    if first_name_search:
+        registered_users = registered_users.filter(
+            first_name__istartswith=first_name_search
+        )
+    if last_name_search:
+        registered_users = registered_users.filter(
+            last_name__istartswith=last_name_search
+        )
+
+    registered_users = registered_users[:11]
+
+    # Cobalt unregistered users
+    un_registered_users = UnregisteredUser.objects.all()
+    if first_name_search:
+        un_registered_users.filter(first_name__istartswith=first_name_search)
+    if last_name_search:
+        un_registered_users.filter(last_name__istartswith=last_name_search)
+
+    un_registered_users = un_registered_users[:11]
+
+    # Masterpoints Centre
+    mpc_users = search_mpc_users_by_name(first_name_search, last_name_search)
+
+    # Combine the lists
+    user_list = []
+    already_present = []
+    for registered_user in registered_users[:10]:
+        if registered_user.system_number not in already_present:
+            user_list.append(
+                {
+                    "system_number": registered_user.system_number,
+                    "first_name": registered_user.first_name,
+                    "last_name": registered_user.last_name,
+                    "home_club": None,
+                    "source": "registered",
+                }
+            )
+            already_present.append(registered_user.system_number)
+
+    for un_registered_user in un_registered_users[:10]:
+        if un_registered_user.system_number not in already_present:
+            user_list.append(
+                {
+                    "system_number": un_registered_user.system_number,
+                    "first_name": un_registered_user.first_name,
+                    "last_name": un_registered_user.last_name,
+                    "home_club": None,
+                    "source": "unregistered",
+                }
+            )
+            already_present.append(un_registered_user.system_number)
+
+    for mpc_user in mpc_users[:10]:
+        if mpc_user["ABFNumber"] not in already_present:
+            user_list.append(
+                {
+                    "system_number": mpc_user["ABFNumber"],
+                    "first_name": mpc_user["GivenNames"],
+                    "last_name": mpc_user["Surname"],
+                    "home_club": mpc_user["ClubName"],
+                    "source": "mpc",
+                }
+            )
+
+    # Check if we have more data anywhere. We ask for 11 but only use 10
+    if (
+        len(registered_users) > 10
+        or len(un_registered_users) > 10
+        or len(mpc_users) > 10
+    ):
+        more_data = True
+    else:
+        more_data = False
+
+    return user_list, more_data

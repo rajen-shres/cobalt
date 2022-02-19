@@ -7,7 +7,6 @@
 <div id="id_panel_settings"
     hx-post="{% url "organisations:club_menu_tab_settings_basic_htmx" %}"
     hx-trigger="tab_load_event"
-    hx-indicator=".htmx-indicator"
     hx-vars="club_id:{{ club.id }}"
 ></div>
 

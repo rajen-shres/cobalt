@@ -1,0 +1,56 @@
+<div class="container">
+    <div class="row">
+
+
+        <div class="card col-md-6">
+            <div class="card-header card-header-info">
+                <h2 class="text-center">Member Search</h2>
+
+            </div>
+
+            <div class="card-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                {#                        <label for="add_member_first_name" class="bmd-label-placeholder">First Name</label>#}
+                                <input type="text"
+                                    id="id_member_first_name_search"
+                                    placeholder="first Name"
+                                    class="form-control"
+                                    hx-post="{% url "organisations:club_menu_tab_members_add_member_search_htmx" %}"
+                                    hx-trigger="keyup changed delay:100ms"
+                                    hx-target="#add-member-search-results"
+                                    hx-vars="first_name_search:member_get_first_name(),last_name_search:member_get_last_name()"
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                {#                        <label for="add_member_first_name" class="bmd-label-placeholder">First Name</label>#}
+                                <input type="text"
+                                    id="id_member_last_name_search"
+                                    placeholder="Last Name"
+                                    class="form-control"
+                                    hx-post="{% url "organisations:club_menu_tab_members_add_member_search_htmx" %}"
+                                    hx-trigger="keyup changed delay:100ms"
+                                    hx-target="#add-member-search-results"
+                                    hx-vars="first_name_search:member_get_first_name(),last_name_search:member_get_last_name()"
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6" id="add-member-search-results"></div>
+
+    </div>
+</div>
+
+
+<span>Send welcome pack</span>
+

@@ -260,9 +260,19 @@ urlpatterns = [
         name="club_menu_tab_members_add_member_htmx",
     ),
     path(
+        "club-menu/tabs/members-add-any-member",
+        organisations.views.club_menu_tabs.members.add_any_member_htmx,
+        name="club_menu_tab_members_add_any_member_htmx",
+    ),
+    path(
         "club-menu/tabs/members-edit-member",
         organisations.views.club_menu_tabs.members.edit_member_htmx,
         name="club_menu_tab_members_edit_member_htmx",
+    ),
+    path(
+        "club-menu/tabs/members-search",
+        organisations.views.club_menu_tabs.members.add_member_search_htmx,
+        name="club_menu_tab_members_add_member_search_htmx",
     ),
     path(
         "club-menu/tabs/members-reports",

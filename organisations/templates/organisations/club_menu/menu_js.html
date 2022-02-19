@@ -1,0 +1,50 @@
+{% load static %}
+
+{% include "utils/include_htmx.html" %}
+{% include "accounts/search/user_search_include_js_htmx.html" %}
+
+<script src="{% static "assets/js/plugins/chartist.min.js" %}"></script>
+<script src="{% static "assets/packages/sweetalert2.11/sweetalert2.js" %}"></script>
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+
+
+    $(document).ready(function () {
+
+        // When a tab is clicked for the first time, we load the data
+
+        $('#id_menu a').on('click', function (e) {
+
+            // get matching panel id from this id
+            // this.id is something like 'id_tab_dashboard' and the placeholder in the panel is 'id_panel_dashboard'
+            // this isn't a proper this so to get the classes we need to create the tab variable
+
+            const id = this.id.split("_")[2];
+            const panel_id = '#id_panel_' + id;
+            const tab_id = '#id_tab_' + id;
+            const panel = $(panel_id);
+            const tab = $(tab_id);
+
+            // allow auto refresh using auto-refresh class
+            // only auto-refresh if another tab could have changed our values
+            if (panel.html().length === 0 || tab.hasClass('auto-refresh')) {
+                // empty page before we reload
+                panel.html("Loading...");
+                htmx.trigger(htmx.find(panel_id), "tab_load_event");
+            }
+        })
+
+        // first time load the active tab
+        htmx.trigger(htmx.find("#id_panel_dashboard"), "tab_load_event");
+
+    });
+
+    // any time a button of class enter-button is pressed, hide all of them in that div
+    {#function disable_buttons(e){#}
+    {#    console.log("inside")#}
+    {#    $('.btn').each(function(i, obj){#}
+    {#        $(this).prop('disabled', true);#}
+    {#    })#}
+    {#}#}
+</script>

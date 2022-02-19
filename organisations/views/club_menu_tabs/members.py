@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 import organisations.views.club_menu_tabs.utils
+from accounts.accounts_views.api import search_for_user_in_cobalt_and_mpc
 from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser
 from cobalt.settings import GLOBAL_ORG, GLOBAL_TITLE
@@ -474,6 +475,34 @@ def add_member_htmx(request, club):
             "form": form,
             "message": message,
         },
+    )
+
+
+@check_club_menu_access(check_members=True)
+def add_any_member_htmx(request, club):
+    """Add a club member manually"""
+
+    return render(
+        request,
+        "organisations/club_menu/members/add_any_member_htmx.html",
+    )
+
+
+@login_required()
+def add_member_search_htmx(request):
+    """Search function for adding a member (registered, unregistered or from MPC"""
+
+    first_name_search = request.POST.get("first_name_search")
+    last_name_search = request.POST.get("last_name_search")
+
+    user_list, is_more = search_for_user_in_cobalt_and_mpc(
+        first_name_search, last_name_search
+    )
+
+    return render(
+        request,
+        "organisations/club_menu/members/member_search_results_htmx.html",
+        {"user_list": user_list, "is_more": is_more},
     )
 
 

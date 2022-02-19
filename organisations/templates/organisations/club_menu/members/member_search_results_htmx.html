@@ -1,0 +1,41 @@
+{% load static %}
+
+{% if user_list %}
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr class="text-primary">
+                    <th>Member</th>
+                    <th>Home Club</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in user_list %}
+                    <tr>
+                        <td>
+                            {{ user.first_name }} {{ user.last_name }}({{ user.system_number }})
+                        </td>
+                        <td>
+                            {{ user.home_club|default_if_none:"-" }}
+                        </td>
+                        <td>
+                            {% if user.source == "registered" %}Registered{% endif %}
+                            {% if user.source == "unregistered" %}Unregistered{% endif %}
+                            {% if user.source == "mpc" %}MPC{% endif %}
+                        </td>
+                        <td>TBA</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_more %}
+        <span class="font-italic text-info">More data available...</span>
+    {% endif %}
+
+{% else %}
+    No matches found
+{% endif %}
