@@ -398,6 +398,9 @@ TBA_PLAYER = 2
 # ABF User for Announcements
 ABF_USER = 3
 
+# System accounts
+ALL_SYSTEM_ACCOUNTS = [RBAC_EVERYONE, TBA_PLAYER, ABF_USER]
+
 # ABF Organisation - used for Settlement transactions and other things. Assumed to be the first thing created.
 ABF_ORG = 1
 

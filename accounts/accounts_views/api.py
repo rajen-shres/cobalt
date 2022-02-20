@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from fcm_django.models import FCMDevice
 
 from accounts.models import User, UnregisteredUser
+from cobalt.settings import ALL_SYSTEM_ACCOUNTS
 from masterpoints.views import search_mpc_users_by_name
 
 
@@ -63,7 +64,7 @@ def search_for_user_in_cobalt_and_mpc(first_name_search, last_name_search):
     """Search for a user in Cobalt or MPC"""
 
     # Cobalt registered users
-    registered_users = User.objects.all()
+    registered_users = User.objects.exclude(pk__in=ALL_SYSTEM_ACCOUNTS)
     if first_name_search:
         registered_users = registered_users.filter(
             first_name__istartswith=first_name_search
@@ -76,7 +77,7 @@ def search_for_user_in_cobalt_and_mpc(first_name_search, last_name_search):
     registered_users = registered_users[:11]
 
     # Cobalt unregistered users
-    un_registered_users = UnregisteredUser.objects.all()
+    un_registered_users = UnregisteredUser.objects.exclude(pk__in=ALL_SYSTEM_ACCOUNTS)
     if first_name_search:
         un_registered_users.filter(first_name__istartswith=first_name_search)
     if last_name_search:
