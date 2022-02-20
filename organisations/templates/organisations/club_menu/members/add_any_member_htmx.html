@@ -1,11 +1,9 @@
+{% load static %}
 <div class="container">
     <div class="row">
-
-
-        <div class="card col-md-6">
+        <div class="card col-md-8">
             <div class="card-header card-header-info">
                 <h2 class="text-center">Member Search</h2>
-
             </div>
 
             <div class="card-body">
@@ -13,10 +11,9 @@
                     <div class="row">
                         <div class="col-md-8">
                             <div class="form-group">
-                                {#                        <label for="add_member_first_name" class="bmd-label-placeholder">First Name</label>#}
                                 <input type="text"
                                     id="id_member_first_name_search"
-                                    placeholder="first Name"
+                                    placeholder="First Name"
                                     class="form-control"
                                     hx-post="{% url "organisations:club_menu_tab_members_add_member_search_htmx" %}"
                                     hx-trigger="keyup changed delay:100ms"
@@ -29,7 +26,6 @@
                     <div class="row">
                         <div class="col-md-8">
                             <div class="form-group">
-                                {#                        <label for="add_member_first_name" class="bmd-label-placeholder">First Name</label>#}
                                 <input type="text"
                                     id="id_member_last_name_search"
                                     placeholder="Last Name"
@@ -45,12 +41,61 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-md-6" id="add-member-search-results"></div>
-
     </div>
+
+    <div class="row" id="add-member-search-results"></div>
+
+    <div id="add_member_modal">
+
+        <div class="modal fade" id="id_member_add_modal" tabindex="-1" role="dialog" aria-labelledby="addMemberModal" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title w-100 font-weight-bold"><i class="material-icons">how_to_reg</i>&nbsp;&nbsp;Add Member</h4>
+                        <span class="htmx-indicator">
+                            <img src="{% static "assets/img/spinners/bars.svg" %}"/>
+                        </span>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Stuff goes here
+                        <input type="text" id="id_member_add_modal_name" value="bob">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
 </div>
 
 
 <span>Send welcome pack</span>
+
+<script>
+    function user_type_help(title, html){
+        html += "<br><br>There are three possible types of user listed here:<br><br>" +
+        "<span style=\"text-align: left;\">" +
+        "<ul>" +
+        "<li><b>Registered</b> - User has signed up for {{ GLOBAL_TITLE }}.</li>" +
+        "<li><b>Unregistered</b> - User has not signed up for {{ GLOBAL_TITLE }}, " +
+        "but a club administrator has added them to the system. " + "" +
+        "Unregistered users cannot use {{ GLOBAL_TITLE }} but can be set up as club members for administrative purposes.</li>" +
+        "<li><b>MPC</b> - User is a valid {{ GLOBAL_ORG }} member but has not been set " + "" +
+        "up in {{ GLOBAL_TITLE }} yet. You can add them and they will become an unregistered user.</li>" +
+        "</ul><span>"
+        swal.fire({ title:title, html: html, icon: "info"})
+        return false;
+    }
+
+    function show_add_member_modal(system_number, name){
+        $('#id_member_add_modal_name').val(name);
+        $('#id_member_add_modal').modal('show');
+    }
+</script>
 

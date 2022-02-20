@@ -129,6 +129,9 @@ def search_for_user_in_cobalt_and_mpc(first_name_search, last_name_search):
                 }
             )
 
+    # Sort
+    user_list = sorted(user_list, key=lambda d: d["first_name"])
+
     # Check if we have more data anywhere. We ask for 11 but only use 10
     if (
         len(registered_users) > 10

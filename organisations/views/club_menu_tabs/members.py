@@ -495,9 +495,26 @@ def add_member_search_htmx(request):
     first_name_search = request.POST.get("first_name_search")
     last_name_search = request.POST.get("last_name_search")
 
+    # if there is nothing to search for, don't search
+    if not first_name_search and not last_name_search:
+        return HttpResponse()
+
     user_list, is_more = search_for_user_in_cobalt_and_mpc(
         first_name_search, last_name_search
     )
+
+    # Now highlight users who are already club members
+    user_list_system_numbers = [user["system_number"] for user in user_list]
+
+    member_list = (
+        MemberMembershipType.objects.filter(system_number__in=user_list_system_numbers)
+        .filter(termination_reason=None)
+        .values_list("system_number", flat=True)
+    )
+
+    for user in user_list:
+        if user["system_number"] in member_list:
+            user["source"] = "member"
 
     return render(
         request,
