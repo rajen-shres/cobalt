@@ -27,7 +27,7 @@
                             <h2>{{ event_entry.event.event_name }} - Move Entry</h2>
                         </div>
 
-                        <div class="card-body table-responsive">
+                        <div class="card-body">
                             <h3>
                                 {% for event_entry_player in event_entry.evententryplayer_set.all %}
                                     {{ event_entry_player.player.full_name }}{% if not forloop.last %}, {% endif %}

@@ -482,9 +482,12 @@ def add_member_htmx(request, club):
 def add_any_member_htmx(request, club):
     """Add a club member manually"""
 
+    membership_types = MembershipType.objects.filter(organisation=club)
+
     return render(
         request,
         "organisations/club_menu/members/add_any_member_htmx.html",
+        {"club": club, "membership_types": membership_types},
     )
 
 

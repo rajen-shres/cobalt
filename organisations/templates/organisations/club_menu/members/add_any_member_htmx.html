@@ -45,6 +45,7 @@
 
     <div class="row" id="add-member-search-results"></div>
 
+    {#    This modal is used to add a Cobalt member to the club if picked from the search#}
     <div id="add_member_modal">
 
         <div class="modal fade" id="id_member_add_modal" tabindex="-1" role="dialog" aria-labelledby="addMemberModal" aria-hidden="true">
@@ -62,8 +63,25 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        Stuff goes here
-                        <input type="text" id="id_member_add_modal_name" value="bob">
+                        Add <span id="id_member_add_modal_name"></span> as a member of {{ club }}.
+
+                        <form
+                            hx-post=""
+                            hx-vars=""
+                        >
+                            <input type="hidden">
+                            <div class="col-12 form-group">
+                                <label for="add_member_membership_type" class="bmd-label-static">Membership Type
+                                </label>
+                                <select class="form-control modal-input" name="add_member_membership_type" style="position: revert;">
+                                    {% for membership_type in membership_types %}
+                                        <option value="{{ membership_type.id }}">{{ membership_type.name }}</option>
+                                    {% endfor %}
+                                </select>
+
+                            </div>
+                        </form>
+
                     </div>
                 </div>
             </div>
@@ -94,7 +112,8 @@
     }
 
     function show_add_member_modal(system_number, name){
-        $('#id_member_add_modal_name').val(name);
+        // update the details in the member add modal and show it
+        $('#id_member_add_modal_name').text(name);
         $('#id_member_add_modal').modal('show');
     }
 </script>
