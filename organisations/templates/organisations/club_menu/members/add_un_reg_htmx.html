@@ -55,12 +55,11 @@
                 </div>
             </div>
 
-            <div class="form-group row">
-                <span class="cobalt-form-error">{{ form.home_club.errors|striptags }}</span>
-                <input id="id_home_club" type="checkbox" name="home_club" {% if form.home_club.value %}Checked{% endif %}">
-                <label for="id_home_club" style="color: black">&nbsp;Home Club</label><br>
-
-            </div>
+            {#            <div class="form-group row">#}
+            {#                <span class="cobalt-form-error">{{ form.home_club.errors|striptags }}</span>#}
+            {#                <input id="id_home_club" type="checkbox" name="home_club" {% if form.home_club.value %}Checked{% endif %}">#}
+            {#                <label for="id_home_club" style="color: black">&nbsp;Home Club</label><br>#}
+            {#            </div>#}
 
             <button id="t_member_add_un_reg_button" type="submit" name="save" class="btn btn-success">Save</button>
             <button type="reset" class="btn btn-info">Cancel</button>

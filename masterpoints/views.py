@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from cobalt.settings import GLOBAL_MPSERVER
-from .factories import masterpoint_factory_creator
+from .factories import masterpoint_factory_creator, masterpoint_query_list
 
 
 #####
@@ -395,3 +395,16 @@ def abf_checksum_is_valid(abf_number: int) -> bool:
     true_checksum = get_abf_checksum(abf_number // 10)  # not last digit
 
     return this_checksum == true_checksum
+
+
+def search_mpc_users_by_name(first_name_search, last_name_search):
+    """search the masterpoint centre for users by first and last name"""
+
+    # TODO: write a version of this for the other (text file) factory
+    if not first_name_search:
+        first_name_search = "None"
+    if not last_name_search:
+        last_name_search = "None"
+    return masterpoint_query_list(
+        f"firstlastname_search_active/{first_name_search}/{last_name_search}"
+    )

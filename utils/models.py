@@ -49,11 +49,10 @@ class Lock(models.Model):
     owner = models.CharField(max_length=200)
 
     def __str__(self):
-        if self.lock_open_time:
-            local_dt = timezone.localtime(self.lock_open_time, pytz.timezone(TIME_ZONE))
-            return f"Locked - {self.topic} - Expires {local_dt:%d/%m/%Y %H:%M %Z}"
-        else:
+        if not self.lock_open_time:
             return f"Unlocked - {self.topic}"
+        local_dt = timezone.localtime(self.lock_open_time, pytz.timezone(TIME_ZONE))
+        return f"Locked - {self.topic} - Expires {local_dt:%d/%m/%Y %H:%M %Z}"
 
 
 class Seat(models.TextChoices):
@@ -61,3 +60,13 @@ class Seat(models.TextChoices):
     SOUTH = "S", "South"
     EAST = "E", "East"
     WEST = "W", "West"
+
+
+class Slug(models.Model):
+    """This maps short names to redirects. e.g. localhost/my-nice-slug -> localhost/events/5"""
+
+    slug = models.CharField(max_length=50, unique=True)
+    redirect_path = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"{self.slug} -> {self.redirect_path}"

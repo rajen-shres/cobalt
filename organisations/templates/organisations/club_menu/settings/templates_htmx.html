@@ -1,0 +1,80 @@
+{% load crispy_forms_filters %}
+{% load humanize %}
+{% load cobalt_tags %}
+
+<div class="card" style="min-height: 800px; height: auto">
+    <div class="card-header card-header-info">
+        <h2>Club Settings</h2>
+        {% include "organisations/club_menu/settings/nav_htmx.html" with selected="templates" %}
+    </div>
+    <div class="card-body" id="id_comms_email_tab">
+
+        <h3>Email Templates - NOT FINISHED</h3>
+        <p>You can use email templates to...
+        </p>
+
+        {% if tags %}
+
+            <div class="table-responsive col-md-6">
+                <table class="table table-hover table-condensed">
+                    <thead>
+                        <tr>
+                            <th>Tag Name</th>
+                            <th>User with Tag</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tag in tags %}
+                            <tr>
+                                <td>{{ tag.tag_name }}</td>
+                                <td>{{ tag.uses }}</td>
+
+                                {% include "utils/htmx_confirm_modal.html" with id=tag.id delete_item=tag.tag_name hx_vars=tag.hx_vars hx_target="#id_panel_comms" hx_post=tag.hx_post %}
+                                <td><button id="t_delete_tag_{{ tag.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ tag.id }}">
+                                    Delete Tag
+                                </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <h4>No templates defined</h4>
+
+        {% endif %}
+
+        <form
+            hx-post="{% url "organisations:club_menu_tab_comms_templates_htmx" %}"
+            hx-target="#id_panel_comms"
+            hx-vars="club_id:{{ club.id }}"
+        >
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        {% cobalt_bs4_field form.name %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        {% cobalt_bs4_field form.subject %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        {% cobalt_bs4_field form.description %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        {% cobalt_bs4_field form.html_content %}
+                    </div>
+                </div>
+            </div>
+
+            <button name="add" id="id_tags_add_tag" class="btn btn-sm btn-success">Add</button>
+        </form>
+    </div>
+</div>
+

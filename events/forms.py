@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import bleach
 from django import forms
 from django.core.exceptions import ValidationError
@@ -376,6 +378,12 @@ class EventEntryPlayerForm(forms.ModelForm):
             ]
 
             self.fields["payment_type"].choices = clean_choices
+
+    def clean_entry_fee(self):
+        entry_fee = self.cleaned_data["entry_fee"]
+        if type(entry_fee) is not Decimal or entry_fee < 0:
+            raise ValidationError("Entry fee must be a positive number or zero")
+        return entry_fee
 
 
 class EventEntryPlayerTBAForm(forms.ModelForm):

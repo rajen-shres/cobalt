@@ -153,7 +153,9 @@ ALLOWED_HOSTS = [
     ".eba-4ngvp62w.ap-southeast-2.elasticbeanstalk.com",
 ]
 
-# ALLOWED_HOSTS = ["*"]
+# In development, allow any connections
+if COBALT_HOSTNAME == "127.0.0.1:8000":
+    ALLOWED_HOSTS = ["*"]
 
 # For AWS we also need to add the local IP address as this is used by the health checks
 # We do this dynamically
@@ -396,15 +398,18 @@ TBA_PLAYER = 2
 # ABF User for Announcements
 ABF_USER = 3
 
+# System accounts
+ALL_SYSTEM_ACCOUNTS = [RBAC_EVERYONE, TBA_PLAYER, ABF_USER]
+
 # ABF Organisation - used for Settlement transactions and other things. Assumed to be the first thing created.
 ABF_ORG = 1
 
 # Org id for the system account
 GLOBAL_ORG_ID = 1
 
-# Logout users every 100 years
+# Logout users every 100 years or so
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_COOKIE_AGE = 52560000
+SESSION_COOKIE_AGE = 5256000000
 
 # Upgrade to Django 3.2 requires this setting. Not clear if BigAutoField would be better
 # This is the current default so using that

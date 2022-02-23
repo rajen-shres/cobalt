@@ -22,7 +22,7 @@ drop database IF EXISTS $RDS_DB_NAME;
 create database $RDS_DB_NAME with owner cobalt;
 EOF
 
-psql </tmp/drop_db
+psql test </tmp/drop_db
 
 psql test < ~/test.db >/dev/null
 

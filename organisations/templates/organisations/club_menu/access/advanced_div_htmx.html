@@ -6,7 +6,14 @@
     You are using the advanced Role Based Access Control (RBAC) set up. This gives you separate groups for each function and allows you
     to have separate administrators (able to grant access to others).
 
-    <a href="{% url "organisations:admin_club_rbac" club_id=club.id %}">Change RBAC Set Up</a>
+    <a
+        href="javascript:void()"
+        hx-post="{% url "organisations:club_admin_access_change_rbac_to_basic_htmx" %}"
+        hx-vars="club_id:{{ club.id }}"
+        hx-target="#id_panel_access"
+    >
+        Change to Basic RBAC.
+    </a>
 
 {% else %}
 

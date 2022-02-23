@@ -1,0 +1,99 @@
+{% load static %}
+
+{% if user_list %}
+
+    <h3>Results</h3>
+
+    <div class="table-responsive">
+        {% if is_more %}
+            <div>
+                <p class="font-italic">Showing top matches. Refine your search to reduce size of list.</p>
+            </div>
+        {% endif %}
+        <table class="table table-condensed table-hover">
+            <thead>
+                <tr class="text-primary">
+                    <th class="text-left">Member</th>
+                    <th class="text-left">Home Club</th>
+                    <th class="text-left">Source</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in user_list %}
+                    <tr>
+                        <td class="text-left">
+                            {{ user.first_name }} {{ user.last_name }} ({{ user.system_number }})
+                        </td>
+                        <td class="text-left">
+                            {{ user.home_club|default_if_none:"-" }}
+                        </td>
+                        <td class="text-left">
+                            {% if user.source == "registered" %}
+                                <a href="javascript:void(0)"
+                                    onclick='user_type_help(
+                                    "Registered User",
+                                    "This user has registered with {{ GLOBAL_TITLE }}. " +
+                                    "They can enjoy all of the benefits of the system."
+                                    );'
+                                >
+                                    <i class="material-icons text-info">info</i></a>
+                                Registered
+                            {% endif %}
+                            {% if user.source == "unregistered" %}
+                                <a href="javascript:void(0)"
+                                    onclick='user_type_help(
+                                    "Unregistered User",
+                                    "This user has not registered with {{ GLOBAL_TITLE }}. " +
+                                    "They can join any time themselves, or by being invited by an administrator."
+                                    );'
+                                >
+                                    <i class="material-icons text-info">info</i></a>
+                                Unregistered
+                            {% endif %}
+                            {% if user.source == "mpc" %}
+                                <a href="javascript:void(0)"
+                                    onclick='user_type_help(
+                                    "MasterPoint Centre (MPC) User",
+                                    "This user has not registered with {{ GLOBAL_TITLE }}. " +
+                                    "They are valid {{ GLOBAL_ORG }} members and can be added to the system."
+                                    );'
+                                >
+                                    <i class="material-icons text-info">info</i></a>
+                                MPC
+                            {% endif %}
+                            {% if user.source == "member" %}
+                                <a href="javascript:void(0)"
+                                    onclick='user_type_help(
+                                    "Already Member",
+                                    "This user is already a member of this club.");'
+                                >
+                                    <i class="material-icons text-info">info</i></a>
+                                Already Member
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.source == "member" %}
+                                <button class="btn btn-sm btn-primary" disabled>Add</button>
+                            {% elif user.source == "mpc" %}
+                                <button class="btn btn-sm btn-primary" onclick="show_add_un_reg_modal({{ user.system_number }}, '{{ user.first_name }}', '{{ user.last_name }}', '{{ user.mpc_email }}')">
+                                    Add</button>
+                            {% elif user.source == "registered" %}
+                                <button class="btn btn-sm btn-primary" onclick="show_add_member_modal({{ user.system_number }}, '{{ user.first_name }}', '{{ user.last_name }}')">
+                                    Add</button>
+                            {% elif user.source == "unregistered" %}
+                                <button class="btn btn-sm btn-primary" onclick="show_add_member_modal({{ user.system_number }}, '{{ user.first_name }}', '{{ user.last_name }}')">
+                                    Add</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% else %}
+    <h3>
+        No matches found
+    </h3>
+{% endif %}

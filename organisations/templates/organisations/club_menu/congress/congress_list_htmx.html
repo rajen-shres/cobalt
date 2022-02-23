@@ -1,0 +1,74 @@
+<div class="card">
+    <div class="card-header card-header-success">
+        <h3>{{ congress_master }}</h3>
+    </div>
+
+    <div class="card-body">
+
+        {% if congresses %}
+
+
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Start Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for congress in congresses %}
+                            <tr>
+                                <td>{{ congress.start_date|default_if_none:"Not Set" }}</td>
+                                <td>{{ congress.status }}</td>
+                                <td>
+
+                                    <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}"
+                                        class="btn btn-sm btn-success"
+                                        target="_blank"
+                                    >
+                                        Edit
+                                    </a>
+                                    <a href="{% url "events:admin_summary" congress_id=congress.id %}"
+                                        class="btn btn-sm btn-info"
+                                        target="_blank"
+                                    >
+                                        Manage
+                                    </a>
+                                    <button class="btn btn-warning btn-sm"
+                                        hx-post="{% url "organisations:club_menu_tab_congress_copy_congress_htmx" %}"
+                                        hx-vars="club_id:{{ club.id }},congress_id:{{ congress.id }},congress_master_id:{{ congress_master.id }}"
+                                        hx-target="#congress-list"
+                                    >Copy
+                                    </button>
+
+                                    <a href="{% url "events:delete_congress" congress_id=congress.id %}"
+                                        class="btn btn-danger btn-sm"
+                                    >Delete</a>
+
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+        {% endif %}
+
+
+        <button class="btn btn-primary btn-sm"
+            hx-post="{% url "organisations:club_menu_tab_congress_create_congress_htmx" %}"
+            hx-vars="club_id:{{ club.id }},congress_master_id:{{ congress_master.id }}"
+            hx-target="#congress-list"
+        >
+
+            {# Change message if empty or existing entries #}
+            {% if congresses %}
+                Create New Congress From Scratch
+            {% else %}
+                Create New Congress
+            {% endif %}
+        </button>
+    </div>
+</div>
+</div>

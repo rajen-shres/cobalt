@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 import organisations.views.club_menu_tabs.utils
+from accounts.accounts_views.api import search_for_user_in_cobalt_and_mpc
 from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser
 from cobalt.settings import GLOBAL_ORG, GLOBAL_TITLE
@@ -300,7 +301,7 @@ def _un_reg_edit_htmx_process_form(
     return message, un_reg
 
 
-def _un_rg_edit_htmx_common(
+def _un_reg_edit_htmx_common(
     request,
     club,
     un_reg,
@@ -408,7 +409,7 @@ def un_reg_edit_htmx(request, club):
             club_email_form.initial["email"] = club_email_entry.email
 
     # Common parts
-    return _un_rg_edit_htmx_common(
+    return _un_reg_edit_htmx_common(
         request,
         club,
         un_reg,
@@ -422,58 +423,106 @@ def un_reg_edit_htmx(request, club):
 
 @check_club_menu_access(check_members=True)
 def add_member_htmx(request, club):
-    """Add a club member manually"""
+    """Add a club member manually. This is called by the add_any page and return the list page.
+    This shouldn't get errors so we don't return a form, we just use the message field if
+    we do get an error and return the list view.
+    """
 
     message = ""
 
     form = UserMembershipForm(request.POST, club=club)
 
-    # Look for save as all requests are posts
-    if "save" in request.POST:
-        if form.is_valid():
-            member_id = form.cleaned_data["member"]
-            membership_type_id = form.cleaned_data["membership_type"]
-            home_club = form.cleaned_data["home_club"]
+    print(form)
 
-            member = get_object_or_404(User, pk=member_id)
-            membership_type = MembershipType(pk=membership_type_id)
+    if form.is_valid():
+        print("inside")
+        system_number = int(form.cleaned_data["system_number"])
+        membership_type_id = form.cleaned_data["membership_type"]
+        home_club = form.cleaned_data["home_club"]
+        #   send_welcome_pack = form.cleaned_data["send_welcome_pack"]
 
-            if (
-                MemberMembershipType.objects.active()
-                .filter(
-                    system_number=member.system_number,
-                    membership_type__organisation=club,
-                )
-                .exists()
-            ):
-                form.add_error(
-                    "member", f"{member.full_name} is already a member of this club"
-                )
-            else:
-                MemberMembershipType(
-                    system_number=member.system_number,
-                    membership_type=membership_type,
-                    last_modified_by=request.user,
-                    home_club=home_club,
-                ).save()
-                message = f"{member.full_name} added as a member"
-                ClubLog(
-                    organisation=club,
-                    actor=request.user,
-                    action=f"Added member {member}",
-                ).save()
-                form = UserMembershipForm(club=club)
+        print(system_number)
+
+        member = User.objects.filter(system_number=system_number).first()
+        print(member)
+        membership_type = MembershipType(pk=membership_type_id)
+
+        if (
+            MemberMembershipType.objects.active()
+            .filter(
+                system_number=member.system_number,
+                membership_type__organisation=club,
+            )
+            .exists()
+        ):
+            # shouldn't happen, but just in case
+            message = f"{member.full_name} is already a member of this club"
+        else:
+            MemberMembershipType(
+                system_number=member.system_number,
+                membership_type=membership_type,
+                last_modified_by=request.user,
+                home_club=home_club,
+            ).save()
+            message = f"{member.full_name} added as a member"
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action=f"Added member {member}",
+            ).save()
+            form = UserMembershipForm(club=club)
     else:
-        form = UserMembershipForm(club=club)
+        print(form.errors)
+
+    return list_htmx(request, club, message)
+
+
+@check_club_menu_access(check_members=True)
+def add_any_member_htmx(request, club):
+    """Add a club member manually"""
+
+    member_form = UserMembershipForm(club=club)
+    un_reg_form = UnregisteredUserAddForm(club=club)
 
     return render(
         request,
-        "organisations/club_menu/members/add_member_htmx.html",
-        {
-            "club": club,
-            "form": form,
-            "message": message,
-        },
+        "organisations/club_menu/members/add_any_member_htmx.html",
+        {"club": club, "member_form": member_form, "un_reg_form": un_reg_form},
+    )
+
+
+@login_required()
+def add_member_search_htmx(request):
+    """Search function for adding a member (registered, unregistered or from MPC"""
+
+    first_name_search = request.POST.get("first_name_search")
+    last_name_search = request.POST.get("last_name_search")
+
+    # if there is nothing to search for, don't search
+    if not first_name_search and not last_name_search:
+        return HttpResponse()
+
+    user_list, is_more = search_for_user_in_cobalt_and_mpc(
+        first_name_search, last_name_search
+    )
+
+    # Now highlight users who are already club members
+    user_list_system_numbers = [user["system_number"] for user in user_list]
+
+    member_list = (
+        MemberMembershipType.objects.filter(system_number__in=user_list_system_numbers)
+        .filter(termination_reason=None)
+        .values_list("system_number", flat=True)
+    )
+
+    for user in user_list:
+        if user["system_number"] in member_list:
+            user["source"] = "member"
+
+    return render(
+        request,
+        "organisations/club_menu/members/member_search_results_htmx.html",
+        {"user_list": user_list, "is_more": is_more},
     )
 
 
@@ -572,90 +621,72 @@ def edit_member_htmx(request, club):
 
 @check_club_menu_access(check_members=True)
 def add_un_reg_htmx(request, club):
-    """Add a club unregistered user manually"""
+    """Add a club unregistered user manually. This is called by the add_any page and return the list page.
+    This shouldn't get errors so we don't return a form, we just use the message field if
+    we do get an error and return the list view.
+    """
 
     message = ""
 
-    if "save" in request.POST:
+    form = UnregisteredUserAddForm(request.POST, club=club)
 
-        form = UnregisteredUserAddForm(request.POST, club=club)
-
-        # Assume the worst
-        message = "Errors found on Form"
-
-        # Set up to rollback if we fail
-        #    point_in_time = transaction.savepoint()
-
-        if form.is_valid():
-            # User may already be registered, the form will allow this
-            if UnregisteredUser.objects.filter(
+    if form.is_valid():
+        # User may already be registered, the form will allow this
+        if UnregisteredUser.objects.filter(
+            system_number=form.cleaned_data["system_number"],
+        ).exists():
+            message = "User already existed."  # don't change the fields
+        else:
+            UnregisteredUser(
                 system_number=form.cleaned_data["system_number"],
-            ).exists():
-                message = "User already existed."  # don't change the fields
-            else:
-                UnregisteredUser(
-                    system_number=form.cleaned_data["system_number"],
-                    last_updated_by=request.user,
-                    last_name=form.cleaned_data["last_name"],
-                    first_name=form.cleaned_data["first_name"],
-                    email=form.cleaned_data["mpc_email"],
-                    origin="Manual",
-                    added_by_club=club,
-                ).save()
-                ClubLog(
-                    organisation=club,
-                    actor=request.user,
-                    action=f"Added un-registered user {form.cleaned_data['first_name']} {form.cleaned_data['last_name']}",
-                ).save()
-                message = "User added."
+                last_updated_by=request.user,
+                last_name=form.cleaned_data["last_name"],
+                first_name=form.cleaned_data["first_name"],
+                email=form.cleaned_data["mpc_email"],
+                origin="Manual",
+                added_by_club=club,
+            ).save()
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action=f"Added un-registered user {form.cleaned_data['first_name']} {form.cleaned_data['last_name']}",
+            ).save()
+            message = "User added."
 
-            # Add to club
-            if (
-                MemberMembershipType.objects.active()
-                .filter(
-                    system_number=form.cleaned_data["system_number"],
-                    membership_type__organisation=club,
-                )
-                .exists()
-            ):
-                message += " Already a member of club."
-            else:
-                MemberMembershipType.objects.get_or_create(
-                    system_number=form.cleaned_data["system_number"],
-                    membership_type_id=form.cleaned_data["membership_type"],
-                    home_club=form.cleaned_data["home_club"],
-                    last_modified_by=request.user,
-                )
-                message += " Club membership added."
+        # Add to club
+        if (
+            MemberMembershipType.objects.active()
+            .filter(
+                system_number=form.cleaned_data["system_number"],
+                membership_type__organisation=club,
+            )
+            .exists()
+        ):
+            message += " Already a member of club."
+        else:
+            MemberMembershipType.objects.get_or_create(
+                system_number=form.cleaned_data["system_number"],
+                membership_type_id=form.cleaned_data["membership_type"],
+                home_club=form.cleaned_data["home_club"],
+                last_modified_by=request.user,
+            )
+            message += " Club membership added."
 
-            # Add email
-            club_email = form.cleaned_data["club_email"]
-            if club_email:
-                club_email_entry, _ = MemberClubEmail.objects.get_or_create(
-                    organisation=club, system_number=form.cleaned_data["system_number"]
-                )
-                club_email_entry.email = club_email
-                club_email_entry.save()
-                ClubLog(
-                    organisation=club,
-                    actor=request.user,
-                    action=f"Added club specific email for {form.cleaned_data['system_number']}",
-                ).save()
+        # Add email
+        club_email = form.cleaned_data["club_email"]
+        if club_email:
+            club_email_entry, _ = MemberClubEmail.objects.get_or_create(
+                organisation=club, system_number=form.cleaned_data["system_number"]
+            )
+            club_email_entry.email = club_email
+            club_email_entry.save()
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action=f"Added club specific email for {form.cleaned_data['system_number']}",
+            ).save()
 
-                message += " Club specific email added."
+            message += " Club specific email added."
 
-            # return blank form to add another
-            form = UnregisteredUserAddForm(club=club)
-
-    else:
-        form = UnregisteredUserAddForm(club=club)
-
-    return render(
-        request,
-        "organisations/club_menu/members/add_un_reg_htmx.html",
-        {
-            "club": club,
-            "form": form,
-            "message": message,
-        },
-    )
+    # club is added to the call by the decorator
+    return list_htmx(request, message)

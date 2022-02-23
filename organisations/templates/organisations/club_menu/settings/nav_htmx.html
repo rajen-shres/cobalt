@@ -69,6 +69,34 @@ id="t_settings_membership_types"
 >Session Types
 </button>
 
+{% if selected == "tags" %}
+    <button class="btn btn-primary"
+{% else %}
+    <button class="btn bg-transparent"
+    style="outline: 0; outline-offset: 0; box-shadow: none;"
+{% endif %}
+
+type="button"
+id="t_comms_tab_tags"
+hx-post="{% url "organisations:club_menu_tab_comms_tags_htmx" %}"
+hx-target="#id_settings_form"
+>Tags
+</button>
+
+{% if selected == "templates" %}
+    <button class="btn btn-primary"
+{% else %}
+    <button class="btn bg-transparent"
+    style="outline: 0; outline-offset: 0; box-shadow: none;"
+{% endif %}
+
+type="button"
+id="t_comms_tab_templates"
+hx-post="{% url "organisations:club_menu_tab_comms_templates_htmx" %}"
+hx-target="#id_settings_form"
+>Templates
+</button>
+
 {% if selected == "logs" %}
     <button class="btn btn-primary float-right"
 {% else %}

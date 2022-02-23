@@ -13,26 +13,13 @@
                     <td>
                         <button class="btn bg-primary btn-block"
                             id="t_member_add_individual_member"
-                            hx-post="{% url "organisations:club_menu_tab_members_add_member_htmx" %}"
+                            hx-post="{% url "organisations:club_menu_tab_members_add_any_member_htmx" %}"
                             hx-target="#id_member_add_tab"
                             hx-vars="club_id:{{ club.id }}"
                         >Add Member</button>
                     </td>
                     <td class="text-left pl-5">
                         Add a member to the club
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <button class="btn bg-primary btn-block"
-                            id="t_member_add_individual_un_reg"
-                            hx-post="{% url "organisations:club_menu_tab_members_add_un_reg_htmx" %}"
-                            hx-target="#id_member_add_tab"
-                            hx-vars="club_id:{{ club.id }}"
-                        >Add Unregistered</button>
-                    </td>
-                    <td class="text-left pl-5">
-                        Add a user who isn't registered with {{ GLOBAL_TITLE }} yet
                     </td>
                 </tr>
                 <tr>

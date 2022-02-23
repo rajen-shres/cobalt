@@ -4,6 +4,7 @@ from django.urls import path
 import organisations.views.club_menu
 import organisations.views.club_menu_tabs.access
 import organisations.views.club_menu_tabs.comms
+import organisations.views.club_menu_tabs.congresses
 import organisations.views.club_menu_tabs.dashboard
 import organisations.views.club_menu_tabs.import_data
 import organisations.views.club_menu_tabs.members
@@ -99,6 +100,16 @@ urlpatterns = [
         name="club_admin_access_advanced_add_user_htmx",
     ),
     path(
+        "admin/change-rbac-to-advanced",
+        organisations.views.club_menu_tabs.access.change_rbac_to_advanced_htmx,
+        name="club_admin_access_change_rbac_to_advanced_htmx",
+    ),
+    path(
+        "admin/change-rbac-to-basic",
+        organisations.views.club_menu_tabs.access.change_rbac_to_basic_htmx,
+        name="club_admin_access_change_rbac_to_basic_htmx",
+    ),
+    path(
         "club-menu/tabs/dashboard",
         club_menu.tab_dashboard_htmx,
         name="club_menu_tab_dashboard_htmx",
@@ -124,9 +135,14 @@ urlpatterns = [
         name="club_menu_tab_comms_email_view_htmx",
     ),
     path(
-        "club-menu/tabs/comms/tags",
-        organisations.views.club_menu_tabs.comms.tags_htmx,
+        "club-menu/tabs/settings/tags",
+        organisations.views.club_menu_tabs.settings.tags_htmx,
         name="club_menu_tab_comms_tags_htmx",
+    ),
+    path(
+        "club-menu/tabs/settings/templates",
+        organisations.views.club_menu_tabs.settings.templates_htmx,
+        name="club_menu_tab_comms_templates_htmx",
     ),
     path(
         "club-menu/tabs/comms/tag-delete",
@@ -244,9 +260,19 @@ urlpatterns = [
         name="club_menu_tab_members_add_member_htmx",
     ),
     path(
+        "club-menu/tabs/members-add-any-member",
+        organisations.views.club_menu_tabs.members.add_any_member_htmx,
+        name="club_menu_tab_members_add_any_member_htmx",
+    ),
+    path(
         "club-menu/tabs/members-edit-member",
         organisations.views.club_menu_tabs.members.edit_member_htmx,
         name="club_menu_tab_members_edit_member_htmx",
+    ),
+    path(
+        "club-menu/tabs/members-search",
+        organisations.views.club_menu_tabs.members.add_member_search_htmx,
+        name="club_menu_tab_members_add_member_search_htmx",
     ),
     path(
         "club-menu/tabs/members-reports",
@@ -352,5 +378,40 @@ urlpatterns = [
         "club-menu/settings/session-add",
         organisations.views.club_menu_tabs.settings.club_menu_tab_settings_session_add_htmx,
         name="club_menu_tab_settings_session_add_htmx",
+    ),
+    path(
+        "club-menu/congress/congress-list",
+        organisations.views.club_menu_tabs.congresses.congress_list_htmx,
+        name="club_menu_tab_congress_list_htmx",
+    ),
+    path(
+        "club-menu/congress/create-series-form",
+        organisations.views.club_menu_tabs.congresses.create_series_htmx,
+        name="club_menu_tab_congress_create_series_htmx",
+    ),
+    path(
+        "club-menu/congress/create-series-action",
+        organisations.views.club_menu_tabs.congresses.create_master_htmx,
+        name="club_menu_tab_congress_create_master_htmx",
+    ),
+    path(
+        "club-menu/congress/create-congress",
+        organisations.views.club_menu_tabs.congresses.create_congress_htmx,
+        name="club_menu_tab_congress_create_congress_htmx",
+    ),
+    path(
+        "club-menu/congress/copy-congress",
+        organisations.views.club_menu_tabs.congresses.copy_congress_htmx,
+        name="club_menu_tab_congress_copy_congress_htmx",
+    ),
+    path(
+        "club-menu/congress/rename-series-form",
+        organisations.views.club_menu_tabs.congresses.rename_series_form_htmx,
+        name="club_menu_tab_congress_rename_series_form_htmx",
+    ),
+    path(
+        "club-menu/congress/rename-series",
+        organisations.views.club_menu_tabs.congresses.rename_series_htmx,
+        name="club_menu_tab_congress_rename_series_htmx",
     ),
 ]

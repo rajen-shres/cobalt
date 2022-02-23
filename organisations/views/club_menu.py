@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from club_sessions.models import Session
-from events.models import Congress
+from events.models import Congress, CongressMaster
 from organisations.decorators import check_club_menu_access
 from organisations.models import (
     Organisation,
@@ -158,12 +158,12 @@ def tab_dashboard_htmx(request, club):
 def tab_congress_htmx(request, club):
     """build the congress tab in club menu"""
 
-    congresses = Congress.objects.filter(congress_master__org=club)
+    congress_masters = CongressMaster.objects.filter(org=club)
 
     return render(
         request,
         "organisations/club_menu/congress/congress_htmx.html",
-        {"club": club, "congresses": congresses},
+        {"club": club, "congress_masters": congress_masters},
     )
 
 

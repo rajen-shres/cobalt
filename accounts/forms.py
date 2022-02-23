@@ -8,12 +8,11 @@ from crispy_forms.helper import FormHelper
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 
+import accounts.accounts_views.admin
 from cobalt.settings import GLOBAL_ORG
 from masterpoints.views import system_number_available
 from .models import User, UnregisteredUser
 from django.core.exceptions import ValidationError
-
-import accounts.views as accounts_views
 
 
 class UserRegisterForm(UserCreationForm):
@@ -192,9 +191,11 @@ class UnregisteredUserForm(forms.ModelForm):
 
         system_number = self.cleaned_data["system_number"]
 
-        is_valid, is_member, is_un_reg = accounts_views.check_system_number(
-            system_number
-        )
+        (
+            is_valid,
+            is_member,
+            is_un_reg,
+        ) = accounts.accounts_views.admin.check_system_number(system_number)
 
         if not is_valid:
             self.add_error("system_number", f"{GLOBAL_ORG} Number invalid")

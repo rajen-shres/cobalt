@@ -31,7 +31,7 @@ from ninja import Router, File, NinjaAPI, Schema
 from ninja.files import UploadedFile
 
 from accounts.backend import CobaltBackend
-from accounts.views import create_user_session_id
+from accounts.accounts_views.api import create_user_session_id
 from api.core import api_rbac
 import api.urls as api_urls
 from cobalt.settings import GLOBAL_TITLE

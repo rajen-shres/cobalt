@@ -3,7 +3,6 @@ from itertools import chain
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse
 
 from accounts.models import User, UnregisteredUser
 from notifications.forms import EmailForm
@@ -13,7 +12,7 @@ from notifications.notifications_views.core import (
     create_rbac_batch_id,
 )
 from organisations.decorators import check_club_menu_access
-from organisations.forms import TagForm, TagMultiForm, FrontPageForm
+from organisations.forms import TagMultiForm, FrontPageForm
 from organisations.models import (
     ClubTag,
     MemberClubTag,
@@ -21,6 +20,7 @@ from organisations.models import (
     MemberClubEmail,
     OrganisationFrontPage,
 )
+from organisations.views.club_menu_tabs.settings import tags_htmx
 
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
@@ -258,42 +258,6 @@ def email_view_htmx(request, club):
         request,
         "organisations/club_menu/comms/email_view_htmx.html",
         {"club": club, "email_batch": email_batch, "details": details},
-    )
-
-
-@check_club_menu_access()
-def tags_htmx(request, club):
-    """build the comms tags tab in club menu"""
-
-    if "add" in request.POST:
-        form = TagForm(request.POST, club=club)
-
-        if form.is_valid():
-            ClubTag.objects.get_or_create(
-                organisation=club, tag_name=form.cleaned_data["tag_name"]
-            )
-            # reset form
-            form = TagForm(club=club)
-    else:
-        form = TagForm(club=club)
-
-    tags = (
-        ClubTag.objects.prefetch_related("memberclubtag_set")
-        .filter(organisation=club)
-        .order_by("tag_name")
-    )
-
-    # Add on count of how many members have this tag
-    for tag in tags:
-        uses = MemberClubTag.objects.filter(club_tag=tag).count()
-        tag.uses = uses
-        tag.hx_post = reverse("organisations:club_menu_tab_comms_tags_delete_tag_htmx")
-        tag.hx_vars = f"club_id:{club.id},tag_id:{tag.id}"
-
-    return render(
-        request,
-        "organisations/club_menu/comms/tags_htmx.html",
-        {"club": club, "tags": tags, "form": form},
     )
 
 

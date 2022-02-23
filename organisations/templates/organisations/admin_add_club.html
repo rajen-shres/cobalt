@@ -8,7 +8,7 @@
 
     {#    This file uses HTMX. It is the first trial of HTMX in Cobalt     #}
 
-    {% include "accounts/search/user_search_include_htmx.html" with search_id=1 callback='cobaltMemberSearchOk' %}
+    {% include "accounts/search/user_search_include_htmx.html" with search_id=1 callback='cobaltMemberSearchOk' include_me=1 %}
 
     <div class="">
         <div class="card col-md-12 align-content-center">
@@ -91,7 +91,7 @@
 
 {% block footer %}
     {% include "utils/include_htmx.html" %}
-    {% include "accounts/user_search_include_js_htmx.html" with search_id=1 include_me='yes' %}
+    {% include "accounts/search/user_search_include_js_htmx.html" with search_id=1 include_me='yes' %}
 
     <script>
         function cobaltMemberSearchOk(search_id, member_id, member_name) {

@@ -27,4 +27,4 @@ class Command(BaseCommand):
         manager.run()
         with open("/tmp/test-output.html", "w") as html_file:
             html_file.write(manager.report_html())
-        os.system("open /tmp/test-output.html")
+        os.system("utils/cgit/tools/open_report.sh")

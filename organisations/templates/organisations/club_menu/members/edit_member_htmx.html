@@ -41,11 +41,10 @@
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <input id="id_home_club" type="checkbox" name="home_club" {% if form.home_club.value %}checked=checked{% endif %}">
-                        <label for="id_home_club" style="color: black">&nbsp;Home Club</label><br>
-
-                    </div>
+                    {#                    <div class="form-group row">#}
+                    {#                        <input id="id_home_club" type="checkbox" name="home_club" {% if form.home_club.value %}checked=checked{% endif %}">#}
+                    {#                        <label for="id_home_club" style="color: black">&nbsp;Home Club</label><br>#}
+                    {#                    </div>#}
 
                     <button type="submit" name="save" class="btn btn-success">Save</button>
                     {% include "utils/htmx_confirm_modal.html" with id="memdel" delete_item=member.first_name hx_target="#id_panel_members" hx_post=hx_delete hx_vars=hx_vars %}
