@@ -197,37 +197,38 @@ class MemberClubEmailForm(forms.Form):
 class UserMembershipForm(forms.Form):
     """Form for getting a registered user and a membership type"""
 
-    member = forms.IntegerField()
+    system_number = forms.IntegerField()
     membership_type = forms.ChoiceField()
-    home_club = forms.BooleanField(initial=True, required=False)
+    home_club = forms.BooleanField(initial=False, required=False)
+    send_welcome_pack = forms.BooleanField(initial=True, required=False)
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
         super().__init__(*args, **kwargs)
         self.fields["membership_type"].choices = membership_type_choices(self.club)
 
-    def clean_home_club(self):
-        """Check that this user doesn't already have a home club"""
-
-        home_club = self.cleaned_data["home_club"]
-        member_id = self.cleaned_data["member"]
-        member = User.objects.get(pk=member_id)
-
-        if home_club:
-            other_club = (
-                MemberMembershipType.objects.active()
-                .filter(system_number=member.system_number)
-                .filter(home_club=True)
-                .exclude(membership_type__organisation=self.club)
-                .first()
-            )
-            if other_club:
-                self.add_error(
-                    "member",
-                    f"{member.full_name} already has {other_club.membership_type.organisation} as their home club",
-                )
-
-        return home_club
+    # def clean_home_club(self):
+    #     """Check that this user doesn't already have a home club"""
+    #
+    #     home_club = self.cleaned_data["home_club"]
+    #     member_id = self.cleaned_data["member"]
+    #     member = User.objects.get(pk=member_id)
+    #
+    #     if home_club:
+    #         other_club = (
+    #             MemberMembershipType.objects.active()
+    #             .filter(system_number=member.system_number)
+    #             .filter(home_club=True)
+    #             .exclude(membership_type__organisation=self.club)
+    #             .first()
+    #         )
+    #         if other_club:
+    #             self.add_error(
+    #                 "member",
+    #                 f"{member.full_name} already has {other_club.membership_type.organisation} as their home club",
+    #             )
+    #
+    #     return home_club
 
 
 class UnregisteredUserAddForm(forms.Form):
@@ -242,6 +243,7 @@ class UnregisteredUserAddForm(forms.Form):
     club_email = forms.EmailField(label="Club email address (private)", required=False)
     membership_type = forms.ChoiceField()
     home_club = forms.BooleanField(initial=True, required=False)
+    send_welcome_pack = forms.BooleanField(initial=True, required=False)
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")

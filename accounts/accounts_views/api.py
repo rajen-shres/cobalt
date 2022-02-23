@@ -125,6 +125,7 @@ def search_for_user_in_cobalt_and_mpc(first_name_search, last_name_search):
                     "first_name": mpc_user["GivenNames"],
                     "last_name": mpc_user["Surname"],
                     "home_club": mpc_user["ClubName"],
+                    "mpc_email": mpc_user["EmailAddress"],
                     "source": "mpc",
                 }
             )

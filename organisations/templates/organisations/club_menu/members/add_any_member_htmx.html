@@ -1,4 +1,5 @@
 {% load static %}
+{% load cobalt_tags %}
 <div class="container">
     <div class="row">
         <div class="card col-md-8">
@@ -45,17 +46,15 @@
 
     <div class="row" id="add-member-search-results"></div>
 
-    {#    This modal is used to add a Cobalt member to the club if picked from the search#}
+    {#---------------------------------------------------------------------------------#}
+    {# This modal is used to add a Cobalt member to the club if picked from the search #}
     <div id="add_member_modal">
 
         <div class="modal fade" id="id_member_add_modal" tabindex="-1" role="dialog" aria-labelledby="addMemberModal" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title w-100 font-weight-bold"><i class="material-icons">how_to_reg</i>&nbsp;&nbsp;Add Member</h4>
-                        <span class="htmx-indicator">
-                            <img src="{% static "assets/img/spinners/bars.svg" %}"/>
-                        </span>
+                        <h4 class="modal-title w-100 font-weight-bold"><i class="material-icons">how_to_reg</i>&nbsp;&nbsp;Add <span id="id_member_add_modal_first_name"></span> as a Member</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                             onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
                         >
@@ -66,20 +65,29 @@
                         Add <span id="id_member_add_modal_name"></span> as a member of {{ club }}.
 
                         <form
-                            hx-post=""
-                            hx-vars=""
+                            hx-post="{% url "organisations:club_menu_tab_members_add_member_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}"
+                            hx-target="#id_panel_members"
                         >
-                            <input type="hidden">
-                            <div class="col-12 form-group">
-                                <label for="add_member_membership_type" class="bmd-label-static">Membership Type
-                                </label>
-                                <select class="form-control modal-input" name="add_member_membership_type" style="position: revert;">
-                                    {% for membership_type in membership_types %}
-                                        <option value="{{ membership_type.id }}">{{ membership_type.name }}</option>
-                                    {% endfor %}
-                                </select>
 
+                            <br>
+                            <input type="hidden" name="system_number" id="id_add_member_system_number">
+                            <div class="col-12 form-group ">
+                                <label for="membership_type" class="bmd-label-static">Membership Type
+                                </label>
+                                {% cobalt_bs4_field member_form.membership_type %}
                             </div>
+                            <br>
+                            <br>
+                            <div class="col-12 form-group ">
+                                {% cobalt_bs4_field member_form.send_welcome_pack %}
+                            </div>
+                            <br>
+                            <button class="btn btn-sm btn-success">Add Member</button>
+                            <button class="btn btn-sm btn-warning" data-dismiss="modal" aria-label="Close"
+                                onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
+                            >Cancel
+                            </button>
                         </form>
 
                     </div>
@@ -87,13 +95,72 @@
             </div>
         </div>
     </div>
+    {#---------------------------------------------------------------------------------#}
 
 
+    {#---------------------------------------------------------------------------------#}
+    {# This modal is used to add an unregistered Cobalt member to the club if picked from the search #}
+    <div id="id_un_reg_add_modal_parent">
+
+        <div class="modal fade" id="id_un_reg_add_modal" tabindex="-1" role="dialog" aria-labelledby="addMemberModal" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title w-100 font-weight-bold"><i class="material-icons">how_to_reg</i>&nbsp;&nbsp;Add <span id="id_member_add_modal_first_name"></span> as an Unregistered Member</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Add <span id="id_member_add_un_reg_name"></span> as a member of {{ club }}. They are not
+                        yet registered for {{ GLOBAL_TITLE }} but you can invite them to join. As an unregistered
+                        member of your club, you can manage them fine, but they will not be able to enter events
+                        or view results or other information.
+
+                        <form
+                            hx-post="{% url "organisations:club_menu_tab_members_add_un_reg_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}"
+                            hx-target="#id_panel_members"
+                        >
+
+                            <br>
+                            <input type="hidden" name="system_number" id="id_add_un_reg_system_number">
+                            <input type="hidden" name="first_name" id="id_add_un_reg_first_name">
+                            <input type="hidden" name="last_name" id="id_add_un_reg_last_name">
+                            <div class="col-12 form-group ">
+                                <label for="membership_type" class="bmd-label-static">Membership Type
+                                </label>
+                                {% cobalt_bs4_field un_reg_form.membership_type %}
+                            </div>
+                            <br>
+                            <br>
+                            <div class="col-12 form-group ">
+                                {% cobalt_bs4_field un_reg_form.mpc_email %}
+                            </div>
+                            <div class="col-12 form-group ">
+                                {% cobalt_bs4_field un_reg_form.club_email %}
+                            </div>
+                            <div class="col-12 form-group ">
+                                {% cobalt_bs4_field un_reg_form.send_welcome_pack %}
+                            </div>
+                            <br>
+                            <button class="btn btn-sm btn-success" onclick="$('.modal').modal('hide');">Add Member</button>
+                            <button class="btn btn-sm btn-warning" data-dismiss="modal" aria-label="Close"
+                                onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
+                            >Cancel
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {#---------------------------------------------------------------------------------#}
 
 </div>
-
-
-<span>Send welcome pack</span>
 
 <script>
     function user_type_help(title, html){
@@ -111,10 +178,22 @@
         return false;
     }
 
-    function show_add_member_modal(system_number, name){
+    function show_add_member_modal(system_number, first_name, last_name){
         // update the details in the member add modal and show it
-        $('#id_member_add_modal_name').text(name);
+        $('#id_add_member_system_number').val(system_number);
+        $('#id_member_add_modal_first_name').text(first_name);
+        $('#id_member_add_modal_name').text(first_name + " " + last_name);
         $('#id_member_add_modal').modal('show');
+    }
+
+    function show_add_un_reg_modal(system_number, first_name, last_name, mpc_email){
+        // update the details in the un registered add modal and show it
+        $('#id_add_un_reg_system_number').val(system_number);
+        $('#id_mpc_email').val(mpc_email);
+        $('#id_member_add_un_reg_name').text(first_name);
+        $('#id_add_un_reg_first_name').val(first_name);
+        $('#id_add_un_reg_last_name').val(last_name);
+        $('#id_un_reg_add_modal').modal('show');
     }
 </script>
 
