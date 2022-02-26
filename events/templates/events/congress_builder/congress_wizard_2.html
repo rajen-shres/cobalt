@@ -25,32 +25,39 @@
                         </div>
                         <br>
 
-                        <div class="row">
-                            <div class="col-2 justify-content-center align-self-center">
-                                Short Name
-                            </div>
-                            <div class="col-8">
-                                <div id="id_slug" class="form-group bmd-form-group">
-                                    <span class="cobalt-form-error" id="slug-error"></span>
-                                    <input type="text"
-                                        placeholder="Type a short name to see if it is available"
-                                        class="form-control"
-                                        hx-post="{% url "events:check_slug_is_free_htmx" %}"
-                                        hx-trigger="keyup changed delay:100ms"
-                                        hx-target="#slug-error"
-                                        name="slug"
-                                    >
 
+
+                        <form method="POST">
+                            {% csrf_token %}
+
+                            <div class="row">
+                                <div class="col-2 justify-content-center align-self-center">
+                                    Short Name
                                 </div>
+                                <div class="col-8">
+                                    <div name="slug" class="form-group bmd-form-group">
+                                        <input type="text"
+                                            value="{{ slug.slug|default_if_none:"" }}"
+                                            placeholder="Type name to see if it is available"
+                                            class="form-control"
+                                            hx-post="{% url "events:check_slug_is_free_htmx" %}"
+                                            hx-trigger="keyup changed delay:100ms"
+                                            hx-target="#slug-msg"
+                                            name="slug"
+                                        >
+                                        <span class="text-info font-weight-bold font-italic" id="slug-msg"></span>
+
+                                    </div>
+                                    {% if slug %}
+                                        Short link is <a href="/{{ slug.redirect_path }}">http://{{ COBALT_HOSTNAME }}/{{ slug.slug }}</a>
+                                    {% endif %}
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center">
+                                    <a href="javascript:void(0)" onclick='help("Short Name", "You can create a unique shortname for your event which allows you to send links to e.g. <b>myabf.com.au/my_short_name</b> instead of having to use the congress number, e.g. myabf.com.au/events/congress/view/9584");'>help</a>
                             </div>
-                            <div class="col-2 justify-content-center align-self-center">
-                                <a href="javascript:void(0)" onclick='help("Short Name", "You can create a unique shortname for your event which allows you to send links to <b>myabf.com.au/my_short_name</b> instead of having to use the congress number.");'>help</a>
                         </div>
-                    </div>
 
 
-                    <form method="POST">
-                        {% csrf_token %}
 
                         <div class="row">
                             <div class="col-2 justify-content-center align-self-center">
@@ -221,7 +228,9 @@
     <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
     <script src="{% static "assets/js/plugins/bootstrap-datetimepicker.min.js" %}"></script>
     <script src="{% static "assets/js/plugins/jquery.cookie.1.4.1.min.js" %}"></script>
+
     {% include "events/congress_builder/congress_wizard_include_footer.html" %}
+    {% include "utils/include_htmx.html" %}
 
     <script>
         function generate_date_string() {

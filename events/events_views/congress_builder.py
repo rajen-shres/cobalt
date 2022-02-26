@@ -14,6 +14,7 @@ from django.utils.html import strip_tags
 
 from cobalt.settings import (
     TIME_ZONE,
+    COBALT_HOSTNAME,
 )
 from events.events_views.core import sort_events_by_start_date
 from logs.views import log_event
@@ -38,7 +39,8 @@ from events.models import (
     Session,
     CongressDownload,
 )
-from utils.views import check_slug_is_free
+from utils.models import Slug
+from utils.views import check_slug_is_free, create_new_slug
 
 TZ = pytz.timezone(TIME_ZONE)
 
@@ -218,6 +220,10 @@ def create_congress_wizard_1(request, step_list):
 def create_congress_wizard_2(request, step_list, congress):
     """wizard step 2 - general"""
 
+    # Get the path to this event for the slug (which may or may not exist). Slugs are used so conveners can
+    # send links to myabf/huntershill rather than myabf/events/6567
+    redirect_path = f"events/congress/view/{congress.id}"
+
     if request.method == "POST":
         form = CongressForm(request.POST)
         if form.is_valid():
@@ -233,6 +239,15 @@ def create_congress_wizard_2(request, step_list, congress):
             congress.additional_info = form.cleaned_data["additional_info"]
             congress.contact_email = form.cleaned_data["contact_email"]
             congress.save()
+
+            # Check for additional slug field
+            slug = request.POST.get("slug")
+
+            # Try to create slug, but don't worry if it fails, user was warned
+            # NOTE: if we change the URL later this is hardcoded despite the lookup
+            # Also we don't prevent uses from creating multiple slugs to the same event
+            create_new_slug(slug, redirect_path)
+
             return redirect(
                 "events:create_congress_wizard", step=3, congress_id=congress.id
             )
@@ -257,10 +272,13 @@ def create_congress_wizard_2(request, step_list, congress):
     form.fields["people"].required = True
     form.fields["contact_email"].required = True
 
+    # we can have multiple matches, but it is unlikely
+    slug = Slug.objects.filter(redirect_path=redirect_path).first()
+
     return render(
         request,
         "events/congress_builder/congress_wizard_2.html",
-        {"form": form, "step_list": step_list, "congress": congress},
+        {"form": form, "step_list": step_list, "congress": congress, "slug": slug},
     )
 
 
