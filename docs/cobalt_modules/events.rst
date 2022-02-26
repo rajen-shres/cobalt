@@ -44,14 +44,6 @@ events.models module
    :undoc-members:
    :show-inheritance:
 
-events.tests module
--------------------
-
-.. automodule:: events.tests
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 events.urls module
 ------------------
 

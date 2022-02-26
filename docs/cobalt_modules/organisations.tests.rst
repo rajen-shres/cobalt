@@ -1,5 +1,5 @@
-payments.tests package
-======================
+organisations.tests package
+===========================
 
 Subpackages
 -----------
@@ -7,12 +7,12 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   payments.tests.integration
+   organisations.tests.integration
 
 Module contents
 ---------------
 
-.. automodule:: payments.tests
+.. automodule:: organisations.tests
    :members:
    :undoc-members:
    :show-inheritance:

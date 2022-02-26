@@ -293,6 +293,11 @@ urlpatterns = [
         congress_builder.view_draft_congresses,
         name="view_draft_congresses",
     ),
+    path(
+        "congress-builder/check-slug",
+        congress_builder.check_slug_is_free_htmx,
+        name="check_slug_is_free_htmx",
+    ),
     ########################################################################
     # Congress Admin screens for conveners to manage an existing congress  #
     ########################################################################

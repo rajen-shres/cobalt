@@ -20,6 +20,14 @@ club\_sessions.apps module
    :undoc-members:
    :show-inheritance:
 
+club\_sessions.forms module
+---------------------------
+
+.. automodule:: club_sessions.forms
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 club\_sessions.models module
 ----------------------------
 

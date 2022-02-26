@@ -20,14 +20,6 @@ cobalt.errors module
    :undoc-members:
    :show-inheritance:
 
-cobalt.factories module
------------------------
-
-.. automodule:: cobalt.factories
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 cobalt.middleware module
 ------------------------
 

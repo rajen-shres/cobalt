@@ -474,7 +474,7 @@ def add_member_htmx(request, club):
     else:
         print(form.errors)
 
-    return list_htmx(request, club, message)
+    return list_htmx(request, message)
 
 
 @check_club_menu_access(check_members=True)

@@ -1,6 +1,14 @@
 notifications package
 =====================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   notifications.tests
+
 Submodules
 ----------
 
@@ -8,6 +16,14 @@ notifications.admin module
 --------------------------
 
 .. automodule:: notifications.admin
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+notifications.apis module
+-------------------------
+
+.. automodule:: notifications.apis
    :members:
    :undoc-members:
    :show-inheritance:
@@ -36,26 +52,10 @@ notifications.models module
    :undoc-members:
    :show-inheritance:
 
-notifications.tests module
---------------------------
-
-.. automodule:: notifications.tests
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 notifications.urls module
 -------------------------
 
 .. automodule:: notifications.urls
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-notifications.views module
---------------------------
-
-.. automodule:: notifications.views
    :members:
    :undoc-members:
    :show-inheritance:

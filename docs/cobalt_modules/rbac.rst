@@ -60,14 +60,6 @@ rbac.models module
    :undoc-members:
    :show-inheritance:
 
-rbac.tests module
------------------
-
-.. automodule:: rbac.tests
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 rbac.urls module
 ----------------
 

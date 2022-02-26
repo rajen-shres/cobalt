@@ -1,6 +1,14 @@
 accounts package
 ================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   accounts.tests
+
 Submodules
 ----------
 
@@ -56,14 +64,6 @@ accounts.urls module
 --------------------
 
 .. automodule:: accounts.urls
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-accounts.views module
----------------------
-
-.. automodule:: accounts.views
    :members:
    :undoc-members:
    :show-inheritance:

@@ -28,6 +28,14 @@ payments.payments\_views.orgs module
    :undoc-members:
    :show-inheritance:
 
+payments.payments\_views.payments\_api module
+---------------------------------------------
+
+.. automodule:: payments.payments_views.payments_api
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 payments.payments\_views.players module
 ---------------------------------------
 

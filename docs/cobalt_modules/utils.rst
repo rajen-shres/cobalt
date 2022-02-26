@@ -28,6 +28,14 @@ utils.apps module
    :undoc-members:
    :show-inheritance:
 
+utils.can\_login\_as module
+---------------------------
+
+.. automodule:: utils.can_login_as
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 utils.middleware module
 -----------------------
 

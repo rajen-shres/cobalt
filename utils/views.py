@@ -21,7 +21,7 @@ from forums.views import forums_status_summary
 from notifications.notifications_views.user import notifications_status_summary
 from payments.payments_views.core import payments_status_summary
 from utils.utils import cobalt_paginator
-from .models import Batch, Lock
+from .models import Batch, Lock, Slug
 from importlib import import_module
 
 # from importlib import import_module
@@ -354,3 +354,19 @@ def database_view(request):
         "utils/database_view.html",
         {"db_sizes": db_sizes, "total_size": total_size, "total_rows": total_rows},
     )
+
+
+def check_slug_is_free(slug):
+    """Check if a slug is in use or not"""
+
+    return Slug.objects.filter(slug=slug).exists()
+
+
+def create_new_slug(slug, redirect_path):
+    """create a slug if it doesn't already exist"""
+
+    if Slug.objects.filter(slug=slug).exists():
+        return False
+
+    Slug(slug=slug, redirect_path=redirect_path).save()
+    return True

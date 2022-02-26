@@ -1,4 +1,4 @@
-payments.tests package
+accounts.tests package
 ======================
 
 Subpackages
@@ -7,12 +7,12 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   payments.tests.integration
+   accounts.tests.integration
 
 Module contents
 ---------------
 
-.. automodule:: payments.tests
+.. automodule:: accounts.tests
    :members:
    :undoc-members:
    :show-inheritance:

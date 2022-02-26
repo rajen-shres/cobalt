@@ -1,6 +1,14 @@
 tests package
 =============
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   tests.integration
+
 Submodules
 ----------
 
@@ -8,14 +16,6 @@ tests.apps module
 -----------------
 
 .. automodule:: tests.apps
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-tests.common\_functions module
-------------------------------
-
-.. automodule:: tests.common_functions
    :members:
    :undoc-members:
    :show-inheritance:

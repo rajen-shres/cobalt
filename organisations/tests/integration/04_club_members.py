@@ -127,21 +127,28 @@ class ClubMembers:
         self.manager.selenium_wait_for("t_member_tab_add").click()
         # Click Add Member
         self.manager.selenium_wait_for("t_member_add_individual_member").click()
-
-        # Search for Betty
-        cobalt_htmx_user_search(
-            manager=self.manager,
-            search_button_id="id_add_member_item",
-            user_system_id=self.manager.betty.system_number,
-            search_id="add_member",
-        )
-
-        # Click Save
-        self.manager.selenium_wait_for_clickable("t_member_add_member_button").click()
+        # First name Julie
+        self.manager.sleep()
+        self.manager.selenium_wait_for("id_member_first_name_search").click()
+        self.manager.selenium_wait_for_clickable(
+            "id_member_first_name_search"
+        ).send_keys("ian")
+        # last name Guthrie
+        self.manager.selenium_wait_for("id_member_last_name_search").click()
+        self.manager.selenium_wait_for_clickable(
+            "id_member_last_name_search"
+        ).send_keys("thomson")
+        # click on registered user
+        self.manager.driver.find_element_by_xpath(
+            "//button[@onclick=\"show_add_un_reg_modal(148911, 'Ian', 'Thomson', 'it8036@gmail.com')\"]"
+        ).click()
+        self.manager.driver.find_element_by_xpath(
+            "@onclick=\"$('.modal').modal('hide');\""
+        ).click()
 
         ok = bool(
             self.manager.selenium_wait_for_text(
-                "Betty Bunting added as a member", "members"
+                "User added. Club membership added.", "id_panel_members"
             )
         )
 
@@ -154,97 +161,123 @@ class ClubMembers:
             f"to add Betty as a member.",
         )
 
-        # Now add unregistered - We need to use a real user!!! Use Ian Thomson
-
-        # Click Add
-        self.manager.selenium_wait_for("t_member_tab_add").click()
-        # Click Add Un Reg
-        self.manager.selenium_wait_for("t_member_add_individual_un_reg").click()
-
-        # Enter system number
-        self.manager.selenium_wait_for("id_system_number").send_keys("148911")
-
-        # Enter email
-        self.manager.selenium_wait_for("id_mpc_email").send_keys("a@b.com")
-
-        # Dunno.
-        time.sleep(2)
-
-        # Click Save
-        self.manager.selenium_wait_for_clickable("t_member_add_un_reg_button").click()
-
-        ok = bool(self.manager.selenium_wait_for_text("User added.", "members"))
-
-        self.manager.save_results(
-            status=ok,
-            output=f"Eric added Ian Thomson as an unregistered member to {club_names[SUNSHINE_ID]}. "
-            f"Outcome: {ok}",
-            test_name=f"Eric adds Ian Thomson as member of {club_names[SUNSHINE_ID]}",
-            test_description=f"Eric uses the manual entry screen for {club_names[SUNSHINE_ID]}. "
-            f"to add Ian Thomson (148911) as an unregistered member. We unfortunately need to "
-            f"use a real person for this or the lookup with the MPC won't work.",
-        )
-
-        # Edit Member
-
-        # Click List - easier to go to Members tab again
-        club_menu_go_to_tab(
-            manager=self.manager,
-            tab="members",
-            title_id="id_member_list_tab",
-            test_name=f"Go to Members tab as Eric for {club_names[SUNSHINE_ID]}",
-            test_description="Return to the Members tab as Eric.",
-        )
-
-        # Click on Betty
-        self.manager.selenium_wait_for(f"t_edit_member_{self.manager.betty.id}").click()
-
-        # Click on Membership Type
-        self.manager.selenium_wait_for("id_membership_type").click()
-
-        # click on Youth
-        self.manager.driver.find_element_by_xpath("//option[. = 'Youth']").click()
-
-        # Save
-        self.manager.driver.find_element_by_name("save").click()
-
-        # Look for success
-
-        ok = bool(
-            self.manager.selenium_wait_for_text("Betty Bunting updated", "members")
-        )
-
-        self.manager.save_results(
-            status=ok,
-            output=f"Eric edited Betty, a member of {club_names[SUNSHINE_ID]}. "
-            f"Outcome: {ok}",
-            test_name=f"Eric edits Betty as member of {club_names[SUNSHINE_ID]}.",
-            test_description=f"Eric edits Betty, a member of for {club_names[SUNSHINE_ID]}. "
-            f"Changes membership type to 'Youth'",
-        )
-
-        # Cancel Membership
-
-        # Click on Betty
-        self.manager.selenium_wait_for(f"t_edit_member_{self.manager.betty.id}").click()
-
-        # Wait for Cancel button
-        self.manager.selenium_wait_for_clickable("id_delete_user_1").click()
-
-        # Click on Confirm
-        self.manager.selenium_wait_for_clickable("id_delete_button_memdel").click()
-
-        # Check for message
-        ok = bool(
-            self.manager.selenium_wait_for_text(
-                "Betty Bunting membership deleted", "members"
-            )
-        )
-
-        self.manager.save_results(
-            status=ok,
-            output=f"Eric cancelled Betty's membership of {club_names[SUNSHINE_ID]}. "
-            f"Outcome: {ok}",
-            test_name=f"Eric cancels Betty as member of {club_names[SUNSHINE_ID]}.",
-            test_description=f"Eric cancels Betty's membership of {club_names[SUNSHINE_ID]}. ",
-        )
+        # # Search for Betty
+        # cobalt_htmx_user_search(
+        #     manager=self.manager,
+        #     search_button_id="id_add_member_item",
+        #     user_system_id=self.manager.betty.system_number,
+        #     search_id="add_member",
+        # )
+        #
+        # # Click Save
+        # self.manager.selenium_wait_for_clickable("t_member_add_member_button").click()
+        #
+        # ok = bool(
+        #     self.manager.selenium_wait_for_text(
+        #         "Betty Bunting added as a member", "members"
+        #     )
+        # )
+        #
+        # self.manager.save_results(
+        #     status=ok,
+        #     output=f"Eric added Betty as a member to {club_names[SUNSHINE_ID]}."
+        #     f"Outcome: {ok}",
+        #     test_name=f"Eric adds Betty as member of {club_names[SUNSHINE_ID]}",
+        #     test_description=f"Eric uses the manual entry screen for {club_names[SUNSHINE_ID]}. "
+        #     f"to add Betty as a member.",
+        # )
+        #
+        # # Now add unregistered - We need to use a real user!!! Use Ian Thomson
+        #
+        # # Click Add
+        # self.manager.selenium_wait_for("t_member_tab_add").click()
+        # # Click Add Un Reg
+        # self.manager.selenium_wait_for("t_member_add_individual_un_reg").click()
+        #
+        # # Enter system number
+        # self.manager.selenium_wait_for("id_system_number").send_keys("148911")
+        #
+        # # Enter email
+        # self.manager.selenium_wait_for("id_mpc_email").send_keys("a@b.com")
+        #
+        # # Dunno.
+        # time.sleep(2)
+        #
+        # # Click Save
+        # self.manager.selenium_wait_for_clickable("t_member_add_un_reg_button").click()
+        #
+        # ok = bool(self.manager.selenium_wait_for_text("User added.", "members"))
+        #
+        # self.manager.save_results(
+        #     status=ok,
+        #     output=f"Eric added Ian Thomson as an unregistered member to {club_names[SUNSHINE_ID]}. "
+        #     f"Outcome: {ok}",
+        #     test_name=f"Eric adds Ian Thomson as member of {club_names[SUNSHINE_ID]}",
+        #     test_description=f"Eric uses the manual entry screen for {club_names[SUNSHINE_ID]}. "
+        #     f"to add Ian Thomson (148911) as an unregistered member. We unfortunately need to "
+        #     f"use a real person for this or the lookup with the MPC won't work.",
+        # )
+        #
+        # # Edit Member
+        #
+        # # Click List - easier to go to Members tab again
+        # club_menu_go_to_tab(
+        #     manager=self.manager,
+        #     tab="members",
+        #     title_id="id_member_list_tab",
+        #     test_name=f"Go to Members tab as Eric for {club_names[SUNSHINE_ID]}",
+        #     test_description="Return to the Members tab as Eric.",
+        # )
+        #
+        # # Click on Betty
+        # self.manager.selenium_wait_for(f"t_edit_member_{self.manager.betty.id}").click()
+        #
+        # # Click on Membership Type
+        # self.manager.selenium_wait_for("id_membership_type").click()
+        #
+        # # click on Youth
+        # self.manager.driver.find_element_by_xpath("//option[. = 'Youth']").click()
+        #
+        # # Save
+        # self.manager.driver.find_element_by_name("save").click()
+        #
+        # # Look for success
+        #
+        # ok = bool(
+        #     self.manager.selenium_wait_for_text("Betty Bunting updated", "members")
+        # )
+        #
+        # self.manager.save_results(
+        #     status=ok,
+        #     output=f"Eric edited Betty, a member of {club_names[SUNSHINE_ID]}. "
+        #     f"Outcome: {ok}",
+        #     test_name=f"Eric edits Betty as member of {club_names[SUNSHINE_ID]}.",
+        #     test_description=f"Eric edits Betty, a member of for {club_names[SUNSHINE_ID]}. "
+        #     f"Changes membership type to 'Youth'",
+        # )
+        #
+        # # Cancel Membership
+        #
+        # # Click on Betty
+        # self.manager.selenium_wait_for(f"t_edit_member_{self.manager.betty.id}").click()
+        #
+        # # Wait for Cancel button
+        # self.manager.selenium_wait_for_clickable("id_delete_user_1").click()
+        #
+        # # Click on Confirm
+        # self.manager.selenium_wait_for_clickable("id_delete_button_memdel").click()
+        #
+        # # Check for message
+        # ok = bool(
+        #     self.manager.selenium_wait_for_text(
+        #         "Betty Bunting membership deleted", "members"
+        #     )
+        # )
+        #
+        # self.manager.save_results(
+        #     status=ok,
+        #     output=f"Eric cancelled Betty's membership of {club_names[SUNSHINE_ID]}. "
+        #     f"Outcome: {ok}",
+        #     test_name=f"Eric cancels Betty as member of {club_names[SUNSHINE_ID]}.",
+        #     test_description=f"Eric cancels Betty's membership of {club_names[SUNSHINE_ID]}. ",
+        # )

@@ -24,170 +24,195 @@
                             </div>
                         </div>
                         <br>
-                        <form method="POST">
-                            {% csrf_token %}
 
-                            <div class="row">
-                                <div class="col-2 justify-content-center align-self-center">
-                                    Congress Type
-                                </div>
-                                <div class="col-8">
-                                    <div id="div_id_congress_types" class="form-group">
-                                        <span class="cobalt-form-error" id="id_year_errors">{{ form.congress_types.errors|striptags }}</span>
-                                        {% render_field form.congress_type class+="form-control" %}
-                                    </div>
-                                </div>
-                                <div class="col-2 justify-content-center align-self-center">
-                                    <a href="javascript:void(0)" onclick='help("Congress Type", "Select what type of congress this is.");'>help</a>
+                        <div class="row">
+                            <div class="col-2 justify-content-center align-self-center">
+                                Short Name
+                            </div>
+                            <div class="col-8">
+                                <div id="id_slug" class="form-group bmd-form-group">
+                                    <span class="cobalt-form-error" id="slug-error"></span>
+                                    <input type="text"
+                                        placeholder="Type a short name to see if it is available"
+                                        class="form-control"
+                                        hx-post="{% url "events:check_slug_is_free_htmx" %}"
+                                        hx-trigger="keyup changed delay:100ms"
+                                        hx-target="#slug-error"
+                                        name="slug"
+                                    >
+
                                 </div>
                             </div>
-
-                            <div class="row">
-                                <div class="col-2 justify-content-center align-self-center">
-                                    Contact Email
-                                </div>
-                                <div class="col-8">
-                                    <div id="div_id_contact_email" class="form-group">
-                                        <span class="cobalt-form-error" id="id_contact_email_errors">{{ form.contact_email.errors|striptags }}</span>
-                                        {% render_field form.contact_email class+="form-control" %}
-                                    </div>
-                                </div>
-                                <div class="col-2 justify-content-center align-self-center">
-                                    <a href="javascript:void(0)" onclick='help("Contact Email", "This is the address that queries will be directed to.");'>help</a>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-2 justify-content-center align-self-center">
-                                    Year
-                                </div>
-                                <div class="col-8">
-                                    <div id="div_id_name" class="form-group">
-                                        <span class="cobalt-form-error" id="id_year_errors">{{ form.year.errors|striptags }}</span>
-                                        {% render_field form.year class+="form-control" %}
-                                    </div>
-                                </div>
-                                <div class="col-2 justify-content-center align-self-center">
-                                    <a href="javascript:void(0)" onclick='help("Congress Year", "The year that this event will take place.");'>help</a>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-2 justify-content-center align-self-center">
-                                    Name
-                                </div>
-                                <div class="col-8">
-                                    <div id="div_id_name" class="form-group">
-                                        <span class="cobalt-form-error" id="id_name_errors">{{ form.name.errors|striptags }}</span>
-                                        {% render_field form.name class+="form-control" %}
-                                    </div>
-                                </div>
-                                <div class="col-2 justify-content-center align-self-center">
-                                    <a href="javascript:void(0)" onclick='help("Congress Name", "The name you wish to give this congress. Typically the Congress Master plus the Year.");'>help</a>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-2 justify-content-center align-self-center">
-                                    Dates
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="bmd-label-float" style="font-size:11px">Start</label>
-                                        <input type="text" name="start_date" id="id_start_date" class="form-control datepicker" value="{{ form.start_date.value|default_if_none:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="bmd-label-float" style="font-size:11px">End</label>
-                                        <input type="text" name="end_date" id="id_end_date" class="form-control datepicker" value="{{ form.end_date.value|default_if_none:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-2 justify-content-center align-self-center">
-                                    <a href="javascript:void(0)" onclick='help("Dates", "First and last day of congress.");'>help</a>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-2 justify-content-center align-self-center">
-                                    Date String
-                                </div>
-                                <div class="col-8">
-                                    <div id="div_id_date_string" class="form-group">
-                                        <span class="cobalt-form-error" id="id_date_string_errors">{{ form.date_string.errors|striptags }}</span>
-                                        {% render_field form.date_string class+="form-control" %}
-                                    </div>
-                                </div>
-                                <div class="col-2 justify-content-center align-self-center">
-                                    <a href="javascript:void(0)" onclick='help("Date String", "Free format text for the dates of the congress. e.g. 23rd March 2021 to 29th March 2021.");'>help</a>
-                                </div>
-                            </div>
-
-                            <hr>
-
-                            <div class="row">
-                                <div class="col-10 justify-content-center align-self-center">
-                                    <h3>People</h3>
-                                </div>
-                                <div class="col-2 justify-content-center align-self-center">
-                                    <a href="javascript:void(0)" onclick='help("People", "List people and contact details.");'>help</a>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-12">
-                                    {{ form.people|as_crispy_field }}
-                                </div>
-                            </div>
-                            <hr>
-
-                            <div class="row">
-                                <div class="col-10 justify-content-center align-self-center">
-                                    <h3>General Information</h3>
-                                </div>
-                                <div class="col-2 justify-content-center align-self-center">
-                                    <a href="javascript:void(0)" onclick='help("General Info", "This goes near the top and should describe high level things about the congress.");'>help</a>
-                                </div>
-                                <div class="col-12">
-                                    {{ form.general_info|as_crispy_field }}
-                                </div>
-                            </div>
-                            <hr>
-
-                            <div class="row">
-                                <div class="col-10 justify-content-center align-self-center">
-                                    <h3>Links</h3>
-                                </div>
-                                <div class="col-2 justify-content-center align-self-center">
-                                    <a href="javascript:void(0)" onclick='help("Links", "Here you can add links to useful information. We suggest using a bullet list.");'>help</a>
-                                </div>
-                                <div class="col-12">
-                                    {{ form.links|as_crispy_field }}
-                                </div>
-                            </div>
-                            <hr>
-
-                            <div class="row">
-                                <div class="col-10 justify-content-center align-self-center">
-                                    <h3>Additional Information (footer)</h3>
-                                </div>
-                                <div class="col-2 justify-content-center align-self-center">
-                                    <a href="javascript:void(0)" onclick='help("Additional Info", "This is extra info for the bottom of the page if required.");'>help</a>
-                                </div>
-                                <div class="col-12">
-                                    {{ form.additional_info|as_crispy_field }}
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col text-center">
-                                    <button class="btn btn-info btn-sm cobalt-save">Save/Next</button>
-                                </div>
-                            </div>
-                        </form>
+                            <div class="col-2 justify-content-center align-self-center">
+                                <a href="javascript:void(0)" onclick='help("Short Name", "You can create a unique shortname for your event which allows you to send links to <b>myabf.com.au/my_short_name</b> instead of having to use the congress number.");'>help</a>
+                        </div>
                     </div>
+
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-2 justify-content-center align-self-center">
+                                Congress Type
+                            </div>
+                            <div class="col-8">
+                                <div id="div_id_congress_types" class="form-group">
+                                    <span class="cobalt-form-error" id="id_year_errors">{{ form.congress_types.errors|striptags }}</span>
+                                    {% render_field form.congress_type class+="form-control" %}
+                                </div>
+                            </div>
+                            <div class="col-2 justify-content-center align-self-center">
+                                <a href="javascript:void(0)" onclick='help("Congress Type", "Select what type of congress this is.");'>help</a>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-2 justify-content-center align-self-center">
+                                Contact Email
+                            </div>
+                            <div class="col-8">
+                                <div id="div_id_contact_email" class="form-group">
+                                    <span class="cobalt-form-error" id="id_contact_email_errors">{{ form.contact_email.errors|striptags }}</span>
+                                    {% render_field form.contact_email class+="form-control" %}
+                                </div>
+                            </div>
+                            <div class="col-2 justify-content-center align-self-center">
+                                <a href="javascript:void(0)" onclick='help("Contact Email", "This is the address that queries will be directed to.");'>help</a>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-2 justify-content-center align-self-center">
+                                Year
+                            </div>
+                            <div class="col-8">
+                                <div id="div_id_name" class="form-group">
+                                    <span class="cobalt-form-error" id="id_year_errors">{{ form.year.errors|striptags }}</span>
+                                    {% render_field form.year class+="form-control" %}
+                                </div>
+                            </div>
+                            <div class="col-2 justify-content-center align-self-center">
+                                <a href="javascript:void(0)" onclick='help("Congress Year", "The year that this event will take place.");'>help</a>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-2 justify-content-center align-self-center">
+                                Name
+                            </div>
+                            <div class="col-8">
+                                <div id="div_id_name" class="form-group">
+                                    <span class="cobalt-form-error" id="id_name_errors">{{ form.name.errors|striptags }}</span>
+                                    {% render_field form.name class+="form-control" %}
+                                </div>
+                            </div>
+                            <div class="col-2 justify-content-center align-self-center">
+                                <a href="javascript:void(0)" onclick='help("Congress Name", "The name you wish to give this congress. Typically the Congress Master plus the Year.");'>help</a>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-2 justify-content-center align-self-center">
+                                Dates
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="bmd-label-float" style="font-size:11px">Start</label>
+                                    <input type="text" name="start_date" id="id_start_date" class="form-control datepicker" value="{{ form.start_date.value|default_if_none:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="bmd-label-float" style="font-size:11px">End</label>
+                                    <input type="text" name="end_date" id="id_end_date" class="form-control datepicker" value="{{ form.end_date.value|default_if_none:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-2 justify-content-center align-self-center">
+                                <a href="javascript:void(0)" onclick='help("Dates", "First and last day of congress.");'>help</a>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-2 justify-content-center align-self-center">
+                                Date String
+                            </div>
+                            <div class="col-8">
+                                <div id="div_id_date_string" class="form-group">
+                                    <span class="cobalt-form-error" id="id_date_string_errors">{{ form.date_string.errors|striptags }}</span>
+                                    {% render_field form.date_string class+="form-control" %}
+                                </div>
+                            </div>
+                            <div class="col-2 justify-content-center align-self-center">
+                                <a href="javascript:void(0)" onclick='help("Date String", "Free format text for the dates of the congress. e.g. 23rd March 2021 to 29th March 2021.");'>help</a>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="row">
+                            <div class="col-10 justify-content-center align-self-center">
+                                <h3>People</h3>
+                            </div>
+                            <div class="col-2 justify-content-center align-self-center">
+                                <a href="javascript:void(0)" onclick='help("People", "List people and contact details.");'>help</a>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                {{ form.people|as_crispy_field }}
+                            </div>
+                        </div>
+                        <hr>
+
+                        <div class="row">
+                            <div class="col-10 justify-content-center align-self-center">
+                                <h3>General Information</h3>
+                            </div>
+                            <div class="col-2 justify-content-center align-self-center">
+                                <a href="javascript:void(0)" onclick='help("General Info", "This goes near the top and should describe high level things about the congress.");'>help</a>
+                            </div>
+                            <div class="col-12">
+                                {{ form.general_info|as_crispy_field }}
+                            </div>
+                        </div>
+                        <hr>
+
+                        <div class="row">
+                            <div class="col-10 justify-content-center align-self-center">
+                                <h3>Links</h3>
+                            </div>
+                            <div class="col-2 justify-content-center align-self-center">
+                                <a href="javascript:void(0)" onclick='help("Links", "Here you can add links to useful information. We suggest using a bullet list.");'>help</a>
+                            </div>
+                            <div class="col-12">
+                                {{ form.links|as_crispy_field }}
+                            </div>
+                        </div>
+                        <hr>
+
+                        <div class="row">
+                            <div class="col-10 justify-content-center align-self-center">
+                                <h3>Additional Information (footer)</h3>
+                            </div>
+                            <div class="col-2 justify-content-center align-self-center">
+                                <a href="javascript:void(0)" onclick='help("Additional Info", "This is extra info for the bottom of the page if required.");'>help</a>
+                            </div>
+                            <div class="col-12">
+                                {{ form.additional_info|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col text-center">
+                                <button class="btn btn-info btn-sm cobalt-save">Save/Next</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
 

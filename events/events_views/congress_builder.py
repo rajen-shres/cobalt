@@ -7,6 +7,7 @@ import pytz
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import ProtectedError
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.html import strip_tags
@@ -37,6 +38,7 @@ from events.models import (
     Session,
     CongressDownload,
 )
+from utils.views import check_slug_is_free
 
 TZ = pytz.timezone(TIME_ZONE)
 
@@ -815,3 +817,14 @@ def manage_congress_download(request, congress_id):
         "events/congress_builder/congress_wizard_downloads.html",
         {"form": form, "congress": congress, "downloads": downloads},
     )
+
+
+def check_slug_is_free_htmx(request):
+    """check if a slug is available or not"""
+
+    slug = request.POST.get("slug")
+
+    if check_slug_is_free(slug):
+        return HttpResponse("Name is available")
+    else:
+        return HttpResponse("Short name already used")
