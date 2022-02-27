@@ -294,9 +294,9 @@ urlpatterns = [
         name="view_draft_congresses",
     ),
     path(
-        "congress-builder/check-slug",
-        congress_builder.check_slug_is_free_htmx,
-        name="check_slug_is_free_htmx",
+        "congress-builder/slug-handler",
+        congress_builder.slug_handler_htmx,
+        name="slug_handler_htmx",
     ),
     ########################################################################
     # Congress Admin screens for conveners to manage an existing congress  #

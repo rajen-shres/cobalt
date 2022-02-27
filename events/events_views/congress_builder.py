@@ -240,14 +240,6 @@ def create_congress_wizard_2(request, step_list, congress):
             congress.contact_email = form.cleaned_data["contact_email"]
             congress.save()
 
-            # Check for additional slug field
-            slug = request.POST.get("slug")
-
-            # Try to create slug, but don't worry if it fails, user was warned
-            # NOTE: if we change the URL later this is hardcoded despite the lookup
-            # Also we don't prevent uses from creating multiple slugs to the same event
-            create_new_slug(slug, redirect_path)
-
             return redirect(
                 "events:create_congress_wizard", step=3, congress_id=congress.id
             )
@@ -275,10 +267,22 @@ def create_congress_wizard_2(request, step_list, congress):
     # we can have multiple matches, but it is unlikely
     slug = Slug.objects.filter(redirect_path=redirect_path).first()
 
+    # slug_text starts as the registered slug or blank but gets changed by the HTMX calls
+    if slug:
+        slug_text = slug.slug
+    else:
+        slug_text = ""
+
     return render(
         request,
         "events/congress_builder/congress_wizard_2.html",
-        {"form": form, "step_list": step_list, "congress": congress, "slug": slug},
+        {
+            "form": form,
+            "step_list": step_list,
+            "congress": congress,
+            "slug": slug,
+            "slug_text": slug_text,
+        },
     )
 
 
@@ -837,12 +841,35 @@ def manage_congress_download(request, congress_id):
     )
 
 
-def check_slug_is_free_htmx(request):
-    """check if a slug is available or not"""
+def slug_handler_htmx(request):
+    """Generates the slug row in congress wizard 2"""
 
-    slug = request.POST.get("slug")
+    congress_id = request.POST.get("congress_id")
+    # slug_id = request.POST.get("slug_id")
+    slug_text = request.POST.get("slug_text")
+    congress = Congress.objects.filter(pk=congress_id).first()
+    slug = Slug.objects.filter(slug=slug_text).first()
+    # redirect_path = f"events/congress/view/{congress_id}"
 
-    if check_slug_is_free(slug):
-        return HttpResponse("Name is available")
+    if slug:
+        slug_msg = "Short name already used"
+        show_save = False
+    elif slug_text:
+        slug_msg = "Name is available"
+        show_save = True
+
     else:
-        return HttpResponse("Short name already used")
+        slug_msg = ""
+        show_save = False
+
+    return render(
+        request,
+        "events/congress_builder/congress_wizard_2_slug_htmx.html",
+        {
+            "congress": congress,
+            "slug": slug,
+            "slug_text": slug_text,
+            "slug_msg": slug_msg,
+            "show_save": show_save,
+        },
+    )
