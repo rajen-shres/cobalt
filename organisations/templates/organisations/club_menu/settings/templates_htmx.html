@@ -10,30 +10,40 @@
     <div class="card-body" id="id_comms_email_tab">
 
         <h3>Email Templates - NOT FINISHED</h3>
-        <p>You can use email templates to...
+        <p>You can use email templates to customise the appearance of emails that you send to your members.
         </p>
 
-        {% if tags %}
+        <h3 class="text-info font-weight-bold settings_message" id="template_message">{{ message| default_if_none:"" }}</h3>
 
-            <div class="table-responsive col-md-6">
+        {% if templates %}
+
+            <div class="table-responsive">
                 <table class="table table-hover table-condensed">
                     <thead>
                         <tr>
-                            <th>Tag Name</th>
-                            <th>User with Tag</th>
+                            <th>Template Name</th>
+                            <th>Description</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for tag in tags %}
+                        {% for template in templates %}
                             <tr>
-                                <td>{{ tag.tag_name }}</td>
-                                <td>{{ tag.uses }}</td>
+                                <td>{{ template.name }}</td>
+                                <td>{{ template.description }}</td>
 
-                                {% include "utils/htmx_confirm_modal.html" with id=tag.id delete_item=tag.tag_name hx_vars=tag.hx_vars hx_target="#id_panel_comms" hx_post=tag.hx_post %}
-                                <td><button id="t_delete_tag_{{ tag.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ tag.id }}">
-                                    Delete Tag
-                                </button>
+                                {% include "utils/htmx_confirm_modal.html" with id=template.id delete_item=template.name hx_vars=template.hx_vars hx_target="#id_panel_comms" hx_post=template.hx_post %}
+                                <td>
+                                    <button
+                                        class="btn btn-sm btn-info"
+                                        hx-post="{% url "organisations:club_menu_tab_settings_edit_template_htmx" %}"
+                                        hx-target="#id_edit_template"
+                                        hx-vars="club_id:{{ club.id }},template_id:{{ template.id }}"
+
+                                    >Edit</button>
+                                    <button id="t_delete_template_{{ tag.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ template.id }}">
+                                        Delete Template
+                                    </button>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -45,36 +55,15 @@
 
         {% endif %}
 
-        <form
-            hx-post="{% url "organisations:club_menu_tab_comms_templates_htmx" %}"
-            hx-target="#id_panel_comms"
+        <button
+            class="btn btn-sm btn-info"
+            hx-post="{% url "organisations:club_menu_tab_settings_edit_template_htmx" %}"
+            hx-target="#id_edit_template"
             hx-vars="club_id:{{ club.id }}"
-        >
-            <div class="container">
-                <div class="row">
-                    <div class="col-12">
-                        {% cobalt_bs4_field form.name %}
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        {% cobalt_bs4_field form.subject %}
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        {% cobalt_bs4_field form.description %}
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        {% cobalt_bs4_field form.html_content %}
-                    </div>
-                </div>
-            </div>
+        >Add New Template</button>
 
-            <button name="add" id="id_tags_add_tag" class="btn btn-sm btn-success">Add</button>
-        </form>
+        <div id="id_edit_template"></div>
+
     </div>
 </div>
 

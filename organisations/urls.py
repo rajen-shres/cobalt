@@ -380,6 +380,11 @@ urlpatterns = [
         name="club_menu_tab_settings_session_add_htmx",
     ),
     path(
+        "club-menu/settings/edit-template",
+        organisations.views.club_menu_tabs.settings.edit_template_htmx,
+        name="club_menu_tab_settings_edit_template_htmx",
+    ),
+    path(
         "club-menu/congress/congress-list",
         organisations.views.club_menu_tabs.congresses.congress_list_htmx,
         name="club_menu_tab_congress_list_htmx",

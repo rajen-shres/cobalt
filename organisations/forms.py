@@ -375,7 +375,6 @@ class TemplateForm(forms.ModelForm):
         fields = (
             "name",
             "description",
-            "subject",
             "html_content",
         )
 
@@ -390,6 +389,7 @@ class TemplateForm(forms.ModelForm):
             }
         )
     )
+    name = forms.CharField(max_length=50)
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")

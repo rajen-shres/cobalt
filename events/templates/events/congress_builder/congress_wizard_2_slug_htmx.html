@@ -1,55 +1,65 @@
 <div id="slug-htmx">
 
-    <div class="row">
-        <div class="col-2 justify-content-center align-self-center">
-            Short Name
-        </div>
+    <form
+        hx-post="{% url "events:slug_handler_htmx" %}"
+        hx-target="#slug-htmx"
+        hx-swap="outerHTML"
+        hx-vars="congress_id:{{ congress.id }}"
+    >
+        {% csrf_token %}
 
-        <div class="col-6">
-            <div class="form-group bmd-form-group">
-                <input type="text"
-                    value="{{ slug_text }}"
-                    placeholder="Type name to see if it is available"
-                    class="form-control"
-                    hx-post="{% url "events:slug_handler_htmx" %}"
-                    hx-trigger="keyup changed delay:100ms"
-                    hx-target="#slug-htmx"
-                    hx-swap="outerHTML"
-                    hx-vars="congress_id:{{ congress.id }}{% if slug %},slug_id:{{ slug.id }}{% endif %}"
-                    name="slug_text"
-                    id="id_slug"
-                >
-                <span class="text-info font-weight-bold font-italic" id="slug-msg">{{ slug_msg }}</span>
+        <div class="row">
+            <div class="col-2 justify-content-center align-self-center">
+                Short Name
+            </div>
+
+            <div class="col-6">
+                <div class="form-group bmd-form-group">
+                    <input type="text"
+                        value="{{ slug_text }}"
+                        placeholder="Type name to see if it is available"
+                        class="form-control"
+                        hx-post="{% url "events:slug_handler_htmx" %}"
+                        hx-trigger="keyup changed delay:100ms"
+                        hx-target="#slug-htmx"
+                        hx-swap="outerHTML"
+                        hx-vars="congress_id:{{ congress.id }}{% if slug %},slug_id:{{ slug.id }}{% endif %}"
+                        name="slug_text"
+                        id="id_slug"
+                    >
+                    <span class="text-info font-weight-bold font-italic" id="slug-msg">{{ slug_msg }}</span>
+
+                </div>
+                {% if slug %}
+                    Short link is <a href="/{{ slug.redirect_path }}">http://{{ COBALT_HOSTNAME }}/{{ slug.slug }}</a>
+                {% endif %}
+            </div>
+
+            <div class="col-2">
+                {% if show_save %}
+                    <button name="create" class="btn btn-sm btn-info cobalt-save">Create</button>
+                {% endif %}
+
+                {% if slug %}
+                    <span class="text-success"><i class="material-icons pl-1"
+                        style="font-size: 17px; cursor: default;
+                        {% if not slug %}
+                            display: none;
+                        {% endif %}
+                        "
+                        onclick="copyToClipboard()"
+                        title="Copy to clipboard">content_copy</i>
+                    </span>
+                {% endif %}
 
             </div>
-            {% if slug %}
-                Short link is <a href="/{{ slug.redirect_path }}">http://{{ COBALT_HOSTNAME }}/{{ slug.slug }}</a>
-            {% endif %}
+
+
+            <div class="col-2 justify-content-center align-self-center">
+                <a href="javascript:void(0)"
+                    onclick='help("Short Name", "You can create a unique shortname for your event which allows you to send links to e.g. <b>myabf.com.au/my_short_name</b> instead of having to use the congress number, e.g. myabf.com.au/events/congress/view/9584");'>help</a>
         </div>
-
-        <div class="col-2">
-            {% if show_save %}
-                <button class="btn btn-sm btn-info">Create</button>
-            {% endif %}
-
-            {% if slug %}
-                <span class="text-success"><i class="material-icons pl-1"
-                    style="font-size: 17px; cursor: default;
-                    {% if not slug %}
-                        display: none;
-                    {% endif %}
-                    "
-                    onclick="copyToClipboard()"
-                    title="Copy to clipboard">content_copy</i>
-                </span>
-            {% endif %}
-
-        </div>
-
-
-        <div class="col-2 justify-content-center align-self-center">
-            <a href="javascript:void(0)"
-                onclick='help("Short Name", "You can create a unique shortname for your event which allows you to send links to e.g. <b>myabf.com.au/my_short_name</b> instead of having to use the congress number, e.g. myabf.com.au/events/congress/view/9584");'>help</a>
     </div>
 </div>
-</div>
+
+</form>

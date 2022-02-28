@@ -849,18 +849,26 @@ def slug_handler_htmx(request):
     slug_text = request.POST.get("slug_text")
     congress = Congress.objects.filter(pk=congress_id).first()
     slug = Slug.objects.filter(slug=slug_text).first()
-    # redirect_path = f"events/congress/view/{congress_id}"
+    redirect_path = f"events/congress/view/{congress_id}"
 
-    if slug:
-        slug_msg = "Short name already used"
+    if "create" in request.POST:
+        slug = Slug(slug=slug_text, redirect_path=redirect_path)
+        slug.save()
+        slug_msg = "Short name created"
         show_save = False
-    elif slug_text:
-        slug_msg = "Name is available"
-        show_save = True
 
     else:
-        slug_msg = ""
-        show_save = False
+
+        if slug:
+            slug_msg = "Short name already used"
+            show_save = False
+        elif slug_text:
+            slug_msg = "Name is available"
+            show_save = True
+
+        else:
+            slug_msg = ""
+            show_save = False
 
     return render(
         request,

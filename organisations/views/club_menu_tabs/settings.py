@@ -645,28 +645,95 @@ def tags_htmx(request, club):
 
 @check_club_menu_access()
 def templates_htmx(request, club):
-    """build the comms template tab in club menu"""
+    """build the comms template tab in club menu, also handles form post"""
 
-    if "add" in request.POST:
-        form = TemplateForm(request.POST, club=club)
+    message = ""
 
-        if form.is_valid():
-            # ClubTag.objects.get_or_create(
-            #     organisation=club, tag_name=form.cleaned_data["tag_name"]
-            # )
-            # # reset form
-            # form = TagForm(club=club)
-            print("ok")
-            form.save()
-        else:
-            print(form.errors)
-    else:
+    if (
+        "template_button_Add" not in request.POST
+        and "template_button_Edit" not in request.POST
+    ):
+        # No action required, create blank form
         form = TemplateForm(club=club)
 
-    templates = EmailTemplate.objects.all()
+    else:
+        # Action required
+        if "template_button_Edit" in request.POST:
+            # Editing an existing template
+            template_id = request.POST.get("template_id")
+            template = get_object_or_404(EmailTemplate, pk=template_id)
+            form = TemplateForm(request.POST, instance=template, club=club)
+            print("editing")
+
+        else:
+            # Adding a new template
+            form = TemplateForm(request.POST, club=club)
+
+        if form.is_valid():
+            template = form.save(commit=False)
+
+            # Always set subject to be subject
+            template.subject = "{{ subject }}"
+
+            # Use name field to identify organisation that owns this template
+            # This is a simple way to control templates, but may need extended later
+            # We edit the name before we send to user so do this for Add and Edit
+            template.name = f"ORG {club.id} {template.name}"
+
+            template.save()
+
+            form = TemplateForm(club=club)
+            message = "Template added successfully"
+        else:
+            print(form.errors)
+            message = "Errors found on form"
+
+    templates = EmailTemplate.objects.filter(name__startswith=f"ORG {club.id} ")
+
+    # manipulate templates
+    for template in templates:
+        template.name = " ".join(template.name.split(" ")[2:])
+
+    print(message)
+    print(templates)
 
     return render(
         request,
         "organisations/club_menu/settings/templates_htmx.html",
-        {"club": club, "templates": templates, "form": form},
+        {"club": club, "templates": templates, "form": form, "message": message},
+    )
+
+
+@check_club_menu_access()
+def edit_template_htmx(request, club):
+    """HTMX form to edit a template. If a template id is provided then we try to edit tht one,
+    otherwise create blank. We don't handle the form, that goes to templates_htmx as it needs to redraw
+    the whole screen"""
+
+    template_id = request.POST.get("template_id")
+    if template_id:
+        template = get_object_or_404(EmailTemplate, pk=template_id)
+        form = TemplateForm(club=club, instance=template)
+        # remove internal attributes from template.name - ORG 123 My Template -> My Template
+        print(form.fields["name"])
+        print(form.initial["name"])
+        form.initial["name"] = " ".join(template.name.split(" ")[2:])
+        action = "Edit"
+        action_button_word = "Save"
+    else:
+        form = TemplateForm(club=club)
+        template = None
+        action = "Add"
+        action_button_word = "Add"
+
+    return render(
+        request,
+        "organisations/club_menu/settings/template_form_htmx.html",
+        {
+            "club": club,
+            "form": form,
+            "action": action,
+            "template": template,
+            "action_button_word": action_button_word,
+        },
     )
