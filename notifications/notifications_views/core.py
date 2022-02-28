@@ -70,12 +70,16 @@ def _to_address_checker(to_address, context):
         return to_address, context
     # TODO: Change this to a variable if we ever use anything other than AWS SES
     # https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-simulator.html
+
     safe_address = "success@simulator.amazonses.com"
+
     # If the everyone user is set to a valid email then we send to that
     # If still set to the default (a@b.com) then we ignore
     everyone = User.objects.get(pk=RBAC_EVERYONE)
+
     if everyone.email == "a@b.com":
         return_address = safe_address
+
         if "email_body" in context:
             context[
                 "email_body"
