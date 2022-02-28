@@ -83,7 +83,7 @@
                                 {% cobalt_bs4_field member_form.send_welcome_pack %}
                             </div>
                             <br>
-                            <button class="btn btn-sm btn-success">Add Member</button>
+                            <button class="btn btn-sm btn-success" onclick="$('.modal').modal('hide');">Add Member</button>
                             <button type="reset" class="btn btn-sm btn-warning" data-dismiss="modal" aria-label="Close"
                                 onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
                             >Cancel

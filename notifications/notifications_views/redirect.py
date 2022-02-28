@@ -5,8 +5,22 @@ from post_office.models import Email
 from notifications.models import Snooper
 
 
+def email_create_click_link(message_id, path):
+    """Create a link to apply to an email so that when a user clicks on it we can record the
+    activity and redirect them to where they want to go
+
+    Args:
+        path(str): relative path they are trying to get to
+        message_id(str): Django Post Office message id
+    """
+
+    path = path.replace("/", "!")
+
+    return f"{message_id}/{path}"
+
+
 def email_click_handler(request, message_id, redirect_path):
-    """This is the entry point for email clicks so we know who has clicked on an email.
+    """This is the entry point for email clicks so we know who has clicked on a link in an email.
     Parameters are message_id (maps to Django Post Office id) and path. The path has ! instead of /
     """
 

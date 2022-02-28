@@ -31,7 +31,7 @@
 
                 </div>
                 {% if slug %}
-                    Short link is <a href="/{{ slug.redirect_path }}">http://{{ COBALT_HOSTNAME }}/{{ slug.slug }}</a>
+                    Short link is <a target="_blank" href="/{{ slug.redirect_path }}">http://{{ COBALT_HOSTNAME }}/{{ slug.slug }}</a>
                 {% endif %}
             </div>
 
@@ -63,3 +63,16 @@
 </div>
 
 </form>
+
+<script>
+
+
+    $( document ).ready(function() {
+
+        // only allow alphanumeric and minus sign for slug
+        $('#id_slug').keypress(function( e ) {
+            if(!/[0-9a-zA-Z-]/.test(String.fromCharCode(e.which)))
+            return false;
+        });
+    });
+</script>
