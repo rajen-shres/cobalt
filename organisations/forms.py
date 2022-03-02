@@ -378,17 +378,17 @@ class TemplateForm(forms.ModelForm):
             "html_content",
         )
 
-    # html_content = forms.CharField(
-    #     widget=SummernoteInplaceWidget(
-    #         attrs={
-    #             "summernote": {
-    #                 "height": "250",
-    #                 "codemirror": {"theme": "monokai"},
-    #                 "placeholder": "<br><br>Enter your template.",
-    #             }
-    #         }
-    #     )
-    # )
+    html_content = forms.CharField(
+        widget=SummernoteInplaceWidget(
+            attrs={
+                "summernote": {
+                    "height": "250",
+                    "codemirror": {"theme": "monokai"},
+                    "placeholder": "<br><br>Enter your template.",
+                }
+            }
+        )
+    )
     name = forms.CharField(max_length=50)
 
     def __init__(self, *args, **kwargs):

@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Prefetch
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -737,3 +738,10 @@ def edit_template_htmx(request, club):
             "action_button_word": action_button_word,
         },
     )
+
+
+@login_required()
+def template_preview_htmx(request):
+    """Preview a template as user creates it"""
+
+    return HttpResponse("hello")
