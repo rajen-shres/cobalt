@@ -495,8 +495,8 @@ def add_any_member_htmx(request, club):
 def add_member_search_htmx(request):
     """Search function for adding a member (registered, unregistered or from MPC"""
 
-    first_name_search = request.POST.get("first_name_search")
-    last_name_search = request.POST.get("last_name_search")
+    first_name_search = request.POST.get("member_first_name_search")
+    last_name_search = request.POST.get("member_last_name_search")
 
     # if there is nothing to search for, don't search
     if not first_name_search and not last_name_search:

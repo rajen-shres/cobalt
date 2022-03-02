@@ -695,9 +695,6 @@ def templates_htmx(request, club):
     for template in templates:
         template.name = " ".join(template.name.split(" ")[2:])
 
-    print(message)
-    print(templates)
-
     return render(
         request,
         "organisations/club_menu/settings/templates_htmx.html",
@@ -716,8 +713,6 @@ def edit_template_htmx(request, club):
         template = get_object_or_404(EmailTemplate, pk=template_id)
         form = TemplateForm(club=club, instance=template)
         # remove internal attributes from template.name - ORG 123 My Template -> My Template
-        print(form.fields["name"])
-        print(form.initial["name"])
         form.initial["name"] = " ".join(template.name.split(" ")[2:])
         action = "Edit"
         action_button_word = "Save"
@@ -744,4 +739,13 @@ def edit_template_htmx(request, club):
 def template_preview_htmx(request):
     """Preview a template as user creates it"""
 
-    return HttpResponse("hello")
+    html_content = request.POST.get("html_content")
+
+    print(html_content)
+    print(request.POST)
+
+    return render(
+        request,
+        "organisations/club_menu/settings/template_preview_htmx.html",
+        {"html_content": html_content},
+    )

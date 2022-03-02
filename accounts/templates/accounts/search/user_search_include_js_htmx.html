@@ -7,16 +7,6 @@
 {% load static %}
 
 <script>
-    // get other name to submit with HTMX query
-    function getFirstName(id){
-        return $('#id_first_name_search' + id).val()
-    }
-    function getLastName(id){
-        return $('#id_last_name_search' + id).val()
-    }
-    function getSystemNumber(id){
-        return $('#id_system_number' + id).val()
-    }
 
     // Called for any cancel event. Clear entries and hide
     function cancelLookup(){
