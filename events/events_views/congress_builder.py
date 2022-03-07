@@ -1,20 +1,18 @@
 """ This file contains all of the code relating to an convener building
     a congress or editing a congress. """
-
 from datetime import date
 
 import pytz
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import ProtectedError
-from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import strip_tags
 
 from cobalt.settings import (
     TIME_ZONE,
-    COBALT_HOSTNAME,
 )
 from events.events_views.core import sort_events_by_start_date
 from logs.views import log_event
@@ -45,6 +43,18 @@ from utils.views import check_slug_is_free, create_new_slug
 TZ = pytz.timezone(TIME_ZONE)
 
 
+def _increment_date_by_a_year(old_date):
+    """Add a year to a date if it is not None"""
+    if not old_date:
+        return None
+
+    # Add a year, handle 29th Feb (move to 1 March)
+    try:
+        return old_date.replace(year=old_date.year + 1)
+    except ValueError:
+        return old_date + (date(old_date.year + 1, 1, 1) - date(old_date.year, 1, 1))
+
+
 def copy_congress_from_another(congress_id: int):
     """Copy a congress from another congress. Also copy events."""
 
@@ -52,6 +62,23 @@ def copy_congress_from_another(congress_id: int):
     original_congress = get_object_or_404(Congress, pk=congress_id)
     congress.pk = None
     congress.status = "Draft"
+
+    # Most things can be left, but dates need some changes
+
+    congress.start_date = _increment_date_by_a_year(congress.start_date)
+    congress.end_date = _increment_date_by_a_year(congress.end_date)
+    congress.date_string = None
+    congress.entry_open_date = _increment_date_by_a_year(congress.entry_open_date)
+    congress.entry_close_date = _increment_date_by_a_year(congress.entry_close_date)
+
+    # increment year
+    if congress.year:
+        congress.year += 1
+
+    congress.created_date = timezone.now()
+    congress.last_updated = timezone.now()
+    congress.entry_close_date = _increment_date_by_a_year(congress.entry_close_date)
+
     congress.save()
 
     # Also copy events and sessions

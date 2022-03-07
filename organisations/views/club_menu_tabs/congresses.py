@@ -18,7 +18,9 @@ def congress_list_htmx(request, club):
     congress_master = get_object_or_404(
         CongressMaster, pk=request.POST.get("congress_master_id")
     )
-    congresses = Congress.objects.filter(congress_master=congress_master)
+    congresses = Congress.objects.filter(congress_master=congress_master).order_by(
+        "-pk"
+    )
 
     return render(
         request,
