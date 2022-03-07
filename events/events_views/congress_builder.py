@@ -314,9 +314,9 @@ def create_congress_wizard_5(request, step_list, congress):
     if request.method == "POST":
         form = CongressForm(request.POST)
         if form.is_valid():
-            congress.payment_method_system_dollars = form.cleaned_data[
-                "payment_method_system_dollars"
-            ]
+            # congress.payment_method_system_dollars = form.cleaned_data[
+            #     "payment_method_system_dollars"
+            # ]
             congress.payment_method_bank_transfer = form.cleaned_data[
                 "payment_method_bank_transfer"
             ]
