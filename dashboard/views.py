@@ -152,7 +152,7 @@ def get_announcements_logged_out():
 
 
 def slug(request, slug_name):
-    """We come last in the list of URLs and try to convert the slug to a redirected path"""
+    """Try to convert the slug to a redirected path"""
 
     slug_item = Slug.objects.filter(slug=slug_name).first()
 

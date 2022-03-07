@@ -31,7 +31,7 @@
 
                 </div>
                 {% if slug %}
-                    Short link is <a target="_blank" href="/{{ slug.redirect_path }}">http://{{ COBALT_HOSTNAME }}/{{ slug.slug }}</a>
+                    Short link is <a target="_blank" href="/go/{{ slug.redirect_path }}">http://{{ COBALT_HOSTNAME }}/go/{{ slug.slug }}</a>
                 {% endif %}
             </div>
 
@@ -57,7 +57,7 @@
 
             <div class="col-2 justify-content-center align-self-center">
                 <a href="javascript:void(0)"
-                    onclick='help("Short Name", "You can create a unique shortname for your event which allows you to send links to e.g. <b>myabf.com.au/my_short_name</b> instead of having to use the congress number, e.g. myabf.com.au/events/congress/view/9584");'>help</a>
+                    onclick='help("Short Name", "You can create a unique shortname for your event which allows you to send links to e.g. <b>myabf.com.au/go/my_short_name</b> instead of having to use the congress number, e.g. myabf.com.au/events/congress/view/9584");'>help</a>
         </div>
     </div>
 </div>
