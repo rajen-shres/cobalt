@@ -150,19 +150,20 @@
                                 </div>
                                 <div class="card-body">
 
-                                    {#                                    <div class="row">#}
-                                    {#                                        <div class="col-6">#}
-                                    {#                                            <div class="form-check">#}
-                                    {#                                                <label class="form-check-label">#}
-                                    {#                                                    <input class="form-check-input" id="id_payment_method_system_dollars" name="payment_method_system_dollars" type="checkbox" {% if form.payment_method_system_dollars.value %}checked="Checked" {% endif %}>#}
-                                    {#                                                    Accept Card Payments (via {{ BRIDGE_CREDITS }})#}
-                                    {#                                                    <span class="form-check-sign">#}
-                                    {#                                                        <span class="check"></span>#}
-                                    {#                                                    </span>#}
-                                    {#                                                </label>#}
-                                    {#                                            </div>#}
-                                    {#                                        </div>#}
-                                    {#                                    </div>#}
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-check">
+                                                <label class="form-check-label">
+                                                    <input disabled class="form-check-input" id="id_payment_method_system_dollars" name="payment_method_system_dollars" type="checkbox" {% if form.payment_method_system_dollars.value %}checked="Checked" {% endif %}>
+                                                    Accept Card Payments (via {{ BRIDGE_CREDITS }})
+                                                    <span class="form-check-sign">
+                                                        <span class="check"></span>
+                                                    </span>
+                                                    <div class="text-danger">Option Temporarily Disabled. Sorry for any inconvenience.</div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
 
 
                                     <div class="row">
