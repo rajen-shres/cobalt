@@ -75,6 +75,10 @@ def events_payments_secondary_callback(status, route_payload):
         team_mate_who_triggered=payment_user,
     )
 
+    # Check status of entry now
+    for paid_event_entry_player in paid_event_entry_players:
+        paid_event_entry_player.event_entry.check_if_paid()
+
 
 def _events_payments_secondary_callback_process_basket(
     event_entry, already_handled_event_entry_players, team_mate_who_triggered

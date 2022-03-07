@@ -1618,6 +1618,16 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
         if event_entry_player.payment_type == "Free":
             event_entry_player.delete()
         else:
+
+            contact_member(
+                member=event_entry_player.player,
+                msg="Convener removed you from team",
+                contact_type="Email",
+                html_msg=f"{request.user.full_name} has removed you from a team entry to {event_entry.event}.<br><br>",
+                link="/events/view",
+                subject="Removed from team by Convener",
+            )
+
             tba = User.objects.get(pk=TBA_PLAYER)
             event_entry_player.player = tba
             event_entry_player.save()

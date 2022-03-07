@@ -734,6 +734,9 @@ def change_player_entry_ajax(request):
     if not event_entry.user_can_change(request.user):
         return JsonResponse({"message": "Access Denied"})
 
+    # Check if this player is changing themselves so we take them away from the entry screen
+    user_is_player = request.user == event_entry_player.player
+
     # update
     old_player = event_entry_player.player
     event_entry_player.player = member
@@ -903,7 +906,10 @@ def change_player_entry_ajax(request):
         event_entry.check_if_paid()
 
     # the HTML screen reloads but we need to tell the user what happened first
-    return JsonResponse({"message": "Success", "html": return_html})
+    # Also if the player has just deleted themselves then take them back to the dashboard
+    return JsonResponse(
+        {"message": "Success", "html": return_html, "user_is_player": user_is_player}
+    )
 
 
 @login_required()

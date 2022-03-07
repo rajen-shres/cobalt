@@ -415,16 +415,24 @@
                     // not entered so swap player - the search_id is the id of the player event entry
                     $.getJSON("{% url "events:change_player_entry_ajax" %}" + "?member_id=" + member + "&player_event_entry=" + search_id)
                         .done(response => {
-                        if (response['message'] == "Success"){
+                        if (response['message'] === "Success"){
                             // update page
                             $("#cobalt-pic-" + search_id).attr("src", "/media/" + pic);
                             $("#player-name-" + search_id).html(name);
                             $("#popup-name-" + search_id).html(name);
+                            let box_title = "Player Changed";
+                            if (response['user_is_player']){
+                                box_title = "Removed You from this Team";
+                            }
                             Swal.fire({
-                                title: 'Player Changed',
+                                title: box_title,
                                 html: response['html'],
                             }).then((result) => {
-                                reloadPage();
+                                if (response['user_is_player']){
+                                    window.location.replace("/");
+                                } else {
+                                    reloadPage();
+                                }
                             })
                         }
                     });
