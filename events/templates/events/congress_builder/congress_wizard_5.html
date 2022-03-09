@@ -154,11 +154,12 @@
                                         <div class="col-6">
                                             <div class="form-check">
                                                 <label class="form-check-label">
-                                                    <input class="form-check-input" id="id_payment_method_system_dollars" name="payment_method_system_dollars" type="checkbox" {% if form.payment_method_system_dollars.value %}checked="Checked" {% endif %}>
+                                                    <input disabled class="form-check-input" id="id_payment_method_system_dollars" name="payment_method_system_dollars" type="checkbox" {% if form.payment_method_system_dollars.value %}checked="Checked" {% endif %}>
                                                     Accept Card Payments (via {{ BRIDGE_CREDITS }})
                                                     <span class="form-check-sign">
                                                         <span class="check"></span>
                                                     </span>
+                                                    <div class="text-danger">Bridge Credits cannot currently be disabld as a payment method</div>
                                                 </label>
                                             </div>
                                         </div>
