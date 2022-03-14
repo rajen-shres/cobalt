@@ -2,7 +2,9 @@
 
 <!doctype html>
 <html>
+
     {% include "notifications/django_post_office_core_templates/po_include_head.html" %}
+
     <body>
         <table border="0" cellpadding="0" cellspacing="0" class="body">
             <tr>
@@ -11,8 +13,7 @@
                     <div class="content">
 
                         <!-- START CENTERED WHITE CONTAINER -->
-                        <span class="preheader"
-                            style="color: transparent; display: none; height: 0; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; visibility: hidden; width: 0;">{{ email_body|safe|truncatechars_html:50 }}</span>
+                        <span class="preheader">{{ email_body| safe }}</span>
 
                         <!-- START HEADER -->
                         <div class="header">
@@ -75,8 +76,6 @@
 
                         <!-- START FOOTER -->
                         {% include "notifications/django_post_office_core_templates/po_include_footer.html" %}
-
-
                         <!-- END FOOTER -->
 
                         <!-- END CENTERED WHITE CONTAINER --></div>
