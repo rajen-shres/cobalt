@@ -102,42 +102,45 @@ def _events_payments_secondary_callback_process_basket(
     # checked out, but only if we can do it without manual payment. And also send the emails.
     # We probably shouldn't do any team mate allowed payments as this user may not have access
 
-    # get all event_entry_players for this entry
-    event_entry_all_players = EventEntryPlayer.objects.filter(event_entry=event_entry)
+    # TODO: NOT SURE WHAT TO DO WITH THIS. FOR NOW, DON'T PROCESS ANYTHING
 
-    for event_entry_all_player in event_entry_all_players:
-
-        # Skip any that have already been handled
-        if event_entry_all_player in already_handled_event_entry_players:
-            continue
-
-        # From the point of view of the primary entrant
-        if (
-            # primary entrant said they would pay
-            event_entry_all_player.payment_type == "my-system-dollars"
-            # entry isn't yet paid
-            and event_entry_all_player.payment_status not in ["Paid", "Free"]
-            # payment works
-            and payment_api_batch(
-                member=primary_entrant,
-                description=event_entry.event.event_name,
-                amount=event_entry_all_player.entry_fee
-                - event_entry_all_player.payment_received,
-                organisation=event_entry.event.congress.congress_master.org,
-                payment_type="Entry to an event",
-                book_internals=False,
-            )
-        ):
-            _mark_event_entry_player_as_paid_and_book_payments(
-                event_entry_all_player, primary_entrant
-            )
+    # # get all event_entry_players for this entry
+    # event_entry_all_players = EventEntryPlayer.objects.filter(event_entry=event_entry)
+    #
+    # for event_entry_all_player in event_entry_all_players:
+    #
+    #     # Skip any that have already been handled
+    #     if event_entry_all_player in already_handled_event_entry_players:
+    #         continue
+    #
+    #     # From the point of view of the primary entrant
+    #     if (
+    #         # primary entrant said they would pay
+    #         event_entry_all_player.payment_type == "my-system-dollars"
+    #         # entry isn't yet paid
+    #         and event_entry_all_player.payment_status not in ["Paid", "Free"]
+    #         # payment works
+    #         and payment_api_batch(
+    #             member=primary_entrant,
+    #             description=event_entry.event.event_name,
+    #             amount=event_entry_all_player.entry_fee
+    #             - event_entry_all_player.payment_received,
+    #             organisation=event_entry.event.congress.congress_master.org,
+    #             payment_type="Entry to an event",
+    #             book_internals=False,
+    #         )
+    #     ):
+    #         _mark_event_entry_player_as_paid_and_book_payments(
+    #             event_entry_all_player, primary_entrant
+    #         )
 
     # Check if status has changed
     event_entry.check_if_paid()
 
     # Let people know
     _send_notifications(
-        event_entry_players=event_entry_all_players,
+        # event_entry_players=event_entry_all_players,
+        event_entry_players=already_handled_event_entry_players,
         event_entries=[event_entry],
         payment_user=primary_entrant,
         triggered_by_team_mate_payment=True,
@@ -191,7 +194,7 @@ def events_payments_primary_callback(status, route_payload):
     _send_notifications(notify_event_entry_players, notify_event_entries, payment_user)
 
     # Tidy up
-    _clean_up(payment_user)
+    _clean_up(paid_event_entries)
 
 
 def _get_player_who_is_paying(status, route_payload):
@@ -412,9 +415,9 @@ def _update_entries_process_their_system_dollars_make_payments(event_entries_by_
     for this_player in event_entries_by_player:
         total_amount_for_player = 0.0
         for event_entry_player in event_entries_by_player[this_player]:
-            total_amount_for_player += float(
+            total_amount_for_player += float(event_entry_player.entry_fee) - float(
                 event_entry_player.payment_received
-            ) - float(event_entry_player.entry_fee)
+            )
 
         # we now have the players total for all events in all congresses. See if this is enough.
         player_balance = payments_core.get_balance(this_player)
@@ -621,21 +624,15 @@ def _send_notifications_notify_conveners(event_entries):
         )
 
 
-def _clean_up(payment_user):
-    """delete any left over basket items.
-
-    If a user goes to the checkout and then goes to another screen and adds to the basket, then the checkout
-    screen is not updated.
-    It will checkout and pay for what is shown on the checkout screen (missing the later added items) and those items
-    will be checked out too but not paid for.
-
-    The basket isn't intended to be a long term thing.
-    """
+def _clean_up(paid_event_entries):
+    """delete any left over basket items."""
 
     # TODO: Use https://github.com/serkanyersen/ifvisible.js or similar to reload the checkout page if a user returns to it
 
     # Any payments should remove the entry from the shopping basket
-    BasketItem.objects.filter(player=payment_user).delete()
+    BasketItem.objects.filter(
+        event_entry__in=paid_event_entries.values_list("id")
+    ).delete()
 
 
 def get_basket_for_user(user):

@@ -147,6 +147,7 @@ def send_cobalt_email_with_template(
     additional_words: goes after main body
     link: link for button e.g. /dashboard
     link_text: words to go on link button
+    link_colour: default, primary, warning, danger, success, info
     box_colour: default, primary, warning, danger, success, info
 
     """
@@ -162,6 +163,8 @@ def send_cobalt_email_with_template(
         context["img_src"] = "notifications/img/myabf-email.png"
     if "box_colour" not in context:
         context["box_colour"] = "primary"
+    if "link_colour" not in context:
+        context["link_colour"] = "primary"
     if "subject" not in context and "title" in context:
         context["subject"] = context["title"]
 
