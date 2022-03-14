@@ -816,6 +816,11 @@ def admin_evententry_delete(request, evententry_id):
                 # a refund is due. Give it to the person who made the entry.
                 if player.id == TBA_PLAYER:
                     player = event_entry.primary_entrant
+                    # We don't want to email TBA though
+                    is_tba = True
+                else:
+                    is_tba = False
+
                 amount = float(form.cleaned_data["refund"])
                 amount_str = "%.2f credits" % amount
 
@@ -877,14 +882,15 @@ def admin_evententry_delete(request, evententry_id):
                 email_body += f"Please contact {request.user.first_name} directly if you have any queries.<br><br>"
 
                 # send
-                contact_member(
-                    member=player,
-                    msg="Entry to %s cancelled" % event_entry.event.event_name,
-                    contact_type="Email",
-                    html_msg=email_body,
-                    link="/events/view",
-                    subject="Event Entry Cancelled - %s" % event_entry.event,
-                )
+                if not is_tba:
+                    contact_member(
+                        member=player,
+                        msg="Entry to %s cancelled" % event_entry.event.event_name,
+                        contact_type="Email",
+                        html_msg=email_body,
+                        link="/events/view",
+                        subject="Event Entry Cancelled - %s" % event_entry.event,
+                    )
 
         # Log it
         EventLog(

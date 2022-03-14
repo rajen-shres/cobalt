@@ -1,0 +1,87 @@
+{% load static %}
+
+<!doctype html>
+<html>
+    {% include "notifications/django_post_office_core_templates/po_include_head.html" %}
+    <body>
+        <table border="0" cellpadding="0" cellspacing="0" class="body">
+            <tr>
+                <td>&nbsp;</td>
+                <td class="container">
+                    <div class="content">
+
+                        <!-- START CENTERED WHITE CONTAINER -->
+                        <span class="preheader">{{ email_body| safe }}</span>
+
+                        <!-- START HEADER -->
+                        <div class="header">
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td class="align-center">
+                                        <a href="http://{{ host }}" target="_blank"><img src="http://{{ host }}{% static "assets/img/abftechlogo-grey.png" %}" width="200" alt="Logo" align="center"></a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- END HEADER -->
+                        <table border="0" cellpadding="0" cellspacing="0" class="main">
+
+                            <!-- START NOTIFICATION BANNER -->
+                            <tr>
+                                <td>
+                                    <table border="0" cellpadding="0" cellspacing="0" class="alert alert-success">
+                                        <tr>
+                                            <td align="center"> {{ title }} </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- END NOTIFICATION BANNER -->
+
+                            <!-- START MAIN CONTENT AREA --><tr>
+                                <td class="wrapper">
+                                    <table border="0" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td>
+                                                <p>Hi {{ name }},</p>
+                                                {{ email_body|safe }}
+                                                <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td align="center">
+                                                                <table border="0" cellpadding="0" cellspacing="0">
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td> <a href="http://{{ host|safe }}{{ link|safe }}" target="_blank">{{ link_text }}</a> </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                <p>{{ additional_words }}</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- END MAIN CONTENT AREA -->
+                        </table>
+
+                        <!-- START FOOTER -->
+                        {% include "notifications/django_post_office_core_templates/po_include_footer.html" %}
+
+
+                        <!-- END FOOTER -->
+
+                        <!-- END CENTERED WHITE CONTAINER --></div>
+                </td>
+                <td>&nbsp;</td>
+            </tr>
+        </table>
+    </body>
+</html>
