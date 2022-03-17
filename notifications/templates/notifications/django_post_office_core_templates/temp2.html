@@ -1,7 +1,9 @@
 {% load post_office %}
 {% load static %}
 
+{#works but button not showing#}
 <!doctype html>
+
 <html>
 
     {% include "notifications/django_post_office_core_templates/po_include_head.html" %}
@@ -67,23 +69,6 @@
                                                         </tr>
                                                     </tbody>
                                                 </table>
-
-                                                <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td align="center">
-                                                                <table border="0" cellpadding="0" cellspacing="0">
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <td> <a href="http://{{ host|safe }}{{ link|safe }}" target="_blank">{{ link_text }}</a> </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-
                                                 <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">{{ additional_words|safe }}</p>
                                             </td>
                                         </tr>
