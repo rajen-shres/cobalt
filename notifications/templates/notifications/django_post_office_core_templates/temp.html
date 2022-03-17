@@ -1,10 +1,11 @@
 {% load static %}
 
+{#works - no logo#}
+
 <!doctype html>
 <html>
 
     {% include "notifications/django_post_office_core_templates/po_include_head.html" %}
-
     <body>
         <table border="0" cellpadding="0" cellspacing="0" class="body">
             <tr>
@@ -13,7 +14,7 @@
                     <div class="content">
 
                         <!-- START CENTERED WHITE CONTAINER -->
-                        <span class="preheader">{{ email_body| safe }}</span>
+                        {#            <span class="preheader">P1 {{ email_body|striptags|truncatechars:100|safe }}</span>#}
 
                         <!-- START HEADER -->
                         <div class="header">
