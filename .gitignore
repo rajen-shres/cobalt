@@ -15,6 +15,7 @@ nohup.out
 geckodriver.log
 newrelic.ini
 htmlcov/
+venv
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
