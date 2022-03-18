@@ -7,6 +7,11 @@ ROOT = "notifications/templates/notifications/django_post_office_core_templates/
 
 SYSTEM_EMAIL_TEMPLATES = [
     (
+        "default",
+        "po_email_default.html",
+        "This is the main system email with a button and link.",
+    ),
+    (
         "button",
         "po_email_with_button.html",
         "This is the main system email with a button and link.",
