@@ -608,6 +608,12 @@
                 return false;
             });
 
+            // for an individual enable the buttons
+            {% if event.player_format == "Individual" %}
+                $("#id_checkout").prop("disabled", false);
+                $("#id_cart").prop("disabled", false);
+            {% endif %}
+
 
         });
     </script>

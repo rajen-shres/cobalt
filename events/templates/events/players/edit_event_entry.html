@@ -356,6 +356,8 @@
                         Withdraw
                         {% if event.player_format == "Pairs" %}
                             Pair
+                        {% elif event.player_format == "Individual" %}
+                            Player
                         {% else %}
                             Whole Team
                         {% endif %}
