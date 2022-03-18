@@ -1,7 +1,5 @@
 {% load static %}
 
-{#works - no logo#}
-
 <!doctype html>
 <html>
 
@@ -14,7 +12,7 @@
                     <div class="content">
 
                         <!-- START CENTERED WHITE CONTAINER -->
-                        {#            <span class="preheader">P1 {{ email_body|striptags|truncatechars:100|safe }}</span>#}
+                        <span class="preheader">{{ email_body|safe|truncatechars_html:50 }}</span>
 
                         <!-- START HEADER -->
                         <div class="header">
@@ -35,7 +33,7 @@
                                 <td>
                                     <table border="0" cellpadding="0" cellspacing="0" class="alert alert-success">
                                         <tr>
-                                            <td align="center"> {{ title }} </td>
+                                            <td align="center"> Success! Something good happened. </td>
                                         </tr>
                                     </table>
                                 </td>
@@ -48,8 +46,8 @@
                                     <table border="0" cellpadding="0" cellspacing="0">
                                         <tr>
                                             <td>
-                                                <p>Hi {{ name }},</p>
-                                                {{ email_body|safe }}
+                                                <p>Hi George,</p>
+                                                <p>Congratulations! Something good has happened.</p>
                                                 <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
                                                     <tbody>
                                                         <tr>
@@ -65,7 +63,7 @@
                                                         </tr>
                                                     </tbody>
                                                 </table>
-                                                <p>{{ additional_words }}</p>
+                                                <p>Thanks for being a great customer. Let it be!</p>
                                             </td>
                                         </tr>
                                     </table>
@@ -76,7 +74,9 @@
                         </table>
 
                         <!-- START FOOTER -->
+
                         {% include "notifications/django_post_office_core_templates/po_include_footer.html" %}
+
                         <!-- END FOOTER -->
 
                         <!-- END CENTERED WHITE CONTAINER --></div>
