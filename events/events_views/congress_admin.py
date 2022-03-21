@@ -283,6 +283,11 @@ def admin_evententryplayer(request, evententryplayer_id):
             # check if event entry payment status has changed
             event_entry_player.event_entry.check_if_paid()
 
+            # Delete from players basket if present
+            BasketItem.objects.filter(
+                event_entry=event_entry_player.event_entry
+            ).delete()
+
             messages.success(
                 request, "Entry updated", extra_tags="cobalt-message-success"
             )
@@ -1168,6 +1173,9 @@ def _admin_email_common_thread(request, congress, subject, body, recipients, bat
     """we run a thread so we can return to the user straight away.
     Probably not necessary now we have Django Post Office"""
 
+    # For some old congresses, contact_email was not required. Should be able to remove this in the future
+    reply_to = congress.contact_email or request.user.email
+
     for recipient in recipients:
 
         context = {
@@ -1182,7 +1190,7 @@ def _admin_email_common_thread(request, congress, subject, body, recipients, bat
             to_address=recipient[2],
             context=context,
             template="system - two headings",
-            reply_to=request.user.email,
+            reply_to=reply_to,
             batch_id=batch_id,
         )
 

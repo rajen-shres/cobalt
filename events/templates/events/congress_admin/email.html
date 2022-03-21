@@ -25,6 +25,11 @@
             <div class="card">
                 <div class="card-header card-header-warning">
                     <h2>Email</h2>
+                    {% if congress.contact_email %}
+                        <h4>Replies will go to {{ congress.contact_email }}</h4>
+                    {% else %}
+                        <h4>Replies will go to {{ request.user.email }}</h4>
+                    {% endif %}
                     {% if event %}
                         <h3>{{ event.event_name }} in {{ congress }}</h3>
                     {% else %}

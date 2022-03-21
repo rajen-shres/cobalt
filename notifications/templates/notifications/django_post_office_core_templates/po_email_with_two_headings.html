@@ -1,43 +1,42 @@
 {% load post_office %}
+{% load static %}
 
 <!doctype html>
-<html lang="en">
+<html>
 
     {% include "notifications/django_post_office_core_templates/po_include_head.html" %}
 
-    <body>
-        <table border="0" cellpadding="0" cellspacing="0" class="body">
+    <body style="font-family: Helvetica, sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; background-color: #f6f6f6; margin: 0; padding: 0;">
+        <table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background-color: #f6f6f6;" width="100%" bgcolor="#f6f6f6">
             <tr>
-                <td>&nbsp;</td>
-                <td class="container">
-                    <div class="content">
+                <td style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top;" valign="top">&nbsp;</td>
+                <td class="container" style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top; margin: 0 auto !important; max-width: 600px; padding: 0; padding-top: 24px; width: 600px;" width="600" valign="top">
+                    <div class="content" style="box-sizing: border-box; display: block; margin: 0 auto; max-width: 600px; padding: 0;">
 
                         <!-- START CENTERED WHITE CONTAINER -->
-                        <span class="preheader">{{ email_body| safe |truncatechars_html:50 }}</span>
+                        <span class="preheader" style="color: transparent; display: none; height: 0; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; visibility: hidden; width: 0;">{{ email_body|safe|truncatechars_html:50 }}</span>
 
                         <!-- START HEADER -->
-                        <div class="header">
-                            <table border="0" cellpadding="0" cellspacing="0">
+                        <div class="header" style="margin-bottom: 24px; margin-top: 0; width: 100%;">
+                            <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; min-width: 100%;" width="100%">
                                 <tr>
-                                    <td class="align-center">
-                                        <a href="http://{{ host }}" target="_blank"><img src="{% inline_image img_src %}" alt="Logo" align="center"></a>
+                                    <td class="align-center" style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top; text-align: center;" valign="top" align="center">
+                                        <a href="http://{{ host }}" target="_blank"><img src="{% inline_image img_src %}" alt="" align="center"></a>
                                     </td>
                                 </tr>
                             </table>
                         </div>
 
                         <!-- END HEADER -->
-                        <table border="0" cellpadding="0" cellspacing="0" class="main">
+                        <table border="0" cellpadding="0" cellspacing="0" class="main" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #fff; border-radius: 4px;" width="100%">
 
                             <!-- START NOTIFICATION BANNER -->
                             <tr>
-                                <td>
-                                    <table border="0" cellpadding="0" cellspacing="0" class="alert alert-{{ box_colour }}">
+                                <td style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top;" valign="top">
+                                    <table border="0" cellpadding="0" cellspacing="0" class="alert alert-{{ box_colour }}" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; min-width: 100%;" width="100%">
                                         <tr>
-                                            <td align="center"> {{ title1 }} </td>
-                                        </tr>
-                                        <tr>
-                                            <td align="center"> {{ title2 }} </td>
+                                            <td align="center" style="font-family: Helvetica, sans-serif; vertical-align: top; font-size: 14px; border-radius: 4px 4px 0 0; color: #ffffff; font-weight: 400; padding: 24px; text-align: center; background-color: #1abc9c;"
+                                                valign="top" > {{ title1 }} <br><br><span style="font-size: 22px; font-weight: bold;"> {{ title2 }} </span></td>
                                         </tr>
                                     </table>
                                 </td>
@@ -45,29 +44,35 @@
 
                             <!-- END NOTIFICATION BANNER -->
 
-                            <!-- START MAIN CONTENT AREA --><tr>
-                                <td class="wrapper">
-                                    <table border="0" cellpadding="0" cellspacing="0">
+                            <!-- START MAIN CONTENT AREA -->
+                            <tr>
+                                <td class="wrapper" style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 24px;" valign="top">
+                                    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
                                         <tr>
-                                            <td>
-                                                <p>Hi {{ name }},</p>
-                                                {{ email_body|safe }}
-                                                <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td align="center">
-                                                                <table border="0" cellpadding="0" cellspacing="0">
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <td> <a href="http://{{ host }}{{ link }}" target="_blank">{{ link_text }}</a> </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                                <p>{{ additional_words }}</p>
+                                            <td style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top;" valign="top">
+                                                <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">Hi {{ name }},</p>
+                                                <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">{{ email_body|safe }}</p>
+
+                                                {#                                            Only show button if link provided#}
+                                                {% if link %}
+
+                                                    <!-- START BUTTON -->
+                                                    <p style="text-align: center;">
+                                                        <a href="http://{{ host }}{{ link }}" style="background-color: #3498db; font-size: 18px; font-family: Helvetica, sans-serif; text-decoration: none; padding: 8px 6px; color: #ffffff; border-radius: 2px; display: inline-block; mso-padding-alt: 0;">
+                                                            <!--[if mso]>
+                                                    <i style="letter-spacing: 25px; mso-font-width: -100%; mso-text-raise: 30pt;">&nbsp;</i>
+                                                    <![endif]-->
+                                                            <span style="mso-text-raise: 15pt;">{{ link_text }}</span>
+                                                            <!--[if mso]>
+                                                    <i style="letter-spacing: 25px; mso-font-width: -100%;">&nbsp;</i>
+                                                    <![endif]-->
+                                                        </a>
+                                                    </p>
+                                                    <!-- END BUTTON -->
+
+                                                {% endif %}
+
+                                                <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">{{ additional_words|safe }}</p>
                                             </td>
                                         </tr>
                                     </table>
@@ -77,12 +82,18 @@
                             <!-- END MAIN CONTENT AREA -->
                         </table>
 
+                        <!-- START FOOTER -->
+
                         {% include "notifications/django_post_office_core_templates/po_include_footer.html" %}
 
-                        <!-- END CENTERED WHITE CONTAINER --></div>
+                        <!-- END FOOTER -->
+
+                        <!-- END CENTERED WHITE CONTAINER -->
+                    </div>
                 </td>
-                <td>&nbsp;</td>
+                <td style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top;" valign="top">&nbsp;</td>
             </tr>
         </table>
     </body>
+
 </html>
