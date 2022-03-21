@@ -21,7 +21,7 @@
                             <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; min-width: 100%;" width="100%">
                                 <tr>
                                     <td class="align-center" style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top; text-align: center;" valign="top" align="center">
-                                        <a href="http://{{ host }}" target="_blank"><img src="{% inline_image img_src %}" alt="Logo" align="center"></a>
+                                        <a href="http://{{ host }}" target="_blank"><img src="{% inline_image img_src %}" alt="" align="center"></a>
                                     </td>
                                 </tr>
                             </table>
@@ -36,7 +36,7 @@
                                     <table border="0" cellpadding="0" cellspacing="0" class="alert alert-{{ box_colour }}" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; min-width: 100%;" width="100%">
                                         <tr>
                                             <td align="center" style="font-family: Helvetica, sans-serif; vertical-align: top; font-size: 14px; border-radius: 4px 4px 0 0; color: #ffffff; font-weight: 400; padding: 24px; text-align: center; background-color: #1abc9c;"
-                                                valign="top" bgcolor="#1abc9c"> {{ title }} </td>
+                                                valign="top" > {{ title }} </td>
                                         </tr>
                                     </table>
                                 </td>
@@ -53,22 +53,24 @@
                                                 <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">Hi {{ name }},</p>
                                                 <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">{{ email_body|safe }}</p>
 
-                                                <table border="0" cellpadding="0" cellspacing="0"
-                                                    style=" box-sizing: border-box; min-width: 100% !important; width: 100%;" class="btn btn-primary">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td align="center" style="background-color: #ffffff; border-radius: 4px; text-align: center;">
-                                                                <table border="0" cellpadding="0" cellspacing="0">
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <td> <a href="http://{{ host|safe }}{{ link|safe }}" target="_blank">{{ link_text }}</a> </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
+                                                {#                                            Only show button if link provided#}
+                                                {% if link %}
+
+                                                    <!-- START BUTTON -->
+                                                    <p style="text-align: center;">
+                                                        <a href="http://{{ host }}{{ link }}" style="background-color: #9c27b0; font-size: 18px; font-family: Helvetica, Arial, sans-serif; font-weight: bold; text-decoration: none; padding: 8px 6px; color: #ffffff; border-radius: 5px; display: inline-block; mso-padding-alt: 0;">
+                                                            <!--[if mso]>
+                                                    <i style="letter-spacing: 25px; mso-font-width: -100%; mso-text-raise: 30pt;">&nbsp;</i>
+                                                    <![endif]-->
+                                                            <span style="mso-text-raise: 15pt;">{{ link_text }}</span>
+                                                            <!--[if mso]>
+                                                    <i style="letter-spacing: 25px; mso-font-width: -100%;">&nbsp;</i>
+                                                    <![endif]-->
+                                                        </a>
+                                                    </p>
+                                                    <!-- END BUTTON -->
+
+                                                {% endif %}
 
                                                 <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">{{ additional_words|safe }}</p>
                                             </td>

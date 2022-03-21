@@ -118,7 +118,7 @@ def _email_address_on_bounce_list(to_address):
 def send_cobalt_email_with_template(
     to_address,
     context,
-    template="system - button",
+    template="system - default",
     sender=None,
     priority="medium",
     batch_id=None,
@@ -156,6 +156,8 @@ def send_cobalt_email_with_template(
     if _email_address_on_bounce_list(to_address):
         logger.info(f"Ignoring email on bounce list {to_address}")
         return
+
+    # TODO: link_colour and box_colour are not yet implemented in the template. Setting a value has no effect
 
     # Augment context
     context["host"] = COBALT_HOSTNAME
@@ -600,7 +602,6 @@ def email_contact(request, member_id):
         send_cobalt_email_with_template(
             to_address=member.email,
             context=context,
-            template="system - no button",
             reply_to=request.user.email,
         )
 
