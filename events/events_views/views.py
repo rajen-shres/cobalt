@@ -808,7 +808,8 @@ def edit_event_entry(request, congress_id, event_id, edit_flag=None, pay_status=
             "event_entry": event_entry,
             "event_entry_players": event_entry_players,
             "categories": categories,
-            "edit_flag": edit_flag,
+            # Easiest way to get rid of edit/view is to hardcode the edit_flag
+            "edit_flag": True,
             "in_basket": in_basket,
             "pay_all": pay_all,
             "payment_methods": payment_methods,

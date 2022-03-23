@@ -44,13 +44,14 @@
                         <h2>{{ event.event_name }} in {{ congress.name }}</h2>
 
                         <!-- Edit checkbox -->
-                        <div class="text-left">
-                            <span class="font-weight-bold" style="font-size: 120%">Edit Entry</span>
-                            <input type="checkbox" id="enable_edit" data-toggle="toggle" data-size="sm"
-                                data-onstyle="danger"
-                                {% if edit_flag %} checked {% endif %}
-                            >
-                        </div>
+                        {#                Get rid of this#}
+                        {#                        <div class="text-left">#}
+                        {#                            <span class="font-weight-bold" style="font-size: 120%">Edit Entry</span>#}
+                        {#                            <input type="checkbox" id="enable_edit" data-toggle="toggle" data-size="sm"#}
+                        {#                                data-onstyle="danger"#}
+                        {#                                {% if edit_flag %} checked {% endif %}#}
+                        {#                            >#}
+                        {#                        </div>#}
                         {% if in_basket %}
                             <h3>This item is still in
                                 {% if event_entry.primary_entrant == request.user %}
