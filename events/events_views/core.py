@@ -194,7 +194,7 @@ def events_payments_primary_callback(status, route_payload):
     _send_notifications(notify_event_entry_players, notify_event_entries, payment_user)
 
     # Tidy up
-    _clean_up(paid_event_entries)
+    _clean_up(notify_event_entries)
 
 
 def _get_player_who_is_paying(status, route_payload):
@@ -624,14 +624,11 @@ def _send_notifications_notify_conveners(event_entries):
         )
 
 
-def _clean_up(paid_event_entries):
-    """delete any left over basket items."""
+def _clean_up(notify_event_entries):
+    """delete any leftover basket items. If we are notifying a user about this, then it should be removed."""
 
-    # TODO: Use https://github.com/serkanyersen/ifvisible.js or similar to reload the checkout page if a user returns to it
-
-    # Any payments should remove the entry from the shopping basket
     BasketItem.objects.filter(
-        event_entry__in=paid_event_entries.values_list("id")
+        event_entry__in=notify_event_entries.values_list("id")
     ).delete()
 
 

@@ -2,6 +2,7 @@ from notifications.models import NotificationMapping
 from notifications.notifications_views.core import (
     add_in_app_notification,
     send_cobalt_email_preformatted,
+    send_cobalt_email_with_template,
 )
 
 
@@ -9,11 +10,10 @@ def notify_happening_forums(
     application_name,
     event_type,
     msg,
+    context,
     topic,
     subtopic=None,
     link=None,
-    html_msg=None,
-    email_subject=None,
     user=None,
 ):
     """sub function for notify_happening() - handles Forum events
@@ -27,14 +27,19 @@ def notify_happening_forums(
     )
 
     for listener in listeners:
+
+        # Don't send to person who triggered this to happen
         if user != listener.member:
-            # Add first name
-            html_msg_with_name = html_msg.replace("[NAME]", listener.member.first_name)
-            send_cobalt_email_preformatted(
-                to_address=listener.member.email,
-                subject=email_subject,
-                msg=html_msg_with_name,
+
+            # Add name to context
+            context["name"] = listener.member.first_name
+
+            # Send email
+            send_cobalt_email_with_template(
+                to_address=listener.member.email, context=context
             )
+
+            # Add link
             add_in_app_notification(listener.member, msg, link)
 
 
@@ -42,11 +47,10 @@ def notify_happening(
     application_name,
     event_type,
     msg,
+    context,
     topic,
     subtopic=None,
     link=None,
-    html_msg=None,
-    email_subject=None,
     user=None,
 ):
     """Called by Cobalt applications to tell notify they have done something.
@@ -56,14 +60,14 @@ def notify_happening(
     any member who has registered an interest in this event.
 
     Args:
+        context (dict): variables to pass to the template. See the comments on send_cobalt_email_with_template for more
+        user(User): user who triggered this event, they won't be notified even if they are a listener
         application_name(str): name of the calling app
-        event_type(str):
+        event_type(str): what event just happened
         topic(str): specific to the application, high level event
         subtopic(str): specific to the application, next level event
         msg(str): a brief description of the event
         link(str): an HTML relative link to the event (Optional)
-        html_msg(str): a long description of the event (Optional)
-        email_subject(str): subject line for email (Optional)
 
     Returns:
         Nothing
@@ -72,15 +76,14 @@ def notify_happening(
 
     if application_name == "Forums":
         notify_happening_forums(
-            application_name,
-            event_type,
-            msg,
-            topic,
-            subtopic,
-            link,
-            html_msg,
-            email_subject,
-            user,
+            application_name=application_name,
+            event_type=event_type,
+            msg=msg,
+            context=context,
+            topic=topic,
+            subtopic=subtopic,
+            link=link,
+            user=user,
         )
 
 

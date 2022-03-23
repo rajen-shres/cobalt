@@ -128,7 +128,6 @@ def post_detail(request, pk):
 
             # Tell people
             base_link = reverse("forums:post_detail", args=[post.post.id])
-            host = request.get_host()
 
             if "submit-c1" in request.POST:
                 link = f"{base_link}#target_{post.id}"
@@ -145,29 +144,22 @@ def post_detail(request, pk):
             )
 
             context = {
-                "name": "[NAME]",
                 "title": "New Comment on: %s" % post.post.title,
                 "email_body": email_body,
                 "link": link,
-                "host": host,
                 "link_text": "Go To Reply",
             }
 
-            html_msg = render_to_string("notifications/email_with_button.html", context)
-
             msg = "New Comment by %s on %s" % (request.user, post.post.title)
-
-            email_subject = "New Comment on Post: %s" % post.post.title
 
             # call notifications
             notify_happening(
                 application_name="Forums",
                 event_type="forums.post.comment",
                 msg=msg,
-                html_msg=html_msg,
+                context=context,
                 topic=post.post.id,
                 link=link,
-                email_subject=email_subject,
                 user=request.user,
             )
 
@@ -277,9 +269,9 @@ def post_new(request, forum_id=None):
                 request, "Post created", extra_tags="cobalt-message-success"
             )
 
+            # Notify people who are listening
+
             link = reverse("forums:post_detail", args=[post.id])
-            host = request.get_host()
-            absolute_link = "http://%s%s" % (host, link)
 
             email_body = "%s created a new post in %s called '%s.'" % (
                 post.author,
@@ -288,31 +280,22 @@ def post_new(request, forum_id=None):
             )
 
             context = {
-                "name": request.user.first_name,
                 "title": "New Post: %s" % post.title,
                 "email_body": email_body,
-                "absolute_link": absolute_link,
-                "host": host,
+                "link": link,
                 "link_text": "See Post",
             }
 
-            html_msg = render_to_string(
-                "notifications/email-notification.html", context
-            )
-
             msg = "New Post %s by %s" % (post.title, post.author)
-
-            email_subject = "New Post in Forum: %s" % post.forum.title
 
             # Tell people
             notify_happening(
                 application_name="Forums",
                 event_type="forums.post.create",
                 msg=msg,
-                html_msg=html_msg,
+                context=context,
                 topic=post.forum.id,
                 link=link,
-                email_subject=email_subject,
                 user=request.user,
             )
 
