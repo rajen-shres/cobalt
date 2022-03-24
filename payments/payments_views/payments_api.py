@@ -417,7 +417,8 @@ def _payment_with_insufficient_funds(
                 notify_member_to_member_transfer(
                     member, other_member, amount, description
                 )
-            return True
+
+        return True
 
     return False
 

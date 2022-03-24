@@ -184,7 +184,7 @@ def replace_unregistered_user_with_real_user(real_user: User):
 
     The calling function deletes the unregistered user"""
 
-    MemberClubEmail.objects.filter(system_number=real_user).delete()
+    MemberClubEmail.objects.filter(system_number=real_user.system_number).delete()
 
     # Logs
     clubs = MemberMembershipType.objects.active().filter(

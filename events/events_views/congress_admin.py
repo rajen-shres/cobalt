@@ -283,6 +283,11 @@ def admin_evententryplayer(request, evententryplayer_id):
             # check if event entry payment status has changed
             event_entry_player.event_entry.check_if_paid()
 
+            # Delete from players basket if present
+            BasketItem.objects.filter(
+                event_entry=event_entry_player.event_entry
+            ).delete()
+
             messages.success(
                 request, "Entry updated", extra_tags="cobalt-message-success"
             )
@@ -816,6 +821,11 @@ def admin_evententry_delete(request, evententry_id):
                 # a refund is due. Give it to the person who made the entry.
                 if player.id == TBA_PLAYER:
                     player = event_entry.primary_entrant
+                    # We don't want to email TBA though
+                    is_tba = True
+                else:
+                    is_tba = False
+
                 amount = float(form.cleaned_data["refund"])
                 amount_str = "%.2f credits" % amount
 
@@ -877,14 +887,15 @@ def admin_evententry_delete(request, evententry_id):
                 email_body += f"Please contact {request.user.first_name} directly if you have any queries.<br><br>"
 
                 # send
-                contact_member(
-                    member=player,
-                    msg="Entry to %s cancelled" % event_entry.event.event_name,
-                    contact_type="Email",
-                    html_msg=email_body,
-                    link="/events/view",
-                    subject="Event Entry Cancelled - %s" % event_entry.event,
-                )
+                if not is_tba:
+                    contact_member(
+                        member=player,
+                        msg="Entry to %s cancelled" % event_entry.event.event_name,
+                        contact_type="Email",
+                        html_msg=email_body,
+                        link="/events/view",
+                        subject="Event Entry Cancelled - %s" % event_entry.event,
+                    )
 
         # Log it
         EventLog(
@@ -1162,6 +1173,9 @@ def _admin_email_common_thread(request, congress, subject, body, recipients, bat
     """we run a thread so we can return to the user straight away.
     Probably not necessary now we have Django Post Office"""
 
+    # For some old congresses, contact_email was not required. Should be able to remove this in the future
+    reply_to = congress.contact_email or request.user.email
+
     for recipient in recipients:
 
         context = {
@@ -1176,7 +1190,7 @@ def _admin_email_common_thread(request, congress, subject, body, recipients, bat
             to_address=recipient[2],
             context=context,
             template="system - two headings",
-            reply_to=request.user.email,
+            reply_to=reply_to,
             batch_id=batch_id,
         )
 
@@ -1618,6 +1632,16 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
         if event_entry_player.payment_type == "Free":
             event_entry_player.delete()
         else:
+
+            contact_member(
+                member=event_entry_player.player,
+                msg="Convener removed you from team",
+                contact_type="Email",
+                html_msg=f"{request.user.full_name} has removed you from a team entry to {event_entry.event}.<br><br>",
+                link="/events/view",
+                subject="Removed from team by Convener",
+            )
+
             tba = User.objects.get(pk=TBA_PLAYER)
             event_entry_player.player = tba
             event_entry_player.save()

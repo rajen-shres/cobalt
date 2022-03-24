@@ -5,6 +5,8 @@ import notifications.notifications_views.admin
 import notifications.notifications_views.core
 from django_ses.views import SESEventWebhookView
 
+import notifications.notifications_views.redirect
+
 app_name = "notifications"  # pylint: disable=invalid-name
 
 urlpatterns = [
@@ -93,5 +95,10 @@ urlpatterns = [
         "mobile-device/send-test/<int:fcm_device_id>",
         notifications.notifications_views.core.send_test_fcm_message,
         name="send_test_fcm_message",
+    ),
+    path(
+        "click/<str:message_id>/<str:redirect_path>",
+        notifications.notifications_views.redirect.email_click_handler,
+        name="email_click_handler",
     ),
 ]

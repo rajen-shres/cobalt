@@ -14,12 +14,13 @@
                             <div class="form-group">
                                 <input type="text"
                                     id="id_member_first_name_search"
+                                    name="member_first_name_search"
                                     placeholder="First Name"
                                     class="form-control"
                                     hx-post="{% url "organisations:club_menu_tab_members_add_member_search_htmx" %}"
                                     hx-trigger="keyup changed delay:100ms"
                                     hx-target="#add-member-search-results"
-                                    hx-vars="first_name_search:member_get_first_name(),last_name_search:member_get_last_name()"
+                                    hx-include="[id='id_member_last_name_search']"
                                 >
                             </div>
                         </div>
@@ -29,12 +30,13 @@
                             <div class="form-group">
                                 <input type="text"
                                     id="id_member_last_name_search"
+                                    name="member_last_name_search"
                                     placeholder="Last Name"
                                     class="form-control"
                                     hx-post="{% url "organisations:club_menu_tab_members_add_member_search_htmx" %}"
                                     hx-trigger="keyup changed delay:100ms"
                                     hx-target="#add-member-search-results"
-                                    hx-vars="first_name_search:member_get_first_name(),last_name_search:member_get_last_name()"
+                                    hx-include="[id='id_member_first_name_search']"
                                 >
                             </div>
                         </div>
@@ -83,7 +85,7 @@
                                 {% cobalt_bs4_field member_form.send_welcome_pack %}
                             </div>
                             <br>
-                            <button class="btn btn-sm btn-success">Add Member</button>
+                            <button class="btn btn-sm btn-success" onclick="$('.modal').modal('hide');">Add Member</button>
                             <button type="reset" class="btn btn-sm btn-warning" data-dismiss="modal" aria-label="Close"
                                 onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
                             >Cancel

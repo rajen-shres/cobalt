@@ -1,0 +1,48 @@
+{% load cobalt_tags %}
+
+<div class="row">
+    <div class="card col-md-6">
+        <div class="card-header card-header-warning">
+            <h3>{{ action }} Template</h3>
+        </div>
+        <div class="card-body">
+            <form
+                hx-post="{% url "organisations:club_menu_tab_comms_templates_htmx" %}"
+                hx-target="#id_panel_settings"
+                hx-vars="club_id:{{ club.id }}{% if template %},template_id:{{ template.id }}{% endif %}"
+            >
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            {% cobalt_bs4_field form.name %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            {% cobalt_bs4_field form.description %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12"
+
+                            {% cobalt_bs4_field form.html_content %}
+
+                            </div>
+                        </div>
+
+
+                        <button name="template_button_{{ action }}" id="id_tags_add_tag" class="btn btn-sm btn-success">{{ action_button_word }}</button>
+                        <button
+                            class="btn btn-sm btn-info"
+                            hx-post="{% url "organisations:club_menu_tab_settings_template_preview_htmx" %}"
+                            hx-target="#email_template_preview"
+                            hx-include="[id='id_html_content']"
+                        >Preview</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="email_template_preview" class="col-md-6"></div>
+        </div>
+    </div>

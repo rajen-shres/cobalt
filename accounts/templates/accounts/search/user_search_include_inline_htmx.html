@@ -51,7 +51,7 @@
                     id="id_button_system_number_search{{ search_id }}"
                     hx-post="{% url "accounts:system_number_search_htmx" %}"
                     hx-target="#name-matches{{ search_id }}"
-                    hx-vars="system_number_search:getSystemNumber('{{ search_id }}')
+                    hx-include="[id='id_system_number']"
                     {% if search_id %}, search_id:'{{ search_id }}'{% endif %}
                     {% if callback %}, callback:'{{ callback }}'{% endif %}
                     {% if include_me %}, include_me:'yes'{% endif %}"

@@ -1,11 +1,17 @@
 from datetime import datetime, timedelta
 
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 
 from forums.models import Forum, Post
-from notifications.models import InAppNotification, Email, NotificationMapping
+from notifications.models import (
+    InAppNotification,
+    Email,
+    NotificationMapping,
+    Snooper,
+    BatchID,
+)
 from utils.utils import cobalt_paginator
 
 
@@ -67,14 +73,11 @@ def homepage(request):
 def watch_emails(request, batch_id):
     """Track progress of email by batch id"""
 
-    emails = Email.objects.filter(batch_id=batch_id)
-    emails_queued = emails.filter(status="Queued").count()
-    emails_sent = emails.filter(status="Sent").count()
+    batch_id_object = get_object_or_404(BatchID, batch_id=batch_id)
 
-    sender = emails[0].sender
-
-    # Don't show link to details if too many for page
-    show_details = emails.count() < 5000
+    emails = Snooper.objects.filter(batch_id=batch_id_object)
+    emails_queued = emails.filter(ses_sent_at=None).count()
+    emails_sent = emails.exclude(ses_sent_at=None).count()
 
     return render(
         request,
@@ -83,8 +86,6 @@ def watch_emails(request, batch_id):
             "emails_queued": emails_queued,
             "emails_sent": emails_sent,
             "batch_id": batch_id,
-            "sender": sender,
-            "show_details": show_details,
         },
     )
 

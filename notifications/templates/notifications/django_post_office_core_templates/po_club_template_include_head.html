@@ -1,7 +1,6 @@
-{% load static %}
-
 <!doctype html>
-<html>
+<html lang="en">
+
     <head>
         <meta name="viewport" content="width=device-width">
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -384,16 +383,28 @@
                 text-decoration: none;
             }
 
+            .alert.alert-primary td {
+                background-color: #9c27b0;
+            }
+
+            .alert.alert-info td {
+                background-color: #00bcd4;
+            }
+
             .alert.alert-warning td {
-                background-color: #f39c12;
+                background-color: #ff9800;
             }
 
             .alert.alert-danger td {
-                background-color: #c0392b;
+                background-color: #f44336;
             }
 
             .alert.alert-success td {
-                background-color: #1abc9c;
+                background-color: #4caf50;
+            }
+
+            .alert.alert-default td {
+                background-color: #999;
             }
             /* -------------------------------------
     RECEIPT
@@ -704,94 +715,3 @@
 <![endif]-->
 
     </head>
-    <body>
-        <table border="0" cellpadding="0" cellspacing="0" class="body">
-            <tr>
-                <td>&nbsp;</td>
-                <td class="container">
-                    <div class="content">
-
-                        <!-- START CENTERED WHITE CONTAINER -->
-                        <span class="preheader">{{ email_body| safe }}</span>
-
-                        <!-- START HEADER -->
-                        <div class="header">
-                            <table border="0" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td class="align-center">
-                                        <a href="http://{{ host }}" target="_blank"><img src="http://{{ host }}{% static "assets/img/abftechlogo-grey.png" %}" width="200" alt="Logo" align="center"></a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <!-- END HEADER -->
-                        <table border="0" cellpadding="0" cellspacing="0" class="main">
-
-                            <!-- START NOTIFICATION BANNER -->
-                            <tr>
-                                <td>
-                                    <table border="0" cellpadding="0" cellspacing="0" class="alert alert-success">
-                                        <tr>
-                                            <td align="center"> {{ title }} </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-
-                            <!-- END NOTIFICATION BANNER -->
-
-                            <!-- START MAIN CONTENT AREA --><tr>
-                                <td class="wrapper">
-                                    <table border="0" cellpadding="0" cellspacing="0">
-                                        <tr>
-                                            <td>
-                                                <p>Hi {{ name }},</p>
-                                                {{ email_body|safe }}
-                                                <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td align="center">
-                                                                <table border="0" cellpadding="0" cellspacing="0">
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <td> <a href="http://{{ host|safe }}{{ link|safe }}" target="_blank">{{ link_text }}</a> </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                                <p>{{ additional_words }}</p>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-
-                            <!-- END MAIN CONTENT AREA -->
-                        </table>
-
-                        <!-- START FOOTER -->
-                        <div class="footer" style="clear: both; padding-top: 24px; text-align: center; width: 100%;">
-                            <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
-                                <tr>
-                                    <td class="content-block" style="font-family: Helvetica, sans-serif; vertical-align: top; padding-top: 0; padding-bottom: 24px; font-size: 12px; color: #999999; text-align: center;" valign="top" align="center">
-                                        <span class="apple-link" style="color: #999999; font-size: 12px; text-align: center;">Australian Bridge Federation, PO Box 397, Fyshwick, ACT 2609</span>
-                                        <br><a href="http://{{ host }}{% url "accounts:user_profile" %}" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">Manage your preferences</a>.
-                                    </td>
-                                </tr>
-
-                            </table>
-                        </div>
-
-                        <!-- END FOOTER -->
-
-                        <!-- END CENTERED WHITE CONTAINER --></div>
-                </td>
-                <td>&nbsp;</td>
-            </tr>
-        </table>
-    </body>
-</html>

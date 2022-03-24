@@ -1,0 +1,15 @@
+{% load post_office %}
+
+<h3>Preview</h3>
+
+<iframe
+    onload='javascript:(function(o){o.style.height=o.contentWindow.document.body.scrollHeight+"px";}(this));'
+    style="height:200px;width:100%;border:none;overflow:hidden;"
+    srcdoc='
+
+
+    {% include "notifications/django_post_office_core_templates/po_club_template_include_head.html" %}
+    {{ html_content|safe }}
+    {% include "notifications/django_post_office_core_templates/po_club_template_include_footer.html" %}
+
+    '></iframe>

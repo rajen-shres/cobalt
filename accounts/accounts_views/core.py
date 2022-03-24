@@ -290,7 +290,6 @@ def _check_duplicate_email(user):
         send_cobalt_email_with_template(
             to_address=other_same_email.email,
             context=context,
-            template="system - no button",
         )
 
     return others_same_email.exists()

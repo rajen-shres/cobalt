@@ -79,9 +79,13 @@ def search_for_user_in_cobalt_and_mpc(first_name_search, last_name_search):
     # Cobalt unregistered users
     un_registered_users = UnregisteredUser.objects.exclude(pk__in=ALL_SYSTEM_ACCOUNTS)
     if first_name_search:
-        un_registered_users.filter(first_name__istartswith=first_name_search)
+        un_registered_users = un_registered_users.filter(
+            first_name__istartswith=first_name_search
+        )
     if last_name_search:
-        un_registered_users.filter(last_name__istartswith=last_name_search)
+        un_registered_users = un_registered_users.filter(
+            last_name__istartswith=last_name_search
+        )
 
     un_registered_users = un_registered_users[:11]
 

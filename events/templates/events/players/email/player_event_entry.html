@@ -24,7 +24,7 @@
 
 hosted by {{ congress.congress_master.org }}.</p>
 
-<table class="receipt" border="0" cellpadding="0" cellspacing="0">
+<table class="receipt" style="width:100%" border="0" cellpadding="0" cellspacing="0">
     <tr>
         <td style='text-align: left'>
             <b>Event</b>
@@ -61,14 +61,14 @@ hosted by {{ congress.congress_master.org }}.</p>
 {% if "bank-transfer" in payment_types %}
     <p>We are expecting some payments for this entry by bank transfer.</p>
     <h3>Bank Details</h3>
-    {{ congress.bank_transfer_details }}
+    {{ congress.bank_transfer_details|safe }}
     <br><br>
 {% endif %}
 
 {% if "cheque" in payment_types %}
     <p>We are expecting some payments for this entry by cheque.</p>
     <h3>Cheques</h3>
-    {{ congress.cheque_details }}
+    {{ congress.cheque_details|safe }}
     <br><br>
 {% endif %}
 

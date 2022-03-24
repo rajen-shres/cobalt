@@ -8,13 +8,12 @@
         {% endfor %}
     </div>
 
-
     <div class="row justify-content-center">
         <button id="id_cobalt_search_ok{{ search_id }}"
             class="btn btn-sm btn-success"
             {# must close modal or HTMX will hang the page #}
             {% if callback %}
-                onclick="$('.modal').modal('hide'); {{ callback }}('{{ search_id }}', {{ member.id }}, '{{ member.full_name }}'); return false;"
+                onclick="$('.modal').modal('hide'); {{ callback }}('{{ search_id }}', {{ member.id }}, '{{ member.full_name|escapejs }}'); return false;"
             {% else %}
                 onclick="$('.modal').modal('hide'); return false;"
                 hx-post="{% url "accounts:member_match_summary_htmx" %}"

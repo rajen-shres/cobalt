@@ -63,7 +63,9 @@ def user_settings(request):
             "notifications_list": notifications_list,
             "is_developer": is_developer,
             "fcm_devices": fcm_devices,
-            "sessions": session_list,
+            # "sessions": session_list,
+            # Comment out sessions for now
+            "sessions": [],
         },
     )
 

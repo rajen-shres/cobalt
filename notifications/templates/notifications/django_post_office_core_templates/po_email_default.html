@@ -53,21 +53,24 @@
                                                 <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">Hi {{ name }},</p>
                                                 <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">{{ email_body|safe }}</p>
 
+                                                {#                                            Only show button if link provided#}
+                                                {% if link %}
 
-                                                <!-- START BUTTON -->
-                                                <p style="text-align: center;">
-                                                    <a href="http://{{ host }}{{ link }}" style="background-color: #9c27b0; font-size: 18px; font-family: Helvetica, Arial, sans-serif; font-weight: bold; text-decoration: none; padding: 8px 6px; color: #ffffff; border-radius: 5px; display: inline-block; mso-padding-alt: 0;">
-                                                        <!--[if mso]>
+                                                    <!-- START BUTTON -->
+                                                    <p style="text-align: center;">
+                                                        <a href="http://{{ host }}{{ link }}" style="background-color: #3498db; font-size: 18px; font-family: Helvetica, sans-serif; text-decoration: none; padding: 8px 6px; color: #ffffff; border-radius: 2px; display: inline-block; mso-padding-alt: 0;">
+                                                            <!--[if mso]>
                                                     <i style="letter-spacing: 25px; mso-font-width: -100%; mso-text-raise: 30pt;">&nbsp;</i>
                                                     <![endif]-->
-                                                        <span style="mso-text-raise: 15pt;">{{ link_text }}</span>
-                                                        <!--[if mso]>
+                                                            <span style="mso-text-raise: 15pt;">{{ link_text }}</span>
+                                                            <!--[if mso]>
                                                     <i style="letter-spacing: 25px; mso-font-width: -100%;">&nbsp;</i>
                                                     <![endif]-->
-                                                    </a>
-                                                </p>
-                                                <!-- END BUTTON -->
+                                                        </a>
+                                                    </p>
+                                                    <!-- END BUTTON -->
 
+                                                {% endif %}
 
                                                 <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">{{ additional_words|safe }}</p>
                                             </td>

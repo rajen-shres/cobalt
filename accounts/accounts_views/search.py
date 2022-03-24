@@ -214,7 +214,7 @@ def system_number_search_htmx(request):
     user_id_field = request.POST.get("user_id_field", "")
     callback = request.POST.get("callback", "")
     # Get partial first name to search for from form
-    system_number = request.POST.get("system_number_search")
+    system_number = request.POST.get("system_number")
 
     if system_number == "":
         return HttpResponse(

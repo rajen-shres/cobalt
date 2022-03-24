@@ -178,7 +178,7 @@ class Congress(models.Model):
     youth_payment_discount_age = models.IntegerField("Cut off age", default=26)
     senior_date = models.DateField("Date for age check", null=True, blank=True)
     senior_age = models.IntegerField("Cut off age", default=60)
-    # Open and close dates can be overriden at the event level
+    # Open and close dates can be overridden at the event level
     entry_open_date = models.DateField(null=True, blank=True)
     entry_close_date = models.DateField(null=True, blank=True)
     automatic_refund_cutoff = models.DateField(null=True, blank=True)
