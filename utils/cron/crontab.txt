@@ -1,6 +1,8 @@
 # Crontab file for all AWS environments - NEEDS BLANK LINE AT END
 # Run the email check cron every 2 minutes
-# use sleep 20 ; to run more often
+# use sleep 30 ; to run more often
+# delete_basket_items_with_payments can be removed after 1.1.9 is released
 */2 * * * * /var/app/current/utils/cron/wrapper.sh email_sender_cron
+*/2 * * * * /var/app/current/utils/cron/wrapper.sh delete_basket_items_with_payments
 * * * * * /var/app/current/utils/cron/wrapper.sh post_office_email_sender_cron
 * * * * * sleep 30; /var/app/current/utils/cron/wrapper.sh post_office_email_sender_cron

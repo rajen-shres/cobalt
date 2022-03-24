@@ -77,7 +77,7 @@ EVENT_TYPES = [
     ("Mixed", "Mixed"),
 ]
 EVENT_PLAYER_FORMAT = [
-    #    ("Individual", "Individual"),
+    ("Individual", "Individual"),
     ("Pairs", "Pairs"),
     ("Teams of 3", "Teams of Three"),
     ("Teams", "Teams"),
@@ -93,8 +93,10 @@ CONGRESS_TYPES = [
     ("national_gold", "National gold point"),
     ("state_championship", "State championship"),
     ("state_congress", "State congress"),
+    ("state_event", "State event"),
     ("club", "Club event"),
     ("club_congress", "Club congress"),
+    ("lesson", "Lesson"),
     ("other", "Other"),
 ]
 
