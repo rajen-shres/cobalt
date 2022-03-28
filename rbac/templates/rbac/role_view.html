@@ -23,7 +23,7 @@
 
                     <h3>RBAC Model Defaults</h3>
                     <i>This is the default behaviour for a role if no rule is found.</i>
-                    <table class="table table-responsive">
+                    <table class="table table-responsive table-condensed">
                         <thead>
                             <th>App</th>
                             <th>Model</th>
@@ -44,7 +44,7 @@
                     <i>Most roles also support a model_id attribute. For example,
                         events.org.6.edit grants the group the ability to manage
                         congresses for organisation 6 only.</i>
-                    <table class="table table-responsive">
+                    <table class="table table-responsive table-condensed">
                         <thead>
                             <th>Role</th>
                             <th>Action</th>
@@ -55,7 +55,7 @@
                                 <tr>
                                     <td>{{ role.app }}.{{ role.model }}
                                         <td>{{ role.valid_action }}
-                                            <td>{{ role.description }}
+                                            <td class="text-left">{{ role.description }}
                             {% endfor %}
                         </tbody>
                     </table>

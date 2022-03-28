@@ -1,5 +1,7 @@
 import operator
+import re
 
+from django.forms import model_to_dict
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -154,6 +156,12 @@ def generic_tree_builder(groups, detail_link=None, html_type="href"):
      items["abf.animals.cats.felix"]=21
     """
 
+    # Tree is hard to navigate for the parts that have numbers instead of club names
+    # We get the club numbers(pks) and names and substitute to make more readable
+    all_orgs = Organisation.objects.all()
+    # turn to dictionary
+    all_orgs_dict = {org.pk: org.name for org in all_orgs}
+
     items = {}
     items_description = {}
     for group in groups:
@@ -207,9 +215,21 @@ def generic_tree_builder(groups, detail_link=None, html_type="href"):
                 depth = depth[:-1]
                 html_tree += "</ul>\n"
 
+        # Make tree display more readable for generated branches
+        # Change key from "something.generated.<state>.<number>" to "something.generated.<state>.<club name>"
+        match = re.findall("generated\\.(\\w+)\\.(\\d+)", key)
+        if match:
+            this_state = match[0][0]
+            this_org = int(match[0][1])
+            key = key.replace(
+                f"generated.{this_state}.{this_org}",
+                f"generated.{this_state}.{all_orgs_dict[this_org]}",
+            )
+
         # now process line
         last_part = key.split(".")[-1]
         if isinstance(value[0], int):
+            # This is the end of the line
             if html_type == "button":
                 html_tree += (
                     "<li>%s (%s) <button value='%s' class='tree-btn cobalt-rbac-tree btn btn-sm btn-primary'>Use</button></li>\n"

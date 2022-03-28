@@ -232,9 +232,9 @@ def member_transfer_org(request, org_id):
     organisation = get_object_or_404(Organisation, pk=org_id)
 
     if not rbac_user_has_role(
-        request.user, "payments.manage.%s.view" % org_id
-    ) and not rbac_user_has_role(request.user, "payments.global.view"):
-        return rbac_forbidden(request, "payments.manage.%s.view" % org_id)
+        request.user, "payments.manage.%s.edit" % org_id
+    ) and not rbac_user_has_role(request.user, "payments.global.edit"):
+        return rbac_forbidden(request, "payments.manage.%s.edit" % org_id)
 
     balance = org_balance(organisation)
 

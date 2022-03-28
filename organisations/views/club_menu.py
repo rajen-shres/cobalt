@@ -63,8 +63,10 @@ def club_menu(request, club_id):
     uber_admin = _user_is_uber_admin(club, request.user)
 
     # Check if we show the finance tab
-    show_finance = uber_admin or rbac_user_has_role(
-        request.user, f"payments.manage.{club.id}.view"
+    show_finance = (
+        uber_admin
+        or rbac_user_has_role(request.user, f"payments.manage.{club.id}.view")
+        or rbac_user_has_role(request.user, f"payments.manage.{club.id}.edit")
     )
     # Check if we show the congress tab
     show_congress = uber_admin or rbac_user_has_role(

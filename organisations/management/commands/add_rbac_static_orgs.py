@@ -56,7 +56,7 @@ class Command(BaseCommand):
         create_RBAC_action(
             self,
             "orgs",
-            "member",
+            "members",
             "edit",
             "Has the ability to change memberships for the specified organisation.",
         )

@@ -130,9 +130,12 @@ def get_club_details_htmx(request):
             state = data["state"]
             rbac_model_for_state = get_rbac_model_for_state(state)
 
+            print(state)
+            print(rbac_model_for_state)
+
             if not (
                 rbac_user_has_role(
-                    request.user, "orgs.org.%s.edit" % rbac_model_for_state
+                    request.user, "orgs.state.%s.edit" % rbac_model_for_state
                 )
                 or rbac_user_has_role(request.user, "orgs.admin.edit")
             ):

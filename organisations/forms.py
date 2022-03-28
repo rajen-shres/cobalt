@@ -101,12 +101,12 @@ class OrgForm(forms.ModelForm):
 
         state = self.cleaned_data["state"]
 
-        # See if this has changed
-        if "state" not in self.changed_data:
-            return state
-
         if not state:
             self.add_error("state", "State cannot be empty")
+            return state
+
+        # See if this has changed
+        if "state" not in self.changed_data:
             return state
 
         # Get model id for this state

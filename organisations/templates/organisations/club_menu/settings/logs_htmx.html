@@ -35,6 +35,7 @@
                 const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
                 pagination.toggle(this.api().page.info().pages > 1);
             },
+            "order": [[1, "desc"]]
         });
     });
 

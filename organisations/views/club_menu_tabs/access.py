@@ -4,7 +4,7 @@ from django.urls import reverse
 
 from accounts.models import User
 from organisations.decorators import check_club_menu_access
-from organisations.models import ORGS_RBAC_GROUPS_AND_ROLES
+from organisations.models import ORGS_RBAC_GROUPS_AND_ROLES, ClubLog
 from organisations.views.admin import (
     admin_club_rbac_convert_advanced_to_basic_sub,
     admin_club_rbac_convert_basic_to_advanced_sub,
@@ -45,6 +45,13 @@ def basic_add_user_htmx(request, club):
     )
     rbac_add_user_to_admin_group(user, admin_group)
 
+    # log it
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Added {user} as administrator",
+    ).save()
+
     return access_basic(request, club)
 
 
@@ -66,6 +73,12 @@ def advanced_add_user_htmx(request, club):
         errors[group_name_item] = f"{user.first_name} is already in this group"
     else:
         rbac_add_user_to_group(user, group)
+        # log it
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Added {user} to {group.description}",
+        ).save()
 
     return access_advanced(request, club, errors)
 
@@ -90,6 +103,13 @@ def basic_delete_user_htmx(request, club):
     )
     rbac_remove_admin_user_from_group(user, admin_group)
 
+    # log it
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Removed {user} as an administrator",
+    ).save()
+
     return access_basic(request, club)
 
 
@@ -107,6 +127,13 @@ def advanced_delete_user_htmx(request, club):
     group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{group_name_item}")
     rbac_remove_user_from_group(user, group)
 
+    # log it
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Removed {user} from {group.description}",
+    ).save()
+
     return access_advanced(request, club)
 
 
@@ -114,7 +141,7 @@ def advanced_delete_user_htmx(request, club):
 def advanced_delete_admin_htmx(request, club):
     """Remove an admin from club rbac advanced group. Returns HTMX"""
 
-    # Check if this use is an admin (in RBAC admin group or has higher access)
+    # Check if this user is an admin (in RBAC admin group or has higher access)
     if not _menu_rbac_advanced_is_admin(club, request.user):
         return HttpResponse("Access denied")
 
@@ -129,6 +156,12 @@ def advanced_delete_admin_htmx(request, club):
 
     if RBACAdminUserGroup.objects.filter(group=admin_group).count() > 1:
         rbac_remove_admin_user_from_group(user, admin_group)
+        # log it
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Removed {user} as an administrator",
+        ).save()
     else:
         errors["admin"] = "Cannot delete the last admin user"
 
@@ -152,6 +185,13 @@ def advanced_add_admin_htmx(request, club):
     )
 
     rbac_add_user_to_admin_group(user, admin_group)
+
+    # log it
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Added {user} as an administrator",
+    ).save()
 
     return access_advanced(request, club)
 
@@ -225,13 +265,8 @@ def access_advanced(request, club, errors={}):
         admins = rbac_get_admin_users_in_group(admin_group)
         admin_list = []
         for admin in admins:
-            admin.hx_post = reverse(
-                "organisations:access_advanced_delete_admin_htmx",
-                kwargs={
-                    "club_id": club.id,
-                    "user_id": admin.id,
-                },
-            )
+            admin.hx_post = reverse("organisations:access_advanced_delete_admin_htmx")
+            admin.hx_vars = f"club_id:{club.id},user_id:{admin.id}"
             admin_list.append(admin)
 
     # Check if this use is an admin (in RBAC admin group or has higher access)
@@ -261,6 +296,13 @@ def change_rbac_to_advanced_htmx(request, club):
     # TODO: Work out best security check to perform
     _, msg = admin_club_rbac_convert_basic_to_advanced_sub(club)
 
+    # log it
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action="Changed RBAC to Advanced mode",
+    ).save()
+
     return access_advanced(request, club, msg)
 
 
@@ -270,6 +312,14 @@ def change_rbac_to_basic_htmx(request, club):
 
     if _menu_rbac_advanced_is_admin(club, request.user):
         _, msg = admin_club_rbac_convert_advanced_to_basic_sub(club)
+
+        # log it
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action="Changed RBAC to Basic mode",
+        ).save()
+
     else:
         msg = "Access denied"
 

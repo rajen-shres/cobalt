@@ -124,7 +124,7 @@ def basic_reload_htmx(request, club):
 def logs_htmx(request, club):
     """Shows the log events"""
 
-    log_events = ClubLog.objects.filter(organisation=club).order_by("-pk")
+    log_events = ClubLog.objects.filter(organisation=club).order_by("-action_date")
 
     return render(
         request,

@@ -75,7 +75,7 @@ urlpatterns = [
         name="club_admin_access_basic_delete_user_htmx",
     ),
     path(
-        "admin/access-advanced/delete-admin",
+        "admin/access-advanced/add-admin",
         organisations.views.club_menu_tabs.access.advanced_add_admin_htmx,
         name="access_advanced_add_admin_htmx",
     ),
@@ -85,7 +85,7 @@ urlpatterns = [
         name="club_admin_access_advanced_delete_user_htmx",
     ),
     path(
-        "admin/access-advanced/delete-admin/<int:club_id>/<int:user_id>",
+        "admin/access-advanced/delete-admin/",
         organisations.views.club_menu_tabs.access.advanced_delete_admin_htmx,
         name="access_advanced_delete_admin_htmx",
     ),

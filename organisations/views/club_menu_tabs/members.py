@@ -128,7 +128,7 @@ def report_all_csv(request, club_id):
     club = get_object_or_404(Organisation, pk=club_id)
 
     # Check for club level access - most common
-    club_role = f"orgs.org.{club.id}.edit"
+    club_role = f"orgs.members.{club.id}.edit"
     if not rbac_user_has_role(request.user, club_role):
 
         # Check for state level access or global
