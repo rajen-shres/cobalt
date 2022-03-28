@@ -192,8 +192,8 @@ def replace_unregistered_user_with_real_user(real_user: User):
     )
     for club in clubs:
         ClubLog(
-            actor=User,
-            organisation=club.membership_type__organisation,
+            actor=real_user,
+            organisation=club.membership_type.organisation,
             action=f"{real_user} registered for {GLOBAL_TITLE}. Unregistered user replaced with real user.",
         )
 
