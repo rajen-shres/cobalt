@@ -203,7 +203,7 @@ def _rbac_user_has_admin(club, user):
     """Check if this user has access to do rbac admin for this club"""
 
     # First check individual role
-    user_role = f"orgs.org.{club.id}.edit"
+    user_role = f"orgs.org.{club.id}.view"
 
     if rbac_user_has_role(user, user_role):
         # User has the right role, but if RBAC Advanced, also needs the admin tree permissions
@@ -318,7 +318,7 @@ def _admin_club_rbac_add_basic_sub(club):
         group=group,
         app="orgs",
         model="org",
-        action="edit",
+        action="view",
         rule_type="Allow",
         model_id=club.id,
     )
@@ -412,7 +412,7 @@ def _admin_club_rbac_add_advanced_sub(club):
             group=group,
             app="orgs",
             model="org",
-            action="edit",
+            action="view",
             rule_type="Allow",
             model_id=club.id,
         )

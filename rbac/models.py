@@ -134,6 +134,13 @@ class RBACAppModelAction(models.Model):
     description = models.CharField(max_length=100)
     """ description of what this does """
 
+    class Meta:
+        unique_together = (
+            "app",
+            "model",
+            "valid_action",
+        )
+
 
 class RBACAdminGroup(models.Model):
     """Admin Group definitions"""

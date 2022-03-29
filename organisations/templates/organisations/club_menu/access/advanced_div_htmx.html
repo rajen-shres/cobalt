@@ -6,12 +6,8 @@
     You are using the advanced Role Based Access Control (RBAC) set up. This gives you separate groups for each function and allows you
     to have separate administrators (able to grant access to others).
 
-    <a
-        href="javascript:void()"
-        hx-post="{% url "organisations:club_admin_access_change_rbac_to_basic_htmx" %}"
-        hx-vars="club_id:{{ club.id }}"
-        hx-target="#id_panel_access"
-    >
+    {% include "utils/htmx_confirm_modal.html" with id="change_to_basic" delete_message="Change to Basic RBAC" delete_button="Change" hx_target="#id_panel_access" hx_post=change_to_basic hx_vars=change_to_basic_hx_vars %}
+    <a data-toggle="modal" data-target="#deleteModalchange_to_basic" href="javascript:void()">
         Change to Basic RBAC.
     </a>
 

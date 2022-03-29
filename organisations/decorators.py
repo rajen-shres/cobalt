@@ -53,7 +53,7 @@ def check_club_menu_access(check_members=False):
             club = get_object_or_404(Organisation, pk=club_id)
 
             # Check for club level access - most common
-            club_role = f"orgs.org.{club.id}.edit"
+            club_role = f"orgs.org.{club.id}.view"
             if rbac_user_has_role(request.user, club_role):
                 return function(request, club, *args, **kwargs)
 

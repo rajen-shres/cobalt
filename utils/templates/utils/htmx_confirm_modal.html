@@ -34,7 +34,11 @@
                     hx-target="{{ hx_target }}"
                     {% if hx_vars %}hx-vars="{{ hx_vars }}"{% endif %}
                     class="btn btn-danger">
-                    {{ delete_button|default_if_none:"Delete" }}
+                    {% if delete_button %}
+                        {{ delete_button }}
+                    {% else %}
+                        Delete
+                    {% endif %}
                 </button>
             </div>
         </div>

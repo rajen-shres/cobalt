@@ -213,6 +213,11 @@ def access_basic(request, club, message=None):  # sourcery skip: list-comprehens
     for rule in ORGS_RBAC_GROUPS_AND_ROLES:
         roles.append(f"{ORGS_RBAC_GROUPS_AND_ROLES[rule]['description']} for {club}")
 
+    change_to_advanced = reverse(
+        "organisations:club_admin_access_change_rbac_to_advanced_htmx"
+    )
+    change_to_advanced_hx_vars = f"club_id:{club.id}"
+
     return render(
         request,
         "organisations/club_menu/access/basic.html",
@@ -222,6 +227,8 @@ def access_basic(request, club, message=None):  # sourcery skip: list-comprehens
             "users": users,
             "roles": roles,
             "message": message,
+            "change_to_advanced": change_to_advanced,
+            "change_to_advanced_hx_vars": change_to_advanced_hx_vars,
         },
     )
 
@@ -275,6 +282,11 @@ def access_advanced(request, club, errors={}):
     # disable buttons (still show them) if user not admin
     disable_buttons = "" if user_is_admin else "disabled"
 
+    change_to_basic = reverse(
+        "organisations:club_admin_access_change_rbac_to_basic_htmx"
+    )
+    change_to_basic_hx_vars = f"club_id:{club.id}"
+
     return render(
         request,
         "organisations/club_menu/access/advanced.html",
@@ -285,6 +297,8 @@ def access_advanced(request, club, errors={}):
             "user_roles": user_roles,
             "admin_list": admin_list,
             "errors": errors,
+            "change_to_basic": change_to_basic,
+            "change_to_basic_hx_vars": change_to_basic_hx_vars,
         },
     )
 

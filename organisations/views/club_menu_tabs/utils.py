@@ -37,7 +37,7 @@ def _menu_rbac_has_access(club, user):
     """
 
     # Check club access
-    club_role = f"orgs.org.{club.id}.edit"
+    club_role = f"orgs.org.{club.id}.view"
     if rbac_user_has_role(user, club_role):
         return True, None
 

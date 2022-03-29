@@ -5,14 +5,12 @@
 You are using the basic Role Based Access Control (RBAC) set up. This gives everyone access to all functions and makes everyone an
 administrator (able to grant access to others). This is the recommended configuration for most clubs.
 
-<a
-    href="javascript:void()"
-    hx-post="{% url "organisations:club_admin_access_change_rbac_to_advanced_htmx" %}"
-    hx-vars="club_id:{{ club.id }}"
-    hx-target="#id_panel_access"
->
+{% include "utils/htmx_confirm_modal.html" with id="change_to_advanced" delete_message="Change to Advanced RBAC" delete_button="Change" hx_target="#id_panel_access" hx_post=change_to_advanced hx_vars=change_to_advanced_hx_vars %}
+<a data-toggle="modal" data-target="#deleteModalchange_to_advanced" href="javascript:void()">
     Change to Advanced RBAC.
 </a>
+
+
 
 <h3 class="font-weight-bold" style="color: red">{{ message|default_if_none:"" }}</h3>
 

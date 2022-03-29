@@ -42,6 +42,13 @@ class Command(BaseCommand):
             "edit",
             "Has the ability to edit details relating to the specified organisation.",
         )
+        create_RBAC_action(
+            self,
+            "orgs",
+            "org",
+            "view",
+            "View access to details on an org. Required for club menu access.",
+        )
 
         create_RBAC_action(
             self,
@@ -104,5 +111,5 @@ class Command(BaseCommand):
             group, app="orgs", model="members", action="edit", rule_type="Allow"
         )
 
-        # We will add the rest of the RBAC rules in create_states so it is in once place plus we need the states to
+        # We will add the rest of the RBAC rules in create_states so it is in one place plus we need the states to
         # exist before we can manipulate them.

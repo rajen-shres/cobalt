@@ -58,13 +58,15 @@ def create_RBAC_action(self, app, model, action, description):
     Returns: Nothing
     """
 
-    if not RBACAppModelAction.objects.filter(
+    rbac_app_model_action, created = RBACAppModelAction.objects.get_or_create(
         app=app, model=model, valid_action=action
-    ).exists():
-        r = RBACAppModelAction(
-            app=app, model=model, valid_action=action, description=description
-        )
-        r.save()
+    )
+
+    rbac_app_model_action.description = description
+
+    rbac_app_model_action.save()
+
+    if created:
         self.stdout.write(
             self.style.SUCCESS(
                 "Added %s.%s.%s to RBACAppModelAction" % (app, model, action)
