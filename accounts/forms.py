@@ -10,6 +10,7 @@ from django.contrib.auth.forms import UserCreationForm
 
 import accounts.accounts_views.admin
 from cobalt.settings import GLOBAL_ORG
+from masterpoints.factories import masterpoint_factory_creator
 from masterpoints.views import system_number_available
 from .models import User, UnregisteredUser
 from django.core.exceptions import ValidationError
@@ -38,6 +39,25 @@ class UserRegisterForm(UserCreationForm):
         This doesn't affect field level validations
         """
         pass
+
+    def clean_username(self):
+        """Final check that system number is valid and available. System_number is submitted as username"""
+        system_number = self.cleaned_data["username"]
+        mp_source = masterpoint_factory_creator()
+        if mp_source.system_number_valid(system_number):
+            return system_number
+
+        raise ValidationError(f"{GLOBAL_ORG} number invalid or in use")
+
+    def clean_first_name(self):
+        first_name = self.cleaned_data["first_name"]
+        if not first_name or first_name == "":
+            raise ValidationError("First name missing.")
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data["last_name"]
+        if not last_name or last_name == "":
+            raise ValidationError("Last name missing.")
 
 
 class UserUpdateForm(forms.ModelForm):

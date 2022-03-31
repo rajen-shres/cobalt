@@ -49,6 +49,9 @@ class MasterpointFactory:
     def system_number_lookup(self, system_number):
         """Look up the system number and return name"""
 
+    def system_number_valid(self, system_number):
+        """Look up the system number and return True if okay to add this user"""
+
 
 class MasterpointDB(MasterpointFactory):
     """Concrete implementation of a masterpoint factory using a database to get the data"""
@@ -78,6 +81,19 @@ class MasterpointDB(MasterpointFactory):
                 return html.unescape(f"{given_name} {surname}")
 
         return "Error: Invalid or inactive number"
+
+    def system_number_valid(self, system_number):
+        """Checks if this is valid, returns boolean. To be valid this must exist in the MPC with IsActive True
+        and not already be a user in the system"""
+
+        result = masterpoint_query_row(f"id/{system_number}")
+        return bool(
+            result
+            and result["IsActive"] == "Y"
+            and not User.objects.filter(
+                system_number=system_number, is_active=True
+            ).exists()
+        )
 
     def system_number_lookup_api(self, system_number):
         """Called by the API"""
@@ -131,9 +147,23 @@ class MasterpointFile(MasterpointFactory):
 
         return "Error: Inactive or invalid number"
 
+    def system_number_valid(self, system_number):
+        """Checks if this is valid, returns boolean. To be valid this must exist in the MPC with IsActive True
+        and not already be a user in the system"""
+
+        pattern = f"{int(system_number):07}"
+        result = mp_file_grep(pattern)
+
+        return bool(
+            result
+            and result[6] == "Y"
+            and not User.objects.filter(
+                system_number=system_number, is_active=True
+            ).exists()
+        )
+
 
 def masterpoint_factory_creator():
-
     if MP_USE_FILE:
         return MasterpointFile()
     else:
