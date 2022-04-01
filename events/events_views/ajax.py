@@ -444,6 +444,9 @@ def admin_offsystem_pay_ajax(request):
     event_entry_player.paid_by = event_entry_player.player
     event_entry_player.save()
 
+    # Delete from players basket if present
+    BasketItem.objects.filter(event_entry=event_entry_player.event_entry).delete()
+
     # Log it
     EventLog(
         event=event_entry_player.event_entry.event,
@@ -536,6 +539,9 @@ def admin_offsystem_pay_pp_ajax(request):
     # TODO: client side screen to capture who actually paid this so don't need to assume it was the player
     event_entry_player.paid_by = event_entry_player.player
     event_entry_player.save()
+
+    # Delete from players basket if present
+    BasketItem.objects.filter(event_entry=event_entry_player.event_entry).delete()
 
     # Log it
     EventLog(

@@ -53,11 +53,13 @@ class UserRegisterForm(UserCreationForm):
         first_name = self.cleaned_data["first_name"]
         if not first_name or first_name == "":
             raise ValidationError("First name missing.")
+        return first_name
 
     def clean_last_name(self):
         last_name = self.cleaned_data["last_name"]
         if not last_name or last_name == "":
             raise ValidationError("Last name missing.")
+        return last_name
 
 
 class UserUpdateForm(forms.ModelForm):

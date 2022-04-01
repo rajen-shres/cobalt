@@ -50,7 +50,7 @@
                                     <h4 class="text-center">Sign Up. It's free for members!</h4>
                                 </div>
                                 <div class="card-body">
-                                    <form role="form" method="post">
+                                    <form role="form" method="post" id="register">
                                         {% csrf_token %}
                                         {% if user_form.non_field_errors %}
                                             {% for error in user_form.non_field_errors %}
@@ -142,9 +142,10 @@
         <script>
             jQuery(document).ready(function() {
 
-                $(window).keydown(function(event) {
-                    if (event.keyCode == 13) {
-                        event.preventDefault();
+                // accept Enter to submit form
+                $(document).keypress(function (e) {
+                    if (e.which === 13) {
+                        $('form#register').submit();
                         return false;
                     }
                 });
