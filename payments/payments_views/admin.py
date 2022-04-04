@@ -196,7 +196,7 @@ def stripe_pending(request):
         return rbac_forbidden(request, "payments.global.view")
 
     try:
-        stripe_latest = StripeTransaction.objects.filter(status="Success").latest(
+        stripe_latest = StripeTransaction.objects.filter(status="Succeeded").latest(
             "created_date"
         )
         stripe_manual_pending = StripeTransaction.objects.filter(status="Pending")

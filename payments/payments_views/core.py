@@ -942,7 +942,7 @@ def _auto_topup_member_stripe_transaction(amount, member, pay_method_id, payment
     stripe_tran.stripe_last4 = payload.payment_method_details.card.last4
     stripe_tran.stripe_balance_transaction = payload.balance_transaction
     stripe_tran.last_change_date = timezone.now()
-    stripe_tran.status = "Success"
+    stripe_tran.status = "Succeeded"
     stripe_tran.save()
 
     logger.info(f"Auto top up successful for {member}. Amount={amount}")
