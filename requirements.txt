@@ -4,7 +4,7 @@ humanize==0.5.1
 python-dateutil==2.8.0
 requests==2.26.0
 stripe==2.43.0
-Pillow==9.0.0
+Pillow==9.1.0
 psycopg2-binary==2.8
 django-health-check
 django-summernote==0.8.11.6
@@ -27,5 +27,5 @@ qrcode==7.3.1
 django-loginas==0.3.10
 django-ninja==0.16.1
 django-debug-toolbar==3.2.2
-fcm-django==1.0.7
+fcm-django==1.0.11
 firebase-admin==5.2.0
