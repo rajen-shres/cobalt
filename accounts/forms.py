@@ -88,16 +88,10 @@ class UserUpdateForm(forms.ModelForm):
         self.old_dob = kwargs["instance"].dob
 
     def clean_dob(self):
-        # DOB will be None if invalid data was entered. We can only really fix this
-        # with some JavaScript code or by making DOB required. This works for all
-        # cases except when an invalid date is entered along with other valid data
-        if not self.changed_data:
-            # No changes detected but form was submitted - will be due to an invalid date
-            return self._clean_dob_sub("Date of birth was invalid. Try again.")
 
         dob = self.cleaned_data["dob"]
         if "dob" in self.changed_data and not dob:
-            return self._clean_dob_sub("Date of birth was invalid.")
+            return self._clean_dob_sub("Date of birth is invalid.")
         if dob is None:
             return None
         if dob > datetime.datetime.today().date():

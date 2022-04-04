@@ -1758,6 +1758,11 @@ def admin_event_offsystem_pp_batch(request, event_id):
 
                     event_entry_player.event_entry.check_if_paid()
 
+                    # Delete from players basket if present
+                    BasketItem.objects.filter(
+                        event_entry=event_entry_player.event_entry
+                    ).delete()
+
                     EventLog(
                         event=event,
                         event_entry=event_entry_player.event_entry,

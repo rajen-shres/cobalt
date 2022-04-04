@@ -11,7 +11,7 @@
 #                                                                 # 
 ################################################################### 
 
-support, NotifyUserByType      ,              , , , , , , 
-id     , id.staff.accounts.User, incident_type, , , , , , , 
-dummy  , jj                    , All          , , , , , , , 
-dummy  , aa                    , All          , , , , , , , 
+support, NotifyUserByType      ,              , , , , , , , 
+id     , id.staff.accounts.User, incident_type, , , , , , , , 
+dummy  , jj                    , All          , , , , , , , , 
+dummy  , aa                    , All          , , , , , , , , 
