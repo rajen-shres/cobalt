@@ -54,7 +54,7 @@ eb use $ENV
 eb setenv RDS_DB_NAME=$NEW_DBNAME
 
 # Drop old database
-echo "Dropping on database $DBNAME..."
+echo "Dropping database $DBNAME..."
 eb ssh $ENV --command "-f sudo /var/app/current/utils/cgit/tools/eb_drop_test_db.sh $DBNAME"
 
 # Build test data

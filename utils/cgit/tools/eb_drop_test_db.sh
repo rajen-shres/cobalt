@@ -3,6 +3,13 @@
 
 . /var/app/current/utils/cgit/tools/eb_env_setup.sh
 
-echo "drop database $1;" > /tmp/sql.txt
+# Double check we are on an environment we expect to be on
+if [ "$COBALT_HOSTNAME" = "1test.myabf.com.au" ] || [ "$COBALT_HOSTNAME" = "uat.myabf.com.au" ]
+then
 
-./manage.py dbshell < /tmp/sql.txt
+  echo "drop database $1;" > /tmp/sql.txt
+  ./manage.py dbshell < /tmp/sql.txt
+
+else
+  echo "$COBALT_HOSTNAME not on list of expected hosts. Aborting."
+fi
