@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# rebuild test data on Test or UAT
+# This used to be easier but now you need to switch database as there will be locks on it
+
+unset AWS_SECRET_ACCESS_KEY
+unset AWS_ACCESS_KEY_ID
+
+if [ $# -ne 1 ];then
+  echo ""
+  echo ""
+  echo "Usage: $0 env"
+  echo "e.g. $0 cobalt-test-black"
+  exit 1
+fi
+
+ENV=$1
+
+# Check this is a test type environment
+if ! echo $ENV | grep -E "test|uat" > /dev/null
+then
+  echo ""
+  echo ""
+  echo "ERROR: Environment must have test or uat in the name"
+  exit 1
+fi
+
+# Get current database
+echo "Getting current settings..."
+DBNAME=$(eb printenv $ENV | grep RDS_DB_NAME | awk '{print $3}')
+
+# We use blue/green or yellow/orange. Default to green if not found
+if [ "$DBNAME" == "green" ]; then
+  NEW_DBNAME="blue"
+elif [ "$DBNAME" == "blue" ]; then
+  NEW_DBNAME="green"
+elif [ "$DBNAME" == "yellow" ]; then
+  NEW_DBNAME="orange"
+elif [ "$DBNAME" == "orange" ]; then
+  NEW_DBNAME="yellow"
+else
+  NEW_DBNAME="green"
+fi
+
+echo "Current RDS_DB_NAME is $DBNAME, new RDS_DB_NAME will be $NEW_DBNAME"
+
+# Create new database
+eb ssh $ENV --command -f sudo
