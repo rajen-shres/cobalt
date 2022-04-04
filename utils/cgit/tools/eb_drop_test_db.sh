@@ -4,7 +4,7 @@
 . /var/app/current/utils/cgit/tools/eb_env_setup.sh
 
 # Double check we are on an environment we expect to be on
-if [ "$COBALT_HOSTNAME" = "1test.myabf.com.au" ] || [ "$COBALT_HOSTNAME" = "uat.myabf.com.au" ]
+if [ "$COBALT_HOSTNAME" = "test.myabf.com.au" ] || [ "$COBALT_HOSTNAME" = "uat.myabf.com.au" ]
 then
 
   echo "drop database $1;" > /tmp/sql.txt
