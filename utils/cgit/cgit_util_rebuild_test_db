@@ -45,4 +45,17 @@ fi
 echo "Current RDS_DB_NAME is $DBNAME, new RDS_DB_NAME will be $NEW_DBNAME"
 
 # Create new database
-eb ssh $ENV --command -f sudo
+echo "Creating new database..."
+eb ssh $ENV --command -f sudo /var/app/current/utils/cgit/tools/eb_create_test_db.sh $NEW_DBNAME
+
+# Update elastic beanstalk settings
+echo "Updating Elastic Beanstalk for $ENV..."
+eb setenv RDS_DB_NAME=$NEW_DBNAME $ENV
+
+# Drop old database
+echo "Droping on database $DBNAME..."
+eb ssh $ENV --command -f sudo /var/app/current/utils/cgit/tools/eb_drop_test_db.sh $DBNAME
+
+# Build test data
+echo "Adding test data..."
+eb ssh $ENV --command -f sudo /var/app/current/utils/aws/rebuild_test_database_subcommands.sh
