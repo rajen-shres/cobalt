@@ -1,14 +1,22 @@
+{# Messages is/are how we add the pop ups on the next page to say success or failure etc #}
+
 <div class="container-fluid justify-content-center">
-  {% for message in messages %}
-  <div class="row">
-    <div class="alert {{ message.tags }} alert-dismissible col-12" role="alert">
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-      <br>
-      <br>
-      {{ message }}
-    </div>
-  </div>
-  {% endfor %}
+    {% for message in messages %}
+        <div class="row
+
+            {# Animate.css is loaded by base.html so we use that to slowly dismiss non-critical messages #}
+            {% if messages.tags != "cobalt-message-error" %}
+                animate__animated animate__delay-5s animate__fadeOutUp
+            {% endif %}
+            ">
+            <div class="alert {{ message.tags }} alert-dismissible col-12" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <br>
+                <br>
+                {{ message }}
+            </div>
+        </div>
+    {% endfor %}
 </div>
