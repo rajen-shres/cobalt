@@ -5,7 +5,7 @@
         <div class="row
 
             {# Animate.css is loaded by base.html so we use that to slowly dismiss non-critical messages #}
-            {% if messages.tags != "cobalt-message-error" %}
+            {% if message.tags != "cobalt-message-error alert-danger" %}
                 animate__animated animate__delay-5s animate__fadeOutUp
             {% endif %}
             ">
