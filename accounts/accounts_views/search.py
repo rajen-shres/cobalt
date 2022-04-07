@@ -211,9 +211,7 @@ def system_number_search_htmx(request):
 
     # Get parameters
     search_id = request.POST.get("search_id", "")
-    user_id_field = request.POST.get("user_id_field", "")
     callback = request.POST.get("callback", "")
-    # Get partial first name to search for from form
     system_number = request.POST.get("system_number")
 
     if system_number == "":
@@ -237,7 +235,7 @@ def system_number_search_htmx(request):
             {
                 "member": member,
                 "search_id": search_id,
-                "user_id_field": user_id_field,
+                "user_id_field": system_number,
                 "include_me": include_me,
                 "callback": callback,
             },

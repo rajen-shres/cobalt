@@ -27,7 +27,6 @@
         <div class="col-12 form-group">
             <label for="id_lastname{{ search_id }}" id="id_label_lastname{{ search_id }}" class="bmd-label-static">First Name
             </label>
-
             <input type="text"
                 class="form-control modal-input"
                 name="first_name_search"
@@ -52,10 +51,11 @@
                     hx-post="{% url "accounts:system_number_search_htmx" %}"
                     hx-target="#name-matches{{ search_id }}"
                     hx-include="[id='id_system_number']"
-                    {% if search_id %}, search_id:'{{ search_id }}'{% endif %}
+                    hx-vars="user_id_field:'{{ user_id_field }}',
+                    search_id:'{{ search_id }}'
                     {% if callback %}, callback:'{{ callback }}'{% endif %}
-                    {% if include_me %}, include_me:'yes'{% endif %}"
-
+                    {% if include_me %}, include_me:'yes'{% endif %}
+                    "
                 >Lookup Number</button>
             </div>
             <div class="name-match" id="name-matches{{ search_id }}">
