@@ -388,3 +388,22 @@ class OrgVenue(models.Model):
 
     def __str__(self):
         return f"{self.organisation} - {self.venue}"
+
+
+class OrgEmailTemplate(models.Model):
+    """Allow an organisation to handle their own email templates"""
+
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    template_name = models.CharField(max_length=100)
+    banner = models.ImageField(
+        upload_to="email_banners/", default="email_banners/default-banner.png"
+    )
+    footer = models.TextField(blank=True, null=True)
+    last_modified_by = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name="template_last_modified_by"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.organisation} - {self.template_name}"

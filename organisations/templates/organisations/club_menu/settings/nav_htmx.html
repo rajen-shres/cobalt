@@ -90,67 +90,67 @@ hx-target="#id_settings_form"
 </div>
 
 
-{#<div class="btn-group" style="z-index:9999">#}
-{#    <button type="button"#}
-{#        class="btn dropdown-toggle#}
-{#        {% if selected == "tags" or selected == "templates" %}#}
-{#            btn-primary#}
-{#        {% else %}#}
-{#            bg-transparent#}
-{#        {% endif %}#}
-{#        "#}
-{#        data-toggle="dropdown"#}
-{#        aria-haspopup="true"#}
-{#        aria-expanded="false">#}
-{#        Communications#}
-{#        <div class="ripple-container"></div></button>#}
-{#    <div class="dropdown-menu" x-placement="bottom-start" style="position: absolute; top: 41px; left: 0px; will-change: top, left;">#}
-{##}
-{#        <a href="javascript: void(0)"#}
-{#            class="btn btn-sm w-100#}
-{#            {% if selected == "tags" %}#}
-{#                btn-primary text-white#}
-{#            {% else %}#}
-{#                btn-secondary#}
-{#            {% endif %}#}
-{#            "#}
-{#            hx-post="{% url "organisations:club_menu_tab_comms_tags_htmx" %}"#}
-{#            hx-target="#id_settings_form"#}
-{#            id="t_comms_tab_tags"#}
-{#        >Tags#}
-{#        </a>#}
-{#        <br>#}
-{##}
-{#        <a href="javascript: void(0)"#}
-{#            class="btn btn-sm w-100#}
-{#            {% if selected == "templates" %}#}
-{#                btn-primary text-white#}
-{#            {% else %}#}
-{#                btn-secondary#}
-{#            {% endif %}#}
-{#            "#}
-{#            hx-post="{% url "organisations:club_menu_tab_comms_templates_htmx" %}"#}
-{#            hx-target="#id_settings_form"#}
-{#            id="t_comms_tab_templates"#}
-{#        >Templates#}
-{#        </a>#}
-{##}
-{#        <a href="javascript: void(0)"#}
-{#            class="btn btn-sm w-100#}
-{#            {% if selected == "welcome" %}#}
-{#                btn-primary text-white#}
-{#            {% else %}#}
-{#                btn-secondary#}
-{#            {% endif %}#}
-{#            "#}
-{#            hx-post="{% url "organisations:club_menu_tab_comms_templates_htmx" %}"#}
-{#            hx-target="#id_settings_form"#}
-{#            id="t_comms_tab_welcome"#}
-{#        >Welcome Packs#}
-{#        </a>#}
-{##}
-{#    </div>#}
-{#</div>#}
+<div class="btn-group" style="z-index:9999">
+    <button type="button"
+        class="btn dropdown-toggle
+        {% if selected == "tags" or selected == "templates" %}
+            btn-primary
+        {% else %}
+            bg-transparent
+        {% endif %}
+        "
+        data-toggle="dropdown"
+        aria-haspopup="true"
+        aria-expanded="false">
+        Communications
+        <div class="ripple-container"></div></button>
+    <div class="dropdown-menu" x-placement="bottom-start" style="position: absolute; top: 41px; left: 0px; will-change: top, left;">
+
+        <a href="javascript: void(0)"
+            class="btn btn-sm w-100
+            {% if selected == "tags" %}
+                btn-primary text-white
+            {% else %}
+                btn-secondary
+            {% endif %}
+            "
+            hx-post="{% url "organisations:club_menu_tab_comms_tags_htmx" %}"
+            hx-target="#id_settings_form"
+            id="t_comms_tab_tags"
+        >Tags
+        </a>
+        <br>
+
+        <a href="javascript: void(0)"
+            class="btn btn-sm w-100
+            {% if selected == "templates" %}
+                btn-primary text-white
+            {% else %}
+                btn-secondary
+            {% endif %}
+            "
+            hx-post="{% url "organisations:club_menu_tab_comms_templates_htmx" %}"
+            hx-target="#id_settings_form"
+            id="t_comms_tab_templates"
+        >Templates
+        </a>
+
+        <a href="javascript: void(0)"
+            class="btn btn-sm w-100
+            {% if selected == "welcome" %}
+                btn-primary text-white
+            {% else %}
+                btn-secondary
+            {% endif %}
+            "
+            hx-post="{% url "organisations:club_menu_tab_comms_templates_htmx" %}"
+            hx-target="#id_settings_form"
+            id="t_comms_tab_welcome"
+        >Welcome Packs
+        </a>
+
+    </div>
+</div>
 
 
 

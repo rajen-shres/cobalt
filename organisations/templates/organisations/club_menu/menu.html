@@ -6,6 +6,10 @@
 
 {% block header %}
     {% include "organisations/club_menu/menu_css.html" %}
+
+    {# These are used by the image cropper for template banners #}
+    <link href="{% static 'assets/css/cropper.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/cropper.min.js' %}"></script>
 {% endblock header %}
 {% block content %}
 
@@ -75,12 +79,12 @@
 
 
 
-                    {#                    <li class="nav-item">#}
-                    {#                        <a id="id_tab_comms" class="nav-link auto-refresh" href="#comms" role="tab" data-toggle="tab">#}
-                    {#                            <i class="material-icons">alternate_email</i>#}
-                    {#                            Communications#}
-                    {#                        </a>#}
-                    {#                    </li>#}
+                    <li class="nav-item">
+                        <a id="id_tab_comms" class="nav-link auto-refresh" href="#comms" role="tab" data-toggle="tab">
+                            <i class="material-icons">alternate_email</i>
+                            Communications
+                        </a>
+                    </li>
 
                     {% if show_finance %}
 

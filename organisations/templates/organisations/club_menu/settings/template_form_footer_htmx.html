@@ -1,0 +1,23 @@
+{% load cobalt_tags %}
+<div class="row">
+    <div class="col-10">
+        <div class="form-group">
+            <form
+                hx-post="{% url "organisations:club_menu_tab_settings_edit_template_footer_htmx" %}"
+                hx-target="#id_panel_settings"
+                hx-vars="club_id:{{ club.id }},template_id:{{ template.id }}"
+            >
+
+                <label class="bmd-label-static" for="id_footer">
+                    Footer (optional)
+                </label>
+
+                {% cobalt_bs4_field footer_form.footer %}
+
+                <div class="col-2">
+                    <button class="btn btn-sm btn-info">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

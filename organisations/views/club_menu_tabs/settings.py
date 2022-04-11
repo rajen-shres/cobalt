@@ -16,7 +16,7 @@ from club_sessions.models import (
     SessionTypePaymentMethod,
     SessionTypePaymentMethodMembership,
 )
-from cobalt.settings import GLOBAL_MPSERVER
+from cobalt.settings import GLOBAL_MPSERVER, COBALT_HOSTNAME
 from organisations.decorators import check_club_menu_access
 from organisations.forms import (
     OrgForm,
@@ -25,7 +25,8 @@ from organisations.forms import (
     VenueForm,
     PaymentTypeForm,
     TagForm,
-    TemplateForm,
+    TemplateFooterForm,
+    TemplateBannerForm,
 )
 from organisations.models import (
     ClubLog,
@@ -35,6 +36,7 @@ from organisations.models import (
     MiscPayType,
     ClubTag,
     MemberClubTag,
+    OrgEmailTemplate,
 )
 from organisations.views.admin import get_secretary_from_org_form
 from organisations.views.club_menu_tabs.utils import _user_is_uber_admin
@@ -645,92 +647,56 @@ def tags_htmx(request, club):
 
 
 @check_club_menu_access()
-def templates_htmx(request, club):
-    """build the comms template tab in club menu, also handles form post"""
+def templates_htmx(request, club, edit_template=None):
+    """build the comms template tab in club menu. The edit forms pass in a value for edit_template so we can re-open it"""
 
-    message = ""
+    templates = OrgEmailTemplate.objects.filter(organisation=club)
 
-    if (
-        "template_button_Add" not in request.POST
-        and "template_button_Edit" not in request.POST
-    ):
-        # No action required, create blank form
-        form = TemplateForm(club=club)
-
-    else:
-        # Action required
-        if "template_button_Edit" in request.POST:
-            # Editing an existing template
-            template_id = request.POST.get("template_id")
-            template = get_object_or_404(EmailTemplate, pk=template_id)
-            form = TemplateForm(request.POST, instance=template, club=club)
-            print("editing")
-
-        else:
-            # Adding a new template
-            form = TemplateForm(request.POST, club=club)
-
-        if form.is_valid():
-            template = form.save(commit=False)
-
-            # Always set subject to be subject
-            template.subject = "{{ subject }}"
-
-            # Use name field to identify organisation that owns this template
-            # This is a simple way to control templates, but may need extended later
-            # We edit the name before we send to user so do this for Add and Edit
-            template.name = f"ORG {club.id} {template.name}"
-
-            template.save()
-
-            form = TemplateForm(club=club)
-            message = "Template added successfully"
-        else:
-            print(form.errors)
-            message = "Errors found on form"
-
-    templates = EmailTemplate.objects.filter(name__startswith=f"ORG {club.id} ")
-
-    # manipulate templates
+    # Add htmx tags
     for template in templates:
-        template.name = " ".join(template.name.split(" ")[2:])
+        template.hx_post = reverse(
+            "organisations:club_menu_tab_settings_delete_template_htmx"
+        )
+        template.hx_vars = f"club_id:{club.id}, template_id:{template.id}"
 
     return render(
         request,
         "organisations/club_menu/settings/templates_htmx.html",
-        {"club": club, "templates": templates, "form": form, "message": message},
+        {"club": club, "templates": templates, "edit_template": edit_template},
     )
 
 
 @check_club_menu_access()
 def edit_template_htmx(request, club):
-    """HTMX form to edit a template. If a template id is provided then we try to edit tht one,
-    otherwise create blank. We don't handle the form, that goes to templates_htmx as it needs to redraw
-    the whole screen"""
+    """HTMX form to render the email template edit screen. We create a new template if one isn't provided and we
+    don't handle the form as this is handled at a lower level. We manage template_name (no form), banner, and
+    footer, both which have a form"""
 
     template_id = request.POST.get("template_id")
     if template_id:
-        template = get_object_or_404(EmailTemplate, pk=template_id)
-        form = TemplateForm(club=club, instance=template)
-        # remove internal attributes from template.name - ORG 123 My Template -> My Template
-        form.initial["name"] = " ".join(template.name.split(" ")[2:])
-        action = "Edit"
-        action_button_word = "Save"
+        template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+        message = "Editing template"
     else:
-        form = TemplateForm(club=club)
-        template = None
-        action = "Add"
-        action_button_word = "Add"
+        template = OrgEmailTemplate(
+            organisation=club,
+            template_name="New Template",
+            last_modified_by=request.user,
+        )
+        template.save()
+        message = "Created new template"
+
+    footer_form = TemplateFooterForm(instance=template)
+    banner_form = TemplateBannerForm(instance=template)
 
     return render(
         request,
         "organisations/club_menu/settings/template_form_htmx.html",
         {
             "club": club,
-            "form": form,
-            "action": action,
+            "footer_form": footer_form,
+            "banner_form": banner_form,
             "template": template,
-            "action_button_word": action_button_word,
+            "message": message,
         },
     )
 
@@ -739,13 +705,76 @@ def edit_template_htmx(request, club):
 def template_preview_htmx(request):
     """Preview a template as user creates it"""
 
-    html_content = request.POST.get("html_content")
+    template_id = request.POST.get("template_id")
+    template = get_object_or_404(OrgEmailTemplate, pk=template_id)
 
-    print(html_content)
-    print(request.POST)
+    host = COBALT_HOSTNAME
 
     return render(
         request,
         "organisations/club_menu/settings/template_preview_htmx.html",
-        {"html_content": html_content},
+        {"template": template, "host": host},
     )
+
+
+@check_club_menu_access()
+def edit_template_name_htmx(request, club):
+    """Edit the template_name field on a template"""
+
+    template_id = request.POST.get("template_id")
+    template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+    if template.organisation != club:
+        return HttpResponse("Access Denied")
+
+    name = request.POST.get("template_name")
+    template.template_name = name
+    template.save()
+
+    return templates_htmx(request, edit_template=template)
+
+
+@check_club_menu_access()
+def edit_template_banner_htmx(request, club):
+    """Edit the template_name field on a template"""
+
+    template_id = request.POST.get("template_id")
+    template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+    if template.organisation != club:
+        return HttpResponse("Access Denied")
+
+    template = TemplateBannerForm(request.POST, request.FILES, instance=template)
+    print(template.errors)
+    if template.is_valid():
+        template.save()
+
+    return templates_htmx(request, edit_template=template)
+
+
+@check_club_menu_access()
+def edit_template_footer_htmx(request, club):
+    """Edit the footer field on a template"""
+
+    template_id = request.POST.get("template_id")
+    template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+    if template.organisation != club:
+        return HttpResponse("Access Denied")
+
+    footer = request.POST.get("footer")
+    template.footer = footer
+    template.save()
+
+    return templates_htmx(request, edit_template=template)
+
+
+@check_club_menu_access()
+def delete_template_htmx(request, club):
+    """Delete a template"""
+
+    template_id = request.POST.get("template_id")
+    template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+    if template.organisation != club:
+        return HttpResponse("Access Denied")
+
+    template.delete()
+
+    return templates_htmx(request)

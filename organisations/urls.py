@@ -424,4 +424,24 @@ urlpatterns = [
         organisations.views.club_menu_tabs.congresses.rename_series_htmx,
         name="club_menu_tab_congress_rename_series_htmx",
     ),
+    path(
+        "club-menu/settings/templates/edit-name",
+        organisations.views.club_menu_tabs.settings.edit_template_name_htmx,
+        name="club_menu_tab_settings_edit_template_name_htmx",
+    ),
+    path(
+        "club-menu/settings/templates/edit-banner",
+        organisations.views.club_menu_tabs.settings.edit_template_banner_htmx,
+        name="club_menu_tab_settings_edit_template_banner_htmx",
+    ),
+    path(
+        "club-menu/settings/templates/edit-footer",
+        organisations.views.club_menu_tabs.settings.edit_template_footer_htmx,
+        name="club_menu_tab_settings_edit_template_footer_htmx",
+    ),
+    path(
+        "club-menu/settings/templates/delete",
+        organisations.views.club_menu_tabs.settings.delete_template_htmx,
+        name="club_menu_tab_settings_delete_template_htmx",
+    ),
 ]

@@ -51,6 +51,9 @@ def email_htmx(request, club, message=None):
 
     things = cobalt_paginator(request, batch_ids)
 
+    # See if templates are set up
+    # has_templates =
+
     return render(
         request,
         "organisations/club_menu/comms/email_htmx.html",

@@ -5,7 +5,7 @@ from crispy_forms.helper import FormHelper
 from django import forms
 from django_summernote.widgets import SummernoteInplaceWidget
 from post_office.models import EmailTemplate
-
+from PIL import Image
 import accounts.accounts_views.admin
 from accounts.models import User
 from cobalt.settings import (
@@ -24,6 +24,7 @@ from .models import (
     ClubTag,
     OrganisationFrontPage,
     OrgVenue,
+    OrgEmailTemplate,
 )
 
 
@@ -367,33 +368,60 @@ class TagMultiForm(forms.Form):
         return tags
 
 
-class TemplateForm(forms.ModelForm):
-    """Form for editing email templates"""
+class TemplateFooterForm(forms.ModelForm):
+    """Form for editing email template footer"""
 
     class Meta:
-        model = EmailTemplate
-        fields = (
-            "name",
-            "description",
-            "html_content",
-        )
+        model = OrgEmailTemplate
+        fields = ("footer",)
 
-    html_content = forms.CharField(
+    footer = forms.CharField(
         widget=SummernoteInplaceWidget(
             attrs={
                 "summernote": {
                     "height": "250",
                     "codemirror": {"theme": "monokai"},
-                    "placeholder": "<br><br>Enter your template.",
+                    "placeholder": "<br><br>(Optional) Enter your footer here. This will appear at the bottom of your email.",
                 }
             }
         )
     )
-    name = forms.CharField(max_length=50)
 
-    def __init__(self, *args, **kwargs):
-        self.club = kwargs.pop("club")
-        super().__init__(*args, **kwargs)
+
+class TemplateBannerForm(forms.ModelForm):
+    """Form for editing email template banner"""
+
+    x = forms.FloatField(widget=forms.HiddenInput())
+    y = forms.FloatField(widget=forms.HiddenInput())
+    width = forms.FloatField(widget=forms.HiddenInput())
+    height = forms.FloatField(widget=forms.HiddenInput())
+
+    class Meta:
+
+        model = OrgEmailTemplate
+        fields = (
+            "banner",
+            "x",
+            "y",
+            "width",
+            "height",
+        )
+        widgets = {"file": forms.FileInput(attrs={"accept": "image/*"})}
+
+    def save(self):
+        email_template = super(TemplateBannerForm, self).save()
+
+        x = self.cleaned_data.get("x")
+        y = self.cleaned_data.get("y")
+        w = self.cleaned_data.get("width")
+        h = self.cleaned_data.get("height")
+
+        image = Image.open(email_template.banner)
+        cropped_image = image.crop((x, y, w + x, h + y))
+        resized_image = cropped_image.resize((200, 200), Image.ANTIALIAS)
+        resized_image.save(email_template.banner.path)
+
+        return email_template
 
 
 class UnregisteredUserMembershipForm(forms.Form):

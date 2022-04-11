@@ -1,0 +1,28 @@
+<div class="form-group">
+    <label class="bmd-label-floating" for="id_template_name">
+        Template name
+    </label>
+    <form
+        hx-post="{% url "organisations:club_menu_tab_settings_edit_template_name_htmx" %}"
+        hx-target="#id_panel_settings"
+        hx-vars="club_id:{{ club.id }},template_id:{{ template.id }}"
+    >
+        <div class="row">
+            <div class="col-8">
+                <input
+                    type="text"
+                    name="template_name"
+                    value="{{ template.template_name }}"
+                    maxlength="100"
+                    class=" form-control"
+                    required=""
+                    id="id_template_name"
+                >
+
+            </div>
+            <div class="col-4">
+                <button class="btn btn-sm btn-info">Update</button>
+            </div>
+        </div>
+    </form>
+</div>

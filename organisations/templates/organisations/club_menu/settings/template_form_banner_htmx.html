@@ -1,0 +1,120 @@
+<!-- MODAL TO CROP THE IMAGE -->
+<div class="modal fade" id="modalCrop">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">Crop the photo</h4>
+            </div>
+            <div class="modal-body">
+                <img src="" id="image" style="max-width: 100%;">
+            </div>
+            <div class="modal-footer">
+                <div class="btn-group pull-left" role="group">
+                    <button type="button" class="btn btn-sm btn-default js-zoom-in">
+                        <span class="text-large">+</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-default js-zoom-out">
+                        <span class="text-large">-</span>
+                    </button>
+                </div>
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Discard</button>
+                &nbsp;
+                <button type="button" class="btn btn-sm btn-primary js-crop-and-upload">Crop and upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="card-body">
+    <img id="cobalt-pic" class="text-center" style="height: 140px; width: 140px;" src="/media/{{ template.banner }}"/>
+    <br>
+    <form
+        hx-encoding='multipart/form-data'
+        hx-post="{% url "organisations:club_menu_tab_settings_edit_template_banner_htmx" %}"
+        hx-vars="club_id:{{ club.id }}, template_id:{{ edit_template.id }}"
+        hx-target="#id_panel_settings"
+        hx-trigger="senditin"
+        id="pic_form">
+
+        <input type="hidden" name="x" id="id_x" value="1"><input type="hidden" name="y" id="id_y" value="1"><input
+            type="hidden" name="width" id="id_width" value="1"><input type="hidden" name="height" id="id_height"
+                value="1">
+
+        <div class="fileinput fileinput-new text-center" data-provides="fileinput">
+            <div class="fileinput-preview fileinput-exists thumbnail img-circle img-raised"></div>
+            <div>
+                <span class="btn btn-sm btn-info btn-file">
+                    <span class="fileinput-new">Change Banner</span>
+
+                    <input type="file" name="pic" accept="image/*" id="id_pic"
+                        value="{{ template.banner }}"/></span>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+
+        /* SCRIPT TO OPEN THE MODAL WITH THE PREVIEW */
+        $("#id_pic").change(function () {
+            console.log("changed");
+            if (this.files && this.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $("#image").attr("src", e.target.result);
+                    $("#modalCrop").modal("show");
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        /* SCRIPTS TO HANDLE THE CROPPER BOX */
+        var $image = $("#image");
+        var cropBoxData;
+        var canvasData;
+        $("#modalCrop").on("shown.bs.modal", function () {
+            $image.cropper({
+                viewMode: 1,
+                aspectRatio: 2 / 1,
+                minCropBoxWidth: 400,
+                minCropBoxHeight: 200,
+                ready: function () {
+                    $image.cropper("setCanvasData", canvasData);
+                    $image.cropper("setCropBoxData", cropBoxData);
+                }
+            });
+        }).on("hidden.bs.modal", function () {
+            cropBoxData = $image.cropper("getCropBoxData");
+            canvasData = $image.cropper("getCanvasData");
+            $image.cropper("destroy");
+        });
+
+        $(".js-zoom-in").click(function () {
+            $image.cropper("zoom", 0.1);
+        });
+
+        $(".js-zoom-out").click(function () {
+            $image.cropper("zoom", -0.1);
+        });
+
+        /* SCRIPT TO COLLECT THE DATA AND POST TO THE SERVER */
+        $(".js-crop-and-upload").click(function () {
+            var cropData = $image.cropper("getData");
+            $("#id_x").val(cropData["x"]);
+            $("#id_y").val(cropData["y"]);
+            $("#id_height").val(cropData["height"]);
+            $("#id_width").val(cropData["width"]);
+            htmx.trigger("#pic_form", "senditin2");
+            {#$("#pic_form").submit();#}
+        });
+
+    });
+
+</script>
