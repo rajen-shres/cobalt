@@ -418,7 +418,7 @@ class TemplateBannerForm(forms.ModelForm):
 
         image = Image.open(email_template.banner)
         cropped_image = image.crop((x, y, w + x, h + y))
-        resized_image = cropped_image.resize((200, 200), Image.ANTIALIAS)
+        resized_image = cropped_image.resize((400, 200), Image.ANTIALIAS)
         resized_image.save(email_template.banner.path)
 
         return email_template

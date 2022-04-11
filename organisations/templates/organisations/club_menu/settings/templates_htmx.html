@@ -9,7 +9,7 @@
     </div>
     <div class="card-body" id="id_comms_email_tab">
 
-        <h3>Email Templates - NOT FINISHED</h3>
+        <h3>Email Templates</h3>
         <p>You can use email templates to customise the appearance of emails that you send to your members.
         </p>
 
@@ -28,7 +28,7 @@
                     <tbody>
                         {% for template in templates %}
                             <tr>
-                                <td class="text-left">{{ template.template_name }} (last modified {{ template.updated_at|cobalt_nice_date }} by {{ template.last_modified_by.full_name }})</td>
+                                <td class="text-left"><span class="font-weight-bold">{{ template.template_name }}</span> (last modified {{ template.updated_at|cobalt_nice_date }} by {{ template.last_modified_by.full_name }})</td>
 
                                 {% include "utils/htmx_confirm_modal.html" with id=template.id delete_item=template.name hx_vars=template.hx_vars hx_target="#id_panel_settings" hx_post=template.hx_post %}
                                 <td>
@@ -62,11 +62,11 @@
 
         <div id="id_edit_template"
 
-            {#        If edit_template is set then we were editing a template so re-open it#}
+            {# If template is set then we were editing a template so re-open it #}
 
-            {% if edit_template %}
+            {% if template %}
                 hx-post="{% url "organisations:club_menu_tab_settings_edit_template_htmx" %}"
-                hx-vars="club_id:{{ club.id }},template_id:{{ edit_template.id }}"
+                hx-vars="club_id:{{ club.id }},template_id:{{ template.id }}"
                 hx-trigger="load"
             {% endif %}
         >

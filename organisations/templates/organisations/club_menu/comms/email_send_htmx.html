@@ -48,6 +48,24 @@
             </div>
         </div>
 
+        {% if email_form.template.field.choices %}
+
+            <div class="row">
+                <div class="col-2">
+                    <label class="bmd-label-static" for="id_template">
+                        Template
+                    </label>
+                </div>
+                <div class="col-10">
+                    {% cobalt_bs4_field email_form.template %}
+                </div>
+            </div>
+            <br>
+
+        {% else %}
+            <h3>No templates set up, using system default</h3>
+        {% endif %}
+
         <div class="row">
             <div class="col-12">
                 {% cobalt_bs4_field email_form.subject %}

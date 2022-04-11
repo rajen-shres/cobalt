@@ -7,6 +7,7 @@ from cobalt.settings import (
     BLEACH_ALLOWED_ATTRIBUTES,
     BLEACH_ALLOWED_STYLES,
 )
+from organisations.models import OrgEmailTemplate
 
 
 class EmailContactForm(forms.Form):
@@ -17,9 +18,9 @@ class EmailContactForm(forms.Form):
     redirect_to = forms.CharField(label="Redirect_To")
 
 
-class EmailForm(forms.Form):
-    """Form to send an email. This form doesn't include who to send it to, that is specific to the use of the form
-    and needs to be handled separately"""
+class OrgEmailForm(forms.Form):
+    """Form to send an email using a template. This form doesn't include who to send it to,
+    that is specific to the use of the form and needs to be handled separately"""
 
     subject = forms.CharField(max_length=100)
     body = forms.CharField(
@@ -34,6 +35,19 @@ class EmailForm(forms.Form):
         )
     )
     reply_to = forms.CharField(max_length=100, required=False)
+    template = forms.ChoiceField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        """create list of templates"""
+
+        # Get club
+        self.club = kwargs.pop("club", None)
+        super().__init__(*args, **kwargs)
+        choices = [
+            (choice.pk, choice.template_name)
+            for choice in OrgEmailTemplate.objects.filter(organisation=self.club)
+        ]
+        self.fields["template"].choices = choices
 
     def clean_body(self):
         # Clean the data - we get some stuff through from cut and paste that messes up emails

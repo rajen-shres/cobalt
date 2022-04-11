@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
 from accounts.models import User, UnregisteredUser
-from notifications.forms import EmailForm
+from notifications.forms import OrgEmailForm
 from notifications.models import Snooper, EmailBatchRBAC
 from notifications.notifications_views.core import (
     send_cobalt_email_with_template,
@@ -139,12 +139,12 @@ def email_send_htmx(request, club):
     message = None
 
     if "test" not in request.POST and "send" not in request.POST:
-        email_form = EmailForm()
+        email_form = OrgEmailForm(club=club)
         tag_form = TagMultiForm(club=club)
     else:
-        email_form = EmailForm(request.POST)
+        email_form = OrgEmailForm(request.POST, club=club)
         tag_form = TagMultiForm(request.POST, club=club)
-        print(tag_form.errors)
+        print(email_form.errors)
         if email_form.is_valid() and tag_form.is_valid():
 
             if "test" in request.POST:
@@ -156,8 +156,6 @@ def email_send_htmx(request, club):
 
                 # convert tags from strings to ints
                 send_tags = list(map(int, tag_form.cleaned_data["tags"]))
-
-                print(send_tags)
 
                 _send_email_to_tags(request, club, send_tags, email_form)
                 return HttpResponse(

@@ -662,7 +662,7 @@ def templates_htmx(request, club, edit_template=None):
     return render(
         request,
         "organisations/club_menu/settings/templates_htmx.html",
-        {"club": club, "templates": templates, "edit_template": edit_template},
+        {"club": club, "templates": templates, "template": edit_template},
     )
 
 
@@ -742,10 +742,9 @@ def edit_template_banner_htmx(request, club):
     if template.organisation != club:
         return HttpResponse("Access Denied")
 
-    template = TemplateBannerForm(request.POST, request.FILES, instance=template)
-    print(template.errors)
-    if template.is_valid():
-        template.save()
+    template_form = TemplateBannerForm(request.POST, request.FILES, instance=template)
+    if template_form.is_valid():
+        template = template_form.save()
 
     return templates_htmx(request, edit_template=template)
 
