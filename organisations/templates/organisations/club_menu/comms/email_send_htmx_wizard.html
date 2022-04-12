@@ -25,13 +25,20 @@
         <div class="tab-pane active" id="send-email-recipients" aria-expanded="true">
             <div class="row">
                 <div class="col-md-6">
-                    {% cobalt_bs4_field tag_form.tags %}
+                    {#                    {% cobalt_bs4_field tag_form.tags %}#}
+                    {#                    {{ tag_form.tags }}#}
+                    {% for key, value in tag_form.tags.field.choices %}
+                        <label for="id_tags_{{ key }}">
+                            <input type="checkbox" name="tags" value="{{ key }}" id="id_tags_{{ key }}">
+                            {{ value }}</label>
+
+                    {% endfor %}
                 </div>
             </div>
         </div>
 
 
-
+        <input type="checkbox" name="tags" value="0" id="id_tags_0">
 
 
 
