@@ -29,9 +29,15 @@
 </div>
 
 
-<div class="card-body">
-    <img id="cobalt-pic" class="text-center" src="/media/{{ template.banner }}"/>
-    <br>
+<div>
+    <div>
+        <label class="bmd-label-static" for="id_banner">
+            Banner
+        </label>
+    </div>
+    <div>
+        <img id="cobalt-pic" class="text-center" src="/media/{{ template.banner }}"/>
+    </div>
     <form
         hx-encoding='multipart/form-data'
         hx-post="{% url "organisations:club_menu_tab_settings_edit_template_banner_htmx" %}"

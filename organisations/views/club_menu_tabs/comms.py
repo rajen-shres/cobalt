@@ -101,6 +101,9 @@ def _send_email_to_tags(request, club, tags, email_form, club_template):
 
     combined_list = list(chain(members, un_regs))
 
+    if not combined_list:
+        return "There are no recipients for this email"
+
     for recipient in combined_list:
         override = overrides.filter(system_number=recipient["system_number"]).first()
         if override:
@@ -112,6 +115,8 @@ def _send_email_to_tags(request, club, tags, email_form, club_template):
         _send_email_sub(
             recipient["first_name"], email, email_form, batch_id, club_template
         )
+
+    return f"Email queued to send to {len(combined_list)} recipients"
 
 
 def _send_email_sub(first_name, email, email_form, batch_id=None, club_template=None):
@@ -128,6 +133,7 @@ def _send_email_sub(first_name, email, email_form, batch_id=None, club_template=
     context = {
         "name": first_name,
         "subject": email_form.cleaned_data["subject"],
+        "title": email_form.cleaned_data["subject"],
         "email_body": email_form.cleaned_data["body"],
         "box_colour": "danger",
     }
@@ -174,16 +180,16 @@ def email_send_htmx(request, club):
                     club_template=club_template,
                 )
 
-                message = "Test email sent. Check your inbox"
+                message = "Test email sent. Check your inbox."
             else:
 
                 # convert tags from strings to ints
                 send_tags = list(map(int, tag_form.cleaned_data["tags"]))
 
-                _send_email_to_tags(request, club, send_tags, email_form, club_template)
-                return HttpResponse(
-                    "<h3>Email sent</h3>Click on Email to see sent messages."
+                response = _send_email_to_tags(
+                    request, club, send_tags, email_form, club_template
                 )
+                return HttpResponse(response)
 
     # Get tags, we include an everyone tag inside the template
     tags = ClubTag.objects.filter(organisation=club)

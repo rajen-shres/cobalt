@@ -2,215 +2,33 @@
 {% load widget_tweaks %}
 {% load cobalt_tags %}
 
+{# Style used for drag and drop #}
 <style>
     #drop-wrapper {
         border: 2px dashed #ccc;
     }
 </style>
 
-<form hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}">
-    <div class="col-md-9 col-lg-9">
-        <h3>Send a New Email</h3>
 
-        <div class="container">
-            <div class="row">
-
-                <div class="col-md-6">
-                    <div class="card mx-2">
-                        <h4>To</h4>
-                        <div id="send_tags" class="card-body empty-drag" ondrop="drop(event)" ondragover="allowDrop(event)">
-
-                        </div>
-                    </div>
-
-                    <span id="id_hidden_checkboxes" style="display: none">
-                        {% cobalt_bs4_field tag_form.tags %}
-                    </span>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="card mx-2">
-                        <h4>Tags</h4>
-
-                        <div class="card-body" id="available_tags" ondrop="drop(event)" ondragover="allowDrop(event)">
-
-                            {# Special everyone tag #}
-                            <button id="item_0" draggable="true" ondragstart="drag(event)" class="btn btn-sm btn-info">Everyone</button>
-
-                            {% for tag in tags %}
-                                <button id="item_{{ tag.id }}" draggable="true" ondragstart="drag(event)" class="btn btn-sm btn-default">{{ tag.tag_name }}</button>
-                            {% endfor %}
-
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+<div class="row">
+    <div class="card col-md-6">
+        <div class="card-header card-header-primary">
+            <h3>Send a New Email</h3>
         </div>
+        <div class="card-body">
 
-        {% if email_form.template.field.choices %}
+            {% include "organisations/club_menu/comms/email_send_htmx_wizard.html" %}
 
-            <div class="row">
-                <div class="col-2">
-                    <label class="bmd-label-static" for="id_template">
-                        Template
-                    </label>
-                </div>
-                <div class="col-10">
-                    {% cobalt_bs4_field email_form.template %}
-                </div>
-            </div>
-            <br>
-
-        {% else %}
-            <h3>No templates set up, using system default</h3>
-        {% endif %}
-
-        <div class="row">
-            <div class="col-12">
-                {% cobalt_bs4_field email_form.subject %}
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-12">
-                {% cobalt_bs4_field email_form.body %}
-            </div>
-        </div>
-
-        <div class="text-center">
-            <button class="btn btn-info btn-sm cobalt-save" disabled name="test" id="id_test_button">Test</button>
-            <button class="btn btn-success btn-sm cobalt-save" disabled name="send" id="id_send_button">Send</button>
         </div>
     </div>
+    <!-- END MAIN EMAIL PART -->
 
-</form>
+    <div id="email_preview" class="col-md-4 mx-auto bg-dark"
+        hx-post="{% url "organisations:club_menu_tab_settings_template_preview_htmx" %}"
+        hx-vars="club_id:{{ club.id }}, template_id:2"
+        hx-trigger="load"
+    >
+    </div>
 
-<script>
-    function addTag(tag_id, item, classname) {
-        // Handle adding a tag to the email
-        const moved = $("#" + tag_id);
-        moved.addClass(classname);
-        moved.removeClass("btn-default");
-
-        // update select list
-        $('#id_hidden_checkboxes').find(':checkbox').each(function() {
-            if (this.value === item){
-                $('#' + this.id).prop('checked', true);
-            }
-        });
-
-        checkForEmptyDragDropBoxes()
-
-    }
-
-    function removeTag(tag_id, item) {
-        // Handle removing a tag to the email
-        const moved = $("#" + tag_id);
-
-        // handle everyone differently
-        if (item==="0") {
-            moved.addClass("btn-info");
-            moved.removeClass("btn-success");
-        } else {
-            moved.addClass("btn-default");
-            moved.removeClass("btn-success");
-        }
-
-        // update select list
-        $('#id_hidden_checkboxes').find(':checkbox').each(function() {
-            if (this.value === item){
-                $('#' + this.id).prop('checked', false);
-            }
-        });
-
-        checkForEmptyDragDropBoxes()
-
-    }
-
-    function clearTags() {
-        // Remove all tags
-
-        $('#send_tags').find('.btn').each(function(){
-            const this_button = $('#' + this.id);
-            this_button.appendTo('#available_tags')
-            this_button.addClass("btn-default");
-            this_button.removeClass("btn-success");
-        });
-
-        // update select list
-        $('#id_hidden_checkboxes').find(':checkbox').each(function() {
-            $('#' + this.id).prop('checked', false);
-        });
-    }
-
-    function allowDrop(ev) {
-        ev.preventDefault();
-    }
-
-    function drag(ev) {
-        ev.dataTransfer.setData("text", ev.target.id);
-    }
-
-    function drop(ev) {
-        ev.preventDefault();
-
-        // Only allow drop on div, not on other elements
-
-        const id = ev.dataTransfer.getData("text");
-        const item = id.split("_")[1]
-
-        // Add to list of tags for this email
-        if (ev.target.id === "send_tags"){
-
-            {#// check for special case of everyone#}
-            if (item === "0") {
-                clearTags();
-                ev.target.appendChild(document.getElementById(id));
-                addTag(id, item, "btn-primary");
-            } else {
-                // Check if everyone is already in list
-                if ($('#send_tags').find('#item_0').length){
-                    GrowlNotification.notify({
-                        title: 'Already sending this to everyone',
-                        description: 'No need to add any other groups. If you want to change this first remove everyone',
-                        type: 'warning',
-                        position: 'top-right',
-                        closeTimeout: 5000
-                    });
-                } else {
-                    ev.target.appendChild(document.getElementById(id));
-                    addTag(id, item, "btn-success");
-                }
-            }
-
-            $('#id_send_button').attr('disabled', false);
-            $('#id_test_button').attr('disabled', false);
-        }
-
-        // remove from list of tags for this member
-        if (ev.target.id === "available_tags"){
-            ev.target.appendChild(document.getElementById(id));
-
-            removeTag(id, item);
-
-        }
-    }
-
-    function checkForEmptyDragDropBoxes() {
-        // check if to box is now empty
-        if ( $('#send_tags').children().length === 0 ) {
-            $("#send_tags").addClass("empty-drag")
-        } else {
-            $("#send_tags").removeClass("empty-drag")
-        }
-        // check if tag box is now empty
-        if ( $('#available_tags').children().length === 0 ) {
-            $("#available_tags").addClass("empty-drag-available")
-        } else {
-            $("#available_tags").removeClass("empty-drag-available")
-        }
-
-    }
-
-</script>
+</div>
 

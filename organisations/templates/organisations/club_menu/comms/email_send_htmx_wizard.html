@@ -1,0 +1,79 @@
+{% load crispy_forms_filters %}
+{% load widget_tweaks %}
+{% load cobalt_tags %}
+
+<form hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}">
+
+    <ul class="nav nav-pills nav-pills-danger" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" href="#send-email-recipients" role="tablist" aria-expanded="true">
+                1. Recipients
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#send-email-options" role="tablist" aria-expanded="false">
+                2. Options
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#send-email-content" role="tablist" aria-expanded="false">
+                3. Content
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content tab-space">
+        <div class="tab-pane active" id="send-email-recipients" aria-expanded="true">
+            <div class="row">
+                <div class="col-md-6">
+                    {% cobalt_bs4_field tag_form.tags %}
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+        <div class="tab-pane" id="send-email-options" aria-expanded="false">
+            {% if email_form.template.field.choices %}
+
+                <div class="row">
+                    <div class="col-2">
+                        <label class="bmd-label-static" for="id_template">
+                            Template
+                        </label>
+                    </div>
+                    <div class="col-10">
+                        {% cobalt_bs4_field email_form.template %}
+                    </div>
+                </div>
+                <br>
+
+            {% else %}
+                <h3>No templates set up, using system default</h3>
+            {% endif %}
+        </div>
+        <div class="tab-pane" id="send-email-content" aria-expanded="false">
+            <div class="row">
+                <div class="col-12">
+                    {% cobalt_bs4_field email_form.subject %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    {% cobalt_bs4_field email_form.body %}
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button class="btn btn-info btn-sm cobalt-save" disabled name="test" id="id_test_button">Test</button>
+                <button class="btn btn-success btn-sm cobalt-save" disabled name="send" id="id_send_button">Send</button>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+

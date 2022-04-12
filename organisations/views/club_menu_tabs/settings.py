@@ -634,8 +634,7 @@ def tags_htmx(request, club):
 
     # Add on count of how many members have this tag
     for tag in tags:
-        uses = MemberClubTag.objects.filter(club_tag=tag).count()
-        tag.uses = uses
+        tag.uses = MemberClubTag.objects.filter(club_tag=tag).count()
         tag.hx_post = reverse("organisations:club_menu_tab_comms_tags_delete_tag_htmx")
         tag.hx_vars = f"club_id:{club.id},tag_id:{tag.id}"
 
