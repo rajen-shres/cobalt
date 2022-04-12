@@ -396,7 +396,7 @@ class OrgEmailTemplate(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     template_name = models.CharField(max_length=100)
     banner = models.ImageField(
-        upload_to="email_banners/", default="email_banners/default-banner.png"
+        upload_to="email_banners/", default="email_banners/default_banner.jpg"
     )
     footer = models.TextField(blank=True, null=True)
     last_modified_by = models.ForeignKey(

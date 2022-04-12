@@ -3,6 +3,7 @@ from itertools import chain
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from post_office.models import EmailTemplate
 
 from accounts.models import User, UnregisteredUser
 from notifications.forms import OrgEmailForm
@@ -19,6 +20,7 @@ from organisations.models import (
     MemberMembershipType,
     MemberClubEmail,
     OrganisationFrontPage,
+    OrgEmailTemplate,
 )
 from organisations.views.club_menu_tabs.settings import tags_htmx
 
@@ -51,9 +53,6 @@ def email_htmx(request, club, message=None):
 
     things = cobalt_paginator(request, batch_ids)
 
-    # See if templates are set up
-    # has_templates =
-
     return render(
         request,
         "organisations/club_menu/comms/email_htmx.html",
@@ -61,7 +60,7 @@ def email_htmx(request, club, message=None):
     )
 
 
-def _send_email_to_tags(request, club, tags, email_form):
+def _send_email_to_tags(request, club, tags, email_form, club_template):
     """Send an email to a group of members identified by tags"""
 
     # let anyone with comms access to this org view them
@@ -109,26 +108,39 @@ def _send_email_to_tags(request, club, tags, email_form):
             print(f"overriding email address for {recipient['system_number']}")
         else:
             email = recipient["email"]
-        _send_email_sub(request, recipient["first_name"], email, email_form, batch_id)
+
+        _send_email_sub(
+            recipient["first_name"], email, email_form, batch_id, club_template
+        )
 
 
-def _send_email_sub(request, first_name, email, email_form, batch_id=None):
-    """Send an email sub task"""
+def _send_email_sub(first_name, email, email_form, batch_id=None, club_template=None):
+    """Send an email sub task
+
+    Args:
+        first_name(str): name of person to send to
+        email(str): email address
+        email_form: OrgEmailForm which user has just completed
+        batch_id(BatchID): batch id if required
+        club_template(OrgEmailTemplate): has banner, footer etc for club
+    """
 
     context = {
         "name": first_name,
         "subject": email_form.cleaned_data["subject"],
-        "title": f"From: {request.user}. This for , good on ya",
         "email_body": email_form.cleaned_data["body"],
-        "link": "/events",
-        "link_text": "click me",
         "box_colour": "danger",
     }
+
+    if club_template:
+        context["img_src"] = club_template.banner.url
+        context["footer"] = club_template.footer
 
     send_cobalt_email_with_template(
         to_address=email,
         context=context,
         batch_id=batch_id,
+        template="system - club",
     )
 
 
@@ -147,17 +159,28 @@ def email_send_htmx(request, club):
         print(email_form.errors)
         if email_form.is_valid() and tag_form.is_valid():
 
+            # Load template once if possible
+            if email_form.cleaned_data["template"]:
+                template_id = email_form.cleaned_data["template"]
+                club_template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+            else:
+                club_template = None
+
             if "test" in request.POST:
                 _send_email_sub(
-                    request, request.user.first_name, request.user.email, email_form
+                    first_name=request.user.first_name,
+                    email=request.user.email,
+                    email_form=email_form,
+                    club_template=club_template,
                 )
+
                 message = "Test email sent. Check your inbox"
             else:
 
                 # convert tags from strings to ints
                 send_tags = list(map(int, tag_form.cleaned_data["tags"]))
 
-                _send_email_to_tags(request, club, send_tags, email_form)
+                _send_email_to_tags(request, club, send_tags, email_form, club_template)
                 return HttpResponse(
                     "<h3>Email sent</h3>Click on Email to see sent messages."
                 )

@@ -16,6 +16,11 @@ SYSTEM_EMAIL_TEMPLATES = [
         "po_email_with_two_headings.html",
         "System email with a heading and a sub-heading",
     ),
+    (
+        "club",
+        "po_club_template.html",
+        "Base template for club emails. Clubs can change logo and footer etc.",
+    ),
 ]
 
 
