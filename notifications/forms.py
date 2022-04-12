@@ -23,7 +23,7 @@ class OrgEmailForm(forms.Form):
     that is specific to the use of the form and needs to be handled separately"""
 
     subject = forms.CharField(max_length=100)
-    body = forms.CharField(
+    org_email_body = forms.CharField(
         widget=SummernoteInplaceWidget(
             attrs={
                 "summernote": {

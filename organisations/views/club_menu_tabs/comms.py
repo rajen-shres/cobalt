@@ -1,11 +1,13 @@
 from itertools import chain
 
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from post_office.models import EmailTemplate
 
 from accounts.models import User, UnregisteredUser
+from cobalt.settings import COBALT_HOSTNAME
 from notifications.forms import OrgEmailForm
 from notifications.models import Snooper, EmailBatchRBAC
 from notifications.notifications_views.core import (
@@ -134,7 +136,7 @@ def _send_email_sub(first_name, email, email_form, batch_id=None, club_template=
         "name": first_name,
         "subject": email_form.cleaned_data["subject"],
         "title": email_form.cleaned_data["subject"],
-        "email_body": email_form.cleaned_data["body"],
+        "email_body": email_form.cleaned_data["org_email_body"],
         "box_colour": "danger",
     }
 
@@ -162,7 +164,6 @@ def email_send_htmx(request, club):
     else:
         email_form = OrgEmailForm(request.POST, club=club)
         tag_form = TagMultiForm(request.POST, club=club)
-        print(email_form.errors)
         if email_form.is_valid() and tag_form.is_valid():
 
             # Load template once if possible
@@ -193,6 +194,17 @@ def email_send_htmx(request, club):
 
     # Get tags, we include an everyone tag inside the template
     tags = ClubTag.objects.filter(organisation=club)
+    tag_count = {
+        "Everyone": MemberMembershipType.objects.active()
+        .filter(membership_type__organisation=club)
+        .distinct("system_number")
+        .count()
+    }
+
+    for tag in tags:
+        tag_count[tag.tag_name] = (
+            MemberClubTag.objects.filter(club_tag=tag).distinct("system_number").count()
+        )
 
     return render(
         request,
@@ -202,6 +214,7 @@ def email_send_htmx(request, club):
             "email_form": email_form,
             "tag_form": tag_form,
             "tags": tags,
+            "tag_count": tag_count,
             "message": message,
         },
     )
@@ -364,4 +377,22 @@ def public_info_htmx(request, club):
             "message": message,
             "front_page": front_page,
         },
+    )
+
+
+@login_required()
+def email_preview_htmx(request):
+    """Preview an email as user creates it"""
+
+    template_id = request.POST.get("template")
+    template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+    title = request.POST.get("subject")
+    email_body = request.POST.get("org_email_body")
+
+    host = COBALT_HOSTNAME
+
+    return render(
+        request,
+        "organisations/club_menu/comms/email_preview_htmx.html",
+        {"template": template, "host": host, "title": title, "email_body": email_body},
     )

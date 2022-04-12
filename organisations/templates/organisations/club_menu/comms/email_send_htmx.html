@@ -15,10 +15,11 @@
     </div>
     <!-- END MAIN EMAIL PART -->
 
-    <div id="email_preview" class="col-md-4 mx-auto bg-dark"
-        hx-post="{% url "organisations:club_menu_tab_settings_template_preview_htmx" %}"
-        hx-vars="club_id:{{ club.id }}, template_id:2"
-        hx-trigger="load"
+    <div id="email_preview" class="col-md-6 mx-auto bg-dark" style="display: none;"
+        hx-post="{% url "organisations:club_menu_tab_comms_email_preview_htmx" %}"
+        hx-vars="club_id:{{ club.id }}"
+        hx-trigger="preview"
+        hx-include="[id='email-multi-form']"
     >
     </div>
 

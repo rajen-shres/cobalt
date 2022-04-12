@@ -1,47 +1,51 @@
-{% load crispy_forms_filters %}
-{% load widget_tweaks %}
 {% load cobalt_tags %}
 
-<form hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}">
+<form id="email-multi-form" hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}">
 
     <ul class="nav nav-pills nav-pills-danger" role="tablist">
         <li class="nav-item">
-            <a class="nav-link active" data-toggle="tab" href="#send-email-recipients" role="tablist" aria-expanded="true">
+            <a class="nav-link nav-link-send-email nav-link-send-email-1 active" data-toggle="tab" href="#send-email-recipients" role="tablist" aria-expanded="true">
                 1. Recipients
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" data-toggle="tab" href="#send-email-options" role="tablist" aria-expanded="false">
+            <a class="nav-link nav-link-send-email nav-link-send-email-2" data-toggle="tab" href="#send-email-options" role="tablist" aria-expanded="false">
                 2. Options
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" data-toggle="tab" href="#send-email-content" role="tablist" aria-expanded="false">
+            <a class="nav-link nav-link-send-email nav-link-send-email-3" data-toggle="tab" href="#send-email-content" role="tablist" aria-expanded="false">
                 3. Content
             </a>
         </li>
     </ul>
     <div class="tab-content tab-space">
+
         <div class="tab-pane active" id="send-email-recipients" aria-expanded="true">
             <div class="row">
-                <div class="col-md-6">
-                    {#                    {% cobalt_bs4_field tag_form.tags %}#}
-                    {#                    {{ tag_form.tags }}#}
-                    {% for key, value in tag_form.tags.field.choices %}
-                        <label for="id_tags_{{ key }}">
-                            <input type="checkbox" name="tags" value="{{ key }}" id="id_tags_{{ key }}">
-                            {{ value }}</label>
 
-                    {% endfor %}
-                </div>
+                {% if tag_form.tags.field.choices|length > 1 %}
+                    <div class="col-md-6">
+                        {% for key, value in tag_form.tags.field.choices %}
+                            <div>
+                                <label class="text-dark" for="id_tags_{{ key }}">
+                                    <input type="checkbox" name="tags" value="{{ key }}" id="id_tags_{{ key }}">
+                                    {{ value }} ({{ tag_count|cobalt_dict_key:value }})
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                {% else %}
+
+                    <h3>You don't have any tags set up so this will be sent to all of your members.</h3>
+                    <p class="font-italic">You can use tags to organise your members into groups if you like. Tags can be set up from the Settings tab above.</p>
+                    <input type="hidden" name="tags" value="0">
+
+                {% endif %}
+
             </div>
         </div>
-
-
-        <input type="checkbox" name="tags" value="0" id="id_tags_0">
-
-
-
 
         <div class="tab-pane" id="send-email-options" aria-expanded="false">
             {% if email_form.template.field.choices %}
@@ -59,7 +63,9 @@
                 <br>
 
             {% else %}
-                <h3>No templates set up, using system default</h3>
+                <h3>You don't have any templates set up so this will be sent using the default template.</h3>
+                <p class="font-italic">You can create templates to customise your emails if you like. Templates can be set up from the Settings tab above.</p>
+                <input type="hidden" name="tags" value="0">
             {% endif %}
         </div>
         <div class="tab-pane" id="send-email-content" aria-expanded="false">
@@ -70,7 +76,7 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    {% cobalt_bs4_field email_form.body %}
+                    {% cobalt_bs4_field email_form.org_email_body %}
                 </div>
             </div>
 
@@ -82,5 +88,53 @@
     </div>
 
 </form>
+
+<script>
+    // Stackoverflow delay function
+    function delay(callback, ms) {
+        let timer = 0;
+        return function() {
+            const context = this, args = arguments;
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                callback.apply(context, args);
+            }, ms || 0);
+        };
+    }
+
+    $(document).ready( function(){
+        // only show the preview if we are on the last tab
+        $(".nav-link-send-email").click( function (){
+
+            // id doesn't seem to work, so we use a class
+            if ($(this).hasClass("nav-link-send-email-3")){
+
+                // show the preview div
+                $("#email_preview").show();
+
+                // update the preview div
+                htmx.trigger("#email_preview", "preview")
+            } else {
+                $("#email_preview").hide();
+            }
+            return true;
+        });
+
+        // Update preview when data changes
+        $('#id_subject').keyup(delay(function (e) {
+            htmx.trigger("#email_preview", "preview");
+        }, 500));
+
+        // Handle Summernote changes
+        $('#id_org_email_body').summernote({
+            callbacks: {
+                onKeyup: delay(function (e) {
+                    htmx.trigger("#email_preview", "preview");
+                }, 500)
+            }
+        });
+
+    });
+</script>
 
 

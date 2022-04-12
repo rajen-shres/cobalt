@@ -390,6 +390,11 @@ urlpatterns = [
         name="club_menu_tab_settings_template_preview_htmx",
     ),
     path(
+        "club-menu/comms/email-preview",
+        organisations.views.club_menu_tabs.comms.email_preview_htmx,
+        name="club_menu_tab_comms_email_preview_htmx",
+    ),
+    path(
         "club-menu/congress/congress-list",
         organisations.views.club_menu_tabs.congresses.congress_list_htmx,
         name="club_menu_tab_congress_list_htmx",
