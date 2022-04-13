@@ -8,17 +8,38 @@
 
     <ul class="nav nav-pills nav-pills-danger" role="tablist" id="guide-tabs">
         <li class="nav-item">
-            <a class="nav-link nav-link-send-email nav-link-send-email-1 active" data-toggle="tab" href="#send-email-recipients" role="tablist" aria-expanded="true">
+            <a class="nav-link nav-link-send-email nav-link-send-email-1 active"
+                data-toggle="tab"
+                href="#send-email-recipients"
+                role="tablist"
+                aria-expanded="true">
                 1. Recipients
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link nav-link-send-email nav-link-send-email-2 disabled" id="nav-link-send-email-2" data-toggle="tab" href="#send-email-options" role="tablist" aria-expanded="false">
+            <a class="nav-link nav-link-send-email nav-link-send-email-2
+
+                {# Only disable this if we have tags #}
+                {% if tag_form.tags.field.choices|length > 1 %}
+                    disabled
+                {% endif %}
+                "
+                id="nav-link-send-email-2" data-toggle="tab" href="#send-email-options" role="tablist" aria-expanded="false">
                 2. Options
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link nav-link-send-email nav-link-send-email-3 disabled" id="nav-link-send-email-3" data-toggle="tab" href="#send-email-content" role="tablist" aria-expanded="false">
+            <a class="nav-link nav-link-send-email nav-link-send-email-3
+                {# Only disable this if we have tags #}
+                {% if tag_form.tags.field.choices|length > 1 %}
+                    disabled
+                {% endif %}
+                "
+                id="nav-link-send-email-3"
+                data-toggle="tab"
+                href="#send-email-content"
+                role="tablist"
+                aria-expanded="false">
                 3. Content
             </a>
         </li>
@@ -60,7 +81,13 @@
             </div>
 
             <div class="text-right">
-                <button class="btn btn-info btn-sm" id="go-to-tab2" disabled>Next</button>
+                <button class="btn btn-info btn-sm" id="go-to-tab2"
+
+                    {# Only disable this if we have tags #}
+                    {% if tag_form.tags.field.choices|length > 1 %}
+                        disabled
+                    {% endif %}
+                >Next</button>
             </div>
         </div>
 
@@ -204,6 +231,7 @@
 
         // Tab 1 -> 2
         $("#go-to-tab2").click(function(){
+            console.log("ooo");
             $('#guide-tabs li:eq(1) a').tab('show');
             return false;
         })
@@ -256,7 +284,6 @@
 
         // validate the reply_to field (email) when it changes, otherwise it is not visible (different tab)
         $("#id_reply_to").change(function(){
-            console.log("yup");
             $("#id_reply_to").validate();
         })
 

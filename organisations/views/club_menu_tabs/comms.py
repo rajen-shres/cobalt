@@ -443,7 +443,12 @@ def email_preview_htmx(request):
     """Preview an email as user creates it"""
 
     template_id = request.POST.get("template")
-    template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+    if template_id:
+        template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+        img_src = template.banner.url
+    else:
+        template = None
+        img_src = "/media/email_banners/default_banner.jpg"
     title = request.POST.get("subject")
     email_body = request.POST.get("org_email_body")
 
@@ -452,7 +457,13 @@ def email_preview_htmx(request):
     return render(
         request,
         "organisations/club_menu/comms/email_preview_htmx.html",
-        {"template": template, "host": host, "title": title, "email_body": email_body},
+        {
+            "template": template,
+            "img_src": img_src,
+            "host": host,
+            "title": title,
+            "email_body": email_body,
+        },
     )
 
 

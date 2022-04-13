@@ -43,7 +43,6 @@ def dashboard_member_changes_htmx(request, club):
 
     for month in range(-11, 1):
         ref_date = now + relativedelta(months=month)
-        print(month, ref_date)
         club_members = (
             MemberMembershipType.objects.active(ref_date)
             .filter(membership_type__organisation=club)
