@@ -9,8 +9,14 @@
         </div>
         <div class="card-body">
 
-            {% include "organisations/club_menu/comms/email_send_htmx_wizard.html" %}
+            {% if no_members %}
+                <h3>Club has No Members</h3>
+                <p>You need to add some members before you can send emails.</p>
 
+            {% else %}
+                {% include "organisations/club_menu/comms/email_send_htmx_wizard.html" %}
+
+            {% endif %}
         </div>
     </div>
     <!-- END MAIN EMAIL PART -->

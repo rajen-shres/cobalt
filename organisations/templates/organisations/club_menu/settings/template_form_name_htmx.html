@@ -15,8 +15,65 @@
                     value="{{ template.template_name }}"
                     maxlength="100"
                     class=" form-control"
-                    required=""
+                    required="required"
                     id="id_template_name"
+                >
+
+            </div>
+            <div class="col-4">
+                <button class="btn btn-sm btn-info">Update</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="form-group">
+    <label class="bmd-label-floating" for="id_from_name">
+        From Name
+    </label>
+    <form
+        hx-post="{% url "organisations:club_menu_tab_settings_edit_from_name_htmx" %}"
+        hx-target="#id_panel_settings"
+        hx-vars="club_id:{{ club.id }},template_id:{{ template.id }}"
+    >
+        <div class="row">
+            <div class="col-8">
+                <input
+                    type="text"
+                    name="from_name"
+                    value="{{ template.from_name }}"
+                    maxlength="100"
+                    class=" form-control"
+                    required="required"
+                    id="id_from_name"
+                >
+
+            </div>
+            <div class="col-4">
+                <button class="btn btn-sm btn-info">Update</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="form-group">
+    <label class="bmd-label-floating" for="id_reply_to">
+        Reply to (optional)
+    </label>
+    <form
+        hx-post="{% url "organisations:club_menu_tab_settings_edit_reply_to_htmx" %}"
+        hx-target="#id_panel_settings"
+        hx-vars="club_id:{{ club.id }},template_id:{{ template.id }}"
+    >
+        <div class="row">
+            <div class="col-8">
+                <input
+                    type="email"
+                    name="reply_to"
+                    value="{{ template.reply_to|default_if_none:"" }}"
+                    placeholder="Enter an email address for replies"
+                    maxlength="100"
+                    class=" form-control"
+                    required="required"
+                    id="id_reply_to"
                 >
 
             </div>

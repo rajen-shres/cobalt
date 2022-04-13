@@ -1,20 +1,24 @@
 {% load cobalt_tags %}
 
-<form id="email-multi-form" hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}">
+<form
+    id="email-multi-form"
+    hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}"
+    hx-target="#id_panel_comms"
+>
 
-    <ul class="nav nav-pills nav-pills-danger" role="tablist">
+    <ul class="nav nav-pills nav-pills-danger" role="tablist" id="guide-tabs">
         <li class="nav-item">
             <a class="nav-link nav-link-send-email nav-link-send-email-1 active" data-toggle="tab" href="#send-email-recipients" role="tablist" aria-expanded="true">
                 1. Recipients
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link nav-link-send-email nav-link-send-email-2" data-toggle="tab" href="#send-email-options" role="tablist" aria-expanded="false">
+            <a class="nav-link nav-link-send-email nav-link-send-email-2 disabled" id="nav-link-send-email-2" data-toggle="tab" href="#send-email-options" role="tablist" aria-expanded="false">
                 2. Options
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link nav-link-send-email nav-link-send-email-3" data-toggle="tab" href="#send-email-content" role="tablist" aria-expanded="false">
+            <a class="nav-link nav-link-send-email nav-link-send-email-3 disabled" id="nav-link-send-email-3" data-toggle="tab" href="#send-email-content" role="tablist" aria-expanded="false">
                 3. Content
             </a>
         </li>
@@ -25,11 +29,12 @@
             <div class="row">
 
                 {% if tag_form.tags.field.choices|length > 1 %}
-                    <div class="col-md-6">
+                    <div>
+                        <p>Send to members using tags or select Everyone to send to all members.</p>
                         {% for key, value in tag_form.tags.field.choices %}
                             <div>
                                 <label class="text-dark" for="id_tags_{{ key }}">
-                                    <input type="checkbox" name="tags" value="{{ key }}" id="id_tags_{{ key }}">
+                                    <input type="checkbox" name="tags" value="{{ key }}" id="id_tags_{{ key }}" class="tag-checkbox">
                                     {{ value }} ({{ tag_count|cobalt_dict_key:value }})
                                 </label>
                             </div>
@@ -45,19 +50,33 @@
                 {% endif %}
 
             </div>
+
+            <div class="text-right">
+                <button class="btn btn-info btn-sm" id="go-to-tab2" disabled>Next</button>
+            </div>
         </div>
 
         <div class="tab-pane" id="send-email-options" aria-expanded="false">
             {% if email_form.template.field.choices %}
 
                 <div class="row">
-                    <div class="col-2">
+                    <div class="col-12">
                         <label class="bmd-label-static" for="id_template">
                             Template
                         </label>
-                    </div>
-                    <div class="col-10">
-                        {% cobalt_bs4_field email_form.template %}
+
+                        <div class="form-group">
+                            <select name="template" class=" form-control" id="id_template"
+                                hx-post="{% url "organisations:club_menu_tab_comms_from_and_reply_to_htmx" %}"
+                                hx-target="#from_and_reply_to"
+                                hx-vars="club_id:'{{ club.id }}'"
+                            >
+                                {% for index, value in email_form.fields.template.choices %}
+                                    <option value="{{ index }}">{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
                     </div>
                 </div>
                 <br>
@@ -67,7 +86,18 @@
                 <p class="font-italic">You can create templates to customise your emails if you like. Templates can be set up from the Settings tab above.</p>
                 <input type="hidden" name="tags" value="0">
             {% endif %}
+
+            {#         We update these values if the template changes so put them in a div #}
+            <div id="from_and_reply_to">
+
+                {% include "organisations/club_menu/comms/email_send_from_and_reply_to_htmx.html" %}
+
+            </div>
+            <div class="text-right">
+                <button class="btn btn-info btn-sm" id="go-to-tab3">Next</button>
+            </div>
         </div>
+
         <div class="tab-pane" id="send-email-content" aria-expanded="false">
             <div class="row">
                 <div class="col-12">
@@ -80,8 +110,16 @@
                 </div>
             </div>
 
+            <div id="email-test-response"></div>
+
             <div class="text-center">
-                <button class="btn btn-info btn-sm cobalt-save" disabled name="test" id="id_test_button">Test</button>
+                <button class="btn btn-info btn-sm cobalt-save" disabled name="test" id="id_test_button"
+                    hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}"
+                    hx-target="#email-test-response"
+                    hx-include="[id='email-multi-form']"
+                    hx-vars="test:'test'"
+                >Test</button>
+
                 <button class="btn btn-success btn-sm cobalt-save" disabled name="send" id="id_send_button">Send</button>
             </div>
         </div>
@@ -102,8 +140,24 @@
         };
     }
 
+    // function to run when subject or content changes
+    function email_subject_or_content_changed(){
+        // trigger the preview to update
+        htmx.trigger("#email_preview", "preview");
+
+        // check if we have subject and content and enable buttons
+        if($('#id_subject').val() && $('#id_org_email_body').val()){
+            $("#id_test_button").removeAttr("disabled");
+            $("#id_send_button").removeAttr("disabled");
+        } else {
+            $("#id_test_button").prop("disabled", true);
+            $("#id_send_button").prop("disabled", true);
+        }
+    }
+
     $(document).ready( function(){
         // only show the preview if we are on the last tab
+        // Note - we don't need to dynamically update the preview except for fields on the same tab
         $(".nav-link-send-email").click( function (){
 
             // id doesn't seem to work, so we use a class
@@ -117,22 +171,76 @@
             } else {
                 $("#email_preview").hide();
             }
-            return true;
+
         });
 
         // Update preview when data changes
         $('#id_subject').keyup(delay(function (e) {
-            htmx.trigger("#email_preview", "preview");
+            email_subject_or_content_changed();
         }, 500));
 
         // Handle Summernote changes
         $('#id_org_email_body').summernote({
             callbacks: {
                 onKeyup: delay(function (e) {
-                    htmx.trigger("#email_preview", "preview");
+                    email_subject_or_content_changed();
                 }, 500)
             }
         });
+
+        // next buttons
+
+        // Tab 1 -> 2
+        $("#go-to-tab2").click(function(){
+            $('#guide-tabs li:eq(1) a').tab('show');
+            return false;
+        })
+
+        // Tab 2 -> 3
+        $("#go-to-tab3").click(function(){
+            $('#guide-tabs li:eq(2) a').tab('show');
+            // also show preview
+            $("#email_preview").show();
+            htmx.trigger("#email_preview", "preview");
+            return false;
+        })
+
+        // Everyone tag disables other tags
+        $("#id_tags_0").click(function(){
+            if ($(this).prop("checked") === true){
+                // Everyone checked so uncheck others
+                $(".tag-checkbox").each(function(){
+                    $(this).prop("checked", false);
+                    $(this).attr("disabled", true);
+                });
+                // And check Everyone again
+                $("#id_tags_0").prop("checked", true);
+                $("#id_tags_0").removeAttr("disabled");
+            } else {
+                // Everyone is off, so enable others
+                $(".tag-checkbox").each(function(){
+                    $(this).removeAttr("disabled");
+                });
+            }
+        });
+
+        // enable/disable next button on recipients tab based upon something being selected
+        // We allow skipping the options tab and going straight to content, so enable/disable both tab buttons
+        $(".tag-checkbox").click(function(){
+
+            if ($("input.tag-checkbox:checkbox:checked").length){
+                // something checked - enable button
+                $("#go-to-tab2").removeAttr("disabled");
+                $("#nav-link-send-email-2").removeClass("disabled");
+                $("#nav-link-send-email-3").removeClass("disabled");
+            } else {
+                // nothing checked, disable button
+                $("#go-to-tab2").prop("disabled", true);
+                $("#nav-link-send-email-2").addClass("disabled");
+                $("#nav-link-send-email-3").addClass("disabled");
+            }
+        });
+
 
     });
 </script>

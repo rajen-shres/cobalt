@@ -115,7 +115,11 @@ def _send_email_to_tags(request, club, tags, email_form, club_template):
             email = recipient["email"]
 
         _send_email_sub(
-            recipient["first_name"], email, email_form, batch_id, club_template
+            first_name=recipient["first_name"],
+            email=email,
+            email_form=email_form,
+            batch_id=batch_id,
+            club_template=club_template,
         )
 
     return f"Email queued to send to {len(combined_list)} recipients"
@@ -140,6 +144,17 @@ def _send_email_sub(first_name, email, email_form, batch_id=None, club_template=
         "box_colour": "danger",
     }
 
+    # Get the extra fields that could have been overridden by the user
+    reply_to = email_form.cleaned_data["reply_to"]
+    from_name = email_form.cleaned_data["from_name"]
+
+    print(reply_to)
+    print(from_name)
+
+    sender = f"{from_name}<donotreply@myabf.com.au>" if from_name else None
+
+    print(sender)
+
     if club_template:
         context["img_src"] = club_template.banner.url
         context["footer"] = club_template.footer
@@ -149,6 +164,8 @@ def _send_email_sub(first_name, email, email_form, batch_id=None, club_template=
         context=context,
         batch_id=batch_id,
         template="system - club",
+        reply_to=reply_to,
+        sender=sender,
     )
 
 
@@ -158,6 +175,7 @@ def email_send_htmx(request, club):
 
     message = None
 
+    # We either get "test" to send a test message, "send" to send it, or nothing to show the empty form.
     if "test" not in request.POST and "send" not in request.POST:
         email_form = OrgEmailForm(club=club)
         tag_form = TagMultiForm(club=club)
@@ -181,30 +199,53 @@ def email_send_htmx(request, club):
                     club_template=club_template,
                 )
 
-                message = "Test email sent. Check your inbox."
+                return HttpResponse(
+                    """<span
+                                            class='text-primary font-weight-bold'
+                                            _='on load wait 5 seconds
+                                            then transition opacity to 0
+                                            over 2 seconds
+                                            then remove me'
+                                            >Test email sent. Check your inbox.
+                                            </span>"""
+                )
             else:
 
                 # convert tags from strings to ints
                 send_tags = list(map(int, tag_form.cleaned_data["tags"]))
 
-                response = _send_email_to_tags(
-                    request, club, send_tags, email_form, club_template
+                message = _send_email_to_tags(
+                    request=request,
+                    club=club,
+                    tags=send_tags,
+                    email_form=email_form,
+                    club_template=club_template,
                 )
-                return HttpResponse(response)
+                return email_htmx(request, message=message)
 
     # Get tags, we include an everyone tag inside the template
     tags = ClubTag.objects.filter(organisation=club)
-    tag_count = {
-        "Everyone": MemberMembershipType.objects.active()
+
+    total_members = (
+        MemberMembershipType.objects.active()
         .filter(membership_type__organisation=club)
         .distinct("system_number")
         .count()
-    }
+    )
+    tag_count = {"Everyone": total_members}
 
     for tag in tags:
         tag_count[tag.tag_name] = (
             MemberClubTag.objects.filter(club_tag=tag).distinct("system_number").count()
         )
+
+    # Fill reply_to and from_name with values from the first template if there is one
+    first_template = (
+        OrgEmailTemplate.objects.filter(organisation=club).order_by("pk").first()
+    )
+    if first_template:
+        email_form.fields["from_name"].initial = first_template.from_name
+        email_form.fields["reply_to"].initial = first_template.reply_to
 
     return render(
         request,
@@ -216,6 +257,7 @@ def email_send_htmx(request, club):
             "tags": tags,
             "tag_count": tag_count,
             "message": message,
+            "no_members": total_members == 0,
         },
     )
 
@@ -395,4 +437,23 @@ def email_preview_htmx(request):
         request,
         "organisations/club_menu/comms/email_preview_htmx.html",
         {"template": template, "host": host, "title": title, "email_body": email_body},
+    )
+
+
+@check_club_menu_access()
+def from_and_reply_to_htmx(request, club):
+    """rebuild the from and reply_to fields in the send email form if the template changes"""
+
+    template_id = request.POST.get("template")
+    template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+
+    email_form = OrgEmailForm(club=club)
+
+    email_form.fields["from_name"].initial = template.from_name
+    email_form.fields["reply_to"].initial = template.reply_to
+
+    return render(
+        request,
+        "organisations/club_menu/comms/email_send_from_and_reply_to_htmx.html",
+        {"email_form": email_form},
     )

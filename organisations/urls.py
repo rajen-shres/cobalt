@@ -435,6 +435,21 @@ urlpatterns = [
         name="club_menu_tab_settings_edit_template_name_htmx",
     ),
     path(
+        "club-menu/settings/templates/edit-from-name",
+        organisations.views.club_menu_tabs.settings.edit_from_name_htmx,
+        name="club_menu_tab_settings_edit_from_name_htmx",
+    ),
+    path(
+        "club-menu/settings/templates/edit-reply-to",
+        organisations.views.club_menu_tabs.settings.edit_reply_to_htmx,
+        name="club_menu_tab_settings_edit_reply_to_htmx",
+    ),
+    path(
+        "club-menu/settings/templates/from-and-reply-to",
+        organisations.views.club_menu_tabs.comms.from_and_reply_to_htmx,
+        name="club_menu_tab_comms_from_and_reply_to_htmx",
+    ),
+    path(
         "club-menu/settings/templates/edit-banner",
         organisations.views.club_menu_tabs.settings.edit_template_banner_htmx,
         name="club_menu_tab_settings_edit_template_banner_htmx",

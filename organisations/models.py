@@ -4,7 +4,7 @@ from accounts.models import User
 from django.utils import timezone
 from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator
 
-from cobalt.settings import GLOBAL_ORG
+from cobalt.settings import GLOBAL_ORG, GLOBAL_TITLE
 from organisations.model_managers import MemberMembershipTypeManager
 
 # Variable to control what is expected to be in the RBAC structure for Organisations
@@ -399,6 +399,8 @@ class OrgEmailTemplate(models.Model):
         upload_to="email_banners/", default="email_banners/default_banner.jpg"
     )
     footer = models.TextField(blank=True, null=True)
+    from_name = models.CharField(max_length=100, default=GLOBAL_TITLE)
+    reply_to = models.CharField(max_length=100, blank=True, null=True)
     last_modified_by = models.ForeignKey(
         User, on_delete=models.PROTECT, related_name="template_last_modified_by"
     )

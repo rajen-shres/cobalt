@@ -680,6 +680,7 @@ def edit_template_htmx(request, club):
             organisation=club,
             template_name="New Template",
             last_modified_by=request.user,
+            from_name=f"{club}",
         )
         template.save()
         message = "Created new template"
@@ -727,6 +728,38 @@ def edit_template_name_htmx(request, club):
 
     name = request.POST.get("template_name")
     template.template_name = name
+    template.save()
+
+    return templates_htmx(request, edit_template=template)
+
+
+@check_club_menu_access()
+def edit_from_name_htmx(request, club):
+    """Edit the from_name field on a template"""
+
+    template_id = request.POST.get("template_id")
+    template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+    if template.organisation != club:
+        return HttpResponse("Access Denied")
+
+    from_name = request.POST.get("from_name")
+    template.from_name = from_name
+    template.save()
+
+    return templates_htmx(request, edit_template=template)
+
+
+@check_club_menu_access()
+def edit_reply_to_htmx(request, club):
+    """Edit the reply_to field on a template"""
+
+    template_id = request.POST.get("template_id")
+    template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+    if template.organisation != club:
+        return HttpResponse("Access Denied")
+
+    reply_to = request.POST.get("reply_to")
+    template.reply_to = reply_to
     template.save()
 
     return templates_htmx(request, edit_template=template)
