@@ -34,7 +34,7 @@ class OrgEmailForm(forms.Form):
             }
         )
     )
-    reply_to = forms.CharField(max_length=100, required=False)
+    reply_to = forms.EmailField(max_length=100, required=False)
     from_name = forms.CharField(max_length=100)
     template = forms.ChoiceField(required=False)
 

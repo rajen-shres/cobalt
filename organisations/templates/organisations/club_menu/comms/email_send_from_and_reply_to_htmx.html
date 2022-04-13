@@ -2,7 +2,14 @@
 
 <div class="row">
     <div class="col-12">
-        {% cobalt_bs4_field email_form.reply_to %}
+        <div class="form-group">
+            <label class="bmd-label-floating" for="id_reply_to">
+                Reply to
+            </label>
+            <input type="email" name="reply_to" maxlength="100" class=" form-control" id="id_reply_to" value="{{ email_form.reply_to.value|default_if_none:"" }}">
+        </div>
+
+
     </div>
 </div>
 <div class="row">

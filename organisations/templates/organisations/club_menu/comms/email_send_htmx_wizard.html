@@ -34,8 +34,16 @@
                         {% for key, value in tag_form.tags.field.choices %}
                             <div>
                                 <label class="text-dark" for="id_tags_{{ key }}">
-                                    <input type="checkbox" name="tags" value="{{ key }}" id="id_tags_{{ key }}" class="tag-checkbox">
-                                    {{ value }} ({{ tag_count|cobalt_dict_key:value }})
+
+                                    {# Check if this tag is on the empty tags list #}
+
+                                    {% if key in empty_tags %}
+                                        <del>{{ value }} ({{ tag_count|cobalt_dict_key:value }})</del>
+                                    {% else %}
+                                        <input type="checkbox" name="tags" value="{{ key }}" id="id_tags_{{ key }}" class="tag-checkbox">
+                                        {{ value }} ({{ tag_count|cobalt_dict_key:value }})
+                                    {% endif %}
+
                                 </label>
                             </div>
                         {% endfor %}
@@ -156,6 +164,10 @@
     }
 
     $(document).ready( function(){
+
+        // initialise the jquery validate plugin
+        $('#email-multi-form').validate({});
+
         // only show the preview if we are on the last tab
         // Note - we don't need to dynamically update the preview except for fields on the same tab
         $(".nav-link-send-email").click( function (){
@@ -199,6 +211,7 @@
         // Tab 2 -> 3
         $("#go-to-tab3").click(function(){
             $('#guide-tabs li:eq(2) a').tab('show');
+            $("#id_reply_to").validate();
             // also show preview
             $("#email_preview").show();
             htmx.trigger("#email_preview", "preview");
@@ -240,6 +253,12 @@
                 $("#nav-link-send-email-3").addClass("disabled");
             }
         });
+
+        // validate the reply_to field (email) when it changes, otherwise it is not visible (different tab)
+        $("#id_reply_to").change(function(){
+            console.log("yup");
+            $("#id_reply_to").validate();
+        })
 
 
     });

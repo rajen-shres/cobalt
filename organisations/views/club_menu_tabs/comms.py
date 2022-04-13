@@ -182,50 +182,61 @@ def email_send_htmx(request, club):
     else:
         email_form = OrgEmailForm(request.POST, club=club)
         tag_form = TagMultiForm(request.POST, club=club)
-        if email_form.is_valid() and tag_form.is_valid():
+        if not (email_form.is_valid() and tag_form.is_valid()):
+            return HttpResponse(
+                """<span
+                        class='text-danger font-weight-bold'
+                        _='on load wait 5 seconds
+                        then transition opacity to 0
+                        over 2 seconds
+                        then remove me'
+                        >There is an error in the data. Please look through the tabs and correct it.
+                        </span>"""
+            )
 
-            # Load template once if possible
-            if email_form.cleaned_data["template"]:
-                template_id = email_form.cleaned_data["template"]
-                club_template = get_object_or_404(OrgEmailTemplate, pk=template_id)
-            else:
-                club_template = None
+        # Load template once if possible
+        if email_form.cleaned_data["template"]:
+            template_id = email_form.cleaned_data["template"]
+            club_template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+        else:
+            club_template = None
 
-            if "test" in request.POST:
-                _send_email_sub(
-                    first_name=request.user.first_name,
-                    email=request.user.email,
-                    email_form=email_form,
-                    club_template=club_template,
-                )
+        if "test" in request.POST:
+            _send_email_sub(
+                first_name=request.user.first_name,
+                email=request.user.email,
+                email_form=email_form,
+                club_template=club_template,
+            )
 
-                return HttpResponse(
-                    """<span
-                                            class='text-primary font-weight-bold'
-                                            _='on load wait 5 seconds
-                                            then transition opacity to 0
-                                            over 2 seconds
-                                            then remove me'
-                                            >Test email sent. Check your inbox.
-                                            </span>"""
-                )
-            else:
+            return HttpResponse(
+                """<span
+                                        class='text-primary font-weight-bold'
+                                        _='on load wait 5 seconds
+                                        then transition opacity to 0
+                                        over 2 seconds
+                                        then remove me'
+                                        >Test email sent. Check your inbox.
+                                        </span>"""
+            )
+        else:
 
-                # convert tags from strings to ints
-                send_tags = list(map(int, tag_form.cleaned_data["tags"]))
+            # convert tags from strings to ints
+            send_tags = list(map(int, tag_form.cleaned_data["tags"]))
 
-                message = _send_email_to_tags(
-                    request=request,
-                    club=club,
-                    tags=send_tags,
-                    email_form=email_form,
-                    club_template=club_template,
-                )
-                return email_htmx(request, message=message)
+            message = _send_email_to_tags(
+                request=request,
+                club=club,
+                tags=send_tags,
+                email_form=email_form,
+                club_template=club_template,
+            )
+            return email_htmx(request, message=message)
 
     # Get tags, we include an everyone tag inside the template
     tags = ClubTag.objects.filter(organisation=club)
 
+    # Get total members for the Everyone option and also to block sending if there are no members
     total_members = (
         MemberMembershipType.objects.active()
         .filter(membership_type__organisation=club)
@@ -233,11 +244,15 @@ def email_send_htmx(request, club):
         .count()
     )
     tag_count = {"Everyone": total_members}
+    empty_tags = []
 
     for tag in tags:
-        tag_count[tag.tag_name] = (
+        this_count = (
             MemberClubTag.objects.filter(club_tag=tag).distinct("system_number").count()
         )
+        tag_count[tag.tag_name] = this_count
+        if this_count == 0:
+            empty_tags.append(tag.id)
 
     # Fill reply_to and from_name with values from the first template if there is one
     first_template = (
@@ -258,6 +273,7 @@ def email_send_htmx(request, club):
             "tag_count": tag_count,
             "message": message,
             "no_members": total_members == 0,
+            "empty_tags": empty_tags,
         },
     )
 
