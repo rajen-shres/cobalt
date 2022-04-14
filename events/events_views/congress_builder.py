@@ -94,6 +94,8 @@ def copy_congress_from_another(congress_id: int):
             session.event = event
             session.save()
 
+    return congress
+
 
 @login_required()
 def delete_congress(request, congress_id):
@@ -216,7 +218,7 @@ def create_congress_wizard_1(request, step_list):
                 if not rbac_user_has_role(request.user, role):
                     return rbac_forbidden(request, role)
 
-                copy_congress_from_another(congress_id)
+                congress = copy_congress_from_another(congress_id)
 
                 messages.success(
                     request, "Congress Copied", extra_tags="cobalt-message-success"
