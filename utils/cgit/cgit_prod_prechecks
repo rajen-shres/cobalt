@@ -25,6 +25,8 @@ get_response () {
 echo "starting..."
 THIS_BRANCH=$(git branch --show-current)
 PROD_BRANCH=$(cgit_util_branch_for_environment production| tail -1)
+# Check we have the latest prod branch
+git fetch origin "$PROD_BRANCH"
 clear
 printf "${RED}###########################################################\n"
 echo "#                                                         #"
@@ -37,6 +39,7 @@ echo "###########################################################"
 printf "${NC}\n\n"
 printf "  You are on branch    : ${YELLOW}${THIS_BRANCH}${NC}\n"
 printf "  Production is running: ${RED}${PROD_BRANCH}${NC}\n\n"
+
 
 MODELS=$(git diff "$THIS_BRANCH" "$PROD_BRANCH" --name-only | grep models.py)
 
