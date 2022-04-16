@@ -1,6 +1,7 @@
 import csv
 import datetime
 from copy import copy
+from itertools import chain
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -63,6 +64,9 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
         system_number__in=club_system_numbers
     ).order_by("last_name")
 
+    # combine outputs
+    members = list(chain(cobalt_members, unregistered_members))
+
     total_members = cobalt_members.count() + unregistered_members.count()
 
     # Check level of access
@@ -73,8 +77,7 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
         "organisations/club_menu/members/list_htmx.html",
         {
             "club": club,
-            "cobalt_members": cobalt_members,
-            "unregistered_members": unregistered_members,
+            "members": members,
             "total_members": total_members,
             "message": message,
             "member_admin": member_admin,

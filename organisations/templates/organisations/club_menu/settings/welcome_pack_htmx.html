@@ -1,0 +1,44 @@
+{% load crispy_forms_filters %}
+{% load humanize %}
+{% load cobalt_tags %}
+
+<div class="card" style="min-height: 800px; height: auto">
+    <div class="card-header card-header-info">
+        <h2>Club Settings</h2>
+        {% include "organisations/club_menu/settings/nav_htmx.html" with selected="welcome" %}
+    </div>
+    <div class="card-body" id="id_settings_welcome_tab">
+
+        <h3>Welcome Pack</h3>
+        <p>You can create a welcome email for new members to tell them about your club.</p>
+
+        <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
+
+        <form
+            hx-post="{% url "organisations:club_menu_tab_settings_welcome_pack_htmx" %}"
+            hx-target="#id_panel_settings"
+            hx-vars="club_id:{{ club.id }}"
+        >
+            {% cobalt_bs4_field welcome_form.welcome_email %}
+
+            {#                The template is optional so don't show if we don't have any #}
+
+            {% if welcome_form.template.choices %}
+
+
+
+                <div class="form-group col-md-6">
+                    <label for="id_template">Template</label>
+                    {% cobalt_bs4_field welcome_form.template %}
+                </div>
+                <br>
+
+            {% endif %}
+
+            <button name="save" id="id_save_welcome" class="btn btn-sm btn-success">Save</button>
+        </form>
+        <p class="my-0 font-italic small">Last Updated: {{ welcome_pack.updated_at|cobalt_nice_datetime }}</p>
+        <p class="my-0 font-italic small">Last Updated By: {{ welcome_pack.last_modified_by.full_name }}</p>
+
+    </div>
+</div>

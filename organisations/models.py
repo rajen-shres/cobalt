@@ -409,3 +409,25 @@ class OrgEmailTemplate(models.Model):
 
     def __str__(self):
         return f"{self.organisation} - {self.template_name}"
+
+
+class WelcomePack(models.Model):
+    """Clubs can manage a welcome email for new members"""
+
+    organisation = models.OneToOneField(to=Organisation, on_delete=models.CASCADE)
+    template = models.ForeignKey(
+        OrgEmailTemplate,
+        on_delete=models.CASCADE,
+        related_name="welcome_pack_template",
+        null=True,
+        blank=True,
+    )
+    welcome_email = models.TextField()
+    last_modified_by = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name="welcome_pack_last_modified_by"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.organisation} - {self.template}"

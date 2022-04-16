@@ -27,6 +27,7 @@ from organisations.forms import (
     TagForm,
     TemplateFooterForm,
     TemplateBannerForm,
+    WelcomePackForm,
 )
 from organisations.models import (
     ClubLog,
@@ -37,6 +38,7 @@ from organisations.models import (
     ClubTag,
     MemberClubTag,
     OrgEmailTemplate,
+    WelcomePack,
 )
 from organisations.views.admin import get_secretary_from_org_form
 from organisations.views.club_menu_tabs.utils import _user_is_uber_admin
@@ -809,3 +811,45 @@ def delete_template_htmx(request, club):
     template.delete()
 
     return templates_htmx(request)
+
+
+@check_club_menu_access()
+def welcome_pack_htmx(request, club):
+    """Manage welcome packs for new members"""
+
+    message = ""
+
+    # Clubs can only have one welcome pack, get or create it
+    welcome_pack = WelcomePack.objects.filter(organisation=club).first()
+
+    if not welcome_pack:
+        welcome_pack = WelcomePack(organisation=club, last_modified_by=request.user)
+        message = "Welcome Pack Created"
+
+    # in the world of HTMX, everything is a post
+    real_post = "save" in request.POST
+
+    if real_post:
+        welcome_form = WelcomePackForm(request.POST, instance=welcome_pack, club=club)
+
+        if welcome_form.is_valid():
+            welcome_pack = welcome_form.save(commit=False)
+            welcome_pack.last_updated_by = request.user
+            welcome_pack.last_updated = timezone.localtime()
+            welcome_pack.save()
+            message = "Welcome Pack Saved"
+        else:
+            message = "Errors found on form"
+    else:
+        welcome_form = WelcomePackForm(instance=welcome_pack, club=club)
+
+    return render(
+        request,
+        "organisations/club_menu/settings/welcome_pack_htmx.html",
+        {
+            "club": club,
+            "message": message,
+            "welcome_pack": welcome_pack,
+            "welcome_form": welcome_form,
+        },
+    )

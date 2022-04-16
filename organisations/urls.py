@@ -435,6 +435,11 @@ urlpatterns = [
         name="club_menu_tab_settings_edit_template_name_htmx",
     ),
     path(
+        "club-menu/settings/welcome-pack/edit",
+        organisations.views.club_menu_tabs.settings.welcome_pack_htmx,
+        name="club_menu_tab_settings_welcome_pack_htmx",
+    ),
+    path(
         "club-menu/settings/templates/edit-from-name",
         organisations.views.club_menu_tabs.settings.edit_from_name_htmx,
         name="club_menu_tab_settings_edit_from_name_htmx",

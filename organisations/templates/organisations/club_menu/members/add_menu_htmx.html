@@ -2,11 +2,14 @@
 {% load cobalt_tags %}
 
 <div class="card" style="min-height: 800px; height: auto">
-    <div class="card-header card-header-danger">
-        <h2>{{ total_members|intcomma }} Member{{ total_members|pluralize }}</h2>
+    <div class="card-header card-header-info">
         {% include "organisations/club_menu/members/nav_htmx.html" with selected="add" %}
     </div>
+
     <div class="card-body" id="id_member_add_tab">
+
+        <h3>{{ club }} has {{ total_members|intcomma }} Member{{ total_members|pluralize }}. Here you can add more.</h3>
+
         <table class="table table-condensed">
             <tbody>
                 <tr>

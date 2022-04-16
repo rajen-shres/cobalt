@@ -2,170 +2,120 @@
 {% load cobalt_tags %}
 
 <div class="card" style="min-height: 800px; height: auto">
-    <div class="card-header card-header-danger">
-        <h2>{{ total_members|intcomma }} Member{{ total_members|pluralize }}</h2>
+    <div class="card-header card-header-info">
         {% include "organisations/club_menu/members/nav_htmx.html" with selected="list" %}
     </div>
+
     <div class="card-body" id="id_member_list_tab">
+
+        <h3>{{ club }} has {{ total_members|intcomma }} Member{{ total_members|pluralize }}</h3>
 
         <h3 class="text-info font-weight-bold settings_message" id="user_list_message">{{ message| default_if_none:"" }}</h3>
 
-        <div class="card">
-            <div class="card-header card-header-primary py-2 my-2">
-                <h3 class="my-0 py-1">{{ GLOBAL_TITLE }} Users ({{ cobalt_members.count|intcomma }})</h3>
-                <p class="font-italic my-0 py-1">These users are registered for the system.</p>
-            </div>
-            <div class="card-body">
+        {% if members %}
 
-                {% if cobalt_members %}
-
-                    <table id="id_member_table" class="table table-hover" style="display: none;">
-                        <thead>
-                            <tr>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>{{ GLOBAL_ORG }} Number</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for cobalt_member in cobalt_members %}
-                                <tr>
-                                    <td>
-                                        {% if member_admin %}
-                                            <a href="#"
-                                                id="t_edit_member_{{ cobalt_member.id }}"
-                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-target="#id_member_list_tab"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ cobalt_member.id }}">
-                                                {{ cobalt_member.first_name }}
-                                            </a>
+            <table id="id_member_table" class="table table-hover" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>{{ GLOBAL_ORG }} Number</th>
+                        <th>Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in members %}
+                        <tr>
+                            <td>
+                                {% if member_admin %}
+                                    <a href="#"
+                                        id="t_edit_member_{{ member.id }}"
+                                        hx-target="#id_member_list_tab"
+                                        {% if member|get_class == "User" %}
+                                            hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
+                                            hx-vars="club_id:{{ club.id }}, member:{{ member.id }}"
                                         {% else %}
-                                            {{ cobalt_member.first_name }}
+                                            hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
+                                            hx-vars="club_id:{{ club.id }}, un_reg_id:{{ member.id }}"
                                         {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if member_admin %}
-                                            <a href="#"
-                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-target="#id_member_list_tab"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ cobalt_member.id }}">
-                                                {{ cobalt_member.last_name }}
-                                            </a>
+                                    >
+                                        {{ member.first_name }}
+                                    </a>
+                                {% else %}
+                                    {{ member.first_name }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if member_admin %}
+                                    <a href="#"
+                                        hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
+                                        hx-target="#id_member_list_tab"
+                                        hx-vars="club_id:{{ club.id }}, member:{{ member.id }}">
+                                        {{ member.last_name }}
+                                    </a>
+                                {% else %}
+                                    {{ cobalt_member.last_name }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if member_admin %}
+                                    <a href="#"
+                                        {% if member|get_class == "User" %}
+                                            hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
                                         {% else %}
-                                            {{ cobalt_member.last_name }}
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if member_admin %}
-                                            <a href="#"
-                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-target="#id_member_list_tab"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ cobalt_member.id }}">
-                                                {{ cobalt_member.system_number }}
-                                            </a>
-                                        {% else %}
-                                            {{ cobalt_member.system_number }}
-                                        {% endif %}
-                                    </td>
-                                </tr>
+                                            hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
+                                        {% endif  %}
+                                        hx-target="#id_member_list_tab"
+                                        hx-vars="club_id:{{ club.id }}, member:{{ member.id }}">
+                                        {{ member.system_number }}
+                                    </a>
+                                {% else %}
+                                    {{ member.system_number }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if member|get_class == "User" %}
+                                    {{ GLOBAL_TITLE }} User
+                                {% else %}
+                                    Unregistered User
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if member|get_class == "User" %}
+                                    <a target="_blank" href="{% url "accounts:public_profile" pk=member.id %}" style="width: 150px" class="btn btn-sm btn-info text-center">view profile</a>
+                                {% else %}
+                                    <a style="width: 150px"
+                                        class="btn btn-sm btn-success text-center text-white"
+                                        hx-post="{% url "organisations:club_menu_tab_members_invite_user_to_join_htmx" %}"
+                                        hx-vars="club_id:{{ club.id }}, un_reg_id:{{ member.id }}"
+                                        hx-target="#id_panel_members"
+                                        onclick="GrowlNotification.notify({
+                                        title: 'Sending invite...',
+                                        description: 'Sending invite to {{ member.first_name }}.',
+                                        type: 'success',
+                                        position: 'top-right',
+                                        closeTimeout: 2000})"
+                                    >invite to {{ GLOBAL_TITLE }}</a>
+                                {% endif %}
+                            </td>
+                        </tr>
 
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    {% endfor %}
+                </tbody>
+            </table>
 
-                {% else %}
-                    <h3>There are no registered users who are members of this club</h3>
-                {% endif %}
-            </div>
-
-
-            {% if unregistered_members %}
-
-                <div class="card">
-                    <div class="card-header card-header-success py-2 my-2">
-                        <h3 class="my-0 py-1">Unregistered Users ({{ unregistered_members.count }})</h3>
-                        <p class="font-italic my-0 py-1">These users are yet to register for the system. You can invite
-                            them to join
-                            and enjoy the benefits for free.</p>
-                    </div>
-                    <div class="card-body">
-
-                        <table id="id_member_un_reg_table" class="table table-hover" style="display: none;">
-                            <thead>
-                                <tr>
-                                    <th>First Name</th>
-                                    <th>Last Name</th>
-                                    <th>{{ GLOBAL_ORG }} Number</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for unregistered_member in unregistered_members %}
-                                    <tr>
-                                        <td>
-                                            {% if member_admin %}
-                                                <a href="#"
-                                                    hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                    hx-indicator=".htmx-indicator"
-                                                    hx-target="#id_member_list_tab"
-                                                    hx-vars="club_id:{{ club.id }}, un_reg_id:{{ unregistered_member.id }}">
-                                                    {{ unregistered_member.first_name }}
-                                                </a>
-                                            {% else %}
-                                                {{ unregistered_member.first_name }}
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if member_admin %}
-                                                <a href="#"
-                                                    hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                    hx-indicator=".htmx-indicator"
-                                                    hx-target="#id_member_list_tab"
-                                                    hx-vars="club_id:{{ club.id }}, un_reg_id:{{ unregistered_member.id }}">
-                                                    {{ unregistered_member.last_name }}
-                                                </a>
-                                            {% else %}
-                                                {{ unregistered_member.last_name }}
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if member_admin %}
-                                                <a href="#"
-                                                    hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                    hx-indicator=".htmx-indicator"
-                                                    hx-target="#id_member_list_tab"
-                                                    hx-vars="club_id:{{ club.id }}, un_reg_id:{{ unregistered_member.id }}">
-                                                    {{ unregistered_member.system_number }}
-                                                </a>
-                                            {% else %}
-                                                {{ unregistered_member.system_number }}
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            {% endif %}
-        </div>
+        {% else %}
+            <h3>You have no members listed here. Don't cry, you can add real members using the <b>Add</b> link above.</h3>
+        {% endif %}
     </div>
 </div>
 
 <script>
     $(document).ready( function () {
 
-        {#// if the add page set cursor to wait, remove it now#}
-        {#$('#id_panel_members').removeClass('cursor_wait');#}
-
         // Initialise datatable - only show pagination if more than one page, sort in order, column 0
 
-        $('#id_member_un_reg_table').DataTable({
-            drawCallback: function(settings) {
-                const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
-                pagination.toggle(this.api().page.info().pages > 1);
-            },
-        });
         $('#id_member_table').DataTable({
             drawCallback: function(settings) {
                 const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
@@ -175,7 +125,6 @@
 
 
         // Unhide table now. This avoids the flicker
-        $('#id_member_un_reg_table').show();
         $('#id_member_table').show();
 
     });

@@ -115,7 +115,7 @@ hx-target="#id_settings_form"
             {% endif %}
             "
             hx-post="{% url "organisations:club_menu_tab_comms_tags_htmx" %}"
-            hx-target="#id_settings_form"
+            hx-target="#id_panel_settings"
             id="t_comms_tab_tags"
         >Tags
         </a>
@@ -130,7 +130,7 @@ hx-target="#id_settings_form"
             {% endif %}
             "
             hx-post="{% url "organisations:club_menu_tab_comms_templates_htmx" %}"
-            hx-target="#id_settings_form"
+            hx-target="#id_panel_settings"
             id="t_comms_tab_templates"
         >Templates
         </a>
@@ -143,10 +143,10 @@ hx-target="#id_settings_form"
                 btn-secondary
             {% endif %}
             "
-            hx-post="{% url "organisations:club_menu_tab_comms_templates_htmx" %}"
-            hx-target="#id_settings_form"
+            hx-post="{% url "organisations:club_menu_tab_settings_welcome_pack_htmx" %}"
+            hx-target="#id_panel_settings"
             id="t_comms_tab_welcome"
-        >Welcome Packs
+        >Welcome Pack
         </a>
 
     </div>

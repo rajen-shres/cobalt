@@ -13,6 +13,8 @@ from .models import (
     OrganisationFrontPage,
     MiscPayType,
     OrgVenue,
+    WelcomePack,
+    OrgEmailTemplate,
 )
 
 
@@ -108,7 +110,36 @@ class OrgVenueAdmin(admin.ModelAdmin):
     ]
 
 
+class WelcomePackAdmin(admin.ModelAdmin):
+    """Admin class for model WelcomePack"""
+
+    search_fields = [
+        "organisation",
+        "template",
+    ]
+
+    autocomplete_fields = [
+        "organisation",
+        "template",
+        "last_modified_by",
+    ]
+
+
+class OrgEmailTemplateAdmin(admin.ModelAdmin):
+    """Admin class for model OrgEmailTemplate"""
+
+    search_fields = [
+        "organisation",
+    ]
+
+    autocomplete_fields = [
+        "organisation",
+        "last_modified_by",
+    ]
+
+
 admin.site.register(Organisation, OrganisationAdmin)
+admin.site.register(OrgEmailTemplate, OrgEmailTemplateAdmin)
 admin.site.register(MembershipType, MembershipTypeAdmin)
 admin.site.register(MemberMembershipType, MemberMembershipTypeAdmin)
 admin.site.register(ClubLog, ClubLogAdmin)
@@ -119,3 +150,4 @@ admin.site.register(Visitor, VisitorAdmin)
 admin.site.register(OrganisationFrontPage)
 admin.site.register(MiscPayType, MiscPayTypeAdmin)
 admin.site.register(OrgVenue, OrgVenueAdmin)
+admin.site.register(WelcomePack, WelcomePackAdmin)

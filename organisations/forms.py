@@ -25,6 +25,7 @@ from .models import (
     OrganisationFrontPage,
     OrgVenue,
     OrgEmailTemplate,
+    WelcomePack,
 )
 
 
@@ -208,6 +209,10 @@ class UserMembershipForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.fields["membership_type"].choices = membership_type_choices(self.club)
 
+        # If this club doesn't have a membership pack then don't show on form
+        if not WelcomePack.objects.filter(organisation=self.club).exists():
+            del self.fields["send_welcome_pack"]
+
     # def clean_home_club(self):
     #     """Check that this user doesn't already have a home club"""
     #
@@ -250,6 +255,10 @@ class UnregisteredUserAddForm(forms.Form):
         self.club = kwargs.pop("club")
         super().__init__(*args, **kwargs)
         self.fields["membership_type"].choices = membership_type_choices(self.club)
+
+        # If this club doesn't have a membership pack then don't show on form
+        if not WelcomePack.objects.filter(organisation=self.club).exists():
+            del self.fields["send_welcome_pack"]
 
     def clean_system_number(self):
         system_number = self.cleaned_data["system_number"]
@@ -526,3 +535,35 @@ class PaymentTypeForm(forms.Form):
         ).exists():
             self.add_error("payment_name", "Duplicate name")
         return payment_name
+
+
+class WelcomePackForm(forms.ModelForm):
+    """Form for the welcome packs for a club"""
+
+    welcome_email = forms.CharField(
+        widget=SummernoteInplaceWidget(
+            attrs={
+                "summernote": {
+                    "placeholder": "<br><br>Enter your welcome email here..."
+                }
+            }
+        )
+    )
+
+    class Meta:
+        model = WelcomePack
+        fields = (
+            "template",
+            "welcome_email",
+        )
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        super().__init__(*args, **kwargs)
+
+        templates = OrgEmailTemplate.objects.filter(organisation=self.club)
+        our_templates = [
+            (template.id, template.template_name) for template in templates
+        ]
+
+        self.fields["template"].choices = our_templates

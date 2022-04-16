@@ -2,7 +2,6 @@
 
 from django.contrib import admin
 
-from organisations.models import OrgEmailTemplate
 from .models import (
     User,
     UnregisteredUser,
@@ -68,19 +67,9 @@ class UserAdditionalInfoAdmin(admin.ModelAdmin):
     ]
 
 
-class OrgEmailTemplateAdmin(admin.ModelAdmin):
-    """Admin class for model OrgEmailTemplate"""
-
-    autocomplete_fields = [
-        "organisation",
-        "last_modified_by",
-    ]
-
-
 admin.site.register(User, UserAdmin)
 admin.site.register(UnregisteredUser, UnregisteredUserAdmin)
 admin.site.register(TeamMate, TeamMateAdmin)
 admin.site.register(UserPaysFor, UserPaysForAdmin)
 admin.site.register(APIToken, APITokenAdmin)
 admin.site.register(UserAdditionalInfo, UserAdditionalInfoAdmin)
-admin.site.register(OrgEmailTemplate, OrgEmailTemplateAdmin)
