@@ -436,6 +436,16 @@ urlpatterns = [
     ),
     path(
         "club-menu/settings/welcome-pack/edit",
+        organisations.views.club_menu_tabs.settings.welcome_pack_edit_htmx,
+        name="club_menu_tab_settings_welcome_pack_edit_htmx",
+    ),
+    path(
+        "club-menu/settings/welcome-pack/delete",
+        organisations.views.club_menu_tabs.settings.welcome_pack_delete_htmx,
+        name="club_menu_tab_settings_welcome_pack_delete_htmx",
+    ),
+    path(
+        "club-menu/settings/welcome-pack/view",
         organisations.views.club_menu_tabs.settings.welcome_pack_htmx,
         name="club_menu_tab_settings_welcome_pack_htmx",
     ),

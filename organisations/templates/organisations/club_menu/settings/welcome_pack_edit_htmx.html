@@ -1,0 +1,32 @@
+{% load cobalt_tags %}
+<form
+    hx-post="{% url "organisations:club_menu_tab_settings_welcome_pack_edit_htmx" %}"
+    hx-target="#id_panel_settings"
+    hx-vars="club_id:{{ club.id }}"
+>
+
+    {% cobalt_bs4_field welcome_form.welcome_email %}
+
+    {# The template is optional so don't show if we don't have any #}
+
+    {% if welcome_form.fields.template.choices %}
+
+        <div class="form-group col-md-6">
+            <label for="id_template">Template</label>
+            {% cobalt_bs4_field welcome_form.template %}
+        </div>
+        <br>
+
+    {% endif %}
+
+    <button name="save" id="id_save_welcome" class="btn btn-sm btn-success">Save</button>
+    <button name="save" id="id_save_welcome" class="btn btn-sm btn-info">Test (save first)</button>
+
+    {% url 'organisations:club_menu_tab_settings_welcome_pack_delete_htmx' as hx_delete %}
+    {% include "utils/htmx_confirm_modal.html" with id="del_welcome" delete_item="the welcome pack" hx_target="#id_panel_settings" hx_post=hx_delete hx_vars=hx_vars delete_button="Remove" %}
+    <button id="id_delete_welcome_pack" type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModaldel_welcome">Delete Welcome Email</button>
+
+</form>
+<p class="my-0 font-italic small">Last Updated: {{ welcome_pack.updated_at|cobalt_nice_datetime }}</p>
+<p class="my-0 font-italic small">Last Updated By: {{ welcome_pack.last_modified_by.full_name }}</p>
+

@@ -8,35 +8,38 @@
     <div class="card-body" id="id_settings_welcome_tab">
 
         <h3>Welcome Pack</h3>
-        <p>You can create a welcome email for new members to tell them about your club.</p>
-
-        <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
-
-        <form
-            hx-post="{% url "organisations:club_menu_tab_settings_welcome_pack_htmx" %}"
-            hx-target="#id_panel_settings"
-            hx-vars="club_id:{{ club.id }}"
-        >
-            {% cobalt_bs4_field welcome_form.welcome_email %}
-
-            {#                The template is optional so don't show if we don't have any #}
-
-            {% if welcome_form.template.choices %}
 
 
+        <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message|default_if_none:"" }}</h3>
 
-                <div class="form-group col-md-6">
-                    <label for="id_template">Template</label>
-                    {% cobalt_bs4_field welcome_form.template %}
+        <div id="edit_welcome_pack">
+
+
+            {% if welcome_pack %}
+
+                <div
+                    hx-post="{% url "organisations:club_menu_tab_settings_welcome_pack_edit_htmx" %}"
+                    hx-vars="club_id:{{ club.id }}"
+                    hx-target="#edit_welcome_pack"
+                    hx-trigger="load"
+                >
+
                 </div>
-                <br>
+
+            {% else %}
+
+                <p>You can create a welcome email for new members to tell them about your club.</p>
+
+                <button
+                    hx-post="{% url "organisations:club_menu_tab_settings_welcome_pack_edit_htmx" %}"
+                    hx-vars="club_id:{{ club.id }}"
+                    hx-target="#edit_welcome_pack"
+                    class="btn btn-success"
+                >Create Welcome Pack</button>
 
             {% endif %}
 
-            <button name="save" id="id_save_welcome" class="btn btn-sm btn-success">Save</button>
-        </form>
-        <p class="my-0 font-italic small">Last Updated: {{ welcome_pack.updated_at|cobalt_nice_datetime }}</p>
-        <p class="my-0 font-italic small">Last Updated By: {{ welcome_pack.last_modified_by.full_name }}</p>
+        </div>
 
     </div>
 </div>

@@ -814,7 +814,29 @@ def delete_template_htmx(request, club):
 
 
 @check_club_menu_access()
-def welcome_pack_htmx(request, club):
+def welcome_pack_htmx(request, club, message=None):
+    """Manage welcome packs for new members"""
+
+    # Clubs can only have one welcome pack
+    welcome_pack = WelcomePack.objects.filter(organisation=club).first()
+
+    # set up hx_vars for template
+    hx_vars = f"club_id:{club.id},delete:delete"
+
+    return render(
+        request,
+        "organisations/club_menu/settings/welcome_pack_htmx.html",
+        {
+            "club": club,
+            "message": message,
+            "welcome_pack": welcome_pack,
+            "hx_vars": hx_vars,
+        },
+    )
+
+
+@check_club_menu_access()
+def welcome_pack_edit_htmx(request, club):
     """Manage welcome packs for new members"""
 
     message = ""
@@ -823,13 +845,13 @@ def welcome_pack_htmx(request, club):
     welcome_pack = WelcomePack.objects.filter(organisation=club).first()
 
     if not welcome_pack:
-        welcome_pack = WelcomePack(organisation=club, last_modified_by=request.user)
+        welcome_pack = WelcomePack(
+            organisation=club, last_modified_by=request.user, updated_at=timezone.now()
+        )
+        welcome_pack.save()
         message = "Welcome Pack Created"
 
-    # in the world of HTMX, everything is a post
-    real_post = "save" in request.POST
-
-    if real_post:
+    if "save" in request.POST:
         welcome_form = WelcomePackForm(request.POST, instance=welcome_pack, club=club)
 
         if welcome_form.is_valid():
@@ -839,13 +861,16 @@ def welcome_pack_htmx(request, club):
             welcome_pack.save()
             message = "Welcome Pack Saved"
         else:
-            message = "Errors found on form"
+            message = welcome_form.errors
+
+        return welcome_pack_htmx(request, message=message)
+
     else:
         welcome_form = WelcomePackForm(instance=welcome_pack, club=club)
 
     return render(
         request,
-        "organisations/club_menu/settings/welcome_pack_htmx.html",
+        "organisations/club_menu/settings/welcome_pack_edit_htmx.html",
         {
             "club": club,
             "message": message,
@@ -853,3 +878,12 @@ def welcome_pack_htmx(request, club):
             "welcome_form": welcome_form,
         },
     )
+
+
+@check_club_menu_access()
+def welcome_pack_delete_htmx(request, club):
+    """Delete the welcome pack"""
+
+    WelcomePack.objects.filter(organisation=club).first().delete()
+
+    return welcome_pack_htmx(request, message="Welcome Pack Deleted")
