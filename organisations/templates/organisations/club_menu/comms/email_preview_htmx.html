@@ -1,6 +1,28 @@
 {% load post_office %}
 
-<h3 class="text-white">Preview</h3>
+<div class="d-flex justify-content-between">
+    <div>
+        <h3 class="text-white mt-0">Preview</h3>
+    </div>
+    <div>
+        <a href="javascript:void(0)" class="text-white"
+            {# Hyperscript to move preview below for more editing room #}
+            _="on click
+            toggle .col-md-6 on email_wizard
+            toggle .col-12 on email_wizard
+            toggle .col-md-6 on email_preview
+            toggle .col-12 on email_preview
+            toggle .d-none on minus_sign
+            toggle .d-none on plus_sign
+            "
+        >
+            <span id="plus_sign">+</span>
+            <span id="minus_sign" class="d-none">-</span>
+        </a>
+    </div>
+</div>
+
+
 <p class="font-italic text-gray">Using the test button to send yourself a test email is the best way to
     check how your email will look before you send it.</p>
 
