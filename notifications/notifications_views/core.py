@@ -123,6 +123,7 @@ def send_cobalt_email_with_template(
     priority="medium",
     batch_id=None,
     reply_to=None,
+    attachments=None,
 ):
     """Queue an email using a template and context.
 
@@ -134,6 +135,7 @@ def send_cobalt_email_with_template(
         priority (str): Django Post Office priority
         batch_id (BatchID): batch_id for this batch of emails
         reply_to (str): email address to send replies to
+        attachments (dict): optional dictionary of attachments
 
     Returns:
         Nothing
@@ -182,6 +184,7 @@ def send_cobalt_email_with_template(
         render_on_delivery=True,
         priority=priority,
         headers=headers,
+        attachments=attachments,
     )
 
     Snooper(post_office_email=email, batch_id=batch_id).save()

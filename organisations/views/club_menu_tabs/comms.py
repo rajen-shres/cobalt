@@ -479,3 +479,16 @@ def from_and_reply_to_htmx(request, club):
         "organisations/club_menu/comms/email_send_from_and_reply_to_htmx.html",
         {"email_form": email_form},
     )
+
+
+# @check_club_menu_access()
+# def email_attachment_htmx(request, club):
+#     """Upload an email attachment"""
+#
+#     # TODO: Move this to notifications and make it more generic - organisation or member
+#
+#     template_form = TemplateBannerForm(request.POST, request.FILES, instance=template)
+#     if template_form.is_valid():
+#         template = template_form.save()
+#
+#     return templates_htmx(request, edit_template=template)

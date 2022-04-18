@@ -14,6 +14,7 @@ from .models import (
     BlockNotification,
     RealtimeNotificationHeader,
     RealtimeNotification,
+    EmailAttachment,
 )
 
 
@@ -96,6 +97,16 @@ class BatchIDAdmin(admin.ModelAdmin):
     search_fields = ["batch_id"]
 
 
+class EmailAttachmentAdmin(admin.ModelAdmin):
+    """Admin class for model EmailAttachment"""
+
+    search_fields = ("member", "organisation")
+    autocomplete_fields = [
+        "member",
+        "organisation",
+    ]
+
+
 admin.site.register(InAppNotification, InAppNotificationAdmin)
 admin.site.register(NotificationMapping, NotificationMappingAdmin)
 admin.site.register(AbstractEmail, AbstractEmailAdmin)
@@ -108,3 +119,4 @@ admin.site.register(EmailBatchRBAC, EmailBatchRBACAdmin)
 admin.site.register(BlockNotification, BlockNotificationAdmin)
 admin.site.register(RealtimeNotificationHeader, RealtimeNotificationHeaderAdmin)
 admin.site.register(RealtimeNotification, RealtimeNotificationAdmin)
+admin.site.register(EmailAttachment, EmailAttachmentAdmin)

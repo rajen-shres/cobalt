@@ -292,3 +292,31 @@ class RealtimeNotification(models.Model):
 
     def __str__(self):
         return f"{self.member.full_name} - {self.created_time.strftime('%Y-%m-%d%H:%M:%S')}"
+
+
+class EmailAttachment(models.Model):
+    """Email attachments. Can be owned by a user or an organisation.
+    Attachments are loaded into the media directory and are public.
+    Attachments should not be used for anything secure.
+    """
+
+    attachment = models.FileField(upload_to="attachments")
+    # Either Org or User should be set
+    member = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="attachment_member",
+        null=True,
+        blank=True,
+    )
+    organisation = models.ForeignKey(
+        Organisation,
+        on_delete=models.CASCADE,
+        related_name="attachment_org",
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.attachment.path}"
