@@ -122,7 +122,7 @@ def search_for_user_in_cobalt_and_mpc(first_name_search, last_name_search):
             already_present.append(un_registered_user.system_number)
 
     for mpc_user in mpc_users[:10]:
-        if mpc_user["ABFNumber"] not in already_present:
+        if int(mpc_user["ABFNumber"]) not in already_present:
             user_list.append(
                 {
                     "system_number": mpc_user["ABFNumber"],

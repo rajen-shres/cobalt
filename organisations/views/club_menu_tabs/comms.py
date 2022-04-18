@@ -148,12 +148,7 @@ def _send_email_sub(first_name, email, email_form, batch_id=None, club_template=
     reply_to = email_form.cleaned_data["reply_to"]
     from_name = email_form.cleaned_data["from_name"]
 
-    print(reply_to)
-    print(from_name)
-
     sender = f"{from_name}<donotreply@myabf.com.au>" if from_name else None
-
-    print(sender)
 
     if club_template:
         context["img_src"] = club_template.banner.url

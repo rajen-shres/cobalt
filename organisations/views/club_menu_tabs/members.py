@@ -14,7 +14,11 @@ import organisations.views.club_menu_tabs.utils
 from accounts.accounts_views.api import search_for_user_in_cobalt_and_mpc
 from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser
-from cobalt.settings import GLOBAL_ORG, GLOBAL_TITLE
+from cobalt.settings import GLOBAL_ORG, GLOBAL_TITLE, COBALT_HOSTNAME
+from notifications.notifications_views.core import (
+    send_cobalt_email_with_template,
+    create_rbac_batch_id,
+)
 from organisations.decorators import check_club_menu_access
 from organisations.forms import (
     MemberClubEmailForm,
@@ -30,6 +34,8 @@ from organisations.models import (
     MemberClubTag,
     ClubTag,
     MembershipType,
+    WelcomePack,
+    OrgEmailTemplate,
 )
 from organisations.views.general import (
     _active_email_for_un_reg,
@@ -435,19 +441,13 @@ def add_member_htmx(request, club):
 
     form = UserMembershipForm(request.POST, club=club)
 
-    print(form)
-
     if form.is_valid():
-        print("inside")
         system_number = int(form.cleaned_data["system_number"])
         membership_type_id = form.cleaned_data["membership_type"]
         home_club = form.cleaned_data["home_club"]
-        #   send_welcome_pack = form.cleaned_data["send_welcome_pack"]
-
-        print(system_number)
+        send_welcome_pack = form.cleaned_data["send_welcome_pack"]
 
         member = User.objects.filter(system_number=system_number).first()
-        print(member)
         membership_type = MembershipType(pk=membership_type_id)
 
         if (
@@ -473,11 +473,65 @@ def add_member_htmx(request, club):
                 actor=request.user,
                 action=f"Added member {member}",
             ).save()
-            form = UserMembershipForm(club=club)
+
+        if send_welcome_pack:
+            resp = _send_welcome_pack(
+                club, member.first_name, member.email, request.user, False
+            )
+            message = f"{message}. {resp}"
     else:
         print(form.errors)
 
-    return list_htmx(request, message)
+    return list_htmx(request, message=message)
+
+
+def _send_welcome_pack(club, first_name, email, user, invite_to_join):
+    """Send a welcome pack"""
+    welcome_pack = WelcomePack.objects.filter(organisation=club).first()
+
+    if not welcome_pack:
+        return "No welcome pack found."
+
+    if invite_to_join:
+        register = reverse("accounts:register")
+        email_body = f"""{welcome_pack.welcome_email}
+        <br<br>
+        <p>You are not yet a member of {GLOBAL_TITLE}. <a href="http://{COBALT_HOSTNAME}{register}">Visit us to join for free</a>.</p>
+        """
+    else:
+        email_body = welcome_pack.welcome_email
+
+    context = {
+        "name": first_name,
+        "title": f"Welcome to {club}!",
+        "email_body": email_body,
+    }
+
+    # Get the extra fields from the template
+    reply_to = welcome_pack.template.reply_to
+    from_name = welcome_pack.template.from_name
+    context["img_src"] = welcome_pack.template.banner.url
+    context["footer"] = welcome_pack.template.footer
+
+    sender = f"{from_name}<donotreply@myabf.com.au>" if from_name else None
+
+    # Create batch id to allow any admin for this club to view the email
+    batch_id = create_rbac_batch_id(
+        rbac_role=f"notifications.orgcomms.{club.id}.view",
+        user=user,
+        organisation=club,
+    )
+
+    send_cobalt_email_with_template(
+        to_address=email,
+        context=context,
+        batch_id=batch_id,
+        template="system - club",
+        reply_to=reply_to,
+        sender=sender,
+    )
+
+    return "Welcome email sent."
 
 
 @check_club_menu_access(check_members=True)
@@ -486,11 +540,17 @@ def add_any_member_htmx(request, club):
 
     member_form = UserMembershipForm(club=club)
     un_reg_form = UnregisteredUserAddForm(club=club)
+    welcome_pack = WelcomePack.objects.filter(organisation=club).exists()
 
     return render(
         request,
         "organisations/club_menu/members/add_any_member_htmx.html",
-        {"club": club, "member_form": member_form, "un_reg_form": un_reg_form},
+        {
+            "club": club,
+            "member_form": member_form,
+            "un_reg_form": un_reg_form,
+            "welcome_pack": welcome_pack,
+        },
     )
 
 
@@ -691,5 +751,20 @@ def add_un_reg_htmx(request, club):
 
             message += " Club specific email added."
 
+        if form.cleaned_data["send_welcome_pack"]:
+
+            email_address = club_email or form.cleaned_data["mpc_email"]
+            if email_address:
+                resp = _send_welcome_pack(
+                    club,
+                    form.cleaned_data["first_name"],
+                    email_address,
+                    request.user,
+                    True,
+                )
+                message = f"{message} {resp}"
+            else:
+                message += " Welcome pack not sent, no email provided."
+
     # club is added to the call by the decorator
-    return list_htmx(request, message)
+    return list_htmx(request, message=message)

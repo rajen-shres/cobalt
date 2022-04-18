@@ -80,11 +80,13 @@
                                 {% cobalt_bs4_field member_form.membership_type %}
                             </div>
                             <br>
-                            <br>
-                            <div class="col-12 form-group ">
-                                {% cobalt_bs4_field member_form.send_welcome_pack %}
-                            </div>
-                            <br>
+                            {% if welcome_pack %}
+                                <br>
+                                <div class="col-12 form-group ">
+                                    {% cobalt_bs4_field member_form.send_welcome_pack %}
+                                </div>
+                                <br>
+                            {% endif %}
                             <button class="btn btn-sm btn-success" onclick="$('.modal').modal('hide');">Add Member</button>
                             <button type="reset" class="btn btn-sm btn-warning" data-dismiss="modal" aria-label="Close"
                                 onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
@@ -144,9 +146,15 @@
                             <div class="col-12 form-group ">
                                 {% cobalt_bs4_field un_reg_form.club_email %}
                             </div>
-                            <div class="col-12 form-group ">
-                                {% cobalt_bs4_field un_reg_form.send_welcome_pack %}
-                            </div>
+
+                            {% if welcome_pack %}
+
+                                <div class="col-12 form-group ">
+                                    {% cobalt_bs4_field un_reg_form.send_welcome_pack %}
+                                </div>
+
+                            {% endif %}
+
                             <br>
                             <button class="btn btn-sm btn-success" onclick="$('.modal').modal('hide');">Add Member</button>
                             <button type="reset" class="btn btn-sm btn-warning" data-dismiss="modal" aria-label="Close"

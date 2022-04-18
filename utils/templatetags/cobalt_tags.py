@@ -1,17 +1,17 @@
+import logging
 import random
 
 from django import template
-from django.template.defaultfilters import striptags
 from django.template.loader import get_template
 from django.utils.dateformat import DateFormat
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.contrib.humanize.templatetags.humanize import intcomma
-from widget_tweaks.templatetags.widget_tweaks import render_field, FieldAttributeNode
 
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL
 
+logger = logging.getLogger("cobalt")
 register = template.Library()
 
 
@@ -151,18 +151,14 @@ def get_class(value):
 def cobalt_number(dollars):
     """Return number formatted with commas and 2 decimals"""
     dollars = round(float(dollars), 2)
-    return "%s%s" % (intcomma(int(dollars)), ("%0.2f" % dollars)[-3:])
+    return f'{intcomma(int(dollars))}{("%0.2f" % dollars)[-3:]}'
 
 
 @register.filter(name="cobalt_currency", is_safe=True)
 def cobalt_currency(dollars):
     """Return number formatted as currency"""
     dollars = round(float(dollars), 2)
-    return "%s%s%s" % (
-        GLOBAL_CURRENCY_SYMBOL,
-        intcomma(int(dollars)),
-        ("%0.2f" % dollars)[-3:],
-    )
+    return f'{GLOBAL_CURRENCY_SYMBOL}{intcomma(int(dollars))}{("%0.2f" % dollars)[-3:]}'
 
 
 @register.simple_tag(name="cobalt_random_colour")
@@ -201,6 +197,19 @@ def cobalt_bs4_field(field, no_label=False):
     <div class="col-6">{% cobalt_bs4_field form.field2 %}</div>
     """
 
+    # If something goes wrong in the template we will get a str
+    if isinstance(field, str):
+        logger.error(
+            "cobalt_tags.py - field is not a field instance. "
+            "You have passed in an incorrect or non-existent value"
+        )
+        return mark_safe(
+            """
+             <div class="cobalt-form-error">Received str not Django field</div>
+            <button class='btn btn-danger'>Field Not Valid</button>
+            """
+        )
+
     # class to add depends on type of field
     if field.widget_type == "checkbox":
         class_to_add = " form-check-input"
@@ -215,10 +224,9 @@ def cobalt_bs4_field(field, no_label=False):
     # See if we want a label
     no_label_types = ["summernoteinplace", "select"]
 
-    if no_label or not field.label or field.widget_type in no_label_types:
-        show_label = False
-    else:
-        show_label = True
+    show_label = bool(
+        not no_label and field.label and field.widget_type not in no_label_types
+    )
 
     field_template = get_template("utils/cobalt_bs4_field/bs4_field.html")
 
