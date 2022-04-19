@@ -479,4 +479,19 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.delete_template_htmx,
         name="club_menu_tab_settings_delete_template_htmx",
     ),
+    path(
+        "club-menu/comms/email-attachments/view",
+        organisations.views.club_menu_tabs.comms.email_attachment_htmx,
+        name="club_menu_tab_comms_email_attachment_htmx",
+    ),
+    path(
+        "club-menu/comms/email-attachments/upload",
+        organisations.views.club_menu_tabs.comms.upload_new_email_attachment_htmx,
+        name="club_menu_tab_comms_upload_new_email_attachment_htmx",
+    ),
+    path(
+        "club-menu/comms/email-attachments/delete",
+        organisations.views.club_menu_tabs.comms.delete_email_attachment_htmx,
+        name="club_menu_tab_comms_delete_email_attachment_htmx",
+    ),
 ]

@@ -27,7 +27,7 @@ class OrgEmailForm(forms.Form):
         widget=SummernoteInplaceWidget(
             attrs={
                 "summernote": {
-                    "height": "250",
+                    "height": "400",
                     "codemirror": {"theme": "monokai"},
                     "placeholder": "<br><br>Enter the body of your email. You can use the test button as many times as you like.",
                 }
@@ -44,6 +44,8 @@ class OrgEmailForm(forms.Form):
         # Get club
         self.club = kwargs.pop("club", None)
         super().__init__(*args, **kwargs)
+
+        # Only show this club's templates
         choices = [
             (choice.pk, choice.template_name)
             for choice in OrgEmailTemplate.objects.filter(organisation=self.club)

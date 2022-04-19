@@ -146,10 +146,23 @@
             </div>
 
             <div class="row">
-                <div class="col-12">
-                    {% include "organisations/club_menu/comms/email_attachment_htmx.html" %}
+                <div
+                    id="email_attachments"
+                    class="col-12"
+                    hx-post="{% url "organisations:club_menu_tab_comms_email_attachment_htmx" %}"
+                    hx-vars="club_id:{{ club.id }}"
+                    hx-trigger="load"
+                    hx-target="#email_attachments"
+                >
                 </div>
             </div>
+
+            {# Show user their attachments #}
+            <div id="selected_attachments_view">
+
+                {# We add choices dynamically #}
+            </div>
+
 
             <div id="email-test-response"></div>
 
@@ -230,14 +243,19 @@
                 onKeyup: delay(function (e) {
                     email_subject_or_content_changed();
                 }, 500)
-            }
+            },
+
+            {# This is defined on the form but we need it here as we override the summernote call #}
+
+            "height": "400",
+            "codemirror": {"theme": "monokai"},
+            "placeholder": "<br><br>Enter the body of your email. You can use the test button as many times as you like.",
         });
 
         // next buttons
 
         // Tab 1 -> 2
         $("#go-to-tab2").click(function(){
-            console.log("ooo");
             $('#guide-tabs li:eq(1) a').tab('show');
             return false;
         })

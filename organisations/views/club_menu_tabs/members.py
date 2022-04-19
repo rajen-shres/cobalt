@@ -751,7 +751,7 @@ def add_un_reg_htmx(request, club):
 
             message += " Club specific email added."
 
-        if form.cleaned_data["send_welcome_pack"]:
+        if "send_welcome_pack" in form.cleaned_data:
 
             email_address = club_email or form.cleaned_data["mpc_email"]
             if email_address:

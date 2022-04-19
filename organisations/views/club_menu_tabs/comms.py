@@ -9,13 +9,13 @@ from post_office.models import EmailTemplate
 from accounts.models import User, UnregisteredUser
 from cobalt.settings import COBALT_HOSTNAME
 from notifications.forms import OrgEmailForm
-from notifications.models import Snooper, EmailBatchRBAC
+from notifications.models import Snooper, EmailBatchRBAC, EmailAttachment
 from notifications.notifications_views.core import (
     send_cobalt_email_with_template,
     create_rbac_batch_id,
 )
 from organisations.decorators import check_club_menu_access
-from organisations.forms import TagMultiForm, FrontPageForm
+from organisations.forms import TagMultiForm, FrontPageForm, EmailAttachmentForm
 from organisations.models import (
     ClubTag,
     MemberClubTag,
@@ -62,7 +62,7 @@ def email_htmx(request, club, message=None):
     )
 
 
-def _send_email_to_tags(request, club, tags, email_form, club_template):
+def _send_email_to_tags(request, club, tags, email_form, club_template, attachments):
     """Send an email to a group of members identified by tags"""
 
     # let anyone with comms access to this org view them
@@ -120,12 +120,15 @@ def _send_email_to_tags(request, club, tags, email_form, club_template):
             email_form=email_form,
             batch_id=batch_id,
             club_template=club_template,
+            attachments=attachments,
         )
 
     return f"Email queued to send to {len(combined_list)} recipients"
 
 
-def _send_email_sub(first_name, email, email_form, batch_id=None, club_template=None):
+def _send_email_sub(
+    first_name, email, email_form, batch_id=None, club_template=None, attachments=None
+):
     """Send an email sub task
 
     Args:
@@ -134,6 +137,7 @@ def _send_email_sub(first_name, email, email_form, batch_id=None, club_template=
         email_form: OrgEmailForm which user has just completed
         batch_id(BatchID): batch id if required
         club_template(OrgEmailTemplate): has banner, footer etc for club
+        attachments(dict): dict of attachments ('filename', 'path-to-file')
     """
 
     context = {
@@ -161,6 +165,7 @@ def _send_email_sub(first_name, email, email_form, batch_id=None, club_template=
         template="system - club",
         reply_to=reply_to,
         sender=sender,
+        attachments=attachments,
     )
 
 
@@ -179,14 +184,17 @@ def email_send_htmx(request, club):
         tag_form = TagMultiForm(request.POST, club=club)
         if not (email_form.is_valid() and tag_form.is_valid()):
             return HttpResponse(
-                """<span
+                f"""<span
                         class='text-danger font-weight-bold'
                         _='on load wait 5 seconds
                         then transition opacity to 0
                         over 2 seconds
                         then remove me'
                         >There is an error in the data. Please look through the tabs and correct it.
-                        </span>"""
+                        </span>
+                        {email_form.errors}
+                        {tag_form.errors}
+                        """
             )
 
         # Load template once if possible
@@ -196,12 +204,23 @@ def email_send_htmx(request, club):
         else:
             club_template = None
 
+        # Get any attachments and convert to Django post office expected format
+        attachment_ids = request.POST.getlist("selected_attachments")
+        attachments = {}
+        if attachment_ids:
+            attachments_objects = EmailAttachment.objects.filter(id__in=attachment_ids)
+            for attachments_object in attachments_objects:
+                attachments[
+                    attachments_object.filename()
+                ] = attachments_object.attachment.path
+
         if "test" in request.POST:
             _send_email_sub(
                 first_name=request.user.first_name,
                 email=request.user.email,
                 email_form=email_form,
                 club_template=club_template,
+                attachments=attachments,
             )
 
             return HttpResponse(
@@ -225,6 +244,7 @@ def email_send_htmx(request, club):
                 tags=send_tags,
                 email_form=email_form,
                 club_template=club_template,
+                attachments=attachments,
             )
             return email_htmx(request, message=message)
 
@@ -481,14 +501,77 @@ def from_and_reply_to_htmx(request, club):
     )
 
 
-# @check_club_menu_access()
-# def email_attachment_htmx(request, club):
-#     """Upload an email attachment"""
-#
-#     # TODO: Move this to notifications and make it more generic - organisation or member
-#
-#     template_form = TemplateBannerForm(request.POST, request.FILES, instance=template)
-#     if template_form.is_valid():
-#         template = template_form.save()
-#
-#     return templates_htmx(request, edit_template=template)
+@check_club_menu_access()
+def email_attachment_htmx(request, club):
+    """Upload an email attachment"""
+
+    # TODO: Move this to notifications and make it more generic - organisation or member
+
+    email_attachments = EmailAttachment.objects.filter(organisation=club).order_by(
+        "-pk"
+    )[:50]
+
+    # Add hx_vars for the delete function
+    for email_attachment in email_attachments:
+        email_attachment.hx_vars = (
+            f"club_id:{club.id},email_attachment_id:{email_attachment.id}"
+        )
+        email_attachment.modal_id = f"del_attachment{email_attachment.id}"
+
+    return render(
+        request,
+        "organisations/club_menu/comms/email_attachment_htmx.html",
+        {"club": club, "email_attachments": email_attachments},
+    )
+
+
+def _email_attachment_list_htmx(request, club):
+    """Shows just the list of attachments, called if we delete or add an attachment"""
+
+    email_attachments = EmailAttachment.objects.filter(organisation=club).order_by(
+        "-pk"
+    )[:50]
+
+    # Add hx_vars for the delete function
+    for email_attachment in email_attachments:
+        email_attachment.hx_vars = (
+            f"club_id:{club.id},email_attachment_id:{email_attachment.id}"
+        )
+        email_attachment.modal_id = f"del_attachment{email_attachment.id}"
+
+    return render(
+        request,
+        "organisations/club_menu/comms/email_attachment_list_htmx.html",
+        {"club": club, "email_attachments": email_attachments},
+    )
+
+
+@check_club_menu_access()
+def upload_new_email_attachment_htmx(request, club):
+    """Upload a new email attachment for a club"""
+
+    form = EmailAttachmentForm(request.POST, request.FILES)
+    if form.is_valid():
+        email_attachment = form.save(commit=False)
+        email_attachment.organisation = club
+        email_attachment.save()
+
+    return _email_attachment_list_htmx(request, club)
+
+
+@check_club_menu_access()
+def delete_email_attachment_htmx(request, club):
+    """Delete an email attachment for a club"""
+
+    email_attachment_id = request.POST.get("email_attachment_id")
+    email_attachment = get_object_or_404(EmailAttachment, pk=email_attachment_id)
+
+    if email_attachment.organisation != club:
+        return HttpResponse("Access Denied")
+
+    # Delete file
+    email_attachment.attachment.delete(False)
+    # Delete database object
+    email_attachment.delete()
+
+    return _email_attachment_list_htmx(request, club)

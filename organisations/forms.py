@@ -14,6 +14,7 @@ from cobalt.settings import (
     BLEACH_ALLOWED_ATTRIBUTES,
     BLEACH_ALLOWED_STYLES,
 )
+from notifications.models import EmailAttachment
 from payments.models import OrgPaymentMethod
 from rbac.core import rbac_user_has_role
 from .models import (
@@ -431,6 +432,16 @@ class TemplateBannerForm(forms.ModelForm):
         resized_image.save(email_template.banner.path)
 
         return email_template
+
+
+class EmailAttachmentForm(forms.ModelForm):
+    """Form for uploading an attachment for a club"""
+
+    class Meta:
+
+        model = EmailAttachment
+        fields = ("attachment",)
+        widgets = {"attachment": forms.FileInput(attrs={"accept": "*/*"})}
 
 
 class UnregisteredUserMembershipForm(forms.Form):

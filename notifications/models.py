@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import string
 
@@ -294,13 +295,22 @@ class RealtimeNotification(models.Model):
         return f"{self.member.full_name} - {self.created_time.strftime('%Y-%m-%d%H:%M:%S')}"
 
 
+def _email_attachment_directory_path(instance, filename):
+    """We want to save Email Attachments in a club folder"""
+
+    if instance.organisation:
+        return f"attachments/club_{instance.organisation.id}/{filename}"
+    else:
+        return f"attachments/{filename}"
+
+
 class EmailAttachment(models.Model):
     """Email attachments. Can be owned by a user or an organisation.
     Attachments are loaded into the media directory and are public.
     Attachments should not be used for anything secure.
     """
 
-    attachment = models.FileField(upload_to="attachments")
+    attachment = models.FileField(upload_to=_email_attachment_directory_path)
     # Either Org or User should be set
     member = models.ForeignKey(
         User,
@@ -320,3 +330,6 @@ class EmailAttachment(models.Model):
 
     def __str__(self):
         return f"{self.attachment.path}"
+
+    def filename(self):
+        return os.path.basename(self.attachment.name)
