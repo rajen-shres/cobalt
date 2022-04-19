@@ -360,15 +360,17 @@ class TagMultiForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         # Get tags for this club
-        club_tags = ClubTag.objects.filter(organisation=self.club).values_list(
-            "id", "tag_name"
+        club_tags = (
+            ClubTag.objects.filter(organisation=self.club)
+            .order_by("tag_name")
+            .values_list("id", "tag_name")
         )
 
         # Add as choices
         self.fields["tags"].choices = [
             (club_tag[0], club_tag[1]) for club_tag in club_tags
         ]
-        self.fields["tags"].choices.insert(0, (0, "Everyone"))
+        self.fields["tags"].choices.insert(0, (0, "EVERYONE"))
 
     def clean_tags(self):
         tags = self.cleaned_data["tags"]

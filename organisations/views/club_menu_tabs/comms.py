@@ -249,7 +249,7 @@ def email_send_htmx(request, club):
             return email_htmx(request, message=message)
 
     # Get tags, we include an everyone tag inside the template
-    tags = ClubTag.objects.filter(organisation=club)
+    tags = ClubTag.objects.filter(organisation=club).order_by("tag_name")
 
     # Get total members for the Everyone option and also to block sending if there are no members
     total_members = (
@@ -258,7 +258,7 @@ def email_send_htmx(request, club):
         .distinct("system_number")
         .count()
     )
-    tag_count = {"Everyone": total_members}
+    tag_count = {"EVERYONE": total_members}
     empty_tags = []
 
     for tag in tags:

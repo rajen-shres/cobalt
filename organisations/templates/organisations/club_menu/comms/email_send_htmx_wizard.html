@@ -52,6 +52,7 @@
                 {% if tag_form.tags.field.choices|length > 1 %}
                     <div>
                         <p>Send to members using tags or select Everyone to send to all members.</p>
+                        <p class="font-italic">Some of your tags have no members and cannot be selected.</p>
                         {% for key, value in tag_form.tags.field.choices %}
                             <div>
                                 <label class="text-dark" for="id_tags_{{ key }}">
