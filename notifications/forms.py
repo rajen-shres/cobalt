@@ -35,7 +35,7 @@ class OrgEmailForm(forms.Form):
         )
     )
     reply_to = forms.EmailField(max_length=100, required=False)
-    from_name = forms.CharField(max_length=100)
+    from_name = forms.CharField(max_length=100, required=False)
     template = forms.ChoiceField(required=False)
 
     def __init__(self, *args, **kwargs):

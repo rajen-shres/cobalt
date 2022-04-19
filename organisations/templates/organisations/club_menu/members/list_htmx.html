@@ -48,10 +48,18 @@
                             </td>
                             <td>
                                 {% if member_admin %}
+
                                     <a href="#"
-                                        hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
+                                        id="t_edit_member_{{ member.id }}"
                                         hx-target="#id_member_list_tab"
-                                        hx-vars="club_id:{{ club.id }}, member:{{ member.id }}">
+                                        {% if member|get_class == "User" %}
+                                            hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
+                                            hx-vars="club_id:{{ club.id }}, member:{{ member.id }}"
+                                        {% else %}
+                                            hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
+                                            hx-vars="club_id:{{ club.id }}, un_reg_id:{{ member.id }}"
+                                        {% endif %}
+                                    >
                                         {{ member.last_name }}
                                     </a>
                                 {% else %}
@@ -61,13 +69,16 @@
                             <td>
                                 {% if member_admin %}
                                     <a href="#"
+                                        id="t_edit_member_{{ member.id }}"
+                                        hx-target="#id_member_list_tab"
                                         {% if member|get_class == "User" %}
                                             hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
+                                            hx-vars="club_id:{{ club.id }}, member:{{ member.id }}"
                                         {% else %}
                                             hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                        {% endif  %}
-                                        hx-target="#id_member_list_tab"
-                                        hx-vars="club_id:{{ club.id }}, member:{{ member.id }}">
+                                            hx-vars="club_id:{{ club.id }}, un_reg_id:{{ member.id }}"
+                                        {% endif %}
+                                    >
                                         {{ member.system_number }}
                                     </a>
                                 {% else %}

@@ -1,3 +1,5 @@
+{% load humanize %}
+
 {% if has_members %}
 
     <div class="card card-chart">
@@ -20,14 +22,14 @@
 
                 const data = google.visualization.arrayToDataTable([
                     ['Type', 'Number'],
-                    ['{{ GLOBAL_TITLE }}', {{ myabf_members }}],
-                    ['Unregistered', {{ un_regs }}],
-                    ['Visitor', {{ visitors }}],
+                    ['{{ GLOBAL_TITLE }}({{ myabf_members|intcomma }})', {{ myabf_members }}],
+                    ['Unregistered({{ un_regs|intcomma }})', {{ un_regs }}],
+                    ['Visitor({{ visitors|intcomma }})', {{ visitors }}],
                 ]);
 
                 const options = {
                     title: 'Member Breakdown',
-                    width: 440,
+                    width: 480,
                     height: 250,
                     backgroundColor: {fill: 'transparent'},
                 };
