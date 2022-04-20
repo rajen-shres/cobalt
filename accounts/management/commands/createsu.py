@@ -32,12 +32,12 @@ class Command(BaseCommand):
         print("Running createsu.")
         # RBAC Everyone
         self.create_initial_user(
-            "EVERYONE", "a@b.com", "0", "EVERYONE", "system_account"
+            "EVERYONE", "m@rkguthrie.com", "0", "EVERYONE", "system_account"
         )
         # TBA User for event entry
         self.create_initial_user(
             "TBA",
-            "a@b.com",
+            "m@rkguthrie.com",
             "1",
             "TBA",
             "",

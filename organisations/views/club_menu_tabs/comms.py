@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
 from post_office.models import EmailTemplate
 
 from accounts.models import User, UnregisteredUser
@@ -207,12 +209,28 @@ def email_send_htmx(request, club):
         # Get any attachments and convert to Django post office expected format
         attachment_ids = request.POST.getlist("selected_attachments")
         attachments = {}
+        total_size = 0.0
         if attachment_ids:
             attachments_objects = EmailAttachment.objects.filter(id__in=attachment_ids)
             for attachments_object in attachments_objects:
                 attachments[
                     attachments_object.filename()
                 ] = attachments_object.attachment.path
+                total_size += attachments_object.attachment.size
+
+        # Check for maximum size of attachments
+        if total_size > 10_000_000:
+            return HttpResponse(
+                """<span
+                        class='text-danger font-weight-bold'
+                        _='on load wait 5 seconds
+                        then transition opacity to 0
+                        over 2 seconds
+                        then remove me'
+                        >Attachments are too large to send. Maximum size is 10Mb. Please remove something or send as links.
+                        </span>
+                        """
+            )
 
         if "test" in request.POST:
             _send_email_sub(
@@ -457,6 +475,7 @@ def public_info_htmx(request, club):
 def email_preview_htmx(request):
     """Preview an email as user creates it"""
 
+    # We may or may not get a template
     template_id = request.POST.get("template")
     if template_id:
         template = get_object_or_404(OrgEmailTemplate, pk=template_id)
@@ -464,10 +483,23 @@ def email_preview_htmx(request):
     else:
         template = None
         img_src = "/media/email_banners/default_banner.jpg"
+
+    # Get user input
     title = request.POST.get("subject")
     email_body = request.POST.get("org_email_body")
 
-    host = COBALT_HOSTNAME
+    print(email_body)
+    print(escape(email_body))
+
+    # Apostrophe's blow up the iframe so change to code
+    email_body = email_body.replace("'", "&#39;")
+
+    # Get attachments if any
+    attachment_ids = request.POST.getlist("selected_attachments")
+    if attachment_ids:
+        attachments_objects = EmailAttachment.objects.filter(id__in=attachment_ids)
+    else:
+        attachments_objects = None
 
     return render(
         request,
@@ -475,9 +507,10 @@ def email_preview_htmx(request):
         {
             "template": template,
             "img_src": img_src,
-            "host": host,
+            "host": COBALT_HOSTNAME,
             "title": title,
             "email_body": email_body,
+            "attachment_objects": attachments_objects,
         },
     )
 
@@ -525,7 +558,7 @@ def email_attachment_htmx(request, club):
     )
 
 
-def _email_attachment_list_htmx(request, club):
+def _email_attachment_list_htmx(request, club, hx_trigger_response=None):
     """Shows just the list of attachments, called if we delete or add an attachment"""
 
     email_attachments = EmailAttachment.objects.filter(organisation=club).order_by(
@@ -539,16 +572,26 @@ def _email_attachment_list_htmx(request, club):
         )
         email_attachment.modal_id = f"del_attachment{email_attachment.id}"
 
-    return render(
+    # For delete we need to trigger a response in the browser to remove this from the list (if present)
+    # We use the hx_trigger repsonse header for this
+
+    response = render(
         request,
         "organisations/club_menu/comms/email_attachment_list_htmx.html",
         {"club": club, "email_attachments": email_attachments},
     )
 
+    if hx_trigger_response:
+        response["HX-Trigger"] = hx_trigger_response
+
+    return response
+
 
 @check_club_menu_access()
 def upload_new_email_attachment_htmx(request, club):
-    """Upload a new email attachment for a club"""
+    """Upload a new email attachment for a club
+    Use the HTMX hx-trigger response header to tell the browser about it
+    """
 
     form = EmailAttachmentForm(request.POST, request.FILES)
     if form.is_valid():
@@ -556,12 +599,20 @@ def upload_new_email_attachment_htmx(request, club):
         email_attachment.organisation = club
         email_attachment.save()
 
-    return _email_attachment_list_htmx(request, club)
+        trigger = f"""{{"post_attachment_add":{{"id": "{email_attachment.id}" , "name": "{email_attachment.filename()}"}}}}"""
+
+        return _email_attachment_list_htmx(request, club, hx_trigger_response=trigger)
+
+    return HttpResponse("Error")
 
 
 @check_club_menu_access()
 def delete_email_attachment_htmx(request, club):
-    """Delete an email attachment for a club"""
+    """Delete an email attachment for a club.
+    This one is a little tricky as we also need to tell the browser to trigger an event to remove this from
+    the list of attachments if present.
+    For this we use the HTMX hx-trigger response header
+    """
 
     email_attachment_id = request.POST.get("email_attachment_id")
     email_attachment = get_object_or_404(EmailAttachment, pk=email_attachment_id)
@@ -574,4 +625,6 @@ def delete_email_attachment_htmx(request, club):
     # Delete database object
     email_attachment.delete()
 
-    return _email_attachment_list_htmx(request, club)
+    trigger = f"""{{"post_attachment_delete": "{email_attachment_id}"}}"""
+
+    return _email_attachment_list_htmx(request, club, hx_trigger_response=trigger)

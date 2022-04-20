@@ -26,6 +26,16 @@
 <p class="font-italic text-gray">Using the test button to send yourself a test email is the best way to
     check how your email will look before you send it.</p>
 
+{% if attachment_objects %}
+    <h4 class="text-white">Attachments:</h4>
+
+    {% for attachment_object in attachment_objects %}
+        <button class="btn btn-sm btn-secondary text-primary">
+            {{ attachment_object.filename }} ({{ attachment_object.attachment.size|filesizeformat }})
+        </button>
+    {% endfor %}
+{% endif %}
+
 {# We use an iframe to get rid of the bootstrap css so we can see the email as it will look when delivered #}
 
 <iframe

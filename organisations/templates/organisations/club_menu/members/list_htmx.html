@@ -14,7 +14,7 @@
 
         {% if members %}
 
-            <table id="id_member_table" class="table table-hover" style="display: none;">
+            <table id="id_attach_table" class="table table-condensed table-hover" style="display: none;">
                 <thead>
                     <tr>
                         <th>First Name</th>
@@ -127,7 +127,8 @@
 
         // Initialise datatable - only show pagination if more than one page, sort in order, column 0
 
-        $('#id_member_table').DataTable({
+        $('#id_attach_table').DataTable({
+            "order": [[ 1, "asc" ]],
             drawCallback: function(settings) {
                 const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
                 pagination.toggle(this.api().page.info().pages > 1);
@@ -136,7 +137,7 @@
 
 
         // Unhide table now. This avoids the flicker
-        $('#id_member_table').show();
+        $('#id_attach_table').show();
 
     });
 

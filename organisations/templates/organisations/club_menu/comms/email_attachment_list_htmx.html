@@ -88,21 +88,6 @@
         swal.fire({ title:"Copied", html: "Link copied to clipboard. You can paste this into your email body.", icon: "success"})
     }
 
-    // Add an attachment to the screen and hidden list
-    function addAttachmentToList(id, name) {
-        // add to hidden select
-        $('#selected_attachments_view').append('<input type="hidden" id="id_attach_hidden_input_' + id + '" name="selected_attachments" value=' + id +'>');
-        // show on screen
-        $('#selected_attachments_view').append('<button class="btn btn-sm btn-{% cobalt_random_colour %}" id="id_attach_btn_' + id + '" onclick="removeAttachmentfromList(' + id + ')">' + name + '</button>');
-    }
-
-    // remove attachment
-    function removeAttachmentfromList(id) {
-        $("#id_attach_hidden_input_" + id).remove();
-        $("#id_attach_btn_" + id).remove();
-        return false;
-    }
-
     $(document).ready(function() {
 
         // initialise the tooltips

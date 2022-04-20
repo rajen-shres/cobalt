@@ -162,8 +162,9 @@
             <div id="selected_attachments_view">
 
                 {# We add choices dynamically #}
-            </div>
+                <table id="selected_attachments_list"></table>
 
+            </div>
 
             <div id="email-test-response"></div>
 
@@ -210,7 +211,31 @@
         }
     }
 
+    // Add an attachment to the screen and hidden list
+    function addAttachmentToList(id, name) {
+        // ignore if already present
+        if ($("#id_attach_hidden_input_" + id).length) {
+            return false;
+        }
+        // add to hidden select
+        $('#selected_attachments_view').append('<input type="hidden" id="id_attach_hidden_input_' + id + '" name="selected_attachments" value=' + id +'>');
+        // show on screen
+        $('#selected_attachments_list').append('<tr id="id_attach_li_' + id + '"><td>' + name + '</td><td><a class="btn btn-xs btn-danger text-white"  title="Remove" onclick="removeAttachmentfromList(' + id + ')">X</a></td></tr>');
+    }
+
+    // remove attachment
+    function removeAttachmentfromList(id) {
+        $("#id_attach_hidden_input_" + id).remove();
+        $("#id_attach_li_" + id).remove();
+        return false;
+    }
+
     $(document).ready( function(){
+
+        // This is needed to stop an error
+        jQuery.validator.setDefaults({
+            ignore: ":hidden, [contenteditable='true']:not([name])"
+        });
 
         // initialise the jquery validate plugin
         $('#email-multi-form').validate({});
@@ -312,6 +337,17 @@
             $("#id_reply_to").validate();
         })
 
+        // This is called using an HX-Trigger event in the return header from the add function
+        // Once we have added the attachment to the server, we need to also add it to the form
+        document.body.addEventListener("post_attachment_add", function(evt){
+            addAttachmentToList(evt.detail.id, evt.detail.name);
+        })
+
+        // This is called using an HX-Trigger event in the return header from the delete function
+        // Once we have deleted the server side attachment, we need to also remove it from the form
+        document.body.addEventListener("post_attachment_delete", function(evt){
+            removeAttachmentfromList(evt.detail.value);
+        })
 
     });
 </script>
