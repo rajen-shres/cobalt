@@ -4,9 +4,6 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
-from django.utils.html import escape
-from django.utils.safestring import mark_safe
-from post_office.models import EmailTemplate
 
 from accounts.models import User, UnregisteredUser
 from cobalt.settings import COBALT_HOSTNAME
@@ -33,7 +30,7 @@ from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def email_htmx(request, club, message=None):
     """build the comms email tab in club menu"""
 
@@ -171,7 +168,7 @@ def _send_email_sub(
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def email_send_htmx(request, club):
     """send an email"""
 
@@ -276,6 +273,8 @@ def email_send_htmx(request, club):
         .distinct("system_number")
         .count()
     )
+
+    # Get the number of members with each tag
     tag_count = {"EVERYONE": total_members}
     empty_tags = []
 
@@ -311,7 +310,7 @@ def email_send_htmx(request, club):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def email_view_htmx(request, club):
     """view an email"""
 
@@ -395,7 +394,7 @@ def email_view_htmx(request, club):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def delete_tag_htmx(request, club):
     """Delete a tag"""
 
@@ -407,7 +406,7 @@ def delete_tag_htmx(request, club):
     return tags_htmx(request)
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def tags_add_user_tag(request, club):
     """Add a tag to a user"""
 
@@ -422,7 +421,7 @@ def tags_add_user_tag(request, club):
     return HttpResponse("Error")
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def tags_remove_user_tag(request, club):
     """Remove a tag from a user"""
 
@@ -440,7 +439,7 @@ def tags_remove_user_tag(request, club):
     return HttpResponse("Error")
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def public_info_htmx(request, club):
     """build the comms public info tab in club menu"""
 
@@ -488,9 +487,6 @@ def email_preview_htmx(request):
     title = request.POST.get("subject")
     email_body = request.POST.get("org_email_body")
 
-    print(email_body)
-    print(escape(email_body))
-
     # Apostrophe's blow up the iframe so change to code
     email_body = email_body.replace("'", "&#39;")
 
@@ -515,7 +511,7 @@ def email_preview_htmx(request):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def from_and_reply_to_htmx(request, club):
     """rebuild the from and reply_to fields in the send email form if the template changes"""
 
@@ -534,7 +530,7 @@ def from_and_reply_to_htmx(request, club):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def email_attachment_htmx(request, club):
     """Upload an email attachment"""
 
@@ -587,7 +583,7 @@ def _email_attachment_list_htmx(request, club, hx_trigger_response=None):
     return response
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def upload_new_email_attachment_htmx(request, club):
     """Upload a new email attachment for a club
     Use the HTMX hx-trigger response header to tell the browser about it
@@ -606,7 +602,7 @@ def upload_new_email_attachment_htmx(request, club):
     return HttpResponse("Error")
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def delete_email_attachment_htmx(request, club):
     """Delete an email attachment for a club.
     This one is a little tricky as we also need to tell the browser to trigger an event to remove this from

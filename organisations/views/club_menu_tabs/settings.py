@@ -612,7 +612,7 @@ def club_menu_tab_settings_session_add_htmx(request, club):
     return club_menu_tab_settings_sessions_htmx(request)
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def tags_htmx(request, club):
     """build the comms tags tab in club menu"""
 
@@ -647,7 +647,7 @@ def tags_htmx(request, club):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def templates_htmx(request, club, edit_template=None):
     """build the comms template tab in club menu. The edit forms pass in a value for edit_template so we can re-open it"""
 
@@ -667,7 +667,7 @@ def templates_htmx(request, club, edit_template=None):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def edit_template_htmx(request, club):
     """HTMX form to render the email template edit screen. We create a new template if one isn't provided and we
     don't handle the form as this is handled at a lower level. We manage template_name (no form), banner, and
@@ -719,7 +719,7 @@ def template_preview_htmx(request):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def edit_template_name_htmx(request, club):
     """Edit the template_name field on a template"""
 
@@ -735,7 +735,7 @@ def edit_template_name_htmx(request, club):
     return templates_htmx(request, edit_template=template)
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def edit_from_name_htmx(request, club):
     """Edit the from_name field on a template"""
 
@@ -751,7 +751,7 @@ def edit_from_name_htmx(request, club):
     return templates_htmx(request, edit_template=template)
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def edit_reply_to_htmx(request, club):
     """Edit the reply_to field on a template"""
 
@@ -767,7 +767,7 @@ def edit_reply_to_htmx(request, club):
     return templates_htmx(request, edit_template=template)
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def edit_template_banner_htmx(request, club):
     """Edit the template_name field on a template"""
 
@@ -783,7 +783,7 @@ def edit_template_banner_htmx(request, club):
     return templates_htmx(request, edit_template=template)
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def edit_template_footer_htmx(request, club):
     """Edit the footer field on a template"""
 
@@ -799,7 +799,7 @@ def edit_template_footer_htmx(request, club):
     return templates_htmx(request, edit_template=template)
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def delete_template_htmx(request, club):
     """Delete a template"""
 
@@ -813,7 +813,7 @@ def delete_template_htmx(request, club):
     return templates_htmx(request)
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def welcome_pack_htmx(request, club, message=None):
     """Manage welcome packs for new members"""
 
@@ -835,7 +835,7 @@ def welcome_pack_htmx(request, club, message=None):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def welcome_pack_edit_htmx(request, club):
     """Manage welcome packs for new members"""
 
@@ -880,7 +880,7 @@ def welcome_pack_edit_htmx(request, club):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_comms=True)
 def welcome_pack_delete_htmx(request, club):
     """Delete the welcome pack"""
 

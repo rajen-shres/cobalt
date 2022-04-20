@@ -8,7 +8,16 @@ from .models import Organisation
 from .views.general import get_rbac_model_for_state
 
 
-def check_club_menu_access(check_members=False):
+def _check_extra_role(request, function, club, extra_role, *args, **kwargs):
+    """sub function to check for extra access"""
+
+    if rbac_user_has_role(request.user, extra_role):
+        return function(request, club, *args, **kwargs)
+    else:
+        return rbac_forbidden(request, extra_role)
+
+
+def check_club_menu_access(check_members=False, check_comms=False):
     """checks if user should have access to a club menu
 
     Call as:
@@ -23,10 +32,14 @@ def check_club_menu_access(check_members=False):
     Optional parameters:
 
         check_members: Will also check for the role orgs.members.{club.id}.edit
+        check_comms: Will also check for the role notifications.orgcomms.{club.id}.edit
 
     We add a parameter (club) to the actual call which is fine for calls from
     URLs but if we call this internally it will need to be called without the
     club parameter.
+
+    The optional parameters are only applied for normal admin users, Global or State
+    admins get in anyway even if they don't have the extra permissions.
 
     """
 
@@ -40,10 +53,6 @@ def check_club_menu_access(check_members=False):
             if not request.user.is_authenticated:
                 return redirect("/")
 
-            # pop the club parameter if present. This allows us to call this directly within the code
-            # Its a hack but it is very confusing to have the IDE complain about the missing parameter
-            # kwargs.pop("club")
-
             # We only accept POSTs
             if request.method != "POST":
                 return HttpResponse("Error - POST expected")
@@ -52,16 +61,7 @@ def check_club_menu_access(check_members=False):
             club_id = request.POST.get("club_id")
             club = get_object_or_404(Organisation, pk=club_id)
 
-            # Check for club level access - most common
-            club_role = f"orgs.org.{club.id}.view"
-            if rbac_user_has_role(request.user, club_role):
-                return function(request, club, *args, **kwargs)
-
-            # Check for optional club parameter
-            if check_members:
-                member_role = f"orgs.members.{club.id}.edit"
-                if rbac_user_has_role(request.user, member_role):
-                    return function(request, club, *args, **kwargs)
+            # TODO: add a multiple option to RBAC so we can combine these into a single query
 
             # Check for state level access
             rbac_model_for_state = get_rbac_model_for_state(club.state)
@@ -72,6 +72,24 @@ def check_club_menu_access(check_members=False):
             # Check for global role
             if rbac_user_has_role(request.user, "orgs.admin.edit"):
                 return function(request, club, *args, **kwargs)
+
+            # Check for club level access
+            club_role = f"orgs.org.{club.id}.view"
+            if rbac_user_has_role(request.user, club_role):
+
+                # Check for optional member parameter
+                if check_members:
+                    extra_role = f"orgs.members.{club.id}.edit"
+                    return _check_extra_role(
+                        request, function, club, extra_role, *args, **kwargs
+                    )
+
+                # Check for optional comms parameter
+                if check_comms:
+                    extra_role = f"notifications.orgcomms.{club.id}.edit"
+                    return _check_extra_role(
+                        request, function, club, extra_role, *args, **kwargs
+                    )
 
             return rbac_forbidden(request, club_role)
 

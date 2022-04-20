@@ -36,7 +36,7 @@
         </label>
     </div>
     <div>
-        <img id="cobalt-pic" class="text-center" src="/media/{{ template.banner }}"/>
+        <img id="cobalt-pic" class="img-fluid text-center" src="/media/{{ template.banner }}"/>
     </div>
     <form
         hx-encoding='multipart/form-data'
@@ -89,7 +89,7 @@
             $image.cropper({
                 viewMode: 1,
                 aspectRatio: 2 / 1,
-                minCropBoxWidth: 400,
+                minCropBoxWidth: 500,
                 minCropBoxHeight: 200,
                 ready: function () {
                     $image.cropper("setCanvasData", canvasData);
