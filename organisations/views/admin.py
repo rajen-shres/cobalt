@@ -48,7 +48,7 @@ def get_secretary_from_org_form(org_form):
     return secretary_id, secretary_name
 
 
-def _add_club_defaults(club: Organisation):
+def add_club_defaults(club: Organisation):
     """Add sensible default values when we create a new club"""
 
     # Use basic RBAC
@@ -126,7 +126,7 @@ def admin_add_club(request):
             org.last_updated = timezone.localtime()
             org.type = "Club"
             org.save()
-            _add_club_defaults(org)
+            add_club_defaults(org)
             messages.success(
                 request,
                 f"{org.name} created with standard defaults.",

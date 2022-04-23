@@ -75,10 +75,18 @@ def test_model_instance_is_safe(manager, model_instance, exclude_list=[]):
         )
 
 
-def get_django_request_object(user):
-    """return a valid request object for a user"""
+def get_django_client_object(user):
+    """return a valid client object for a user"""
 
     client = Client()
     client.force_login(user)
+
+    return client
+
+
+def get_django_request_object(user):
+    """return a valid request object for a user"""
+
+    client = get_django_client_object(user)
     response = client.get("/")
     return response.wsgi_request
