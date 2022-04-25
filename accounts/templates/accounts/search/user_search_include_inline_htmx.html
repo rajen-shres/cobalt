@@ -1,68 +1,115 @@
 {# This is the HTMX user search #}
 {#  include it in your HTML file with an optional search_id value if you want to have more than once search or a page #}
-{#  This form is shown inline, not as a modal popup #}
+{#  This form is shown inline, not as a modal popup, you can use the wrapper user_search_include_htmx.html #}
+{#  if you want to use a modal #}
+
+<!--
+ parameters:
+
+    search_id:     any random string that identifies this search. Can be blank if only one search on this page
+    user_id_field: DOM identifier of field that should get the selected userid
+    callback:      Javascript function to call once a user is selected.
+                        Parameters are: (search_id, user_id, user_name)
+                        cobaltMemberSearchOk() - what is this?
+    include_me:    flag to decide if the user can pick themselves
+-->
 
 {% load static %}
 
+<!-- MAIN CONTAINER DIV FOR SEARCH -->
 <div class="container">
+
+    <!-- ROW - WITH SEARCH_ID TO IDENTIFY -->
     <div id="cobalt-search{{ search_id }}" class="row justify-content-center">
 
-        <div class="col-12 form-group">
-            <label for="id_lastname{{ search_id }}" id="id_label_lastname{{ search_id }}" class="bmd-label-static">Last Name
-            </label>
-            <input type="text"
-                class="form-control modal-input"
-                name="last_name_search"
-                id="id_last_name_search{{ search_id }}"
-                hx-post="{% url "accounts:member_search_htmx" %}"
-                hx-trigger="keyup changed delay:100ms"
-                hx-target="#name-matches{{ search_id }}"
-                hx-vars="user_id_field:'{{ user_id_field }}',
-                search_id:'{{ search_id }}'
-                {% if callback %}, callback:'{{ callback }}'{% endif %}
-                {% if include_me %}, include_me:'yes'{% endif %}
-                "
-            >
-        </div>
-        <div class="col-12 form-group">
-            <label for="id_lastname{{ search_id }}" id="id_label_lastname{{ search_id }}" class="bmd-label-static">First Name
-            </label>
-            <input type="text"
-                class="form-control modal-input"
-                name="first_name_search"
-                id="id_first_name_search{{ search_id }}"
-                hx-post="{% url "accounts:member_search_htmx" %}"
-                hx-trigger="keyup changed delay:100ms"
-                hx-target="#name-matches{{ search_id }}"
-                hx-vars="user_id_field:'{{ user_id_field }}',
-                search_id:'{{ search_id }}'
-                {% if callback %}, callback:'{{ callback }}'{% endif %}
-                {% if include_me %}, include_me:'yes'{% endif %}
-                "            >
-        </div>
-        {% if request.user.system_number_search %}
-            <div class="col-8 form-group" style="margin-top: 0 !important;">
-                <label for="id_system_number{{ search_id }}" id="id_label_system_number{{ search_id }}" class="bmd-label-static">{{ GLOBAL_ORG }} Number</label>
-                <input type="number" class="form-control modal-input" id="id_system_number{{ search_id }}" name="system_number" value="">
-            </div>
-            <div class="col-4 form-group text-right">
-                <button class="btn btn-sm bt-warning"
-                    id="id_button_system_number_search{{ search_id }}"
-                    hx-post="{% url "accounts:system_number_search_htmx" %}"
+        <!-- MUST HAVE A FORM FOR HX-INCLUDE TO WORK -->
+        <form>
+
+            <!-- LASTNAME (SAME SEARCH AS FIRSTNAME, BOTH FIELDS ARE SENT) -->
+            <div class="col-12 form-group">
+                <label for="id_lastname{{ search_id }}" id="id_label_lastname{{ search_id }}" class="bmd-label-static">Last Name
+                </label>
+                <input type="text"
+                    class="form-control modal-input"
+                    name="last_name_search"
+                    id="id_last_name_search{{ search_id }}"
+
+                    {# Use HTMX to send in search #}
+                    hx-post="{% url "accounts:member_search_htmx" %}"
+
+                    {# Only search after a brief delay #}
+                    hx-trigger="keyup changed delay:100ms"
+
+                    {# Put response into the name-matches field below #}
                     hx-target="#name-matches{{ search_id }}"
-                    hx-include="[id='id_system_number']"
+
+                    {# Include other name too. Use id to get specific field but pass name which is always the same #}
+                    {#                hx-include="[id='id_first_name_search{{ search_id }}']"#}
+                    hx-include="[id='id_first_name_search{{ search_id }}']"
+
+                    {# Pass through parameters for later #}
                     hx-vars="user_id_field:'{{ user_id_field }}',
                     search_id:'{{ search_id }}'
                     {% if callback %}, callback:'{{ callback }}'{% endif %}
                     {% if include_me %}, include_me:'yes'{% endif %}
                     "
-                >Lookup Number</button>
+                >
             </div>
-            <div class="name-match" id="name-matches{{ search_id }}">
+
+            <!-- FIRSTNAME (SAME SEARCH AS LASTNAME, BOTH FIELDS ARE SENT) -->
+            <div class="col-12 form-group">
+                <label for="id_firstname{{ search_id }}" id="id_label_firstname{{ search_id }}" class="bmd-label-static">First Name
+                </label>
+                <input type="text"
+                    class="form-control modal-input"
+                    name="first_name_search"
+                    id="id_first_name_search{{ search_id }}"
+
+                    {# Use HTMX to send in search #}
+                    hx-post="{% url "accounts:member_search_htmx" %}"
+
+                    {# Only search after a brief delay #}
+                    hx-trigger="keyup changed delay:100ms"
+
+                    {# Put response into the name-matches field below #}
+                    hx-target="#name-matches{{ search_id }}"
+
+                    {# Include other name too. Use id to get specific field but pass name which is always the same #}
+                    hx-include="[id='id_last_name_search{{ search_id }}']"
+
+                    {# Pass through parameters for later #}
+                    hx-vars="user_id_field:'{{ user_id_field }}',
+                    search_id:'{{ search_id }}'
+                    {% if callback %}, callback:'{{ callback }}'{% endif %}
+                    {% if include_me %}, include_me:'yes'{% endif %}
+                    "
+                >
             </div>
-        {% endif %}
+
+            <!-- SYSTEM_NUMBER SEARCH IF REQUIRED -->
+            {% if request.user.system_number_search %}
+                <div class="col-8 form-group" style="margin-top: 0 !important;">
+                    <label for="id_system_number{{ search_id }}" id="id_label_system_number{{ search_id }}" class="bmd-label-static">{{ GLOBAL_ORG }} Number</label>
+                    <input type="number" class="form-control modal-input" id="id_system_number{{ search_id }}" name="system_number" value="">
+                </div>
+                <div class="col-4 form-group text-right">
+                    <button class="btn btn-sm bt-warning"
+                        id="id_button_system_number_search{{ search_id }}"
+                        hx-post="{% url "accounts:system_number_search_htmx" %}"
+                        hx-target="#name-matches{{ search_id }}"
+                        hx-include="[id='id_system_number']"
+                        hx-vars="user_id_field:'{{ user_id_field }}',
+                        search_id:'{{ search_id }}'
+                        {% if callback %}, callback:'{{ callback }}'{% endif %}
+                        {% if include_me %}, include_me:'yes'{% endif %}
+                        "
+                    >Lookup Number</button>
+                </div>
+
+                <!-- NAME MATCH IS WHERE WE PUT THE SEARCH RESULTS. CAN BE A LIST OR A SPECIFIC USER -->
+                <div class="name-match" id="name-matches{{ search_id }}">
+                </div>
+            {% endif %}
+        </form>
     </div>
 </div>
-
-
-

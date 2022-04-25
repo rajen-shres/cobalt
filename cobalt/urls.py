@@ -40,6 +40,7 @@ urlpatterns = [
     path("support/", include("support.urls", namespace="support")),
     path("sessions/", include("club_sessions.urls", namespace="club_sessions")),
     path("summernote/", include("django_summernote.urls")),
+    path("tests/", include("tests.urls", namespace="tests")),
     path("health/", include("health_check.urls")),
     path("admin/django-ses/", include("django_ses.urls")),
     # This is the slug option for Cobalt

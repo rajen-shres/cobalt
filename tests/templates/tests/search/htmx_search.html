@@ -1,0 +1,69 @@
+{% load static %}
+
+{# Test page for the htmx search with all of the options #}
+
+<html>
+    <head>
+        <link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet"/>
+        <link href="{% static "assets/css/cobalt.css" %}" rel="stylesheet"/>
+        <link href="{% static "assets/css/font-awesome.5.14/css/all.min.css" %}" rel="stylesheet"/>
+        <link href="{% static "assets/css/animate.4.0.0/animate.min.css" %}" rel="stylesheet"/>
+        <script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
+        <script src="{% static "assets/js/core/popper.min.js" %}"></script>
+        <script src="{% static "assets/js/plugins/jquery-ui.min.js" %}"></script>
+        <script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
+        <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
+    </head>
+    <body>
+
+        <div class="jumbotron">
+            <h1>Test Page for HTMX Search</h1>
+
+            <p>This doesn't include the standard template as this is intended for testing and showing a minimal
+                example of each case.</p>
+
+            <div class="card">
+                <div class="card-header card-header-primary">
+                    <h2>In Line</h2>
+                </div>
+                <div class="card-body">
+                    <div id="inline-basic">
+                        Result will appear here.
+                    </div>
+                    {% include "accounts/search/user_search_include_inline_htmx.html" with user_id_field="inline-basic" %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header card-header-primary">
+                    <h2>In Line Callback Include Me</h2>
+                </div>
+                <div class="card-body">
+                    <div id="inline-callback-include-me">
+                        Result will appear here.
+                    </div>
+                    {% include "accounts/search/user_search_include_inline_htmx.html" with include_me=True callback="basicAddAdmin" %}
+                </div>
+            </div>
+
+
+            <h2>Modal</h2>
+            {% include "accounts/search/user_search_include_htmx.html" with include_me=True callback="basicAddAdmin" %}
+            <button id="id_search_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal">
+                Modal
+            </button>
+
+
+            {% include "accounts/search/user_search_include_js_htmx.html" %}
+            {% include "utils/include_htmx.html" %}
+
+        </div>
+        <script src="{% static "assets/js/material-dashboard.js" %}?v=2.1.1" type="text/javascript"></script>
+        <script>
+
+            function basicAddAdmin(search_id, user_id, user_name) {
+                $("#inline-callback-include-me").html(user_name);
+            }
+        </script>
+    </body>
+</html>
