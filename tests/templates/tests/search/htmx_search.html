@@ -20,7 +20,9 @@
             <h1>Test Page for HTMX Search</h1>
 
             <p>This doesn't include the standard template as this is intended for testing and showing a minimal
-                example of each case.</p>
+                example of each case. If the packages in base.html get updated then this should be updated too.</p>
+
+            <-- INLINE BASIC -->
 
             <div class="card">
                 <div class="card-header card-header-primary">
@@ -42,7 +44,7 @@
                     <div id="inline-callback-include-me">
                         Result will appear here.
                     </div>
-                    {% include "accounts/search/user_search_include_inline_htmx.html" with include_me=True callback="basicAddAdmin" %}
+                    {% include "accounts/search/user_search_include_inline_htmx.html" with search_id="inline-callback-include-me" include_me=True callback="inlineCallbackIncludeMe" %}
                 </div>
             </div>
 
@@ -62,6 +64,10 @@
         <script>
 
             function basicAddAdmin(search_id, user_id, user_name) {
+                $("#inline-callback-include-me").html(user_name);
+            }
+
+            function inlineCallbackIncludeMe(search_id, user_id, user_name) {
                 $("#inline-callback-include-me").html(user_name);
             }
         </script>
