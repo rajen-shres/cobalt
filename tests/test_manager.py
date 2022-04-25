@@ -38,16 +38,16 @@ setup_test_environment()
 # For the integration tests we are telling a story and the order matters
 # For unit tests each test should stand alone and they are dynamically found
 LIST_OF_INTEGRATION_TESTS = {
-    # "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
-    # "EventEntry": "events.tests.integration.01_user_event_entry",
-    # "APITests": "api.tests.integration.01_authorisation_tests",
-    # "SMSTests": "notifications.tests.integration.01_sms_tests",
-    # "FCMTokenAPITests": "api.tests.integration.02_fcm_token_tests",
-    # "FCMTokenUpdateAPITests": "api.tests.integration.02_fcm_token_tests",
-    # "FCMAPITests": "api.tests.integration.03_fcm_api_tests",
-    # "Registration": "accounts.tests.integration.01_registration",
-    # "MemberTransfer": "payments.tests.integration.01_member_actions",
-    # "PaymentAPITests": "payments.tests.integration.02_payment_api_tests",
+    "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
+    "EventEntry": "events.tests.integration.01_user_event_entry",
+    "APITests": "api.tests.integration.01_authorisation_tests",
+    "SMSTests": "notifications.tests.integration.01_sms_tests",
+    "FCMTokenAPITests": "api.tests.integration.02_fcm_token_tests",
+    "FCMTokenUpdateAPITests": "api.tests.integration.02_fcm_token_tests",
+    "FCMAPITests": "api.tests.integration.03_fcm_api_tests",
+    "Registration": "accounts.tests.integration.01_registration",
+    "MemberTransfer": "payments.tests.integration.01_member_actions",
+    "PaymentAPITests": "payments.tests.integration.02_payment_api_tests",
     "OrgHighLevelAdmin": "organisations.tests.integration.01_high_level_admin",
     "ClubLevelAdmin": "organisations.tests.integration.02_club_level_admin",
     "ClubSettings": "organisations.tests.integration.03_club_settings",
@@ -499,6 +499,7 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
             ).until(wait_event)
             return self.driver.find_element_by_id(element_id)
         except TimeoutException:
+            print("***** Timeout Exception in _selenium_wait() *****")
             return False
 
     def selenium_wait_for(self, element_id, timeout=5):

@@ -76,7 +76,7 @@
                             {% if user.source == "member" %}
                                 <button class="btn btn-sm btn-primary" disabled>Add</button>
                             {% elif user.source == "mpc" %}
-                                <button class="btn btn-sm btn-primary" onclick="show_add_un_reg_modal({{ user.system_number }}, '{{ user.first_name }}', '{{ user.last_name }}', '{{ user.mpc_email|default_if_none:"" }}')">
+                                <button class="btn btn-sm btn-primary" id="id_show_add_un_reg_modal_{{ user.system_number }}" onclick="show_add_un_reg_modal({{ user.system_number }}, '{{ user.first_name }}', '{{ user.last_name }}', '{{ user.mpc_email|default_if_none:"" }}')">
                                     Add</button>
                             {% elif user.source == "registered" %}
                                 <button class="btn btn-sm btn-primary" onclick="show_add_member_modal({{ user.system_number }}, '{{ user.first_name }}', '{{ user.last_name }}')">

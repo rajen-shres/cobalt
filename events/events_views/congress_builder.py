@@ -870,6 +870,7 @@ def manage_congress_download(request, congress_id):
     )
 
 
+@login_required()
 def slug_handler_htmx(request):
     """Generates the slug row in congress wizard 2"""
 

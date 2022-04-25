@@ -137,13 +137,10 @@ class ClubMembers:
         self.manager.selenium_wait_for_clickable(
             "id_member_last_name_search"
         ).send_keys("thomson")
-        # click on registered user
-        self.manager.driver.find_element_by_xpath(
-            "//button[@onclick=\"show_add_un_reg_modal(148911, 'Ian', 'Thomson', 'it8036@gmail.com')\"]"
-        ).click()
-        self.manager.driver.find_element_by_xpath(
-            "@onclick=\"$('.modal').modal('hide');\""
-        ).click()
+        # click on user.
+        self.manager.selenium_wait_for("id_show_add_un_reg_modal_148911").click()
+        # Click on add in modal
+        self.manager.selenium_wait_for_clickable("t_add_unreg_member").click()
 
         ok = bool(
             self.manager.selenium_wait_for_text(
