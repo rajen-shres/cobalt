@@ -91,6 +91,9 @@ def check_club_menu_access(check_members=False, check_comms=False):
                         request, function, club, extra_role, *args, **kwargs
                     )
 
+                # Passed the access check and there are no additional checks so all good
+                return function(request, club, *args, **kwargs)
+
             return rbac_forbidden(request, club_role)
 
         return _arguments_wrapper
