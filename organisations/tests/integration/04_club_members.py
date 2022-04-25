@@ -128,7 +128,6 @@ class ClubMembers:
         # Click Add Member
         self.manager.selenium_wait_for("t_member_add_individual_member").click()
         # First name Julie
-        self.manager.sleep()
         self.manager.selenium_wait_for("id_member_first_name_search").click()
         self.manager.selenium_wait_for_clickable(
             "id_member_first_name_search"

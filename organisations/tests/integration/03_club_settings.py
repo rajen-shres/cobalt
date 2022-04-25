@@ -99,7 +99,16 @@ class ClubSettings:
         """Test club membership types"""
 
         # We are on the settings tab already. Go to membership types
-        self.manager.selenium_wait_for("t_settings_membership_types").click()
+
+        # Click on Static Data menu item
+        # Use a trick to work with js bootstrap menus
+        element = self.manager.selenium_wait_for("t_settings_static_data")
+        self.manager.driver.execute_script("arguments[0].click();", element)
+
+        # Now click on membership types
+        element = self.manager.selenium_wait_for("t_settings_membership_types")
+        self.manager.driver.execute_script("arguments[0].click();", element)
+
         self.manager.save_results(
             status=True,
             output="Clicked on Membership Type sub-tab.",

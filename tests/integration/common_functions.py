@@ -21,9 +21,6 @@ def cobalt_htmx_user_search(
         user_system_id: which user to add
     """
 
-    print("Waiting for", search_button_id)
-    manager.sleep()
-
     # User Search button
     manager.selenium_wait_for_clickable(search_button_id).click()
 
@@ -32,10 +29,10 @@ def cobalt_htmx_user_search(
     system_number.click()
     system_number.send_keys(user_system_id)
 
-    # click on system number search
-    manager.driver.find_element_by_id(
-        f"id_button_system_number_search{search_id}"
-    ).click()
+    # # click on system number search
+    # manager.driver.find_element_by_id(
+    #     f"id_button_system_number_search{search_id}"
+    # ).click()
 
     # Wait for search results and click ok
     manager.selenium_wait_for_clickable(f"id_cobalt_search_ok{search_id}").click()

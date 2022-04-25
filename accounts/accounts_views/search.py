@@ -216,7 +216,8 @@ def system_number_search_htmx(request):
 
     if system_number == "":
         return HttpResponse(
-            "<span class='cobalt-form-error''>Enter a number to look up, or type in the name fields</span>"
+            ""
+            # "<span class='cobalt-form-error''>Enter a number to look up, or type in the name fields</span>"
         )
 
     # ignore system accounts

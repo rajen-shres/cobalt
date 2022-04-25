@@ -19,19 +19,18 @@
 <!-- MAIN CONTAINER DIV FOR SEARCH -->
 <div class="container">
 
-    <!-- ROW - WITH SEARCH_ID TO IDENTIFY -->
-    <div id="cobalt-search{{ search_id }}" class="row justify-content-center">
+    <!-- MUST HAVE A FORM FOR HX-INCLUDE TO WORK -->
+    <form>
 
-        <!-- MUST HAVE A FORM FOR HX-INCLUDE TO WORK -->
-        <form>
+        <!-- ROW - WITH SEARCH_ID TO IDENTIFY -->
+        <div id="cobalt-search{{ search_id }}" class="row justify-content-center">
 
             <!-- LASTNAME (SAME SEARCH AS FIRSTNAME, BOTH FIELDS ARE SENT) -->
             <div class="col-12 form-group">
-                <label for="id_lastname{{ search_id }}" id="id_label_lastname{{ search_id }}" class="bmd-label-static">Last Name
-                </label>
                 <input type="text"
                     class="form-control modal-input"
                     name="last_name_search"
+                    placeholder="Last Name"
                     id="id_last_name_search{{ search_id }}"
 
                     {# Use HTMX to send in search #}
@@ -53,16 +52,17 @@
                     {% if callback %}, callback:'{{ callback }}'{% endif %}
                     {% if include_me %}, include_me:'yes'{% endif %}
                     "
+                    {# Use hyperscript to clear ABF Number #}
+                    _="on click put '' into #id_system_number{{ search_id }}.value"
                 >
             </div>
 
             <!-- FIRSTNAME (SAME SEARCH AS LASTNAME, BOTH FIELDS ARE SENT) -->
             <div class="col-12 form-group">
-                <label for="id_firstname{{ search_id }}" id="id_label_firstname{{ search_id }}" class="bmd-label-static">First Name
-                </label>
                 <input type="text"
                     class="form-control modal-input"
                     name="first_name_search"
+                    placeholder="First Name"
                     id="id_first_name_search{{ search_id }}"
 
                     {# Use HTMX to send in search #}
@@ -83,33 +83,39 @@
                     {% if callback %}, callback:'{{ callback }}'{% endif %}
                     {% if include_me %}, include_me:'yes'{% endif %}
                     "
+                    {# Use hyperscript to clear ABF Number #}
+                    _="on click put '' into #id_system_number{{ search_id }}.value"
                 >
             </div>
 
             <!-- SYSTEM_NUMBER SEARCH IF REQUIRED -->
             {% if request.user.system_number_search %}
-                <div class="col-8 form-group" style="margin-top: 0 !important;">
-                    <label for="id_system_number{{ search_id }}" id="id_label_system_number{{ search_id }}" class="bmd-label-static">{{ GLOBAL_ORG }} Number</label>
-                    <input type="number" class="form-control modal-input" id="id_system_number{{ search_id }}" name="system_number" value="">
-                </div>
-                <div class="col-4 form-group text-right">
-                    <button class="btn btn-sm bt-warning"
-                        id="id_button_system_number_search{{ search_id }}"
+                <div class="col-12 form-group">
+                    <input type="number"
+                        class="form-control modal-input col-8"
+                        id="id_system_number{{ search_id }}"
+                        name="system_number"
+                        value=""
+                        placeholder="{{ GLOBAL_ORG }} Number"
                         hx-post="{% url "accounts:system_number_search_htmx" %}"
                         hx-target="#name-matches{{ search_id }}"
-                        hx-include="[id='id_system_number']"
+                        hx-trigger="keyup changed delay:100ms"
                         hx-vars="user_id_field:'{{ user_id_field }}',
                         search_id:'{{ search_id }}'
                         {% if callback %}, callback:'{{ callback }}'{% endif %}
                         {% if include_me %}, include_me:'yes'{% endif %}
                         "
-                    >Lookup Number</button>
+                        {# Use hyperscript to clear other inputs #}
+                        _="on click
+                        put '' into #id_first_name_search{{ search_id }}.value
+                        then put '' into #id_last_name_search{{ search_id }}.value"
+                    >
                 </div>
 
                 <!-- NAME MATCH IS WHERE WE PUT THE SEARCH RESULTS. CAN BE A LIST OR A SPECIFIC USER -->
                 <div class="name-match" id="name-matches{{ search_id }}">
                 </div>
             {% endif %}
-        </form>
-    </div>
+        </div>
+    </form>
 </div>

@@ -2,8 +2,11 @@
 
 {# Test page for the htmx search with all of the options #}
 
-<html>
+<html lang="en">
     <head>
+
+        <!-- These should match what is in base.html -->
+
         <link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet"/>
         <link href="{% static "assets/css/cobalt.css" %}" rel="stylesheet"/>
         <link href="{% static "assets/css/font-awesome.5.14/css/all.min.css" %}" rel="stylesheet"/>
@@ -13,6 +16,9 @@
         <script src="{% static "assets/js/plugins/jquery-ui.min.js" %}"></script>
         <script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
         <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
+
+        <title>HTMX Search Test Page</title>
+
     </head>
     <body>
 
@@ -22,40 +28,107 @@
             <p>This doesn't include the standard template as this is intended for testing and showing a minimal
                 example of each case. If the packages in base.html get updated then this should be updated too.</p>
 
-            <-- INLINE BASIC -->
+            <!-- INLINE BASIC -->
 
             <div class="card">
                 <div class="card-header card-header-primary">
-                    <h2>In Line</h2>
+                    <h2>In Line - Basic Example</h2>
                 </div>
                 <div class="card-body">
                     <div id="inline-basic">
-                        Result will appear here.
+                        A hidden field will be added to the DOM. This approach isn't used anywhere and probably
+                        won't work anyway as a subsequent search will not override the first choice. Use a callback below.
                     </div>
                     {% include "accounts/search/user_search_include_inline_htmx.html" with user_id_field="inline-basic" %}
                 </div>
             </div>
 
+            <!-- INLINE CALLBACK -->
+
             <div class="card">
-                <div class="card-header card-header-primary">
+                <div class="card-header card-header-warning">
+                    <h2>In Line Callback</h2>
+                </div>
+                <div class="card-body">
+                    <div>
+                        <span class="btn btn-sm btn-success" id="inline-callback-name">
+                            Name will appear here
+                        </span>
+                        <br>
+                        <span class="btn btn-sm btn-info" id="inline-callback-id">
+                            id will appear here
+                        </span>
+                    </div>
+                    {% include "accounts/search/user_search_include_inline_htmx.html" with search_id="inline-callback" callback="inlineCallback" %}
+                </div>
+            </div>
+
+            <!-- INLINE CALLBACK INCLUDE ME -->
+
+            <div class="card">
+                <div class="card-header card-header-danger">
                     <h2>In Line Callback Include Me</h2>
                 </div>
                 <div class="card-body">
-                    <div id="inline-callback-include-me">
-                        Result will appear here.
+                    <div>
+                        <span class="btn btn-sm btn-success" id="inline-callback-include-me-name">
+                            Name will appear here
+                        </span>
+                        <br>
+                        <span class="btn btn-sm btn-info" id="inline-callback-include-me-id">
+                            id will appear here
+                        </span>
                     </div>
                     {% include "accounts/search/user_search_include_inline_htmx.html" with search_id="inline-callback-include-me" include_me=True callback="inlineCallbackIncludeMe" %}
                 </div>
             </div>
 
 
-            <h2>Modal</h2>
-            {% include "accounts/search/user_search_include_htmx.html" with include_me=True callback="basicAddAdmin" %}
-            <button id="id_search_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal">
-                Modal
-            </button>
+            <div class="card">
+                <div class="card-header card-header-primary">
+                    <h2>Modal Callback</h2>
+                </div>
+                <div class="card-body">
+                    <div>
+                        <span class="btn btn-sm btn-success" id="modal-callback-name">
+                            Name will appear here
+                        </span>
+                        <br>
+                        <span class="btn btn-sm btn-info" id="modal-callback-id">
+                            id will appear here
+                        </span>
+                    </div>
+                    {% include "accounts/search/user_search_include_htmx.html" with search_id="modalCallback" include_me=True callback="modalCallback" %}
+                    <!-- data-target should be #userSearchModal + search_id -->
+                    <button id="id_search_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModalmodalCallback">
+                        Modal Callback
+                    </button>
+                </div>
+            </div>
 
+            <div class="card">
+                <div class="card-header card-header-rose">
+                    <h2>Modal Callback Include Me</h2>
+                </div>
+                <div class="card-body">
+                    <div>
+                        <span class="btn btn-sm btn-success" id="modal-callback-include-me-name">
+                            Name will appear here
+                        </span>
+                        <br>
+                        <span class="btn btn-sm btn-info" id="modal-callback-include-me-id">
+                            id will appear here
+                        </span>
+                    </div>
+                    {% include "accounts/search/user_search_include_htmx.html" with search_id="modalCallbackIncludeMe" include_me=True callback="modalCallbackIncludeMe" %}
+                    <!-- data-target should be #userSearchModal + search_id -->
+                    <button id="id_search_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModalmodalCallbackIncludeMe">
+                        Modal Callback Include Me
+                    </button>
+                </div>
+            </div>
 
+            <!-- include the Javascript libraries -->
             {% include "accounts/search/user_search_include_js_htmx.html" %}
             {% include "utils/include_htmx.html" %}
 
@@ -63,13 +136,26 @@
         <script src="{% static "assets/js/material-dashboard.js" %}?v=2.1.1" type="text/javascript"></script>
         <script>
 
-            function basicAddAdmin(search_id, user_id, user_name) {
-                $("#inline-callback-include-me").html(user_name);
+            function inlineCallback(search_id, user_id, user_name) {
+                $("#inline-callback-name").html(user_name);
+                $("#inline-callback-id").html(user_id);
             }
 
             function inlineCallbackIncludeMe(search_id, user_id, user_name) {
-                $("#inline-callback-include-me").html(user_name);
+                $("#inline-callback-include-me-name").html(user_name);
+                $("#inline-callback-include-me-id").html(user_id);
             }
+
+            function modalCallback(search_id, user_id, user_name) {
+                $("#modal-callback-name").html(user_name);
+                $("#modal-callback-id").html(user_id);
+            }
+
+            function modalCallbackIncludeMe(search_id, user_id, user_name) {
+                $("#modal-callback-include-me-name").html(user_name);
+                $("#modal-callback-include-me-id").html(user_id);
+            }
+
         </script>
     </body>
 </html>

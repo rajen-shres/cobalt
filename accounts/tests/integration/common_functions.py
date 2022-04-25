@@ -30,6 +30,10 @@ def register_user(
     # Enter ABF Number
     manager.driver.find_element_by_id("id_username").send_keys(system_number)
 
+    # Move to email field to fill in name using background search
+    manager.driver.find_element_by_id("id_email").click()
+    time.sleep(1)
+
     # Enter email
     manager.driver.find_element_by_id("id_email").send_keys("a@b.com")
 
