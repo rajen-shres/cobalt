@@ -24,8 +24,6 @@ def email_click_handler(request, message_id, redirect_path):
     Parameters are message_id (maps to Django Post Office id) and path. The path has ! instead of /
     """
 
-    print("Inside email handler thingo", message_id)
-
     # Try to load Django Post Office email with this id
     email = Email.objects.filter(message_id=message_id).first()
     if email:
