@@ -6,6 +6,11 @@
 export RDS_DB_NAME=test
 export DUMMY_DATA_COUNT=1
 
+# Override the DB Name if passed as a parameter
+if [ $# -eq 1 ]; then
+  export RDS_DB_NAME=$1
+fi
+
 # Rebuild database
 cat << EOF > /tmp/drop_db
 \c postgres
