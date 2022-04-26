@@ -3,6 +3,7 @@
 <ul>
     {% for name in name_list %}
         <li class="cobalt-button-as-link"
+            id="id_htmx_search_match_{{ search_id }}{{ name.id }}"
             hx-post="{% url "accounts:member_match_htmx" %}"
             hx-target="#name-matches{{ search_id }}"
             hx-vars="user_id_field:'{{ user_id_field }}',

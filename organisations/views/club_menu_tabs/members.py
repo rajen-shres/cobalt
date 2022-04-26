@@ -50,30 +50,11 @@ from rbac.views import rbac_forbidden
 @check_club_menu_access()
 def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
     """build the members tab in club menu"""
+    from organisations.views.club_menu_tabs.utils import get_members_for_club
 
-    # Get System Numbers for All Members
-    now = timezone.now()
-    club_system_numbers = (
-        MemberMembershipType.objects.filter(membership_type__organisation=club)
-        .filter(start_date__lte=now)
-        .filter(Q(end_date__gte=now) | Q(end_date=None))
-        .values("system_number")
-    )
+    members = get_members_for_club(club)
 
-    # Get real members
-    cobalt_members = User.objects.filter(
-        system_number__in=club_system_numbers
-    ).order_by("last_name")
-
-    # Get unregistered
-    unregistered_members = UnregisteredUser.objects.filter(
-        system_number__in=club_system_numbers
-    ).order_by("last_name")
-
-    # combine outputs
-    members = list(chain(cobalt_members, unregistered_members))
-
-    total_members = cobalt_members.count() + unregistered_members.count()
+    total_members = len(members)
 
     # Check level of access
     member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
@@ -445,7 +426,10 @@ def add_member_htmx(request, club):
         system_number = int(form.cleaned_data["system_number"])
         membership_type_id = form.cleaned_data["membership_type"]
         home_club = form.cleaned_data["home_club"]
-        send_welcome_pack = form.cleaned_data["send_welcome_pack"]
+        try:
+            send_welcome_pack = form.cleaned_data["send_welcome_pack"]
+        except KeyError:
+            send_welcome_pack = False
 
         member = User.objects.filter(system_number=system_number).first()
         membership_type = MembershipType(pk=membership_type_id)

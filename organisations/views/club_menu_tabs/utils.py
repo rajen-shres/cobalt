@@ -1,9 +1,11 @@
+from itertools import chain
+
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from accounts.models import UnregisteredUser
+from accounts.models import UnregisteredUser, User
 from accounts.accounts_views.admin import invite_to_join
 from cobalt.settings import COBALT_HOSTNAME
 from organisations.decorators import check_club_menu_access
@@ -187,3 +189,34 @@ def invite_user_to_join_htmx(request, club):
     )
 
     return list_htmx(request, f"Invite sent to {un_reg.full_name}")
+
+
+def get_members_for_club(club):
+    """Gets all of the members and unregistered users for a club"""
+
+    # Get System Numbers for All Members
+    now = timezone.now()
+    club_system_numbers = (
+        MemberMembershipType.objects.filter(membership_type__organisation=club)
+        .filter(start_date__lte=now)
+        .filter(Q(end_date__gte=now) | Q(end_date=None))
+        .values("system_number")
+    )
+
+    return get_club_members_from_system_number_list(club_system_numbers)
+
+
+def get_club_members_from_system_number_list(system_numbers):
+    """Takes a list of system numbers and returns the members"""
+
+    # Get real members
+    cobalt_members = User.objects.filter(system_number__in=system_numbers).order_by(
+        "last_name"
+    )
+
+    # Get unregistered
+    unregistered_members = UnregisteredUser.objects.filter(
+        system_number__in=system_numbers
+    ).order_by("last_name")
+
+    return list(chain(cobalt_members, unregistered_members))

@@ -494,4 +494,19 @@ urlpatterns = [
         organisations.views.club_menu_tabs.comms.delete_email_attachment_htmx,
         name="club_menu_tab_comms_delete_email_attachment_htmx",
     ),
+    path(
+        "club-menu/settings/users-with-tag",
+        organisations.views.club_menu_tabs.settings.users_with_tag_htmx,
+        name="club_menu_tab_settings_users_with_tag_htmx",
+    ),
+    path(
+        "club-menu/settings/delete-user-from-tag",
+        organisations.views.club_menu_tabs.settings.delete_user_from_tag_htmx,
+        name="club_menu_tab_settings_delete_user_from_tag_htmx",
+    ),
+    path(
+        "club-menu/settings/add-user-to-tag",
+        organisations.views.club_menu_tabs.settings.add_user_to_tag_htmx,
+        name="club_menu_tab_settings_add_user_to_tag_htmx",
+    ),
 ]

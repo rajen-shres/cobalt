@@ -41,7 +41,11 @@ from organisations.models import (
     WelcomePack,
 )
 from organisations.views.admin import get_secretary_from_org_form
-from organisations.views.club_menu_tabs.utils import _user_is_uber_admin
+from organisations.views.club_menu_tabs.utils import (
+    _user_is_uber_admin,
+    get_club_members_from_system_number_list,
+    get_members_for_club,
+)
 from organisations.views.general import compare_form_with_mpc
 from payments.models import OrgPaymentMethod
 from utils.views import masterpoint_query
@@ -887,3 +891,84 @@ def welcome_pack_delete_htmx(request, club):
     WelcomePack.objects.filter(organisation=club).first().delete()
 
     return welcome_pack_htmx(request, message="Welcome Pack Deleted")
+
+
+@check_club_menu_access(check_comms=True)
+def users_with_tag_htmx(request, club):
+    """Add and remove members from tags"""
+
+    tag_id = request.POST.get("tag_id")
+    tag = get_object_or_404(ClubTag, pk=tag_id)
+
+    system_numbers = MemberClubTag.objects.filter(club_tag=tag).values("system_number")
+
+    users_with_tag = get_club_members_from_system_number_list(system_numbers)
+
+    # We need the list of members without the tag for the add function
+    all_members = get_members_for_club(club)
+
+    # build list of tagged users
+    users_with_tag_list = [
+        user_with_tag.system_number for user_with_tag in users_with_tag
+    ]
+
+    users_without_tag = [
+        member
+        for member in all_members
+        if member.system_number not in users_with_tag_list
+    ]
+
+    # Add HTMX fields
+    hx_post = reverse("organisations:club_menu_tab_settings_delete_user_from_tag_htmx")
+    for user_with_tag in users_with_tag:
+        user_with_tag.hx_vars = f"{{'club_id':{club.id}, 'system_number':{user_with_tag.system_number}, 'tag_id':{tag.id} }}"
+
+    return render(
+        request,
+        "organisations/club_menu/settings/users_with_tag_htmx.html",
+        {
+            "users_with_tag": users_with_tag,
+            "users_without_tag": users_without_tag,
+            "tag": tag,
+            "club": club,
+            "hx_post": hx_post,
+        },
+    )
+
+
+@check_club_menu_access(check_comms=True)
+def delete_user_from_tag_htmx(request, club):
+    """Remove a tag from a user"""
+
+    system_number = request.POST.get("system_number")
+    tag_id = request.POST.get("tag_id")
+
+    club_tag = get_object_or_404(ClubTag, pk=tag_id)
+
+    # Reject if not a tag for this club
+    if club_tag.organisation != club:
+        return HttpResponse("Access Denied")
+
+    MemberClubTag.objects.filter(
+        club_tag=club_tag, system_number=system_number
+    ).delete()
+
+    return users_with_tag_htmx(request)
+
+
+@check_club_menu_access(check_comms=True)
+def add_user_to_tag_htmx(request, club):
+    """Add a tag to a user"""
+
+    system_number = request.POST.get("system_number")
+    tag_id = request.POST.get("tag_id")
+
+    club_tag = get_object_or_404(ClubTag, pk=tag_id)
+
+    # Reject if not a tag for this club
+    if club_tag.organisation != club:
+        return HttpResponse("Access Denied")
+
+    MemberClubTag(club_tag=club_tag, system_number=system_number).save()
+
+    return users_with_tag_htmx(request)

@@ -221,12 +221,18 @@
         $('#selected_attachments_view').append('<input type="hidden" id="id_attach_hidden_input_' + id + '" name="selected_attachments" value=' + id +'>');
         // show on screen
         $('#selected_attachments_list').append('<tr id="id_attach_li_' + id + '"><td>' + name + '</td><td><a class="btn btn-xs btn-danger text-white"  title="Remove" onclick="removeAttachmentfromList(' + id + ')">X</a></td></tr>');
+
+        // refresh preview
+        htmx.trigger("#email_preview", "preview");
     }
 
     // remove attachment
     function removeAttachmentfromList(id) {
         $("#id_attach_hidden_input_" + id).remove();
         $("#id_attach_li_" + id).remove();
+
+        // refresh preview
+        htmx.trigger("#email_preview", "preview");
         return false;
     }
 
