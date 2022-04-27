@@ -51,4 +51,5 @@ def global_settings(request):
         "AUTO_TOP_UP_LOW_LIMIT": settings.AUTO_TOP_UP_LOW_LIMIT,
         "RBAC_EVERYONE": settings.RBAC_EVERYONE,
         "TBA_PLAYER": settings.TBA_PLAYER,
+        "NEW_RELIC_APP_ID": settings.NEW_RELIC_APP_ID,
     }

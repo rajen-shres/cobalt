@@ -96,6 +96,9 @@ COBALT_HOSTNAME = set_value("COBALT_HOSTNAME", "127.0.0.1:8000")
 # Hostname set by AWS
 HOSTNAME = set_value("HOSTNAME", "Unknown")
 
+# New Relic App ID - Test, UAT and Prod all have their own IDs. Default to Dev
+NEW_RELIC_APP_ID = set_value("NEW_RELIC_APP_ID", "601323710")
+
 # Masterpoint source
 MP_USE_FILE = set_value("MP_USE_FILE", None)
 
