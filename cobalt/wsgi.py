@@ -8,7 +8,7 @@ https://docs.djangoproject.com/en/2.1/howto/deployment/wsgi/
 """
 import newrelic.agent
 
-newrelic.agent.initialize("/etc/newrelic.ini")
+newrelic.agent.initialize("/cobalt-media/admin/__confdata_/newrelic.ini")
 
 import os  # noqa: 402
 
