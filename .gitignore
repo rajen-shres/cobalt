@@ -13,7 +13,6 @@ nohup.out
 .idea
 .pytest_cache
 geckodriver.log
-newrelic.ini
 htmlcov/
 venv
 # Elastic Beanstalk Files
