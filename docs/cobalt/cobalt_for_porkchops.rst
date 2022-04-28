@@ -70,6 +70,16 @@ watch out for Windows specific problems, especially related to file permissions.
 
 Note also that most of the command line utilities will only work on Unix style environments.
 
+The Banned List
+===============
+
+Some things are not currently permitted in Cobalt, here is the list.
+
+- **Django Rest Framework** or DRF is a very popular framework for building APIs. Our architecture does not require a separate back and front end so DRF is not required. This is still a contentious area mainly due to the large investment that many projects have in this architecture. With the introduction of game changing technologies such as HTMX, we do not expect this to be contentious for long. We do have a requirement for a genuine API to external systems and for this we use Django Ninja which is very simple to use.
+- **Class Based View** are the work of the Devil. If you want to make your code totally unmaintainable then they are highly recommended.
+- **Docker** probably makes sense in some odd use cases. Obviously, you can deploy Cobalt however you like and develop however you like, but for the number of developers we have and the deployment environments that we use, it is totally unnecessary, so please keep it out of the code base.
+- **Celery** requires a message bus such as Redis to work which adds additional infrastructure dependencies to our already complicated environment. If we ever get a proper requirement then we could add it, but for now cron works perfectly.
+
 Quirks and Things to Know
 =========================
 

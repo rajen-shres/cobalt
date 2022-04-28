@@ -55,6 +55,7 @@ Here are pages that describe things relevant to Cobalt in general.
 * :doc:`cobalt/testing_overview`
 * :doc:`cobalt/test_data_overview`
 * :doc:`cobalt/aws_overview`
+* :doc:`cobalt/monitoring_overview`
 * :doc:`cobalt/cobalt_for_porkchops`
 * :doc:`cobalt/snippets`
 

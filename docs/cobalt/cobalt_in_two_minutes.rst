@@ -49,7 +49,7 @@ Useful to Know
 ******************
 
 - Deployed on AWS (*See* :doc:`aws_overview`)
-- CGIT scripts (:doc:`utilities_overview`) assist with AWS and GIT integrations (not essential)
+- CGIT scripts (:doc:`utilities_overview`) assist with AWS and GIT integrations (not essential, but highly recommended)
 - Limited use of signals or other advanced Django features
 - Some use of decorators
 - All configuration controlled through environment variables

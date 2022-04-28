@@ -50,6 +50,7 @@ AWS_SECRET_ACCESS_KEY           str             AWS credentials. Used for SES an
 AWS_REGION_NAME                 str             AWS geographical location.
 AWS_SES_REGION_ENDPOINT         str             AWS SES connection point.
 AWS_SES_CONFIGURATION_SET       str             AWS SES connection name.
+NEW_RELIC_APP_ID                str             Used by the New Relic browser include to send to New Relic. Account ID etc should also be environment variables but currently aren't.
 COBALT_HOSTNAME                 str             Environment name. e.g. Production, UAT, Test
 HOSTNAME                        str             Actual server hostname
 RDS_DB_NAME                     str             Database name

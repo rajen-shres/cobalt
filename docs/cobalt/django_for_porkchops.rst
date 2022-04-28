@@ -135,7 +135,7 @@ a url (e.g. /warehouse/list-contents) to a chunk of code and optionally handle s
 parameters if we have them (e.g. /warehouse/show_details/stock-item-365). You will
 hate all of the time that you spend in urls.py and hopefully a future version of
 Django will get rid of this and maybe just put the definitions directly into
-view.py. However, smarter people than me think this is the best way to do it, so I
+view.py a bit like Flask and Django Ninja. However, smarter people than me think this is the best way to do it, so I
 doubt it will ever change.
 
 So the user has told us what they want to do, urls.py has mapped that to a function
@@ -461,7 +461,7 @@ Things to Avoid
 Lots of people will disagree with me, but I would avoid the following:
 
 Crispy Forms
-    This is a presentation tool that makes to write code in a Form. That is just wrong. I have used it a lot
+    This is a presentation tool that makes you write code in a Form. That is just wrong. I have used it a lot
     and I wish I hadn't.
 
 Class Based Views
@@ -469,7 +469,7 @@ Class Based Views
     follow. Class Based Views (CBVs) came later as a way to hide bits of your code in lots of different places to
     make it harder to look after. There is a tendency to think that Class=Good, Function=Bad but that is not the case.
     CBVs come with a bunch of basic things to use as templates, however in the real world they never do exactly what
-    you want and you will need to extend serialisers and generally much about with them. Stick with FBVs, they are fine.
+    you want and you will need to extend serialisers and generally muck about with them. Stick with FBVs, they are fine.
 
 Celery
     Its too complicated for most use cases. Cron and Django management commands work fine.
@@ -486,7 +486,8 @@ Save Methods
     safe). If you can avoid it though, do. Remember, explicit it better than implicit.
 
 Docker
-    Docker is fine for large environments were you cannot control the run time environment properly. For most
+    Docker is fine for large environments were you cannot control the run time environment properly, or
+    for development environments with a lot of developers. For most
     Django implementations you can get by with ``pip`` and ``virtualenv`` just fine. Less complexity, less runtime
     overhead.
 
@@ -567,7 +568,7 @@ Do this instead::
 Use Custom Exceptions
 =====================
 
-Exceptions are the acceptable face of the old GOTO statement. They let you quite your code in the middle if something
+Exceptions are the acceptable face of the old GOTO statement. They let you quit your code in the middle if something
 goes wrong. However, it is better to say exactly what went wrong and not just use a built in exception.
 
 Don't do this::
