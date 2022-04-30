@@ -64,12 +64,16 @@ echo
 echo Logs live in /var/log
 echo
 PS3='Select a log file: '
-options=("cobalt.log" "eb-engine.log (install file)" "eb-hooks.log (install file details)" "web.stdout.log (stdout/stderr)" "nginx/access.log (web access log)" "nginx/access.log (web access log filtered)" "nginx/error.log (web error log)" "Quit")
+options=("cobalt.log" "messages (general output)" "eb-engine.log (install file)" "eb-hooks.log (install file details)" "web.stdout.log (stdout/stderr)" "nginx/access.log (web access log)" "nginx/access.log (web access log filtered)" "nginx/error.log (web error log)" "Quit")
 select opt in "\${options[@]}"
 do
     case \$opt in
         "cobalt.log")
             tail -100f /var/log/cobalt.log
+            break
+            ;;
+            "messages (general output)")
+            tail -100f /var/log/messages
             break
             ;;
         "eb-engine.log (install file)")
