@@ -73,7 +73,7 @@
                                             <td class="text-right">{{ event_entry_player.payment_status }}</td>
                                             <td class="text-right">{{ event_entry_player.get_payment_type_display }}</td>
                                             <td class="text-right">{{ event_entry_player.paid_by.href|safe }}</td>
-                                            <td class="text-right">{{ event_entry_player.reason|safe|default_if_none:"" }}</td>
+                                            <td class="text-right">{{ event_entry_player.reason|default_if_none:""|safe }}</td>
                                             <td class="text-right">{{ event_entry_player.entry_complete_date|cobalt_nice_datetime|default_if_none:"-" }}</td>
                                             <td class="text-right">
 

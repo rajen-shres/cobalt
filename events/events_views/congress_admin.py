@@ -1631,6 +1631,9 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
 
         if event_entry_player.payment_type == "Free":
             event_entry_player.delete()
+            messages.success(
+                request, "Player Deleted", extra_tags="cobalt-message-success"
+            )
         else:
 
             contact_member(
@@ -1646,7 +1649,11 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
             event_entry_player.player = tba
             event_entry_player.save()
 
-        messages.success(request, "Player Deleted", extra_tags="cobalt-message-success")
+            messages.success(
+                request,
+                "Player payment type is not Free so changed player to TBA. To Delete player first set payment type to Free.",
+                extra_tags="cobalt-message-success",
+            )
 
         return redirect("events:admin_evententry", evententry_id=event_entry.id)
 
