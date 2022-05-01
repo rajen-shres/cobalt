@@ -1,15 +1,15 @@
 :orphan:
 
-.. image:: ../images/cobalt.jpg
+.. image:: ../../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: ../images/rbac-logo.jpg
+.. image:: ../../images/rbac-logo.jpg
  :width: 300
  :alt: RBAC
 
-RBAC Overview
-=============
+RBAC Application
+================
 
 Role Based Access Control (**RBAC**) is a standard approach to security within
 applications that have multiple users with different roles. This allows us to

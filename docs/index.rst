@@ -41,7 +41,48 @@ Cobalt is build using `Django <https://www.djangoproject.com/>`_.
 
 The source code can be found on `Github <https://github.com/abftech/cobalt>`_.
 
-**In a hurry?** Read :doc:`cobalt/cobalt_in_two_minutes`.
+**In a hurry?** Read :doc:`cobalt/reference/cobalt_in_two_minutes`.
+
+.. container:: twocol
+
+    .. container:: tutorials
+
+        **Tutorials**
+
+        - :doc:`cobalt/tutorials/getting_started`
+        - Deploying on AWS
+
+    .. container:: howto
+
+        **How To Guides**
+
+        - Adding email to Cobalt
+        - Adding SMS to Cobalt
+        - Adding Payments to Cobalt through Stripe
+        - FCM
+        - Google Recaptcha
+
+
+.. container:: twocol
+
+    .. container:: discussions
+
+        **Discussions**
+
+        - :doc:`cobalt/tutorials/getting_started`
+
+    .. container:: reference
+
+        **Reference**
+
+        * :doc:`cobalt/reference/accounts`
+        * :doc:`cobalt/reference/payments`
+        * :doc:`cobalt/reference/events`
+        * :doc:`cobalt/reference/notifications`
+        * :doc:`cobalt/reference/rbac`
+        * :doc:`cobalt/reference/forums`
+        * :doc:`cobalt/reference/utilities`
+        * :doc:`cobalt/reference/support`
 
 User Guides
 ===========

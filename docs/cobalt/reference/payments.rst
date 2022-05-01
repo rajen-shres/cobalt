@@ -1,15 +1,19 @@
 :orphan:
 
-.. image:: ../images/cobalt.jpg
+.. image:: ../../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: ../images/heavy-dollar-sign.png
+.. image:: ../../images/heavy-dollar-sign.png
   :width: 200
   :alt: Cobalt Dollar Symbol
 
-Payments Overview
-=================
+====================
+Payments Application
+====================
+
+Module Purpose
+==============
 
 Payments handles anything related to money within Cobalt. It is used by the
 other modules to facilitate and track payments and as such is primarily an
@@ -17,28 +21,55 @@ internal service function, however it also has some interaction directly with
 users to view statements and manage auto tops as well as member-to-member
 transfers.
 
-Modules
-=======
+Payments is tightly couple with Stripe. This was a deliberate design decision as
+supporting multiple payment engines is an administrative nightmare for payment staff
+so it is assumed that only one payment gateway will every be used. If a second is
+required then the code will need to be refactored to include this abstraction.
 
-Payments code lives in standard Django Python files - Models, Views, Forms,
-Templates etc. In addition the more backend functions that do not deal with
-users are stored in core.py. The two main areas to do the bulk of the work
-within Payments are views.py and core.py. The description below does not
-differentiate between the location of a function.
+External Usage
+==============
+*This section covers what you need to know to use this application from other parts of the system.*
 
-Functions
-=========
+Get a User's Balance
+--------------------
 
-.. image:: images/payments_overview.png
+:func:`payments.payments_views.core.get_balance`
+
+.. code-block::
+
+    from payments.payments_views.core import get_balance
+
+    >>> get_balance(user)
+    100.0
+
+Get a User's Balance and Last Top Up Date
+-----------------------------------------
+
+:func:`payments.payments_views.core.get_balance_detail`
+
+.. code-block::
+
+    from payments.payments_views.core import get_balance_detail
+
+    >>> get_balance_detail(user)
+    {'balance': Decimal('100.00'),
+     'balance_num': Decimal('100.00'),
+     'last_top_up': datetime.datetime(2022, 4, 9, 11, 34, 5, 781492, tzinfo=<UTC>)}
+
+
+Internal Operation
+==================
+*This section describes the internal workings of this application and is intended to help you if you need to support the code.*
+
+.. image:: ../../images/payments_overview.png
   :alt: Payments Diagram
+
+There are three broad categories of functions:
+Member (relating to members), Organisation (relating to Organisations) and
+Admin (for administrators).
 
 Internal - Member
 -----------------
-
-The internal functions work as standard Django view functions. They work with
-the models to handle data updates. There are three broad categories of functions:
-Member (relating to members), Organisation (relating to Organisations) and
-Admin (for administrators).
 
 * :func:`payments.core.auto_topup_member` - processes an auto top up for a
   member.
