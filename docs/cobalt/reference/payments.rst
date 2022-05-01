@@ -30,8 +30,12 @@ External Usage
 ==============
 *This section covers what you need to know to use this application from other parts of the system.*
 
+User Actions
+------------
+This section has functions related to user payments.
+
 Get a User's Balance
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 :func:`payments.payments_views.core.get_balance`
 
@@ -43,7 +47,7 @@ Get a User's Balance
     100.0
 
 Get a User's Balance and Last Top Up Date
------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :func:`payments.payments_views.core.get_balance_detail`
 
@@ -56,6 +60,25 @@ Get a User's Balance and Last Top Up Date
      'balance_num': Decimal('100.00'),
      'last_top_up': datetime.datetime(2022, 4, 9, 11, 34, 5, 781492, tzinfo=<UTC>)}
 
+
+
+def get_balance_and_recent_trans_org(org):
+def stripe_current_balance():
+def stripe_webhook(request):
+def callback_router(
+def update_account(
+def update_organisation(
+def auto_topup_member(member, topup_required=None, payment_type="Auto Top Up"):
+def _auto_topup_member_stripe_transaction(amount, member, pay_method_id, payment_type):
+def _auto_topup_member_handle_failure(error, member, amount):
+def org_balance(organisation):
+def payments_status_summary():
+def statement_common(user):
+def member_to_member_transfer_callback(stripe_transaction=None):
+
+
+
+----
 
 Internal Operation
 ==================
