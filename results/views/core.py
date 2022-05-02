@@ -15,6 +15,6 @@ def parse_usebio_file(filename):
     with open(filename, "rb") as file:
         xml = file.read()
 
-    json.dumps(xmltodict.parse(xml))
+    xml = xmltodict.parse(xml)
 
-    return xml
+    return xml["USEBIO"]["EVENT"]
