@@ -31,6 +31,12 @@ html_theme = "sphinx_rtd_theme"
 # Set the background to pure white to avoid slight differences with images
 html_static_path = ["_static"]
 
+html_logo = "images/cobalt.jpg"
+
+html_theme_options = {
+    "navigation_depth": 4,
+}
+
 
 def setup(app):
     app.add_css_file("css/cobalt.css")

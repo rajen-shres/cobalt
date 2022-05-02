@@ -12,15 +12,17 @@
 Accounts Application
 ====================
 
+--------------
 Module Purpose
-==============
+--------------
 
 Account handles things relating to User accounts such as profiles and settings.
 There are multiple user types to support the need to deal with users who have not
 registered for the system as well as real, registered users.
 
+--------------
 External Usage
-==============
+--------------
 *This section covers what you need to know to use this application from other parts of the system.*
 
 ``accounts.models.User`` is equivalent to ``request.user`` and is used throughout the
@@ -32,7 +34,7 @@ We are in the process of moving some of the less commonly used attributes from
 to load this for some fields.
 
 Reserved Users
---------------
+==============
 
 There are three special users within the system:
 
@@ -47,18 +49,18 @@ If you wish to exclude (or include) system accounts, you can get a list of them 
 ``settings.ALL_SYSTEM_ACCOUNTS``.
 
 User Search
------------
+===========
 
 **GOES HERE**
 
 
-
+------------------
 Internal Operation
-==================
+------------------
 *This section describes the internal workings of this application and is intended to help you if you need to support the code.*
 
 User Types
-----------
+==========
 
 We support three kinds of users:
 
@@ -67,7 +69,7 @@ We support three kinds of users:
 * **Visitors** - These are not ABF Members and are supported only for completeness for clubs.
 
 User Objects
-------------
+============
 
 Accounts.models.User reflects a User who can login to the system and
 perform bridge functions. Some users are reserved - we have an EVERYONE
@@ -82,7 +84,7 @@ Subsequent users with the same email address can only login with their
 ABF System Number.
 
 Unregistered Users
-------------------
+==================
 
 Accounts also supports a pseudo-user through the UnregisteredUser class.
 
@@ -115,7 +117,7 @@ Users (this is done effectively with a callback in the registration view
 of Accounts).
 
 Visitors
---------
+========
 
 Visitors are identified by their email address. They cannot see results
 or use the Cobalt website at all. We could consider emailing them

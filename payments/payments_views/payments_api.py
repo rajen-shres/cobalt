@@ -31,31 +31,31 @@ def payment_api_interactive(
     book_internals=True,
 ):
     """Payments API when we have an attached user. This will try to make a payment and if need be
-        take the user to the Stripe payment screen to handle a manual payment.
+    take the user to the Stripe payment screen to handle a manual payment.
 
-        For auto top up users, or users with enough money, this is a synchronous process and
-        we will return the next_url to the user.
+    For auto top up users, or users with enough money, this is a synchronous process and
+    we will return the next_url to the user.
 
-        For manual payments, the Stripe process is asynchronous. We hand the user off to Stripe
-        and only know if their payment worked when Stripe calls us back through the webhook. We use
-        a route_code to know what function to call when the webhook is triggered and the route_payload
-        is passed so the calling module knows what this refers to.
+    For manual payments, the Stripe process is asynchronous. We hand the user off to Stripe
+    and only know if their payment worked when Stripe calls us back through the webhook. We use
+    a route_code to know what function to call when the webhook is triggered and the route_payload
+    is passed so the calling module knows what this refers to.
 
-        args:
-            request - Standard request object
-            description - text description of the payment
-            amount - A positive amount is a charge, a negative amount is an incoming payment.
-            member - User object related to the payment
-            organisation - linked organisation
-            other_member - User object
-            payment_type - description of payment
-            next_url - where to take the user next
-            route_code - used by the callback to know which function to call upon the payment going through
-            route_payload - identifier to pass when making the callback
-            book_internals - sometimes the calling module wants to book the internal deals (not Stripe) themselves
-                             for example, event entry may be booking a whole team of entries as part of this so we
-                             only want the stripe transaction to go through and the call back will book all of the
-                             individual deals. Default is to have us book the internals too.
+    args:
+        request (HttpRequest): Standard request object
+        description (str): text description of the payment
+        amount (float): A positive amount is a charge, a negative amount is an incoming payment.
+        member (User): User object related to the payment
+        organisation (Organisation): linked organisation
+        other_member (User): User object
+        payment_type (str): description of payment
+        next_url (str): where to take the user next
+        route_code (str): used by the callback to know which function to call upon the payment going through
+        route_payload (str): identifier to pass when making the callback
+        book_internals (bool): sometimes the calling module wants to book the internal deals (not Stripe) themselves
+                         for example, event entry may be booking a whole team of entries as part of this so we
+                         only want the stripe transaction to go through and the call back will book all of the
+                         individual deals. Default is to have us book the internals too.
 
     returns:
         HttpResponse - either the Stripe manual payment screen or the next_url

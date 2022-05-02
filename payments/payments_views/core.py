@@ -757,33 +757,27 @@ def update_account(
     member,
     amount,
     description,
-    log_msg,
-    source,
-    sub_source,
     payment_type,
     stripe_transaction=None,
     other_member=None,
     organisation=None,
 ):
-    """Function to update a customer account
+    """Function to update a customer account by adding a transaction.
 
     args:
-        member - owner of the account
-        amount - value (plus is a deduction, minus is a credit)
-        description - to appear on statement
-        log_msg - to appear on logs
-        source - for logs
-        sub_source - for logs
-        payment_type - type of payment
-        stripe_transaction - linked Stripe transaction (optional)
-        other_member - linked member (optional)
-        organisation - linked organisation (optional)
+        member (User): owner of the account
+        amount (float): value (plus is a deduction, minus is a credit)
+        description (str): to appear on statement
+        payment_type (str): type of payment
+        stripe_transaction (StripeTransaction, optional): linked Stripe transaction
+        other_member (User, optional): linked member
+        organisation (Organisation, optional): linked organisation
 
     returns:
         MemberTransaction
 
     """
-    # Get old balance
+    # Get new balance
     balance = get_balance(member) + float(amount)
 
     # Create new MemberTransaction entry
@@ -809,15 +803,23 @@ def update_organisation(
     organisation,
     amount,
     description,
-    log_msg,
-    source,
-    sub_source,
     payment_type,
     other_organisation=None,
     member=None,
     bank_settlement_amount=None,
 ):
-    """method to update an organisations account"""
+    """method to update an organisations account
+
+    args:
+        organisation (Organisation): organisation to update
+        amount (float): value (plus is a deduction, minus is a credit)
+        description (str): to appear on statement
+        payment_type (str): type of payment
+        member (User, optional): linked member
+        other_organisation (Organisation, optional): linked organisation
+        bank_settlement_amount (float): How much we expect to be settled. Used for ABF deducting fees for card payments
+
+    """
 
     last_tran = OrganisationTransaction.objects.filter(organisation=organisation).last()
     balance = last_tran.balance if last_tran else 0.0
