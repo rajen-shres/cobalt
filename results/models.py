@@ -10,7 +10,10 @@ from organisations.models import Organisation
 def _results_file_directory_path(instance, filename):
     """We want to save results files in a club folder"""
 
-    return f"results/club_{instance.organisation.id}/{timezone.now().year}-{timezone.now().month}-{timezone.now().day}/{filename}"
+    now = timezone.now()
+    date_str = now.strftime("%Y-%m-%d")
+
+    return f"results/club_{instance.organisation.id}/{date_str}/{filename}"
 
 
 class ResultsFile(models.Model):
@@ -47,7 +50,7 @@ class PlayerSummaryResult(models.Model):
 
     player_system_number = models.PositiveIntegerField()
     """ system number of player who played in this event """
-    result_date = models.DateTimeField()
+    result_date = models.DateField()
     """ date event took place """
     position = models.PositiveIntegerField(blank=True, null=True)
     """ optional - where the player finished """
@@ -59,7 +62,7 @@ class PlayerSummaryResult(models.Model):
     """ name of event """
     results_file = models.ForeignKey(
         ResultsFile,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
     )
     """ linked results file - may need to make this optional later depending on
         whether we generate files when we do scoring ourselves  """

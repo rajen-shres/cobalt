@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %} - Results{% endblock %}
+{% block content %}
+
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h1>{{ usebio.EVENT_DESCRIPTION }}</h1>
+        </div>
+        <div class="card-body">
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h2>North-South</h2>
+                </div>
+                <div class="card-body">
+                    {% include "results/usebio_results_summary_two_field_view_table.html" with scores=ns_scores %}
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header card-header-success">
+                    <h2>East-West</h2>
+                </div>
+                <div class="card-body">
+                    {% include "results/usebio_results_summary_two_field_view_table.html" with scores=ew_scores %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+{% endblock %}

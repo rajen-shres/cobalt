@@ -7,6 +7,7 @@ from fcm_django.models import FCMDevice
 from masterpoints.views import get_masterpoints
 from payments.payments_views.core import get_balance_detail
 from events.events_views.core import get_events
+from results.views.core import get_recent_results
 from utils.models import Slug
 
 from utils.utils import cobalt_paginator
@@ -34,6 +35,7 @@ def home(request):
         posts = get_posts(request)
         posts2 = get_announcements(request)
         events, unpaid = get_events(request.user)
+        recent_results = get_recent_results(request.user)
 
         # Show tour for this page?
         tour = request.GET.get("tour", None)
@@ -48,6 +50,7 @@ def home(request):
                 "posts2": posts2,
                 "events": events,
                 "unpaid": unpaid,
+                "recent_results": recent_results,
                 "tour": tour,
             },
         )

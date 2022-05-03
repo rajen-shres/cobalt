@@ -89,7 +89,19 @@
                         <h4 class="card-title">Your Recent Results</h4>
                     </div>
                     <div class="card-body table-responsive">
-                        Coming Soon!
+                        <ul>
+                            {% for recent_result in recent_results %}
+                                <li><a class="card-link" href="#">
+                                    {{ recent_result.result_string }}
+                                    {% if recent_result.percentage %}
+                                        ({{ recent_result.percentage }}%)
+                                    {% endif %}
+                                </a>
+                                </li>
+                            {% empty %}
+                                No results found
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
             </div>

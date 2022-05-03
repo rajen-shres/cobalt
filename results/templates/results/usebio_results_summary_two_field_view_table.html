@@ -1,0 +1,28 @@
+
+<table class="table table-condensed table-hover" style="font-size: large">
+    <thead class="text-primary">
+        <tr>
+            <th>Place</th>
+            <th class="text-left">Players</th>
+            <th>Score</th>
+            <th class="text-left">{{ masterpoint_type }} Masterpoints</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in scores %}
+            <tr>
+                <td class="{{ row.tr_highlight }}">{{ row.position }}</td>
+                <td class="text-left {{ row.tr_highlight }}">
+                    {{ row.players_names }}
+                </td>
+                <td class="{{ row.tr_highlight }}">{{ row.percentage }}%</td>
+                <td class="text-left {{ row.tr_highlight }}">
+                    {% if row.masterpoints > 0 %}
+                        {{ row.masterpoints|floatformat:2 }}
+                    {% endif %}
+                </td>
+            </tr>
+
+        {% endfor %}
+    </tbody>
+</table>
