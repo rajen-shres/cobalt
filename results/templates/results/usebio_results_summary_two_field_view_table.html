@@ -5,18 +5,18 @@
             <th>Place</th>
             <th class="text-left">Players</th>
             <th>Score</th>
-            <th class="text-left">{{ masterpoint_type }} Masterpoints</th>
+            <th>{{ masterpoint_type }} Masterpoints</th>
         </tr>
     </thead>
     <tbody>
         {% for row in scores %}
-            <tr>
+            <tr onclick="window.location='{% url "results:usebio_mp_pairs_details_view" results_file_id=results_file.id pair_id=row.pair_number %}'";>
                 <td class="{{ row.tr_highlight }}">{{ row.position }}</td>
                 <td class="text-left {{ row.tr_highlight }}">
                     {{ row.players_names }}
                 </td>
                 <td class="{{ row.tr_highlight }}">{{ row.percentage }}%</td>
-                <td class="text-left {{ row.tr_highlight }}">
+                <td class="{{ row.tr_highlight }}">
                     {% if row.masterpoints > 0 %}
                         {{ row.masterpoints|floatformat:2 }}
                     {% endif %}

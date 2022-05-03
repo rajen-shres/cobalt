@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %} - Results{% endblock %}
+{% block content %}
+
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h1>{{ usebio.EVENT_DESCRIPTION }}</h1>
+            <h2>{{ results_file.organisation }}</h2>
+            <h3>{{ usebio.DATE }}</h3>
+            <h4>Directed by {{ usebio.CONTACT.SCORER }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h2>Board {{ board_number }}</h2>
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-left">North-South</th>
+                                <th class="text-left">East-West</th>
+                                <th>Contract</th>
+                                <th>Declarer</th>
+                                <th>Lead</th>
+                                <th>Tricks</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in board_data %}
+                                <tr>
+                                    <td class="text-left">{{ row.ns_pair }}</td>
+                                    <td class="text-left">{{ row.ew_pair }}</td>
+                                    <td>{{ row.contract|safe }}</td>
+                                    <td>{{ row.played_by }}</td>
+                                    <td>{{ row.lead|safe }}</td>
+                                    <td>{{ row.tricks }}</td>
+                                    <td>{{ row.score }}</td>
+                                    <td>{{ row.percentage|floatformat:0 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header card-header-success">
+                <h3>Hand</h3>
+            </div>
+            <div class="card-body">
+                {{ hand }}
+                <table class="table-bordered">
+                    <tr>
+                        <td>&nbsp;</td>
+                        <td>
+                            North
+                            <table>
+                                <tr><td>{{ hand.North.spades }}</td></tr>
+                                <tr><td>{{ hand.North.hearts }}</td></tr>
+                                <tr><td>{{ hand.North.diamonds }}</td></tr>
+                                <tr><td>{{ hand.North.clubs }}</td></tr>
+                            </table>
+                        </td>
+                        <td>&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td>West</td>
+                        <td style="background-color: darkgreen; height: 100px; width: 100px;">&nbsp;</td>
+                        <td>East</td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                        <td>South</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}

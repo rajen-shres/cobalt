@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %} - Results{% endblock %}
+{% block content %}
+
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h1>{{ usebio.EVENT_DESCRIPTION }}</h1>
+            <h2>{{ results_file.organisation }}</h2>
+            <h3>{{ usebio.DATE }}</h3>
+            <h4>Directed by {{ usebio.CONTACT.SCORER }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h2>Pair {{ pair_id }}</h2>
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr>
+                                <th>Board</th>
+                                <th class="text-left">Opponent</th>
+                                <th>Contract</th>
+                                <th>Declarer</th>
+                                <th>Lead</th>
+                                <th>Tricks</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in pair_data %}
+                                <tr onclick="window.location='{% url "results:usebio_mp_pairs_board_view" results_file_id=results_file.id board_number=row.board_number pair_id=pair_id %}'";>
+
+                                    <td>{{ row.board_number }}</td>
+                                    <td class="text-left">{{ row.opponents }}</td>
+                                    <td>{{ row.contract|safe }}</td>
+                                    <td>{{ row.played_by }}</td>
+                                    <td>{{ row.lead|safe }}</td>
+                                    <td>{{ row.tricks }}</td>
+                                    <td>{{ row.score }}</td>
+                                    <td>{{ row.percentage|floatformat:0 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
