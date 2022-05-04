@@ -1,3 +1,4 @@
+from ddstable import ddstable
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 import xmltodict
@@ -61,3 +62,15 @@ def get_recent_results(user):
     return PlayerSummaryResult.objects.filter(
         player_system_number=user.system_number
     ).order_by("result_date")[:5]
+
+
+def double_dummy_from_usebio(usebio):
+    """perform a double dummy analysis of a hand.
+    This requires libdds.so to be available on the path. See the documentation
+    if you need to rebuild this for your OS.
+    """
+
+    PBN = b"E:QJT5432.T.6.QJ82 .J97543.K7532.94 87.A62.QJT4.AT75 AK96.KQ8.A98.K63"
+    all = ddstable.get_ddstable(PBN)
+    print(all)
+    return all
