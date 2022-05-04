@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 
 from results.models import ResultsFile
-from results.views.core import parse_usebio_file
+from results.views.core import parse_usebio_file, double_dummy_from_usebio
 
 
 def _get_player_names_by_id(usebio):
@@ -271,6 +271,8 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
                 hand[compass["DIRECTION"]]["hearts"] = compass["HEARTS"]
                 hand[compass["DIRECTION"]]["spades"] = compass["SPADES"]
 
+            double_dummy = double_dummy_from_usebio(board["HAND"])
+
     return render(
         request,
         "results/usebio_results_board_detail.html",
@@ -281,5 +283,6 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
             "board_number": board_number,
             "pair_id": pair_id,
             "hand": hand,
+            "double_dummy": double_dummy,
         },
     )

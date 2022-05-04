@@ -59,11 +59,11 @@
                         <td>&nbsp;</td>
                         <td>
                             North
-                            <table>
-                                <tr><td>{{ hand.North.spades }}</td></tr>
-                                <tr><td>{{ hand.North.hearts }}</td></tr>
-                                <tr><td>{{ hand.North.diamonds }}</td></tr>
-                                <tr><td>{{ hand.North.clubs }}</td></tr>
+                            <table style="border-collapse: collapse; border: none;">
+                                <tr style="border: none;"><td style="border: none; padding-bottom: 0px">&spadesuit; {{ hand.North.spades }}</td></tr>
+                                <tr style="border: none;"><td style="border: none;"><span style="color: red"> &heartsuit;</span> {{ hand.North.hearts }}</td></tr>
+                                <tr style="border: none;"><td style="border: none;"><span style="color: red"> &diamondsuit;</span> {{ hand.North.diamonds }}</td></tr>
+                                <tr style="border: none;"><td style="border: none;">&clubsuit; {{ hand.North.clubs }}</td></tr>
                             </table>
                         </td>
                         <td>&nbsp;</td>
@@ -79,6 +79,50 @@
                         <td>&nbsp;</td>
                     </tr>
                 </table>
+
+                <table>
+                    <tr>
+                        <td></td>
+                        <td>&clubsuit;</td>
+                        <td>&diamondsuit;</td>
+                        <td>&heartsuit;</td>
+                        <td>&spadesuit;</td>
+                        <td>NT</td>
+                    </tr>
+                    <tr>
+                        <td>N</td>
+                        <td>{{ double_dummy.N.C }}</td>
+                        <td>{{ double_dummy.N.D }}</td>
+                        <td>{{ double_dummy.N.H }}</td>
+                        <td>{{ double_dummy.N.S }}</td>
+                        <td>{{ double_dummy.N.NT }}</td>
+                    </tr>
+                    <tr>
+                        <td>S</td>
+                        <td>{{ double_dummy.S.C }}</td>
+                        <td>{{ double_dummy.S.D }}</td>
+                        <td>{{ double_dummy.S.H }}</td>
+                        <td>{{ double_dummy.S.S }}</td>
+                        <td>{{ double_dummy.S.NT }}</td>
+                    </tr>
+                    <tr>
+                        <td>E</td>
+                        <td>{{ double_dummy.E.C }}</td>
+                        <td>{{ double_dummy.E.D }}</td>
+                        <td>{{ double_dummy.E.H }}</td>
+                        <td>{{ double_dummy.E.S }}</td>
+                        <td>{{ double_dummy.E.NT }}</td>
+                    </tr>
+                    <tr>
+                        <td>W</td>
+                        <td>{{ double_dummy.W.C }}</td>
+                        <td>{{ double_dummy.W.D }}</td>
+                        <td>{{ double_dummy.W.H }}</td>
+                        <td>{{ double_dummy.W.S }}</td>
+                        <td>{{ double_dummy.W.NT }}</td>
+                    </tr>
+                </table>
+
             </div>
         </div>
 

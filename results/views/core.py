@@ -64,13 +64,42 @@ def get_recent_results(user):
     ).order_by("result_date")[:5]
 
 
-def double_dummy_from_usebio(usebio):
+def double_dummy_from_usebio(board):
     """perform a double dummy analysis of a hand.
     This requires libdds.so to be available on the path. See the documentation
-    if you need to rebuild this for your OS.
+    if you need to rebuild this for your OS. It works fine on Linux out of the box. Nothing extra required,
+    just pip install ddstable.
+
+    We expect to get part of the USEBIO XML - ['USEBIO']["HANDSET"]["BOARD"][?]
+
+    Data contains a list with direction and suits ('DIRECTION', 'East'), ('CLUBS', 'Q6542'), ('DIAMONDS', '85'),...
+
     """
 
-    PBN = b"E:QJT5432.T.6.QJ82 .J97543.K7532.94 87.A62.QJT4.AT75 AK96.KQ8.A98.K63"
-    all = ddstable.get_ddstable(PBN)
+    # Build PBN format string
+
+    hand = {}
+
+    print(board)
+
+    for compass in board:
+        hand[compass["DIRECTION"]] = {}
+        hand[compass["DIRECTION"]]["clubs"] = compass["CLUBS"]
+        hand[compass["DIRECTION"]]["diamonds"] = compass["DIAMONDS"]
+        hand[compass["DIRECTION"]]["hearts"] = compass["HEARTS"]
+        hand[compass["DIRECTION"]]["spades"] = compass["SPADES"]
+
+    print(hand)
+
+    pbn_str = f"E:{hand['North']['spades']}.{hand['North']['hearts']}.{hand['North']['diamonds']}.{hand['North']['clubs']}"
+    pbn_str += f" {hand['East']['spades']}.{hand['East']['hearts']}.{hand['East']['diamonds']}.{hand['East']['clubs']}"
+    pbn_str += f" {hand['South']['spades']}.{hand['South']['hearts']}.{hand['South']['diamonds']}.{hand['South']['clubs']}"
+    pbn_str += f" {hand['West']['spades']}.{hand['West']['hearts']}.{hand['West']['diamonds']}.{hand['West']['clubs']}"
+
+    pbn_bytes = bytes(pbn_str, encoding="utf-8")
+
+    # PBN = b"E:QJT5432.T.6.QJ82 .J97543.K7532.94 87.A62.QJT4.AT75 AK96.KQ8.A98.K63"
+    all = ddstable.get_ddstable(pbn_bytes)
     print(all)
+
     return all
