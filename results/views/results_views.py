@@ -2,7 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 
 from results.models import ResultsFile
-from results.views.core import parse_usebio_file, double_dummy_from_usebio
+from results.views.core import double_dummy_from_usebio
+from results.views.usebio import parse_usebio_file
 
 
 def _get_player_names_by_id(usebio):

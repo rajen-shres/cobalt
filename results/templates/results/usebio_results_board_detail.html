@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load cobalt_tags %}
 {% block title %} - Results{% endblock %}
 {% block content %}
 
@@ -53,79 +54,184 @@
                 <h3>Hand</h3>
             </div>
             <div class="card-body">
-                {{ hand }}
-                <table class="table-bordered">
-                    <tr>
-                        <td>&nbsp;</td>
-                        <td>
-                            North
-                            <table style="border-collapse: collapse; border: none;">
-                                <tr style="border: none;"><td style="border: none; padding-bottom: 0px">&spadesuit; {{ hand.North.spades }}</td></tr>
-                                <tr style="border: none;"><td style="border: none;"><span style="color: red"> &heartsuit;</span> {{ hand.North.hearts }}</td></tr>
-                                <tr style="border: none;"><td style="border: none;"><span style="color: red"> &diamondsuit;</span> {{ hand.North.diamonds }}</td></tr>
-                                <tr style="border: none;"><td style="border: none;">&clubsuit; {{ hand.North.clubs }}</td></tr>
+                <div class="row">
+                    <div class="col-md-8">
+                        <table class="">
+                            <tr>
+                                <td>&nbsp;</td>
+                                <td>
+                                    {% include "results/usebio_results_board_detail_hand.html" with cards=hand.North direction="North" %}
+                                </td>
+                                <td>&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    {% include "results/usebio_results_board_detail_hand.html" with cards=hand.West direction="West" %}
+
+                                </td>
+                                {#                        <td style="position: relative; width: 100%; height: 0;#}
+                                {#    padding-bottom: 100%;background-color: darkgreen; display:inline-block;">&nbsp;</td>#}
+                                <td class="text-center d-flex align-items-center justify-content-center font-weight-bold" style="width: 150px; height: 150px; background-color: darkgreen; display:inline-block; color: white">Dealer N<br>All Vul</td>
+                                <td>
+                                    {% include "results/usebio_results_board_detail_hand.html" with cards=hand.East direction="East" %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>&nbsp;</td>
+                                <td>
+                                    {% include "results/usebio_results_board_detail_hand.html" with cards=hand.South direction="South" %}
+
+                                </td>
+                                <td>&nbsp;</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-4 pt-4">
+
+                        {# Hidden table is shown if other table is clicked on - has total tricks not above book#}
+                        <div class="d-none" id="total_tricks">
+                            <h4>Total Number of Tricks</h4>
+
+                            <table class="table table-condensed">
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span style="font-size: 1.5em;">
+                                            &clubsuit;
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span style="color: red; font-size: 1.5em;">
+                                            &diamondsuit;
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span style="color: red; font-size: 1.5em;">
+                                            &heartsuit;
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span style="font-size: 1.5em;">
+                                            &spadesuit;
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span font-size: 1.5em;">
+                                            NT
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>N</td>
+                                    <td>{{ double_dummy.N.C }}</td>
+                                    <td>{{ double_dummy.N.D }}</td>
+                                    <td>{{ double_dummy.N.H }}</td>
+                                    <td>{{ double_dummy.N.S }}</td>
+                                    <td>{{ double_dummy.N.NT }}</td>
+                                </tr>
+                                <tr>
+                                    <td>S</td>
+                                    <td>{{ double_dummy.S.C }}</td>
+                                    <td>{{ double_dummy.S.D }}</td>
+                                    <td>{{ double_dummy.S.H }}</td>
+                                    <td>{{ double_dummy.S.S }}</td>
+                                    <td>{{ double_dummy.S.NT }}</td>
+                                </tr>
+                                <tr>
+                                    <td>E</td>
+                                    <td>{{ double_dummy.E.C }}</td>
+                                    <td>{{ double_dummy.E.D }}</td>
+                                    <td>{{ double_dummy.E.H }}</td>
+                                    <td>{{ double_dummy.E.S }}</td>
+                                    <td>{{ double_dummy.E.NT }}</td>
+                                </tr>
+                                <tr>
+                                    <td>W</td>
+                                    <td>{{ double_dummy.W.C }}</td>
+                                    <td>{{ double_dummy.W.D }}</td>
+                                    <td>{{ double_dummy.W.H }}</td>
+                                    <td>{{ double_dummy.W.S }}</td>
+                                    <td>{{ double_dummy.W.NT }}</td>
+                                </tr>
                             </table>
-                        </td>
-                        <td>&nbsp;</td>
-                    </tr>
-                    <tr>
-                        <td>West</td>
-                        <td style="background-color: darkgreen; height: 100px; width: 100px;">&nbsp;</td>
-                        <td>East</td>
-                    </tr>
-                    <tr>
-                        <td>&nbsp;</td>
-                        <td>South</td>
-                        <td>&nbsp;</td>
-                    </tr>
-                </table>
+                        </div>
 
-                <table>
-                    <tr>
-                        <td></td>
-                        <td>&clubsuit;</td>
-                        <td>&diamondsuit;</td>
-                        <td>&heartsuit;</td>
-                        <td>&spadesuit;</td>
-                        <td>NT</td>
-                    </tr>
-                    <tr>
-                        <td>N</td>
-                        <td>{{ double_dummy.N.C }}</td>
-                        <td>{{ double_dummy.N.D }}</td>
-                        <td>{{ double_dummy.N.H }}</td>
-                        <td>{{ double_dummy.N.S }}</td>
-                        <td>{{ double_dummy.N.NT }}</td>
-                    </tr>
-                    <tr>
-                        <td>S</td>
-                        <td>{{ double_dummy.S.C }}</td>
-                        <td>{{ double_dummy.S.D }}</td>
-                        <td>{{ double_dummy.S.H }}</td>
-                        <td>{{ double_dummy.S.S }}</td>
-                        <td>{{ double_dummy.S.NT }}</td>
-                    </tr>
-                    <tr>
-                        <td>E</td>
-                        <td>{{ double_dummy.E.C }}</td>
-                        <td>{{ double_dummy.E.D }}</td>
-                        <td>{{ double_dummy.E.H }}</td>
-                        <td>{{ double_dummy.E.S }}</td>
-                        <td>{{ double_dummy.E.NT }}</td>
-                    </tr>
-                    <tr>
-                        <td>W</td>
-                        <td>{{ double_dummy.W.C }}</td>
-                        <td>{{ double_dummy.W.D }}</td>
-                        <td>{{ double_dummy.W.H }}</td>
-                        <td>{{ double_dummy.W.S }}</td>
-                        <td>{{ double_dummy.W.NT }}</td>
-                    </tr>
-                </table>
 
+                        {# Normal table - can be swapped with other table format by clicking#}
+                        <div _="on click toggle d-none on me">
+                            <table class="table table-condensed">
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span style="font-size: 1.5em;">
+                                            &clubsuit;
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span style="color: red; font-size: 1.5em;">
+                                            &diamondsuit;
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span style="color: red; font-size: 1.5em;">
+                                            &heartsuit;
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span style="font-size: 1.5em;">
+                                            &spadesuit;
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span font-size: 1.5em;">
+                                            NT
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>N</td>
+                                    <td>{{ double_dummy.N.C|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.N.D|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.N.H|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.N.S|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.N.NT|cobalt_trick_count }}</td>
+                                </tr>
+                                <tr>
+                                    <td>S</td>
+                                    <td>{{ double_dummy.S.C|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.S.D|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.S.H|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.S.S|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.S.NT|cobalt_trick_count }}</td>
+                                </tr>
+                                <tr>
+                                    <td>E</td>
+                                    <td>{{ double_dummy.E.C|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.E.D|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.E.H|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.E.S|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.E.NT|cobalt_trick_count }}</td>
+                                </tr>
+                                <tr>
+                                    <td>W</td>
+                                    <td>{{ double_dummy.W.C|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.W.D|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.W.H|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.W.S|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.W.NT|cobalt_trick_count }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
 
     </div>
 
 {% endblock %}
+
+{% block footer %}
+    {% include "utils/include_htmx.html" %}
+{% endblock footer %}
