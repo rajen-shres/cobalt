@@ -23,4 +23,9 @@ urlpatterns = [
         results.views.results_views.usebio_mp_pairs_board_view,
         name="usebio_mp_pairs_board_view",
     ),
+    path(
+        "temp",
+        results.views.core.temp,
+        name="usebio_mp_pairs_board_viewcssafsf",
+    ),
 ]

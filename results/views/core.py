@@ -1,15 +1,35 @@
 from types import SimpleNamespace
 
 from ddstable import ddstable
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
-from results.models import PlayerSummaryResult
+from results.models import PlayerSummaryResult, ResultsFile
+from results.views.usebio import parse_usebio_file
 
 
 @login_required
 def home(request):
     return render(request, "results/home.html")
+
+
+def higher_than_other_suit(suit, other_suit):
+    """Checks if a suit is higher than another in bridge terms"""
+
+    all_suits = "CDHSN"
+
+    suit_loc = all_suits.find(suit)
+    other_suit_loc = all_suits.find(other_suit)
+
+    return suit_loc > other_suit_loc
+
+
+def partner_for(player):
+    """return players partner"""
+
+    partners = {"N": "S", "S": "N", "E": "W", "W": "E"}
+    return partners[player]
 
 
 def get_recent_results(user):
@@ -134,9 +154,9 @@ def _score_for_contract_add_bonus(static, tricks_taken, score):
     which could be greater than 13
 
     """
-    print("tricks_taken", tricks_taken)
-    print("static.tricks_committed", static.tricks_committed)
-    print("score", score)
+    # print("tricks_taken", tricks_taken)
+    # print("static.tricks_committed", static.tricks_committed)
+    # print("score", score)
 
     # You can be doubled into game (but not into a slam) so use different counters for double/redoubled scores
     if static.doubled:
@@ -162,7 +182,7 @@ def _score_for_contract_add_bonus(static, tricks_taken, score):
     ):
         score += static.game_bonus
 
-    print("bonus", score)
+    # print("bonus", score)
     return score
 
 
@@ -193,12 +213,12 @@ def _score_for_contract_making(static, tricks_taken):
                 * static.factor
             ) + 50
 
-        print("static.tricks_committed pretend", static.tricks_committed)
-        print("tricks_taken pretend", tricks_taken)
-        print("static.score_per_trick", static.score_per_trick)
-        print("static.starting_making_score", static.starting_making_score)
-        print("score after double", score)
-        print("over tricks", over_tricks)
+        # print("static.tricks_committed pretend", static.tricks_committed)
+        # print("tricks_taken pretend", tricks_taken)
+        # print("static.score_per_trick", static.score_per_trick)
+        # print("static.starting_making_score", static.starting_making_score)
+        # print("score after double", score)
+        # print("over tricks", over_tricks)
 
     else:  # not doubled
         # starting score = score for tricks + base score (part score)
@@ -211,14 +231,14 @@ def _score_for_contract_making(static, tricks_taken):
 
     # handle over tricks and insult
     if static.doubled or static.redoubled:
-        print("over_tricks", over_tricks)
-        print("over_tricks_value", over_trick_value)
-        print("Score before over tricks", score)
+        # print("over_tricks", over_tricks)
+        # print("over_tricks_value", over_trick_value)
+        # print("Score before over tricks", score)
 
         # add to score and add the insult
         score += (over_tricks * over_trick_value) + insult
 
-        print("Score after over tricks", score)
+        # print("Score after over tricks", score)
 
     # scores are always with reference to NS
     if static.declarer in ["E", "W"]:
@@ -307,7 +327,68 @@ def dealer_and_vulnerability_for_board(board_number):
     return dealer, vulnerability
 
 
-def par_score_and_contract(dds_table, vulnerability):
+def temp(request):
+    results_file = ResultsFile.objects.filter(pk=1).first()
+    xml = parse_usebio_file(results_file)
+    hand = xml["HANDSET"]["BOARD"][0]["HAND"]
+    dd = double_dummy_from_usebio(hand)
+    par_score_and_contract(dd, "Nil", "N")
+
+    return HttpResponse("ok")
+
+
+def _par_score_and_contract_best_contract_for_winner(
+    dds_table, vulnerability, highest_bidder_player
+):
+    """sub to get the best contract for the auction winner or their partner.
+
+    The highest contract is not necessarily the best scoring. e.g. 3NT+1 for 430 beats 5D= for 400
+
+    """
+
+    best_score = 0
+    best_contract = None
+    for suit in dds_table[highest_bidder_player]:
+        tricks_available = dds_table[highest_bidder_player][suit]
+        if tricks_available < 1:
+            # Don't bother if not a valid contract
+            continue
+        contract = f"{tricks_available - 6}{suit}"
+        # Get score
+        score = score_for_contract(
+            contract, vulnerability, highest_bidder_player, tricks_available
+        )
+        # Update best score if better
+        if score > best_score:
+            best_contract = contract
+            best_score = score
+
+    return best_score, best_contract
+
+
+def _par_score_and_contract_auction_winner(dds_table):
+    """sub to calculate the player who can bid the highest based on double dummy analysis"""
+
+    highest_bidder_player = None
+    highest_bidder_denomination = None
+    highest_bidder_level = 0
+
+    for compass in dds_table:
+        for suit in dds_table[compass]:
+            num = dds_table[compass][suit]
+            # See if this is the highest
+            if num > highest_bidder_level or (
+                num == highest_bidder_level
+                and higher_than_other_suit(suit, highest_bidder_denomination)
+            ):
+                highest_bidder_level = num
+                highest_bidder_denomination = suit
+                highest_bidder_player = compass
+
+    return highest_bidder_level, highest_bidder_denomination, highest_bidder_player
+
+
+def par_score_and_contract(dds_table, vulnerability, dealer):
     """Calculate the par score for a hand. Par score is the best score for both sides if they bid to the
     perfect double dummy contract. Sacrifices are always doubled.
 
@@ -316,7 +397,53 @@ def par_score_and_contract(dds_table, vulnerability):
     args:
         dds_table(str): output from double_dummy_from_usebio()
         vulnerability(str): for this board NS/EW/All/Nil
+        dealer(str): N/S/E/W
     """
 
-    # calculate who wins the auction (highest bid)
+    # dds_table is like: 'N': {'S': 6, 'H': 6, 'D': 6, 'C': 4, 'NT': 6}, 'S': {'S'
+    # North Spades Tricks Hearts Tricks etc
+
+    dds_table = {
+        "N": {"S": 9, "H": 8, "D": 8, "C": 8, "NT": 7},
+        "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
+        "E": {"S": 5, "H": 7, "D": 6, "C": 8, "NT": 6},
+        "W": {"S": 6, "H": 7, "D": 6, "C": 8, "NT": 7},
+    }
+
     print(dds_table)
+
+    # calculate who wins the auction (highest bid)
+    (
+        highest_bidder_level,
+        highest_bidder_denomination,
+        highest_bidder_player,
+    ) = _par_score_and_contract_auction_winner(dds_table)
+
+    print(
+        "winner is",
+        highest_bidder_player,
+        highest_bidder_level,
+        highest_bidder_denomination,
+    )
+
+    # TODO: Add dealer so we can resolve matches eg 1NT makes both ways
+
+    # Now get the best scoring contract for this side
+    best_score, best_contract = _par_score_and_contract_best_contract_for_winner(
+        dds_table, vulnerability, highest_bidder_player
+    )
+    (
+        partner_best_score,
+        partner_best_contract,
+    ) = _par_score_and_contract_best_contract_for_winner(
+        dds_table, vulnerability, partner_for(highest_bidder_player)
+    )
+
+    if partner_best_score > best_score:
+        best_score = partner_best_score
+        best_contract = partner_best_contract
+
+    print("best contract is", best_contract, best_score)
+
+    # Now see if the opponents can do anything better
+    # current_bid = best_contract
