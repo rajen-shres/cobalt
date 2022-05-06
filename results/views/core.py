@@ -294,25 +294,13 @@ def dealer_and_vulnerability_for_board(board_number):
     dealer = ["N", "E", "S", "W"][(board_number % 4) - 1]
 
     # Vul is random-ish
-
-    vulnerabilities = [
-        "Nil",
-        "NS",
-        "EW",
-        "All",
-        "NS",
-        "EW",
-        "All",
-        "Nil",
-        "EW",
-        "All",
-        "Nil",
-        "NS",
-        "All",
-        "Nil",
-        "NS",
-        "EW",
-    ]
+    # fmt: off
+    vulnerabilities = ["Nil", "NS", "EW", "All",
+                       "NS", "EW", "All", "Nil",
+                       "EW", "All", "Nil", "NS",
+                       "All", "Nil", "NS", "EW",
+                       ]
+    # fmt: on
 
     vulnerability = vulnerabilities[board_number - 1]
 
