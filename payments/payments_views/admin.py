@@ -1536,9 +1536,6 @@ def settlement(request):
                         other_organisation=system_org,
                         amount=-item.balance,
                         description=f"Settlement from {GLOBAL_ORG}. Fees {item.organisation.settlement_fee_percent}%. Net Bank Transfer: {GLOBAL_CURRENCY_SYMBOL}{item.settlement_amount}.",
-                        log_msg=f"Settlement from {GLOBAL_ORG} to {item.organisation}",
-                        source="payments",
-                        sub_source="settlements",
                         payment_type="Settlement",
                         bank_settlement_amount=item.settlement_amount,
                     )
@@ -1586,10 +1583,6 @@ def manual_adjust_member(request):
                 member=member,
                 amount=amount,
                 description=description,
-                log_msg="Manual adjustment by %s %s %s"
-                % (request.user, member, amount),
-                source="payments",
-                sub_source="manual_adjust_member",
                 payment_type="Manual Adjustment",
                 other_member=request.user,
             )
@@ -1652,9 +1645,6 @@ def manual_adjust_org(request, org_id=None, default_transaction=None):
             organisation=org,
             amount=amount,
             description=description,
-            log_msg=description,
-            source="payments",
-            sub_source="manual_adjustment_org",
             payment_type=payment_type,
             member=member,
             other_organisation=other_organisation,

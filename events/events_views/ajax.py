@@ -833,9 +833,6 @@ def change_player_entry_ajax(request):
             organisation=event_entry_player.event_entry.event.congress.congress_master.org,
             amount=-difference,
             description=f"{event_entry_player.event_entry.event.event_name} - {event_entry_player.paid_by} partial refund",
-            source="Events",
-            log_msg=event_entry_player.event_entry.event.href,
-            sub_source="events_callback",
             payment_type="Refund",
             member=event_entry_player.paid_by,
         )
@@ -845,10 +842,7 @@ def change_player_entry_ajax(request):
             member=event_entry_player.paid_by,
             amount=difference,
             description=f"Refund for {event_entry_player.event_entry.event.event_name} - {event_entry_player.player}",
-            source="Events",
-            sub_source="events_callback",
             payment_type="Refund",
-            log_msg=event_entry_player.event_entry.event.href,
             organisation=event_entry_player.event_entry.event.congress.congress_master.org,
         )
 

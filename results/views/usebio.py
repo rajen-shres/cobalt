@@ -24,6 +24,10 @@ def create_player_records_from_usebio_format(results_file: ResultsFile, xml: dic
 
     #    results_file = get_object_or_404(ResultsFile, pk=results_file_id)
 
+    # TODO: Sort out if we pass the whole thing or just a bit of it
+    # xml = xml["EVENT"]
+    # print(xml.keys())
+
     # tz = pytz.timezone(TIME_ZONE)
     event_name = xml["EVENT_DESCRIPTION"]
     event_date_str = xml["DATE"]

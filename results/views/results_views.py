@@ -2,7 +2,10 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 
 from results.models import ResultsFile
-from results.views.core import double_dummy_from_usebio
+from results.views.core import (
+    double_dummy_from_usebio,
+    dealer_and_vulnerability_for_board,
+)
 from results.views.usebio import parse_usebio_file
 
 
@@ -274,6 +277,8 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
 
             double_dummy = double_dummy_from_usebio(board["HAND"])
 
+    dealer, vulnerability = dealer_and_vulnerability_for_board(board_number)
+
     return render(
         request,
         "results/usebio_results_board_detail.html",
@@ -285,5 +290,7 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
             "pair_id": pair_id,
             "hand": hand,
             "double_dummy": double_dummy,
+            "dealer": dealer,
+            "vulnerability": vulnerability,
         },
     )

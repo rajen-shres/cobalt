@@ -290,9 +290,6 @@ def _update_account_entries_for_member_payment(
         other_member=other_member,
         description=description,
         payment_type=payment_type,
-        log_msg=None,
-        source=None,
-        sub_source=None,
     )
 
     # If we got an organisation then make their payment too
@@ -303,9 +300,6 @@ def _update_account_entries_for_member_payment(
             description=description,
             payment_type=payment_type,
             member=member,
-            log_msg=None,
-            source=None,
-            sub_source=None,
         )
 
     # If we got an other_member then make their payment too
@@ -316,9 +310,6 @@ def _update_account_entries_for_member_payment(
             payment_type=payment_type,
             other_member=member,
             member=other_member,
-            log_msg=None,
-            source=None,
-            sub_source=None,
         )
 
 

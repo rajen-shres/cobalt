@@ -191,9 +191,6 @@ class CallbackTests:
             member=morris,
             amount=1000.0,
             description="Cash",
-            log_msg=None,
-            source=None,
-            sub_source=None,
             payment_type="Refund",
         )
 

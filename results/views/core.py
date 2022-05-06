@@ -34,18 +34,15 @@ def double_dummy_from_usebio(board):
 
     # Build PBN format string
 
-    hand = {}
-
-    print(board)
-
-    for compass in board:
-        hand[compass["DIRECTION"]] = {}
-        hand[compass["DIRECTION"]]["clubs"] = compass["CLUBS"]
-        hand[compass["DIRECTION"]]["diamonds"] = compass["DIAMONDS"]
-        hand[compass["DIRECTION"]]["hearts"] = compass["HEARTS"]
-        hand[compass["DIRECTION"]]["spades"] = compass["SPADES"]
-
-    print(hand)
+    hand = {
+        compass["DIRECTION"]: {
+            "clubs": compass["CLUBS"],
+            "diamonds": compass["DIAMONDS"],
+            "hearts": compass["HEARTS"],
+            "spades": compass["SPADES"],
+        }
+        for compass in board
+    }
 
     pbn_str = f"E:{hand['North']['spades']}.{hand['North']['hearts']}.{hand['North']['diamonds']}.{hand['North']['clubs']}"
     pbn_str += f" {hand['East']['spades']}.{hand['East']['hearts']}.{hand['East']['diamonds']}.{hand['East']['clubs']}"
@@ -54,11 +51,7 @@ def double_dummy_from_usebio(board):
 
     pbn_bytes = bytes(pbn_str, encoding="utf-8")
 
-    # PBN = b"E:QJT5432.T.6.QJ82 .J97543.K7532.94 87.A62.QJT4.AT75 AK96.KQ8.A98.K63"
-    all = ddstable.get_ddstable(pbn_bytes)
-    print(all)
-
-    return all
+    return ddstable.get_ddstable(pbn_bytes)
 
 
 def _score_for_contract_static(contract, vulnerability, declarer):
@@ -81,8 +74,8 @@ def _score_for_contract_static(contract, vulnerability, declarer):
         factor = 0
 
     # Set vulnerable
-    is_vulnerable = bool(declarer in ["N", "S"] and vulnerability in ["NS", "ALL"]) or (
-        declarer in ["E", "W"] and vulnerability in ["EW", "ALL"]
+    is_vulnerable = bool(declarer in ["N", "S"] and vulnerability in ["NS", "All"]) or (
+        declarer in ["E", "W"] and vulnerability in ["EW", "All"]
     )
 
     # use part score bonus (50) as starting point
@@ -92,7 +85,7 @@ def _score_for_contract_static(contract, vulnerability, declarer):
     if denomination == "N":
         starting_making_score += 10
 
-    # Set bonuses and overtricks
+    # Set bonuses and over tricks
     if is_vulnerable:
         # Vul
         game_bonus = 450  # 500, but we already gave 50
@@ -127,6 +120,7 @@ def _score_for_contract_static(contract, vulnerability, declarer):
         "redoubled_over_trick_value": redoubled_over_trick_value,
         "under_trick_value": under_trick_value,
         "factor": factor,
+        "declarer": declarer,
     }
 
     # return as a dotable thing. Pretty cool.
@@ -144,6 +138,14 @@ def _score_for_contract_add_bonus(static, tricks_taken, score):
     print("static.tricks_committed", static.tricks_committed)
     print("score", score)
 
+    # You can be doubled into game (but not into a slam) so use different counters for double/redoubled scores
+    if static.doubled:
+        game_tricks_committed = 6 + (static.tricks_committed - 6) * 2
+    elif static.redoubled:
+        game_tricks_committed = 6 + (static.tricks_committed - 6) * 4
+    else:
+        game_tricks_committed = static.tricks_committed
+
     # Grand slam
     if tricks_taken >= 13 and static.tricks_committed >= 13:
         score += static.grand_slam_bonus
@@ -154,9 +156,9 @@ def _score_for_contract_add_bonus(static, tricks_taken, score):
 
     # game
     elif (
-        (static.denomination in ["C", "D"] and static.tricks_committed >= 11)
-        or (static.denomination in ["H", "S"] and static.tricks_committed >= 10)
-        or (static.denomination == "N" and static.tricks_committed >= 9)
+        (static.denomination in ["C", "D"] and game_tricks_committed >= 11)
+        or (static.denomination in ["H", "S"] and game_tricks_committed >= 10)
+        or (static.denomination == "N" and game_tricks_committed >= 9)
     ):
         score += static.game_bonus
 
@@ -173,30 +175,21 @@ def _score_for_contract_making(static, tricks_taken):
         if static.doubled:
             over_trick_value = static.doubled_over_trick_value
             insult = 50
-        else:
+        else:  # redoubled
             over_trick_value = static.redoubled_over_trick_value
             insult = 100
 
-        # also double the tricks made for the bonus calculation
-        # calculate over tricks for further down e.g. 2Hx making 9 is 9-6 - 8-6 = 1
-        over_tricks = (tricks_taken - 6) - (static.tricks_committed - 6)
-        tricks_taken = 6 + ((static.tricks_committed - 6) * static.factor)
-        actual_tricks_committed = static.tricks_committed
-
-        # You can only be doubled into game not a slam
-        if static.tricks_committed <= 12 and tricks_taken <= 12:
-            static.tricks_committed = tricks_taken
-
         # score for bonus calculations excludes over tricks, we add them later
+        over_tricks = tricks_taken - static.tricks_committed
+
         score = (
-            (actual_tricks_committed - 6) * static.score_per_trick * static.factor
+            (static.tricks_committed - 6) * static.score_per_trick * static.factor
         ) + static.starting_making_score
 
         # for NT we need to adjust
         if static.denomination == "N":
             score = (
-                (actual_tricks_committed - 6)
-                * (static.score_per_trick + 10)
+                ((static.tricks_committed - 6) * static.score_per_trick + 10)
                 * static.factor
             ) + 50
 
@@ -227,6 +220,10 @@ def _score_for_contract_making(static, tricks_taken):
 
         print("Score after over tricks", score)
 
+    # scores are always with reference to NS
+    if static.declarer in ["E", "W"]:
+        score = -score
+
     return score
 
 
@@ -235,71 +232,16 @@ def _score_for_contract_failing(static, tricks_taken):
 
     under_tricks = static.tricks_committed - tricks_taken
     if static.doubled or static.redoubled:
+        # fmt: off
         if static.is_vulnerable and static.doubled:
-            penalties = [
-                200,
-                300,
-                300,
-                300,
-                300,
-                300,
-                300,
-                300,
-                300,
-                300,
-                300,
-                300,
-                300,
-            ]
+            penalties = [200, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
         if static.is_vulnerable and static.redoubled:
-            penalties = [
-                400,
-                600,
-                600,
-                600,
-                600,
-                600,
-                600,
-                600,
-                600,
-                600,
-                600,
-                600,
-                600,
-            ]
+            penalties = [400, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600]
         if not static.is_vulnerable and static.doubled:
-            penalties = [
-                100,
-                200,
-                200,
-                300,
-                300,
-                300,
-                300,
-                300,
-                300,
-                300,
-                300,
-                300,
-                300,
-            ]
+            penalties = [100, 200, 200, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
         if not static.is_vulnerable and static.redoubled:
-            penalties = [
-                200,
-                400,
-                400,
-                600,
-                600,
-                600,
-                600,
-                600,
-                600,
-                600,
-                600,
-                600,
-                600,
-            ]
-
+            penalties = [200, 400, 400, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600]
+        # fmt: on
         score = 0
         index = 0
         while under_tricks > 0:
@@ -311,7 +253,11 @@ def _score_for_contract_failing(static, tricks_taken):
         # not doubled
         score = static.under_trick_value * under_tricks
 
-    return score
+    # scores are always with reference to NS
+    if static.declarer in ["E", "W"]:
+        score = -score
+
+    return -score
 
 
 def score_for_contract(contract, vulnerability, declarer, tricks_taken):
@@ -336,3 +282,53 @@ def score_for_contract(contract, vulnerability, declarer, tricks_taken):
     # Non-making contracts
     else:
         return _score_for_contract_failing(static, tricks_taken)
+
+
+def dealer_and_vulnerability_for_board(board_number):
+    """return the vulnerability and dealer for a board"""
+
+    # there are only 16 possibilities, for boards higher than 16 it just repeats
+    board_number = board_number % 16
+
+    # deal rotates starting with North
+    dealer = ["N", "E", "S", "W"][(board_number % 4) - 1]
+
+    # Vul is random-ish
+
+    vulnerabilities = [
+        "Nil",
+        "NS",
+        "EW",
+        "All",
+        "NS",
+        "EW",
+        "All",
+        "Nil",
+        "EW",
+        "All",
+        "Nil",
+        "NS",
+        "All",
+        "Nil",
+        "NS",
+        "EW",
+    ]
+
+    vulnerability = vulnerabilities[board_number - 1]
+
+    return dealer, vulnerability
+
+
+def par_score_and_contract(dds_table, vulnerability):
+    """Calculate the par score for a hand. Par score is the best score for both sides if they bid to the
+    perfect double dummy contract. Sacrifices are always doubled.
+
+    https://bridgecomposer.com/Par.htm
+
+    args:
+        dds_table(str): output from double_dummy_from_usebio()
+        vulnerability(str): for this board NS/EW/All/Nil
+    """
+
+    # calculate who wins the auction (highest bid)
+    print(dds_table)

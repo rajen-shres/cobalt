@@ -1019,9 +1019,6 @@ def _delete_event_entry_handle_post_refunds(request, event_entry, event_entry_pl
                 organisation=event_entry.event.congress.congress_master.org,
                 amount=-amount,
                 description=f"Refund to {event_entry_player.paid_by} for {event_entry.event.event_name}",
-                source="Events",
-                log_msg=f"Refund to {event_entry_player.paid_by.href} for {event_entry.event.href}",
-                sub_source="refund",
                 payment_type="Refund",
                 member=event_entry_player.paid_by,
             )
@@ -1031,9 +1028,6 @@ def _delete_event_entry_handle_post_refunds(request, event_entry, event_entry_pl
                 organisation=event_entry.event.congress.congress_master.org,
                 amount=amount,
                 description=f"Refund for {event_entry.event}",
-                source="Events",
-                log_msg=f"Refund from {event_entry.event.congress.congress_master.org} for {event_entry.event.event_name}",
-                sub_source="refund",
                 payment_type="Refund",
                 member=event_entry_player.paid_by,
             )

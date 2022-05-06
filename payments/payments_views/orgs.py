@@ -250,9 +250,6 @@ def member_transfer_org(request, org_id):
                 organisation=organisation,
                 description=description,
                 amount=-amount,
-                log_msg=f"Transfer from {organisation} to {member}",
-                source="payments",
-                sub_source="member_transfer_org",
                 payment_type="Member Transfer",
                 member=member,
             )
@@ -261,9 +258,6 @@ def member_transfer_org(request, org_id):
                 member=member,
                 amount=amount,
                 description=description,
-                log_msg=f"Transfer to {member} from {organisation}",
-                source="payments",
-                sub_source="member_transfer_org",
                 payment_type="Org Transfer",
                 organisation=organisation,
             )

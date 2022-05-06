@@ -431,9 +431,6 @@ def stripe_webhook_manual(event):
         stripe_transaction=tran,
         description="Payment from card **** **** ***** %s Exp %s/%s"
         % (tran.stripe_last4, tran.stripe_exp_month, abs(tran.stripe_exp_year) % 100),
-        log_msg="$%s Payment from Stripe Transaction=%s" % (tran.amount, tran.id),
-        source="Payments",
-        sub_source="stripe_webhook",
         payment_type=pay_type,
     )
 
@@ -449,10 +446,7 @@ def stripe_webhook_manual(event):
                 member=tran.member,
                 amount=-tran.linked_amount,
                 description=tran.description,
-                source="Payments",
-                sub_source="stripe_webhook",
                 payment_type=tran.linked_transaction_type,
-                log_msg=tran.description,
                 organisation=tran.linked_organisation,
             )
 
@@ -461,10 +455,7 @@ def stripe_webhook_manual(event):
                 organisation=tran.linked_organisation,
                 amount=tran.linked_amount,
                 description=tran.description,
-                source="Payments",
-                sub_source="stripe_webhook",
                 payment_type=tran.linked_transaction_type,
-                log_msg=tran.description,
                 member=tran.member,
             )
 
@@ -473,10 +464,7 @@ def stripe_webhook_manual(event):
                 member=tran.member,
                 amount=-tran.linked_amount,
                 description=tran.description,
-                source="Payments",
-                sub_source="stripe_webhook",
                 payment_type=tran.linked_transaction_type,
-                log_msg=tran.description,
                 other_member=tran.linked_member,
             )
 
@@ -486,10 +474,7 @@ def stripe_webhook_manual(event):
                 other_member=tran.member,
                 amount=tran.linked_amount,
                 description=tran.description,
-                source="Payments",
-                sub_source="stripe_webhook",
                 payment_type=tran.linked_transaction_type,
-                log_msg=tran.description,
             )
 
     # make Callback
@@ -960,9 +945,6 @@ def _auto_topup_member_stripe_transaction(amount, member, pay_method_id, payment
             payload.payment_method_details.card.exp_month,
             abs(payload.payment_method_details.card.exp_year) % 100,
         ),
-        log_msg="$%s %s" % (amount, payment_type),
-        source="Payments",
-        sub_source="auto_topup_member",
         payment_type=payment_type,
         stripe_transaction=stripe_tran,
     )

@@ -836,9 +836,6 @@ def admin_evententry_delete(request, evententry_id):
                         organisation=event_entry.event.congress.congress_master.org,
                         amount=-amount,
                         description=f"Refund to {player} for {event_entry.event.event_name}",
-                        source="Events",
-                        log_msg=f"Refund to {player} for {event_entry.event.event_name}",
-                        sub_source="refund",
                         payment_type="Refund",
                         member=player,
                     )
@@ -848,9 +845,6 @@ def admin_evententry_delete(request, evententry_id):
                         organisation=event_entry.event.congress.congress_master.org,
                         amount=amount,
                         description=f"Refund from {event_entry.event.congress.congress_master.org} for {event_entry.event.event_name}",
-                        source="Events",
-                        log_msg=f"Refund from {event_entry.event.congress.congress_master.org} for {event_entry.event.event_name}",
-                        sub_source="refund",
                         payment_type="Refund",
                         member=player,
                     )

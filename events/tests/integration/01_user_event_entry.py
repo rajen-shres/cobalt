@@ -72,9 +72,6 @@ class EventEntry:
             member=self.manager.keith,
             amount=1000.0,
             description="Cash",
-            log_msg=None,
-            source=None,
-            sub_source=None,
             payment_type="Refund",
         )
 
@@ -118,9 +115,6 @@ class EventEntry:
             member=self.manager.keith,
             amount=-get_balance(self.manager.keith),
             description="Empty Keith out",
-            log_msg=None,
-            source=None,
-            sub_source=None,
             payment_type="Refund",
         )
 
@@ -141,9 +135,6 @@ class EventEntry:
             member=self.manager.keith,
             amount=1000.0,
             description="Cash",
-            log_msg=None,
-            source=None,
-            sub_source=None,
             payment_type="Refund",
         )
 

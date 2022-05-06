@@ -327,9 +327,6 @@ def _mark_event_entry_player_as_paid_and_book_payments(event_entry_player, who_p
         organisation=event_entry_player.event_entry.event.congress.congress_master.org,
         amount=amount,
         description=f"{event_entry_player.event_entry.event.event_name} - {event_entry_player.player}",
-        source="Events",
-        log_msg=event_entry_player.event_entry.event.href,
-        sub_source="events_callback",
         payment_type="Entry to an event",
         member=who_paid,
     )
@@ -339,10 +336,7 @@ def _mark_event_entry_player_as_paid_and_book_payments(event_entry_player, who_p
         member=who_paid,
         amount=-amount,
         description=f"{event_entry_player.event_entry.event.event_name} - {event_entry_player.player}",
-        source="Events",
-        sub_source="events_callback",
         payment_type="Entry to an event",
-        log_msg=event_entry_player.event_entry.event.href,
         organisation=event_entry_player.event_entry.event.congress.congress_master.org,
     )
 

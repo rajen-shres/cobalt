@@ -71,7 +71,7 @@
                                 </td>
                                 {#                        <td style="position: relative; width: 100%; height: 0;#}
                                 {#    padding-bottom: 100%;background-color: darkgreen; display:inline-block;">&nbsp;</td>#}
-                                <td class="text-center d-flex align-items-center justify-content-center font-weight-bold" style="width: 150px; height: 150px; background-color: darkgreen; display:inline-block; color: white">Dealer N<br>All Vul</td>
+                                <td class="text-center d-flex align-items-center justify-content-center font-weight-bold" style="width: 150px; height: 150px; background-color: darkgreen; display:inline-block; color: white">Dealer {{ dealer }}<br>{{ vulnerability}}</td>
                                 <td>
                                     {% include "results/usebio_results_board_detail_hand.html" with cards=hand.East direction="East" %}
                                 </td>
