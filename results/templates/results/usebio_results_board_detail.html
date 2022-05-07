@@ -14,6 +14,8 @@
             <div class="card">
                 <div class="card-header card-header-warning">
                     <h2>Board {{ board_number }}</h2>
+                    <h2>{{ par_score }}</h2>
+                    <h2>{{ par_string }}</h2>
                 </div>
                 <div class="card-body table-responsive">
                     <table class="table table-condensed table-hover">
@@ -31,16 +33,28 @@
                         </thead>
                         <tbody>
                             {% for row in board_data %}
-                                <tr>
-                                    <td class="text-left">{{ row.ns_pair }}</td>
-                                    <td class="text-left">{{ row.ew_pair }}</td>
-                                    <td>{{ row.contract|safe }}</td>
-                                    <td>{{ row.played_by }}</td>
-                                    <td>{{ row.lead|safe }}</td>
-                                    <td>{{ row.tricks }}</td>
-                                    <td>{{ row.score }}</td>
-                                    <td>{{ row.percentage|floatformat:0 }}</td>
-                                </tr>
+
+                                {% if row.par_score %}
+                                    <tr>
+                                        <td colspan="8">
+                                            <button class="btn btn-sm btn-block btn-outline cobalt-text-transform-off" style="font-size: larger">
+                                                Par Contract: {{ row.par_string }}
+                                            </button>
+
+                                        </tr>
+
+                                {% else %}
+                                    <tr>
+                                        <td class="text-left">{{ row.ns_pair }}</td>
+                                        <td class="text-left">{{ row.ew_pair }}</td>
+                                        <td>{{ row.contract|safe }}</td>
+                                        <td>{{ row.played_by }}</td>
+                                        <td>{{ row.lead|safe }}</td>
+                                        <td>{{ row.tricks }}</td>
+                                        <td>{{ row.score }}</td>
+                                        <td>{{ row.percentage|floatformat:0 }}</td>
+                                    </tr>
+                                {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>
@@ -89,7 +103,7 @@
                     <div class="col-md-4 pt-4">
 
                         {# Hidden table is shown if other table is clicked on - has total tricks not above book#}
-                        <div class="d-none" id="total_tricks">
+                        <div class="" id="total_tricks">
                             <h4>Total Number of Tricks</h4>
 
                             <table class="table table-condensed">
@@ -127,7 +141,7 @@
                                     <td>{{ double_dummy.N.D }}</td>
                                     <td>{{ double_dummy.N.H }}</td>
                                     <td>{{ double_dummy.N.S }}</td>
-                                    <td>{{ double_dummy.N.NT }}</td>
+                                    <td>{{ double_dummy.N.N }}</td>
                                 </tr>
                                 <tr>
                                     <td>S</td>
@@ -135,7 +149,7 @@
                                     <td>{{ double_dummy.S.D }}</td>
                                     <td>{{ double_dummy.S.H }}</td>
                                     <td>{{ double_dummy.S.S }}</td>
-                                    <td>{{ double_dummy.S.NT }}</td>
+                                    <td>{{ double_dummy.S.N }}</td>
                                 </tr>
                                 <tr>
                                     <td>E</td>
@@ -143,7 +157,7 @@
                                     <td>{{ double_dummy.E.D }}</td>
                                     <td>{{ double_dummy.E.H }}</td>
                                     <td>{{ double_dummy.E.S }}</td>
-                                    <td>{{ double_dummy.E.NT }}</td>
+                                    <td>{{ double_dummy.E.N }}</td>
                                 </tr>
                                 <tr>
                                     <td>W</td>
@@ -151,7 +165,7 @@
                                     <td>{{ double_dummy.W.D }}</td>
                                     <td>{{ double_dummy.W.H }}</td>
                                     <td>{{ double_dummy.W.S }}</td>
-                                    <td>{{ double_dummy.W.NT }}</td>
+                                    <td>{{ double_dummy.W.N }}</td>
                                 </tr>
                             </table>
                         </div>
@@ -194,7 +208,7 @@
                                     <td>{{ double_dummy.N.D|cobalt_trick_count }}</td>
                                     <td>{{ double_dummy.N.H|cobalt_trick_count }}</td>
                                     <td>{{ double_dummy.N.S|cobalt_trick_count }}</td>
-                                    <td>{{ double_dummy.N.NT|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.N.N|cobalt_trick_count }}</td>
                                 </tr>
                                 <tr>
                                     <td>S</td>
@@ -202,7 +216,7 @@
                                     <td>{{ double_dummy.S.D|cobalt_trick_count }}</td>
                                     <td>{{ double_dummy.S.H|cobalt_trick_count }}</td>
                                     <td>{{ double_dummy.S.S|cobalt_trick_count }}</td>
-                                    <td>{{ double_dummy.S.NT|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.S.N|cobalt_trick_count }}</td>
                                 </tr>
                                 <tr>
                                     <td>E</td>
@@ -210,7 +224,7 @@
                                     <td>{{ double_dummy.E.D|cobalt_trick_count }}</td>
                                     <td>{{ double_dummy.E.H|cobalt_trick_count }}</td>
                                     <td>{{ double_dummy.E.S|cobalt_trick_count }}</td>
-                                    <td>{{ double_dummy.E.NT|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.E.N|cobalt_trick_count }}</td>
                                 </tr>
                                 <tr>
                                     <td>W</td>
@@ -218,7 +232,7 @@
                                     <td>{{ double_dummy.W.D|cobalt_trick_count }}</td>
                                     <td>{{ double_dummy.W.H|cobalt_trick_count }}</td>
                                     <td>{{ double_dummy.W.S|cobalt_trick_count }}</td>
-                                    <td>{{ double_dummy.W.NT|cobalt_trick_count }}</td>
+                                    <td>{{ double_dummy.W.N|cobalt_trick_count }}</td>
                                 </tr>
                             </table>
                         </div>

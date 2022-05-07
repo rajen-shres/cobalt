@@ -327,6 +327,8 @@ def _par_score_and_contract_run_through_auction(
                 par_score = this_score
                 current_bidders = opponents_list_for(current_bidders[0])
 
+    # TODO: Handle special case of sacrificing in opponents contract
+
     # Auction is over, return pars
     return par_score, par_contract, par_bidder
 

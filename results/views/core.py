@@ -120,12 +120,14 @@ def double_dummy_from_usebio(board):
         for compass in board
     }
 
-    pbn_str = f"E:{hand['North']['spades']}.{hand['North']['hearts']}.{hand['North']['diamonds']}.{hand['North']['clubs']}"
+    pbn_str = f"N:{hand['North']['spades']}.{hand['North']['hearts']}.{hand['North']['diamonds']}.{hand['North']['clubs']}"
     pbn_str += f" {hand['East']['spades']}.{hand['East']['hearts']}.{hand['East']['diamonds']}.{hand['East']['clubs']}"
     pbn_str += f" {hand['South']['spades']}.{hand['South']['hearts']}.{hand['South']['diamonds']}.{hand['South']['clubs']}"
     pbn_str += f" {hand['West']['spades']}.{hand['West']['hearts']}.{hand['West']['diamonds']}.{hand['West']['clubs']}"
 
     pbn_bytes = bytes(pbn_str, encoding="utf-8")
+
+    print(pbn_str)
 
     return ddstable.get_ddstable(pbn_bytes)
 

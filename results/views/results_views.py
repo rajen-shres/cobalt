@@ -6,6 +6,7 @@ from results.views.core import (
     double_dummy_from_usebio,
     dealer_and_vulnerability_for_board,
 )
+from results.views.par_contract import par_score_and_contract
 from results.views.usebio import parse_usebio_file
 
 
@@ -253,16 +254,13 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
                     "played_by": played_by,
                     "lead": lead,
                     "tricks": tricks,
-                    "score": score,
+                    "score": int(score),
                     "percentage": percentage,
                     "ns_pair": ns_pair,
                     "ew_pair": ew_pair,
                 }
 
                 board_data.append(row)
-
-        # sort
-        board_data = sorted(board_data, key=lambda d: d["percentage"])
 
     # Now get hand record
     hand = {}
@@ -278,6 +276,18 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
             double_dummy = double_dummy_from_usebio(board["HAND"])
 
     dealer, vulnerability = dealer_and_vulnerability_for_board(board_number)
+    par_score, par_string = par_score_and_contract(double_dummy, vulnerability, dealer)
+
+    # Add par score into the data
+    row = {
+        "score": par_score,
+        "par_score": par_score,
+        "par_string": par_string,
+    }
+    board_data.append(row)
+
+    # sort
+    board_data = sorted(board_data, key=lambda d: d["score"])
 
     return render(
         request,
@@ -292,5 +302,7 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
             "double_dummy": double_dummy,
             "dealer": dealer,
             "vulnerability": vulnerability,
+            "par_score": par_score,
+            "par_string": par_string,
         },
     )

@@ -237,9 +237,12 @@ def cobalt_bs4_field(field, no_label=False):
 
 @register.filter(name="cobalt_trick_count")
 def cobalt_trick_count(tricks):
-    """Return entry string if tricks < 7 or tricks minus 6."""
+    """Return empty string if tricks < 7 or tricks minus 6."""
 
-    if tricks < 7:
-        return ""
-    else:
-        return tricks - 6
+    try:
+        if tricks < 7:
+            return ""
+        else:
+            return tricks - 6
+    except TypeError:
+        return tricks
