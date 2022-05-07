@@ -1,6 +1,7 @@
 from django.urls import path
 
 import results.views.core
+import results.views.par_contract
 import results.views.results_views
 from results.views.core import home
 
@@ -25,7 +26,7 @@ urlpatterns = [
     ),
     path(
         "temp",
-        results.views.core.temp,
+        results.views.par_contract.temp,
         name="usebio_mp_pairs_board_viewcssafsf",
     ),
 ]

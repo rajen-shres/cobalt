@@ -1,12 +1,10 @@
 from types import SimpleNamespace
 
 from ddstable import ddstable
-from django.http import HttpResponse
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
-from results.models import PlayerSummaryResult, ResultsFile
-from results.views.usebio import parse_usebio_file
+from results.models import PlayerSummaryResult
 
 
 @login_required
@@ -25,11 +23,69 @@ def higher_than_other_suit(suit, other_suit):
     return suit_loc > other_suit_loc
 
 
+def lower_than_other_contract(contract, other_contract):
+    """Checks if a contract is lower than another in bridge terms"""
+
+    all_suits = "CDHSN"
+
+    level = int(contract[0])
+    suit = contract[1]
+
+    level_other_contract = int(other_contract[0])
+    suit_other_contract = other_contract[1]
+
+    if level < level_other_contract:
+        return True
+
+    if level > level_other_contract:
+        return False
+
+    # Get suit order - levels are the same
+    suit_loc = all_suits.find(suit)
+    other_suit_loc = all_suits.find(suit_other_contract)
+
+    return suit_loc < other_suit_loc
+
+
+def next_contract_up(contract):
+    """return next contract or False. 4N -> 5C, 1S -> 1N, 7N -> False.
+
+    Ignores X or XX
+
+    """
+
+    suits = "CDHSN"
+
+    level = int(contract[0])
+    suit = contract[1]
+
+    loc = suits.find(suit)
+    if loc == 4:
+        level += 1
+        suit = "C"
+    else:
+        suit = suits[loc + 1]
+
+    return f"{level}{suit}"
+
+
 def partner_for(player):
-    """return players partner"""
+    """return player's partner"""
 
     partners = {"N": "S", "S": "N", "E": "W", "W": "E"}
     return partners[player]
+
+
+def opponent_for(player):
+    """return player's opponent (any)"""
+
+    return "E" if player in ["N", "S"] else "N"
+
+
+def opponents_list_for(player):
+    """return player's opponent as a list"""
+
+    return ["E", "W"] if player in ["N", "S"] else ["N", "S"]
 
 
 def get_recent_results(user):
@@ -327,123 +383,18 @@ def dealer_and_vulnerability_for_board(board_number):
     return dealer, vulnerability
 
 
-def temp(request):
-    results_file = ResultsFile.objects.filter(pk=1).first()
-    xml = parse_usebio_file(results_file)
-    hand = xml["HANDSET"]["BOARD"][0]["HAND"]
-    dd = double_dummy_from_usebio(hand)
-    par_score_and_contract(dd, "Nil", "N")
+def is_making_contract(dds_table, contract, declarer):
+    """Check in the dds table to see if this contract makes"""
 
-    return HttpResponse("ok")
+    tricks = int(contract[0]) + 6
+    suit = contract[1]  # ignore whether X or XX to check if making
 
+    # This player can make it
+    if dds_table[declarer][suit] >= tricks:
+        return True
 
-def _par_score_and_contract_best_contract_for_winner(
-    dds_table, vulnerability, highest_bidder_player
-):
-    """sub to get the best contract for the auction winner or their partner.
+    # Their partner can make it
+    if dds_table[partner_for(declarer)][suit] >= tricks:
+        return True
 
-    The highest contract is not necessarily the best scoring. e.g. 3NT+1 for 430 beats 5D= for 400
-
-    """
-
-    best_score = 0
-    best_contract = None
-    for suit in dds_table[highest_bidder_player]:
-        tricks_available = dds_table[highest_bidder_player][suit]
-        if tricks_available < 1:
-            # Don't bother if not a valid contract
-            continue
-        contract = f"{tricks_available - 6}{suit}"
-        # Get score
-        score = score_for_contract(
-            contract, vulnerability, highest_bidder_player, tricks_available
-        )
-        # Update best score if better
-        if score > best_score:
-            best_contract = contract
-            best_score = score
-
-    return best_score, best_contract
-
-
-def _par_score_and_contract_auction_winner(dds_table):
-    """sub to calculate the player who can bid the highest based on double dummy analysis"""
-
-    highest_bidder_player = None
-    highest_bidder_denomination = None
-    highest_bidder_level = 0
-
-    for compass in dds_table:
-        for suit in dds_table[compass]:
-            num = dds_table[compass][suit]
-            # See if this is the highest
-            if num > highest_bidder_level or (
-                num == highest_bidder_level
-                and higher_than_other_suit(suit, highest_bidder_denomination)
-            ):
-                highest_bidder_level = num
-                highest_bidder_denomination = suit
-                highest_bidder_player = compass
-
-    return highest_bidder_level, highest_bidder_denomination, highest_bidder_player
-
-
-def par_score_and_contract(dds_table, vulnerability, dealer):
-    """Calculate the par score for a hand. Par score is the best score for both sides if they bid to the
-    perfect double dummy contract. Sacrifices are always doubled.
-
-    https://bridgecomposer.com/Par.htm
-
-    args:
-        dds_table(str): output from double_dummy_from_usebio()
-        vulnerability(str): for this board NS/EW/All/Nil
-        dealer(str): N/S/E/W
-    """
-
-    # dds_table is like: 'N': {'S': 6, 'H': 6, 'D': 6, 'C': 4, 'NT': 6}, 'S': {'S'
-    # North Spades Tricks Hearts Tricks etc
-
-    dds_table = {
-        "N": {"S": 9, "H": 8, "D": 8, "C": 8, "NT": 7},
-        "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
-        "E": {"S": 5, "H": 7, "D": 6, "C": 8, "NT": 6},
-        "W": {"S": 6, "H": 7, "D": 6, "C": 8, "NT": 7},
-    }
-
-    print(dds_table)
-
-    # calculate who wins the auction (highest bid)
-    (
-        highest_bidder_level,
-        highest_bidder_denomination,
-        highest_bidder_player,
-    ) = _par_score_and_contract_auction_winner(dds_table)
-
-    print(
-        "winner is",
-        highest_bidder_player,
-        highest_bidder_level,
-        highest_bidder_denomination,
-    )
-
-    # TODO: Add dealer so we can resolve matches eg 1NT makes both ways
-
-    # Now get the best scoring contract for this side
-    best_score, best_contract = _par_score_and_contract_best_contract_for_winner(
-        dds_table, vulnerability, highest_bidder_player
-    )
-    (
-        partner_best_score,
-        partner_best_contract,
-    ) = _par_score_and_contract_best_contract_for_winner(
-        dds_table, vulnerability, partner_for(highest_bidder_player)
-    )
-
-    if partner_best_score > best_score:
-        best_score = partner_best_score
-        best_contract = partner_best_contract
-
-    print("best contract is", best_contract, best_score)
-
-    # Now see if the opponents can do anything better
-    # current_bid = best_contract
+    return False

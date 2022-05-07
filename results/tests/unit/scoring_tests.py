@@ -1,4 +1,5 @@
 from results.views.core import score_for_contract
+from results.views.par_contract import par_score_and_contract
 from tests.test_manager import CobaltTestManagerIntegration
 
 
@@ -82,4 +83,170 @@ class ScoringTests:
             test_name="Score testing",
             test_description="Tests for score_for_contract. We don't test everything, there are too many combinations.",
             output=f"These tests failed: {failing}",
+        )
+
+    def par_score_tests(self):
+        """Tests for the par score function"""
+
+        passing = True
+        failing = []
+
+        #####################################
+        test_number = 1
+
+        # Both 3NT and 5C make. 3NT better. No sacrifice.
+        dds_table = {
+            "N": {"S": 8, "H": 8, "D": 8, "C": 11, "NT": 10},
+            "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
+            "E": {"S": 5, "H": 6, "D": 6, "C": 8, "NT": 6},
+            "W": {"S": 6, "H": 7, "D": 6, "C": 8, "NT": 7},
+        }
+
+        par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
+        if par_score != 430:
+            passing = False
+            failing.append(test_number)
+            print(test_number, par_score, par_string)
+
+        #####################################
+        test_number = 2
+
+        # NS can bid to 5Cs but EW sacrifice in 5Hs
+        dds_table = {
+            "N": {"S": 9, "H": 8, "D": 8, "C": 11, "NT": 9},
+            "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
+            "E": {"S": 5, "H": 10, "D": 6, "C": 8, "NT": 6},
+            "W": {"S": 6, "H": 10, "D": 6, "C": 8, "NT": 7},
+        }
+
+        par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
+        if par_score != 100:
+            passing = False
+            failing.append(test_number)
+            print(test_number, par_score, par_string)
+
+        #####################################
+        test_number = 3
+
+        # 1NT makes both ways. N is dealer so wins contract.
+        dds_table = {
+            "N": {"S": 5, "H": 5, "D": 5, "C": 6, "NT": 7},
+            "S": {"S": 5, "H": 5, "D": 6, "C": 4, "NT": 6},
+            "E": {"S": 5, "H": 5, "D": 6, "C": 6, "NT": 6},
+            "W": {"S": 6, "H": 5, "D": 6, "C": 7, "NT": 7},
+        }
+
+        par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
+        if par_score != 90:
+            passing = False
+            failing.append(test_number)
+            print(test_number, par_score, par_string)
+
+        ####################################
+        test_number = 4
+
+        # Doubled part score is best
+        dds_table = {
+            "N": {"S": 9, "H": 8, "D": 8, "C": 9, "NT": 6},
+            "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
+            "E": {"S": 5, "H": 1, "D": 6, "C": 8, "NT": 6},
+            "W": {"S": 6, "H": 7, "D": 6, "C": 9, "NT": 7},
+        }
+
+        par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
+        if par_score != 100:
+            passing = False
+            failing.append(test_number)
+            print(test_number, par_score, par_string)
+
+        ####################################
+        test_number = 5
+
+        # Check for one sacrificer making and not the other
+        dds_table = {
+            "N": {"S": 9, "H": 8, "D": 8, "C": 11, "NT": 9},
+            "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
+            "E": {"S": 5, "H": 10, "D": 6, "C": 8, "NT": 6},
+            "W": {"S": 6, "H": 1, "D": 6, "C": 8, "NT": 7},
+        }
+
+        par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
+        if par_score != 100:
+            passing = False
+            failing.append(test_number)
+            print(test_number, par_score, par_string)
+
+        ####################################
+        test_number = 6
+
+        # EW contracts
+        dds_table = {
+            "N": {"S": 8, "H": 8, "D": 8, "C": 7, "NT": 9},
+            "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
+            "E": {"S": 5, "H": 10, "D": 6, "C": 8, "NT": 6},
+            "W": {"S": 6, "H": 1, "D": 6, "C": 8, "NT": 7},
+        }
+
+        par_score, par_string = par_score_and_contract(dds_table, "Nil", "S")
+        if par_score != -100:
+            passing = False
+            failing.append(test_number)
+            print(test_number, par_score, par_string)
+
+        #####################################
+        test_number = 7
+
+        # EW contracts
+        dds_table = {
+            "N": {"S": 7, "H": 7, "D": 7, "C": 7, "NT": 6},
+            "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
+            "E": {"S": 5, "H": 10, "D": 6, "C": 8, "NT": 6},
+            "W": {"S": 10, "H": 1, "D": 6, "C": 8, "NT": 7},
+        }
+
+        par_score, par_string = par_score_and_contract(dds_table, "EW", "S")
+        if par_score != -620:
+            passing = False
+            failing.append(test_number)
+            print(test_number, par_score, par_string)
+
+        #####################################
+        test_number = 8
+
+        # EW contracts NS sacrifice
+        dds_table = {
+            "N": {"S": 9, "H": 8, "D": 8, "C": 7, "NT": 9},
+            "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
+            "E": {"S": 5, "H": 10, "D": 6, "C": 8, "NT": 6},
+            "W": {"S": 6, "H": 1, "D": 6, "C": 8, "NT": 7},
+        }
+
+        par_score, par_string = par_score_and_contract(dds_table, "All", "S")
+        if par_score != -200:
+            passing = False
+            failing.append(test_number)
+            print(test_number, par_score, par_string)
+
+        #####################################
+        test_number = 9
+
+        # both making same contract - dealer dictates winner. South can't make 1N so E wins.
+        dds_table = {
+            "N": {"S": 5, "H": 5, "D": 5, "C": 5, "NT": 7},
+            "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
+            "E": {"S": 5, "H": 5, "D": 6, "C": 5, "NT": 7},
+            "W": {"S": 6, "H": 1, "D": 6, "C": 5, "NT": 7},
+        }
+
+        par_score, par_string = par_score_and_contract(dds_table, "All", "S")
+        if par_score != -90:
+            passing = False
+            failing.append(test_number)
+            print(test_number, par_score, par_string)
+
+        self.manager.save_results(
+            status=passing,
+            test_name="Par contract and score testing",
+            test_description="Tests for par score.",
+            output=f"These tests failed (see numbers in code): {failing}",
         )
