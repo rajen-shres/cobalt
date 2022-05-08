@@ -315,90 +315,9 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
         else:
             ns_flag = False
 
-    board_data = []
-
-    for board in usebio["EVENT"]["BOARD"]:
-        this_board_number = int(board.get("BOARD_NUMBER"))
-        if this_board_number == board_number:
-            # Found our board - go through the traveller lines
-            for traveller_line in board.get("TRAVELLER_LINE"):
-                ns_pair_number = traveller_line.get("NS_PAIR_NUMBER")
-                ns_pair = player_dict["names"].get(ns_pair_number)
-                ew_pair_number = traveller_line.get("EW_PAIR_NUMBER")
-                ew_pair = player_dict["names"].get(ew_pair_number)
-                contract = traveller_line.get("CONTRACT")
-                played_by = traveller_line.get("PLAYED_BY")
-                lead = traveller_line.get("LEAD")
-                tricks = traveller_line.get("TRICKS")
-                score = traveller_line.get("SCORE")
-                try:
-                    score = int(score)
-                except ValueError:
-                    pass
-                ns_match_points = float(traveller_line.get("NS_MATCH_POINTS"))
-                ew_match_points = float(traveller_line.get("EW_MATCH_POINTS"))
-
-                # TODO: Test and make more robust
-
-                # Calculate percentage and score
-                print(score, type(score))
-                if type(score) is str:
-                    # Score is adjusted
-                    percentage = int(score[1:3])
-                    score = 0
-                else:
-                    # Normal numeric score
-                    score = int(score)
-                    total_mps = ns_match_points + ew_match_points
-                    if ns_flag:
-                        percentage = ns_match_points / total_mps
-                    else:
-                        percentage = ew_match_points / total_mps
-
-                    percentage = percentage * 100.0
-
-                    # Set size of success circle
-                    indicator = ""
-                    if percentage > 20:
-                        indicator = "results-circle-quarter"
-                    if percentage >= 40:
-                        indicator = "results-circle-half"
-                    if percentage >= 60:
-                        indicator = "results-circle-three-quarter"
-                    if percentage >= 80:
-                        indicator = "results-circle-full"
-                    if percentage == 100:
-                        indicator = "results-circle-full-100"
-
-                # highlight row of interest
-                if pair_id in [ns_pair_number, ew_pair_number]:
-                    if (
-                        request.user.system_number
-                        in player_dict["system_numbers"][pair_id]
-                    ):
-                        # This user
-                        tr_highlight = "bg-warning"
-                    else:
-                        # Another user
-                        tr_highlight = "bg-info"
-                else:
-                    tr_highlight = ""
-
-                row = {
-                    "board_number": board_number,
-                    "contract": contract,
-                    "played_by": played_by,
-                    "lead": lead,
-                    "tricks": tricks,
-                    "score": score,
-                    "percentage": percentage,
-                    "ns_pair": ns_pair,
-                    "ew_pair": ew_pair,
-                    "tr_highlight": tr_highlight,
-                    "indicator": indicator,
-                }
-
-                board_data.append(row)
+    board_data = get_traveller_info(
+        usebio, board_number, player_dict, ns_flag, pair_id, request
+    )
 
     # Now get hand record
     hand = {}
@@ -454,3 +373,93 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
             "par_string": par_string,
         },
     )
+
+
+def get_traveller_info(usebio, board_number, player_dict, ns_flag, pair_id, request):
+    """extract traveller information about a board from a usebio record"""
+
+    board_data = []
+
+    for board in usebio["EVENT"]["BOARD"]:
+        this_board_number = int(board.get("BOARD_NUMBER"))
+        if this_board_number == board_number:
+            # Found our board - go through the traveller lines
+            for traveller_line in board.get("TRAVELLER_LINE"):
+                ns_pair_number = traveller_line.get("NS_PAIR_NUMBER")
+                ns_pair = player_dict["names"].get(ns_pair_number)
+                ew_pair_number = traveller_line.get("EW_PAIR_NUMBER")
+                ew_pair = player_dict["names"].get(ew_pair_number)
+                contract = traveller_line.get("CONTRACT")
+                played_by = traveller_line.get("PLAYED_BY")
+                lead = traveller_line.get("LEAD")
+                tricks = traveller_line.get("TRICKS")
+                score = traveller_line.get("SCORE")
+                try:
+                    score = int(score)
+                except ValueError:
+                    pass
+                ns_match_points = float(traveller_line.get("NS_MATCH_POINTS"))
+                ew_match_points = float(traveller_line.get("EW_MATCH_POINTS"))
+
+                # TODO: Test and make more robust
+
+                # Calculate percentage and score
+                print(score, type(score))
+                if type(score) is str:
+                    # Score is adjusted
+                    percentage = int(score[1:3])
+                    score = 0
+                else:
+                    # Normal numeric score
+                    total_mps = ns_match_points + ew_match_points
+                    if ns_flag:
+                        percentage = ns_match_points / total_mps
+                    else:
+                        percentage = ew_match_points / total_mps
+
+                    percentage = percentage * 100.0
+
+                # Set size of success circle
+                indicator = ""
+                if percentage > 20:
+                    indicator = "results-circle-quarter"
+                if percentage >= 40:
+                    indicator = "results-circle-half"
+                if percentage >= 60:
+                    indicator = "results-circle-three-quarter"
+                if percentage >= 80:
+                    indicator = "results-circle-full"
+                if percentage == 100:
+                    indicator = "results-circle-full-100"
+
+                # highlight row of interest
+                if pair_id in [ns_pair_number, ew_pair_number]:
+                    if (
+                        request.user.system_number
+                        in player_dict["system_numbers"][pair_id]
+                    ):
+                        # This user
+                        tr_highlight = "bg-warning"
+                    else:
+                        # Another user
+                        tr_highlight = "bg-info"
+                else:
+                    tr_highlight = ""
+
+                row = {
+                    "board_number": board_number,
+                    "contract": contract,
+                    "played_by": played_by,
+                    "lead": lead,
+                    "tricks": tricks,
+                    "score": score,
+                    "percentage": percentage,
+                    "ns_pair": ns_pair,
+                    "ew_pair": ew_pair,
+                    "tr_highlight": tr_highlight,
+                    "indicator": indicator,
+                }
+
+                board_data.append(row)
+
+    return board_data
