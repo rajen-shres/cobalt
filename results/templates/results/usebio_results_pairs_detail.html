@@ -26,7 +26,7 @@
                                 <th>Declarer</th>
                                 <th>Lead</th>
                                 <th>Tricks</th>
-                                <th>Score</th>
+                                <th class="text-right">Score</th>
                                 <th class="text-right">Percentage</th>
                             </tr>
                         </thead>
@@ -40,17 +40,18 @@
                                         class="text-left">{{ row.opponents }}</td>
                                     <td
                                         onclick="window.location='{% url "results:usebio_mp_pairs_board_view" results_file_id=results_file.id board_number=row.board_number pair_id=pair_id %}'";
-                                        class="text-left">{{ row.contract|cobalt_suit_replace|safe }}</td>
+                                        class="text-left">{{ row.contract|cobalt_suit_replace|default_if_none:""|safe }}</td>
                                     <td
                                         onclick="window.location='{% url "results:usebio_mp_pairs_board_view" results_file_id=results_file.id board_number=row.board_number pair_id=pair_id %}'";
-                                    >{{ row.played_by }}</td>
+                                    >{{ row.played_by|default_if_none:"" }}</td>
                                     <td
                                         onclick="window.location='{% url "results:usebio_mp_pairs_board_view" results_file_id=results_file.id board_number=row.board_number pair_id=pair_id %}'";
-                                    >{{ row.lead|cobalt_suit_replace|safe }}</td>
+                                    >{{ row.lead|cobalt_suit_replace|default_if_none:""|safe }}</td>
                                     <td
                                         onclick="window.location='{% url "results:usebio_mp_pairs_board_view" results_file_id=results_file.id board_number=row.board_number pair_id=pair_id %}'";
-                                    >{{ row.tricks }}</td>
+                                    >{{ row.tricks|default_if_none:"" }}</td>
                                     <td
+                                        class="text-right"
                                         onclick="window.location='{% url "results:usebio_mp_pairs_board_view" results_file_id=results_file.id board_number=row.board_number pair_id=pair_id %}'";
                                     >{{ row.score }}</td>
                                     <td

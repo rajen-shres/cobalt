@@ -116,3 +116,50 @@ img.cobalt-rounded {
 .dataTable > thead > tr > th[class*="sort"]:after {
     content: "" !important;
 }
+
+
+/* circles used by the results pages */
+
+.results-circle-full {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: gold;
+}
+.results-circle-full-100 {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: gold;
+    color: black;
+}
+
+.results-circle-full-100:after {
+        padding-top: 3px;
+        content: '✔';
+}
+
+.results-circle-half {
+    width: 30px;
+    height: 15px;
+    border-radius: 0 0 15px 15px;
+    background-color: #cd7f32;
+    margin-top: 15px;
+}
+
+.results-circle-three-quarter {
+  width: 0px;
+  height: 0px;
+  border-radius: 15px;
+  border: 15px solid silver;
+  border-top-color: transparent;
+  -webkit-transform: rotate(45deg);
+}
+.results-circle-quarter {
+    width: 15px;
+    height: 15px;
+    border-radius: 0 0 15px 0;
+    background-color: lightskyblue;
+    margin-top: 15px;
+    margin-left: 15px;
+}

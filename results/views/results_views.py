@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 
 from results.models import ResultsFile
@@ -62,82 +63,162 @@ def usebio_mp_pairs_results_summary_view(request, results_file_id):
     """Show the summary results for a usebio format event"""
 
     # TODO: Error checking, handle ties, one field or two
-    # TODO: Link to user and highlight name
     # TODO: Masterpoints show type in title and change colours
     # TODO: Highlight team mates
 
     results_file = get_object_or_404(ResultsFile, pk=results_file_id)
     usebio = parse_usebio_file(results_file)["EVENT"]
 
-    masterpoint_type = usebio["MASTER_POINT_TYPE"].title()
+    masterpoint_type = usebio.get("MASTER_POINT_TYPE", "No").title()
 
     if usebio["WINNER_TYPE"] == "2":
         # Two fields NS/EW
-
-        ns_scores = []
-        ew_scores = []
-
-        for item in usebio["PARTICIPANTS"]["PAIR"]:
-            player_1 = item["PLAYER"][0]["PLAYER_NAME"].title()
-            player_2 = item["PLAYER"][1]["PLAYER_NAME"].title()
-            try:
-                player_1_system_number = int(item["PLAYER"][0]["NATIONAL_ID_NUMBER"])
-                player_2_system_number = int(item["PLAYER"][1]["NATIONAL_ID_NUMBER"])
-            except TypeError:
-                player_1_system_number = None
-                player_2_system_number = None
-
-            # This may break for ties
-            position = int(item["PLACE"])
-            masterpoints = int(item["MASTER_POINTS_AWARDED"]) / 100.0
-            pair_number = item["PAIR_NUMBER"]
-            direction = item["DIRECTION"]
-            percentage = item["PERCENTAGE"]
-
-            players_names = _format_pair_name(player_1, player_2)
-
-            # See if this user is in the data and highlight
-            if request.user.system_number in [
-                player_1_system_number,
-                player_2_system_number,
-            ]:
-                tr_highlight = "bg-warning"
-            else:
-                tr_highlight = ""
-
-            row = {
-                "player_1": player_1,
-                "player_2": player_2,
-                "players_names": players_names,
-                "player_1_system_number": player_1_system_number,
-                "player_2_system_number": player_2_system_number,
-                "position": position,
-                "masterpoints": masterpoints,
-                "pair_number": pair_number,
-                "percentage": percentage,
-                "tr_highlight": tr_highlight,
-            }
-
-            if direction == "NS":
-                ns_scores.append(row)
-            else:
-                ew_scores.append(row)
-
-        # sort
-        ns_scores = sorted(ns_scores, key=lambda d: d["position"])
-        ew_scores = sorted(ew_scores, key=lambda d: d["position"])
-
-        return render(
-            request,
-            "results/usebio_results_summary_two_field_view.html",
-            {
-                "results_file": results_file,
-                "usebio": usebio,
-                "ns_scores": ns_scores,
-                "ew_scores": ew_scores,
-                "masterpoint_type": masterpoint_type,
-            },
+        return usebio_mp_pairs_results_summary_view_two_field(
+            request, usebio, results_file, masterpoint_type
         )
+    elif usebio["WINNER_TYPE"] == "1":
+        return usebio_mp_pairs_results_summary_view_single_field(
+            request, usebio, results_file, masterpoint_type
+        )
+    else:
+        return HttpResponse(
+            f"usebio winner type of {usebio['WINNER_TYPE']} not currently supported."
+        )
+
+
+def usebio_mp_pairs_results_summary_view_two_field(
+    request, usebio, results_file, masterpoint_type
+):
+    """Handle two field NS/EW"""
+
+    ns_scores = []
+    ew_scores = []
+
+    for item in usebio["PARTICIPANTS"]["PAIR"]:
+        player_1 = item["PLAYER"][0]["PLAYER_NAME"].title()
+        player_2 = item["PLAYER"][1]["PLAYER_NAME"].title()
+        try:
+            player_1_system_number = int(item["PLAYER"][0]["NATIONAL_ID_NUMBER"])
+            player_2_system_number = int(item["PLAYER"][1]["NATIONAL_ID_NUMBER"])
+        except TypeError:
+            player_1_system_number = None
+            player_2_system_number = None
+
+        # This may break for ties
+        position = int(item["PLACE"])
+        masterpoints = int(item["MASTER_POINTS_AWARDED"]) / 100.0
+        pair_number = item["PAIR_NUMBER"]
+        direction = item["DIRECTION"]
+        percentage = item["PERCENTAGE"]
+
+        players_names = _format_pair_name(player_1, player_2)
+
+        # See if this user is in the data and highlight
+        if request.user.system_number in [
+            player_1_system_number,
+            player_2_system_number,
+        ]:
+            tr_highlight = "bg-warning"
+        else:
+            tr_highlight = ""
+
+        row = {
+            "player_1": player_1,
+            "player_2": player_2,
+            "players_names": players_names,
+            "player_1_system_number": player_1_system_number,
+            "player_2_system_number": player_2_system_number,
+            "position": position,
+            "masterpoints": masterpoints,
+            "pair_number": pair_number,
+            "percentage": percentage,
+            "tr_highlight": tr_highlight,
+        }
+
+        if direction == "NS":
+            ns_scores.append(row)
+        else:
+            ew_scores.append(row)
+
+    # sort
+    ns_scores = sorted(ns_scores, key=lambda d: d["position"])
+    ew_scores = sorted(ew_scores, key=lambda d: d["position"])
+
+    return render(
+        request,
+        "results/usebio_results_summary_two_field_view.html",
+        {
+            "results_file": results_file,
+            "usebio": usebio,
+            "ns_scores": ns_scores,
+            "ew_scores": ew_scores,
+            "masterpoint_type": masterpoint_type,
+        },
+    )
+
+
+def usebio_mp_pairs_results_summary_view_single_field(
+    request, usebio, results_file, masterpoint_type
+):
+    """Handle single field e.g. Howell"""
+
+    scores = []
+
+    for item in usebio["PARTICIPANTS"]["PAIR"]:
+        player_1 = item["PLAYER"][0]["PLAYER_NAME"].title()
+        player_2 = item["PLAYER"][1]["PLAYER_NAME"].title()
+        try:
+            player_1_system_number = int(item["PLAYER"][0]["NATIONAL_ID_NUMBER"])
+            player_2_system_number = int(item["PLAYER"][1]["NATIONAL_ID_NUMBER"])
+        except TypeError:
+            player_1_system_number = None
+            player_2_system_number = None
+
+        # This may break for ties
+        position = int(item["PLACE"])
+        masterpoints = int(item["MASTER_POINTS_AWARDED"]) / 100.0
+        pair_number = item["PAIR_NUMBER"]
+        percentage = item["PERCENTAGE"]
+
+        players_names = _format_pair_name(player_1, player_2)
+
+        # See if this user is in the data and highlight
+        if request.user.system_number in [
+            player_1_system_number,
+            player_2_system_number,
+        ]:
+            tr_highlight = "bg-warning"
+        else:
+            tr_highlight = ""
+
+        row = {
+            "player_1": player_1,
+            "player_2": player_2,
+            "players_names": players_names,
+            "player_1_system_number": player_1_system_number,
+            "player_2_system_number": player_2_system_number,
+            "position": position,
+            "masterpoints": masterpoints,
+            "pair_number": pair_number,
+            "percentage": percentage,
+            "tr_highlight": tr_highlight,
+        }
+
+        scores.append(row)
+
+    # sort
+    scores = sorted(scores, key=lambda d: d["position"])
+
+    return render(
+        request,
+        "results/usebio_results_summary_single_field_view.html",
+        {
+            "results_file": results_file,
+            "usebio": usebio,
+            "scores": scores,
+            "masterpoint_type": masterpoint_type,
+        },
+    )
 
 
 @login_required()
@@ -250,17 +331,44 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
                 lead = traveller_line.get("LEAD")
                 tricks = traveller_line.get("TRICKS")
                 score = traveller_line.get("SCORE")
+                try:
+                    score = int(score)
+                except ValueError:
+                    pass
                 ns_match_points = float(traveller_line.get("NS_MATCH_POINTS"))
                 ew_match_points = float(traveller_line.get("EW_MATCH_POINTS"))
 
-                # Calculate percentage
-                total_mps = ns_match_points + ew_match_points
-                if ns_flag:
-                    percentage = ns_match_points / total_mps
-                else:
-                    percentage = ew_match_points / total_mps
+                # TODO: Test and make more robust
 
-                percentage = percentage * 100.0
+                # Calculate percentage and score
+                print(score, type(score))
+                if type(score) is str:
+                    # Score is adjusted
+                    percentage = int(score[1:3])
+                    score = 0
+                else:
+                    # Normal numeric score
+                    score = int(score)
+                    total_mps = ns_match_points + ew_match_points
+                    if ns_flag:
+                        percentage = ns_match_points / total_mps
+                    else:
+                        percentage = ew_match_points / total_mps
+
+                    percentage = percentage * 100.0
+
+                    # Set size of success circle
+                    indicator = ""
+                    if percentage > 20:
+                        indicator = "results-circle-quarter"
+                    if percentage >= 40:
+                        indicator = "results-circle-half"
+                    if percentage >= 60:
+                        indicator = "results-circle-three-quarter"
+                    if percentage >= 80:
+                        indicator = "results-circle-full"
+                    if percentage == 100:
+                        indicator = "results-circle-full-100"
 
                 # highlight row of interest
                 if pair_id in [ns_pair_number, ew_pair_number]:
@@ -282,11 +390,12 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
                     "played_by": played_by,
                     "lead": lead,
                     "tricks": tricks,
-                    "score": int(score),
+                    "score": score,
                     "percentage": percentage,
                     "ns_pair": ns_pair,
                     "ew_pair": ew_pair,
                     "tr_highlight": tr_highlight,
+                    "indicator": indicator,
                 }
 
                 board_data.append(row)
@@ -317,9 +426,16 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
 
     # sort
     if ns_flag:
-        board_data = sorted(board_data, key=lambda d: -d["score"])
+        try:
+            board_data = sorted(board_data, key=lambda d: -d["score"])
+        except TypeError:
+            # score may be averaged or adjusted
+            pass
     else:
-        board_data = sorted(board_data, key=lambda d: d["score"])
+        try:
+            board_data = sorted(board_data, key=lambda d: d["score"])
+        except TypeError:
+            pass
 
     return render(
         request,

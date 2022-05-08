@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load cobalt_tags %}
 {% block title %} - Results{% endblock %}
+
 {% block content %}
 
     <div class="card">
@@ -27,6 +28,7 @@
                                 <th>Tricks</th>
                                 <th>Score</th>
                                 <th class="text-right">Percentage</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -45,12 +47,13 @@
                                     <tr>
                                         <td class="text-left {{ row.tr_highlight }}">{{ row.ns_pair }}</td>
                                         <td class="text-left {{ row.tr_highlight }}">{{ row.ew_pair }}</td>
-                                        <td class="{{ row.tr_highlight }}">{{ row.contract|cobalt_suit_replace|safe }}</td>
-                                        <td class="{{ row.tr_highlight }}">{{ row.played_by }}</td>
-                                        <td class="{{ row.tr_highlight }}">{{ row.lead|cobalt_suit_replace|safe }}</td>
-                                        <td class="{{ row.tr_highlight }}">{{ row.tricks }}</td>
-                                        <td class="{{ row.tr_highlight }}">{{ row.score }}</td>
+                                        <td class="{{ row.tr_highlight }}">{{ row.contract|cobalt_suit_replace|default_if_none:""|safe }}</td>
+                                        <td class="{{ row.tr_highlight }}">{{ row.played_by|default_if_none:"" }}</td>
+                                        <td class="{{ row.tr_highlight }}">{{ row.lead|cobalt_suit_replace|default_if_none:""|safe }}</td>
+                                        <td class="{{ row.tr_highlight }}">{{ row.tricks|default_if_none:"" }}</td>
+                                        <td class="{{ row.tr_highlight }}">{{ row.score|default_if_none:"" }}</td>
                                         <td class="{{ row.tr_highlight }} text-right">{{ row.percentage|floatformat:0 }}%</td>
+                                        <td><div class="{{ row.indicator }}"></div></td>
                                     </tr>
                                 {% endif %}
                             {% endfor %}
@@ -81,9 +84,7 @@
                                     {% include "results/usebio_results_board_detail_hand.html" with cards=hand.West direction="West" %}
 
                                 </td>
-                                {#                        <td style="position: relative; width: 100%; height: 0;#}
-                                {#    padding-bottom: 100%;background-color: darkgreen; display:inline-block;">&nbsp;</td>#}
-                                <td class="text-center d-flex align-items-center justify-content-center font-weight-bold" style="font-size:large; width: 150px; height: 150px; background-color: darkgreen; display:inline-block; color: white">Dealer {{ dealer }}<br>{{ vulnerability}}</td>
+                                <td class="text-center d-flex align-items-center justify-content-center font-weight-bold" style="font-size:large; width: 140px; height: 140px; background-color: darkgreen; display:inline-block; color: white">Dealer {{ dealer }}<br>{{ vulnerability}}</td>
                                 <td>
                                     {% include "results/usebio_results_board_detail_hand.html" with cards=hand.East direction="East" %}
                                 </td>

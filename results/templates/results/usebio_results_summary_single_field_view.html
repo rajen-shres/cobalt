@@ -12,18 +12,10 @@
         <div class="card-body">
             <div class="card">
                 <div class="card-header card-header-warning">
-                    <h2>North-South</h2>
+                    <h2>Results</h2>
                 </div>
                 <div class="card-body">
-                    {% include "results/usebio_results_summary_results_view_table.html" with scores=ns_scores %}
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header card-header-success">
-                    <h2>East-West</h2>
-                </div>
-                <div class="card-body">
-                    {% include "results/usebio_results_summary_results_view_table.html" with scores=ew_scores %}
+                    {% include "results/usebio_results_summary_results_view_table.html" with scores=scores %}
                 </div>
             </div>
         </div>
