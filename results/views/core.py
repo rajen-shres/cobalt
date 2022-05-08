@@ -127,8 +127,6 @@ def double_dummy_from_usebio(board):
 
     pbn_bytes = bytes(pbn_str, encoding="utf-8")
 
-    print(pbn_str)
-
     return ddstable.get_ddstable(pbn_bytes)
 
 
@@ -212,10 +210,6 @@ def _score_for_contract_add_bonus(static, tricks_taken, score):
     which could be greater than 13
 
     """
-    # print("tricks_taken", tricks_taken)
-    # print("static.tricks_committed", static.tricks_committed)
-    # print("score", score)
-
     # You can be doubled into game (but not into a slam) so use different counters for double/redoubled scores
     if static.doubled:
         game_tricks_committed = 6 + (static.tricks_committed - 6) * 2
@@ -240,7 +234,6 @@ def _score_for_contract_add_bonus(static, tricks_taken, score):
     ):
         score += static.game_bonus
 
-    # print("bonus", score)
     return score
 
 
@@ -271,13 +264,6 @@ def _score_for_contract_making(static, tricks_taken):
                 * static.factor
             ) + 50
 
-        # print("static.tricks_committed pretend", static.tricks_committed)
-        # print("tricks_taken pretend", tricks_taken)
-        # print("static.score_per_trick", static.score_per_trick)
-        # print("static.starting_making_score", static.starting_making_score)
-        # print("score after double", score)
-        # print("over tricks", over_tricks)
-
     else:  # not doubled
         # starting score = score for tricks + base score (part score)
         score = (
@@ -289,14 +275,8 @@ def _score_for_contract_making(static, tricks_taken):
 
     # handle over tricks and insult
     if static.doubled or static.redoubled:
-        # print("over_tricks", over_tricks)
-        # print("over_tricks_value", over_trick_value)
-        # print("Score before over tricks", score)
-
         # add to score and add the insult
         score += (over_tricks * over_trick_value) + insult
-
-        # print("Score after over tricks", score)
 
     # scores are always with reference to NS
     if static.declarer in ["E", "W"]:

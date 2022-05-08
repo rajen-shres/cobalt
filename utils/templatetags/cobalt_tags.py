@@ -246,3 +246,19 @@ def cobalt_trick_count(tricks):
             return tricks - 6
     except TypeError:
         return tricks
+
+
+@register.filter(name="cobalt_suit_replace")
+def cobalt_suit_replace(string):
+    """Converts H,S,D,C to suit symbol and colour"""
+
+    string = string.replace("C", '<span style="font-size:1.5em;">&clubsuit;</span>')
+    string = string.replace(
+        "D", '<span style="color: red; font-size: 1.5em;">&diamondsuit;</span>'
+    )
+    string = string.replace(
+        "H", '<span style="color: red; font-size: 1.5em;">&heartsuit;</span>'
+    )
+    string = string.replace("S", '<span style="font-size:1.5em;">&spadesuit;</span>')
+
+    return string

@@ -14,13 +14,11 @@
             <div class="card">
                 <div class="card-header card-header-warning">
                     <h2>Board {{ board_number }}</h2>
-                    <h2>{{ par_score }}</h2>
-                    <h2>{{ par_string }}</h2>
                 </div>
                 <div class="card-body table-responsive">
-                    <table class="table table-condensed table-hover">
+                    <table class="table table-condensed table-hover" style="font-size: large">
                         <thead>
-                            <tr>
+                            <tr class="text-primary">
                                 <th class="text-left">North-South</th>
                                 <th class="text-left">East-West</th>
                                 <th>Contract</th>
@@ -28,7 +26,7 @@
                                 <th>Lead</th>
                                 <th>Tricks</th>
                                 <th>Score</th>
-                                <th>Percentage</th>
+                                <th class="text-right">Percentage</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -37,7 +35,7 @@
                                 {% if row.par_score %}
                                     <tr>
                                         <td colspan="8">
-                                            <button class="btn btn-sm btn-block btn-outline cobalt-text-transform-off" style="font-size: larger">
+                                            <button class="btn btn-sm btn-block btn-outline cobalt-text-transform-off" style="font-size: large">
                                                 Par Contract: {{ row.par_string }}
                                             </button>
 
@@ -45,14 +43,14 @@
 
                                 {% else %}
                                     <tr>
-                                        <td class="text-left">{{ row.ns_pair }}</td>
-                                        <td class="text-left">{{ row.ew_pair }}</td>
-                                        <td>{{ row.contract|safe }}</td>
-                                        <td>{{ row.played_by }}</td>
-                                        <td>{{ row.lead|safe }}</td>
-                                        <td>{{ row.tricks }}</td>
-                                        <td>{{ row.score }}</td>
-                                        <td>{{ row.percentage|floatformat:0 }}</td>
+                                        <td class="text-left {{ row.tr_highlight }}">{{ row.ns_pair }}</td>
+                                        <td class="text-left {{ row.tr_highlight }}">{{ row.ew_pair }}</td>
+                                        <td class="{{ row.tr_highlight }}">{{ row.contract|cobalt_suit_replace|safe }}</td>
+                                        <td class="{{ row.tr_highlight }}">{{ row.played_by }}</td>
+                                        <td class="{{ row.tr_highlight }}">{{ row.lead|cobalt_suit_replace|safe }}</td>
+                                        <td class="{{ row.tr_highlight }}">{{ row.tricks }}</td>
+                                        <td class="{{ row.tr_highlight }}">{{ row.score }}</td>
+                                        <td class="{{ row.tr_highlight }} text-right">{{ row.percentage|floatformat:0 }}%</td>
                                     </tr>
                                 {% endif %}
                             {% endfor %}
@@ -85,7 +83,7 @@
                                 </td>
                                 {#                        <td style="position: relative; width: 100%; height: 0;#}
                                 {#    padding-bottom: 100%;background-color: darkgreen; display:inline-block;">&nbsp;</td>#}
-                                <td class="text-center d-flex align-items-center justify-content-center font-weight-bold" style="width: 150px; height: 150px; background-color: darkgreen; display:inline-block; color: white">Dealer {{ dealer }}<br>{{ vulnerability}}</td>
+                                <td class="text-center d-flex align-items-center justify-content-center font-weight-bold" style="font-size:large; width: 150px; height: 150px; background-color: darkgreen; display:inline-block; color: white">Dealer {{ dealer }}<br>{{ vulnerability}}</td>
                                 <td>
                                     {% include "results/usebio_results_board_detail_hand.html" with cards=hand.East direction="East" %}
                                 </td>
@@ -103,10 +101,10 @@
                     <div class="col-md-4 pt-4">
 
                         {# Hidden table is shown if other table is clicked on - has total tricks not above book#}
-                        <div class="" id="total_tricks">
+                        <div class="d-none" id="total_tricks">
                             <h4>Total Number of Tricks</h4>
 
-                            <table class="table table-condensed">
+                            <table class="table table-condensed" style="font-size: large">
                                 <tr>
                                     <td></td>
                                     <td>
@@ -172,8 +170,9 @@
 
 
                         {# Normal table - can be swapped with other table format by clicking#}
-                        <div _="on click toggle d-none on me">
-                            <table class="table table-condensed">
+                        <div id="normal_table">
+                            <h4>Making Contracts</h4>
+                            <table class="table table-condensed" style="font-size: large">
                                 <tr>
                                     <td></td>
                                     <td>
@@ -235,7 +234,12 @@
                                     <td>{{ double_dummy.W.N|cobalt_trick_count }}</td>
                                 </tr>
                             </table>
+
                         </div>
+                        <button
+                            class="btn btn-sm btn-info float-right"
+                            _="on click toggle .d-none on #total_tricks then toggle .d-none on #normal_table"
+                        >toggle view</button>
                     </div>
 
                 </div>
