@@ -1,0 +1,8 @@
+<div class="card-header card-header-primary">
+    <h1>{{ usebio.EVENT_DESCRIPTION }}</h1>
+    <h2>{{ results_file.organisation }}</h2>
+    <h3>{{ usebio.DATE }}</h3>
+    {% if usebio.CONTACT.SCORER %}
+        <h4>Directed by {{ usebio.CONTACT.SCORER }}</h4>
+    {% endif %}
+</div>

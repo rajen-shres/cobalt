@@ -58,6 +58,38 @@ def _format_pair_name(player_1, player_2):
     return players_names
 
 
+def _set_indicator_based_on_percentage(percentage):
+    """set a value for indicator to be used as a class name in the template based upon the percentage"""
+
+    # Set size of success circle
+    indicator = ""
+    if percentage > 20:
+        indicator = "results-circle-quarter"
+    if percentage >= 40:
+        indicator = "results-circle-half"
+    if percentage >= 60:
+        indicator = "results-circle-three-quarter"
+    if percentage >= 80:
+        indicator = "results-circle-full"
+    if percentage == 100:
+        indicator = "results-circle-full-100"
+
+    return indicator
+
+
+def _percentage_from_match_points(ns_match_points, ew_match_points, ns_flag):
+    """calculate the percentage using the matchpoints. Include the direction as well"""
+
+    # Calculate percentage
+    total_mps = ns_match_points + ew_match_points
+    if ns_flag:
+        percentage = ns_match_points / total_mps
+    else:
+        percentage = ew_match_points / total_mps
+
+    return percentage * 100.0
+
+
 @login_required()
 def usebio_mp_pairs_results_summary_view(request, results_file_id):
     """Show the summary results for a usebio format event"""
@@ -256,14 +288,11 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
                 ns_match_points = float(traveller_line.get("NS_MATCH_POINTS"))
                 ew_match_points = float(traveller_line.get("EW_MATCH_POINTS"))
 
-                # Calculate percentage
-                total_mps = ns_match_points + ew_match_points
-                if ns_flag:
-                    percentage = ns_match_points / total_mps
-                else:
-                    percentage = ew_match_points / total_mps
+                percentage = _percentage_from_match_points(
+                    ns_match_points, ew_match_points, ns_flag
+                )
 
-                percentage = percentage * 100.0
+                indicator = _set_indicator_based_on_percentage(percentage)
 
                 row = {
                     "board_number": board_number,
@@ -271,6 +300,7 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
                     "played_by": played_by,
                     "lead": lead,
                     "tricks": tricks,
+                    "indicator": indicator,
                     "score": score,
                     "opponents": opponents,
                     "opponents_pair_id": opponents_pair_id,
@@ -355,6 +385,11 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
     # Add High card points and losing trick count
     high_card_points, losing_trick_count = calculate_hcp_and_ltc(hand)
 
+    previous_board = board_number - 1 if board_number > 1 else None
+
+    total_boards = len(usebio["HANDSET"]["BOARD"])
+    next_board = board_number + 1 if board_number < total_boards else None
+
     return render(
         request,
         "results/usebio_results_board_detail.html",
@@ -372,6 +407,8 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
             "par_string": par_string,
             "high_card_points": high_card_points,
             "losing_trick_count": losing_trick_count,
+            "next_board": next_board,
+            "previous_board": previous_board,
         },
     )
 
@@ -410,26 +447,11 @@ def get_traveller_info(usebio, board_number, player_dict, ns_flag, pair_id, requ
                     ew_match_points = float(traveller_line.get("EW_MATCH_POINTS"))
                     ns_match_points = float(traveller_line.get("NS_MATCH_POINTS"))
                     # Normal numeric score
-                    total_mps = ns_match_points + ew_match_points
-                    if ns_flag:
-                        percentage = ns_match_points / total_mps
-                    else:
-                        percentage = ew_match_points / total_mps
+                    percentage = _percentage_from_match_points(
+                        ns_match_points, ew_match_points, ns_flag
+                    )
 
-                    percentage = percentage * 100.0
-
-                # Set size of success circle
-                indicator = ""
-                if percentage > 20:
-                    indicator = "results-circle-quarter"
-                if percentage >= 40:
-                    indicator = "results-circle-half"
-                if percentage >= 60:
-                    indicator = "results-circle-three-quarter"
-                if percentage >= 80:
-                    indicator = "results-circle-full"
-                if percentage == 100:
-                    indicator = "results-circle-full-100"
+                indicator = _set_indicator_based_on_percentage(percentage)
 
                 # highlight row of interest
                 if pair_id in [ns_pair_number, ew_pair_number]:
@@ -497,7 +519,6 @@ def calculate_hcp_and_ltc(hand):
             elif suit[:3] == "AKQ":
                 pass
             elif suit[:2] in ["AK", "AQ", "KQ"]:
-                print(suit, compass)
                 ltc[compass] += 1
             elif suit[0] in ["A", "K", "Q"]:
                 ltc[compass] += 2

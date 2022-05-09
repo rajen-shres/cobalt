@@ -92,7 +92,8 @@ def get_recent_results(user):
     """Return the 5 most recent results for a user. Called by Dashboard"""
 
     return PlayerSummaryResult.objects.filter(
-        player_system_number=user.system_number
+        player_system_number=user.system_number,
+        results_file__status="PE",
     ).order_by("result_date")[:5]
 
 

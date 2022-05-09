@@ -179,7 +179,7 @@ def tab_sessions_htmx(request, club):
         "-session_date", "-pk"
     )
 
-    things = cobalt_paginator(request, sessions, 3)
+    things = cobalt_paginator(request, sessions)
 
     hx_post = reverse("organisations:club_menu_tab_sessions_htmx")
     hx_vars = f"club_id:{club.id}"
@@ -221,16 +221,22 @@ def tab_forums_htmx(request, club):
 
 
 @check_club_menu_access()
-def tab_results_htmx(request, club):
+def tab_results_htmx(request, club, message=None):
     """build the results tab in club menu"""
 
     recent_results = ResultsFile.objects.filter(organisation=club).order_by(
         "-created_at"
     )
-    form = ResultsFileForm()
+
+    things = cobalt_paginator(request, recent_results, 3)
+
+    hx_post = reverse("organisations:club_menu_tab_results_htmx")
+    hx_vars = f"club_id:{club.id}"
+
+    # form = ResultsFileForm()
 
     return render(
         request,
         "organisations/club_menu/results/results_htmx.html",
-        {"club": club, "recent_results": recent_results, "form": form},
+        {"club": club, "things": things, "hx_post": hx_post, "hx_vars": hx_vars},
     )

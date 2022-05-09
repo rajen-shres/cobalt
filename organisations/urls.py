@@ -515,4 +515,14 @@ urlpatterns = [
         organisations.views.club_menu_tabs.results.upload_results_file_htmx,
         name="club_menu_tab_results_upload_results_file",
     ),
+    path(
+        "club-menu/results/toggle-result-publish-state",
+        organisations.views.club_menu_tabs.results.toggle_result_publish_state_htmx,
+        name="club_menu_tab_results_toggle_result_publish_state_htmx",
+    ),
+    path(
+        "club-menu/results/delete-results-file",
+        organisations.views.club_menu_tabs.results.delete_results_file_htmx,
+        name="club_menu_tab_results_delete_results_file_htmx",
+    ),
 ]

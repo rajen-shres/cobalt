@@ -4,10 +4,7 @@
 
     <div class="card">
         <div class="card-header card-header-primary">
-            <h1>{{ usebio.EVENT_DESCRIPTION }}</h1>
-            <h2>{{ results_file.organisation }}</h2>
-            <h3>{{ usebio.DATE }}</h3>
-            <h4>Directed by {{ usebio.CONTACT.SCORER }}</h4>
+            {% include "results/usebio_results_header.html" %}
         </div>
         <div class="card-body">
             <div class="card">

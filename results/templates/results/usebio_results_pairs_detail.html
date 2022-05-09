@@ -4,12 +4,7 @@
 {% block content %}
 
     <div class="card">
-        <div class="card-header card-header-primary">
-            <h1>{{ usebio.EVENT_DESCRIPTION }}</h1>
-            <h2>{{ results_file.organisation }}</h2>
-            <h3>{{ usebio.DATE }}</h3>
-            <h4>Directed by {{ usebio.CONTACT.SCORER }}</h4>
-        </div>
+        {% include "results/usebio_results_header.html" %}
         <div class="card-body">
             <div class="card">
                 <div class="card-header card-header-warning">
@@ -28,6 +23,7 @@
                                 <th>Tricks</th>
                                 <th class="text-right">Score</th>
                                 <th class="text-right">Percentage</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -57,6 +53,7 @@
                                     <td
                                         onclick="window.location='{% url "results:usebio_mp_pairs_board_view" results_file_id=results_file.id board_number=row.board_number pair_id=pair_id %}'";
                                         class="text-right">{{ row.percentage|floatformat:0 }}%</td>
+                                    <td><div class="{{ row.indicator }}"></div></td>
                                 </tr>
                             {% endfor %}
                         </tbody>

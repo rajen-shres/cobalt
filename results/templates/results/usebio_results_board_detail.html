@@ -5,15 +5,22 @@
 {% block content %}
 
     <div class="card">
-        <div class="card-header card-header-primary">
-            <h1>{{ usebio.EVENT_DESCRIPTION }}</h1>
-            <h2>{{ results_file.organisation }}</h2>
-            <h3>{{ usebio.DATE }}</h3>
-            <h4>Directed by {{ usebio.CONTACT.SCORER }}</h4>
-        </div>
+        {% include "results/usebio_results_header.html" %}
         <div class="card-body">
             <div class="card">
                 <div class="card-header card-header-warning">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {% if previous_board %}
+                                <a href="{% url "results:usebio_mp_pairs_board_view" board_number=previous_board pair_id=pair_id results_file_id=results_file.id %}" class="btn btn-sm btn-secondary">Previous</a>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if next_board %}
+                                <a href="{% url "results:usebio_mp_pairs_board_view" board_number=next_board pair_id=pair_id results_file_id=results_file.id %}" class="btn btn-sm btn-secondary">Next</a>
+                            {% endif %}
+                        </div>
+                    </div>
                     <h2>Traveller for Board {{ board_number }}</h2>
                 </div>
                 <div class="card-body table-responsive">

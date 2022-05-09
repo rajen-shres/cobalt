@@ -1,56 +1,75 @@
 {% load cobalt_tags %}
 
-<div class="container">
-    <div class="row">
-        <div class="col-md-6">
-            <H3>Recent Results</H3>
-            <div class="table-responsive">
-                <table class="table table-hover table-condensed">
-                    <thead class="text-primary">
-                        <tr>
-                            <th>Session</th>
-                            <th>Date</th>
-                            <th>Owner</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for recent_result in recent_results %}
-                            <tr>
-                                <td>{{ recent_result.description }}</td>
-                                <td>{{ recent_result.created_at }}</td>
-                                <td>{{ recent_result.uploaded_by }}</td>
-                                <td>{{ recent_result.status }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+<h3 class="text-info font-weight-bold" id="results_message">{{ message|default_if_none:"" }}</h3>
 
-        </div>
-        <div class="col-md-6">
-            <h3>Upload Results File</h3>
-            <form hx-encoding='multipart/form-data'
-                hx-post="{% url "organisations:club_menu_tab_results_upload_results_file" %}"
-                hx-vars="club_id:{{ club.id }}"
-                hx-target="#id_panel_results"
-                hx-trigger="change"
-                id="results_file_form"
-            >
-                <div class="fileinput fileinput-new text-center" data-provides="fileinput">
-                    <div class="fileinput-preview fileinput-exists thumbnail img-circle img-raised"></div>
-                    <div>
-                        <span class="btn btn-sm btn-warning btn-file">
-                            <span class="fileinput-new">Upload New Results File</span>
-                            <input type="file" name="results_file" id="id_upload_results_file_btn"/>
-                        </span>
-
-                    </div>
-                </div>
-            </form>
-
+<form
+    hx-encoding='multipart/form-data'
+    hx-post="{% url "organisations:club_menu_tab_results_upload_results_file" %}"
+    hx-vars="club_id:{{ club.id }}"
+    hx-target="#id_panel_results"
+    hx-trigger="change"
+    id="results_file_form"
+>
+    <div class="fileinput fileinput-new text-center" data-provides="fileinput" style="cursor: pointer;">
+        <div class="fileinput-preview fileinput-exists thumbnail img-circle img-raised"></div>
+        <div>
+            <span class="btn btn-warning btn-file">
+                <span class="fileinput-new">Upload New Results File</span>
+                <input type="file" name="results_file" id="id_upload_results_file_btn"/>
+            </span>
 
         </div>
     </div>
+</form>
+
+<H3>Recent Results</H3>
+<div class="table-responsive">
+    <table class="table table-hover table-condensed">
+        <thead class="text-primary">
+            <tr>
+                <th class="text-left">Session</th>
+                <th class="text-left">Date</th>
+                <th class="text-left">Uploaded By</th>
+                <th class="text-left">Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for recent_result in things %}
+                <tr>
+                    <td class="text-left">{{ recent_result.description }}</td>
+                    <td class="text-left">{{ recent_result.created_at|cobalt_nice_datetime_short }}</td>
+                    <td class="text-left">{{ recent_result.uploaded_by.full_name }}</td>
+                    <td class="text-left">{{ recent_result.get_status_display }}</td>
+                    <td>
+                        <button
+                            hx-post="{% url "organisations:club_menu_tab_results_toggle_result_publish_state_htmx" %}"
+                            hx-vars="club_id:{{ club.id }},results_file_id:{{ recent_result.id }}"
+                            hx-target="#id_panel_results"
+                            hx-confirm="Are you sure?"
+                            style="width: 120px"
+                            class="btn btn-sm
+                            {% if recent_result.status == "PE" %}
+                                btn-success">Publish
+                            {% else %}
+                                btn-primary">Un-publish
+                            {% endif %}
+                        </button>
+                        <a class="btn btn-info btn-sm"
+                            href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=recent_result.id %}"
+                            target="_blank"
+                        >View</a>
+                        <button class="btn btn-sm btn-danger"
+                            hx-post="{% url "organisations:club_menu_tab_results_delete_results_file_htmx" %}"
+                            hx-vars="club_id:{{ club.id }},results_file_id:{{ recent_result.id }}"
+                            hx-target="#id_panel_results"
+                            hx-confirm="Are you sure?"
+                        >Delete</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
+
+{% include 'utils/pagination_footer_htmx.html' with target="#id_panel_results" %}
