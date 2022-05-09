@@ -8,6 +8,7 @@ import organisations.views.club_menu_tabs.congresses
 import organisations.views.club_menu_tabs.dashboard
 import organisations.views.club_menu_tabs.import_data
 import organisations.views.club_menu_tabs.members
+import organisations.views.club_menu_tabs.results
 import organisations.views.club_menu_tabs.settings
 import organisations.views.club_menu_tabs.utils
 from .views import club_menu, ajax
@@ -508,5 +509,10 @@ urlpatterns = [
         "club-menu/settings/add-user-to-tag",
         organisations.views.club_menu_tabs.settings.add_user_to_tag_htmx,
         name="club_menu_tab_settings_add_user_to_tag_htmx",
+    ),
+    path(
+        "club-menu/results/upload-results-file",
+        organisations.views.club_menu_tabs.results.upload_results_file_htmx,
+        name="club_menu_tab_results_upload_results_file",
     ),
 ]

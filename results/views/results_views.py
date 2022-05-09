@@ -307,30 +307,29 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
     player_dict = _get_player_names_by_id(usebio["EVENT"])
 
     # If we got a pair_number, then see which way they were sitting on this board, default view to NS
-    if pair_id == 0:
-        ns_flag = True
-    else:
-        if player_dict["direction"][pair_id] == "NS":
-            ns_flag = True
-        else:
-            ns_flag = False
-
+    ns_flag = True if pair_id == 0 else player_dict["direction"][pair_id] == "NS"
     board_data = get_traveller_info(
         usebio, board_number, player_dict, ns_flag, pair_id, request
     )
 
     # Now get hand record
     hand = {}
+    double_dummy = None
+
     for board in usebio["HANDSET"]["BOARD"]:
         if int(board["BOARD_NUMBER"]) == board_number:
             for compass in board["HAND"]:
-                hand[compass["DIRECTION"]] = {}
-                hand[compass["DIRECTION"]]["clubs"] = compass["CLUBS"]
-                hand[compass["DIRECTION"]]["diamonds"] = compass["DIAMONDS"]
-                hand[compass["DIRECTION"]]["hearts"] = compass["HEARTS"]
-                hand[compass["DIRECTION"]]["spades"] = compass["SPADES"]
+                hand[compass["DIRECTION"]] = {
+                    "clubs": compass["CLUBS"],
+                    "diamonds": compass["DIAMONDS"],
+                    "hearts": compass["HEARTS"],
+                    "spades": compass["SPADES"],
+                }
 
             double_dummy = double_dummy_from_usebio(board["HAND"])
+
+    if not double_dummy:
+        return HttpResponse(f"Board {board_number} not found for this result")
 
     dealer, vulnerability = dealer_and_vulnerability_for_board(board_number)
     par_score, par_string = par_score_and_contract(double_dummy, vulnerability, dealer)
@@ -343,18 +342,18 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
     }
     board_data.append(row)
 
-    # sort
-    if ns_flag:
-        try:
+    # Sort up or down depending on who is viewing it
+    try:
+        if ns_flag:
             board_data = sorted(board_data, key=lambda d: -d["score"])
-        except TypeError:
-            # score may be averaged or adjusted
-            pass
-    else:
-        try:
+        else:
             board_data = sorted(board_data, key=lambda d: d["score"])
-        except TypeError:
-            pass
+    except TypeError:
+        # score may be averaged or adjusted, not a number
+        pass
+
+    # Add High card points and losing trick count
+    high_card_points, losing_trick_count = calculate_hcp_and_ltc(hand)
 
     return render(
         request,
@@ -371,6 +370,8 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
             "vulnerability": vulnerability,
             "par_score": par_score,
             "par_string": par_string,
+            "high_card_points": high_card_points,
+            "losing_trick_count": losing_trick_count,
         },
     )
 
@@ -398,18 +399,16 @@ def get_traveller_info(usebio, board_number, player_dict, ns_flag, pair_id, requ
                     score = int(score)
                 except ValueError:
                     pass
-                ns_match_points = float(traveller_line.get("NS_MATCH_POINTS"))
-                ew_match_points = float(traveller_line.get("EW_MATCH_POINTS"))
-
                 # TODO: Test and make more robust
 
                 # Calculate percentage and score
-                print(score, type(score))
                 if type(score) is str:
                     # Score is adjusted
                     percentage = int(score[1:3])
                     score = 0
                 else:
+                    ew_match_points = float(traveller_line.get("EW_MATCH_POINTS"))
+                    ns_match_points = float(traveller_line.get("NS_MATCH_POINTS"))
                     # Normal numeric score
                     total_mps = ns_match_points + ew_match_points
                     if ns_flag:
@@ -463,3 +462,46 @@ def get_traveller_info(usebio, board_number, player_dict, ns_flag, pair_id, requ
                 board_data.append(row)
 
     return board_data
+
+
+def calculate_hcp_and_ltc(hand):
+    """calculate the high card points and losing trick count for this board"""
+
+    hcp = {}
+    ltc = {}
+
+    for compass in hand:
+        hcp[compass] = 0
+        ltc[compass] = 0
+        for suit_name in hand[compass]:
+            suit = hand[compass][suit_name]
+            # HCP
+            if suit.find("A") >= 0:
+                hcp[compass] += 4
+            if suit.find("K") >= 0:
+                hcp[compass] += 3
+            if suit.find("Q") >= 0:
+                hcp[compass] += 2
+            if suit.find("J") >= 0:
+                hcp[compass] += 1
+            # LTC
+            if len(suit) == 1 and suit != "A":
+                ltc[compass] += 1
+            elif len(suit) == 2:
+                if suit == "AK":
+                    pass
+                elif suit[0] in ["A", "K"]:
+                    ltc[compass] += 1
+                else:
+                    ltc[compass] += 2
+            elif suit[:3] == "AKQ":
+                pass
+            elif suit[:2] in ["AK", "AQ", "KQ"]:
+                print(suit, compass)
+                ltc[compass] += 1
+            elif suit[0] in ["A", "K", "Q"]:
+                ltc[compass] += 2
+            else:
+                ltc[compass] += 3
+
+    return hcp, ltc

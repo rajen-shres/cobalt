@@ -16,6 +16,7 @@ from django.utils import timezone
 from club_sessions.models import Session
 from events.models import Congress, CongressMaster
 from organisations.decorators import check_club_menu_access
+from organisations.forms import ResultsFileForm
 from organisations.models import (
     Organisation,
 )
@@ -35,6 +36,7 @@ from rbac.core import (
 )
 from rbac.models import RBACUserGroup, RBACGroupRole
 from rbac.views import rbac_forbidden
+from results.models import ResultsFile
 from utils.utils import cobalt_paginator
 
 
@@ -222,6 +224,13 @@ def tab_forums_htmx(request, club):
 def tab_results_htmx(request, club):
     """build the results tab in club menu"""
 
+    recent_results = ResultsFile.objects.filter(organisation=club).order_by(
+        "-created_at"
+    )
+    form = ResultsFileForm()
+
     return render(
-        request, "organisations/club_menu/results/results_htmx.html", {"club": club}
+        request,
+        "organisations/club_menu/results/results_htmx.html",
+        {"club": club, "recent_results": recent_results, "form": form},
     )

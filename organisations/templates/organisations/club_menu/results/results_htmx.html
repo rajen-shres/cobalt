@@ -1,1 +1,56 @@
-<h2>Coming Soon</h2>
+{% load cobalt_tags %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <H3>Recent Results</H3>
+            <div class="table-responsive">
+                <table class="table table-hover table-condensed">
+                    <thead class="text-primary">
+                        <tr>
+                            <th>Session</th>
+                            <th>Date</th>
+                            <th>Owner</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for recent_result in recent_results %}
+                            <tr>
+                                <td>{{ recent_result.description }}</td>
+                                <td>{{ recent_result.created_at }}</td>
+                                <td>{{ recent_result.uploaded_by }}</td>
+                                <td>{{ recent_result.status }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        <div class="col-md-6">
+            <h3>Upload Results File</h3>
+            <form hx-encoding='multipart/form-data'
+                hx-post="{% url "organisations:club_menu_tab_results_upload_results_file" %}"
+                hx-vars="club_id:{{ club.id }}"
+                hx-target="#id_panel_results"
+                hx-trigger="change"
+                id="results_file_form"
+            >
+                <div class="fileinput fileinput-new text-center" data-provides="fileinput">
+                    <div class="fileinput-preview fileinput-exists thumbnail img-circle img-raised"></div>
+                    <div>
+                        <span class="btn btn-sm btn-warning btn-file">
+                            <span class="fileinput-new">Upload New Results File</span>
+                            <input type="file" name="results_file" id="id_upload_results_file_btn"/>
+                        </span>
+
+                    </div>
+                </div>
+            </form>
+
+
+        </div>
+    </div>
+</div>

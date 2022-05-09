@@ -2,30 +2,27 @@
     <span class="font-weight-bold" style="font-size: large">{{ direction }}</span>
     <table class="p-0 m-0 b-0" style="font-size: large">
         <tr style="line-height: 15px; min-height: 15px; height: 15px;">
-            <td>
-                <span style="font-size:1.5em;">&spadesuit;</span>
-                {{ cards.spades|default_if_none:"-" }}
-            </td>
-        </tr>
-        <tr style="line-height: 15px; min-height: 15px; height: 15px;">
-            <td>
 
-                <span style="color: red; font-size: 1.5em;">&heartsuit;</span>
-                {{ cards.hearts|default_if_none:"-" }}
+            <td class="text-center"><span style="font-size:1.5em;">&spadesuit;</span></td>
+            <td>{{ cards.spades|default_if_none:"-" }}</td>
 
-            </td>
         </tr>
         <tr style="line-height: 15px; min-height: 15px; height: 15px;">
-            <td>
-                <span style="color: red; font-size: 1.5em;">&diamondsuit;</span>
-                {{ cards.diamonds|default_if_none:"-" }}
-            </td>
+
+            <td class="text-center"> <span style="color: red; font-size: 1.5em;">&heartsuit;</span></td>
+            <td>{{ cards.hearts|default_if_none:"-" }}</td>
+
         </tr>
         <tr style="line-height: 15px; min-height: 15px; height: 15px;">
-            <td>
-                <span style="font-size:1.5em;">&clubsuit;</span>
-                {{ cards.clubs|default_if_none:"-" }}
-            </td>
+
+            <td class="text-center"> <span style="color: red; font-size: 1.5em;">&diamondsuit;</span></td>
+            <td>{{ cards.diamonds|default_if_none:"-" }}</td>
+
+        </tr>
+        <tr style="line-height: 15px; min-height: 15px; height: 15px;">
+
+            <td class="text-center"> <span style="font-size:1.5em;">&clubsuit;</span></td>
+            <td>{{ cards.clubs|default_if_none:"-" }}</td>
         </tr>
     </table>
 </div>

@@ -17,7 +17,9 @@ def _check_extra_role(request, function, club, extra_role, *args, **kwargs):
         return rbac_forbidden(request, extra_role)
 
 
-def check_club_menu_access(check_members=False, check_comms=False):
+def check_club_menu_access(
+    check_members=False, check_comms=False, check_sessions=False
+):
     """checks if user should have access to a club menu
 
     Call as:
@@ -33,6 +35,7 @@ def check_club_menu_access(check_members=False, check_comms=False):
 
         check_members: Will also check for the role orgs.members.{club.id}.edit
         check_comms: Will also check for the role notifications.orgcomms.{club.id}.edit
+        check_sessions: Will also check for the role club_sessions.sessions.{club.id}.edit
 
     We add a parameter (club) to the actual call which is fine for calls from
     URLs but if we call this internally it will need to be called without the
@@ -87,6 +90,13 @@ def check_club_menu_access(check_members=False, check_comms=False):
                 # Check for optional comms parameter
                 if check_comms:
                     extra_role = f"notifications.orgcomms.{club.id}.edit"
+                    return _check_extra_role(
+                        request, function, club, extra_role, *args, **kwargs
+                    )
+
+                # Check for optional sessions parameter
+                if check_sessions:
+                    extra_role = f"club_sessions.sessions.{club.id}.edit"
                     return _check_extra_role(
                         request, function, club, extra_role, *args, **kwargs
                     )

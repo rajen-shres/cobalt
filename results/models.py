@@ -25,6 +25,7 @@ class ResultsFile(models.Model):
         PENDING = "PE"
 
     results_file = models.FileField(upload_to=_results_file_directory_path)
+    description = models.CharField(max_length=200)
     uploaded_by = models.ForeignKey(
         User,
         on_delete=models.PROTECT,

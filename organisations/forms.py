@@ -17,6 +17,7 @@ from cobalt.settings import (
 from notifications.models import EmailAttachment
 from payments.models import OrgPaymentMethod
 from rbac.core import rbac_user_has_role
+from results.models import ResultsFile
 from .models import (
     Organisation,
     MembershipType,
@@ -444,6 +445,16 @@ class EmailAttachmentForm(forms.ModelForm):
         model = EmailAttachment
         fields = ("attachment",)
         widgets = {"attachment": forms.FileInput(attrs={"accept": "*/*"})}
+
+
+class ResultsFileForm(forms.ModelForm):
+    """Form for uploading a results file"""
+
+    class Meta:
+
+        model = ResultsFile
+        fields = ("results_file",)
+        widgets = {"results_file": forms.FileInput(attrs={"accept": "*/*.xml"})}
 
 
 class UnregisteredUserMembershipForm(forms.Form):
