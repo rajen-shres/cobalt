@@ -70,6 +70,10 @@ def _csv_generic(club_member):
         "email": club_member[3],
     }
 
+    # Allow Membership Type to be specified for each row(member). This overrides the form setting
+    if len(club_member) > 4:
+        item["membership_type"] = club_member[4]
+
     return True, None, item
 
 
@@ -113,6 +117,7 @@ def _csv_common(item):
     first_name = item["first_name"]
     last_name = item["last_name"]
     email = item["email"]
+    membership_type = item.get("membership_type")  # None if not set
 
     system_number = system_number.strip()
 
@@ -145,6 +150,7 @@ def _csv_common(item):
         "first_name": first_name,
         "last_name": last_name,
         "email": email,
+        "membership_type": membership_type,
     }
 
     return True, None, item
@@ -273,6 +279,7 @@ def import_mpc_htmx(request, club):
             "first_name": club_member["GivenNames"],
             "last_name": club_member["Surname"],
             "email": club_member["EmailAddress"],
+            "membership_type": None,
         }
         for club_member in club_members
     ]
@@ -352,6 +359,19 @@ def add_member_to_membership(
     now = timezone.now()
     name = f"{club_member['system_number']} - {club_member['first_name']} {club_member['last_name']}"
 
+    # See if we are overriding the membership type
+    if club_member["membership_type"]:
+        this_membership = MembershipType.objects.filter(
+            organisation=club, name=club_member["membership_type"]
+        ).first()
+        if this_membership:
+            default_membership = this_membership
+        else:
+            return (
+                0,
+                f"Invalid membership type {club_member['membership_type']} for {name}",
+            )
+
     # Check if already there
     member_membership = (
         MemberMembershipType.objects.active()
@@ -422,7 +442,7 @@ def process_member_import(
     """Common function to process a list of members
 
     Args:
-        default_membership: Which membership to add this user to
+        default_membership: Which membership to add this user to. Can be overridden at the row level
         club_specific_email: Is this email specific to this club? True for 'club' sources like Pianola, False for MPC
         home_club: Is this the home club for this user
         origin: Where did we get this data from?

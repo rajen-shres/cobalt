@@ -111,11 +111,14 @@
             <p>You can upload any data in our generic CSV format. The file needs to have comma-separated
                 values (CSV) with the following format:
             </p>
-            <code>{{ GLOBAL_ORG }} Number, First Name, Last Name, Email Address</code>
+            <code>{{ GLOBAL_ORG }} Number, First Name, Last Name, Email Address, Membership Type</code>
             <br>
             <br>
             <p>A header row is expected, you will lose the first row of data if you do not have one.</p>
             <p>The email address is optional.</p>
+            <p>The Membership type is also optional. If specified, it will override the Membership Type
+                chosen on the form. Membership Type must match exactly with the name of a valid Membership Type
+                as defined in Settings.</p>
         </div>
 
 
@@ -133,12 +136,19 @@
                 "Go to <b>Administration</b>, then <b>Members</b> and click on <b>Export</b>. Use the 'Export to CSV' option." +
                 "use the saved file to upload here.</p>");
         }
+        if (this.value === "CS2") {
+            $('#id_csv_types_description').html("<h3>Compscore2 Export Format</h3><p>You can export data from Compscore2. " +
+                "Use the saved file to upload here.</p>");
+        }
         if (this.value === "CSV") {
             $('#id_csv_types_description').html("<h3>Generic CSV</h3><p>You can upload any data in our generic CSV format. " +
                 "The file needs to have comma-separated values (CSV) with the following format:</p>" +
-                "<code>{{ GLOBAL_ORG }} Number, First Name, Last Name, Email Address</code><br><br>" +
+                "<code>{{ GLOBAL_ORG }} Number, First Name, Last Name, Email Address, Membership Type</code><br><br>" +
                 "<p>A header row is expected, you will lose the first row if data of you do not have one.</p>" +
-                "<p>The email address is optional.</p>");
+                "<p>The email address is optional.</p> " +
+                "<p>The Membership type is also optional. If specified, it will override the Membership Type " +
+                "chosen on the form. Membership Type must match exactly with the name of a valid Membership Type" +
+                "as defined in Settings.</p>");
         }
 
     });
