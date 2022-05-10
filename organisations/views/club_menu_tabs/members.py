@@ -234,7 +234,7 @@ def delete_un_reg_htmx(request, club):
     un_reg = get_object_or_404(UnregisteredUser, pk=request.POST.get("un_reg_id"))
     _cancel_membership(request, club, un_reg.system_number)
 
-    return list_htmx(request, f"{un_reg.full_name} membership deleted.")
+    return list_htmx(request, message=f"{un_reg.full_name} membership deleted.")
 
 
 @check_club_menu_access(check_members=True)
@@ -246,7 +246,7 @@ def delete_member_htmx(request, club):
     member = get_object_or_404(User, pk=request.POST.get("member_id"))
     _cancel_membership(request, club, member.system_number)
 
-    return list_htmx(request, f"{member.full_name} membership deleted.")
+    return list_htmx(request, message=f"{member.full_name} membership deleted.")
 
 
 def _un_reg_edit_htmx_process_form(

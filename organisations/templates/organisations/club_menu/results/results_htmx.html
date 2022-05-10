@@ -59,12 +59,12 @@
                             href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=recent_result.id %}"
                             target="_blank"
                         >View</a>
-                        <button class="btn btn-sm btn-danger"
-                            hx-post="{% url "organisations:club_menu_tab_results_delete_results_file_htmx" %}"
-                            hx-vars="club_id:{{ club.id }},results_file_id:{{ recent_result.id }}"
-                            hx-target="#id_panel_results"
-                            hx-confirm="Are you sure?"
-                        >Delete</button>
+
+                        {% include "utils/htmx_confirm_modal.html" with id=recent_result.id hx_target="#id_panel_results" delete_item=recent_result.description hx_post=hx_delete hx_vars=recent_result.hx_vars %}
+                        <button id="id_delete_result{{ recent_result.id }}" type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal{{ recent_result.id }}">Delete</button>
+
+
+
                     </td>
                 </tr>
             {% endfor %}

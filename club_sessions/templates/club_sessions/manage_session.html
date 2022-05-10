@@ -52,7 +52,14 @@
             <div class="card-body" style="min-height: 500px;">
                 <div class="tab-content tab-space">
                     <div class="tab-pane" id="basics">
-                        <h3>Basics</h3>
+                        <h3>Settings</h3>
+                        <div id="id_pane_settings">
+                            <div
+                                hx-post="{% url "club_sessions:tab_edit_session_htmx" %}"
+                                hx-trigger="load"
+                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            ></div>
+                        </div>
                     </div>
                     <div class="tab-pane active" id="stuff">
                         <h3>Stuff</h3>

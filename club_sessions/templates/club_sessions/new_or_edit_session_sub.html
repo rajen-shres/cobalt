@@ -1,0 +1,77 @@
+{% load cobalt_tags %}
+
+
+<form method="post">
+    {% csrf_token %}
+    <div class="container">
+        <div class="row align-items-center h-100 my-0">
+            <div class="col-md-6">
+                Director
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+
+                    <div class="float-left">
+                        <input type="hidden" id="id_director" name="director" value="{{ session_form.director.value }}">
+                        <span id="director_name">
+                            {{ director_name }}
+                        </span>
+                    </div>
+                    <div class="float-right mt-0">
+                        <span style="cursor:pointer;" class="material-icons" data-toggle="modal" data-target="#userSearchModal">
+                            edit
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if session_form.venue %}
+            <div class="row align-items-center h-100 mb-2">
+                <div class="col-md-6 mt-4">
+                    Venue
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {% cobalt_bs4_field session_form.venue %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <div class="row align-items-center h-100 my-4">
+            <div class="col-md-6 mt-4">
+                Session Type
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    {% cobalt_bs4_field session_form.session_type %}
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center h-100 my-0">
+            <div class="col-md-6">
+                Session Date
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    {% cobalt_bs4_field session_form.session_date no_label=True %}
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center h-100 my-0">
+            <div class="col-md-6 mt-4">
+                Time of Day
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    {% cobalt_bs4_field session_form.time_of_day %}
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center h-100 my-4">
+            <div class="col-12 my-4">
+                <div class="form-group">
+                    {% cobalt_bs4_field session_form.description %}
+                </div>
+            </div>
+        </div>
+    </div>

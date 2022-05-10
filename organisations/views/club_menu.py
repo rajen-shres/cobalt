@@ -228,15 +228,25 @@ def tab_results_htmx(request, club, message=None):
         "-created_at"
     )
 
-    things = cobalt_paginator(request, recent_results, 3)
+    things = cobalt_paginator(request, recent_results)
 
     hx_post = reverse("organisations:club_menu_tab_results_htmx")
     hx_vars = f"club_id:{club.id}"
+    hx_delete = reverse("organisations:club_menu_tab_results_delete_results_file_htmx")
+
+    for thing in things:
+        thing.hx_vars = f"club_id:{club.id},results_file_id:{thing.id}"
 
     # form = ResultsFileForm()
 
     return render(
         request,
         "organisations/club_menu/results/results_htmx.html",
-        {"club": club, "things": things, "hx_post": hx_post, "hx_vars": hx_vars},
+        {
+            "club": club,
+            "things": things,
+            "hx_post": hx_post,
+            "hx_delete": hx_delete,
+            "hx_vars": hx_vars,
+        },
     )

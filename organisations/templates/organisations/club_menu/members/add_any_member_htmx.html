@@ -61,7 +61,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title w-100 font-weight-bold"><i class="material-icons">how_to_reg</i>&nbsp;&nbsp;Add <span id="id_member_add_modal_first_name"></span> as a Member</h4>
+                        <h4 class="modal-title w-100 font-weight-bold"><i class="material-icons">how_to_reg</i>&nbsp;&nbsp;Add <span id="id_member_add_modal_title_name"></span> as a Member</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                             onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
                         >
@@ -118,7 +118,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title w-100 font-weight-bold"><i class="material-icons">how_to_reg</i>&nbsp;&nbsp;Add <span id="id_member_add_modal_first_name"></span> as an Unregistered Member</h4>
+                        <h4 class="modal-title w-100 font-weight-bold"><i class="material-icons">how_to_reg</i>&nbsp;&nbsp;Add <span id="id_un_reg_add_modal_title_name"></span> as an Unregistered Member</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                             onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
                         >
@@ -199,7 +199,7 @@
     function show_add_member_modal(system_number, first_name, last_name){
         // update the details in the member add modal and show it
         $('#id_add_member_system_number').val(system_number);
-        $('#id_member_add_modal_first_name').text(first_name);
+        $('#id_member_add_modal_title_name').text(first_name + " " + last_name);
         $('#id_member_add_modal_name').text(first_name + " " + last_name);
         $('#id_member_add_modal').modal('show');
     }
@@ -208,7 +208,7 @@
         // update the details in the un registered add modal and show it
         $('#id_add_un_reg_system_number').val(system_number);
         $('#id_mpc_email').val(mpc_email);
-        $('#id_member_add_un_reg_name').text(first_name + " " + last_name);
+        $('#id_un_reg_add_modal_title_name').text(first_name + " " + last_name);
         $('#id_add_un_reg_first_name').val(first_name);
         $('#id_add_un_reg_last_name').val(last_name);
         $('#id_un_reg_add_modal').modal('show');

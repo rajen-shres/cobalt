@@ -1,0 +1,17 @@
+{% load cobalt_tags %}
+
+{% include "club_sessions/new_or_edit_session_sub.html" %}
+
+<div class="text-center">
+    <button type="submit" name="save_settings"
+        class="btn btn-primary cobalt-save"
+        hx_target="#id_pane_settings"
+        hx-post="{% url "club_sessions:tab_edit_session_htmx" %}"
+        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+    >Create</button>
+</div>
+</form>
+
+{% include "club_sessions/new_or_edit_session_footer.html" %}
+
+

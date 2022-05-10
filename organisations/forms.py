@@ -250,7 +250,9 @@ class UnregisteredUserAddForm(forms.Form):
     mpc_email = forms.EmailField(
         label="Email Address (accessible by all clubs)", required=False
     )
-    club_email = forms.EmailField(label="Club email address (private)", required=False)
+    club_email = forms.EmailField(
+        label="Email Address (accessible by this club only)", required=False
+    )
     membership_type = forms.ChoiceField()
     home_club = forms.BooleanField(initial=True, required=False)
     send_welcome_pack = forms.BooleanField(initial=True, required=False)

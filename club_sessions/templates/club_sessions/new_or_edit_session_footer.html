@@ -1,0 +1,76 @@
+
+{% include "utils/include_htmx.html" %}
+{% include "accounts/search/user_search_include_htmx.html" with include_me=True callback="ChangeDirector" %}
+
+<script>
+    function ChangeDirector(search_id, user_id, user_name){
+        $("#id_director").val(user_id);
+        $("#director_name").html(user_name);
+    }
+
+    function UpdateTimeOfDay(){
+        // Update the time of day field based upon current time in browser
+
+        // get time on browser
+        const dt = new Date();
+
+        if (dt.getHours() < 12) {
+            $("#id_time_of_day").val('AM');
+        } else if (dt.getHours() < 17) {
+            $("#id_time_of_day").val('PM');
+        } else {
+            $("#id_time_of_day").val('EV');
+        }
+    }
+
+    function UpdateDescription(){
+        // Update the description field with other values on the page
+        // We use the browser time to set the time of day, not the server time.
+        // That also means we have to set the default description on the client side
+
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        // get time on browser
+        const dt = new Date();
+
+        // get day of week from date field e.g. Monday
+        const session_date = new Date($('#id_session_date').val());
+        const day = days[session_date.getDay()];
+
+        // get venue if we have one
+        let venue = $("#id_venue option:selected").text();
+        if (venue.length > 0){
+            venue = venue + " ";
+        }
+
+        if (dt.getHours() < 12) {
+            $("#id_description").val(venue + day + " AM");
+        } else if (dt.getHours() < 17) {
+            $("#id_description").val(venue + day + " PM");
+        } else {
+            $("#id_description").val(venue + day + " Evening");
+        }
+    }
+
+    function UpdateDescriptionAndTimeOfDay(){
+        UpdateDescription();
+        UpdateTimeOfDay();
+    }
+
+
+    $( document ).ready(function(){
+        UpdateDescriptionAndTimeOfDay();
+
+        $("#id_session_date").change(function(){
+            UpdateDescriptionAndTimeOfDay();
+        });
+        $("#id_venue").change(function(){
+            UpdateDescriptionAndTimeOfDay();
+        });
+        $("#id_time_of_day").change(function(){
+            UpdateDescription();
+        });
+    });
+
+</script>
+

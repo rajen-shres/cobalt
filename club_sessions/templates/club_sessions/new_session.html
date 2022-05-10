@@ -3,7 +3,6 @@
 {% block title %} - New Session{% endblock %}
 
 {% block content %}
-
     <div class="jumbotron">
         <div class="card col-md-8 col-lg-8">
             <div class="card-header card-header-danger">
@@ -11,164 +10,20 @@
                 <h3>{{ club }}</h3>
             </div>
             <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="container">
-                        <div class="row align-items-center h-100 my-0">
-                            <div class="col-md-6">
-                                Director
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
 
-                                    <div class="float-left">
-                                        <input type="hidden" id="id_director" name="director" value="{{ session_form.director.value }}">
-                                        <span id="director_name">
-                                            {{ director_name }}
-                                        </span>
-                                    </div>
-                                    <div class="float-right mt-0">
-                                        <span style="cursor:pointer;" class="material-icons" data-toggle="modal" data-target="#userSearchModal">
-                                            edit
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% if session_form.venue %}
-                            <div class="row align-items-center h-100 mb-2">
-                                <div class="col-md-6 mt-4">
-                                    Venue
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        {% cobalt_bs4_field session_form.venue %}
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-                        <div class="row align-items-center h-100 my-4">
-                            <div class="col-md-6 mt-4">
-                                Session Type
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    {% cobalt_bs4_field session_form.session_type %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row align-items-center h-100 my-0">
-                            <div class="col-md-6">
-                                Session Date
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    {% cobalt_bs4_field session_form.session_date no_label=True %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row align-items-center h-100 my-0">
-                            <div class="col-md-6 mt-4">
-                                Time of Day
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    {% cobalt_bs4_field session_form.time_of_day %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row align-items-center h-100 my-4">
-                            <div class="col-12 my-4">
-                                <div class="form-group">
-                                    {% cobalt_bs4_field session_form.description %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary cobalt-save">Create</button>
-                    </div>
-                </form>
-            </div>
+                {% include "club_sessions/new_or_edit_session_sub.html" %}
+                <div class="text-center">
+                    <button type="submit" name="save_settings" class="btn btn-primary cobalt-save">Create</button>
+                </div>
+            </form>
         </div>
     </div>
-
+    </div>
 
 {% endblock %}
 
 {% block footer %}
-    {% include "utils/include_htmx.html" %}
-    {% include "accounts/search/user_search_include_htmx.html" with include_me=True callback="ChangeDirector" %}
 
-    <script>
-        function ChangeDirector(search_id, user_id, user_name){
-            $("#id_director").val(user_id);
-            $("#director_name").html(user_name);
-        }
+    {% include "club_sessions/new_or_edit_session_footer.html" %}
 
-        function UpdateTimeOfDay(){
-            // Update the time of day field based upon current time in browser
-
-            // get time on browser
-            const dt = new Date();
-
-            if (dt.getHours() < 12) {
-                $("#id_time_of_day").val('AM');
-            } else if (dt.getHours() < 17) {
-                $("#id_time_of_day").val('PM');
-            } else {
-                $("#id_time_of_day").val('EV');
-            }
-        }
-
-        function UpdateDescription(){
-            // Update the description field with other values on the page
-            // We use the browser time to set the time of day, not the server time.
-            // That also means we have to set the default description on the client side
-
-            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-            // get time on browser
-            const dt = new Date();
-
-            // get day of week from date field e.g. Monday
-            const session_date = new Date($('#id_session_date').val());
-            const day = days[session_date.getDay()];
-
-            // get venue if we have one
-            let venue = $("#id_venue option:selected").text();
-            if (venue.length > 0){
-                venue = venue + " ";
-            }
-
-            if (dt.getHours() < 12) {
-                $("#id_description").val(venue + day + " AM");
-            } else if (dt.getHours() < 17) {
-                $("#id_description").val(venue + day + " PM");
-            } else {
-                $("#id_description").val(venue + day + " Evening");
-            }
-        }
-
-        function UpdateDescriptionAndTimeOfDay(){
-            UpdateDescription();
-            UpdateTimeOfDay();
-        }
-
-
-        $( document ).ready(function(){
-            UpdateDescriptionAndTimeOfDay();
-
-            $("#id_session_date").change(function(){
-                UpdateDescriptionAndTimeOfDay();
-            });
-            $("#id_venue").change(function(){
-                UpdateDescriptionAndTimeOfDay();
-            });
-            $("#id_time_of_day").change(function(){
-                UpdateDescription();
-            });
-        });
-
-    </script>
 {% endblock footer %}

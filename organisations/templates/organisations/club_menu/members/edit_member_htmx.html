@@ -47,7 +47,7 @@
                     {#                    </div>#}
 
                     <button type="submit" name="save" class="btn btn-success">Save</button>
-                    {% include "utils/htmx_confirm_modal.html" with id="memdel" delete_item=member.first_name hx_target="#id_panel_members" hx_post=hx_delete hx_vars=hx_vars %}
+                    {% include "utils/htmx_confirm_modal.html" with id="memdel" delete_item=member.first_name delete_button="Remove" hx_target="#id_panel_members" hx_post=hx_delete hx_vars=hx_vars %}
                     <button id="id_delete_user_1" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModalmemdel">Remove</button>
                 </form>
 

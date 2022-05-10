@@ -64,7 +64,19 @@ def manage_session(request, session_id):
 
 
 @user_is_club_director()
-def tab_edit_session(request, club):
+def tab_edit_session_htmx(request, club, session):
     """Edit fields that were set up when the session was started"""
 
-    return HttpResponse("Hello")
+    if "save_settings" in request.POST:
+        session_form = SessionForm(request.POST, club=club)
+        if session_form.is_valid():
+            session = session_form.save()
+
+    else:
+        session_form = SessionForm(club=club)
+
+    return render(
+        request,
+        "club_sessions/edit_session_htmx.html",
+        {"session_form": session_form, "club": club, "session": session},
+    )

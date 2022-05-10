@@ -26,8 +26,10 @@ def create_player_records_from_usebio_format(results_file: ResultsFile, xml: dic
 
     # TODO: Sort out if we pass the whole thing or just a bit of it
 
-    event_name = xml["EVENT_DESCRIPTION"]
-    event_date_str = xml["DATE"]
+    xml = xml.get("EVENT")
+
+    event_name = xml.get("EVENT_DESCRIPTION")
+    event_date_str = xml.get("DATE")
     event_date = datetime.strptime(event_date_str, "%d/%m/%Y").date()
 
     for detail in xml["PARTICIPANTS"]["PAIR"]:
