@@ -13,22 +13,6 @@
                         <div class="col-md-8">
                             <div class="form-group">
                                 <input type="text"
-                                    id="id_member_first_name_search"
-                                    name="member_first_name_search"
-                                    placeholder="First Name"
-                                    class="form-control"
-                                    hx-post="{% url "organisations:club_menu_tab_members_add_member_search_htmx" %}"
-                                    hx-trigger="keyup changed delay:100ms"
-                                    hx-target="#add-member-search-results"
-                                    hx-include="[id='id_member_last_name_search']"
-                                >
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="form-group">
-                                <input type="text"
                                     id="id_member_last_name_search"
                                     name="member_last_name_search"
                                     placeholder="Last Name"
@@ -37,10 +21,31 @@
                                     hx-trigger="keyup changed delay:100ms"
                                     hx-target="#add-member-search-results"
                                     hx-include="[id='id_member_first_name_search']"
+                                    hx-vars="club_id: {{ club.id }}"
                                 >
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <input type="text"
+                                    id="id_member_first_name_search"
+                                    name="member_first_name_search"
+                                    placeholder="First Name"
+                                    class="form-control"
+                                    hx-post="{% url "organisations:club_menu_tab_members_add_member_search_htmx" %}"
+                                    hx-trigger="keyup changed delay:100ms"
+                                    hx-target="#add-member-search-results"
+                                    hx-include="[id='id_member_last_name_search']"
+                                    hx-vars="club_id: {{ club.id }}"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+
+
                 </div>
             </div>
         </div>
@@ -66,6 +71,9 @@
                     <div class="modal-body">
                         Add <span id="id_member_add_modal_name"></span> as a member of {{ club }}.
 
+                        They are already registered for My ABF, so they already manage their personal
+                        details in their profile, and you can contact them using those.
+
                         <form
                             hx-post="{% url "organisations:club_menu_tab_members_add_member_htmx" %}"
                             hx-vars="club_id:{{ club.id }}"
@@ -88,7 +96,7 @@
                                 <br>
                             {% endif %}
                             <button class="btn btn-sm btn-success" onclick="$('.modal').modal('hide');">Add Member</button>
-                            <button type="reset" class="btn btn-sm btn-warning" data-dismiss="modal" aria-label="Close"
+                            <button type="reset" class="btn btn-sm btn-info" data-dismiss="modal" aria-label="Close"
                                 onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
                             >Cancel
                             </button>
@@ -157,7 +165,7 @@
 
                             <br>
                             <button class="btn btn-sm btn-success" id="t_add_unreg_member" onclick="$('.modal').modal('hide');">Add Member</button>
-                            <button type="reset" class="btn btn-sm btn-warning" data-dismiss="modal" aria-label="Close"
+                            <button type="reset" class="btn btn-sm btn-info" data-dismiss="modal" aria-label="Close"
                                 onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
                             >Cancel
                             </button>
@@ -200,7 +208,7 @@
         // update the details in the un registered add modal and show it
         $('#id_add_un_reg_system_number').val(system_number);
         $('#id_mpc_email').val(mpc_email);
-        $('#id_member_add_un_reg_name').text(first_name);
+        $('#id_member_add_un_reg_name').text(first_name + " " + last_name);
         $('#id_add_un_reg_first_name').val(first_name);
         $('#id_add_un_reg_last_name').val(last_name);
         $('#id_un_reg_add_modal').modal('show');

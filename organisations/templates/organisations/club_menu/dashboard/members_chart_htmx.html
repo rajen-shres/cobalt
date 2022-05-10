@@ -22,9 +22,9 @@
 
                 const data = google.visualization.arrayToDataTable([
                     ['Type', 'Number'],
-                    ['{{ GLOBAL_TITLE }}({{ myabf_members|intcomma }})', {{ myabf_members }}],
-                    ['Unregistered({{ un_regs|intcomma }})', {{ un_regs }}],
-                    ['Visitor({{ visitors|intcomma }})', {{ visitors }}],
+                    ['{{ GLOBAL_TITLE }}', {{ myabf_members }}],
+                    ['Unregistered', {{ un_regs }}],
+                    ['Visitor', {{ visitors }}],
                 ]);
 
                 const options = {
@@ -32,6 +32,7 @@
                     width: 480,
                     height: 250,
                     backgroundColor: {fill: 'transparent'},
+                    is3D: true,
                 };
 
                 const chart = new google.visualization.PieChart(document.getElementById('dashboard-member-chart'));

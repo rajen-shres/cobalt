@@ -195,7 +195,9 @@ class OrgDatesForm(forms.ModelForm):
 class MemberClubEmailForm(forms.Form):
     """Form for adding or editing a local email address for a club unregistered member"""
 
-    email = forms.EmailField(label="Club email address (private)", required=False)
+    email = forms.EmailField(
+        label="Club email address (accessible by this club only)", required=False
+    )
 
 
 class UserMembershipForm(forms.Form):

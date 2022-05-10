@@ -10,11 +10,11 @@
             <div class="card-header card-header-rose">
                 <h2 class="text-center">{{ un_reg }}</h2>
                 <h3 class="text-center">
-                    {% if member_details.home_club %}
-                        This is {{ un_reg.first_name }}'s home club
-                    {% else %}
-                        This is NOT {{ un_reg.first_name }}'s home club
-                    {% endif %}
+                    {#                    {% if member_details.home_club %}#}
+                    {#                        This is {{ un_reg.first_name }}'s home club#}
+                    {#                    {% else %}#}
+                    {#                        This is NOT {{ un_reg.first_name }}'s home club#}
+                    {#                    {% endif %}#}
                 </h3>
             </div>
             <div class="card-body pt-0">
@@ -38,6 +38,7 @@
                         <h4>{{ GLOBAL_ORG }} Number: {{ un_reg.system_number }}</h4>
                         {% cobalt_bs4_field user_form.first_name %}
                         {% cobalt_bs4_field user_form.last_name %}
+                        {% cobalt_bs4_field user_form.email %}
                     {% else %}
                         <h3>View Only - User Belongs to {{ un_reg.added_by_club }}</h3>
                         {{ un_reg.first_name }} {{ un_reg.last_name }} ({{ GLOBAL_ORG }} Number: {{ un_reg.system_number }}) - {{ un_reg.email|default_if_none:"No Email Address Found" }}

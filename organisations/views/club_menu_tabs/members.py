@@ -315,9 +315,13 @@ def _un_reg_edit_htmx_common(
     if rbac_user_has_role(
         request.user, f"notifications.orgcomms.{club.id}.view"
     ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
-        emails = PostOfficeEmail.objects.filter(
-            to=[_active_email_for_un_reg(un_reg, club)]
-        ).order_by("-pk")[:20]
+        email_address = _active_email_for_un_reg(un_reg, club)
+        if email_address:
+            emails = PostOfficeEmail.objects.filter(
+                to=[_active_email_for_un_reg(un_reg, club)]
+            ).order_by("-pk")[:20]
+        else:
+            emails = None
     else:
         emails = None
 
@@ -544,6 +548,7 @@ def add_member_search_htmx(request):
 
     first_name_search = request.POST.get("member_first_name_search")
     last_name_search = request.POST.get("member_last_name_search")
+    club_id = request.POST.get("club_id")
 
     # if there is nothing to search for, don't search
     if not first_name_search and not last_name_search:
@@ -556,8 +561,11 @@ def add_member_search_htmx(request):
     # Now highlight users who are already club members
     user_list_system_numbers = [user["system_number"] for user in user_list]
 
+    club = get_object_or_404(Organisation, pk=club_id)
+
     member_list = (
         MemberMembershipType.objects.filter(system_number__in=user_list_system_numbers)
+        .filter(membership_type__organisation=club)
         .filter(termination_reason=None)
         .values_list("system_number", flat=True)
     )
