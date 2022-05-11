@@ -115,6 +115,7 @@ def search_for_user_in_cobalt_and_mpc(first_name_search, last_name_search):
                     "system_number": un_registered_user.system_number,
                     "first_name": un_registered_user.first_name,
                     "last_name": un_registered_user.last_name,
+                    "mpc_email": un_registered_user.email,
                     "home_club": None,
                     "source": "unregistered",
                 }
