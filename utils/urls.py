@@ -9,4 +9,5 @@ urlpatterns = [
     path("user-activity", views.user_activity, name="user_activity"),
     path("status", views.status, name="status"),
     path("database", views.database_view, name="database_view"),
+    path("recent-errors", views.recent_errors, name="recent_errors"),
 ]

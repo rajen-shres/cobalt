@@ -1,6 +1,7 @@
 import csv
 import datetime
 import os
+import subprocess
 from random import randint
 from time import sleep
 
@@ -370,3 +371,27 @@ def create_new_slug(slug, redirect_path):
 
     Slug(slug=slug, redirect_path=redirect_path).save()
     return True
+
+
+@login_required()
+def recent_errors(request):
+    """Show recent errors from error log messages"""
+
+    lines = (
+        subprocess.run(["tail", "-1000", "/var/log/messages"], stdout=subprocess.PIPE)
+        .stdout.decode("utf-8")
+        .splitlines()
+    )
+
+    errors = []
+
+    for line in lines:
+        print(line)
+        if line.find("web:") >= 0:
+
+            parts = line.split(" ")
+            timestamp = f"{parts[0]} {parts[1]} {parts[2]}"
+            message = " ".join(parts[5:])
+            errors.append({"timestamp": timestamp, "message": message})
+
+    return render(request, "utils/recent_errors.html", {"errors": errors})
