@@ -385,9 +385,10 @@ def recent_errors(request):
 
     errors = []
 
+    matches = ["systemd", "dhcpd"]
+
     for line in lines:
-        print(line)
-        if line.find("web:") >= 0:
+        if all(match not in line for match in matches):
 
             parts = line.split(" ")
             timestamp = f"{parts[0]} {parts[1]} {parts[2]}"
