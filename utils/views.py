@@ -385,14 +385,27 @@ def recent_errors(request):
 
     errors = []
 
-    matches = ["systemd", "dhcpd"]
+    matches = [
+        "systemd",
+        "dhcpd",
+        "dhclient",
+        "rsyslogd",
+        "ec2net",
+        "[INFO]",
+        "healthd",
+        "journal:",
+    ]
 
     for line in lines:
         if all(match not in line for match in matches):
 
             parts = line.split(" ")
             timestamp = f"{parts[0]} {parts[1]} {parts[2]}"
-            message = " ".join(parts[5:])
+            # We get some rubbish in the logs some times, find last occurence of web:
+            loc = line.rfind("web:")
+            # fmt: off
+            message = line[loc + 5:]
+            # fmt: on
             errors.append({"timestamp": timestamp, "message": message})
 
     return render(request, "utils/recent_errors.html", {"errors": errors})
