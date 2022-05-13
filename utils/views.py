@@ -393,7 +393,8 @@ def recent_errors(request):
         "ec2net",
         "[INFO]",
         "healthd",
-        "journal:" "nginx",
+        "journal:",
+        "nginx",
         "favicon.ico",
     ]
 
