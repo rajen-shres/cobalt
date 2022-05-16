@@ -61,10 +61,12 @@ get_status() {
   TIMESTAMP=$(echo $DESC|cut -d@ -f2 | tr '_' ' ')
 
   # Print summary
-  printf "$THISNAME is running: ${YELLOW}${THISBRANCH}${NC} ${BLUE}${TIMESTAMP}${NC} [$FILE_DIFF files different from $REFBRANCH]\n"
+    printf "%-15s" "$THISNAME"
+  printf "is running: ${YELLOW}%-20s${NC}" "${THISBRANCH}"
+  printf "Release Date: ${BLUE}${TIMESTAMP}${NC} [$FILE_DIFF files different from $REFBRANCH]\n"
 }
 
-get_status "Test" "cobalt-test" $BRANCH
+get_status "Test" "cobalt-test" "$BRANCH"
 get_status "UAT" "cobalt-uat" "develop"
 get_status "Production" "cobalt-production" "develop"
 

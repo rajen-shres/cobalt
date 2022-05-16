@@ -3,6 +3,7 @@ from pprint import pprint
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
@@ -223,6 +224,15 @@ def org_profile(request, org_id):
 def get_clubs_for_player(player):
     """Return a list of clubs that this user is a member of. Strictly returns a MembershipType queryset."""
 
-    return MembershipType.objects.filter(
-        membermembershiptype__system_number=player.system_number
+    ref_date = timezone.now()
+
+    return (
+        MembershipType.objects.filter(
+            membermembershiptype__system_number=player.system_number
+        )
+        .filter(membermembershiptype__start_date__lte=ref_date)
+        .filter(
+            Q(membermembershiptype__end_date__gte=ref_date)
+            | Q(membermembershiptype__end_date=None)
+        )
     )
