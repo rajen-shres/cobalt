@@ -2,10 +2,7 @@
 
 # about: compare the code on two branches
 
-RED='\033[0;31m'
-BLUE='\033[0;34m'
-YELLOW='\033[0;33m'
-NC='\033[0m' # No Color
+source utils/cgit/_cgit_include_vars
 
 # Compare 2 branches
 OLD=$1
