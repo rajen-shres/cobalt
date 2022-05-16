@@ -17,6 +17,17 @@ if [ $# -ne 1 ]
     exit 1
 fi
 
+# check for branch clashing with directory or file
+if [-d "$1" ]; then
+  echo "There is a directory called $1. Try another name."
+  exit 1
+fi
+
+if [-f "$1" ]; then
+  echo "There is a file called $1. Try another name."
+  exit 1
+fi
+
 git checkout develop
 if [ $? -ne 0 ];then
   exit 1
@@ -27,4 +38,4 @@ if [ $? -ne 0 ];then
   exit 1
 fi
 
-git checkout -b $1
+git checkout -b "$1"
