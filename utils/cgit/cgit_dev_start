@@ -18,12 +18,12 @@ if [ $# -ne 1 ]
 fi
 
 # check for branch clashing with directory or file
-if [-d "$1" ]; then
+if test -d "$1"; then
   echo "There is a directory called $1. Try another name."
   exit 1
 fi
 
-if [-f "$1" ]; then
+if test -f "$1"; then
   echo "There is a file called $1. Try another name."
   exit 1
 fi
