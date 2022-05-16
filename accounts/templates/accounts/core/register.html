@@ -174,9 +174,9 @@
                         success: function(txt) {
 
                             var res = txt.split(" ");
-                            if (res.length == 2) {
+                            if (res.length >= 2) {
                                 fname.value = res[0];
-                                lname.value = res[1];
+                                lname.value = txt.substring(txt.indexOf(" "));
                             }
                             var n = txt.search("Error");
                             if (n >= 0) {
