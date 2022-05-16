@@ -122,6 +122,44 @@ def search_for_user_in_cobalt_and_mpc(first_name_search, last_name_search):
             )
             already_present.append(un_registered_user.system_number)
 
+    # A user might not be in the top 11 of registered or unregistered users, but could still be in the top
+    # 11 of MPC users, in which case they will be reported incorrectly
+    # There can be no overlap between registered and unregistered, so just double check the MPC ones
+    check_user_list = [mpc_user["ABFNumber"] for mpc_user in mpc_users[:10]]
+
+    # Check real users
+    really_registered = User.objects.filter(system_number__in=check_user_list)
+    for registered_user in really_registered:
+        if registered_user.system_number not in already_present:
+            user_list.append(
+                {
+                    "system_number": registered_user.system_number,
+                    "first_name": registered_user.first_name,
+                    "last_name": registered_user.last_name,
+                    "home_club": None,
+                    "source": "registered",
+                }
+            )
+            already_present.append(registered_user.system_number)
+
+    # Check real un_registered
+    really_un_registered = UnregisteredUser.objects.filter(
+        system_number__in=check_user_list
+    )
+    for un_registered_user in really_un_registered[:10]:
+        if un_registered_user.system_number not in already_present:
+            user_list.append(
+                {
+                    "system_number": un_registered_user.system_number,
+                    "first_name": un_registered_user.first_name,
+                    "last_name": un_registered_user.last_name,
+                    "mpc_email": un_registered_user.email,
+                    "home_club": None,
+                    "source": "unregistered",
+                }
+            )
+            already_present.append(un_registered_user.system_number)
+
     for mpc_user in mpc_users[:10]:
         if int(mpc_user["ABFNumber"]) not in already_present:
             user_list.append(

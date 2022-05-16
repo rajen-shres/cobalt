@@ -17,17 +17,17 @@
             <table id="id_attach_table" class="table table-condensed table-hover" style="display: none;">
                 <thead>
                     <tr>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>{{ GLOBAL_ORG }} Number</th>
-                        <th>Status</th>
+                        <th class="text-left">First Name</th>
+                        <th class="text-left">Last Name</th>
+                        <th class="text-left">{{ GLOBAL_ORG }} Number</th>
+                        <th class="text-left">Status</th>
                         <th class="text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for member in members %}
                         <tr>
-                            <td>
+                            <td class="text-left">
                                 {% if member_admin %}
                                     <a href="#"
                                         {#                                       hx-push-url="true"#}
@@ -47,7 +47,7 @@
                                     {{ member.first_name }}
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="text-left">
                                 {% if member_admin %}
 
                                     <a href="#"
@@ -67,7 +67,7 @@
                                     {{ cobalt_member.last_name }}
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="text-left">
                                 {% if member_admin %}
                                     <a href="#"
                                         id="t_edit_member3_{{ member.id }}"
@@ -86,7 +86,7 @@
                                     {{ member.system_number }}
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="text-left">
                                 {% if member|get_class == "User" %}
                                     {{ GLOBAL_TITLE }} User
                                 {% else %}

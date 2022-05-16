@@ -7,11 +7,19 @@
             {% if summary.RankName %}
                 <h5>{{ summary.RankName }}: {{ summary.TotalMPs }} Masterpoints</h5>
             {% endif %}
-            {% if summary.home_club %}
-                {% if summary.IsActive %}
-                    <h4>Home Club: {{ summary.home_club }}</h4>
-                {% else %}
-                    <h4>Used to play at: {{ summary.home_club }}</h4>
+            {% if member_of_clubs %}
+                {#  Use our data about club membership first, otherwise use MPC #}
+                {% for membership in member_of_clubs %}
+                    <h4>{{ membership.organisation }}</h4>
+                {% endfor %}
+
+            {% else %}
+                {% if summary.home_club %}
+                    {% if summary.IsActive %}
+                        <h4>Home Club: {{ summary.home_club }}</h4>
+                    {% else %}
+                        <h4>Used to play at: {{ summary.home_club }}</h4>
+                    {% endif %}
                 {% endif %}
             {% endif %}
         </div>

@@ -8,6 +8,7 @@ from accounts.models import UserAdditionalInfo, TeamMate, User
 from accounts.accounts_views.core import _check_duplicate_email
 from forums.models import Post, Comment1, Comment2
 from masterpoints.views import user_summary
+from organisations.views.general import get_clubs_for_player
 from rbac.core import rbac_user_has_role
 from support.models import Incident
 from utils.utils import cobalt_paginator
@@ -64,7 +65,9 @@ def profile(request):
     )
 
     user_additional_info = UserAdditionalInfo.objects.filter(user=request.user).first()
-    print(user_additional_info)
+
+    # Get clubs
+    member_of_clubs = get_clubs_for_player(request.user)
 
     # Show tour for this page?
     tour = request.GET.get("tour", None)
@@ -78,6 +81,7 @@ def profile(request):
             "photoform": photoform,
             "team_mates": team_mates,
             "user_additional_info": user_additional_info,
+            "member_of_clubs": member_of_clubs,
             "tour": tour,
         },
     )
@@ -195,6 +199,9 @@ def public_profile(request, pk):
 
     user_additional_info = UserAdditionalInfo.objects.filter(user=pub_profile).first()
 
+    # Get clubs
+    member_of_clubs = get_clubs_for_player(pub_profile)
+
     return render(
         request,
         "accounts/profile/public_profile.html",
@@ -212,6 +219,7 @@ def public_profile(request, pk):
             "email_admin": email_admin,
             "tickets": tickets,
             "user_additional_info": user_additional_info,
+            "member_of_clubs": member_of_clubs,
         },
     )
 

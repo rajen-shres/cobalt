@@ -211,6 +211,7 @@ def _cancel_membership(request, club, system_number):
         MemberMembershipType.objects.filter(start_date__lte=now)
         .filter(Q(end_date__gte=now) | Q(end_date=None))
         .filter(system_number=system_number)
+        .filter(membership_type__organisation=club)
     )
 
     # Should only be one but not enforced at database level so close any that match to be safe
@@ -724,12 +725,12 @@ def add_un_reg_htmx(request, club):
     ):
         message += " Already a member of club."
     else:
-        MemberMembershipType.objects.get_or_create(
+        MemberMembershipType(
             system_number=form.cleaned_data["system_number"],
             membership_type_id=form.cleaned_data["membership_type"],
             home_club=form.cleaned_data["home_club"],
             last_modified_by=request.user,
-        )
+        ).save()
         message += " Club membership added."
 
     # Add email

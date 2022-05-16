@@ -15,6 +15,7 @@ from organisations.models import (
     ClubLog,
     MemberMembershipType,
     OrganisationFrontPage,
+    MembershipType,
 )
 from payments.models import OrganisationTransaction
 from rbac.core import rbac_user_has_role
@@ -216,4 +217,12 @@ def org_profile(request, org_id):
         request,
         "organisations/org_profile.html",
         {"org": org, "front_page": front_page},
+    )
+
+
+def get_clubs_for_player(player):
+    """Return a list of clubs that this user is a member of. Strictly returns a MembershipType queryset."""
+
+    return MembershipType.objects.filter(
+        membermembershiptype__system_number=player.system_number
     )

@@ -107,7 +107,20 @@
                 {#                >#}
                 {##}
                 {#                </div>#}
-
+                {% if member_of_clubs %}
+                    <div id="club_memberships" class="card">
+                        <div class="card-header card-header-danger">
+                            <h4>Club Memberships</h4>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                {% for membership in member_of_clubs %}
+                                    <li><a href="{% url "organisations:general_org_profile" org_id=membership.organisation.id %}">{{ membership.organisation }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
 
 
                 <div class="card" id="teammates">

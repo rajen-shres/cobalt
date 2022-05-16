@@ -196,7 +196,7 @@ class MemberClubEmailForm(forms.Form):
     """Form for adding or editing a local email address for a club unregistered member"""
 
     email = forms.EmailField(
-        label="Club email address (accessible by this club only)", required=False
+        label="Email address (accessible by this club only)", required=False
     )
 
 
