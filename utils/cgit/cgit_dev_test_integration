@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Run integration tests
+# about: runs integration tests. see code for parameters.
+
 # Call with 1 parameter to show the web browser
 # Call with 2 parameters to generate coverage data
 

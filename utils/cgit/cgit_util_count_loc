@@ -1,5 +1,5 @@
 #!/bin/sh
 
-# Count lines of code
+# about: count lines of code in this branch
 
 git ls-files | grep -Ev 'static|_build' | xargs wc -l | tail -1 | awk '{print $1}'

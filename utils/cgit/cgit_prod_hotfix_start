@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# about: start work on a hotfix using a new branch
+
 if [ $# -ne 2 ]
   then
     echo ""

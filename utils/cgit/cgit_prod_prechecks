@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# about: performs checks (mostly questions) before deploying a release
+
 source utils/cgit/_cgit_include_vars
 
 STEPS=6

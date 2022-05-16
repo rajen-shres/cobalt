@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# about: reads a models.py file and generates some of a corresponding admin.py file
+
 """ Reads a models.py file and generates some of a corresponding admin.py file.
 
     Anything used as a foreign key needs to have a search_fields=[] entry. We don't generate that.

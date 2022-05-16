@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Pull latest develop code into our branch
+# about: pull latest develop code into our branch
 
 BRANCH=`git branch --show-current`
 

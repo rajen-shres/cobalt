@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# List local and remote branches
+# about: list local and remote git branches
 
 echo ""
 echo "LOCAL BRANCHES (sorted by last change)"

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# about: deploy this branch to an environment
+
 # Sometimes you want to deploy code without going through proper cgit processes
 # This does it so that at least the proper label is applied
 

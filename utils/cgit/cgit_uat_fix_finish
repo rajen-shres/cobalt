@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# about: finish a fix for UAT and release the code
+
 # Branch for a bugfix will be something like 1.2.3=fix_the_bugs
 # The release branch associated with this will be release/1.2.3
 

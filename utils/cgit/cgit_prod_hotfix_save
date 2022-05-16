@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# about: saves current changes to github for a hotfix
+
 BRANCH=`git branch --show-current`
 
 echo ""

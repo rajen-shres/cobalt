@@ -2,6 +2,8 @@
 
 # Run tests on local machine
 
+# about: incomplete\n
+
 # Variables
 PORT=8088
 export RDS_DB_NAME=test

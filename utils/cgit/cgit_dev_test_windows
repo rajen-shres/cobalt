@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# about: incomplete\n
+
 # Run tests on local machine
 
 # Call with any parameter for short version

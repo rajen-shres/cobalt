@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# about: complete work on a branch, check code in and update Test
+
 BRANCH=`git branch --show-current`
 
 

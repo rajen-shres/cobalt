@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# about: works out what branch an environment is running
+
 # Find the branch installed in an environment
 # use tail -1 to get the environment or UNSET from a script
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# rebuild test data on Test or UAT
+# about: rebuild test data on Test or UAT
 # This used to be easier but now you need to switch database as there will be locks on it
 
 unset AWS_SECRET_ACCESS_KEY

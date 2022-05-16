@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Full rebuild of the test database
+# about: full rebuild of the test database
 
 # Variables
 export RDS_DB_NAME=test

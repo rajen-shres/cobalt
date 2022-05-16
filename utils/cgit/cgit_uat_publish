@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# about: deploy changes to UAT\n
+
 echo ""
 echo ""
 echo "Ready to Deploy to UAT."

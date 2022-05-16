@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# about: rebuild sphinx structure for documentation
+
 # The documentation for Cobalt lives in /docs and is written in Sphinx.
 # We have both static (written) documents (in docs/cobalt) and generated
 # control files in docs/cobalt_modules.

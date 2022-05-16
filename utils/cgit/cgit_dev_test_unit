@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Run unit tests
+# about: runs unit tests
 # Pass a parameter to include coverage output
 
 # Variables

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# about: sanitises production data for use in testing
+
 # Assumes your environment is already set up and just changes the database
 
 export RDS_DB_NAME=prod_load

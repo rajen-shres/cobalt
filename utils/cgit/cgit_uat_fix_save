@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# about: save changes to github
+
 BRANCH=`git branch --show-current`
 
 echo ""

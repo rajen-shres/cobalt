@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# about: completes a hotfix and installs to production
+
 # Branch for a hotfix will be something like 1.2.3=hotflix=fix_the_bugs
 # The release branch associated with this will be release/1.2.3
 
