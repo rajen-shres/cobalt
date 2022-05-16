@@ -497,6 +497,7 @@ def process_member_import(
             # add to club email list if required - don't override if already present
             if (
                 club_specific_email
+                and club_member["email"]
                 and not MemberClubEmail.objects.filter(
                     organisation=club,
                     system_number=club_member["system_number"],
