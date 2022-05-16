@@ -21,7 +21,7 @@ EOF
 for filename in utils/cgit/cgit_*; do
   file="$(basename "$filename")"
   about="$(grep -i about: "$filename" | grep -v cgit_help | cut -d' ' -f3-)"
-  printf "%-50s" "$file"
+  printf "%-40s" "$file"
   echo "- $about"
 done
 
