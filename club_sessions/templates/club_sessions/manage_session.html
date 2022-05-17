@@ -20,7 +20,7 @@
     <div class="card-body">
 
         <div class="card">
-            <div class="card-header card-header-secondary">
+            <div class="card-header card-header-secondary pb-0">
                 <ul id="id_menu" class="nav nav-pills nav-pills-icons" role="tablist">
                     <li class="nav-item">
                         <a id="id_tab_basics" class="nav-link auto-refresh" href="#basics" role="tab" data-toggle="tab">
@@ -29,13 +29,13 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a id="id_tab_stuff" class="nav-link active auto-refresh" href="#stuff" role="tab" data-toggle="tab">
+                        <a id="id_tab_imports" class="nav-link active auto-refresh" href="#imports" role="tab" data-toggle="tab">
                             <i class="material-icons">upload_file</i>
                             Imports
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a id="id_tab_stuff" class="nav-link auto-refresh" href="#stuff" role="tab" data-toggle="tab">
+                        <a id="id_tab_session" class="nav-link auto-refresh" href="#session" role="tab" data-toggle="tab">
                             <i class="material-icons">groups</i>
                             Session
                         </a>
@@ -50,9 +50,9 @@
 
             </div>
             <div class="card-body" style="min-height: 500px;">
-                <div class="tab-content tab-space">
+                <div class="tab-content tab-space pt-0">
                     <div class="tab-pane" id="basics">
-                        <h3>Settings</h3>
+                        <h3 class="mt-0">Settings</h3>
                         <div id="id_pane_settings">
                             <div
                                 hx-post="{% url "club_sessions:tab_edit_session_htmx" %}"
@@ -61,8 +61,18 @@
                             ></div>
                         </div>
                     </div>
-                    <div class="tab-pane active" id="stuff">
-                        <h3>Stuff</h3>
+                    <div class="tab-pane active" id="imports">
+                        <h3 class="mt-0">Imports</h3>
+                    </div>
+                    <div class="tab-pane" id="session">
+                        <h3 class="mt-0">Session</h3>
+                        <div id="id_pane_session">
+                            <div
+                                hx-post="{% url "club_sessions:tab_session_details_htmx" %}"
+                                hx-trigger="load"
+                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            ></div>
+                        </div>
                     </div>
                 </div>
             </div>

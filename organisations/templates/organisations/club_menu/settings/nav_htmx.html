@@ -73,19 +73,19 @@ hx-target="#id_settings_form"
         >Payment Types
         </a>
 
-        {#        <a href="javascript: void(0)"#}
-        {#            class="btn btn-sm w-100#}
-        {#            {% if selected == "sessions" %}#}
-        {#                btn-primary text-white#}
-        {#            {% else %}#}
-        {#                btn-secondary#}
-        {#            {% endif %}#}
-        {#            "#}
-        {#            hx-post="{% url "organisations:club_menu_tab_settings_sessions_htmx" %}"#}
-        {#            hx-target="#id_settings_form"#}
-        {#            id="t_settings_sessions_types"#}
-        {#        >Sessions#}
-        {#        </a>#}
+        <a href="javascript: void(0)"
+            class="btn btn-sm w-100
+            {% if selected == "sessions" %}
+                btn-primary text-white
+            {% else %}
+                btn-secondary
+            {% endif %}
+            "
+            hx-post="{% url "organisations:club_menu_tab_settings_sessions_htmx" %}"
+            hx-target="#id_settings_form"
+            id="t_settings_sessions_types"
+        >Sessions
+        </a>
 
     </div>
 </div>
@@ -116,7 +116,7 @@ hx-target="#id_settings_form"
             {% endif %}
             "
             hx-post="{% url "organisations:club_menu_tab_comms_tags_htmx" %}"
-            hx-target="#id_panel_settings"
+            hx-target="#id_settings_form"
             id="t_comms_tab_tags"
         >Tags
         </a>
@@ -131,7 +131,7 @@ hx-target="#id_settings_form"
             {% endif %}
             "
             hx-post="{% url "organisations:club_menu_tab_comms_templates_htmx" %}"
-            hx-target="#id_panel_settings"
+            hx-target="#id_settings_form"
             id="t_comms_tab_templates"
         >Templates
         </a>
@@ -145,7 +145,7 @@ hx-target="#id_settings_form"
             {% endif %}
             "
             hx-post="{% url "organisations:club_menu_tab_settings_welcome_pack_htmx" %}"
-            hx-target="#id_panel_settings"
+            hx-target="#id_settings_form"
             id="t_comms_tab_welcome"
         >Welcome Pack
         </a>

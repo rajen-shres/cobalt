@@ -9,7 +9,7 @@ from rbac.core import rbac_user_has_role
 from .decorators import user_is_club_director
 
 from ..forms import SessionForm
-from ..models import Session
+from ..models import Session, SessionEntry
 
 
 @login_required()
@@ -68,7 +68,7 @@ def tab_edit_session_htmx(request, club, session):
     """Edit fields that were set up when the session was started"""
 
     if "save_settings" in request.POST:
-        session_form = SessionForm(request.POST, club=club)
+        session_form = SessionForm(request.POST, club=club, instance=session)
         if session_form.is_valid():
             session = session_form.save()
 
@@ -79,4 +79,17 @@ def tab_edit_session_htmx(request, club, session):
         request,
         "club_sessions/edit_session_htmx.html",
         {"session_form": session_form, "club": club, "session": session},
+    )
+
+
+@user_is_club_director()
+def tab_session_details_htmx(request, club, session):
+    """present the main session tab for the director"""
+
+    session_entries = SessionEntry.objects.filter(session=session)
+
+    return render(
+        request,
+        "club_sessions/session_details_htmx.html",
+        {"session": session, "session_entries": session_entries},
     )

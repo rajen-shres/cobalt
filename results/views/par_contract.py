@@ -67,7 +67,7 @@ def _par_score_and_contract_auction_winner(dds_table, dealer):
     """sub to calculate the player who can bid the highest based on double dummy analysis"""
 
     highest_bidder_player = None
-    highest_bidder_denomination = None
+    highest_bidder_denomination = "C"
     highest_bidder_level = 0
 
     for compass in dds_table:

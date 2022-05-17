@@ -29,12 +29,24 @@
                             <tr class="text-primary">
                                 <th class="text-left">North-South</th>
                                 <th class="text-left">East-West</th>
-                                <th>Contract</th>
-                                <th>Declarer</th>
-                                <th>Lead</th>
-                                <th>Tricks</th>
-                                <th>Score</th>
-                                <th class="text-right">Percentage</th>
+                                <th>
+                                    <span class="d-md-none">Con</span>
+                                    <span class="d-none d-md-block">Contract</span>
+                                </th>
+                                <th>
+                                    <span class="d-md-none">By</span>
+                                    <span class="d-none d-md-block">Declarer</span>
+                                </th>
+                                <th class="d-none d-sm-table-cell">Lead</th>
+                                <th class="d-none d-sm-table-cell">Tricks</th>
+                                <th>
+                                    <span class="d-md-none">+/-</span>
+                                    <span class="d-none d-md-block">Score</span>
+                                </th>
+                                <th class="text-right">
+                                    <span class="d-md-none">%</span>
+                                    <span class="d-none d-md-block">Percentage</span>
+                                </th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -56,8 +68,8 @@
                                         <td class="text-left {{ row.tr_highlight }}">{{ row.ew_pair }}</td>
                                         <td class="{{ row.tr_highlight }}">{{ row.contract|cobalt_suit_replace|default_if_none:""|safe }}</td>
                                         <td class="{{ row.tr_highlight }}">{{ row.played_by|default_if_none:"" }}</td>
-                                        <td class="{{ row.tr_highlight }}">{{ row.lead|cobalt_suit_replace|default_if_none:""|safe }}</td>
-                                        <td class="{{ row.tr_highlight }}">{{ row.tricks|default_if_none:"" }}</td>
+                                        <td class="d-none d-sm-table-cell {{ row.tr_highlight }}">{{ row.lead|cobalt_suit_replace|default_if_none:""|safe }}</td>
+                                        <td class="d-none d-sm-table-cell {{ row.tr_highlight }}">{{ row.tricks|default_if_none:"" }}</td>
                                         <td class="{{ row.tr_highlight }}">{{ row.score|default_if_none:"" }}</td>
                                         <td class="{{ row.tr_highlight }} text-right">{{ row.percentage|floatformat:0 }}%</td>
                                         <td><div class="{{ row.indicator }}"></div></td>

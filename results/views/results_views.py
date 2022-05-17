@@ -497,32 +497,33 @@ def calculate_hcp_and_ltc(hand):
         ltc[compass] = 0
         for suit_name in hand[compass]:
             suit = hand[compass][suit_name]
-            # HCP
-            if suit.find("A") >= 0:
-                hcp[compass] += 4
-            if suit.find("K") >= 0:
-                hcp[compass] += 3
-            if suit.find("Q") >= 0:
-                hcp[compass] += 2
-            if suit.find("J") >= 0:
-                hcp[compass] += 1
-            # LTC
-            if len(suit) == 1 and suit != "A":
-                ltc[compass] += 1
-            elif len(suit) == 2:
-                if suit == "AK":
-                    pass
-                elif suit[0] in ["A", "K"]:
+            if suit:
+                # HCP
+                if suit.find("A") >= 0:
+                    hcp[compass] += 4
+                if suit.find("K") >= 0:
+                    hcp[compass] += 3
+                if suit.find("Q") >= 0:
+                    hcp[compass] += 2
+                if suit.find("J") >= 0:
+                    hcp[compass] += 1
+                # LTC
+                if len(suit) == 1 and suit != "A":
                     ltc[compass] += 1
-                else:
+                elif len(suit) == 2:
+                    if suit == "AK":
+                        pass
+                    elif suit[0] in ["A", "K"]:
+                        ltc[compass] += 1
+                    else:
+                        ltc[compass] += 2
+                elif suit[:3] == "AKQ":
+                    pass
+                elif suit[:2] in ["AK", "AQ", "KQ"]:
+                    ltc[compass] += 1
+                elif suit[0] in ["A", "K", "Q"]:
                     ltc[compass] += 2
-            elif suit[:3] == "AKQ":
-                pass
-            elif suit[:2] in ["AK", "AQ", "KQ"]:
-                ltc[compass] += 1
-            elif suit[0] in ["A", "K", "Q"]:
-                ltc[compass] += 2
-            else:
-                ltc[compass] += 3
+                else:
+                    ltc[compass] += 3
 
     return hcp, ltc

@@ -1,0 +1,33 @@
+{% load cobalt_tags %}
+
+
+{% if not session_entries %}
+
+    <h4>No players found. Either import players from the <b>IMPORTS</b> tag or click below to add a table manually.</h4>
+
+{% else %}
+    <div class="table-responsive">
+        <table class="table table-condensed table-hover table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Table</th>
+                    <th>Direction</th>
+                    <th>Player</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session_entry in session_entries %}
+                    <tr>
+                        <td>{{ session_entry.pair_team_number }}</td>
+                        <td>{{ session_entry.get_seat_display }}</td>
+                        <td>{{ session_entry.player.full_name }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endif %}
+
+<button class="btn btn-info">Add Table</button>
+

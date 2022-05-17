@@ -10,4 +10,9 @@ urlpatterns = [
     path(
         "session/settings", sessions.tab_edit_session_htmx, name="tab_edit_session_htmx"
     ),
+    path(
+        "session/details",
+        sessions.tab_session_details_htmx,
+        name="tab_session_details_htmx",
+    ),
 ]

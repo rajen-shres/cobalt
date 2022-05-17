@@ -229,8 +229,6 @@ def system_number_search_htmx(request):
         .first()
     )
 
-    print("sys num", system_number)
-
     if member:
         return render(
             request,
