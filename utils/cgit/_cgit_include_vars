@@ -1,14 +1,3 @@
-# Common functions
-
-# Get all remote branches
-
-printf "Updating local branches... "
-# utils/cgit/tools/spinner git branch -r | grep -v '\->' | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g" | while read remote; do git branch --track "${remote#origin/}" "$remote"; done
-utils/cgit/tools/spinner git fetch --all
-utils/cgit/tools/spinner git pull --all
-
-#clear
-
 # Useful variables to include in other scripts
 
 # Colours

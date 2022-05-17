@@ -89,19 +89,21 @@
                         <h4 class="card-title">Your Recent Results</h4>
                     </div>
                     <div class="card-body table-responsive">
-                        <ul>
-                            {% for recent_result in recent_results %}
-                                <li><a class="card-link" href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=recent_result.results_file.id %}">
-                                    {{ recent_result.result_string }}
-                                    {% if recent_result.percentage %}
-                                        ({{ recent_result.percentage }}%)
-                                    {% endif %}
-                                </a>
-                                </li>
-                            {% empty %}
-                                No results found
-                            {% endfor %}
-                        </ul>
+                        {% if recent_results %}
+                            <ul>
+                                {% for recent_result in recent_results %}
+                                    <li><a class="card-link" href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=recent_result.results_file.id %}">
+                                        {{ recent_result.result_string }}
+                                        {% if recent_result.percentage %}
+                                            ({{ recent_result.percentage }}%)
+                                        {% endif %}
+                                    </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            No results found
+                        {% endif %}
                     </div>
                 </div>
             </div>

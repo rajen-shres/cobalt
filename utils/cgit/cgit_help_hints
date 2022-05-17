@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# about: things I can never remember\n
+
+. utils/cgit/_cgit_include_vars
+
+printf "\n\n${YELLOW}----------------------------"
+printf "\nWhat Have You Forgotten Now?${NC}\n"
+printf "${YELLOW}----------------------------${NC}\n\n"
+
+PS3='Select: '
+options=("Full name in a template" "JS Ready Function" "Quit")
+select opt in "${options[@]}"
+do
+    case $opt in
+        "Full name in a template")
+            printf "\nget_${BLUE}<var>${NC}_display\n\n"
+            printf "e.g. ${YELLOW}{{ item.get_status_display }}${NC}\n\n"
+            exit
+            ;;
+        "JS Ready Function")
+            echo "\n{% block footer %}"
+            echo "    <script>"
+            echo "        \$(document).ready( function () {"
+            echo " "
+            echo "             <code here>"
+            echo " "
+            echo "        });"
+            echo "    </script>"
+            echo "{% endblock footer %}\n\n"
+            exit
+            ;;
+        "Quit")
+            break
+            ;;
+        *) echo "invalid option $REPLY";;
+    esac
+done
