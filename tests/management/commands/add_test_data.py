@@ -32,80 +32,6 @@ class Command(BaseCommand):
         self.gen = DocumentGenerator()
         self.id_array = {}
 
-    def add_comments(self, post, user_list):
-        """add comments to a forum post"""
-
-        liker_list = list(set(user_list) - set([post.author]))
-        sample_size = random.randrange(int(len(liker_list) * 0.8))
-        for liker in random.sample(liker_list, sample_size):
-            like = LikePost(post=post, liker=liker)
-            like.save()
-        for c1_counter in range(random.randrange(10)):
-            text = self.random_paragraphs()
-            c1 = Comment1(post=post, text=text, author=random.choice(user_list))
-            c1.save()
-            liker_list = list(set(user_list) - set([c1.author]))
-            sample_size = random.randrange(int(len(liker_list) * 0.8))
-            for liker in random.sample(liker_list, sample_size):
-                like = LikeComment1(comment1=c1, liker=liker)
-                like.save()
-            post.comment_count += 1
-            post.save()
-            for c2_counter in range(random.randrange(10)):
-                text = self.random_paragraphs()
-                c2 = Comment2(
-                    post=post, comment1=c1, text=text, author=random.choice(user_list)
-                )
-                c2.save()
-                post.comment_count += 1
-                post.save()
-                c1.comment1_count += 1
-                c1.save()
-                liker_list = list(set(user_list) - set([c2.author]))
-                sample_size = random.randrange(int(len(liker_list) * 0.8))
-                for liker in random.sample(liker_list, sample_size):
-                    like = LikeComment2(comment2=c2, liker=liker)
-                    like.save()
-
-    def random_paragraphs(self):
-        """generate a random paragraph"""
-        text = self.gen.paragraph()
-        for counter in range(random.randrange(10)):
-            text += "\n\n" + self.gen.paragraph()
-        return text
-
-    def random_sentence(self):
-        """generate a random sentence"""
-        return self.gen.sentence()
-
-    def random_paragraphs_with_stuff(self):
-        """generate a more realistic rich test paragraph with headings and pics"""
-
-        sizes = [
-            ("400x500", "400px"),
-            ("400x300", "400px"),
-            ("700x300", "700px"),
-            ("900x500", "900px"),
-            ("200x200", "200px"),
-            ("800x200", "800px"),
-            ("500x400", "500px"),
-        ]
-
-        text = self.gen.paragraph()
-        for counter in range(random.randrange(10)):
-            type = random.randrange(8)
-            if type == 5:  # no good reason
-                text += "<h2>%s</h2>" % self.gen.sentence()
-            elif type == 7:
-                index = random.randrange(len(sizes))
-                text += (
-                    "<p><img src='https://source.unsplash.com/random/%s' style='width: %s;'><br></p>"
-                    % (sizes[index][0], sizes[index][1])
-                )
-            else:
-                text += "<p>%s</p>" % self.gen.paragraph()
-        return text
-
     def parse_csv(self, file):
         """try to sort out the mess Excel makes of CSV files.
         Requires csv files to have the app and model in the first row and
@@ -115,17 +41,13 @@ class Command(BaseCommand):
 
         all_lines = f.readlines()
 
-        lines = []
-
-        for line in all_lines:
-            # skip empty rows
-            if (
-                line.find("#") == 0
-                or line.strip() == ""
-                or line.replace(",", "").strip() == ""
-            ):
-                continue
-            lines.append(line)
+        lines = [
+            line
+            for line in all_lines
+            if line.find("#") != 0
+            and line.strip() != ""
+            and line.replace(",", "").strip() != ""
+        ]
 
         data = []
 
@@ -134,7 +56,7 @@ class Command(BaseCommand):
         except ValueError:
             print("\n\nError\n")
             print("Didn't find App, Model on first line of file")
-            print("File is: %s" % file)
+            print(f"File is: {file}")
             print("Line is: %s\n" % lines[0])
             sys.exit()
 
@@ -334,31 +256,10 @@ class Command(BaseCommand):
         print("Running add_rbac_test_data")
 
         try:
-            for fname in sorted(glob.glob(DATA_DIR + "/*.csv")):
+            for fname in sorted(glob.glob(f"{DATA_DIR}/*.csv")):
                 print("\n#########################################################")
-                print("Processing: %s" % fname)
+                print(f"Processing: {fname}")
                 self.process_csv(fname)
-
-            # create dummy Posts
-            print("\nCreating dummy forum posts")
-            print("Running", end="", flush=True)
-            for count, _ in enumerate(range(DUMMY_DATA_COUNT * 10), start=1):
-
-                user_list = list(self.id_array["accounts.User"].values())
-                user_list.remove(self.id_array["accounts.User"]["EVERYONE"])
-
-                post = Post(
-                    forum=random.choice(list(self.id_array["forums.Forum"].values())),
-                    title=self.random_sentence(),
-                    text=self.random_paragraphs_with_stuff(),
-                    author=random.choice(user_list),
-                )
-                post.save()
-                print(".", end="", flush=True)
-                self.add_comments(post, user_list)
-                if count % 100 == 0:
-                    print(count, flush=True)
-            print("\n")
 
         except KeyboardInterrupt:
             print("\n\nTest data loading interrupted by user\n")

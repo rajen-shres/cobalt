@@ -224,15 +224,10 @@ def org_profile(request, org_id):
 def get_clubs_for_player(player):
     """Return a list of clubs that this user is a member of. Strictly returns a MembershipType queryset."""
 
-    ref_date = timezone.now()
-
-    return (
-        MembershipType.objects.filter(
-            membermembershiptype__system_number=player.system_number
-        )
-        .filter(membermembershiptype__start_date__lte=ref_date)
-        .filter(
-            Q(membermembershiptype__end_date__gte=ref_date)
-            | Q(membermembershiptype__end_date=None)
-        )
+    memberships = (
+        MemberMembershipType.objects.active()
+        .filter(system_number=player.system_number)
+        .values_list("membership_type")
     )
+
+    return MembershipType.objects.filter(id__in=memberships)

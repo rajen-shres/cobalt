@@ -45,6 +45,7 @@ def _csv_pianola(club_member):
         "first_name": club_member[5],
         "last_name": club_member[6],
         "email": club_member[7],
+        "membership_type": club_member[21],
     }
 
     return True, None, item
