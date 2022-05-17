@@ -60,6 +60,7 @@
             hx-post="{% url "organisations:club_menu_tab_congress_create_congress_htmx" %}"
             hx-vars="club_id:{{ club.id }},congress_master_id:{{ congress_master.id }}"
             hx-target="#congress-list"
+            onclick="$('#btn-congress-master-delete-{{ congress_master.id }}').prop('disabled', true)"
         >
 
             {# Change message if empty or existing entries #}

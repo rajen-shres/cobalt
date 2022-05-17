@@ -431,6 +431,11 @@ urlpatterns = [
         name="club_menu_tab_congress_rename_series_htmx",
     ),
     path(
+        "club-menu/congress/delete-master",
+        organisations.views.club_menu_tabs.congresses.delete_congress_master_htmx,
+        name="club_menu_tab_congress_delete_congress_master_htmx",
+    ),
+    path(
         "club-menu/settings/templates/edit-name",
         organisations.views.club_menu_tabs.settings.edit_template_name_htmx,
         name="club_menu_tab_settings_edit_template_name_htmx",

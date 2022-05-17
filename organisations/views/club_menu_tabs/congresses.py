@@ -125,3 +125,20 @@ def rename_series_htmx(request, club):
 
     # return whole tab
     return tab_congress_htmx(request)
+
+
+@check_club_menu_access()
+def delete_congress_master_htmx(request, club):
+
+    congress_master = get_object_or_404(
+        CongressMaster, pk=request.POST.get("congress_master_id")
+    )
+    role = f"events.org.{congress_master.org.id}.edit"
+
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    if not Congress.objects.filter(congress_master=congress_master).exists():
+        congress_master.delete()
+
+    return tab_congress_htmx(request)

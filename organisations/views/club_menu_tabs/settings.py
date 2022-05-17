@@ -458,7 +458,7 @@ def club_menu_tab_settings_venues_htmx(request, club):
     else:
         form = VenueForm(club=club)
 
-    venues = OrgVenue.objects.filter(organisation=club, is_active=True)
+    venues = OrgVenue.objects.filter(organisation=club)
 
     # Add on htmx data for venues
     for venue in venues:

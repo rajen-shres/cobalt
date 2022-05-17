@@ -164,6 +164,11 @@ def tab_congress_htmx(request, club):
 
     congress_masters = CongressMaster.objects.filter(org=club)
 
+    for congress_master in congress_masters:
+        congress_master.has_congresses = bool(
+            Congress.objects.filter(congress_master=congress_master).exists()
+        )
+
     return render(
         request,
         "organisations/club_menu/congress/congress_htmx.html",
