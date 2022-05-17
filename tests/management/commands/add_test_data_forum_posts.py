@@ -7,11 +7,20 @@ from cobalt.settings import (
     DUMMY_DATA_COUNT,
     TBA_PLAYER,
     COBALT_HOSTNAME,
+    ALL_SYSTEM_ACCOUNTS,
 )
 from accounts.models import User
 from django.core.management.base import BaseCommand
 from accounts.management.commands.accounts_core import create_fake_user
-from forums.models import Post, Comment1, Comment2, LikePost, LikeComment1, LikeComment2
+from forums.models import (
+    Post,
+    Comment1,
+    Comment2,
+    LikePost,
+    LikeComment1,
+    LikeComment2,
+    Forum,
+)
 import random
 from essential_generators import DocumentGenerator
 import datetime
@@ -120,11 +129,11 @@ class Command(BaseCommand):
             print("Running", end="", flush=True)
             for count, _ in enumerate(range(DUMMY_DATA_COUNT * 10), start=1):
 
-                user_list = list(self.id_array["accounts.User"].values())
-                user_list.remove(self.id_array["accounts.User"]["EVERYONE"])
+                user_list = User.objects.exclude(id__in=ALL_SYSTEM_ACCOUNTS)
+                forums = Forum.objects.all()
 
                 post = Post(
-                    forum=random.choice(list(self.id_array["forums.Forum"].values())),
+                    forum=random.choice(forums),
                     title=self.random_sentence(),
                     text=self.random_paragraphs_with_stuff(),
                     author=random.choice(user_list),
