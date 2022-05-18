@@ -63,6 +63,13 @@
                     </div>
                     <div class="tab-pane active" id="imports">
                         <h3 class="mt-0">Imports</h3>
+                        <div id="id_pane_import">
+                            <div
+                                hx-post="{% url "club_sessions:tab_session_uploads_htmx" %}"
+                                hx-trigger="load"
+                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            ></div>
+                        </div>
                     </div>
                     <div class="tab-pane" id="session">
                         <h3 class="mt-0">Session</h3>

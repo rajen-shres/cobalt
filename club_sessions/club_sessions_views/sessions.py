@@ -8,7 +8,7 @@ from rbac.views import rbac_forbidden
 from rbac.core import rbac_user_has_role
 from .decorators import user_is_club_director
 
-from ..forms import SessionForm
+from ..forms import SessionForm, FileImportForm
 from ..models import Session, SessionEntry
 
 
@@ -93,3 +93,25 @@ def tab_session_details_htmx(request, club, session):
         "club_sessions/session_details_htmx.html",
         {"session": session, "session_entries": session_entries},
     )
+
+
+@user_is_club_director()
+def tab_session_uploads_htmx(request, club, session):
+    """file upload tab"""
+
+    return render(
+        request,
+        "club_sessions/session_import_htmx.html",
+        {"session": session, "club": club},
+    )
+
+
+@user_is_club_director()
+def import_player_names_htmx(request, club, session):
+    """Upload player names for a session"""
+
+    form = FileImportForm(request.POST, request.FILES)
+    if form.is_valid():
+        print("Valid")
+
+    return HttpResponse("file thing")

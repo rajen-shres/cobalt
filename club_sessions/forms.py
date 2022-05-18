@@ -41,4 +41,12 @@ class SessionForm(forms.ModelForm):
         if session_types.count() > 0:
             self.fields["session_type"].choices = session_types
         else:
-            self.fields["session_type"].choices = [("", "Error - No session types defined")]
+            self.fields["session_type"].choices = [
+                ("", "Error - No session types defined")
+            ]
+
+
+class FileImportForm(forms.Form):
+    """Session file upload form"""
+
+    file = forms.FileField()

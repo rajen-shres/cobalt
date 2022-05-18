@@ -22,8 +22,6 @@ def add_payment_method_session_type_combos(club):
     """Add the required instances of SessionTypePaymentMethod and SessionTypePaymentMethodMembership if
     they do not already exist"""
 
-    print("club is", club)
-
     sess_types = SessionType.objects.filter(organisation=club)
     pay_meths = OrgPaymentMethod.objects.filter(organisation=club).filter(active=True)
 

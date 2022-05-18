@@ -11,6 +11,16 @@ urlpatterns = [
         "session/settings", sessions.tab_edit_session_htmx, name="tab_edit_session_htmx"
     ),
     path(
+        "session/uploads",
+        sessions.tab_session_uploads_htmx,
+        name="tab_session_uploads_htmx",
+    ),
+    path(
+        "session/uploads-file",
+        sessions.import_player_names_htmx,
+        name="tab_session_import_player_names_htmx",
+    ),
+    path(
         "session/details",
         sessions.tab_session_details_htmx,
         name="tab_session_details_htmx",
