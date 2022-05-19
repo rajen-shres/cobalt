@@ -55,7 +55,7 @@
                         <h3 class="mt-0">Settings</h3>
                         <div id="id_pane_settings">
                             <div
-                                hx-post="{% url "club_sessions:tab_edit_session_htmx" %}"
+                                hx-post="{% url "club_sessions:tab_settings_htmx" %}"
                                 hx-trigger="load"
                                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
                             ></div>
@@ -65,17 +65,16 @@
                         <h3 class="mt-0">Imports</h3>
                         <div id="id_pane_import">
                             <div
-                                hx-post="{% url "club_sessions:tab_session_uploads_htmx" %}"
+                                hx-post="{% url "club_sessions:tab_import_htmx" %}"
                                 hx-trigger="load"
                                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
                             ></div>
                         </div>
                     </div>
                     <div class="tab-pane" id="session">
-                        <h3 class="mt-0">Session</h3>
                         <div id="id_pane_session">
                             <div
-                                hx-post="{% url "club_sessions:tab_session_details_htmx" %}"
+                                hx-post="{% url "club_sessions:tab_session_htmx" %}"
                                 hx-trigger="load"
                                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
                             ></div>

@@ -54,7 +54,6 @@ class SessionEntryAdmin(admin.ModelAdmin):
     search_fields = ["player"]
     autocomplete_fields = [
         "session",
-        "player",
         "org_tran",
         "member_tran",
         "payment_method",

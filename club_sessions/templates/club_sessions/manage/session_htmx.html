@@ -1,0 +1,78 @@
+{% load cobalt_tags %}
+
+
+{% if not session_entries %}
+
+    <h4>No players found. Either import players from the <b>IMPORTS</b> tag or click below to add a table manually.</h4>
+
+{% else %}
+
+    <div class="form-check form-check-radio form-check-inline">
+        <label class="form-check-label">
+            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> All
+            <span class="circle">
+                <span class="check"></span>
+            </span>
+        </label>
+    </div>
+    <div class="form-check form-check-radio form-check-inline">
+        <label class="form-check-label">
+            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2"> Attention Required
+            <span class="circle">
+                <span class="check"></span>
+            </span>
+        </label>
+    </div>
+    <div class="form-check form-check-radio form-check-inline">
+        <label class="form-check-label">
+            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3"> Table View
+            <span class="circle">
+                <span class="check"></span>
+            </span>
+        </label>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-condensed table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Table</th>
+                    <th>Direction</th>
+                    <th class="text-left">Player</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session_entry in session_entries %}
+                    <tr
+                        {% if session_entry.table_colour == "even" %}
+                            class="table-secondary"
+                        {% elif session_entry.table_colour == "unknown player" %}
+                            class="table-dark" style="background-color: #0b2e13"
+                        {% endif %}
+                    >
+                        <td>{{ session_entry.pair_team_number }}</td>
+                        <td>{{ session_entry.get_seat_display }}</td>
+                        <td class="text-left">
+                            {% if not session_entry.player %}
+                                <button class="btn btn-sm btn-danger">Unknown</button>
+                                {{ session_entry.system_number }}
+                            {% else %}
+                                {% if session_entry.player.is_user %}
+                                    <button class="btn btn-sm btn-success">Reg</button>
+                                {% else %}
+                                    <button class="btn btn-sm btn-info">Unreg</button>
+                                {% endif %}
+
+                                {{ session_entry.player }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endif %}
+
+<button class="btn btn-info">Add Table</button>
+

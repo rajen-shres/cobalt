@@ -109,7 +109,7 @@ class SessionEntry(models.Model):
     """A player who is playing in a session"""
 
     session = models.ForeignKey(Session, on_delete=models.PROTECT)
-    player = models.ForeignKey(User, on_delete=models.PROTECT)
+    system_number = models.PositiveIntegerField()
     pair_team_number = models.IntegerField()
     seat = models.CharField(choices=Seat.choices, max_length=1, null=True, blank=True)
     org_tran = models.ForeignKey(
@@ -119,7 +119,10 @@ class SessionEntry(models.Model):
         MemberTransaction, on_delete=models.PROTECT, null=True, blank=True
     )
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.ForeignKey(OrgPaymentMethod, on_delete=models.CASCADE)
+    payment_method = models.ForeignKey(
+        OrgPaymentMethod, on_delete=models.PROTECT, null=True, blank=True
+    )
 
     class Meta:
         verbose_name_plural = "Session entries"
+        unique_together = ("session", "pair_team_number", "seat")

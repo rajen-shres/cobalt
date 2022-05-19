@@ -4,19 +4,19 @@
     <div class="col-md-6">
 
 
-        {% include "club_sessions/new_or_edit_session_sub.html" %}
+        {% include "club_sessions/shared/new_or_manage_session_sub.html" %}
 
         <div class="text-center">
             <button type="submit" name="save_settings"
                 class="btn btn-primary cobalt-save"
                 hx-target="#id_pane_settings"
-                hx-post="{% url "club_sessions:tab_edit_session_htmx" %}"
+                hx-post="{% url "club_sessions:tab_settings_htmx" %}"
                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, save_settings:1"
             >Update</button>
         </div>
     </form>
 
-    {% include "club_sessions/new_or_edit_session_footer.html" %}
+    {% include "club_sessions/shared/new_or_manage_session_footer.html" %}
 
 </div>
 </div>

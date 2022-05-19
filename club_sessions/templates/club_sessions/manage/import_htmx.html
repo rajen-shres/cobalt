@@ -1,6 +1,6 @@
 <form
     hx-encoding='multipart/form-data'
-    hx-post="{% url "club_sessions:tab_session_import_player_names_htmx" %}"
+    hx-post="{% url "club_sessions:session_import_file_upload_htmx" %}"
     hx-vars="club_id:{{ club.id }},session_id:{{ session.id }}"
     hx-target="#id_pane_import"
     hx-trigger="change"
@@ -10,8 +10,8 @@
         <div class="fileinput-preview fileinput-exists thumbnail img-circle img-raised"></div>
         <div>
             <span class="btn btn-warning btn-file">
-                <span class="fileinput-new">Upload New Results File</span>
-                <input type="file" name="results_file" id="id_upload_results_file_btn"/>
+                <span class="fileinput-new">Import Session Names</span>
+                <input type="file" name="file" id="id_upload_results_file_btn"/>
             </span>
 
         </div>

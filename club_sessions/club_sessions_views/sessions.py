@@ -1,7 +1,12 @@
+import codecs
+import csv
+
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
+
+from accounts.models import User, UnregisteredUser
 from organisations.models import Organisation, OrgVenue
 
 from rbac.views import rbac_forbidden
@@ -36,7 +41,7 @@ def new_session(request, club_id):
 
     return render(
         request,
-        "club_sessions/new_session.html",
+        "club_sessions/new/new_session.html",
         {
             "club": club,
             "session_form": session_form,
@@ -59,12 +64,14 @@ def manage_session(request, session_id):
         return rbac_forbidden(request, club_role)
 
     return render(
-        request, "club_sessions/manage_session.html", {"club": club, "session": session}
+        request,
+        "club_sessions/manage/manage_session.html",
+        {"club": club, "session": session},
     )
 
 
 @user_is_club_director()
-def tab_edit_session_htmx(request, club, session):
+def tab_settings_htmx(request, club, session):
     """Edit fields that were set up when the session was started"""
 
     if "save_settings" in request.POST:
@@ -77,41 +84,104 @@ def tab_edit_session_htmx(request, club, session):
 
     return render(
         request,
-        "club_sessions/edit_session_htmx.html",
+        "club_sessions/manage/settings_htmx.html",
         {"session_form": session_form, "club": club, "session": session},
     )
 
 
 @user_is_club_director()
-def tab_session_details_htmx(request, club, session):
+def tab_session_htmx(request, club, session):
     """present the main session tab for the director"""
 
+    # Get the entries for this session
     session_entries = SessionEntry.objects.filter(session=session)
+
+    # Map to Users or UnregisteredUsers
+
+    # Get system numbers
+    system_number_list = session_entries.values_list("system_number")
+
+    # Get Users and UnregisteredUsers
+    users = User.objects.filter(system_number__in=system_number_list)
+    un_regs = UnregisteredUser.objects.filter(system_number__in=system_number_list)
+
+    # Convert to a dictionary
+    mixed_dict = {}
+
+    for user in users:
+        user.is_user = True
+        mixed_dict[user.system_number] = user
+
+    # Add unregistered to dictionary
+    for un_reg in un_regs:
+        un_reg.is_un_reg = True
+        mixed_dict[un_reg.system_number] = un_reg
+
+    # Get membership fees
+
+    # Now add the object to the session list, also add colours for alternate tables
+    for session_entry in session_entries:
+        if session_entry.system_number in mixed_dict:
+            session_entry.player = mixed_dict[session_entry.system_number]
+            # table
+            if session_entry.pair_team_number % 2 == 0:
+                session_entry.table_colour = "even"
+            else:
+                session_entry.table_colour = "odd"
+        else:
+            # table colour - highlight if not a known player
+            session_entry.table_colour = "unknown player"
 
     return render(
         request,
-        "club_sessions/session_details_htmx.html",
+        "club_sessions/manage/session_htmx.html",
         {"session": session, "session_entries": session_entries},
     )
 
 
 @user_is_club_director()
-def tab_session_uploads_htmx(request, club, session):
+def tab_import_htmx(request, club, session):
     """file upload tab"""
 
     return render(
         request,
-        "club_sessions/session_import_htmx.html",
+        "club_sessions/manage/import_htmx.html",
         {"session": session, "club": club},
     )
 
 
 @user_is_club_director()
-def import_player_names_htmx(request, club, session):
+def import_file_upload_htmx(request, club, session):
     """Upload player names for a session"""
 
     form = FileImportForm(request.POST, request.FILES)
     if form.is_valid():
-        print("Valid")
+        # TODO: Might not want to do this
+        SessionEntry.objects.filter(session=session).delete()
+
+        # TODO: This isn't the proper format for the input file - change later
+        csv_file = request.FILES["file"]
+
+        # get CSV reader (convert bytes to strings)
+        csv_data = csv.reader(codecs.iterdecode(csv_file, "utf-8"))
+
+        # skip header
+        next(csv_data, None)
+
+        # process data
+        for line in csv_data:
+            print(line)
+            table = line[0]
+            direction = line[1]
+            system_number = int(line[2])
+            SessionEntry(
+                session=session,
+                pair_team_number=table,
+                seat=direction,
+                system_number=system_number,
+                amount_paid=0,
+            ).save()
+    else:
+        print(form.errors)
 
     return HttpResponse("file thing")
