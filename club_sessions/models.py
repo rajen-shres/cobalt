@@ -109,9 +109,11 @@ class SessionEntry(models.Model):
     """A player who is playing in a session"""
 
     session = models.ForeignKey(Session, on_delete=models.PROTECT)
-    system_number = models.PositiveIntegerField()
+    system_number = models.IntegerField()
     pair_team_number = models.IntegerField()
     seat = models.CharField(choices=Seat.choices, max_length=1, null=True, blank=True)
+    seat_number_internal = models.PositiveIntegerField(null=True, blank=True)
+    """ seat_number_internal is used to sort NSEW in order """
     org_tran = models.ForeignKey(
         OrganisationTransaction, on_delete=models.PROTECT, null=True, blank=True
     )
@@ -126,3 +128,10 @@ class SessionEntry(models.Model):
     class Meta:
         verbose_name_plural = "Session entries"
         unique_together = ("session", "pair_team_number", "seat")
+        ordering = ["pair_team_number", "seat_number_internal"]
+
+    def save(self, *args, **kwargs):
+        """We add the seat number internal on save so we can load from database in order NSEW"""
+        if self.seat:
+            self.seat_number_internal = "NSEW".find(self.seat)
+        super(SessionEntry, self).save(*args, **kwargs)

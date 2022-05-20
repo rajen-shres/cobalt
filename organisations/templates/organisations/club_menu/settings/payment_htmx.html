@@ -29,20 +29,6 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>Bridge Credits</td>
-                                                <td>
-                                                    <input
-                                                        type="checkbox"
-                                                        class="toggle_button"
-                                                        data-toggle="toggle"
-                                                        data-size="sm"
-                                                        data-onstyle="primary"
-                                                        disabled
-                                                        checked
-                                                    >
-                                                </td>
-                                            </tr>
                                             {% for payment_method in payment_methods %}
                                                 <tr>
                                                     <td>{{ payment_method.payment_method }}</td>

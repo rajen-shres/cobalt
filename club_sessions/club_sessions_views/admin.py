@@ -7,10 +7,17 @@ from club_sessions.models import (
     SessionTypePaymentMethodMembership,
     DEFAULT_FEE,
 )
+from cobalt.settings import BRIDGE_CREDITS
 from organisations.models import MembershipType
 from payments.models import OrgPaymentMethod
 
-DEFAULT_PAYMENT_METHODS = ["Cash", "EFTPOS", "Credit Card", "Bank Transfer"]
+DEFAULT_PAYMENT_METHODS = [
+    BRIDGE_CREDITS,
+    "Cash",
+    "EFTPOS",
+    "Credit Card",
+    "Bank Transfer",
+]
 DEFAULT_SESSION_TYPES = [
     MasterSessionType.DUPLICATE,
     #    MasterSessionType.MULTI_SESSION,

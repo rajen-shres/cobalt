@@ -1,3 +1,7 @@
+{% if existing_data %}
+    <h4>There is existing session data. Importing will replace this.</h4>
+{% endif %}
+
 <form
     hx-encoding='multipart/form-data'
     hx-post="{% url "club_sessions:session_import_file_upload_htmx" %}"
@@ -17,3 +21,25 @@
         </div>
     </div>
 </form>
+
+{% if messages %}
+    <h4>Import Messages</h4>
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    {# if no messages and this is a relads (button pressed) go straight to the session tab #}
+    {% if reload %}
+        <script>
+            $(document).ready( function () {
+                // reload data on session tab
+                htmx.trigger(htmx.find('#id_pane_session'), "tab_load_event");
+                // move to session tab
+                $('#id_menu li:eq(2) a').tab('show');
+
+            });
+        </script>
+    {% endif %}
+{% endif %}

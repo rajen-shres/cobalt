@@ -72,13 +72,11 @@
                         </div>
                     </div>
                     <div class="tab-pane" id="session">
-                        <div id="id_pane_session">
-                            <div
-                                hx-post="{% url "club_sessions:tab_session_htmx" %}"
-                                hx-trigger="load"
-                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
-                            ></div>
-                        </div>
+                        <div id="id_pane_session"
+                            hx-post="{% url "club_sessions:tab_session_htmx" %}"
+                            hx-trigger="tab_load_event"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                        ></div>
                     </div>
                 </div>
             </div>
@@ -94,6 +92,22 @@
 
 
     {% include "utils/include_htmx.html" %}
+
+    <script>
+
+
+        $(document).ready(function () {
+
+            // refresh the session tab every time it is clicked
+            $('#id_tab_session').on('click', function (e) {
+                htmx.trigger(htmx.find('#id_pane_session'), "tab_load_event");
+            })
+
+
+        });
+
+    </script>
+
 
 
 {% endblock footer %}

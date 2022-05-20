@@ -39,6 +39,9 @@
                     <th>Table</th>
                     <th>Direction</th>
                     <th class="text-left">Player</th>
+                    <th>Payment Method</th>
+                    <th>Fee</th>
+                    <th>Paid</th>
                 </tr>
             </thead>
             <tbody>
@@ -53,6 +56,9 @@
                         <td>{{ session_entry.pair_team_number }}</td>
                         <td>{{ session_entry.get_seat_display }}</td>
                         <td class="text-left">
+
+                            <button class="btn btn-sm btn-warning">{{ session_entry.membership }}</button>
+
                             {% if not session_entry.player %}
                                 <button class="btn btn-sm btn-danger">Unknown</button>
                                 {{ session_entry.system_number }}
@@ -66,6 +72,10 @@
                                 {{ session_entry.player }}
                             {% endif %}
                         </td>
+                        <td>{{ session_entry.payment_method.payment_method }}</td>
+                        <td>{{ session_entry.fee }}</td>
+                        <td>{{ session_entry.amount_paid }}</td>
+
                     </tr>
                 {% endfor %}
             </tbody>

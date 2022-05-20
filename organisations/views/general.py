@@ -231,3 +231,19 @@ def get_clubs_for_player(player):
     )
 
     return MembershipType.objects.filter(id__in=memberships)
+
+
+def get_membership_type_for_players(system_number_list, club):
+    """returns the membership type for a list of system_numbers. It returns a dict of system_number to
+    membership type name e.g. "Standard" """
+
+    membership_types = (
+        MemberMembershipType.objects.active()
+        .filter(system_number__in=system_number_list)
+        .filter(membership_type__organisation=club)
+    )
+
+    return {
+        membership_type.system_number: membership_type.membership_type.name
+        for membership_type in membership_types
+    }
