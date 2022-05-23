@@ -1,14 +1,17 @@
 import codecs
 import csv
+import re
 
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 
+from accounts.accounts_views.core import add_un_registered_user_with_mpc_data
 from accounts.models import User, UnregisteredUser
 from cobalt.settings import BRIDGE_CREDITS
-from organisations.models import Organisation, OrgVenue
+from masterpoints.views import abf_checksum_is_valid
+from organisations.models import Organisation, OrgVenue, ClubLog
 from organisations.views.general import get_membership_type_for_players
 from payments.models import OrgPaymentMethod
 
@@ -119,12 +122,12 @@ def _tab_session_htmx_load_static(session, club):
 
     for user in users:
         user.is_user = True
-        mixed_dict[user.system_number] = user
+        mixed_dict[user.system_number] = {"type": "User", "value": user}
 
     # Add unregistered to dictionary
     for un_reg in un_regs:
         un_reg.is_un_reg = True
-        mixed_dict[un_reg.system_number] = un_reg
+        mixed_dict[un_reg.system_number] = {"type": "UnregisteredUser", "value": un_reg}
 
     # Get memberships
     membership_type_dict = get_membership_type_for_players(system_number_list, club)
@@ -156,7 +159,7 @@ def _tab_session_htmx_augment_session_entries(
         UnregisteredUsers
         Nothing
 
-        If Nothing, they can have a valid ABF number, and invalid ABF number or no ABF number
+        If Nothing, they can have a valid ABF number, an invalid ABF number or no ABF number
 
     Their relationship with the club can be:
         Member
@@ -167,21 +170,31 @@ def _tab_session_htmx_augment_session_entries(
     # Now add the object to the session list, also add colours for alternate tables
     for session_entry in session_entries:
 
-        # Add User or UnregisterUser to the entry
-        if session_entry.system_number in mixed_dict:
-            session_entry.player = mixed_dict[session_entry.system_number]
-
         # table
         if session_entry.pair_team_number % 2 == 0:
             session_entry.table_colour = "even"
         else:
             session_entry.table_colour = "odd"
 
+        # Add User or UnregisterUser to the entry and note the player_type
+        if session_entry.system_number in mixed_dict:
+            session_entry.player = mixed_dict[session_entry.system_number]["value"]
+            session_entry.player_type = mixed_dict[session_entry.system_number]["type"]
+        else:
+            session_entry.player_type = "NotRegistered"
+
         # membership
         if session_entry.system_number in membership_type_dict:
             session_entry.membership = membership_type_dict[session_entry.system_number]
+            session_entry.membership_type = "member"
         else:
             session_entry.membership = "Guest"
+            if session_entry.system_number >= 0 and abf_checksum_is_valid(
+                session_entry.system_number
+            ):
+                session_entry.membership_type = "Valid Number"
+            else:
+                session_entry.membership_type = "Invalid Number"
 
         # fee due
         if session_entry.payment_method:
@@ -240,6 +253,88 @@ def tab_import_htmx(request, club, session, messages=None, reload=False):
     )
 
 
+def _import_file_upload_htmx_simple_csv(request, club, session):
+    """Sub to handle simple CSV file. This is a generic format, not from the real world"""
+
+    messages = []
+    csv_file = request.FILES["file"]
+
+    # get CSV reader (convert bytes to strings)
+    csv_data = csv.reader(codecs.iterdecode(csv_file, "utf-8"))
+
+    # skip header
+    next(csv_data, None)
+
+    # process file
+    for line_no, line in enumerate(csv_data, start=2):
+        response = _import_file_upload_htmx_process_line(
+            line, line_no, session, club, request
+        )
+        if response:
+            messages.append(response)
+
+    return messages
+
+
+def _import_file_upload_htmx_compscore2(request, club, session):
+    """Sub to handle simple Compscore2 text file format
+
+    File is like:
+
+    North Shore Bridge Club	Compscore2W7
+    WS WED 12.45PM OPEN
+    Pr No	Player Names
+    NORTH-SOUTH
+    1	ALAN ADMIN / BETTY BUNTING (100 / 101)
+    2	ANOTHER NAME / ANOTHER PARTNER (9999 / 99999)
+
+
+    EAST-WEST
+    1	COLIN CORGY / DEBBIE DYSON (102 / 103)
+    2	PHANTOM / PHANTOM ( / )
+
+    There is a tab character after the table number
+    """
+
+    messages = []
+    text_file = request.FILES["file"]
+
+    # We get North-South first
+    current_direction = ["N", "S"]
+    line_no = 0
+
+    for line in text_file.readlines():
+        line = line.decode("utf-8")
+        line_no += 1
+
+        # See if direction changed
+        if line.find("EAST-WEST") >= 0:
+            current_direction = ["E", "W"]
+            continue
+
+        # Look for a valid line
+        try:
+            parts = line.split("\t")
+        except ValueError:
+            continue
+
+        try:
+            table = int(parts[0])
+            player1, player2 = re.findall(r"\d+", parts[1])
+        except ValueError:
+            continue
+
+        for direction in current_direction:
+
+            response = _import_file_upload_htmx_process_line(
+                [table, direction, player1], line_no, session, club, request
+            )
+            if response:
+                messages.append(response)
+
+    return messages
+
+
 @user_is_club_director()
 def import_file_upload_htmx(request, club, session):
     """Upload player names for a session"""
@@ -248,25 +343,13 @@ def import_file_upload_htmx(request, club, session):
 
     form = FileImportForm(request.POST, request.FILES)
     if form.is_valid():
-        # TODO: Might not want to do this
+
         SessionEntry.objects.filter(session=session).delete()
 
-        # TODO: This isn't the proper format for the input file - change later
-        csv_file = request.FILES["file"]
-
-        # get CSV reader (convert bytes to strings)
-        csv_data = csv.reader(codecs.iterdecode(csv_file, "utf-8"))
-
-        # skip header
-        next(csv_data, None)
-
-        # process file
-        for line_no, line in enumerate(csv_data, start=2):
-            response = _import_file_upload_htmx_process_line(
-                line, line_no, session, club
-            )
-            if response:
-                messages.append(response)
+        if "generic_csv" in request.POST:
+            _import_file_upload_htmx_simple_csv(request, club, session)
+        elif "compscore2" in request.POST:
+            _import_file_upload_htmx_compscore2(request, club, session)
 
         _import_file_upload_htmx_fill_in_table_gaps(session)
 
@@ -279,7 +362,7 @@ def import_file_upload_htmx(request, club, session):
     return tab_import_htmx(request, messages=messages, reload=reload)
 
 
-def _import_file_upload_htmx_process_line(line, line_no, session, club):
+def _import_file_upload_htmx_process_line(line, line_no, session, club, request):
     """Process a single line from the import file"""
 
     # Extract data
@@ -289,6 +372,19 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club):
         system_number = int(line[2])
     except ValueError:
         return f"Invalid data found on line {line_no}. Ignored."
+
+    # If this user isn't registered then add them from the MPC
+    if not UnregisteredUser.objects.filter(system_number=system_number).exists():
+        response = add_un_registered_user_with_mpc_data(
+            system_number, club, request.user
+        )
+        print(response)
+        # if response:
+        # ClubLog(
+        #     organisation=club,
+        #     actor=request.user,
+        #     action=f"Added un-registered user {form.cleaned_data['first_name']} {form.cleaned_data['last_name']}",
+        # ).save()
 
     # Work out the payment method to use - can be changed by the director
     registered_user = User.objects.filter(system_number=system_number).first()
@@ -349,10 +445,19 @@ def edit_session_entry_htmx(request, club, session):
         return HttpResponse("Access Denied")
 
     if "save_session" not in request.POST:
+
+        # Try to load member
+        member = User.objects.filter(system_number=session_entry.system_number).first()
+
         return render(
             request,
             "club_sessions/manage/edit_session_entry_htmx.html",
-            {"club": club, "session": session, "session_entry": session_entry},
+            {
+                "club": club,
+                "session": session,
+                "session_entry": session_entry,
+                "member": member,
+            },
         )
 
     return HttpResponse("edit it")

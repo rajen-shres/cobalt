@@ -16,6 +16,7 @@ from accounts.models import User, UnregisteredUser
 from accounts.tokens import account_activation_token
 from cobalt.settings import GLOBAL_TITLE
 from logs.views import log_event
+from masterpoints.views import user_summary
 from notifications.notifications_views.core import send_cobalt_email_with_template
 from organisations.views.general import replace_unregistered_user_with_real_user
 
@@ -312,3 +313,24 @@ def _check_unregistered_user_match(user):
 
     # Now delete the unregistered user, we don't need it any more
     unregistered_user.delete()
+
+
+def add_un_registered_user_with_mpc_data(
+    system_number, club, added_by, origin="Manual"
+):
+    """Add an unregistered user to the system. Called from the player import if the user isn't already
+    in the system"""
+
+    details = user_summary(system_number)
+
+    print(details)
+
+    # UnregisteredUser(
+    #     system_number=system_number,
+    #     last_updated_by=added_by,
+    #     last_name=last_name,
+    #     first_name=first_name,
+    #     email=mpc_email,
+    #     origin=origin,
+    #     added_by_club=club,
+    # ).save()

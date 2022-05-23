@@ -1,6 +1,25 @@
-<h3>Here</h3>
+{% load cobalt_tags %}
 
-<button class="btn btn-sm btn-info"
-    _="on click "
+<div>
+    <div class="card card-profile">
+        <div class="card-header card-header-{% cobalt_random_colour %}">
+            <h4 class="card-title">Edit Details</h4>
+        </div>
+        <div class="card-body">
+            {% if member %}
+                <div>
+                    <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 50px; width: 50px;" src="/media/{{ member.pic }}" />
+                </div>
 
->Cancel</button>
+            {% endif %}
+
+            <button class="btn btn-sm btn-success"
+            >Save</button>
+            <button class="btn btn-sm btn-info"
+                _="on click put '' into #session_entry_edit_{{ session_entry.id }}"
+            >Cancel</button>
+
+        </div>
+    </div>
+</div>
+

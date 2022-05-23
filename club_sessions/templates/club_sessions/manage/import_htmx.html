@@ -5,7 +5,7 @@
 <form
     hx-encoding='multipart/form-data'
     hx-post="{% url "club_sessions:session_import_file_upload_htmx" %}"
-    hx-vars="club_id:{{ club.id }},session_id:{{ session.id }}"
+    hx-vars="club_id:{{ club.id }},session_id:{{ session.id }},generic_csv:1"
     hx-target="#id_pane_import"
     hx-trigger="change"
     id="import_file_form"
@@ -14,7 +14,27 @@
         <div class="fileinput-preview fileinput-exists thumbnail img-circle img-raised"></div>
         <div>
             <span class="btn btn-warning btn-file">
-                <span class="fileinput-new">Import Session Names</span>
+                <span class="fileinput-new">Import Session Names (Generic CSV)</span>
+                <input type="file" name="file" id="id_upload_results_file_btn"/>
+            </span>
+
+        </div>
+    </div>
+</form>
+
+<form
+    hx-encoding='multipart/form-data'
+    hx-post="{% url "club_sessions:session_import_file_upload_htmx" %}"
+    hx-vars="club_id:{{ club.id }},session_id:{{ session.id }},compscore2:1"
+    hx-target="#id_pane_import"
+    hx-trigger="change"
+    id="import_file_form"
+>
+    <div class="fileinput fileinput-new text-center" data-provides="fileinput" style="cursor: pointer;">
+        <div class="fileinput-preview fileinput-exists thumbnail img-circle img-raised"></div>
+        <div>
+            <span class="btn btn-warning btn-file">
+                <span class="fileinput-new">Import Session Names (CS2)</span>
                 <input type="file" name="file" id="id_upload_results_file_btn"/>
             </span>
 
