@@ -2,4 +2,34 @@
 
 # about: count lines of code in this branch
 
-git ls-files | grep -Ev 'static|_build' | xargs wc -l | tail -1 | awk '{print $1}'
+# Total size of Cobalt - lines of code
+TOTAL=$(git ls-files | grep -Ev 'static|_build' | xargs wc -l | tail -1 | awk '{print $1}')
+
+# print header
+echo ""
+echo "Application         Lines of Code  Percentage"
+echo "===========         =============  =========="
+
+# go through dirs (some excluded) and get size of each cobalt app
+for DIR in $(ls -d */ | grep -Ev 'static|docs|media')
+do
+  cd "$DIR"
+  NAME=$(echo $DIR | cut -d "/" -f1)
+  APP=$(git ls-files | grep -Ev 'static|_build' | xargs wc -l | tail -1 | awk '{print $1}')
+  APP_FMT=$(printf "%'d\n" $APP)
+  PERCENT=$(echo "scale=0; 100 * $APP / $TOTAL" | bc)
+  printf '%-20s' "$NAME"
+  printf '%13s' "$APP_FMT"
+  printf '%11s%%' "$PERCENT"
+  printf "  "
+
+# print * for every percentage
+  for i in $(seq $PERCENT); do
+    printf "*"
+  done
+
+  echo ""
+  cd ..
+done
+
+printf "\nTotal %'d lines of code\n" $TOTAL
