@@ -57,7 +57,7 @@
         <div class="col-md-3 text-nowrap">
             <form
                 hx-post="{% url "organisations:club_menu_tab_comms_tags_htmx" %}"
-                hx-target="#id_panel_settings"
+                hx-target="#id_settings_form"
                 hx-vars="club_id:{{ club.id }}"
             >
                 {% cobalt_bs4_field form.tag_name %}
