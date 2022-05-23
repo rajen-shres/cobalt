@@ -321,16 +321,25 @@ def add_un_registered_user_with_mpc_data(
     """Add an unregistered user to the system. Called from the player import if the user isn't already
     in the system"""
 
+    # do nothing if user already exists
+    if UnregisteredUser.objects.filter(system_number=system_number).exists():
+        return None
+
     details = user_summary(system_number)
+
+    if not details:
+        return None
 
     print(details)
 
-    # UnregisteredUser(
-    #     system_number=system_number,
-    #     last_updated_by=added_by,
-    #     last_name=last_name,
-    #     first_name=first_name,
-    #     email=mpc_email,
-    #     origin=origin,
-    #     added_by_club=club,
-    # ).save()
+    UnregisteredUser(
+        system_number=system_number,
+        last_updated_by=added_by,
+        last_name=details["Surname"],
+        first_name=details["GivenNames"],
+        # email=mpc_email,
+        origin=origin,
+        added_by_club=club,
+    ).save()
+
+    return details

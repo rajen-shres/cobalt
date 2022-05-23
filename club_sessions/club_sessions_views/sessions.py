@@ -303,7 +303,10 @@ def _import_file_upload_htmx_compscore2(request, club, session):
     current_direction = ["N", "S"]
     line_no = 0
 
+    # Go through the lines looking for a valid line, or the change of direction line
     for line in text_file.readlines():
+
+        # change bytes to str
         line = line.decode("utf-8")
         line_no += 1
 
@@ -318,19 +321,23 @@ def _import_file_upload_htmx_compscore2(request, club, session):
         except ValueError:
             continue
 
+        # try to get player numbers
         try:
             table = int(parts[0])
             player1, player2 = re.findall(r"\d+", parts[1])
         except ValueError:
             continue
 
+        # ugly way to loop through player and direction
+        player = player1
         for direction in current_direction:
 
             response = _import_file_upload_htmx_process_line(
-                [table, direction, player1], line_no, session, club, request
+                [table, direction, player], line_no, session, club, request
             )
             if response:
                 messages.append(response)
+            player = player2
 
     return messages
 
@@ -365,6 +372,8 @@ def import_file_upload_htmx(request, club, session):
 def _import_file_upload_htmx_process_line(line, line_no, session, club, request):
     """Process a single line from the import file"""
 
+    message = None
+
     # Extract data
     try:
         table = line[0]
@@ -374,17 +383,16 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         return f"Invalid data found on line {line_no}. Ignored."
 
     # If this user isn't registered then add them from the MPC
-    if not UnregisteredUser.objects.filter(system_number=system_number).exists():
-        response = add_un_registered_user_with_mpc_data(
-            system_number, club, request.user
+    response = add_un_registered_user_with_mpc_data(system_number, club, request.user)
+    if response:
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Added un-registered user {response['GivenNames']} {response['Surname']} through session import",
+        ).save()
+        message = (
+            f"Added new user to system - {response['GivenNames']} {response['Surname']}"
         )
-        print(response)
-        # if response:
-        # ClubLog(
-        #     organisation=club,
-        #     actor=request.user,
-        #     action=f"Added un-registered user {form.cleaned_data['first_name']} {form.cleaned_data['last_name']}",
-        # ).save()
 
     # Work out the payment method to use - can be changed by the director
     registered_user = User.objects.filter(system_number=system_number).first()
@@ -405,7 +413,7 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         payment_method=payment_method,
     ).save()
 
-    return None
+    return message
 
 
 def _import_file_upload_htmx_fill_in_table_gaps(session):

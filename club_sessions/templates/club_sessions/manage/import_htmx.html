@@ -1,3 +1,7 @@
+<div id="loading_message" style="display: none">
+    <h3>Loading...</h3>
+</div>
+
 {% if existing_data %}
     <h4>There is existing session data. Importing will replace this.</h4>
 {% endif %}
@@ -35,12 +39,17 @@
         <div>
             <span class="btn btn-warning btn-file">
                 <span class="fileinput-new">Import Session Names (CS2)</span>
-                <input type="file" name="file" id="id_upload_results_file_btn"/>
+                <input type="file"
+                    name="file"
+                    id="id_upload_results_file_btn"
+                    _="on click show #loading_message"
+                />
             </span>
 
         </div>
     </div>
 </form>
+
 
 {% if messages %}
     <h4>Import Messages</h4>
