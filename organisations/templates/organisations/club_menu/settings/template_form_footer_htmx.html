@@ -4,7 +4,7 @@
         <div class="form-group">
             <form
                 hx-post="{% url "organisations:club_menu_tab_settings_edit_template_footer_htmx" %}"
-                hx-target="#id_panel_settings"
+                hx-target="#id_settings_form"
                 hx-vars="club_id:{{ club.id }},template_id:{{ template.id }}"
             >
 

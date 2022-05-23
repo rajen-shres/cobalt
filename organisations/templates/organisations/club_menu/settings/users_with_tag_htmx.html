@@ -11,7 +11,7 @@
 
         <button class="btn btn-sm btn-outline-secondary text-dark"
             hx-post="{% url "organisations:club_menu_tab_comms_tags_htmx" %}"
-            hx-target="#id_panel_settings"
+            hx-target="#id_settings_form"
             hx-vars="club_id:{{ club.id }}"
         >All Tags</button>
 
@@ -36,7 +36,7 @@
 
 
 
-                                {% include "utils/htmx_confirm_modal.html" with id=user_with_tag.id delete_item=user_with_tag.first_name hx_vars=user_with_tag.hx_vars hx_target="#id_panel_settings" hx_post=hx_post %}
+                                {% include "utils/htmx_confirm_modal.html" with id=user_with_tag.id delete_item=user_with_tag.first_name hx_vars=user_with_tag.hx_vars hx_target="#id_settings_form" hx_post=hx_post %}
                                 <td>
                                     <button id="t_delete_user_tag_{{ tag.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user_with_tag.id }}">
                                         Delete Tag
@@ -76,7 +76,7 @@
                                 <td>{{ user_without_tag.last_name }}</td>
                                 <td><button class="btn btn-sm btn-warning"
                                     hx-post="{% url "organisations:club_menu_tab_settings_add_user_to_tag_htmx" %}"
-                                    hx-target="#id_panel_settings"
+                                    hx-target="#id_settings_form"
                                     hx-vars="club_id:{{ club.id }}, tag_id:{{ tag.id }}, system_number:{{ user_without_tag.system_number }}"
                                 >Add Tag</button></td>
                             </tr>
