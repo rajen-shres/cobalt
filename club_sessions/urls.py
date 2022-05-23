@@ -23,4 +23,9 @@ urlpatterns = [
         sessions.tab_session_htmx,
         name="tab_session_htmx",
     ),
+    path(
+        "session/edit-session-entry",
+        sessions.edit_session_entry_htmx,
+        name="edit_session_entry_htmx",
+    ),
 ]

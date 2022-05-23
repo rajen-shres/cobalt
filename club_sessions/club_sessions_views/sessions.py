@@ -149,7 +149,20 @@ def _tab_session_htmx_load_static(session, club):
 def _tab_session_htmx_augment_session_entries(
     session_entries, mixed_dict, membership_type_dict, session_fees
 ):
-    """Sub of tab_Session_htmx. Adds extra values to the session_entries for display by the template"""
+    """Sub of tab_Session_htmx. Adds extra values to the session_entries for display by the template
+
+    Players can be:
+        Users
+        UnregisteredUsers
+        Nothing
+
+        If Nothing, they can have a valid ABF number, and invalid ABF number or no ABF number
+
+    Their relationship with the club can be:
+        Member
+        Non-member
+
+    """
 
     # Now add the object to the session list, also add colours for alternate tables
     for session_entry in session_entries:
@@ -199,7 +212,7 @@ def tab_session_htmx(request, club, session):
     return render(
         request,
         "club_sessions/manage/session_htmx.html",
-        {"session": session, "session_entries": session_entries},
+        {"club": club, "session": session, "session_entries": session_entries},
     )
 
 
@@ -322,3 +335,24 @@ def _import_file_upload_htmx_fill_in_table_gaps(session):
                     amount_paid=0,
                     system_number=-1,
                 ).save()
+
+
+@user_is_club_director()
+def edit_session_entry_htmx(request, club, session):
+    """Edit a single session_entry on the session page and return the whole tab if we change anything"""
+
+    session_entry = get_object_or_404(
+        SessionEntry, pk=request.POST.get("session_entry_id")
+    )
+
+    if session_entry.session != session:
+        return HttpResponse("Access Denied")
+
+    if "save_session" not in request.POST:
+        return render(
+            request,
+            "club_sessions/manage/edit_session_entry_htmx.html",
+            {"club": club, "session": session, "session_entry": session_entry},
+        )
+
+    return HttpResponse("edit it")

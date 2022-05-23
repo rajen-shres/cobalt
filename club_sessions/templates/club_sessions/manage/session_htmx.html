@@ -1,6 +1,5 @@
 {% load cobalt_tags %}
 
-
 {% if not session_entries %}
 
     <h4>No players found. Either import players from the <b>IMPORTS</b> tag or click below to add a table manually.</h4>
@@ -9,7 +8,8 @@
 
     <div class="form-check form-check-radio form-check-inline">
         <label class="form-check-label">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> All
+            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">
+            All
             <span class="circle">
                 <span class="check"></span>
             </span>
@@ -17,7 +17,8 @@
     </div>
     <div class="form-check form-check-radio form-check-inline">
         <label class="form-check-label">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2"> Attention Required
+            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
+            Attention Required
             <span class="circle">
                 <span class="check"></span>
             </span>
@@ -25,52 +26,95 @@
     </div>
     <div class="form-check form-check-radio form-check-inline">
         <label class="form-check-label">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3"> Table View
+            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3">
+            Table View
             <span class="circle">
                 <span class="check"></span>
             </span>
         </label>
     </div>
 
+    <!-- MAIN TABLE -->
     <div class="table-responsive">
-        <table class="table table-condensed table-bordered">
+        <table class="table table-condensed table-bordered" style="cursor: cell;">
             <thead class="thead-dark">
                 <tr>
                     <th>Table</th>
                     <th>Direction</th>
                     <th class="text-left">Player</th>
-                    <th>Payment Method</th>
+                    <th>Pay By</th>
                     <th>Fee</th>
                     <th>Paid</th>
                 </tr>
             </thead>
             <tbody>
+                <!-- TABLE ROW -->
                 {% for session_entry in session_entries %}
+                    <!-- ALTERNATE TABLE COLOURS -->
                     <tr
                         {% if session_entry.table_colour == "even" %}
-                            class="table-secondary"
-                        {% elif session_entry.table_colour == "unknown player" %}
-                            class="table-dark" style="background-color: #0b2e13"
+                            style="background-color: #ECF0F1"
                         {% endif %}
                     >
-                        <td>{{ session_entry.pair_team_number }}</td>
-                        <td>{{ session_entry.get_seat_display }}</td>
+                        <!-- TABLE NUMBER -->
+                        <td style="font-size: large">{{ session_entry.pair_team_number }}</td>
+                        <!-- DIRECTION -->
+                        <td>
+                            <span class="btn btn-sm btn-danger m-0 b-0 p-0" style="width: 50px">
+                                <span style="font-size: large;">
+                                    {{ session_entry.seat }}
+                                </span>
+                            </span>
+                        </td>
+                        <!-- PLAYER NAME -->
                         <td class="text-left">
 
-                            <button class="btn btn-sm btn-warning">{{ session_entry.membership }}</button>
-
-                            {% if not session_entry.player %}
-                                <button class="btn btn-sm btn-danger">Unknown</button>
-                                {{ session_entry.system_number }}
+                            <!-- PLAYER NAME - ICON -->
+                            {% if session_entry.membership == "Guest" %}
+                                <span class="myHover text-warning"
+                                    data-toggle="tooltip"
+                                    title="This person is a visitor"
+                                    data-delay="100"
+                                >
+                                    <span class="material-icons" style="display: inline-flex; vertical-align: middle;">
+                                        {#                                       radio_button_unchecked#}
+                                        stars
+                                    </span>
+                                </span>
+                            {% elif session_entry.membership == "Error" %}
+                                <span class="myHover text-warning"
+                                    data-toggle="tooltip"
+                                    title="This person is not valid"
+                                    data-delay="100"
+                                >
+                                    <span class="material-icons" style="display: inline-flex; vertical-align: middle;">
+                                        error
+                                    </span>
+                                    Error!
+                                </span>
                             {% else %}
-                                {% if session_entry.player.is_user %}
-                                    <button class="btn btn-sm btn-success">Reg</button>
-                                {% else %}
-                                    <button class="btn btn-sm btn-info">Unreg</button>
-                                {% endif %}
-
-                                {{ session_entry.player }}
+                                <span class="myHover text-primary"
+                                    data-toggle="tooltip"
+                                    title="This person is a member - more info"
+                                    data-delay="100"
+                                >
+                                    <span class="material-icons" style="display: inline-flex; vertical-align: middle;">
+                                        account_circle
+                                    </span>
+                                </span>
                             {% endif %}
+                            <!-- PLAYER NAME - NAME -->
+                            <span style="font-size: larger; display: inline-flex; vertical-align: middle;">
+                                <a href="javascript:void(0);"
+                                    hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
+                                    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                                    hx-target="#session_entry_edit_{{ session_entry.id }}"
+                                >
+                                    {{ session_entry.player.full_name|default_if_none:session_entry.system_number }}
+                                </a>
+                            </span>
+                            <!-- PLACEHOLDER FOR HTMX EDIT DIALOG -->
+                            <div id="session_entry_edit_{{ session_entry.id }}"></div>
                         </td>
                         <td>{{ session_entry.payment_method.payment_method }}</td>
                         <td>{{ session_entry.fee }}</td>
@@ -85,4 +129,10 @@
 {% endif %}
 
 <button class="btn btn-info">Add Table</button>
+
+<script>
+    $(document).ready(function () {
+        $(".myHover").tooltip();
+    });
+</script>
 
