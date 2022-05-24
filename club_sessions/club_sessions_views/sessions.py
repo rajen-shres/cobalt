@@ -76,10 +76,12 @@ def manage_session(request, session_id):
     if not rbac_user_has_role(request.user, club_role):
         return rbac_forbidden(request, club_role)
 
+    has_session_entries = SessionEntry.objects.filter(session=session).exists()
+
     return render(
         request,
         "club_sessions/manage/manage_session.html",
-        {"club": club, "session": session},
+        {"club": club, "session": session, "has_session_entries": has_session_entries},
     )
 
 
@@ -122,12 +124,20 @@ def _tab_session_htmx_load_static(session, club):
 
     for user in users:
         user.is_user = True
-        mixed_dict[user.system_number] = {"type": "User", "value": user}
+        mixed_dict[user.system_number] = {
+            "type": "User",
+            "value": user,
+            "icon": "account_circle",
+        }
 
     # Add unregistered to dictionary
     for un_reg in un_regs:
         un_reg.is_un_reg = True
-        mixed_dict[un_reg.system_number] = {"type": "UnregisteredUser", "value": un_reg}
+        mixed_dict[un_reg.system_number] = {
+            "type": "UnregisteredUser",
+            "value": un_reg,
+            "icon": "stars",
+        }
 
     # Get memberships
     membership_type_dict = get_membership_type_for_players(system_number_list, club)
@@ -180,21 +190,28 @@ def _tab_session_htmx_augment_session_entries(
         if session_entry.system_number in mixed_dict:
             session_entry.player = mixed_dict[session_entry.system_number]["value"]
             session_entry.player_type = mixed_dict[session_entry.system_number]["type"]
+            session_entry.icon = mixed_dict[session_entry.system_number]["icon"]
         else:
             session_entry.player_type = "NotRegistered"
+            session_entry.icon = "error"
 
         # membership
         if session_entry.system_number in membership_type_dict:
+            # This person is a member
             session_entry.membership = membership_type_dict[session_entry.system_number]
             session_entry.membership_type = "member"
+            session_entry.icon_colour = "primary"
         else:
+            # Not a member
             session_entry.membership = "Guest"
             if session_entry.system_number >= 0 and abf_checksum_is_valid(
                 session_entry.system_number
             ):
                 session_entry.membership_type = "Valid Number"
+                session_entry.icon_colour = "warning"
             else:
                 session_entry.membership_type = "Invalid Number"
+                session_entry.icon_colour = "dark"
 
         # fee due
         if session_entry.payment_method:
@@ -354,9 +371,9 @@ def import_file_upload_htmx(request, club, session):
         SessionEntry.objects.filter(session=session).delete()
 
         if "generic_csv" in request.POST:
-            _import_file_upload_htmx_simple_csv(request, club, session)
+            messages = _import_file_upload_htmx_simple_csv(request, club, session)
         elif "compscore2" in request.POST:
-            _import_file_upload_htmx_compscore2(request, club, session)
+            messages = _import_file_upload_htmx_compscore2(request, club, session)
 
         _import_file_upload_htmx_fill_in_table_gaps(session)
 
@@ -445,17 +462,50 @@ def _import_file_upload_htmx_fill_in_table_gaps(session):
 def edit_session_entry_htmx(request, club, session):
     """Edit a single session_entry on the session page and return the whole tab if we change anything"""
 
+    # Get session_entry
     session_entry = get_object_or_404(
         SessionEntry, pk=request.POST.get("session_entry_id")
     )
 
+    # Check access
     if session_entry.session != session:
         return HttpResponse("Access Denied")
 
+    # See if POSTed form or not
     if "save_session" not in request.POST:
+        # Not - so build form
 
-        # Try to load member
-        member = User.objects.filter(system_number=session_entry.system_number).first()
+        is_user = False
+        is_un_reg = False
+        is_valid_number = False
+        player_type = "Invalid System Number"
+
+        # See if user is a member
+        membership_type = get_membership_type_for_players(
+            [session_entry.system_number], club
+        )
+
+        is_member = bool(len(membership_type))
+
+        # Try to load User
+        player = User.objects.filter(system_number=session_entry.system_number).first()
+
+        # Try to load un_reg if not a member
+        if player:
+            is_user = True
+            player_type = "Registered User"
+        else:
+            player = UnregisteredUser.objects.filter(
+                system_number=session_entry.system_number
+            ).first()
+
+            # See if this is even a valid system_number, if neither are true. Usually we add the un_reg automatically
+            if player:
+                is_un_reg = True
+                player_type = "Unregistered User"
+            # else:
+            #     # TODO: Add later
+            #     invalid_number = True
 
         return render(
             request,
@@ -464,7 +514,13 @@ def edit_session_entry_htmx(request, club, session):
                 "club": club,
                 "session": session,
                 "session_entry": session_entry,
-                "member": member,
+                "player": player,
+                "is_member": is_member,
+                "is_user": is_user,
+                "is_un_reg": is_un_reg,
+                "is_valid_number": is_valid_number,
+                "player_type": player_type,
+                "membership_type": membership_type,
             },
         )
 

@@ -70,42 +70,17 @@
                         <td class="text-left">
 
                             <!-- PLAYER NAME - ICON -->
-                            <h5>{{ session_entry.membership_type }}</h5>
-                            <h5>{{ session_entry.player_type }}</h5>
 
-                            {% if session_entry.membership == "Guest" %}
-                                <span class="myHover text-warning"
-                                    data-toggle="tooltip"
-                                    title="This person is a visitor"
-                                    data-delay="100"
-                                >
-                                    <span class="material-icons" style="display: inline-flex; vertical-align: middle;">
-                                        {#                                       radio_button_unchecked#}
-                                        stars
-                                    </span>
+                            <span class="myHover text-{{ session_entry.icon_colour }}"
+                                data-toggle="tooltip"
+                                title="This person is a visitor"
+                                data-delay="100"
+                            >
+                                <span class="material-icons" style="display: inline-flex; vertical-align: middle;">
+                                    {#                                       radio_button_unchecked#}
+                                    {{ session_entry.icon }}
                                 </span>
-                            {% elif session_entry.membership == "Error" %}
-                                <span class="myHover text-warning"
-                                    data-toggle="tooltip"
-                                    title="This person is not valid"
-                                    data-delay="100"
-                                >
-                                    <span class="material-icons" style="display: inline-flex; vertical-align: middle;">
-                                        error
-                                    </span>
-                                    Error!
-                                </span>
-                            {% else %}
-                                <span class="myHover text-primary"
-                                    data-toggle="tooltip"
-                                    title="This person is a member - more info"
-                                    data-delay="100"
-                                >
-                                    <span class="material-icons" style="display: inline-flex; vertical-align: middle;">
-                                        account_circle
-                                    </span>
-                                </span>
-                            {% endif %}
+                            </span>
                             <!-- PLAYER NAME - NAME -->
                             <span style="font-size: larger; display: inline-flex; vertical-align: middle;">
                                 <a href="javascript:void(0);"

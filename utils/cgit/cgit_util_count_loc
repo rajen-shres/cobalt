@@ -11,7 +11,7 @@ echo "Application         Lines of Code  Percentage"
 echo "===========         =============  =========="
 
 # go through dirs (some excluded) and get size of each cobalt app
-for DIR in $(ls -d */ | grep -Ev 'static|docs|media')
+for DIR in $(ls -d */ | grep -Ev 'static|docs|media|htmlcov|__pycache__')
 do
   cd "$DIR"
   NAME=$(echo $DIR | cut -d "/" -f1)

@@ -3,15 +3,21 @@
 <div>
     <div class="card card-profile">
         <div class="card-header card-header-{% cobalt_random_colour %}">
-            <h4 class="card-title">Edit Details</h4>
+            <h4 class="card-title">{{ player.full_name }} ({{ player_type }})</h4>
+            <h5>{{ GLOBAL_ORG }} Number: {{ session_entry.system_number }}</h5>
         </div>
         <div class="card-body">
-            {% if member %}
+            {% if is_user %}
                 <div>
-                    <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 50px; width: 50px;" src="/media/{{ member.pic }}" />
+                    <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 50px; width: 50px;" src="/media/{{ player.pic }}" />
                 </div>
-
             {% endif %}
+            {% if is_member %}
+                {{ membership_type }} Member
+            {% else %}
+                Not a member. Add.
+            {% endif %}
+
 
             <button class="btn btn-sm btn-success"
             >Save</button>
