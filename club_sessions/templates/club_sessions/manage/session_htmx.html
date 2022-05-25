@@ -1,4 +1,5 @@
 {% load cobalt_tags %}
+{% load static %}
 
 {% if not session_entries %}
 
@@ -6,33 +7,33 @@
 
 {% else %}
 
-    <div class="form-check form-check-radio form-check-inline">
-        <label class="form-check-label">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">
-            All
-            <span class="circle">
-                <span class="check"></span>
-            </span>
-        </label>
-    </div>
-    <div class="form-check form-check-radio form-check-inline">
-        <label class="form-check-label">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
-            Attention Required
-            <span class="circle">
-                <span class="check"></span>
-            </span>
-        </label>
-    </div>
-    <div class="form-check form-check-radio form-check-inline">
-        <label class="form-check-label">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3">
-            Table View
-            <span class="circle">
-                <span class="check"></span>
-            </span>
-        </label>
-    </div>
+    {#    <div class="form-check form-check-radio form-check-inline">#}
+    {#        <label class="form-check-label">#}
+    {#            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">#}
+    {#            All#}
+    {#            <span class="circle">#}
+    {#                <span class="check"></span>#}
+    {#            </span>#}
+    {#        </label>#}
+    {#    </div>#}
+    {#    <div class="form-check form-check-radio form-check-inline">#}
+    {#        <label class="form-check-label">#}
+    {#            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">#}
+    {#            Attention Required#}
+    {#            <span class="circle">#}
+    {#                <span class="check"></span>#}
+    {#            </span>#}
+    {#        </label>#}
+    {#    </div>#}
+    {#    <div class="form-check form-check-radio form-check-inline">#}
+    {#        <label class="form-check-label">#}
+    {#            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3">#}
+    {#            Table View#}
+    {#            <span class="circle">#}
+    {#                <span class="check"></span>#}
+    {#            </span>#}
+    {#        </label>#}
+    {#    </div>#}
 
     <!-- MAIN TABLE -->
     <div class="table-responsive">
@@ -94,7 +95,23 @@
                             <!-- PLACEHOLDER FOR HTMX EDIT DIALOG -->
                             <div id="session_entry_edit_{{ session_entry.id }}"></div>
                         </td>
-                        <td>{{ session_entry.payment_method.payment_method }}</td>
+                        <td>
+                            <select class="selectpicker" data-style="btn btn-success btn-sm" name="payment_method">
+                                {# if no selection then show heading #}
+                                {% if not session_entry.payment_method %}
+                                    <option selected disabled value="">Select...</option>
+                                {% endif %}
+                                {% for payment_method in payment_methods %}
+                                    <option value="{{ payment_method.id }}"
+                                        {% if session_entry.payment_method.id == payment_method.id  %}
+                                            selected
+                                        {% endif %}
+                                    >{{ payment_method.payment_method }}</option>
+                                {% endfor %}
+                            </select>
+
+
+                        </td>
                         <td>{{ session_entry.fee }}</td>
                         <td>{{ session_entry.amount_paid }}</td>
 
@@ -110,7 +127,12 @@
 
 <script>
     $(document).ready(function () {
+
+        // initialise the tooltips
         $(".myHover").tooltip();
+
+        // poke the selectpicker
+        $('.selectpicker').selectpicker('refresh');
     });
 </script>
 

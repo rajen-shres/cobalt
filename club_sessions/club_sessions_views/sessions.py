@@ -239,10 +239,18 @@ def tab_session_htmx(request, club, session):
         session_entries, mixed_dict, membership_type_dict, session_fees
     )
 
+    # get payment methods for this club
+    payment_methods = OrgPaymentMethod.objects.filter(organisation=club, active=True)
+
     return render(
         request,
         "club_sessions/manage/session_htmx.html",
-        {"club": club, "session": session, "session_entries": session_entries},
+        {
+            "club": club,
+            "session": session,
+            "session_entries": session_entries,
+            "payment_methods": payment_methods,
+        },
     )
 
 
@@ -411,14 +419,14 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
             f"Added new user to system - {response['GivenNames']} {response['Surname']}"
         )
 
-    # Work out the payment method to use - can be changed by the director
-    registered_user = User.objects.filter(system_number=system_number).first()
-
-    payment_method = None
-    if registered_user:
-        payment_method = OrgPaymentMethod.objects.filter(
-            organisation=club, payment_method=BRIDGE_CREDITS
-        ).first()
+    # TODO: This is in the wrong place, should be calculated when we show the session
+    # Work out the payment method to use - can be changed by the director. Only registered users can use bridge credits
+    # payment_method = None
+    # if User.objects.filter(system_number=system_number).exists():
+    #     payment_method = OrgPaymentMethod.objects.filter(
+    #         organisation=club, payment_method=BRIDGE_CREDITS, active=True
+    #     ).first()
+    #
 
     # create session entry
     SessionEntry(
@@ -427,7 +435,7 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         seat=direction,
         system_number=system_number,
         amount_paid=0,
-        payment_method=payment_method,
+        # payment_method=payment_method,
     ).save()
 
     return message
@@ -525,3 +533,18 @@ def edit_session_entry_htmx(request, club, session):
         )
 
     return HttpResponse("edit it")
+
+
+@user_is_club_director()
+def change_payment_method_htmx(request, club, session):
+    """called when the payment method dropdown is changed on the session tab"""
+
+    session_entry = get_object_or_404(
+        SessionEntry, pk=request.POST.get("session_entry_id")
+    )
+    payment_method = get_object_or_404(
+        OrgPaymentMethod, pk=request.POST.get("payment_method_id")
+    )
+
+    session_entry.payment_method = payment_method
+    session_entry.fee = 0

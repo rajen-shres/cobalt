@@ -124,6 +124,7 @@ class SessionEntry(models.Model):
     payment_method = models.ForeignKey(
         OrgPaymentMethod, on_delete=models.PROTECT, null=True, blank=True
     )
+    fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "Session entries"
