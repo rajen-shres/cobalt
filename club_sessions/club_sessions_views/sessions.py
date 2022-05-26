@@ -19,7 +19,7 @@ from organisations.models import (
     MembershipType,
 )
 from organisations.views.general import get_membership_type_for_players
-from payments.models import OrgPaymentMethod
+from payments.models import OrgPaymentMethod, MemberTransaction
 
 from rbac.views import rbac_forbidden
 from rbac.core import rbac_user_has_role
@@ -166,7 +166,7 @@ def _tab_session_htmx_load_static(session, club):
 
 
 def _tab_session_htmx_augment_session_entries(
-    session_entries, mixed_dict, membership_type_dict, session_fees
+    session_entries, mixed_dict, membership_type_dict, session_fees, club
 ):
     """Sub of tab_Session_htmx. Adds extra values to the session_entries for display by the template
 
@@ -200,6 +200,7 @@ def _tab_session_htmx_augment_session_entries(
         else:
             session_entry.player_type = "NotRegistered"
             session_entry.icon = "error"
+            session_entry.player = {"full_name": "Unknown"}
 
         # membership
         if session_entry.system_number in membership_type_dict:
@@ -218,6 +219,42 @@ def _tab_session_htmx_augment_session_entries(
             else:
                 session_entry.membership_type = "Invalid Number"
                 session_entry.icon_colour = "dark"
+
+    # workout payment method and if user has sufficient funds
+    return _calculate_payment_method_and_balance(session_entries, session_fees, club)
+
+
+def _calculate_payment_method_and_balance(session_entries, session_fees, club):
+    """work out who can pay by bridge credits and if they have enough money"""
+
+    # First build list of users who are bridge credit eligible
+    bridge_credit_users = [
+        session_entry.system_number
+        for session_entry in session_entries
+        if session_entry.player_type == "User"
+    ]
+
+    # Now get their balances
+    balances = {
+        member_transaction.member: member_transaction.balance
+        for member_transaction in MemberTransaction.objects.filter(
+            member__system_number__in=bridge_credit_users
+        )
+    }
+
+    bridge_credit_payment_method = OrgPaymentMethod.objects.filter(
+        organisation=club, payment_method=BRIDGE_CREDITS, active=True
+    ).first()
+
+    # Go through and add balance to session entries
+    for session_entry in session_entries:
+        if session_entry.player_type == "User":
+            # if not in balances then it is zero
+            session_entry.balance = balances.get(session_entry.player, 0)
+
+            # Only change payment method to Bridge Credits if not set to something already
+            if not session_entry.payment_method:
+                session_entry.payment_method = bridge_credit_payment_method
 
         # fee due
         if session_entry.payment_method:
@@ -242,7 +279,7 @@ def tab_session_htmx(request, club, session):
 
     # augment the session_entries
     session_entries = _tab_session_htmx_augment_session_entries(
-        session_entries, mixed_dict, membership_type_dict, session_fees
+        session_entries, mixed_dict, membership_type_dict, session_fees, club
     )
 
     # get payment methods for this club
@@ -578,3 +615,19 @@ def change_payment_method_htmx(request, club, session):
     session_entry.save()
 
     return HttpResponse(fee.fee)
+
+
+@user_is_club_director()
+def change_paid_amount_htmx(request, club, session):
+    """Change the amount paid for a user"""
+
+    session_entry = get_object_or_404(
+        SessionEntry, pk=request.POST.get("session_entry_id")
+    )
+
+    amount_paid = request.POST.get("amount_paid")
+
+    session_entry.amount_paid = amount_paid
+    session_entry.save()
+
+    return HttpResponse("")

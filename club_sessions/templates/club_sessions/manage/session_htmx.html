@@ -22,11 +22,17 @@
         <li>Visual for being paid for</li>
         <li>Outstanding IOUs</li>
         <li>Flag for automatic IOUs?</li>
+        <li>Block editing paid_amount field for bridge credits</li>
+        <li>Hover text on player icon</li>
+        <li><b>ADD RANDOM PAYMENTS TO CLUB MENU - MEMBERS ONLY</b></li>
     </ul>
 
     <div class="table-responsive d-none" id="main_session_table">
+
         <table class="table table-condensed table-bordered" style="cursor: cell;">
+
             <thead class="thead-dark">
+
                 <tr>
                     <th>Table</th>
                     <th>Direction</th>
@@ -35,19 +41,28 @@
                     <th>Fee</th>
                     <th>Paid</th>
                 </tr>
+
             </thead>
+
             <tbody>
+
                 <!-- TABLE ROW -->
+
                 {% for session_entry in session_entries %}
+
                     <!-- ALTERNATE TABLE COLOURS -->
+
                     <tr
                         {% if session_entry.table_colour == "even" %}
                             style="background-color: #ECF0F1"
                         {% endif %}
                     >
                         <!-- TABLE NUMBER -->
+
                         <td style="font-size: large">{{ session_entry.pair_team_number }}</td>
+
                         <!-- DIRECTION -->
+
                         <td>
                             <span class="btn btn-sm btn-danger m-0 b-0 p-0" style="width: 50px">
                                 <span style="font-size: large;">
@@ -55,7 +70,9 @@
                                 </span>
                             </span>
                         </td>
+
                         <!-- PLAYER NAME -->
+
                         <td class="text-left">
 
                             <!-- PLAYER NAME - ICON -->
@@ -69,57 +86,127 @@
                                     {{ session_entry.icon }}
                                 </span>
                             </span>
-                            <!-- PLAYER NAME - NAME -->
-                            <span style="font-size: larger; display: inline-flex; vertical-align: middle;">
-                                <a href="javascript:void(0);"
-                                    hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
-                                    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
-                                    hx-target="#id_pane_session"
-                                >
-                                    {# TBA player will actually be a director #}
-                                    {% if session_entry.player.id == TBA_PLAYER %}
-                                        PLAYING DIRECTOR
-                                    {% else %}
-                                        {{ session_entry.player.full_name|default_if_none:session_entry.system_number }}
-                                    {% endif %}
-                                </a>
-                            </span>
-                        </td>
-                        <td>
-                            {% if session_entry.player.id == TBA_PLAYER %}
-                                No Charge
-                            {% else %}
-                                <select
-                                    class="selectpicker"
-                                    data-style="btn btn-success btn-sm"
-                                    name="payment_method"
-                                    hx-post="{% url "club_sessions:session_entry_change_payment_method_htmx" %}"
-                                    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
-                                    hx-target="#id_session_entry_fee_{{ session_entry.id }}"
 
+                            {% if session_entry.balance < 20 %}
+                                <span class="myHover text-dark"
+                                    data-toggle="tooltip"
+                                    title="Low balance {{ session_entry.balance }}"
+                                    data-delay="100"
                                 >
-                                    {# if no selection then show heading #}
-                                    {% if not session_entry.payment_method %}
-                                        <option selected disabled value="">Select...</option>
-                                    {% endif %}
-                                    {% for payment_method in payment_methods %}
+                                    <span class="material-icons" style="display: inline-flex; vertical-align: middle;">
+                                        battery_2_bar
+                                    </span>
+                            {% endif %}
+                        </span>
+
+                        <!-- PLAYER NAME - NAME -->
+
+                        <span style="font-size: larger; display: inline-flex; vertical-align: middle;">
+                            <a href="javascript:void(0);"
+                                hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
+                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                                hx-target="#id_pane_session"
+                            >
+                                {# TBA player will actually be a director #}
+                                {% if session_entry.player.id == TBA_PLAYER %}
+                                    PLAYING DIRECTOR
+                                {% else %}
+                                    {{ session_entry.player.full_name|default_if_none:session_entry.system_number }}
+                                {% endif %}
+                            </a>
+                        </span>
+                    </td>
+
+                    <!-- PAYMENT METHOD -->
+
+                    <td>
+                        {% if session_entry.player.id == TBA_PLAYER %}
+
+                            &nbsp;
+
+                        {% else %}
+
+                            <select
+                                class="selectpicker"
+                                data-style="btn btn-success btn-sm"
+                                name="payment_method"
+                                hx-post="{% url "club_sessions:session_entry_change_payment_method_htmx" %}"
+                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                                hx-target="#id_session_entry_fee_{{ session_entry.id }}"
+
+                                {# allow entering paid amount if this has a value #}
+                                _="on change remove @disabled from #id_session_entry_amount_paid_{{ session_entry.id }}"
+
+                            >
+                                {# if no selection then show heading #}
+                                {% if not session_entry.payment_method %}
+                                    <option selected disabled value="">Select...</option>
+                                {% endif %}
+
+                                {% for payment_method in payment_methods %}
+                                    {# only allow bridge credits for real users #}
+                                    {% if payment_method.payment_method != "Bridge Credits" or session_entry.player_type == "User" %}
+
                                         <option value="{{ payment_method.id }}"
                                             {% if session_entry.payment_method.id == payment_method.id  %}
                                                 selected
                                             {% endif %}
                                         >{{ payment_method.payment_method }}</option>
-                                    {% endfor %}
-                                </select>
-                            {% endif %}
 
-                        </td>
-                        <td id="id_session_entry_fee_{{ session_entry.id }}">{{ session_entry.fee|default_if_none:'-' }}</td>
-                        <td>{{ session_entry.amount_paid }}</td>
+                                    {% endif %}
+
+                                {% endfor %}
+                            </select>
+                        {% endif %}
+
+                    </td>
+
+                    <!-- ENTRY FEE -->
+
+                    <td id="id_session_entry_fee_{{ session_entry.id }}">
+                        {{ session_entry.fee|default_if_none:'-' }}
+                    </td>
+
+                    <!-- AMOUNT PAID -->
+
+                    <td>
+                        {% if session_entry.player.id == TBA_PLAYER %}
+
+                            &nbsp;
+
+                        {% else %}
+
+                            <input name="amount_paid"
+                                id="id_session_entry_amount_paid_{{ session_entry.id }}"
+
+                                {% if not session_entry.payment_method %}
+                                    disabled
+                                {% endif %}
+
+                                type="number"
+                                min="0.00"
+                                step="0.01"
+                                value="{{ session_entry.amount_paid }}"
+                                hx-post="{% url "club_sessions:session_entry_change_paid_amount_htmx" %}"
+                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                                style="transition: all 2000ms ease"
+                                _="on change add .amount-paid-change
+                                then settle
+                                then remove .amount-paid-change
+                                "
+                            />
+
+                        {% endif %}
+
+                    </td>
 
                     </tr>
                 {% endfor %}
+
             </tbody>
+
         </table>
+
     </div>
 
 {% endif %}
@@ -143,8 +230,6 @@
         // Usage!
         sleep(500).then(() => {
             // Do something after the sleep!
-
-
             $("#loading_message").addClass('d-none');
             $("#main_session_table").removeClass('d-none');
 

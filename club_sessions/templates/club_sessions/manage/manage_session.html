@@ -5,6 +5,14 @@
 
 {% block title %}- {{ session.session_date }}{% endblock %}
 
+{% block header %}
+    <style>
+        .amount-paid-change {
+            background-color: lightgreen;
+        }
+    </style>
+{% endblock header %}
+
 {% block content %}
 
     <h1 class="text-center pt-4"><span id="t_club_name">{{ club }}</span> - {{ club.state }}</h1>
