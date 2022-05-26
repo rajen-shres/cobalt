@@ -12,7 +12,7 @@
                             hx-trigger="load, click"
                             hx-target="#dashboard_chart_div"
                         >
-                            <td class="text-left">Total Members</td>
+                            <td class="text-left"><a href="javascript:void(0)">Total Members</a></td>
                             <td class="text-right">{{ member_count|intcomma }}</td>
                         </tr>
                         <tr
@@ -20,7 +20,7 @@
                             hx-vars="club_id:{{ club.id }}"
                             hx-target="#dashboard_chart_div"
                         >
-                            <td class="text-left">Member Changes</td>
+                            <td class="text-left"><a href="javascript:void(0)">Member Changes</a></td>
                             <td class="text-right">Last 28 days {{ diff_28_days }}</td>
                         </tr>
                         <tr
@@ -28,7 +28,7 @@
                             hx-vars="club_id:{{ club.id }}"
                             hx-target="#dashboard_chart_div"
                         >
-                            <td class="text-left">Staff</td>
+                            <td class="text-left"><a href="javascript:void(0)">Staff</a></td>
                             <td class="text-right">{{ staff_count|intcomma }}</td>
                         </tr>
                     </tbody>

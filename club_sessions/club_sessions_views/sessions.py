@@ -11,7 +11,13 @@ from accounts.accounts_views.core import add_un_registered_user_with_mpc_data
 from accounts.models import User, UnregisteredUser
 from cobalt.settings import BRIDGE_CREDITS
 from masterpoints.views import abf_checksum_is_valid
-from organisations.models import Organisation, OrgVenue, ClubLog
+from organisations.models import (
+    Organisation,
+    OrgVenue,
+    ClubLog,
+    MemberMembershipType,
+    MembershipType,
+)
 from organisations.views.general import get_membership_type_for_players
 from payments.models import OrgPaymentMethod
 
@@ -468,7 +474,7 @@ def _import_file_upload_htmx_fill_in_table_gaps(session):
 
 @user_is_club_director()
 def edit_session_entry_htmx(request, club, session):
-    """Edit a single session_entry on the session page and return the whole tab if we change anything"""
+    """Edit a single session_entry on the session page"""
 
     # Get session_entry
     session_entry = get_object_or_404(
@@ -539,12 +545,36 @@ def edit_session_entry_htmx(request, club, session):
 def change_payment_method_htmx(request, club, session):
     """called when the payment method dropdown is changed on the session tab"""
 
+    print(request.POST)
+
     session_entry = get_object_or_404(
         SessionEntry, pk=request.POST.get("session_entry_id")
     )
     payment_method = get_object_or_404(
-        OrgPaymentMethod, pk=request.POST.get("payment_method_id")
+        OrgPaymentMethod, pk=request.POST.get("payment_method")
     )
 
+    # Get the membership_type for this user and club, None means they are a guest
+    member_membership_type = (
+        MemberMembershipType.objects.active()
+        .filter(system_number=session_entry.system_number)
+        .filter(membership_type__organisation=club)
+        .first()
+    )
+
+    if member_membership_type:
+        member_membership = member_membership_type.membership_type
+    else:
+        member_membership = None  # Guest
+
+    fee = SessionTypePaymentMethodMembership.objects.filter(
+        session_type_payment_method__session_type__organisation=club,
+        session_type_payment_method__payment_method=payment_method,
+        membership=member_membership,
+    ).first()
+
     session_entry.payment_method = payment_method
-    session_entry.fee = 0
+    session_entry.fee = fee.fee
+    session_entry.save()
+
+    return HttpResponse(fee.fee)

@@ -7,36 +7,24 @@
 
 {% else %}
 
-    {#    <div class="form-check form-check-radio form-check-inline">#}
-    {#        <label class="form-check-label">#}
-    {#            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">#}
-    {#            All#}
-    {#            <span class="circle">#}
-    {#                <span class="check"></span>#}
-    {#            </span>#}
-    {#        </label>#}
-    {#    </div>#}
-    {#    <div class="form-check form-check-radio form-check-inline">#}
-    {#        <label class="form-check-label">#}
-    {#            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">#}
-    {#            Attention Required#}
-    {#            <span class="circle">#}
-    {#                <span class="check"></span>#}
-    {#            </span>#}
-    {#        </label>#}
-    {#    </div>#}
-    {#    <div class="form-check form-check-radio form-check-inline">#}
-    {#        <label class="form-check-label">#}
-    {#            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3">#}
-    {#            Table View#}
-    {#            <span class="circle">#}
-    {#                <span class="check"></span>#}
-    {#            </span>#}
-    {#        </label>#}
-    {#    </div>#}
+    <div id="loading_message">
+        <h3>Loading...</h3>
+    </div>
 
     <!-- MAIN TABLE -->
-    <div class="table-responsive">
+    <ul>
+        <li>Pay all</li>
+        <li>Low balance warning</li>
+        <li>Change all payment methods (except already set)</li>
+        <li>Add table</li>
+        <li>Handle director playing</li>
+        <li>Handle unknown numbers</li>
+        <li>Visual for being paid for</li>
+        <li>Outstanding IOUs</li>
+        <li>Flag for automatic IOUs?</li>
+    </ul>
+
+    <div class="table-responsive d-none" id="main_session_table">
         <table class="table table-condensed table-bordered" style="cursor: cell;">
             <thead class="thead-dark">
                 <tr>
@@ -78,7 +66,6 @@
                                 data-delay="100"
                             >
                                 <span class="material-icons" style="display: inline-flex; vertical-align: middle;">
-                                    {#                                       radio_button_unchecked#}
                                     {{ session_entry.icon }}
                                 </span>
                             </span>
@@ -87,32 +74,46 @@
                                 <a href="javascript:void(0);"
                                     hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
                                     hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
-                                    hx-target="#session_entry_edit_{{ session_entry.id }}"
+                                    hx-target="#id_pane_session"
                                 >
-                                    {{ session_entry.player.full_name|default_if_none:session_entry.system_number }}
+                                    {# TBA player will actually be a director #}
+                                    {% if session_entry.player.id == TBA_PLAYER %}
+                                        PLAYING DIRECTOR
+                                    {% else %}
+                                        {{ session_entry.player.full_name|default_if_none:session_entry.system_number }}
+                                    {% endif %}
                                 </a>
                             </span>
-                            <!-- PLACEHOLDER FOR HTMX EDIT DIALOG -->
-                            <div id="session_entry_edit_{{ session_entry.id }}"></div>
                         </td>
                         <td>
-                            <select class="selectpicker" data-style="btn btn-success btn-sm" name="payment_method">
-                                {# if no selection then show heading #}
-                                {% if not session_entry.payment_method %}
-                                    <option selected disabled value="">Select...</option>
-                                {% endif %}
-                                {% for payment_method in payment_methods %}
-                                    <option value="{{ payment_method.id }}"
-                                        {% if session_entry.payment_method.id == payment_method.id  %}
-                                            selected
-                                        {% endif %}
-                                    >{{ payment_method.payment_method }}</option>
-                                {% endfor %}
-                            </select>
+                            {% if session_entry.player.id == TBA_PLAYER %}
+                                No Charge
+                            {% else %}
+                                <select
+                                    class="selectpicker"
+                                    data-style="btn btn-success btn-sm"
+                                    name="payment_method"
+                                    hx-post="{% url "club_sessions:session_entry_change_payment_method_htmx" %}"
+                                    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                                    hx-target="#id_session_entry_fee_{{ session_entry.id }}"
 
+                                >
+                                    {# if no selection then show heading #}
+                                    {% if not session_entry.payment_method %}
+                                        <option selected disabled value="">Select...</option>
+                                    {% endif %}
+                                    {% for payment_method in payment_methods %}
+                                        <option value="{{ payment_method.id }}"
+                                            {% if session_entry.payment_method.id == payment_method.id  %}
+                                                selected
+                                            {% endif %}
+                                        >{{ payment_method.payment_method }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% endif %}
 
                         </td>
-                        <td>{{ session_entry.fee }}</td>
+                        <td id="id_session_entry_fee_{{ session_entry.id }}">{{ session_entry.fee|default_if_none:'-' }}</td>
                         <td>{{ session_entry.amount_paid }}</td>
 
                     </tr>
@@ -133,6 +134,21 @@
 
         // poke the selectpicker
         $('.selectpicker').selectpicker('refresh');
+
+        // sleep time expects milliseconds
+        function sleep (time) {
+            return new Promise((resolve) => setTimeout(resolve, time));
+        }
+
+        // Usage!
+        sleep(500).then(() => {
+            // Do something after the sleep!
+
+
+            $("#loading_message").addClass('d-none');
+            $("#main_session_table").removeClass('d-none');
+
+        });
     });
 </script>
 

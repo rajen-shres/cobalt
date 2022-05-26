@@ -28,4 +28,9 @@ urlpatterns = [
         sessions.edit_session_entry_htmx,
         name="edit_session_entry_htmx",
     ),
+    path(
+        "session/edit-session-entry-change-payment-method",
+        sessions.change_payment_method_htmx,
+        name="session_entry_change_payment_method_htmx",
+    ),
 ]
