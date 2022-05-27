@@ -197,10 +197,12 @@ def _tab_session_htmx_augment_session_entries(
             session_entry.player = mixed_dict[session_entry.system_number]["value"]
             session_entry.player_type = mixed_dict[session_entry.system_number]["type"]
             session_entry.icon = mixed_dict[session_entry.system_number]["icon"]
+            icon_text = f"{session_entry.player.first_name} is "
         else:
             session_entry.player_type = "NotRegistered"
             session_entry.icon = "error"
             session_entry.player = {"full_name": "Unknown"}
+            icon_text = "This person is "
 
         # membership
         if session_entry.system_number in membership_type_dict:
@@ -208,9 +210,11 @@ def _tab_session_htmx_augment_session_entries(
             session_entry.membership = membership_type_dict[session_entry.system_number]
             session_entry.membership_type = "member"
             session_entry.icon_colour = "primary"
+            icon_text += f"a {session_entry.membership} member."
         else:
             # Not a member
             session_entry.membership = "Guest"
+            icon_text += "a Guest."
             if session_entry.system_number >= 0 and abf_checksum_is_valid(
                 session_entry.system_number
             ):
@@ -219,6 +223,8 @@ def _tab_session_htmx_augment_session_entries(
             else:
                 session_entry.membership_type = "Invalid Number"
                 session_entry.icon_colour = "dark"
+
+        session_entry.icon_text = icon_text
 
     # workout payment method and if user has sufficient funds
     return _calculate_payment_method_and_balance(session_entries, session_fees, club)
@@ -582,8 +588,6 @@ def edit_session_entry_htmx(request, club, session):
 def change_payment_method_htmx(request, club, session):
     """called when the payment method dropdown is changed on the session tab"""
 
-    print(request.POST)
-
     session_entry = get_object_or_404(
         SessionEntry, pk=request.POST.get("session_entry_id")
     )
@@ -618,16 +622,20 @@ def change_payment_method_htmx(request, club, session):
 
 
 @user_is_club_director()
-def change_paid_amount_htmx(request, club, session):
-    """Change the amount paid for a user"""
+def change_paid_amount_status_htmx(request, club, session):
+    """Change the status of the amount paid for a user. We simply toggle the paid amount from 0 to full amount"""
+
+    print("in")
 
     session_entry = get_object_or_404(
         SessionEntry, pk=request.POST.get("session_entry_id")
     )
 
-    amount_paid = request.POST.get("amount_paid")
+    if session_entry.amount_paid == session_entry.fee:
+        session_entry.amount_paid = 0
+    else:
+        session_entry.amount_paid = session_entry.fee
 
-    session_entry.amount_paid = amount_paid
     session_entry.save()
 
     return HttpResponse("")

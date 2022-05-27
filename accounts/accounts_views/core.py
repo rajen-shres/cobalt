@@ -322,7 +322,10 @@ def add_un_registered_user_with_mpc_data(
     in the system"""
 
     # do nothing if user already exists
-    if UnregisteredUser.objects.filter(system_number=system_number).exists():
+    if (
+        UnregisteredUser.objects.filter(system_number=system_number).exists()
+        or User.objects.filter(system_number=system_number).exists()
+    ):
         return None
 
     details = user_summary(system_number)
