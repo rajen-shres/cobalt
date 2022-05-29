@@ -33,3 +33,7 @@ do
 done
 
 printf "\nTotal %'d lines of code\n" $TOTAL
+
+# Get total size - ignore .git dir, but we don't ignore all of the .gitignore stuff - approx value
+DIR_SIZE=$(du -hs -I .git | awk '{print $1}')
+echo "Total directory size: $DIR_SIZE"
