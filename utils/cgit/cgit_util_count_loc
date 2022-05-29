@@ -25,7 +25,9 @@ do
 
 # print * for every percentage
   for i in $(seq $PERCENT); do
-    printf "*"
+    if [ $PERCENT -gt 0 ]; then
+       printf "*"
+    fi
   done
 
   echo ""
