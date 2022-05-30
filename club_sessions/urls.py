@@ -38,4 +38,9 @@ urlpatterns = [
         sessions.change_paid_amount_status_htmx,
         name="session_entry_change_paid_amount_htmx",
     ),
+    path(
+        "session/edit-session-totals",
+        sessions.session_totals_htmx,
+        name="session_entry_session_totals_htmx",
+    ),
 ]

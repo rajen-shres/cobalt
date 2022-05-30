@@ -2,14 +2,14 @@
 from django.http import HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 
-from club_sessions.models import Session
+from club_sessions.models import Session, SessionEntry
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
 
 from organisations.models import Organisation
 
 
-def user_is_club_director():
+def user_is_club_director(include_session_entry=False):
     """checks if user is a director for this club. Requires Request to have a club_id parameter
 
     Call as:
@@ -26,6 +26,8 @@ def user_is_club_director():
     club parameter.
 
     We also add session.
+
+    Optionally, specify include_session_entry to have that loaded and checked for validity
 
     """
 
@@ -57,7 +59,20 @@ def user_is_club_director():
                 rbac_user_has_role(request.user, club_role)
                 and session.session_type.organisation == club
             ):
-                return function(request, club, session, *args, **kwargs)
+                # optionally, check for session_entry
+                if not include_session_entry:
+                    # check not required, return
+                    return function(request, club, session, *args, **kwargs)
+
+                # get session_entry
+                session_entry_id = request.POST.get("session_entry_id")
+                session_entry = get_object_or_404(SessionEntry, pk=session_entry_id)
+
+                # check session entry is for this session, and include session_entry in function call
+                if session_entry.session == session:
+                    return function(
+                        request, club, session, session_entry, *args, **kwargs
+                    )
 
             return rbac_forbidden(request, club_role)
 

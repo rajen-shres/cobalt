@@ -27,6 +27,15 @@
         <li><b>ADD RANDOM PAYMENTS TO CLUB MENU - MEMBERS ONLY</b></li>
     </ul>
 
+    <!-- TOTALS -->
+
+    <div id="id_totals"
+        hx-post="{% url "club_sessions:session_entry_session_totals_htmx" %}"
+        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+        hx-trigger="load"
+    >
+    </div>
+
     <div class="table-responsive d-none" id="main_session_table">
 
         <table class="table table-condensed table-bordered" style="cursor: cell;">
@@ -94,7 +103,11 @@
                                     data-delay="100"
                                 >
                                     <span class="material-icons" style="display: inline-flex; vertical-align: middle;">
-                                        battery_2_bar
+                                        {% if session_entry.balance == 0 %}
+                                            battery_0_bar
+                                        {% else %}
+                                            battery_2_bar
+                                        {% endif %}
                                     </span>
                             {% endif %}
                         </span>
@@ -127,16 +140,13 @@
                         {% else %}
 
                             <select
+                                id="payment_method_select_{{ session_entry.id }}"
                                 class="selectpicker"
                                 data-style="btn btn-success btn-sm"
                                 name="payment_method"
                                 hx-post="{% url "club_sessions:session_entry_change_payment_method_htmx" %}"
                                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
                                 hx-target="#id_session_entry_fee_{{ session_entry.id }}"
-
-                                {# allow entering paid amount if this has a value #}
-                                _="on change remove @disabled from #id_session_entry_amount_paid_{{ session_entry.id }}"
-
                             >
                                 {# if no selection then show heading #}
                                 {% if not session_entry.payment_method %}
@@ -145,7 +155,7 @@
 
                                 {% for payment_method in payment_methods %}
                                     {# only allow bridge credits for real users #}
-                                    {% if payment_method.payment_method != "Bridge Credits" or session_entry.player_type == "User" %}
+                                    {% if payment_method.payment_method != BRIDGE_CREDITS or session_entry.player_type == "User" %}
 
                                         <option value="{{ payment_method.id }}"
                                             {% if session_entry.payment_method.id == payment_method.id  %}
@@ -181,19 +191,22 @@
                                 hx-post="{% url "club_sessions:session_entry_change_paid_amount_htmx" %}"
                                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
                                 hx-include="#id_session_entry_amount_paid_{{ session_entry.id }}"
+                                hx-swap="none"
                             >
 
                                 <input name="amount_paid"
                                     id="id_session_entry_amount_paid_{{ session_entry.id }}"
                                     type="checkbox"
-                                    class="toggle_button"
-                                    data-toggle="toggle"
-                                    data-size="xs"
-                                    data-width="80"
-                                    data-on="Paid"
-                                    data-off="Unpaid"
-                                    data-onstyle="primary"
-                                    checked
+
+                                    {# mark as paid if paid >= due #}
+                                    {% if session_entry.amount_paid >= session_entry.fee %}
+                                        checked
+                                    {% endif %}
+
+                                    {# don't allow Bridge Credits to be edited here #}
+                                    {% if session_entry.payment_method.payment_method == BRIDGE_CREDITS %}
+                                        disabled
+                                    {% endif %}
                                 />
                             </span>
 
@@ -221,11 +234,24 @@
         // initialise the tooltips
         $(".myHover").tooltip();
 
-        // activate toggle buttons
-        $('.toggle_button').bootstrapToggle();
 
         // poke the selectpicker
         $('.selectpicker').selectpicker('refresh');
+
+        // watch for selectpicker (only one is payment_type) changing
+        // disable ticking paid box if this is bridge credits
+        $('.selectpicker').change(function(evt) {
+
+            // get id for this row from the id of this element
+            const row_id = $(this).attr("id").split("_")[3];
+
+            if ($(this).find(":selected").text() === "{{ BRIDGE_CREDITS }}"){
+                $("#id_session_entry_amount_paid_" + row_id).attr("disabled", true);
+            } else {
+                $("#id_session_entry_amount_paid_" + row_id).removeAttr("disabled");
+            }
+
+        });
 
         // sleep time expects milliseconds
         function sleep (time) {

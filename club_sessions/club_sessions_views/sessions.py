@@ -468,15 +468,6 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
             f"Added new user to system - {response['GivenNames']} {response['Surname']}"
         )
 
-    # TODO: This is in the wrong place, should be calculated when we show the session
-    # Work out the payment method to use - can be changed by the director. Only registered users can use bridge credits
-    # payment_method = None
-    # if User.objects.filter(system_number=system_number).exists():
-    #     payment_method = OrgPaymentMethod.objects.filter(
-    #         organisation=club, payment_method=BRIDGE_CREDITS, active=True
-    #     ).first()
-    #
-
     # create session entry
     SessionEntry(
         session=session,
@@ -515,18 +506,9 @@ def _import_file_upload_htmx_fill_in_table_gaps(session):
                 ).save()
 
 
-@user_is_club_director()
-def edit_session_entry_htmx(request, club, session):
+@user_is_club_director(include_session_entry=True)
+def edit_session_entry_htmx(request, club, session, session_entry):
     """Edit a single session_entry on the session page"""
-
-    # Get session_entry
-    session_entry = get_object_or_404(
-        SessionEntry, pk=request.POST.get("session_entry_id")
-    )
-
-    # Check access
-    if session_entry.session != session:
-        return HttpResponse("Access Denied")
 
     # See if POSTed form or not
     if "save_session" not in request.POST:
@@ -584,13 +566,10 @@ def edit_session_entry_htmx(request, club, session):
     return HttpResponse("edit it")
 
 
-@user_is_club_director()
-def change_payment_method_htmx(request, club, session):
+@user_is_club_director(include_session_entry=True)
+def change_payment_method_htmx(request, club, session, session_entry):
     """called when the payment method dropdown is changed on the session tab"""
 
-    session_entry = get_object_or_404(
-        SessionEntry, pk=request.POST.get("session_entry_id")
-    )
     payment_method = get_object_or_404(
         OrgPaymentMethod, pk=request.POST.get("payment_method")
     )
@@ -621,21 +600,23 @@ def change_payment_method_htmx(request, club, session):
     return HttpResponse(fee.fee)
 
 
-@user_is_club_director()
-def change_paid_amount_status_htmx(request, club, session):
+@user_is_club_director(include_session_entry=True)
+def change_paid_amount_status_htmx(request, club, session, session_entry):
     """Change the status of the amount paid for a user. We simply toggle the paid amount from 0 to full amount"""
 
-    print("in")
-
-    session_entry = get_object_or_404(
-        SessionEntry, pk=request.POST.get("session_entry_id")
-    )
+    # TODO: Handle bridge credits - what do we do if already paid and changed to another payment method?
 
     if session_entry.amount_paid == session_entry.fee:
         session_entry.amount_paid = 0
     else:
-        session_entry.amount_paid = session_entry.fee
-
+        session_entry.amount_paid = session_entry.fee or 0
     session_entry.save()
 
     return HttpResponse("")
+
+
+@user_is_club_director()
+def session_totals_htmx(request, club, session):
+    """Calculate totals for a session and return formatted header over htmx"""
+
+    return render(request, "club_sessions/manage/totals_htmx.html")
