@@ -148,7 +148,19 @@ def _tab_session_htmx_load_static(session, club):
     # Get memberships
     membership_type_dict = get_membership_type_for_players(system_number_list, club)
 
-    # Load session fees and turn into a dictionary
+    # Load session fees
+    session_fees = _get_session_fees_for_club(club)
+
+    return session_entries, mixed_dict, session_fees, membership_type_dict
+
+
+def _get_session_fees_for_club(club):
+    """return session fees as a dictionary. We use the name of the membership as the key, not the number
+
+    e.g. session_fees = {"Standard": {"EFTPOS": 5, "Cash": 12}}
+
+    """
+
     fees = SessionTypePaymentMethodMembership.objects.filter(
         session_type_payment_method__session_type__organisation=club
     ).filter()
@@ -162,7 +174,7 @@ def _tab_session_htmx_load_static(session, club):
             fee.session_type_payment_method.payment_method.payment_method
         ] = fee.fee
 
-    return session_entries, mixed_dict, session_fees, membership_type_dict
+    return session_fees
 
 
 def _tab_session_htmx_augment_session_entries(
@@ -619,4 +631,68 @@ def change_paid_amount_status_htmx(request, club, session, session_entry):
 def session_totals_htmx(request, club, session):
     """Calculate totals for a session and return formatted header over htmx"""
 
-    return render(request, "club_sessions/manage/totals_htmx.html")
+    # get entries for this session
+    session_entries = SessionEntry.objects.filter(session=session)
+
+    # get memberships
+    system_number_list = session_entries.values_list("system_number")
+    membership_type_dict = get_membership_type_for_players(system_number_list, club)
+
+    # get fees for this club
+    session_fees = _get_session_fees_for_club(club)
+
+    print(session_fees)
+
+    # initialise totals
+    totals = {
+        "tables": 0,
+        "players": 0,
+        "unknown_payment_methods": 0,
+        "bridge_credits_due": 0,
+        "bridge_credits_received": 0,
+        "other_methods_due": 0,
+        "other_methods_received": 0,
+    }
+
+    # go through entries and update totals
+    for session_entry in session_entries:
+        print(session_entry)
+
+        # ignore missing players and playing directors
+        if session_entry.system_number in [-1, 0, 1]:
+            continue
+
+        totals["players"] += 1
+
+        # handle unknown payment methods
+        if not session_entry.payment_method:
+            totals["unknown_payment_methods"] += 1
+            continue
+
+        print("known payment method")
+
+        # we only store system_number on the session_entry. Need to look up amount due via membership type for
+        # this system number and the session_fees for this club for each membership type
+
+        membership_for_this_user = membership_type_dict.get(
+            session_entry.system_number, "Guest"
+        )
+
+        print(membership_for_this_user)
+
+        if membership_for_this_user == BRIDGE_CREDITS:
+            totals["bridge_credits_due"] += session_fees[membership_for_this_user][
+                BRIDGE_CREDITS
+            ]
+            totals["bridge_credits_received"] += session_entry.amount_paid
+        else:
+            totals["other_methods_due"] += session_fees[membership_for_this_user][
+                session_entry.payment_method.payment_method
+            ]
+            totals["other_methods_received"] += session_entry.amount_paid
+
+    totals["tables"] = totals["players"] / 4
+
+    print(totals)
+
+    return render(request, "club_sessions/manage/totals_htmx.html", {"totals": totals})

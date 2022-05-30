@@ -3,7 +3,16 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            Total:
+            <h4>Tables: {{ totals.tables }} ({{ totals.players }} players)</h4>
+        </div>
+        <div class="col">
+            <h4>To Fix: {{ totals.unknown_payment_methods }}</h4>
+        </div>
+        <div class="col">
+            <h4>{{  BRIDGE_CREDITS }} - Due {{ totals.bridge_credits_due }} Received {{ totals.bridge_credits_received }}</h4>
+        </div>
+        <div class="col">
+            <h4>Other - Due {{ totals.other_methods_due }} Received {{ totals.other_methods_received }}</h4>
         </div>
     </div>
 </div>
