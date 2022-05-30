@@ -110,7 +110,7 @@ def tab_settings_htmx(request, club, session):
     )
 
 
-def _tab_session_htmx_load_static(session, club):
+def _load_session_entry_static(session, club):
     """Sub of tab_session_htmx. Load the data we need to be able to process the session tab"""
 
     # Get the entries for this session
@@ -177,7 +177,7 @@ def _get_session_fees_for_club(club):
     return session_fees
 
 
-def _tab_session_htmx_augment_session_entries(
+def _augment_session_entries(
     session_entries, mixed_dict, membership_type_dict, session_fees, club
 ):
     """Sub of tab_Session_htmx. Adds extra values to the session_entries for display by the template
@@ -280,6 +280,8 @@ def _calculate_payment_method_and_balance(session_entries, session_fees, club):
                 session_entry.payment_method.payment_method
             ]
 
+    # session_entries.update()
+
     return session_entries
 
 
@@ -293,10 +295,10 @@ def tab_session_htmx(request, club, session):
         mixed_dict,
         session_fees,
         membership_type_dict,
-    ) = _tab_session_htmx_load_static(session, club)
+    ) = _load_session_entry_static(session, club)
 
     # augment the session_entries
-    session_entries = _tab_session_htmx_augment_session_entries(
+    session_entries = _augment_session_entries(
         session_entries, mixed_dict, membership_type_dict, session_fees, club
     )
 
@@ -627,19 +629,8 @@ def change_paid_amount_status_htmx(request, club, session, session_entry):
     return HttpResponse("")
 
 
-@user_is_club_director()
-def session_totals_htmx(request, club, session):
-    """Calculate totals for a session and return formatted header over htmx"""
-
-    # get entries for this session
-    session_entries = SessionEntry.objects.filter(session=session)
-
-    # get memberships
-    system_number_list = session_entries.values_list("system_number")
-    membership_type_dict = get_membership_type_for_players(system_number_list, club)
-
-    # get fees for this club
-    session_fees = _get_session_fees_for_club(club)
+def _session_totals_calculations(session_entries, session_fees, membership_type_dict):
+    """sub od session_totals_htmx to build dict of totals"""
 
     print(session_fees)
 
@@ -657,6 +648,7 @@ def session_totals_htmx(request, club, session):
     # go through entries and update totals
     for session_entry in session_entries:
         print(session_entry)
+        print(session_entry.payment_method)
 
         # ignore missing players and playing directors
         if session_entry.system_number in [-1, 0, 1]:
@@ -678,9 +670,9 @@ def session_totals_htmx(request, club, session):
             session_entry.system_number, "Guest"
         )
 
-        print(membership_for_this_user)
+        print(membership_for_this_user, BRIDGE_CREDITS)
 
-        if membership_for_this_user == BRIDGE_CREDITS:
+        if session_entry.payment_method.payment_method == BRIDGE_CREDITS:
             totals["bridge_credits_due"] += session_fees[membership_for_this_user][
                 BRIDGE_CREDITS
             ]
@@ -694,5 +686,36 @@ def session_totals_htmx(request, club, session):
     totals["tables"] = totals["players"] / 4
 
     print(totals)
+
+    return totals
+
+
+@user_is_club_director()
+def session_totals_htmx(request, club, session):
+    """Calculate totals for a session and return formatted header over htmx. Repeats a lot of what
+    happens for loading the session tab in the first place."""
+
+    # load static
+    (
+        session_entries,
+        mixed_dict,
+        session_fees,
+        membership_type_dict,
+    ) = _load_session_entry_static(session, club)
+
+    # augment the session_entries
+    session_entries = _augment_session_entries(
+        session_entries, mixed_dict, membership_type_dict, session_fees, club
+    )
+
+    # do calculations
+    session_entries = _calculate_payment_method_and_balance(
+        session_entries, session_fees, club
+    )
+
+    # calculate totals
+    totals = _session_totals_calculations(
+        session_entries, session_fees, membership_type_dict
+    )
 
     return render(request, "club_sessions/manage/totals_htmx.html", {"totals": totals})
