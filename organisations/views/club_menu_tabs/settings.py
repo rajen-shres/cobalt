@@ -392,7 +392,7 @@ def club_menu_tab_settings_session_edit_htmx(request, club):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_payments=True)
 def club_menu_tab_settings_payment_htmx(request, club):
     """Show club payment types"""
 
@@ -420,7 +420,7 @@ def club_menu_tab_settings_payment_htmx(request, club):
         form = PaymentTypeForm(club=club)
 
     payment_methods = OrgPaymentMethod.objects.filter(organisation=club).order_by(
-        "-active"
+        "-active", "payment_method"
     )
     misc_pay_types = MiscPayType.objects.filter(organisation=club)
 
@@ -970,3 +970,21 @@ def add_user_to_tag_htmx(request, club):
     MemberClubTag(club_tag=club_tag, system_number=system_number).save()
 
     return users_with_tag_htmx(request)
+
+
+@check_club_menu_access(check_payments=True)
+def club_menu_tab_settings_payment_edit_name_htmx(request, club):
+    """Edit the name of a payment method. Returns th whole section"""
+
+    payment_method = get_object_or_404(
+        OrgPaymentMethod, pk=request.POST.get("payment_method_id")
+    )
+    if payment_method.organisation != club:
+        return HttpResponse("Access denied")
+
+    new_name = request.POST.get("new_name")
+
+    payment_method.payment_method = new_name
+    payment_method.save()
+
+    return club_menu_tab_settings_payment_htmx(request)

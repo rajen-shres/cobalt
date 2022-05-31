@@ -1,15 +1,30 @@
 {% load static %}
 {% load cobalt_tags %}
+
+{# Static data payments - this has two cards, payment_methods and misc payment types (eg car parking) #}
+
 <div>
+
+    <!-- INTERNAL MENU -->
+
     <div class="card">
+
+        <!-- INCLUDE HEADER -->
+
         <div class="card-header card-header-info">
             <h2 id="t_tab_heading_settings">Club Settings</h2>
             {% include "organisations/club_menu/settings/nav_htmx.html" with selected="payment" %}
         </div>
+
+        <!-- BODY -->
+
         <div class="card-body" style="z-index:1;">
 
             <div class="container">
                 <div class="row">
+
+                    <!--  ACCEPTED PAYMENT METHODS -->
+
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header card-header-warning">
@@ -20,18 +35,38 @@
                                     Set the types of payment that the club can accept.
                                 </p>
 
+                                <!-- TABLE OF ACCEPTED PAYMENT METHODS -->
+
                                 <div class="table-responsive col-md-6">
                                     <table class="table table-hover table-condensed">
                                         <thead class="text-primary">
                                             <tr>
-                                                <th>Type</th>
+                                                <th class="text-left">Type</th>
                                                 <th>Enabled</th>
                                             </tr>
                                         </thead>
                                         <tbody>
+
+                                            <!-- LOOP THROUGH PAYMENT METHODS -->
+
                                             {% for payment_method in payment_methods %}
+
                                                 <tr>
-                                                    <td>{{ payment_method.payment_method }}</td>
+
+                                                    <!-- SHOW ROW -->
+
+                                                    <td class="text-left">
+
+                                                        <!-- EDIT ICON. IF CLICKED SHOW THE RENAME DIALOG -->
+
+                                                        <i
+                                                            _="on click show #id_tr_change_name_{{ payment_method.id }}"
+                                                            class="material-icons" style="font-size: small">edit</i>
+                                                        {{ payment_method.payment_method }}
+                                                    </td>
+
+                                                    <!-- SHOW CHECKBOX AS SLIDER -->
+
                                                     <td
                                                         hx-post="{% url "organisations:club_menu_tab_settings_toggle_payment_type_htmx" %}"
                                                         hx-vars="club_id:{{ club.id }},payment_type_id:{{ payment_method.id }}"
@@ -48,10 +83,35 @@
                                                         >
                                                     </td>
                                                 </tr>
+
+                                                <!-- HIDDEN CHANGE NAME FIELD -->
+
+                                                <tr id="id_tr_change_name_{{ payment_method.id }}" style="display: none">
+                                                    <td>
+                                                        <div class="form-group col-12">
+                                                            <label class="bmd-label-static" for="id_change_name_{{ payment_method.id }}">Rename</label>
+                                                            <input
+                                                                class="form-control"
+                                                                id="id_change_name_{{ payment_method.id }}"
+                                                                type="text"
+                                                                maxlength="15"
+                                                                name="new_name"
+                                                                value="{{ payment_method.payment_method }}"
+                                                                hx-post="{% url "organisations:club_menu_tab_settings_payment_edit_name_htmx" %}"
+                                                                hx-target="#id_settings_form"
+                                                                hx-vars="club_id:{{ club.id }},payment_method_id:{{ payment_method.id }}"
+                                                            >
+                                                        </div>
+                                                    </td>
+                                                </tr>
+
                                             {% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
+
+                                <!-- ADD A NEW PAYMENT METHOD BUTTON -->
+
                                 <div class="col-5 text-nowrap">
                                     <form
                                         hx-post="{% url "organisations:club_menu_tab_settings_payment_htmx" %}"
@@ -62,17 +122,20 @@
                                         <button name="add" id="id_payments_add_type" class="btn btn-sm btn-success">Add</button>
                                     </form>
                                 </div>
+
                             </div>
                         </div>
                     </div>
 
+                    <!-- MISC INCOME TYPES -->
+
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header card-header-success">
-                                <h3>Miscellaneous Payment Types</h3>
+                                <h3>Miscellaneous Income Types</h3>
                             </div>
                             <div class="card-body">
-                                <i>Manage the list of payments that your club handles. e.g. Parking, books, coffee, etc.</i>
+                                <i>Manage the list of payments that your club accepts. e.g. Parking, books, coffee, etc.</i>
 
 
                                 {% if misc_pay_types %}

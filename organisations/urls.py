@@ -530,4 +530,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.results.delete_results_file_htmx,
         name="club_menu_tab_results_delete_results_file_htmx",
     ),
+    path(
+        "club-menu/settings/payment-edit-name",
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_payment_edit_name_htmx,
+        name="club_menu_tab_settings_payment_edit_name_htmx",
+    ),
 ]
