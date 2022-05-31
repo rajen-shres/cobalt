@@ -132,9 +132,12 @@ def get_balance_and_recent_trans_org(org):
 
     """
 
-    trans = OrganisationTransaction.objects.filter(organisation=org).order_by(
-        "-created_date"
-    )[10:]
+    trans = OrganisationTransaction.objects.filter(organisation=org).order_by("-pk")[
+        :20
+    ]
+
+    print(org)
+    print(trans)
 
     last_tran = trans.first()
 

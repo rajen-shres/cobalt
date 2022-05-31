@@ -37,7 +37,7 @@
 
                                 <!-- TABLE OF ACCEPTED PAYMENT METHODS -->
 
-                                <div class="table-responsive col-md-6">
+                                <div class="table-responsive col-12">
                                     <table class="table table-hover table-condensed">
                                         <thead class="text-primary">
                                             <tr>
@@ -60,7 +60,7 @@
                                                         <!-- EDIT ICON. IF CLICKED SHOW THE RENAME DIALOG -->
 
                                                         <i
-                                                            _="on click show #id_tr_change_name_{{ payment_method.id }}"
+                                                            _="on click toggle .d-none on  #id_tr_change_name_{{ payment_method.id }}"
                                                             class="material-icons" style="font-size: small">edit</i>
                                                         {{ payment_method.payment_method }}
                                                     </td>
@@ -86,12 +86,11 @@
 
                                                 <!-- HIDDEN CHANGE NAME FIELD -->
 
-                                                <tr id="id_tr_change_name_{{ payment_method.id }}" style="display: none">
-                                                    <td>
-                                                        <div class="form-group col-12">
-                                                            <label class="bmd-label-static" for="id_change_name_{{ payment_method.id }}">Rename</label>
+                                                <tr id="id_tr_change_name_{{ payment_method.id }}" class="d-none">
+                                                    <td colspan="2">
+                                                        <div class="row">
                                                             <input
-                                                                class="form-control"
+                                                                class="form-control col-12"
                                                                 id="id_change_name_{{ payment_method.id }}"
                                                                 type="text"
                                                                 maxlength="15"
@@ -101,6 +100,7 @@
                                                                 hx-target="#id_settings_form"
                                                                 hx-vars="club_id:{{ club.id }},payment_method_id:{{ payment_method.id }}"
                                                             >
+                                                            <button class="col-4 btn btn-sm btn-warning">Rename</button>
                                                         </div>
                                                     </td>
                                                 </tr>

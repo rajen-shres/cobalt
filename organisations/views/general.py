@@ -175,8 +175,10 @@ def club_staff(user):
         .values_list("model_id")
     )
 
+    # We return the latest added access, should maybe allow a user preference here
+
     if access:
-        return access[0][0]  # first match - first item in tuple (model_id)
+        return access.last()[0]  # first item in tuple (model_id)
 
     return None
 

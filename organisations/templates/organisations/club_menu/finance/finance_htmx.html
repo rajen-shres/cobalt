@@ -1,19 +1,26 @@
 {% load cobalt_tags %}
 
-<h2>Club Balance: {{ balance|cobalt_currency }}</h2>
-<h2>Total Members' Balance: {{ members_balance|cobalt_currency }}</h2>
+<h3>Club Balance: {{ balance|cobalt_currency }}</h3>
+<h3>Total Members' Balance: {{ members_balance|cobalt_currency }}</h3>
 
+<h2 class="text-primary">Recent Transactions</h2>
 <div class="table-responsive">
     <table class="table table-hover table-condensed">
         <thead>
-
+            <tr>
+                <th class="text-left"h>Date</th>
+                <th class="text-left">Description</th>
+                <th class="text-left">Who</th>
+                <th class="text-right">Amount</th>
+            </tr>
         </thead>
         <tbody>
             {% for tran in recent_trans %}
                 <tr>
-                    <td>{{ tran.created_date }}</td>
-                    <td>{{ tran.description }}</td>
-                    <td>{{ tran.amount }}</td>
+                    <td class="text-left">{{ tran.created_date|cobalt_nice_datetime_short }}</td>
+                    <td class="text-left">{{ tran.description }}</td>
+                    <td class="text-left">{{ tran.member|default_if_none:tran.other_organisation|default_if_none:"" }}</td>
+                    <td class="text-right">{{ tran.amount }}</td>
                 </tr>
             {% endfor %}
         </tbody>

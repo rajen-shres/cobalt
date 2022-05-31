@@ -74,7 +74,8 @@
                 {% else %}
 
                     <h3>You don't have any tags set up so this will be sent to all of your members.</h3>
-                    <p class="font-italic">You can use tags to organise your members into groups if you like. Tags can be set up from the Settings tab above.</p>
+                    <p class="font-italic">You can use tags to organise your members into groups if you like.
+                        Tags can be set up from the Settings Tab above.</p>
                     <input type="hidden" name="tags" value="0">
 
                 {% endif %}
@@ -246,12 +247,12 @@
         // initialise the jquery validate plugin
         $('#email-multi-form').validate({});
 
-        // only show the preview if we are on the last tab
+        // only show the preview if we are on the last two tabs
         // Note - we don't need to dynamically update the preview except for fields on the same tab
         $(".nav-link-send-email").click( function (){
 
             // id doesn't seem to work, so we use a class
-            if ($(this).hasClass("nav-link-send-email-3")){
+            if ($(this).hasClass("nav-link-send-email-3") || $(this).hasClass("nav-link-send-email-2")){
 
                 // show the preview div
                 $("#email_preview").show();
@@ -265,6 +266,10 @@
         });
 
         // Update preview when data changes
+        $('#id_template').on('change', function() {
+            email_subject_or_content_changed();
+        });
+
         $('#id_subject').keyup(delay(function (e) {
             email_subject_or_content_changed();
         }, 500));
@@ -296,6 +301,10 @@
         $("#go-to-tab3").click(function(){
             $('#guide-tabs li:eq(2) a').tab('show');
             $("#id_reply_to").validate();
+            // put cursor on subject field if it is empty
+            if ($("#id_subject").val() === ""){
+                $("#id_subject").focus();
+            }
             // also show preview
             $("#email_preview").show();
             htmx.trigger("#email_preview", "preview");

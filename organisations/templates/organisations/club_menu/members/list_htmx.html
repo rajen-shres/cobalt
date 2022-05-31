@@ -1,18 +1,26 @@
+{# Basic list view of members, shown under the membersship tab #}
+
 {% load humanize %}
 {% load cobalt_tags %}
 
 <div class="card" style="min-height: 800px; height: auto">
+
+    <!-- SUB-LEVEL NAVIGATION -->
+
     <div class="card-header card-header-info">
         {% include "organisations/club_menu/members/nav_htmx.html" with selected="list" %}
     </div>
 
     <div class="card-body" id="id_member_list_tab">
 
-        <h3>{{ club }} has {{ total_members|intcomma }} Member{{ total_members|pluralize }}</h3>
+        <!-- HEADINGS -->
 
+        <h3>{{ club }} has {{ total_members|intcomma }} Member{{ total_members|pluralize }}</h3>
         <h3 class="text-info font-weight-bold settings_message" id="user_list_message">{{ message| default_if_none:"" }}</h3>
 
         {% if members %}
+
+            <!-- TABLE - WE LOAD EVERYONE AND USE DATATABLE TO SORT ON CLIENT SIDE -->
 
             <table id="id_attach_table" class="table table-condensed table-hover" style="display: none;">
                 <thead>
@@ -20,6 +28,7 @@
                         <th class="text-left">First Name</th>
                         <th class="text-left">Last Name</th>
                         <th class="text-left">{{ GLOBAL_ORG }} Number</th>
+                        <th class="text-left">Membership</th>
                         <th class="text-left">Status</th>
                         <th class="text-center">Action</th>
                     </tr>
@@ -29,8 +38,10 @@
                         <tr>
                             <td class="text-left">
                                 {% if member_admin %}
+
+                                    <!-- ONLY SHOW LINKS IF ADMIN -->
+
                                     <a href="#"
-                                        {#                                       hx-push-url="true"#}
                                         id="t_edit_member1_{{ member.id }}"
                                         hx-target="#id_member_list_tab"
                                         {% if member|get_class == "User" %}
@@ -47,8 +58,11 @@
                                     {{ member.first_name }}
                                 {% endif %}
                             </td>
+
                             <td class="text-left">
                                 {% if member_admin %}
+
+                                    <!-- ONLY SHOW LINKS IF ADMIN -->
 
                                     <a href="#"
                                         id="t_edit_member2_{{ member.id }}"
@@ -64,11 +78,15 @@
                                         {{ member.last_name }}
                                     </a>
                                 {% else %}
-                                    {{ cobalt_member.last_name }}
+                                    {{ member.last_name }}
                                 {% endif %}
                             </td>
+
                             <td class="text-left">
                                 {% if member_admin %}
+
+                                    <!-- ONLY SHOW LINKS IF ADMIN -->
+
                                     <a href="#"
                                         id="t_edit_member3_{{ member.id }}"
                                         hx-target="#id_member_list_tab"
@@ -86,6 +104,9 @@
                                     {{ member.system_number }}
                                 {% endif %}
                             </td>
+
+                            <td class="text-left">{{ member.membership }}</td>
+
                             <td class="text-left">
                                 {% if member|get_class == "User" %}
                                     {{ GLOBAL_TITLE }} User
@@ -93,6 +114,7 @@
                                     Unregistered User
                                 {% endif %}
                             </td>
+
                             <td class="text-center">
                                 {% if member|get_class == "User" %}
                                     <a target="_blank" href="{% url "accounts:public_profile" pk=member.id %}" style="width: 150px" class="btn btn-sm btn-info text-center">view profile</a>

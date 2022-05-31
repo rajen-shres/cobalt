@@ -630,9 +630,7 @@ def change_paid_amount_status_htmx(request, club, session, session_entry):
 
 
 def _session_totals_calculations(session_entries, session_fees, membership_type_dict):
-    """sub od session_totals_htmx to build dict of totals"""
-
-    print(session_fees)
+    """sub of session_totals_htmx to build dict of totals"""
 
     # initialise totals
     totals = {
@@ -647,8 +645,6 @@ def _session_totals_calculations(session_entries, session_fees, membership_type_
 
     # go through entries and update totals
     for session_entry in session_entries:
-        print(session_entry)
-        print(session_entry.payment_method)
 
         # ignore missing players and playing directors
         if session_entry.system_number in [-1, 0, 1]:
@@ -661,16 +657,12 @@ def _session_totals_calculations(session_entries, session_fees, membership_type_
             totals["unknown_payment_methods"] += 1
             continue
 
-        print("known payment method")
-
         # we only store system_number on the session_entry. Need to look up amount due via membership type for
         # this system number and the session_fees for this club for each membership type
 
         membership_for_this_user = membership_type_dict.get(
             session_entry.system_number, "Guest"
         )
-
-        print(membership_for_this_user, BRIDGE_CREDITS)
 
         if session_entry.payment_method.payment_method == BRIDGE_CREDITS:
             totals["bridge_credits_due"] += session_fees[membership_for_this_user][
@@ -684,8 +676,6 @@ def _session_totals_calculations(session_entries, session_fees, membership_type_
             totals["other_methods_received"] += session_entry.amount_paid
 
     totals["tables"] = totals["players"] / 4
-
-    print(totals)
 
     return totals
 

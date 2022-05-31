@@ -851,7 +851,7 @@ def welcome_pack_edit_htmx(request, club):
             organisation=club, last_modified_by=request.user, updated_at=timezone.now()
         )
         welcome_pack.save()
-        message = "Welcome Pack Created"
+        message = "Welcome Email Created"
 
     if "save" in request.POST:
         welcome_form = WelcomePackForm(request.POST, instance=welcome_pack, club=club)
@@ -861,7 +861,7 @@ def welcome_pack_edit_htmx(request, club):
             welcome_pack.last_updated_by = request.user
             welcome_pack.last_updated = timezone.localtime()
             welcome_pack.save()
-            message = "Welcome Pack Saved"
+            message = "Welcome Email Saved"
         else:
             message = welcome_form.errors
 
@@ -888,7 +888,7 @@ def welcome_pack_delete_htmx(request, club):
 
     WelcomePack.objects.filter(organisation=club).first().delete()
 
-    return welcome_pack_htmx(request, message="Welcome Pack Deleted")
+    return welcome_pack_htmx(request, message="Welcome Email Deleted")
 
 
 @check_club_menu_access(check_comms=True)
@@ -900,7 +900,7 @@ def users_with_tag_htmx(request, club):
 
     system_numbers = MemberClubTag.objects.filter(club_tag=tag).values("system_number")
 
-    users_with_tag = get_club_members_from_system_number_list(system_numbers)
+    users_with_tag = get_club_members_from_system_number_list(system_numbers, club)
 
     # We need the list of members without the tag for the add function
     all_members = get_members_for_club(club)
@@ -988,3 +988,19 @@ def club_menu_tab_settings_payment_edit_name_htmx(request, club):
     payment_method.save()
 
     return club_menu_tab_settings_payment_htmx(request)
+
+
+@check_club_menu_access(check_comms=True)
+def club_menu_tab_settings_tag_edit_name_htmx(request, club):
+    """Edit the name of a tag. Returns th whole section"""
+
+    tag = get_object_or_404(ClubTag, pk=request.POST.get("tag_id"))
+    if tag.organisation != club:
+        return HttpResponse("Access denied")
+
+    new_name = request.POST.get("new_tag_name")
+
+    tag.tag_name = new_name
+    tag.save()
+
+    return tags_htmx(request)

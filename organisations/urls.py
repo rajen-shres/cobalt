@@ -535,4 +535,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.club_menu_tab_settings_payment_edit_name_htmx,
         name="club_menu_tab_settings_payment_edit_name_htmx",
     ),
+    path(
+        "club-menu/settings/tag-edit-name",
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_tag_edit_name_htmx,
+        name="club_menu_tab_settings_tag_edit_name_htmx",
+    ),
 ]

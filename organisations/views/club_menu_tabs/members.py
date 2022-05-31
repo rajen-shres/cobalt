@@ -123,7 +123,7 @@ def report_all_csv(request, club_id):
 
         # Check for state level access or global
         rbac_model_for_state = get_rbac_model_for_state(club.state)
-        state_role = "orgs.state.%s.edit" % rbac_model_for_state
+        state_role = f"orgs.state.{rbac_model_for_state}.edit"
         if not rbac_user_has_role(request.user, state_role) and not rbac_user_has_role(
             request.user, "orgs.admin.edit"
         ):
@@ -144,9 +144,19 @@ def report_all_csv(request, club_id):
 
     # Get local emails (if set) and turn into a dictionary
     club_emails = MemberClubEmail.objects.filter(system_number__in=club_members)
-    club_emails_dict = {}
-    for club_email in club_emails:
-        club_emails_dict[club_email.system_number] = club_email.email
+    club_emails_dict = {
+        club_email.system_number: club_email.email for club_email in club_emails
+    }
+
+    # Get tags and turn into dictionary
+    tags = MemberClubTag.objects.filter(
+        system_number__in=club_members, club_tag__organisation=club
+    )
+    tags_dict = {}
+    for tag in tags:
+        if tag.system_number not in tags_dict:
+            tags_dict[tag.system_number] = []
+        tags_dict[tag.system_number].append(tag.club_tag.tag_name)
 
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="members.csv"'
@@ -162,10 +172,12 @@ def report_all_csv(request, club_id):
             "Email Source",
             f"{GLOBAL_TITLE} User Type",
             "Origin",
+            "Tags",
         ]
     )
 
     for user in users:
+        user_tags = tags_dict.get(user.system_number, "")
         writer.writerow(
             [
                 user.system_number,
@@ -175,6 +187,7 @@ def report_all_csv(request, club_id):
                 "User",
                 "Registered",
                 "Self-registered",
+                user_tags,
             ]
         )
 
@@ -186,6 +199,7 @@ def report_all_csv(request, club_id):
             email = club_emails_dict[un_reg.system_number]
             email_source = "Club specific email"
 
+        user_tags = tags_dict.get(un_reg.system_number, "")
         writer.writerow(
             [
                 un_reg.system_number,
@@ -195,6 +209,7 @@ def report_all_csv(request, club_id):
                 email_source,
                 "Unregistered",
                 un_reg.origin,
+                user_tags,
             ]
         )
 
@@ -762,7 +777,7 @@ def add_un_reg_htmx(request, club):
             )
             message = f"{message} {resp}"
         else:
-            message += " Welcome pack not sent, no email provided."
+            message += " Welcome email not sent, no email provided."
 
     # club is added to the call by the decorator
     return list_htmx(request, message=message)

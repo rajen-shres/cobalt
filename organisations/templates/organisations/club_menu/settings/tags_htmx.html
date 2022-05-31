@@ -18,10 +18,10 @@
         {% if tags %}
 
             <div class="table-responsive col-md-6">
-                <table class="table table-hover table-condensed">
+                <table class="table table-condensed">
                     <thead>
                         <tr>
-                            <th>Tag Name</th>
+                            <th class="text-left">Tag Name</th>
                             <th>User with Tag</th>
                             <th>Action</th>
                         </tr>
@@ -29,11 +29,18 @@
                     <tbody>
                         {% for tag in tags %}
                             <tr>
-                                <td>{{ tag.tag_name }}</td>
+                                <td class="text-left">
+                                    <!-- EDIT ICON. IF CLICKED SHOW THE RENAME DIALOG -->
+
+                                    <i
+                                        _="on click toggle .d-none on  #id_tr_change_tag_name_{{ tag.id }}"
+                                        class="material-icons" style="font-size: small">edit</i>
+                                    {{ tag.tag_name }}
+                                </td>
                                 <td>{{ tag.uses }}</td>
 
 
-                                {% include "utils/htmx_confirm_modal.html" with id=tag.id delete_item=tag.tag_name hx_vars=tag.hx_vars hx_target="#id_panel_comms" hx_post=tag.hx_post %}
+                                {% include "utils/htmx_confirm_modal.html" with id=tag.id delete_item=tag.tag_name hx_vars=tag.hx_vars hx_target="#id_settings_form" hx_post=tag.hx_post %}
                                 <td>
                                     <button class="btn btn-sm btn-info"
                                         hx-post="{% url "organisations:club_menu_tab_settings_users_with_tag_htmx" %}"
@@ -45,6 +52,28 @@
                                     </button>
                                 </td>
                             </tr>
+
+                            <!-- HIDDEN CHANGE NAME FIELD -->
+
+                            <tr id="id_tr_change_tag_name_{{ tag.id }}" class="d-none">
+                                <td colspan="3">
+                                    <div class="row">
+                                        <input
+                                            class="form-control col-12"
+                                            id="id_change_tag_name_{{ tag.id }}"
+                                            type="text"
+                                            maxlength="50"
+                                            name="new_tag_name"
+                                            value="{{ tag.tag_name }}"
+                                            hx-post="{% url "organisations:club_menu_tab_settings_tag_edit_name_htmx" %}"
+                                            hx-target="#id_settings_form"
+                                            hx-vars="club_id:{{ club.id }},tag_id:{{ tag.id }}"
+                                        >
+                                        <button class="col-4 btn btn-sm btn-warning">Rename</button>
+                                    </div>
+                                </td>
+                            </tr>
+
                         {% endfor %}
                     </tbody>
                 </table>

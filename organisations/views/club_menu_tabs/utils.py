@@ -11,7 +11,10 @@ from cobalt.settings import COBALT_HOSTNAME
 from organisations.decorators import check_club_menu_access
 from organisations.models import MemberMembershipType, Organisation, MemberClubEmail
 from organisations.views.club_menu_tabs.members import list_htmx
-from organisations.views.general import get_rbac_model_for_state
+from organisations.views.general import (
+    get_rbac_model_for_state,
+    get_membership_type_for_players,
+)
 from payments.models import MemberTransaction
 from rbac.core import (
     rbac_user_has_role,
@@ -203,11 +206,11 @@ def get_members_for_club(club):
         .values("system_number")
     )
 
-    return get_club_members_from_system_number_list(club_system_numbers)
+    return get_club_members_from_system_number_list(club_system_numbers, club)
 
 
-def get_club_members_from_system_number_list(system_numbers):
-    """Takes a list of system numbers and returns the members"""
+def get_club_members_from_system_number_list(system_numbers, club):
+    """Takes a list of system numbers and returns the members for a given club"""
 
     # Get real members
     cobalt_members = User.objects.filter(system_number__in=system_numbers).order_by(
@@ -219,4 +222,17 @@ def get_club_members_from_system_number_list(system_numbers):
         system_number__in=system_numbers
     ).order_by("last_name")
 
-    return list(chain(cobalt_members, unregistered_members))
+    # combine lists - use set for uniqueness
+    combined_list = set(chain(cobalt_members, unregistered_members))
+
+    # Add in membership type
+    membership_type_dict = get_membership_type_for_players(system_numbers, club)
+
+    for player in combined_list:
+        if player.system_number in membership_type_dict:
+            player.membership = membership_type_dict[player.system_number]
+        else:
+            # Interloper - this person isn't a member!
+            combined_list.remove(player)
+
+    return list(combined_list)
