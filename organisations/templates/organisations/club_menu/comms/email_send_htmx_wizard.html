@@ -276,7 +276,6 @@
         $('#email-multi-form').validate({});
 
         // only show the preview if we are on the last two tabs
-        // Note - we don't need to dynamically update the preview except for fields on the same tab
         $(".nav-link-send-email").click( function (){
 
             // id doesn't seem to work, so we use a class
@@ -287,6 +286,7 @@
 
                 // update the preview div
                 htmx.trigger("#email_preview", "preview")
+
             } else {
                 $("#email_preview").hide();
             }
@@ -358,6 +358,14 @@
             }
         });
 
+        // if any top navigation tab (recipients, options, content) is pressed we put the focus on subject if empty
+        // only matters for content, but doesn't matter for the others
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            if ($("#id_subject").val() === ""){
+                $("#id_subject").focus();
+            }
+        })
+
         // enable/disable next button on recipients tab based upon something being selected
         // We allow skipping the options tab and going straight to content, so enable/disable both tab buttons
         $(".tag-checkbox").click(function(){
@@ -375,7 +383,7 @@
             }
 
             // also reload the list of names
-            {#htmx.trigger("#email_list_of_names", "has_changed");#}
+            htmx.trigger("#email_list_of_names", "has_changed");
 
         });
 

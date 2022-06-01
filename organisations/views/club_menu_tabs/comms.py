@@ -24,6 +24,10 @@ from organisations.models import (
     OrgEmailTemplate,
 )
 from organisations.views.club_menu_tabs.settings import tags_htmx
+from organisations.views.club_menu_tabs.utils import (
+    get_club_members_from_system_number_list,
+    get_members_for_club,
+)
 
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
@@ -630,6 +634,20 @@ def delete_email_attachment_htmx(request, club):
 def club_menu_tab_comms_emails_from_tags_htmx(request, club):
     """takes in tags and lists out who will be emailed. Called from the email wizard"""
 
-    print(request.POST)
+    tag_list = request.POST.getlist("tags")
 
-    return HttpResponse("okey dokey")
+    # Check for everyone
+    if "0" in tag_list:
+        members = get_members_for_club(club)
+    else:
+        # not everyone, so load members for these tags
+        system_numbers = MemberClubTag.objects.filter(
+            club_tag__pk__in=tag_list
+        ).values_list("system_number")
+        members = get_club_members_from_system_number_list(system_numbers, club)
+
+    return render(
+        request,
+        "organisations/club_menu/comms/emails_from_tags_htmx.html",
+        {"members": members},
+    )
