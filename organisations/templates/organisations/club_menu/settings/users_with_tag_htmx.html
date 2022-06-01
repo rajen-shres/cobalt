@@ -11,46 +11,17 @@
 
         <button class="btn btn-sm btn-outline-secondary text-dark"
             hx-post="{% url "organisations:club_menu_tab_comms_tags_htmx" %}"
-            hx-target="#id_settings_form"
+            hx-target="#id_panel_settings"
             hx-vars="club_id:{{ club.id }}"
         >All Tags</button>
 
         <h3>Users with Tag "{{ tag.tag_name }}"</h3>
 
-        {% if users_with_tag %}
+        <div id="list_of_users_with_this_tag">
 
-            <div class="table-responsive col-md-6">
-                <table class="table table-hover table-condensed">
-                    <thead>
-                        <tr>
-                            <th class="text-left">First Name</th>
-                            <th class="text-left">Last Name</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user_with_tag in users_with_tag %}
-                            <tr>
-                                <td class="text-left">{{ user_with_tag.first_name }}</td>
-                                <td class="text-left">{{ user_with_tag.last_name }}</td>
+            {% include "organisations/club_menu/settings/users_with_tag_sub_htmx.html" %}
 
-
-
-                                {% include "utils/htmx_confirm_modal.html" with id=user_with_tag.id delete_item=user_with_tag.first_name hx_vars=user_with_tag.hx_vars hx_target="#id_settings_form" hx_post=hx_post %}
-                                <td>
-                                    <button id="t_delete_user_tag_{{ tag.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user_with_tag.id }}">
-                                        Delete Tag
-                                    </button>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <h4>No members have this tag yet</h4>
-
-        {% endif %}
+        </div>
 
         <button class="btn btn-info" _="on click remove .d-none from #users_without_tab_table_div then hide me">
             Add Member to Tag
@@ -71,14 +42,18 @@
                     </thead>
                     <tbody>
                         {% for user_without_tag in users_without_tag %}
-                            <tr>
+                            <tr id="add_user_to_tag_{{ user_without_tag.system_number }}">
                                 <td>{{ user_without_tag.first_name }}</td>
                                 <td>{{ user_without_tag.last_name }}</td>
-                                <td><button class="btn btn-sm btn-warning"
-                                    hx-post="{% url "organisations:club_menu_tab_settings_add_user_to_tag_htmx" %}"
-                                    hx-target="#id_settings_form"
-                                    hx-vars="club_id:{{ club.id }}, tag_id:{{ tag.id }}, system_number:{{ user_without_tag.system_number }}"
-                                >Add Tag</button></td>
+                                <td>
+                                    <button class="btn btn-sm btn-warning"
+                                        hx-post="{% url "organisations:club_menu_tab_settings_add_user_to_tag_htmx" %}"
+                                        hx-target="#list_of_users_with_this_tag"
+                                        hx-vars="club_id:{{ club.id }}, tag_id:{{ tag.id }}, system_number:{{ user_without_tag.system_number }}"
+                                        _="on click remove #add_user_to_tag_{{ user_without_tag.system_number }}"
+                                    >Add Tag
+                                    </button>
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>

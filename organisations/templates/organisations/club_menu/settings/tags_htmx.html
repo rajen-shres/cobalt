@@ -40,7 +40,7 @@
                                 <td>{{ tag.uses }}</td>
 
 
-                                {% include "utils/htmx_confirm_modal.html" with id=tag.id delete_item=tag.tag_name hx_vars=tag.hx_vars hx_target="#id_settings_form" hx_post=tag.hx_post %}
+                                {% include "utils/htmx_confirm_modal.html" with id=tag.id delete_item=tag.tag_name hx_vars=tag.hx_vars hx_target="#id_panel_settings" hx_post=tag.hx_post %}
                                 <td>
                                     <button class="btn btn-sm btn-info"
                                         hx-post="{% url "organisations:club_menu_tab_settings_users_with_tag_htmx" %}"
@@ -66,7 +66,7 @@
                                             name="new_tag_name"
                                             value="{{ tag.tag_name }}"
                                             hx-post="{% url "organisations:club_menu_tab_settings_tag_edit_name_htmx" %}"
-                                            hx-target="#id_settings_form"
+                                            hx-target="#id_panel_settings"
                                             hx-vars="club_id:{{ club.id }},tag_id:{{ tag.id }}"
                                         >
                                         <button class="col-4 btn btn-sm btn-warning">Rename</button>
@@ -86,7 +86,7 @@
         <div class="col-md-3 text-nowrap">
             <form
                 hx-post="{% url "organisations:club_menu_tab_comms_tags_htmx" %}"
-                hx-target="#id_settings_form"
+                hx-target="#id_panel_settings"
                 hx-vars="club_id:{{ club.id }}"
             >
                 {% cobalt_bs4_field form.tag_name %}

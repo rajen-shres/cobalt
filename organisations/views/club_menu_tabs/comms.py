@@ -624,3 +624,12 @@ def delete_email_attachment_htmx(request, club):
     trigger = f"""{{"post_attachment_delete": "{email_attachment_id}"}}"""
 
     return _email_attachment_list_htmx(request, club, hx_trigger_response=trigger)
+
+
+@check_club_menu_access(check_comms=True)
+def club_menu_tab_comms_emails_from_tags_htmx(request, club):
+    """takes in tags and lists out who will be emailed. Called from the email wizard"""
+
+    print(request.POST)
+
+    return HttpResponse("okey dokey")

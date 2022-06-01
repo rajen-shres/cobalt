@@ -540,4 +540,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.club_menu_tab_settings_tag_edit_name_htmx,
         name="club_menu_tab_settings_tag_edit_name_htmx",
     ),
+    path(
+        "club-menu/settings/emails_from_tags",
+        organisations.views.club_menu_tabs.comms.club_menu_tab_comms_emails_from_tags_htmx,
+        name="club_menu_tab_comms_emails_from_tags_htmx",
+    ),
 ]

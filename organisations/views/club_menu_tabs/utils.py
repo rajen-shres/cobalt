@@ -213,26 +213,28 @@ def get_club_members_from_system_number_list(system_numbers, club):
     """Takes a list of system numbers and returns the members for a given club"""
 
     # Get real members
-    cobalt_members = User.objects.filter(system_number__in=system_numbers).order_by(
-        "last_name"
-    )
+    cobalt_members = User.objects.filter(system_number__in=system_numbers)
 
     # Get unregistered
     unregistered_members = UnregisteredUser.objects.filter(
         system_number__in=system_numbers
-    ).order_by("last_name")
+    )
 
     # combine lists - use set for uniqueness
-    combined_list = set(chain(cobalt_members, unregistered_members))
+    combined_set = set(chain(cobalt_members, unregistered_members))
 
     # Add in membership type
     membership_type_dict = get_membership_type_for_players(system_numbers, club)
 
-    for player in combined_list:
+    for player in combined_set:
         if player.system_number in membership_type_dict:
             player.membership = membership_type_dict[player.system_number]
         else:
             # Interloper - this person isn't a member!
-            combined_list.remove(player)
+            combined_set.remove(player)
 
-    return list(combined_list)
+    combined_list = list(combined_set)
+
+    combined_list.sort(key=lambda x: x.first_name)
+
+    return combined_list

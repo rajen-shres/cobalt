@@ -892,8 +892,12 @@ def welcome_pack_delete_htmx(request, club):
 
 
 @check_club_menu_access(check_comms=True)
-def users_with_tag_htmx(request, club):
-    """Add and remove members from tags"""
+def users_with_tag_htmx(request, club, partial=False):
+    """Add and remove members from tags. This is the main form and view
+
+    The partial parameter is used if we only want to return the list of users with this tag and not the whole form.
+    This is used when we add a user so we can update the displayed list but stay on the same screen to add more.
+    """
 
     tag_id = request.POST.get("tag_id")
     tag = get_object_or_404(ClubTag, pk=tag_id)
@@ -921,9 +925,14 @@ def users_with_tag_htmx(request, club):
     for user_with_tag in users_with_tag:
         user_with_tag.hx_vars = f"{{'club_id':{club.id}, 'system_number':{user_with_tag.system_number}, 'tag_id':{tag.id} }}"
 
+    if partial:
+        template = "organisations/club_menu/settings/users_with_tag_sub_htmx.html"
+    else:
+        template = "organisations/club_menu/settings/users_with_tag_htmx.html"
+
     return render(
         request,
-        "organisations/club_menu/settings/users_with_tag_htmx.html",
+        template,
         {
             "users_with_tag": users_with_tag,
             "users_without_tag": users_without_tag,
@@ -969,7 +978,7 @@ def add_user_to_tag_htmx(request, club):
 
     MemberClubTag(club_tag=club_tag, system_number=system_number).save()
 
-    return users_with_tag_htmx(request)
+    return users_with_tag_htmx(request, partial=True)
 
 
 @check_club_menu_access(check_payments=True)

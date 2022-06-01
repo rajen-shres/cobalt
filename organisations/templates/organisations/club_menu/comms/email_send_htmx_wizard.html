@@ -1,3 +1,5 @@
+{# Main email sending wizard #}
+
 {% load cobalt_tags %}
 
 <form
@@ -5,6 +7,8 @@
     hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}"
     hx-target="#id_panel_comms"
 >
+
+    <!-- TAB VIEW HEADING ICONS -->
 
     <ul class="nav nav-pills nav-pills-danger" role="tablist" id="guide-tabs">
         <li class="nav-item">
@@ -44,7 +48,12 @@
             </a>
         </li>
     </ul>
+
+    <!-- TAB VIEW TABS -->
+
     <div class="tab-content tab-space">
+
+        <!-- RECIPIENTS -->
 
         <div class="tab-pane active" id="send-email-recipients" aria-expanded="true">
             <div class="row">
@@ -52,7 +61,9 @@
                 {% if tag_form.tags.field.choices|length > 1 %}
                     <div>
                         <p>Send to members using tags or select Everyone to send to all members.</p>
-                        <p class="font-italic">Some of your tags have no members and cannot be selected.</p>
+                        {% if empty_tags %}
+                            <p class="font-italic">Some of your tags have no members and cannot be selected.</p>
+                        {% endif %}
                         {% for key, value in tag_form.tags.field.choices %}
                             <div>
                                 <label class="text-dark" for="id_tags_{{ key }}">
@@ -91,7 +102,22 @@
                     {% endif %}
                 >Next</button>
             </div>
+
+            <!-- DIV FOR LIST OF NAMES -->
+            <div
+                id="email_list_of_names"
+                hx-post="{% url "organisations:club_menu_tab_comms_emails_from_tags_htmx" %}"
+                hx-vars="club_id:'{{ club.id }}'"
+                hx-include="[id='email-multi-form']"
+                hx-trigger="has_changed"
+                hx-target="this"
+            >
+
+            </div>
+
         </div>
+
+        <!-- OPTIONS -->
 
         <div class="tab-pane" id="send-email-options" aria-expanded="false">
             {% if email_form.template.field.choices %}
@@ -134,6 +160,8 @@
                 <button class="btn btn-info btn-sm" id="go-to-tab3">Next</button>
             </div>
         </div>
+
+        <!-- CONTENT -->
 
         <div class="tab-pane" id="send-email-content" aria-expanded="false">
             <div class="row">
@@ -345,6 +373,10 @@
                 $("#nav-link-send-email-2").addClass("disabled");
                 $("#nav-link-send-email-3").addClass("disabled");
             }
+
+            // also reload the list of names
+            {#htmx.trigger("#email_list_of_names", "has_changed");#}
+
         });
 
         // validate the reply_to field (email) when it changes, otherwise it is not visible (different tab)

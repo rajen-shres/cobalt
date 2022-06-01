@@ -1,0 +1,51 @@
+{# Sub part of users_with_tag to just show users who have the tag already. Called by users_with_tag or if a user is#}
+{# added, then this is called to refresh that part of the screen#}
+
+{% if users_with_tag %}
+
+    <div class="table-responsive col-md-6">
+        <table id="users_with_tab_table" class="table table-hover table-condensed">
+            <thead>
+                <tr>
+                    <th class="text-left">First Name</th>
+                    <th class="text-left">Last Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user_with_tag in users_with_tag %}
+                    <tr>
+                        <td class="text-left">{{ user_with_tag.first_name }}</td>
+                        <td class="text-left">{{ user_with_tag.last_name }}</td>
+
+
+
+                        {% include "utils/htmx_confirm_modal.html" with id=user_with_tag.id delete_item=user_with_tag.first_name hx_vars=user_with_tag.hx_vars hx_target="#id_panel_settings" hx_post=hx_post %}
+                        <td>
+                            <button id="t_delete_user_tag_{{ tag.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user_with_tag.id }}">
+                                Delete Tag
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <h4>No members have this tag yet</h4>
+
+{% endif %}
+
+<script>
+    $(document).ready( function () {
+
+        // Initialise datatable - only show pagination if more than one page, sort in reverse date order, column 0
+        $('#users_with_tab_table').DataTable({
+            drawCallback: function (settings) {
+                const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+                pagination.toggle(this.api().page.info().pages > 1);
+            },
+        });
+
+    });
+</script>
