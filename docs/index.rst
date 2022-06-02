@@ -43,6 +43,9 @@ The source code can be found on `Github <https://github.com/abftech/cobalt>`_.
 
 **In a hurry?** Read :doc:`cobalt/reference/cobalt_in_two_minutes`.
 
+Content
+=======
+
 .. container:: twocol
 
     .. container:: tutorials
@@ -50,17 +53,18 @@ The source code can be found on `Github <https://github.com/abftech/cobalt>`_.
         **Tutorials**
 
         - :doc:`cobalt/tutorials/getting_started`
-        - Deploying on AWS
+        - :doc:`cobalt/tutorials/aws_overview`
 
     .. container:: howto
 
         **How To Guides**
 
-        - Adding email to Cobalt
-        - Adding SMS to Cobalt
-        - Adding Payments to Cobalt through Stripe
-        - FCM
-        - Google Recaptcha
+        - :doc:`cobalt/how_to/using_references`
+        - :doc:`cobalt/how_to/adding_email`
+        - :doc:`cobalt/how_to/adding_sms`
+        - :doc:`cobalt/how_to/adding_stripe`
+        - :doc:`cobalt/how_to/adding_fcm`
+        - :doc:`cobalt/how_to/adding_recaptcha`
 
 
 .. container:: twocol
@@ -69,12 +73,19 @@ The source code can be found on `Github <https://github.com/abftech/cobalt>`_.
 
         **Discussions**
 
-        - :doc:`cobalt/tutorials/getting_started`
+        - :doc:`cobalt/discussion/development_overview`
+        - :doc:`cobalt/discussion/design_overview`
+        - :doc:`cobalt/discussion/cobalt_for_porkchops`
+        - :doc:`cobalt/discussion/django_for_porkchops`
+        - :doc:`cobalt/discussion/python_for_porkchops`
+        - :doc:`cobalt/discussion/monitoring_overview`
 
     .. container:: reference
 
         **Reference**
 
+        * :doc:`cobalt/reference/cobalt_in_two_minutes`
+        * :doc:`cobalt/reference/environment_variables`
         * :doc:`cobalt/reference/accounts`
         * :doc:`cobalt/reference/payments`
         * :doc:`cobalt/reference/events`
@@ -83,34 +94,8 @@ The source code can be found on `Github <https://github.com/abftech/cobalt>`_.
         * :doc:`cobalt/reference/forums`
         * :doc:`cobalt/reference/utilities`
         * :doc:`cobalt/reference/support`
+        * :doc:`cobalt/reference/snippets`
 
-User Guides
-===========
-
-Here are pages that describe things relevant to Cobalt in general.
-
-* :doc:`cobalt/development_overview`
-* :doc:`cobalt/design_overview`
-* :doc:`cobalt/security_overview`
-* :doc:`cobalt/api_overview`
-* :doc:`cobalt/testing_overview`
-* :doc:`cobalt/test_data_overview`
-* :doc:`cobalt/aws_overview`
-* :doc:`cobalt/monitoring_overview`
-* :doc:`cobalt/cobalt_for_porkchops`
-* :doc:`cobalt/snippets`
-
-Here are links to documents that describe specific modules.
-
-* :doc:`cobalt/payments_overview`
-* :doc:`cobalt/events_overview`
-* :doc:`cobalt/notifications_overview`
-* :doc:`cobalt/rbac_overview`
-* :doc:`cobalt/accounts_overview`
-* :doc:`cobalt/rbac_ABF_Roles`
-* :doc:`cobalt/forums_overview`
-* :doc:`cobalt/utilities_overview`
-* :doc:`cobalt/support_overview`
 
 Appendices
 ==========

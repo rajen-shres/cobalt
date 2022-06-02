@@ -1,10 +1,10 @@
 :orphan:
 
-.. image:: ../images/cobalt.jpg
+.. image:: ../../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: ../images/snippet.jpg
+.. image:: ../../images/snippet.jpg
  :width: 300
  :alt: Environment Variables
 

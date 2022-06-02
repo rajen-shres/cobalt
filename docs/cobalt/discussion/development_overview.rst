@@ -1,146 +1,16 @@
 :orphan:
 
-.. image:: ../images/cobalt.jpg
+.. image:: ../../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: ../images/development.jpg
+.. image:: ../../images/development.jpg
  :width: 300
  :alt: Coding
 
-Development Overview
+Development Approach
 ====================
 
-Cobalt is written in Django. It is assumed that you already know Python,
-Django and the associated tools such as ``pip`` and ``virtualenv``. If you don't
-there are lots of resources available to help you.
-
-Before you get started make sure you have the following installed:
-
-- Python 3.7+
-- pip
-- virtualenv
-- git
-- postgres (*optional but highly recommended*)
-
-Development Environment Set Up
-==============================
-
-Overview
---------
-
-There are a few steps to follow:
-
-- Set up development tools
-- Set up database
-- Set environment variables
-- Set up static data
-
-Code
-----
-
-.. hint::
-
-    If you want to develop on Windows you will need to install the Windows Linux Subsystem. File
-    permissions and other things get messed up in the Windows UI so it is not recommended.
-
-    In fact, you will likely break important things for others if you try to do native Windows
-    development. Don't worry though, you can use Pycharm or VS Code to do your work, you just need
-    to run git and the other tools through WLS.
-
-Here are the basic steps to get started::
-
-    $ mkdir cobalt-project
-    $ virtualenv myenv   # specify -P python3.7 or similar if that is not your default
-    $ . ./myenv/bin/activate
-    $ mkdir cobalt
-    $ cd cobalt
-
-Get code from github and set up::
-
-    $ git init
-    $ git remote add origin https://github.com/abftech/cobalt.git
-    $ git pull origin develop
-
-Install requirements::
-
-    $ pip install -r requirements.txt
-
-Install development-only requirements::
-
-    $ pip install -r requirements-dev.txt
-
-We recommend using pre-commits for Git which are included as part of the code base (Flake8, Black and Djhtml).
-You can install them using::
-
-    $ pre-commit install
-
-Database
---------
-
-There are a number of problems with using SQLite3 especially on a Mac. It is
-strongly recommended that even for development, you set up a local Postgres
-database.
-
-You will need to create a user. Start psql::
-
-    postgres=# create user cobalt with encrypted password 'password';
-
-Environment Variables
----------------------
-
-See main article: :doc:`environment_variables`.
-
-Before running manage.py you will need to set some environment variables. As these are considered secret they
-are not part of the codebase, but you should be able to get help from another developer.
-
-It is easiest to put these in a batch file, or even run it automatically when
-you start your shell.
-
-Management Commands
--------------------
-
-In your development environment you will need to run some management
-commands to set up static data. In the ABF system these get run automatically
-as part of the deployment to AWS. The easiest way to identify what needs to be
-run is to look at the commands that are run in AWS. Look in the root project
-directly at .platform/hooks/postdeploy/02_django.sh.
-
-You might want to run these manually the first time and then automate it.
-
-Test Data
----------
-
-There are Django management commands within Cobalt that create test data.
-The input is CSV files which live in ``tests/test_data``.
-
-Combining it all
-----------------
-
-As a developer you will find yourself rebuilding the database quite often.
-You can use a script to automate this for you.
-
-For example::
-
-    #!/bin/sh
-
-    # reset database
-    psql -f rebuild_dev_db.sql
-
-    # migrate
-    ./manage.py migrate
-
-    # static data
-    utils/aws/rebuild_test_database_subcommands.sh
-
-    # Test data
-    ./manage.py add_test_data
-
-rebuild_dev_db.sql::
-
-    \c postgres
-    drop database ebdb;
-    create database ebdb with owner cobalt;
 
 Design Principles
 =================

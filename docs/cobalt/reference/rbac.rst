@@ -37,7 +37,7 @@ administrator for a club or congress should be able to appoint other
 administrators, or directors or any other role, themselves without needing the
 permission of anyone else. RBAC is the mechanism for achieving this.
 
-.. image:: ../images/rbac_overview.png
+.. image:: ../../images/rbac_overview.png
 
 Security Basics
 ===============
@@ -76,7 +76,7 @@ if a better third part option appears then we should use it.
 RBAC Model Overview
 ===================
 
-.. image:: ../images/rbac.png
+.. image:: ../../images/rbac.png
  :width: 800
  :alt: Cobalt Chemical Symbol
 

@@ -1,10 +1,10 @@
 :orphan:
 
-.. image:: ../images/cobalt.jpg
+.. image:: ../../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: ../images/design.jpg
+.. image:: ../../images/design.jpg
  :width: 300
  :alt: Design
 
@@ -26,7 +26,7 @@ Basic
 
 This shows the basic architecture of Cobalt, which is typical for a Django application.
 
-.. image:: ../images/architecture_basic.png
+.. image:: ../../images/architecture_basic.png
  :width: 800
  :align: center
  :alt: Basic Architecture Diagram
@@ -36,7 +36,7 @@ Interfaces
 
 This includes the external interfaces.
 
-.. image:: ../images/architecture_interfaces.png
+.. image:: ../../images/architecture_interfaces.png
  :width: 800
  :align: center
  :alt: Basic Architecture Diagram with Interfaces
@@ -46,7 +46,7 @@ AWS
 
 This diagram shows the high level architecture of Cobalt as deployed on AWS for the ABF.
 
-.. image:: ../images/architecture_aws.png
+.. image:: ../../images/architecture_aws.png
  :width: 800
  :align: center
  :alt: AWS Deployment Architecture

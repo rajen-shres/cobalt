@@ -1,10 +1,10 @@
 :orphan:
 
-.. image:: ../images/cobalt.jpg
+.. image:: ../../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: ../images/pork-chops.jpg
+.. image:: ../../images/pork-chops.jpg
  :width: 300
  :alt: Pork Chops
 
@@ -70,7 +70,7 @@ do very different things. When you are in your IDE typing letters and numbers in
 one of these six files, make sure what you are typing relates to what the file is supposed
 to do.
 
-.. image:: ../images/mtv.png
+.. image:: ../../images/mtv.png
  :width: 900
  :alt: MTV
 

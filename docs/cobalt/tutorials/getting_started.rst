@@ -15,6 +15,17 @@ Getting Started
 In this tutorial you will learn how to install Cobalt and configure it
 to run in your development environment on your personal computer.
 
+.. note::
+
+    This tutorial is designed for a Mac or Linux development environment.
+    If you want to develop on Windows you will need to install the Windows Linux Subsystem. File
+    permissions and other things get messed up in the Windows UI so it is not recommended.
+
+    You can use Pycharm or VS Code, or whatever IDE you like to do your work, you just need
+    to run git and the other tools through WLS.
+
+    Once you have installed WLS you can follow all of the steps in this tutorial on Windows.
+
 Pre-requisites
 ==============
 
@@ -43,17 +54,6 @@ By the end of this tutorial you will understand:
 
 Step 1 - Installing Cobalt
 ==========================
-
-.. hint::
-
-    This tutorial is designed for a Mac or Linux development environment.
-    If you want to develop on Windows you will need to install the Windows Linux Subsystem. File
-    permissions and other things get messed up in the Windows UI so it is not recommended.
-
-    You can use Pycharm or VS Code, or whatever IDE you like to do your work, you just need
-    to run git and the other tools through WLS.
-
-    Once you have installed WLS you can follow all of the steps in this tutorial on Windows.
 
 Open a terminal window and navigate to the location you would like to install Cobalt.
 Cobalt doesn't care which directory it gets installed into.
@@ -96,7 +96,7 @@ them which you can do using this command::
 
     $ pre-commit install
 
-.. hint::
+.. important::
     On a Mac you need to install one more file into your virtual environment. You will need to
     know what version of Python you are running and whether you are on an Intel or M1 machine.
 

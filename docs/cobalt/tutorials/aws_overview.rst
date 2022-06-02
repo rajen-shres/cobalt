@@ -1,16 +1,16 @@
 :orphan:
 
-.. image:: ../images/cobalt.jpg
+.. image:: ../../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: ../images/aws.png
+.. image:: ../../images/aws.png
  :width: 300
  :alt: Amazon Web Services
 
-############
-AWS Overview
-############
+################
+Deploying on AWS
+################
 
 Amazon Web Services (AWS) is not required to use Cobalt, but the ABF version runs on AWS and
 this document describes some of the parts of that.

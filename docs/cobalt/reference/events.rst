@@ -8,8 +8,8 @@
  :width: 300
  :alt: Events
 
-Events Overview
-=================
+Events Application
+==================
 
 Events handles anything related to creating, managing and entering a bridge
 event.

@@ -8,8 +8,8 @@
  :width: 300
  :alt: Utilities
 
-Utilities Overview
-==================
+Utilities Application
+=====================
 
 Generic User Search
 -------------------

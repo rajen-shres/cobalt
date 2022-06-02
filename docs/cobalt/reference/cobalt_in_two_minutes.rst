@@ -33,7 +33,7 @@ Things You May Find Unusual
 - No Celery. Too complicated for this project. We use cron instead.
 - No Docker. We don't need it. We deploy on a standardised VM environment and use a virtual environment.
 - No Class Based Views. In our opinion it was a mistake adding these to Django and they should be avoided. `This explains it well <https://lukeplant.me.uk/blog/posts/djangos-cbvs-were-a-mistake/>`_.
-- Custom testing framework (*See* :doc:`testing_overview` and :doc:`test_data_overview`).
+- Custom testing framework (*See* :doc:`testing` and :doc:`test_data`).
 
 ******************
 Client Side
@@ -48,8 +48,8 @@ Client Side
 Useful to Know
 ******************
 
-- Deployed on AWS (*See* :doc:`aws_overview`)
-- CGIT scripts (:doc:`utilities_overview`) assist with AWS and GIT integrations (not essential, but highly recommended)
+- Deployed on AWS (*See* :doc:`../tutorials/aws_overview`)
+- CGIT scripts (:doc:`../reference/utilities`) assist with AWS and GIT integrations (not essential, but highly recommended)
 - Limited use of signals or other advanced Django features
 - Some use of decorators
 - All configuration controlled through environment variables

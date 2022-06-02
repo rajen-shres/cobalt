@@ -8,8 +8,8 @@
  :width: 300
  :alt: Support
 
-Support Overview
-================
+Support Application
+===================
 
 Support currently is quite simple. The only more
 difficult part is the Helpdesk module.

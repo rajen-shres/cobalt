@@ -1,10 +1,10 @@
 :orphan:
 
-.. image:: ../images/cobalt.jpg
+.. image:: ../../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: ../images/notifications.jpg
+.. image:: ../../images/notifications.jpg
  :width: 300
  :alt: Notifications
 
@@ -12,8 +12,8 @@
    This documentation needs a refresh. The email part needs
    updated with examples and the rest needs to be tighter.
 
-Notifications Overview
-======================
+Notifications Application
+=========================
 
 Notifications is the communication centre of Cobalt. It is how all other modules
 communicate with members and is also a notice board for events (actions, not

@@ -1,10 +1,10 @@
 :orphan:
 
-.. image:: ../images/cobalt.jpg
+.. image:: ../../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: ../images/testing.jpg
+.. image:: ../../images/testing.jpg
  :width: 300
  :alt: Testing
 
@@ -12,7 +12,7 @@ Testing Overview
 ================
 
 This page describes the testing strategy for Cobalt. Also see the documentation on building core test data -
-:doc:`test_data_overview`.
+:doc:`test_data`.
 
 Basics
 ------
