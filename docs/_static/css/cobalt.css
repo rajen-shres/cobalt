@@ -1,7 +1,6 @@
 .document {
     background-color: white;
 }
-
 .wy-nav-content {
     background-color: white;
 }
@@ -9,34 +8,32 @@
 /* CSS for the 4 boxes on the index page */
 
 div.tutorials {
-    width: 46%;
+  width: 46%;
     height: 400px;
-    padding: 5px;
-    margin: 5px;
+  padding: 5px;
     float: left;
     background: #f6f6f6;
     color: black;
 }
 
 div.howto {
-    padding: 5px;
+      padding: 5px;
     height: 400px;
     margin: 5px 5px 5px 47%;
     background: #f1f1f1;
 }
 
 div.discussions {
-    width: 46%;
+  width: 46%;
     height: 400px;
-    padding: 5px;
-    margin: 5px;
-    float: left;
+  padding: 5px;
+  float: left;
     background: #ededed;
 }
 
 div.reference {
     height: 400px;
-    padding: 5px;
+      padding: 5px;
     margin: 5px 5px 5px 47%;
     background: #e8e8e8;
 }
