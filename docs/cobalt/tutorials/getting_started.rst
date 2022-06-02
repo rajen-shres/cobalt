@@ -96,6 +96,22 @@ them which you can do using this command::
 
     $ pre-commit install
 
+.. hint::
+    On a Mac you need to install one more file into your virtual environment. You will need to
+    know what version of Python you are running and whether you are on an Intel or M1 machine.
+
+    To find the version of Python you can type python -V, you only need the first two numbers,
+    e.g. if you are on Python 3.7.9 you only need to use 3.7.
+
+    On an M1 Mac:
+
+    cp utils/bin/M1/libdds.so ../myenv/lib/python<YOUR VERSION HERE>/site-packages/ddstable/libdds.so
+
+    On an Intel Mac:
+
+    cp utils/bin/Intel/libdds.so ../myenv/lib/python<YOUR VERSION HERE>/site-packages/ddstable/libdds.so
+
+
 Step 2 - Environment Variables
 ==============================
 
@@ -120,7 +136,7 @@ Now you can source this file to add the variables to your environment::
 
     $ . /path/to/my/file/cobalt_env.sh
 
-Step 2 - Configure the Database
+Step 3 - Configure the Database
 ===============================
 
 If you haven't already installed Postgres on your system, you need to do so now.
