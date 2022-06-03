@@ -1,4 +1,4 @@
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)  [![Documentation Status](https://readthedocs.org/projects/cobalt-bridge/badge/?version=latest)](https://cobalt-bridge.readthedocs.io/en/latest/?badge=latest)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)  [![Repo Size](http://docs.myabf.com.au)](https://img.shields.io/github/repo-size/abftech/cobalt)
 [![GPL license](https://img.shields.io/badge/License-GPL-blue.svg)](https://github.com/mguthrieabf/cobalt/blob/master/LICENSE)
 # Cobalt - Work in Progress
 
@@ -9,6 +9,8 @@ organisations. This includes payments, event entry, club membership, discussion 
 Cobalt will be extended to include teaching and online bridge once the core functions have been developed.
 
 Initial development of Cobalt is funded by the [Australian Bridge Federation](http://abf.com.au).
+
+Documentation at [docs.myabf.com.au](http://docs.myabf.com.au).
 
 ## License
 
