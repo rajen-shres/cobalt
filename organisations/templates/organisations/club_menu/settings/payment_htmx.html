@@ -38,7 +38,7 @@
                                 <!-- TABLE OF ACCEPTED PAYMENT METHODS -->
 
                                 <div class="table-responsive col-12">
-                                    <table class="table table-hover table-condensed">
+                                    <table class="table table-condensed">
                                         <thead class="text-primary">
                                             <tr>
                                                 <th class="text-left">Type</th>
@@ -88,19 +88,24 @@
 
                                                 <tr id="id_tr_change_name_{{ payment_method.id }}" class="d-none">
                                                     <td colspan="2">
-                                                        <div class="row">
-                                                            <input
-                                                                class="form-control col-12"
-                                                                id="id_change_name_{{ payment_method.id }}"
-                                                                type="text"
-                                                                maxlength="15"
-                                                                name="new_name"
-                                                                value="{{ payment_method.payment_method }}"
-                                                                hx-post="{% url "organisations:club_menu_tab_settings_payment_edit_name_htmx" %}"
-                                                                hx-target="#id_settings_form"
-                                                                hx-vars="club_id:{{ club.id }},payment_method_id:{{ payment_method.id }}"
-                                                            >
-                                                            <button class="col-4 btn btn-sm btn-warning">Rename</button>
+                                                        <div class="card col-10">
+                                                            <div class="card-header card-header-success">
+                                                                <h4>Edit</h4>
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <input
+                                                                    class="form-control col-12"
+                                                                    id="id_change_name_{{ payment_method.id }}"
+                                                                    type="text"
+                                                                    maxlength="15"
+                                                                    name="new_name"
+                                                                    value="{{ payment_method.payment_method }}"
+                                                                    hx-post="{% url "organisations:club_menu_tab_settings_payment_edit_name_htmx" %}"
+                                                                    hx-target="#id_panel_settings"
+                                                                    hx-vars="club_id:{{ club.id }},payment_method_id:{{ payment_method.id }}"
+                                                                >
+                                                                <button class="col-4 btn btn-sm btn-warning">Rename</button>
+                                                            </div>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -115,7 +120,7 @@
                                 <div class="col-5 text-nowrap">
                                     <form
                                         hx-post="{% url "organisations:club_menu_tab_settings_payment_htmx" %}"
-                                        hx-target="#id_settings_form"
+                                        hx-target="#id_panel_settings"
                                         hx-vars="club_id:{{ club.id }}"
                                     >
                                         {% cobalt_bs4_field form.payment_name %}
@@ -155,7 +160,7 @@
                                                             <button
                                                                 class="btn btn-sm btn-danger"
                                                                 hx-post="{% url "organisations:club_menu_tab_settings_misc_pay_delete_htmx" %}"
-                                                                hx-target="#id_settings_form"
+                                                                hx-target="#id_panel_settings"
                                                                 hx-vars="club_id:{{ club.id }},misc_pay_id:{{ misc_pay_type.id }}"
                                                             >
                                                                 Delete
@@ -171,7 +176,7 @@
 
                                     <form
                                         hx-post="{% url "organisations:club_menu_tab_settings_misc_pay_add_htmx" %}"
-                                        hx-target="#id_settings_form"
+                                        hx-target="#id_panel_settings"
                                         hx-vars="club_id:{{ club.id }}"
                                     >
 

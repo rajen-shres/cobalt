@@ -1,7 +1,7 @@
 {% load cobalt_tags %}
 <form
     hx-post="{% url "organisations:club_menu_tab_settings_welcome_pack_edit_htmx" %}"
-    hx-target="#id_settings_form"
+    hx-target="#id_panel_settings"
     hx-vars="club_id:{{ club.id }}"
 >
 
@@ -23,7 +23,7 @@
     <button name="save" id="id_save_welcome" class="btn btn-sm btn-info">Test (save first)</button>
 
     {% url 'organisations:club_menu_tab_settings_welcome_pack_delete_htmx' as hx_delete %}
-    {% include "utils/htmx_confirm_modal.html" with id="del_welcome" delete_item="the welcome pack" hx_target="#id_settings_form" hx_post=hx_delete hx_vars=hx_vars delete_button="Remove" %}
+    {% include "utils/htmx_confirm_modal.html" with id="del_welcome" delete_item="the welcome email" hx_target="#id_panel_settings" hx_post=hx_delete hx_vars=hx_vars delete_button="Remove" %}
     <button id="id_delete_welcome_pack" type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModaldel_welcome">Delete Welcome Email</button>
 
 </form>

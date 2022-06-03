@@ -1,7 +1,7 @@
 <form
     hx-post="{% url "organisations:club_menu_tab_settings_membership_delete_htmx" %}"
     hx-indicator=".htmx-indicator"
-    hx-target="#id_settings_form"
+    hx-target="#id_panel_settings"
     hx-vars="membership_type_id:{{ membership_type.id }}"
 >
     <div class="card">

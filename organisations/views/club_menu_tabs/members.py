@@ -129,28 +129,40 @@ def report_all_csv(request, club_id):
         ):
             return rbac_forbidden(request, club_role)
 
+    # Get club members
     now = timezone.now()
     club_members = (
         MemberMembershipType.objects.filter(start_date__lte=now)
         .filter(Q(end_date__gte=now) | Q(end_date=None))
         .filter(membership_type__organisation=club)
-    ).values_list("system_number")
+    ).values("system_number", "membership_type__name")
+
+    print(club_members)
+
+    # create dict of system number to membership type
+    membership_type_dict = {}
+    club_members_list = []
+    for club_member in club_members:
+        system_number = club_member["system_number"]
+        membership_type = club_member["membership_type__name"]
+        membership_type_dict[system_number] = membership_type
+        club_members_list.append(system_number)
 
     # Get proper users
-    users = User.objects.filter(system_number__in=club_members)
+    users = User.objects.filter(system_number__in=club_members_list)
 
     # Get un reg users
-    un_regs = UnregisteredUser.objects.filter(system_number__in=club_members)
+    un_regs = UnregisteredUser.objects.filter(system_number__in=club_members_list)
 
     # Get local emails (if set) and turn into a dictionary
-    club_emails = MemberClubEmail.objects.filter(system_number__in=club_members)
+    club_emails = MemberClubEmail.objects.filter(system_number__in=club_members_list)
     club_emails_dict = {
         club_email.system_number: club_email.email for club_email in club_emails
     }
 
     # Get tags and turn into dictionary
     tags = MemberClubTag.objects.filter(
-        system_number__in=club_members, club_tag__organisation=club
+        system_number__in=club_members_list, club_tag__organisation=club
     )
     tags_dict = {}
     for tag in tags:
@@ -168,6 +180,7 @@ def report_all_csv(request, club_id):
             f"{GLOBAL_ORG} Number",
             "First Name",
             "Last Name",
+            "Membership Type",
             "Email",
             "Email Source",
             f"{GLOBAL_TITLE} User Type",
@@ -183,6 +196,7 @@ def report_all_csv(request, club_id):
                 user.system_number,
                 user.first_name,
                 user.last_name,
+                membership_type_dict.get(user.system_number, ""),
                 user.email,
                 "User",
                 "Registered",
@@ -205,6 +219,7 @@ def report_all_csv(request, club_id):
                 un_reg.system_number,
                 un_reg.first_name,
                 un_reg.last_name,
+                membership_type_dict.get(un_reg.system_number, ""),
                 email,
                 email_source,
                 "Unregistered",
