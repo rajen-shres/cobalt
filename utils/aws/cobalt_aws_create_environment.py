@@ -54,7 +54,7 @@ def build_environment(env_name, env_type, varfile, eb_dns_name):
     envs = ""
     with varfile as infile:
         for line in infile:
-            envs += line.strip() + ","
+            envs += f"{line.strip()},"
     envs = envs[:-1]
     if env_type == "standalone":
         envs += ",USE_SQLITE=True"
@@ -155,11 +155,7 @@ def main():
 
     args = parser.parse_args()
 
-    if args.dns_name:
-        dns = args.dns_name
-    else:
-        dns = args.env_name
-
+    dns = args.dns_name or args.env_name
     build_environment(args.env_name, args.env_type, args.varfile, dns)
 
 

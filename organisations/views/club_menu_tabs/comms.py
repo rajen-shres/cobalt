@@ -43,13 +43,14 @@ def email_htmx(request, club, message=None):
         EmailBatchRBAC.objects.prefetch_related(
             "batch_id__snooper_set__post_office_email"
         )
-        .filter(rbac_role=f"notifications.orgcomms.{club.id}.view")
+        .filter(rbac_role=f"notifications.orgcomms.{club.id}.edit")
         .order_by("-pk")
     )
 
     # Augment data
     for batch_id in batch_ids:
         snoopers = Snooper.objects.filter(batch_id=batch_id.batch_id)
+        batch_id.snoopers = snoopers
         batch_id.number_sent = snoopers.count()
         first_snooper = snoopers.first()
         if first_snooper:
@@ -70,7 +71,7 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
 
     # let anyone with comms access to this org view them
     batch_id = create_rbac_batch_id(
-        rbac_role=f"notifications.orgcomms.{club.id}.view",
+        rbac_role=f"notifications.orgcomms.{club.id}.edit",
         user=request.user,
         organisation=club,
     )
@@ -160,6 +161,8 @@ def _send_email_sub(
     if club_template:
         context["img_src"] = club_template.banner.url
         context["footer"] = club_template.footer
+
+    print(context)
 
     send_cobalt_email_with_template(
         to_address=email,

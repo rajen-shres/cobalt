@@ -344,7 +344,7 @@ def _un_reg_edit_htmx_common(
 
     # Get recent emails if allowed
     if rbac_user_has_role(
-        request.user, f"notifications.orgcomms.{club.id}.view"
+        request.user, f"notifications.orgcomms.{club.id}.edit"
     ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
         email_address = _active_email_for_un_reg(un_reg, club)
         if email_address:
@@ -534,7 +534,7 @@ def _send_welcome_pack(club, first_name, email, user, invite_to_join):
 
     # Create batch id to allow any admin for this club to view the email
     batch_id = create_rbac_batch_id(
-        rbac_role=f"notifications.orgcomms.{club.id}.view",
+        rbac_role=f"notifications.orgcomms.{club.id}.edit",
         user=user,
         organisation=club,
     )
@@ -680,7 +680,7 @@ def edit_member_htmx(request, club):
 
     # Get recent emails too
     if rbac_user_has_role(
-        request.user, f"notifications.orgcomms.{club.id}.view"
+        request.user, f"notifications.orgcomms.{club.id}.edit"
     ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
         emails = PostOfficeEmail.objects.filter(to=[member.email]).order_by("-pk")[:20]
     else:

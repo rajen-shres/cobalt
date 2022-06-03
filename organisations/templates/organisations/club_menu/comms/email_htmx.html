@@ -1,3 +1,5 @@
+{# Main Email Tab - has button to send new email and shows paginated list of old ones #}
+
 {% load humanize %}
 {% load cobalt_tags %}
 
@@ -16,6 +18,7 @@
 
         <div class="container-flow">
 
+            <!-- BUTTON TO SEND NEW EMAIL -->
             <div class="text-left">
                 <div>
                     <div class="d-flex align-items-center"
@@ -26,7 +29,6 @@
                         <div
                             style="cursor: pointer;"
                         >
-
                         </div>
                         <button class="btn btn-outline-secondary"><i class="material-icons text-primary" style="font-size: 35px;">email</i> Compose New Email</button>
                     </div>
@@ -48,7 +50,6 @@
                                                 <th class="text-left">Date</th>
                                                 <th class="text-left">Subject</th>
                                                 <th class="text-right">Recipients</th>
-
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -63,8 +64,41 @@
                                                 >
                                                     <td class="text-left">{{ thing.created|cobalt_nice_datetime }}</td>
                                                     <td class="text-left">{{ thing.subject }}</td>
-                                                    <td class="text-right">{{ thing.number_sent|intcomma }}</td>
+                                                    <td class="text-right">
+
+                                                        <!-- BUTTON TO SHOW RECIPIENTS -->
+                                                        <button
+                                                            class="btn btn-sm btn-info btn-block"
+                                                            _="on click toggle .d-none on #hidden_recipients_{{ thing.id }}"
+                                                        >
+                                                            {{ thing.number_sent|intcomma }}
+                                                        </button>
+
+                                                    </td>
                                                 </tr>
+
+                                                <!-- HIDDEN RECIPIENTS LIST -->
+                                                <tr class="d-none" id="hidden_recipients_{{ thing.id }}">
+                                                    <td colspan="3">
+                                                        <div class="card">
+                                                            <div class="card-header card-header-danger">
+                                                                <h4>Recipients</h4>
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <ul>
+                                                                    {% for snooper in thing.snoopers %}
+                                                                        <li class="text-left">
+                                                                            {{ snooper.post_office_email.to.0 }}
+                                                                            (Delivered: {{ snooper.ses_delivered_at|cobalt_nice_datetime_short|default_if_none:"No" }})
+                                                                        </li>
+                                                                    {% endfor %}
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+
+                                                    </td>
+                                                </tr>
+
                                             {% endfor %}
                                         </tbody>
                                     </table>

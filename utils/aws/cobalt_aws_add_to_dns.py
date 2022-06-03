@@ -22,7 +22,7 @@ def add_to_aws_dns(eb_dns_name, eb_environment_name):
             cobalt_zone_id = zone["Id"]
 
     if not cobalt_zone_id:
-        ret = "Hosted Zone not found: %s" % COBALT_ZONE
+        ret = f"Hosted Zone not found: {COBALT_ZONE}"
         return False, ret
 
     # Check DNS
@@ -31,9 +31,11 @@ def add_to_aws_dns(eb_dns_name, eb_environment_name):
     record_sets = response["ResourceRecordSets"]
 
     for record_set in record_sets:
-        if record_set["Type"] == "CNAME":
-            if record_set["Name"] == f"{eb_dns_name}{COBALT_ZONE_DNS}.":
-                already_in_dns = True
+        if (
+            record_set["Type"] == "CNAME"
+            and record_set["Name"] == f"{eb_dns_name}{COBALT_ZONE_DNS}."
+        ):
+            already_in_dns = True
 
     if already_in_dns:
         ret = "\nEntry already present in DNS.\n"
@@ -69,11 +71,11 @@ def add_to_aws_dns(eb_dns_name, eb_environment_name):
 
     if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
         ret = f"Added {eb_dns_name}{COBALT_ZONE_DNS} => {eb_environment_name}"
-        ret += "\nCommand succesful"
+        ret += "\nCommand successful"
         return True, ret
     else:
         ret = "\nAn error occurred.\n%s" % response
-        False, ret
+        return False, ret
 
 
 def main():

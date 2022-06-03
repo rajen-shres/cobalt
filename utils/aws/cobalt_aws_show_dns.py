@@ -19,7 +19,7 @@ for zone in zones:
         cobalt_zone_id = zone["Id"]
 
 if not cobalt_zone_id:
-    print("Zone not found: %s" % COBALT_ZONE)
+    print(f"Zone not found: {COBALT_ZONE}")
     sys.exit(1)
 
 # Get DNS
@@ -30,5 +30,5 @@ for record_set in record_sets:
     if record_set["Type"] == "CNAME":
         resource_records = record_set["ResourceRecords"]
         for resource_record in resource_records:
-            print("%s ==> %s" % (record_set["Name"], resource_record["Value"]))
+            print(f'{record_set["Name"]} ==> {resource_record["Value"]}')
 print("\n")
