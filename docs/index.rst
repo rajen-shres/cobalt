@@ -37,7 +37,7 @@ national level including:
 - Results (*in the future*)
 - Scoring (*in the future*)
 
-Cobalt is build using `Django <https://www.djangoproject.com/>`_.
+Cobalt is built in `Django <https://www.djangoproject.com/>`_.
 
 The source code can be found on `Github <https://github.com/abftech/cobalt>`_.
 
@@ -59,7 +59,6 @@ Content
 
         **How To Guides**
 
-        - :doc:`cobalt/how_to/using_references`
         - :doc:`cobalt/how_to/adding_email`
         - :doc:`cobalt/how_to/adding_sms`
         - :doc:`cobalt/how_to/adding_stripe`
@@ -79,22 +78,26 @@ Content
         - :doc:`cobalt/discussion/django_for_porkchops`
         - :doc:`cobalt/discussion/python_for_porkchops`
         - :doc:`cobalt/discussion/monitoring_overview`
+        - :doc:`cobalt/discussion/testing`
+
 
     .. container:: reference
 
         **Reference**
 
-        * :doc:`cobalt/reference/cobalt_in_two_minutes`
-        * :doc:`cobalt/reference/environment_variables`
-        * :doc:`cobalt/reference/accounts`
-        * :doc:`cobalt/reference/payments`
-        * :doc:`cobalt/reference/events`
-        * :doc:`cobalt/reference/notifications`
-        * :doc:`cobalt/reference/rbac`
-        * :doc:`cobalt/reference/forums`
-        * :doc:`cobalt/reference/utilities`
-        * :doc:`cobalt/reference/support`
-        * :doc:`cobalt/reference/snippets`
+        - :doc:`cobalt/reference/cobalt_in_two_minutes`
+        - :doc:`cobalt/reference/environment_variables`
+        - :doc:`cobalt/reference/accounts`
+        - :doc:`cobalt/reference/payments`
+        - :doc:`cobalt/reference/events`
+        - :doc:`cobalt/reference/notifications`
+        - :doc:`cobalt/reference/rbac`
+        - :doc:`cobalt/reference/forums`
+        - :doc:`cobalt/reference/utilities`
+        - :doc:`cobalt/reference/support`
+        - :doc:`cobalt/reference/test_data`
+        - :doc:`cobalt/reference/api`
+        - :doc:`cobalt/reference/snippets`
 
 
 Appendices

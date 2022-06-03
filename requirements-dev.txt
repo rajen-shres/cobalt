@@ -1,12 +1,13 @@
 pre-commit==2.19.0
-pylint==2.13.9
+pylint==2.14.0
 ipython==8.4.0
 radon
 termcolor
 selenium==4.2.0
-sphinx==5.0.0
-sphinx_rtd_theme
+sphinx==4.5.0
+sphinx-book-theme==0.3.2
+pydata-sphinx-theme==0.8.1
 ipdb
 # pytest-django
 # pytest-html
-coverage==6.4
+coverage==6.4.1

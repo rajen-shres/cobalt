@@ -8,13 +8,14 @@
  :width: 300
  :alt: Test Data
 
-Test Data Overview
+==================
+Test Data
 ==================
 
 Cobalt has scripts to generate test data. This page describes how to use them.
 
 General Approach
-----------------
+================
 
 The script ``utils/management/commands/add_test_data.py`` loads test data from
 the directory ``utils/testdata``. The test data is in CSV format and is safe (but not recommended) to
@@ -27,7 +28,7 @@ Users and Org to be present as well as the RBAC static data. The standard
 configuration scripts take care of this.
 
 CSV Format
-----------
+==========
 
 The files are CSV, so commas cannot be used within text fields or the script
 will fail. If you need to use a comma you can substitute it for a carat(^)
@@ -62,7 +63,7 @@ this model that another file may refer to. See the next section on Foreign Keys
 for more details.
 
 Foreign Keys
-------------
+============
 
 Many of the files require links to entries in other files. If a file has an ``id``
 in the first data column then this can be used by other files to refer to this
@@ -104,14 +105,14 @@ you would put::
 * User - this is the model in application we want to use
 
 Payments
---------
+========
 
 Cobalt takes care of booking both sides of a transaction (user to org and org
 to user for example). Here that does not happen so you will need to book two
 transactions yourself.
 
 model_def
----------
+=========
 
 Use ./manage.py model_def to generate the header for you.
 

@@ -20,7 +20,7 @@ AWS Simple Email Service (SES)
 ******************************
 
 We use SES in order to send emails and to get notifications back about status.
-You can find the main documentation here: :doc:`notifications_overview`. This
+You can find the main documentation here: :doc:`../reference/notifications`. This
 describe the AWS set up.
 
 Introduction

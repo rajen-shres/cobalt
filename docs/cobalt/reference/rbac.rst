@@ -80,6 +80,30 @@ RBAC Model Overview
  :width: 800
  :alt: Cobalt Chemical Symbol
 
+:doc:`../how_to/using_references`
+
+====================
+RBAC Application
+====================
+
+.. note::
+    This page has the documentation on how to use this application
+    (externally provided APIs etc). If you are looking for
+    information on how it works internally, you can find that in :doc:`./rbac_support`.
+
+
+--------------
+Module Purpose
+--------------
+
+Account handles things relating to User accounts such as profiles and settings.
+There are multiple user types to support the need to deal with users who have not
+registered for the system as well as real, registered users.
+
+--------------
+External Usage
+--------------
+
 RBAC Roles
 ==========
 

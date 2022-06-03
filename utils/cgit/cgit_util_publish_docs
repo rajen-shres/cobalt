@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# about: publish docs to docs.myabf.com.au
+
+# Clear django AWS credentials
+unset AWS_ACCESS_KEY_ID
+unset AWS_SECRET_ACCESS_KEY
+
+# build docs
+cd docs
+make html
+cd ..
+
+# copy files
+aws s3 cp docs/_build/html s3://docs.myabf.com.au/ --recursive

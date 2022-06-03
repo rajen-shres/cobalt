@@ -1,5 +1,4 @@
 """ Cobalt Settings.py
-    ------------------
 
 This is the single settings.py for all Cobalt environments.
 
@@ -8,13 +7,8 @@ This provides security for confidential information in the online
 environments (Test, UAT and Production) which is managed by Elastic
 Beanstalk through settings which become environment at run-time.
 
-For development you also need to set environment variables or it
+For development, you also need to set environment variables, or it
 won't work.
-
-readthedocs somehow runs the code as well in order to generate the
-documentation and this requires variables to be defined, so as well as importing
-the variables from the environment, we also have to define them (with dummy
-values) within this file.
 
 """
 
@@ -28,13 +22,8 @@ from firebase_admin import initialize_app
 # function to set values from environment #
 # variables.                              #
 ###########################################
-
-
 def set_value(val_name, default="not-set"):
-    if val_name in os.environ:
-        return os.environ[val_name]
-    else:
-        return default
+    return os.environ[val_name] if val_name in os.environ else default
 
 
 ###########################################

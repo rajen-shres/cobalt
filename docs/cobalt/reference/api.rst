@@ -1,16 +1,37 @@
 :orphan:
 
-.. image:: ../images/cobalt.jpg
+.. image:: ../../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: ../images/api.jpg
+.. image:: ../../images/api.jpg
  :width: 300
  :alt: API
 
-=================
-API Overview
-=================
+:doc:`../how_to/using_references`
+
+====================
+API
+====================
+
+.. note::
+    This page has the documentation on how to use this application
+    (externally provided APIs etc). If you are looking for
+    information on how it works internally, you can find that in :doc:`./api_support`.
+
+
+--------------
+Module Purpose
+--------------
+
+Account handles things relating to User accounts such as profiles and settings.
+There are multiple user types to support the need to deal with users who have not
+registered for the system as well as real, registered users.
+
+--------------
+External Usage
+--------------
+
 
 Cobalt uses `Django Ninja <https://django-ninja.rest-framework.com/>`_ for its Application
 Programming Interface (API). We don't use Django Rest Framework despite it being more popular

@@ -28,6 +28,22 @@ tests.test\_manager module
    :undoc-members:
    :show-inheritance:
 
+tests.urls module
+-----------------
+
+.. automodule:: tests.urls
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.views module
+------------------
+
+.. automodule:: tests.views
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

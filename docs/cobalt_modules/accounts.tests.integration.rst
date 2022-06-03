@@ -12,6 +12,14 @@ accounts.tests.integration.01\_registration module
    :undoc-members:
    :show-inheritance:
 
+accounts.tests.integration.02\_htmx\_search module
+--------------------------------------------------
+
+.. automodule:: accounts.tests.integration.02_htmx_search
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 accounts.tests.integration.common\_functions module
 ---------------------------------------------------
 

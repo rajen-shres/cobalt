@@ -8,9 +8,17 @@
  :width: 300
  :alt: Accounts
 
+:doc:`../how_to/using_references`
+
 ====================
 Accounts Application
 ====================
+
+.. note::
+    This page has the documentation on how to use this application
+    (externally provided APIs etc). If you are looking for
+    information on how it works internally, you can find that in :doc:`./accounts_support`.
+
 
 --------------
 Module Purpose
@@ -48,19 +56,9 @@ ABF_USER
 If you wish to exclude (or include) system accounts, you can get a list of them from
 ``settings.ALL_SYSTEM_ACCOUNTS``.
 
-User Search
-===========
-
-**GOES HERE**
-
-
-------------------
-Internal Operation
-------------------
-*This section describes the internal workings of this application and is intended to help you if you need to support the code.*
-
+-----------
 User Types
-==========
+-----------
 
 We support three kinds of users:
 
@@ -68,8 +66,9 @@ We support three kinds of users:
 * **UnregisteredUsers** - These are second class citizens used mainly by Organisations.
 * **Visitors** - These are not ABF Members and are supported only for completeness for clubs.
 
+-------------
 User Objects
-============
+-------------
 
 Accounts.models.User reflects a User who can login to the system and
 perform bridge functions. Some users are reserved - we have an EVERYONE

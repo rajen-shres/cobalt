@@ -118,7 +118,7 @@ Step 2 - Environment Variables
 Cobalt uses environment variables to specify values that may change between environments
 such as database names and credentials.
 
-For a full list of environment variables you can refer to: :doc:`../environment_variables`.
+For a full list of environment variables you can refer to: :doc:`../reference/environment_variables`.
 
 Create a file called something like cobalt_env.sh and add this to the file::
 
@@ -208,11 +208,11 @@ and as we don't want to maintain two copies of the commands we will use the AWS 
 
 Run::
 
-    $ .platform/hooks/postdeploy/02_django.sh.
+    $ .platform/hooks/postdeploy/02_django.sh
 
 
 Step 6 - Test Data
-------------------
+==================
 
 .. hint::
     This step is optional. You can skip it and login at Step 7 using the username "Mark" and password "F1shcake",
@@ -241,8 +241,8 @@ Congratulations! You now have a working Cobalt system.
 
 However, you will notice that some of the optional features are missing. To add them, you can follow these other guides:
 
-- Adding Email to Cobalt
-- Adding Stripe Payments to Cobalt
-- Adding SMS
-- Adding FCM
-- Adding Google Recaptcha
+- :doc:`../how_to/adding_email`
+- :doc:`../how_to/adding_sms`
+- :doc:`../how_to/adding_stripe`
+- :doc:`../how_to/adding_fcm`
+- :doc:`../how_to/adding_recaptcha`

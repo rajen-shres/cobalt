@@ -1,28 +1,35 @@
 :orphan:
 
-.. image:: ../images/cobalt.jpg
+.. image:: ../../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: ../images/event.jpg
+.. image:: ../../images/event.jpg
  :width: 300
  :alt: Events
 
+:doc:`../how_to/using_references`
+
+====================
 Events Application
-==================
+====================
 
-Events handles anything related to creating, managing and entering a bridge
-event.
+.. note::
+    This page has the documentation on how to use this application
+    (externally provided APIs etc). If you are looking for
+    information on how it works internally, you can find that in :doc:`./events_support`.
 
-Modules
-=======
 
-Payments code lives in standard Django Python files - Models, Views, Forms,
-Templates etc. In addition the more backend functions that do not deal with
-users are stored in core.py. There is also some code included in the Models.py
-for Events. The two main areas to do the bulk of the work
-within Events are views.py and core.py. The description below does not
-differentiate between the location of a function.
+--------------
+Module Purpose
+--------------
+
+Events handles bridge congresses. It allows conveners to set up and manage a congress
+and players to enter.
+
+--------------
+External Usage
+--------------
 
 Relationships
 =============
@@ -50,7 +57,7 @@ Entries are linked to the congress structure as follows:
 Flow
 ====
 
-.. image:: ../images/events.jpg
+.. image:: ../../images/events.jpg
   :alt: Events Diagram
 
 Users view congresses and can choose to enter events. They may checkout after

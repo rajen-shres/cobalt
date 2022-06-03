@@ -508,19 +508,17 @@ def rbac_user_has_role_explain(member, role):
 def allow_to_boolean(test_string):
     """takes a string and returns True if it is "Allow" """
 
-    if test_string == "Allow":
-        return True
-    else:
-        return False
+    return test_string == "Allow"
 
 
 def role_to_parts(role):
     """take a role string and return it in parts
+
     Args:
-        role(str):  string in format e.g. forums.forum.5.view
+        role(str): string in format e.g. forums.forum.5.view
 
     Returns:
-        tuple:  (app, model, model_instance, action)
+        tuple: (app, model, model_instance, action)
     """
 
     parts = role.split(".")
@@ -528,12 +526,8 @@ def role_to_parts(role):
     model = parts[1]
     action = parts[-1]
 
-    if len(parts) == 4:
-        model_instance = parts[2]
-    else:
-        model_instance = None
-
-    return (app, model, model_instance, action)
+    model_instance = parts[2] if len(parts) == 4 else None
+    return app, model, model_instance, action
 
 
 def rbac_user_blocked_for_model(user, app, model, action):

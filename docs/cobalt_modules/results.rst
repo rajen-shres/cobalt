@@ -28,26 +28,10 @@ results.models module
    :undoc-members:
    :show-inheritance:
 
-results.tests module
---------------------
-
-.. automodule:: results.tests
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 results.urls module
 -------------------
 
 .. automodule:: results.urls
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-results.views module
---------------------
-
-.. automodule:: results.views
    :members:
    :undoc-members:
    :show-inheritance:

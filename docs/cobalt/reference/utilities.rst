@@ -1,15 +1,37 @@
 :orphan:
 
-.. image:: ../images/cobalt.jpg
+.. image:: ../../images/cobalt.jpg
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-.. image:: ../images/utilities.jpg
+.. image:: ../../images/utilities.jpg
  :width: 300
  :alt: Utilities
 
+:doc:`../how_to/using_references`
+
+=====================
 Utilities Application
 =====================
+
+.. note::
+    This page has the documentation on how to use this application
+    (externally provided APIs etc). If you are looking for
+    information on how it works internally, you can find that in :doc:`./utilities_support`.
+
+
+--------------
+Module Purpose
+--------------
+
+Account handles things relating to User accounts such as profiles and settings.
+There are multiple user types to support the need to deal with users who have not
+registered for the system as well as real, registered users.
+
+--------------
+External Usage
+--------------
+
 
 Generic User Search
 -------------------
