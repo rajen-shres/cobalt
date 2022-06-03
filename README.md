@@ -1,4 +1,4 @@
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)[![GPL license](https://img.shields.io/badge/License-GPL-blue.svg)](https://github.com/mguthrieabf/cobalt/blob/master/LICENSE)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)[![GPL license](https://img.shields.io/badge/License-GPL-blue.svg)](https://github.com/mguthrieabf/cobalt/blob/master/LICENSE)![GitHub repo size](https://img.shields.io/github/repo-size/abftech/cobalt)
 # Cobalt - Work in Progress
 
 Cobalt is a web-based platform for the administration and running of [the game of bridge](https://en.wikipedia.org/wiki/Contract_bridge). It is expected to be complete in 2023 or 2024.
