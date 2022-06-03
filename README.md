@@ -1,4 +1,4 @@
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)  [![Repo Size](http://docs.myabf.com.au)](https://img.shields.io/github/repo-size/abftech/cobalt)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)  
 [![GPL license](https://img.shields.io/badge/License-GPL-blue.svg)](https://github.com/mguthrieabf/cobalt/blob/master/LICENSE)
 # Cobalt - Work in Progress
 
