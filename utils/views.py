@@ -36,7 +36,7 @@ def user_activity(request):
         User.objects.order_by("-last_activity")
         .exclude(last_activity=None)
         .exclude(id=request.user.id)
-    )
+    )[:100]
 
     five_min_ago = timezone.now() - datetime.timedelta(minutes=5)
     last_5m = User.objects.filter(last_activity__gte=five_min_ago).count()
