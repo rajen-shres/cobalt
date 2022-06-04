@@ -57,6 +57,13 @@ ORGS_RBAC_GROUPS_AND_ROLES = {
         "action": "edit",
         "description": "Directors",
     },
+    # Edit Club details like name
+    "club_edit": {
+        "app": "orgs",
+        "model": "org",
+        "action": "edit",
+        "description": "Edit Club info",
+    },
 }
 
 

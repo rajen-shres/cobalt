@@ -15,17 +15,25 @@
             hx-vars="club_id:{{ club.id }}"
         >All Tags</button>
 
-        <h3>Users with Tag "{{ tag.tag_name }}"</h3>
+        {% if club_has_members %}
 
-        <div id="list_of_users_with_this_tag">
+            <h3>Users with Tag "{{ tag.tag_name }}"</h3>
 
-            {% include "organisations/club_menu/settings/users_with_tag_sub_htmx.html" %}
+            <div id="list_of_users_with_this_tag">
 
-        </div>
+                {% include "organisations/club_menu/settings/users_with_tag_sub_htmx.html" %}
 
-        <button class="btn btn-info" _="on click remove .d-none from #users_without_tab_table_div then hide me">
-            Add Member to Tag
-        </button>
+            </div>
+
+            <button class="btn btn-info" _="on click remove .d-none from #users_without_tab_table_div then hide me">
+                Add Member to Tag
+            </button>
+
+        {% else %}
+
+            <h3>You need to add members to your club before you can use tags</h3>
+
+        {% endif %}
 
         <div id="users_without_tab_table_div" class="table-responsive d-none">
 

@@ -46,6 +46,8 @@ from organisations.views.club_menu_tabs.utils import (
 )
 from organisations.views.general import compare_form_with_mpc
 from payments.models import OrgPaymentMethod
+from rbac.core import rbac_user_has_role
+from rbac.views import rbac_forbidden
 from utils.views import masterpoint_query
 
 
@@ -57,15 +59,25 @@ def basic_htmx(request, club):
 
     # The form handles the RBAC checks
 
+    # Check if this user is state or global admin - then they can change the State or org_id
+    uber_admin = _user_is_uber_admin(club, request.user)
+
     # This is a POST even the first time so look for "save" to see if this really is a form submit
     real_post = "Save" in request.POST
 
     if not real_post:
         org_form = OrgForm(user=request.user, instance=club)
     else:
+
         org_form = OrgForm(request.POST, user=request.user, instance=club)
 
-        if org_form.is_valid():
+        # Check for edit access
+        if not uber_admin and not rbac_user_has_role(
+            request.user, f"orgs.org.{club.id}.edit"
+        ):
+            message = "You do not have access to change this"
+
+        elif org_form.is_valid():
             org = org_form.save(commit=False)
             org.last_updated_by = request.user
             org.last_updated = timezone.localtime()
@@ -82,9 +94,6 @@ def basic_htmx(request, club):
 
     # secretary is a bit fiddly so we pass as a separate thing
     secretary_id, secretary_name = get_secretary_from_org_form(org_form)
-
-    # Check if this user is state or global admin - then they can change the State or org_id
-    uber_admin = _user_is_uber_admin(club, request.user)
 
     return render(
         request,
@@ -153,7 +162,10 @@ def general_htmx(request, club):
     else:
         form = OrgDatesForm(request.POST, instance=club)
 
-        if form.is_valid():
+        if not rbac_user_has_role(request.user, f"orgs.org.{club.id}.edit"):
+            message = "You do not have access to edit this"
+
+        elif form.is_valid():
             org = form.save(commit=False)
             org.last_updated_by = request.user
             org.last_updated = timezone.localtime()
@@ -218,7 +230,9 @@ def club_menu_tab_settings_membership_edit_htmx(request, club):
 
     message = ""
 
-    if form.is_valid():
+    if not rbac_user_has_role(request.user, f"orgs.org.{club.id}.edit"):
+        message = "You do not have access to edit this"
+    elif form.is_valid():
         updated = form.save(commit=False)
         updated.last_modified_by = request.user
         updated.save()
@@ -254,7 +268,7 @@ def club_menu_tab_settings_membership_edit_htmx(request, club):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_members=True)
 def club_menu_tab_settings_membership_add_htmx(request, club):
     """Part of the settings tab for membership types to allow user to add a membership type"""
 
@@ -297,7 +311,7 @@ def club_menu_tab_settings_membership_add_htmx(request, club):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_members=True)
 def club_menu_tab_settings_membership_delete_htmx(request, club):
     """Part of the settings tab for membership types to allow user to delete a membership type"""
 
@@ -443,7 +457,10 @@ def club_menu_tab_settings_venues_htmx(request, club):
     if "add" in request.POST:
         form = VenueForm(request.POST, club=club)
 
-        if form.is_valid():
+        if not rbac_user_has_role(request.user, f"orgs.org.{club.id}.edit"):
+            return HttpResponse("You do not have access to add a venue")
+
+        elif form.is_valid():
             venue = OrgVenue(organisation=club, venue=form.cleaned_data["venue_name"])
             venue.save()
 
@@ -479,6 +496,14 @@ def club_menu_tab_settings_delete_venue_htmx(request, club):
     """Delete a venue - well, actually just marks it as inactive"""
 
     venue = get_object_or_404(OrgVenue, pk=request.POST.get("venue_id"))
+
+    # Check for this club matching the venue record
+    if venue.organisation != club:
+        return HttpResponse("Access denied")
+
+    # Check for access
+    if not rbac_user_has_role(request.user, f"orgs.org.{club.id}.edit"):
+        return HttpResponse("You do not have access to delete a venue")
 
     ClubLog(
         organisation=club, actor=request.user, action=f"Deleted venue: {venue.venue}"
@@ -645,7 +670,11 @@ def tags_htmx(request, club):
     return render(
         request,
         "organisations/club_menu/settings/tags_htmx.html",
-        {"club": club, "tags": tags, "form": form},
+        {
+            "club": club,
+            "tags": tags,
+            "form": form,
+        },
     )
 
 
@@ -942,6 +971,9 @@ def users_with_tag_htmx(request, club, partial=False):
     # We need the list of members without the tag for the add function
     all_members = get_members_for_club(club)
 
+    # Check if this club has members to avoid showing edit options that won't work
+    club_has_members = bool(all_members)
+
     # build list of tagged users
     users_with_tag_list = [
         user_with_tag.system_number for user_with_tag in users_with_tag
@@ -972,6 +1004,7 @@ def users_with_tag_htmx(request, club, partial=False):
             "tag": tag,
             "club": club,
             "hx_post": hx_post,
+            "club_has_members": club_has_members,
         },
     )
 

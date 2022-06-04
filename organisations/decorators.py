@@ -18,7 +18,11 @@ def _check_extra_role(request, function, club, extra_role, *args, **kwargs):
 
 
 def check_club_menu_access(
-    check_members=False, check_comms=False, check_sessions=False, check_payments=False
+    check_members=False,
+    check_comms=False,
+    check_sessions=False,
+    check_payments=False,
+    check_org_edit=False,
 ):
     """checks if user should have access to a club menu
 
@@ -37,6 +41,7 @@ def check_club_menu_access(
         check_comms: Will also check for the role notifications.orgcomms.{club.id}.edit
         check_sessions: Will also check for the role club_sessions.sessions.{club.id}.edit
         check_payments: Will also check for the role payments.manage.{club.id}.edit
+        check_org_edit: Will also check for the role orgs.org.{club.id}.edit
 
     We add a parameter (club) to the actual call which is fine for calls from
     URLs but if we call this internally it will need to be called without the
@@ -105,6 +110,13 @@ def check_club_menu_access(
                 # Check for optional sessions parameter
                 if check_payments:
                     extra_role = f"payments.manage.{club.id}.edit"
+                    return _check_extra_role(
+                        request, function, club, extra_role, *args, **kwargs
+                    )
+
+                # Check for optional sessions parameter
+                if check_org_edit:
+                    extra_role = f"orgs.org.{club.id}.edit"
                     return _check_extra_role(
                         request, function, club, extra_role, *args, **kwargs
                     )
