@@ -50,7 +50,6 @@ def email_htmx(request, club, message=None):
     # Augment data
     for batch_id in batch_ids:
         snoopers = Snooper.objects.filter(batch_id=batch_id.batch_id)
-        batch_id.snoopers = snoopers
         batch_id.number_sent = snoopers.count()
         first_snooper = snoopers.first()
         if first_snooper:
@@ -161,8 +160,6 @@ def _send_email_sub(
     if club_template:
         context["img_src"] = club_template.banner.url
         context["footer"] = club_template.footer
-
-    print(context)
 
     send_cobalt_email_with_template(
         to_address=email,
@@ -653,4 +650,40 @@ def club_menu_tab_comms_emails_from_tags_htmx(request, club):
         request,
         "organisations/club_menu/comms/emails_from_tags_htmx.html",
         {"members": members},
+    )
+
+
+@check_club_menu_access(check_comms=True)
+def email_recipients_list_htmx(request, club):
+    """show the recipients for a batch of emails. Don't worry about security, not important."""
+
+    batch_id_id = request.POST.get("batch_id_id")
+
+    snoopers = Snooper.objects.select_related("post_office_email").filter(
+        batch_id=batch_id_id
+    )
+
+    # Get email addresses that received this
+    email_list = [snooper.post_office_email.to[0] for snooper in snoopers]
+
+    # Get users for those email addresses
+    users = User.objects.filter(email__in=email_list)
+    # un_regs = UnregisteredUser.objects.filter(email__in=email_list)
+
+    # Create dict of email_address to user name
+    email_dict = {}
+    for user in users:
+        if user.email not in email_dict:
+            email_dict[user.email] = []
+        email_dict[user.email].append(user.full_name)
+
+    # augment snoopers
+    for snooper in snoopers:
+        if snooper.post_office_email.to[0] in email_dict:
+            snooper.user = email_dict[snooper.post_office_email.to[0]]
+
+    return render(
+        request,
+        "organisations/club_menu/comms/email_recipients_list_htmx.html",
+        {"batch_id_id": batch_id_id, "snoopers": snoopers},
     )

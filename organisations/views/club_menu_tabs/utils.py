@@ -229,9 +229,9 @@ def get_club_members_from_system_number_list(system_numbers, club):
     for player in combined_set:
         if player.system_number in membership_type_dict:
             player.membership = membership_type_dict[player.system_number]
-        else:
-            # Interloper - this person isn't a member!
-            combined_set.remove(player)
+        # else:
+        #     # Interloper - this person isn't a member!
+        #     combined_set.remove(player)
 
     combined_list = list(combined_set)
 

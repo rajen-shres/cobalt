@@ -66,10 +66,17 @@
                                                     <td class="text-left">{{ thing.subject }}</td>
                                                     <td class="text-right">
 
+                                                        <button class="btn btn-sm btn-success">View</button>
+
                                                         <!-- BUTTON TO SHOW RECIPIENTS -->
                                                         <button
-                                                            class="btn btn-sm btn-info btn-block"
-                                                            _="on click toggle .d-none on #hidden_recipients_{{ thing.id }}"
+                                                            class="btn btn-sm btn-info"
+                                                            style="width: 80px;"
+                                                            _="on click
+                                                            js
+                                                            htmx.trigger('#hidden_recipients_{{ thing.id }}', 'doit');
+                                                            end
+                                                            "
                                                         >
                                                             {{ thing.number_sent|intcomma }}
                                                         </button>
@@ -78,25 +85,14 @@
                                                 </tr>
 
                                                 <!-- HIDDEN RECIPIENTS LIST -->
-                                                <tr class="d-none" id="hidden_recipients_{{ thing.id }}">
-                                                    <td colspan="3">
-                                                        <div class="card">
-                                                            <div class="card-header card-header-danger">
-                                                                <h4>Recipients</h4>
-                                                            </div>
-                                                            <div class="card-body">
-                                                                <ul>
-                                                                    {% for snooper in thing.snoopers %}
-                                                                        <li class="text-left">
-                                                                            {{ snooper.post_office_email.to.0 }}
-                                                                            (Delivered: {{ snooper.ses_delivered_at|cobalt_nice_datetime_short|default_if_none:"No" }})
-                                                                        </li>
-                                                                    {% endfor %}
-                                                                </ul>
-                                                            </div>
-                                                        </div>
+                                                <tr
+                                                    id="hidden_recipients_{{ thing.id }}"
+                                                    hx-post="{% url "organisations:club_menu_tab_comms_email_recipients_list_htmx" %}"
+                                                    hx-vars="club_id:{{ club.id }},batch_id_id:{{ thing.id }}"
+                                                    hx-target="this"
+                                                    hx-trigger="doit"
+                                                >
 
-                                                    </td>
                                                 </tr>
 
                                             {% endfor %}
@@ -141,7 +137,6 @@
                                                     hx-post="{% url "organisations:club_menu_tab_comms_email_htmx" %}?page={{ things.next_page_number }}"
                                                     hx-vars="club_id:{{ club.id }},page:{{ things.next_page_number }}"
                                                     hx-target="#id_panel_comms"
-
                                                 >
                                                     <i class="fa fa-angle-right" aria-hidden="true"></i>
                                                 </a>

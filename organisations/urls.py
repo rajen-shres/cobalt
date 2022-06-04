@@ -545,4 +545,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.comms.club_menu_tab_comms_emails_from_tags_htmx,
         name="club_menu_tab_comms_emails_from_tags_htmx",
     ),
+    path(
+        "club-menu/comms/email-recipients-list",
+        organisations.views.club_menu_tabs.comms.email_recipients_list_htmx,
+        name="club_menu_tab_comms_email_recipients_list_htmx",
+    ),
 ]

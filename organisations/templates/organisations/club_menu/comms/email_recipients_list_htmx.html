@@ -1,0 +1,46 @@
+{# Table row to insert into the email list to show recipients for this email #}
+
+{% load cobalt_tags %}
+
+
+<td colspan="3">
+    <div class="card col-md-10">
+        <div class="card-header card-header-danger">
+            <div
+                class="float-right"
+                _="on click put '' into #hidden_recipients_{{ batch_id_id }}"
+            >X</div>
+
+            <h4>Recipients</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-condensed table-hover">
+                <thead class="text-rose">
+                    <tr>
+                        <th class="text-left">Who</th>
+                        <th>Delivered</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for snooper in snoopers %}
+                        <td class="text-left">
+                            {# We may get a list of names or an email address #}
+                            {% if snooper.user %}
+                                {#  Actual User #}
+                                {% for this_user in snooper.user %}
+                                    {{ this_user }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                {# Un reg user #}
+                                {{ snooper.post_office_email.to.0 }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ snooper.ses_delivered_at|cobalt_nice_datetime_short|default_if_none:"No" }}
+                        </td>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</td>

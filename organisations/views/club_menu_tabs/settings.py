@@ -650,8 +650,9 @@ def tags_htmx(request, club):
 
 
 @check_club_menu_access(check_comms=True)
-def templates_htmx(request, club, edit_template=None):
-    """build the comms template tab in club menu. The edit forms pass in a value for edit_template so we can re-open it"""
+def templates_htmx(request, club, edit_template=None, message=None):
+    """build the comms template tab in club menu. The edit forms pass in a value for edit_template so
+    we can re-open it"""
 
     templates = OrgEmailTemplate.objects.filter(organisation=club)
 
@@ -665,8 +666,33 @@ def templates_htmx(request, club, edit_template=None):
     return render(
         request,
         "organisations/club_menu/settings/templates_htmx.html",
-        {"club": club, "templates": templates, "template": edit_template},
+        {
+            "club": club,
+            "templates": templates,
+            "template": edit_template,
+            "message": message,
+        },
     )
+
+
+def _next_template_name(club):
+    """get the next default template name - "New Template" or "New Template(2)" etc"""
+
+    last_default_template = (
+        OrgEmailTemplate.objects.filter(template_name__startswith="New Template")
+        .order_by("template_name")
+        .last()
+    )
+
+    if not last_default_template:
+        return "New Template"
+
+    if last_default_template.template_name == "New Template":
+        return "New Template(1)"
+
+    number_and_last_bracket = last_default_template.template_name[13:]
+    number = int(number_and_last_bracket[:-1])
+    return f"New Template({number + 1})"
 
 
 @check_club_menu_access(check_comms=True)
@@ -680,9 +706,10 @@ def edit_template_htmx(request, club):
         template = get_object_or_404(OrgEmailTemplate, pk=template_id)
         message = "Editing template"
     else:
+        template_name = _next_template_name(club)
         template = OrgEmailTemplate(
             organisation=club,
-            template_name="New Template",
+            template_name=template_name,
             last_modified_by=request.user,
             from_name=f"{club}",
         )
@@ -731,6 +758,12 @@ def edit_template_name_htmx(request, club):
         return HttpResponse("Access Denied")
 
     name = request.POST.get("template_name")
+
+    if OrgEmailTemplate.objects.filter(template_name=name).exists():
+        return templates_htmx(
+            request, edit_template=template, message="Template name in use"
+        )
+
     template.template_name = name
     template.save()
 
