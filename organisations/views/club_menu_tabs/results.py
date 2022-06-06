@@ -1,3 +1,6 @@
+import logging
+import xml
+
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
@@ -7,8 +10,10 @@ from organisations.views.club_menu import tab_results_htmx
 from results.models import ResultsFile
 from results.views.usebio import (
     parse_usebio_file,
-    create_player_records_from_usebio_format,
+    create_player_records_from_usebio_format_pairs,
 )
+
+logger = logging.getLogger("cobalt")
 
 
 @check_club_menu_access(check_sessions=True)
@@ -20,15 +25,26 @@ def upload_results_file_htmx(request, club):
     form = ResultsFileForm(request.POST, request.FILES)
     if form.is_valid():
         results_file = form.save(commit=False)
+
+        # Add data
         results_file.organisation = club
         results_file.uploaded_by = request.user
         results_file.save()
-        usebio = parse_usebio_file(results_file)
+
+        # Try to parse the file
+        try:
+            usebio = parse_usebio_file(results_file)
+
+        except xml.parsers.expat.ExpatError:
+            results_file.delete()
+            logger.error(f"Invalid file format - user: {request.user}")
+            return tab_results_htmx(request, message="Invalid file format")
+
         results_file.description = usebio.get("EVENT").get("EVENT_DESCRIPTION")
         results_file.save()
 
         # Create the player records so people know the results are there
-        create_player_records_from_usebio_format(results_file, usebio)
+        create_player_records_from_usebio_format_pairs(results_file, usebio)
 
     return tab_results_htmx(request, message="New results successfully uploaded")
 

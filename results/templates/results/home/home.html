@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %} - Results{% endblock %}
+{% block content %}
+
+    <div class="card">
+        <div class="card-header card-header-warning">
+
+            <h1>
+                <div class="d-flex justify-content-between">
+                    <div>
+                        Results
+                    </div>
+                    <div>
+                        <i class="material-icons" style="font-size:50px">content_paste</i>
+                    </div>
+                </h1>
+
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li>Latest results</li>
+                    <li>Split by type</li>
+                    <li>Team Mates Results</li>
+                    <li>Club Results</li>
+                </ul>
+
+                <div class="card md-9">
+                    <div class="card-header card-header-info">
+                        <h3>Recent Results</h3>
+                    </div>
+                    <div
+                        id="recent_results"
+                    >
+                        {% include "results/home/recent_results_table_htmx.html" %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+{% endblock content %}

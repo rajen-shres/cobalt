@@ -130,8 +130,6 @@ def contact_logged_out(request):
         )
         result_json = resp.json()
 
-        print(result_json)
-
         is_human = bool(result_json.get("success"))
 
         if is_human:

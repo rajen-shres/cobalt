@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
@@ -23,6 +24,13 @@ from rbac.core import rbac_user_has_role
 from rbac.models import RBACUserGroup, RBACGroupRole
 from rbac.views import rbac_forbidden
 from utils.views import masterpoint_query
+
+
+@login_required()
+def home(request):
+    """Home page for the organisations' app - called from the sidebar"""
+
+    return render(request, "organisations/general/home.html")
 
 
 def org_balance(org, text=None):
@@ -87,7 +95,6 @@ def get_club_data_from_masterpoints_centre(club_number):
     club_data = {}
 
     if club_details:
-
         club_data = {
             "name": club_details["ClubName"],
             "club_secretary": club_details["ClubSecName"].strip(),

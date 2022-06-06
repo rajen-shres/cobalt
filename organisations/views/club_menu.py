@@ -253,5 +253,6 @@ def tab_results_htmx(request, club, message=None):
             "hx_post": hx_post,
             "hx_delete": hx_delete,
             "hx_vars": hx_vars,
+            "message": message,
         },
     )

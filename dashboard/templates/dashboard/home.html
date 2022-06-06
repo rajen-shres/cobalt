@@ -14,6 +14,8 @@
     <div class="container">
         <div class="row" id="dashboard-top-info">
 
+            <!-- PAYMENTS BOX -->
+
             <div class="col-lg-4 col-md-6 col-sm-6">
                 <div class="card card-stats">
                     <a href=' {% url "payments:payments" %}' id="dashboard-bridge-credits">
@@ -38,6 +40,7 @@
                 </div>
             </div>
 
+            <!-- EVENTS BOX -->
 
             <div class="col-lg-4 col-md-6 col-sm-6">
                 <div class="card card-stats">
@@ -59,6 +62,7 @@
                 </div>
             </div>
 
+            <!-- MASTERPOINTS BOX -->
 
             <div class="col-lg-4 col-md-6 col-sm-6">
                 <div class="card card-stats">
@@ -82,6 +86,8 @@
             </div>
         </div>
 
+        <!-- RECENT RESULTS -->
+
         <div class="row">
             <div class="col-lg-6 col-md-12">
                 <div class="card" id="dashboard-results">
@@ -90,23 +96,50 @@
                     </div>
                     <div class="card-body table-responsive">
                         {% if recent_results %}
-                            <ul>
-                                {% for recent_result in recent_results %}
-                                    <li><a class="card-link" href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=recent_result.results_file.id %}">
-                                        {{ recent_result.result_string }}
-                                        {% if recent_result.percentage %}
-                                            ({{ recent_result.percentage }}%)
-                                        {% endif %}
-                                    </a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
+                            <table class="table table-condensed table-hover">
+                                <thead>
+                                    <tr class="text-warning" style="font-size: larger">
+                                        <td class="text-left">Date</td>
+                                        <td class="text-left">Partner/Team</td>
+                                        <td class="text-left">Event</td>
+                                        <td class="text-left">Result</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for recent_result in recent_results %}
+                                        <tr>
+                                            <td class="text-left">
+                                                <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=recent_result.results_file.id %}">
+                                                    {{ recent_result.result_date|cobalt_date_dashboard }}
+                                                </a>
+                                            </td>
+                                            <td class="text-left">
+                                                <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=recent_result.results_file.id %}">
+                                                    {{ recent_result.partner_or_team_name.split.0 }}
+                                                </a>
+                                            </td>
+                                            <td class="text-left">
+                                                <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=recent_result.results_file.id %}">
+                                                    {{ recent_result.event_name }}
+                                                </a>
+                                            </td>
+                                            <td class="text-left">
+                                                <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=recent_result.results_file.id %}">
+                                                    {{ recent_result.position|ordinal }}
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         {% else %}
                             No results found
                         {% endif %}
                     </div>
                 </div>
             </div>
+
+            <!-- UPCOMING EVENTS -->
 
             <div class="col-lg-6 col-md-12">
                 <div class="card" id="dashboard-upcoming">
@@ -115,38 +148,80 @@
                     </div>
 
                     <div class="card-body table-responsive">
+
                         {% if unpaid == True %}
                             You have unpaid entries <a class="btn btn-sm btn-danger" href='{% url "events:view_events" %}'>Pay Now</a><br>
                         {% endif %}
-                        {% for event in events %}
-                            {{ event.event_entry.event.start_date }}:
-                            <a class="card-link" href="{% url "events:view_congress" congress_id=event.event_entry.event.congress.id %}">
-                                {{ event.event_entry.event.congress }}</a> -
-                            <a href="{% url "events:edit_event_entry" congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
-                                {{ event.event_entry.event.event_name }}</a>
-                            {% if event.in_cart %}
-                                (in cart)
-                            {% endif %}
-                            {% if event.in_other_cart %}
-                                (in {{ event.in_other_cart.full_name }}'s cart)
-                            {% endif %}
-                            {% if event.payment_status == "Pending Manual" and event.payment_type == "bank-transfer" %}
-                                (transfer pending)
-                            {% endif %}
-                            {% if event.payment_status == "Pending Manual" and event.payment_type == "cheque" %}
-                                (cheque pending)
-                            {% endif %}
 
-                            <br>
-                        {% empty %}
+                        {% if events %}
+
+                            <table class="table table-condensed table-hover">
+                                <thead>
+                                    <tr class="text-primary" style="font-size: larger">
+                                        <td class="text-left">Date</td>
+                                        <td class="text-left">Congress</td>
+                                        <td class="text-left">Event</td>
+                                        <td></td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                    {% for event in events %}
+
+                                        <tr>
+
+                                            <td class="text-left">
+                                                {{ event.event_entry.event.start_date }}
+                                            </td>
+
+                                            <td class="text-left">
+                                                <a class="card-link" href="{% url "events:view_congress" congress_id=event.event_entry.event.congress.id %}">
+                                                    {{ event.event_entry.event.congress }}</a>
+                                            </td>
+
+                                            <td class="text-left">
+                                                <a href="{% url "events:edit_event_entry" congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
+                                                    {{ event.event_entry.event.event_name }}</a>
+
+                                                {% if event.in_cart %}
+                                                    (in cart)
+                                                {% endif %}
+                                                {% if event.in_other_cart %}
+                                                    (in {{ event.in_other_cart.full_name }}'s cart)
+                                                {% endif %}
+                                                {% if event.payment_status == "Pending Manual" and event.payment_type == "bank-transfer" %}
+                                                    (transfer pending)
+                                                {% endif %}
+                                                {% if event.payment_status == "Pending Manual" and event.payment_type == "cheque" %}
+                                                    (cheque pending)
+                                                {% endif %}
+                                            </td>
+
+                                            <td>
+                                                <a href="{% url "events:edit_event_entry" congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
+                                                    <i class="material-icons" data-toggle="tooltip" title="Edit Entry">edit</i>
+                                                </a>
+                                            </td>
+
+                                        </tr>
+
+                                    {% endfor %}
+
+                                </tbody>
+                            </table>
+
+                        {% else %}
+
                             <span class="card-link">Nothing booked</span>
-                        {% endfor %}
+
+                        {% endif %}
+
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Forum posts -->
+        <!-- FORUM POSTS -->
 
         <div class="row">
 
@@ -279,9 +354,6 @@
 
     </div>
 
-
-
-
     <script src="{% static "assets/js/waypoints/jquery.waypoints.min.js" %}"></script>
     <script src="{% static "assets/js/waypoints/shortcuts/infinite.min.js" %}"></script>
     <script src="{% static "assets/js/countUp.2.0.7/countUp.umd.js" %}"></script>
@@ -293,6 +365,9 @@
 
     <script>
         $(document).ready(function() {
+
+            //  Activate the tooltips
+            $('[data-toggle="tooltip"]').tooltip()
 
             // Infinite Scroll
             var infinite = new Waypoint.Infinite({

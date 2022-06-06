@@ -46,11 +46,14 @@ def cobalt_nice_date(value):
 
 @register.filter(name="cobalt_nice_date_short", expects_localtime=True)
 def cobalt_nice_date_short(value):
-    """custom filter for date to format as full date and time"""
-    if not value:
-        return None
+    """custom filter for date to format as full date"""
+    return DateFormat(value).format("j-M-y") if value else None
 
-    return DateFormat(value).format("j-M-y")
+
+@register.filter(name="cobalt_date_dashboard", expects_localtime=True)
+def cobalt_date_dashboard(value):
+    """custom filter for date to format as full date - used by dashboard to match event date format"""
+    return DateFormat(value).format("j M Y") if value else None
 
 
 @register.filter(name="cobalt_nice_datetime", expects_localtime=True)

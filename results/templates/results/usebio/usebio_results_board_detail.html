@@ -5,7 +5,7 @@
 {% block content %}
 
     <div class="card">
-        {% include "results/usebio_results_header.html" %}
+        {% include "results/usebio/usebio_results_header.html" %}
         <div class="card-body">
             <div class="card">
                 <div class="card-header card-header-warning">
@@ -94,24 +94,24 @@
                             <tr>
                                 <td>&nbsp;</td>
                                 <td>
-                                    {% include "results/usebio_results_board_detail_hand.html" with cards=hand.North direction="North" %}
+                                    {% include "results/usebio/usebio_results_board_detail_hand.html" with cards=hand.North direction="North" %}
                                 </td>
                                 <td>&nbsp;</td>
                             </tr>
                             <tr>
                                 <td>
-                                    {% include "results/usebio_results_board_detail_hand.html" with cards=hand.West direction="West" %}
+                                    {% include "results/usebio/usebio_results_board_detail_hand.html" with cards=hand.West direction="West" %}
 
                                 </td>
                                 <td class="text-center d-flex align-items-center justify-content-center font-weight-bold" style="font-size:large; width: 140px; height: 140px; background-color: darkgreen; display:inline-block; color: white">Dealer {{ dealer }}<br>{{ vulnerability}}</td>
                                 <td>
-                                    {% include "results/usebio_results_board_detail_hand.html" with cards=hand.East direction="East" %}
+                                    {% include "results/usebio/usebio_results_board_detail_hand.html" with cards=hand.East direction="East" %}
                                 </td>
                             </tr>
                             <tr>
                                 <td>&nbsp;</td>
                                 <td>
-                                    {% include "results/usebio_results_board_detail_hand.html" with cards=hand.South direction="South" %}
+                                    {% include "results/usebio/usebio_results_board_detail_hand.html" with cards=hand.South direction="South" %}
 
                                 </td>
                                 <td>&nbsp;</td>
@@ -321,7 +321,3 @@
     </div>
 
 {% endblock %}
-
-{% block footer %}
-    {% include "utils/include_htmx.html" %}
-{% endblock footer %}

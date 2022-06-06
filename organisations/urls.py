@@ -19,6 +19,7 @@ from .views import general
 app_name = "organisations"  # pylint: disable=invalid-name
 
 urlpatterns = [
+    path("", general.home, name="home"),
     path("org-search-ajax", ajax.org_search_ajax, name="org_search_ajax"),
     path("org-detail-ajax", ajax.org_detail_ajax, name="org_detail_ajax"),
     path(

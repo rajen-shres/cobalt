@@ -178,7 +178,7 @@ def usebio_mp_pairs_results_summary_view_two_field(
 
     return render(
         request,
-        "results/usebio_results_summary_two_field_view.html",
+        "results/usebio/usebio_results_summary_two_field_view.html",
         {
             "results_file": results_file,
             "usebio": usebio,
@@ -243,7 +243,7 @@ def usebio_mp_pairs_results_summary_view_single_field(
 
     return render(
         request,
-        "results/usebio_results_summary_single_field_view.html",
+        "results/usebio/usebio_results_summary_single_field_view.html",
         {
             "results_file": results_file,
             "usebio": usebio,
@@ -314,7 +314,7 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
 
     return render(
         request,
-        "results/usebio_results_pairs_detail.html",
+        "results/usebio/usebio_results_pairs_detail.html",
         {
             "usebio": usebio,
             "results_file": results_file,
@@ -392,7 +392,7 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
 
     return render(
         request,
-        "results/usebio_results_board_detail.html",
+        "results/usebio/usebio_results_board_detail.html",
         {
             "usebio": usebio.get("EVENT"),
             "results_file": results_file,

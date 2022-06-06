@@ -26,23 +26,40 @@ class FCMAPITests:
         )
 
         # Create a token
-        self.fcm_token_betty = FCMDevice(user=self.manager.betty, registration_id="I-AM-BETTY")
+        self.fcm_token_betty = FCMDevice(
+            user=self.manager.betty, registration_id="I-AM-BETTY"
+        )
         self.fcm_token_betty.save()
 
     def a1_get_unread_messages(self):
         url = f"{self.manager.base_url}/api/cobalt/mobile-client-get-unread-messages/{API_VERSION}"
 
         # Create some messages
-        RealtimeNotification(member=self.manager.betty, admin=self.manager.alan, msg="First Message for Betty").save()
-        RealtimeNotification(member=self.manager.betty, admin=self.manager.alan, msg="Second Message for Betty").save()
-        RealtimeNotification(member=self.manager.betty, admin=self.manager.alan, msg="Third Message for Betty").save()
+        RealtimeNotification(
+            member=self.manager.betty,
+            admin=self.manager.alan,
+            msg="First Message for Betty",
+        ).save()
+        RealtimeNotification(
+            member=self.manager.betty,
+            admin=self.manager.alan,
+            msg="Second Message for Betty",
+        ).save()
+        RealtimeNotification(
+            member=self.manager.betty,
+            admin=self.manager.alan,
+            msg="Third Message for Betty",
+        ).save()
 
         # Get messages
         data = {"fcm_token": self.fcm_token_betty.registration_id}
 
         response = requests.post(url, json=data)
 
-        if response.status_code == 200 and len(response.json()['un_read_messages']) == 3:
+        if (
+            response.status_code == 200
+            and len(response.json()["un_read_messages"]) == 3
+        ):
             ok = True
             output = f"status code={response.status_code}. Expected 200. Expected 3 messages. Found 3 messages."
         else:
@@ -61,7 +78,6 @@ class FCMAPITests:
 
         if response.status_code == 404:
             ok = True
-            print(response.json()['status'])
             output = f"status code={response.status_code}. Expected 404. Expected 0 messages. Found 0 messages."
         else:
             ok = False
@@ -82,7 +98,10 @@ class FCMAPITests:
 
         response = requests.post(url, json=data)
 
-        if response.status_code == 200 and len(response.json()['un_read_messages']) == 3:
+        if (
+            response.status_code == 200
+            and len(response.json()["un_read_messages"]) == 3
+        ):
             ok = True
             output = f"status code={response.status_code}. Expected 200. Expected 3 messages. Found 3 messages."
         else:
@@ -99,10 +118,17 @@ class FCMAPITests:
     def a3_delete_specific_message(self):
         url = f"{self.manager.base_url}/api/cobalt/mobile-client-delete-message/{API_VERSION}"
 
-        my_msg = RealtimeNotification(member=self.manager.betty, admin=self.manager.alan, msg="Deletable for Betty")
+        my_msg = RealtimeNotification(
+            member=self.manager.betty,
+            admin=self.manager.alan,
+            msg="Deletable for Betty",
+        )
         my_msg.save()
-        not_my_msg = RealtimeNotification(member=self.manager.alan, admin=self.manager.alan,
-                                          msg="Not Deletable for Betty")
+        not_my_msg = RealtimeNotification(
+            member=self.manager.alan,
+            admin=self.manager.alan,
+            msg="Not Deletable for Betty",
+        )
         not_my_msg.save()
 
         # Delete message for Betty as Betty
@@ -177,7 +203,9 @@ class FCMAPITests:
 
         response = requests.post(url, json=data)
 
-        still_there = RealtimeNotification.objects.filter(member=self.manager.betty).exists()
+        still_there = RealtimeNotification.objects.filter(
+            member=self.manager.betty
+        ).exists()
 
         if response.status_code == 200 and not still_there:
             ok = True

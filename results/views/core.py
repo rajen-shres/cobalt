@@ -1,15 +1,8 @@
 from types import SimpleNamespace
 
 from ddstable import ddstable
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
 
-from results.models import PlayerSummaryResult
-
-
-@login_required
-def home(request):
-    return render(request, "results/home.html")
+from results.models import PlayerSummaryResult, ResultsFile
 
 
 def higher_than_other_suit(suit, other_suit):
@@ -93,7 +86,7 @@ def get_recent_results(user):
 
     return PlayerSummaryResult.objects.filter(
         player_system_number=user.system_number,
-        results_file__status="PE",
+        results_file__status=ResultsFile.ResultsStatus.PUBLISHED,
     ).order_by("result_date")[:5]
 
 

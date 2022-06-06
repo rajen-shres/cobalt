@@ -327,16 +327,10 @@ def rbac_user_has_role_exact_explain(member, role):
 
     for m in matches:
         if m.role == role:
-            print(m.rule_type)
-            print(m)
-            print(m.group)
-            return (m.rule_type, m, m.group)
+            return m.rule_type, m, m.group
 
         if m.role == all_role:
-            print(m.rule_type)
-            print(m)
-            print(m.group)
-            return (m.rule_type, m, m.group)
+            return m.rule_type, m, m.group
 
     # no match
     return (None, None, None)
