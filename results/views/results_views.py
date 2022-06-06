@@ -409,6 +409,8 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
             "losing_trick_count": losing_trick_count,
             "next_board": next_board,
             "previous_board": previous_board,
+            "total_boards": total_boards,
+            "total_boards_range": range(1, total_boards + 1),
         },
     )
 
@@ -475,6 +477,8 @@ def get_traveller_info(usebio, board_number, player_dict, ns_flag, pair_id, requ
                     "tricks": tricks,
                     "score": score,
                     "percentage": percentage,
+                    "ns_pair_number": ns_pair_number,
+                    "ew_pair_number": ew_pair_number,
                     "ns_pair": ns_pair,
                     "ew_pair": ew_pair,
                     "tr_highlight": tr_highlight,

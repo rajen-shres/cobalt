@@ -2,7 +2,13 @@
 {% load cobalt_tags %}
 {% block title %} - Results{% endblock %}
 {% block content %}
-
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "results:results" %}">Results</a></li>
+            <li class="breadcrumb-item"><a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=results_file.id %}">{{ usebio.EVENT_DESCRIPTION }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ pair_name }}</li>
+        </ol>
+    </nav>
     <div class="card">
         {% include "results/usebio/usebio_results_header.html" %}
         <div class="card-body">
