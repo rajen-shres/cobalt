@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 {% load cobalt_tags %}
 {% block title %} - Results{% endblock %}
 {% block content %}
@@ -15,7 +16,7 @@
             <div class="card">
                 <div class="card-header card-header-warning">
                     <h2>{{ pair_name }}</h2>
-                    <h3>Pair {{ pair_id }}</h3>
+                    <h3>Pair {{ pair_id }} ({{ position|ordinal }} with {{ pair_percentage|floatformat:2 }}%)</h3>
                 </div>
                 <div class="card-body table-responsive">
                     <table class="table table-condensed table-hover" style="font-size: large">
@@ -34,7 +35,7 @@
                         </thead>
                         <tbody>
                             {% for row in pair_data %}
-                                <tr>
+                                <tr style="background-color: red">
 
                                     <td onclick="window.location='{% url "results:usebio_mp_pairs_board_view" results_file_id=results_file.id board_number=row.board_number pair_id=pair_id %}'";>{{ row.board_number }}</td>
                                     <td

@@ -260,6 +260,18 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
     results_file = get_object_or_404(ResultsFile, pk=results_file_id)
     usebio = parse_usebio_file(results_file)["EVENT"]
 
+    # Get position and percentage from usebio
+    position = ""
+    pair_percentage = ""
+
+    for item in usebio["PARTICIPANTS"]["PAIR"]:
+        pair = item["PAIR_NUMBER"]
+        print(pair, pair_id)
+        if pair == pair_id:
+            position = int(item["PLACE"])
+            pair_percentage = item["PERCENTAGE"]
+            break
+
     # First get all the players names and details
     player_dict = _get_player_names_by_id(usebio)
 
@@ -294,6 +306,8 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
 
                 indicator = _set_indicator_based_on_percentage(percentage)
 
+                # change background colour so boards played against same opponents are grouped
+
                 row = {
                     "board_number": board_number,
                     "contract": contract,
@@ -321,6 +335,8 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
             "pair_data": pair_data,
             "pair_id": pair_id,
             "pair_name": player_dict["names"][pair_id],
+            "position": position,
+            "pair_percentage": pair_percentage,
         },
     )
 
