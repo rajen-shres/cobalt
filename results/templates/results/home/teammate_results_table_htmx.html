@@ -1,5 +1,5 @@
 {% load humanize %}
-{# produce the table for the recent results home tab. Your Results #}
+{# produce the table for the recent results home tab. #}
 
 {% load cobalt_tags %}
 
@@ -14,7 +14,7 @@
             <thead>
                 <tr>
                     <th class="text-left">Date</th>
-                    <th class="text-left">Partner/Team</th>
+                    <th class="text-left">Team Mate</th>
                     <th class="text-left">Event</th>
                     <th class="text-left">Club</th>
                     <th class="text-left">Place</th>
@@ -26,7 +26,7 @@
 
                     <tr>
                         <td class="text-left">{{ result.result_date|cobalt_nice_date }}</td>
-                        <td class="text-left">{{ result.partner_or_team_name }}</td>
+                        <td class="text-left">{{ result.teammate.full_name }}</td>
                         <td class="text-left">
                             <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=result.results_file.id %}">
                                 {{ result.event_name }}
@@ -46,7 +46,7 @@
             </tbody>
         </table>
 
-        {% include 'utils/pagination_footer_htmx.html' with target="#your_recent_results" %}
+        {% include 'utils/pagination_footer_htmx.html' with target="#team_mate_results" %}
 
     {% endif %}
 </div>

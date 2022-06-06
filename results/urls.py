@@ -12,7 +12,17 @@ urlpatterns = [
     path(
         "home/recent-results-paginator",
         results.views.home.recent_results_paginator_htmx,
-        name="recent_results_paginator",
+        name="recent_results_paginator_htmx",
+    ),
+    path(
+        "home/teammate-results-paginator",
+        results.views.home.teammates_results_paginator_htmx,
+        name="teammates_results_paginator_htmx",
+    ),
+    path(
+        "home/club-results-paginator",
+        results.views.home.club_results_paginator_htmx,
+        name="club_results_paginator_htmx",
     ),
     path(
         "mp-pairs-results-summary/<int:results_file_id>",
