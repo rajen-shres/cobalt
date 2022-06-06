@@ -11,6 +11,7 @@ import organisations.views.club_menu_tabs.members
 import organisations.views.club_menu_tabs.results
 import organisations.views.club_menu_tabs.settings
 import organisations.views.club_menu_tabs.utils
+import organisations.views.home
 from .views import club_menu, ajax
 
 from .views import admin
@@ -19,7 +20,7 @@ from .views import general
 app_name = "organisations"  # pylint: disable=invalid-name
 
 urlpatterns = [
-    path("", general.home, name="home"),
+    path("general", organisations.views.home.home, name="home"),
     path("org-search-ajax", ajax.org_search_ajax, name="org_search_ajax"),
     path("org-detail-ajax", ajax.org_detail_ajax, name="org_detail_ajax"),
     path(
@@ -212,7 +213,7 @@ urlpatterns = [
         name="club_menu_tab_settings_reload_basic_htmx",
     ),
     path(
-        "club-menu/tabs/settings-general",
+        "club-menu/tabs/settings-home",
         organisations.views.club_menu_tabs.settings.general_htmx,
         name="club_menu_tab_settings_general_htmx",
     ),

@@ -720,7 +720,7 @@ def rbac_user_is_role_admin(member, role):
     if len(parts) == 3:
         role = ".".join(parts[:-1])
 
-        # look for general rule
+        # look for home rule
         for m in matches:
             # compare strings not objects
             role_str = "%s" % role

@@ -55,7 +55,7 @@ def notify_happening(
 ):
     """Called by Cobalt applications to tell notify they have done something.
 
-    Main entry point for general notifications of events within the system.
+    Main entry point for home notifications of events within the system.
     Applications publish an event through this call and Notifications tells
     any member who has registered an interest in this event.
 

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load cobalt_tags %}
 {% block title %} - {{ org }}{% endblock %}
 
 {% block content %}
@@ -9,7 +10,50 @@
                 <h2>{{ org }}</h2>
             </div>
             <div class="card-body">
-                {{ front_page.summary | safe }}
+
+                {% if front_page.summary %}
+
+                    {{ front_page.summary | safe }}
+
+                {% else %}
+
+                    <h4>{{ org }} has not set up a profile in {{ GLOBAL_TITLE }}</h4>
+                    <p>If you are an administrator for this club, you can manage this page through
+                        Club Administration.</p>
+
+
+                    <div class="table-responsive col-md-6">
+                        <table class="table table-bordered">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th colspan="2" class="text-center">Here is What We Know</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="font-weight-bold">Secretary</td>
+                                    <td>{{ org.secretary|cobalt_user_link_short }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">Website</td>
+                                    <td>{{ org.club_website }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">Address</td>
+                                    <td>
+                                        {{ org.address1 }}<br>
+                                        {{ org.address2 }}<br>
+                                        {{ org.suburb }}<br>
+                                        {{ org.state }}<br>
+                                        {{ org.postcode }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                {% endif %}
+
             </div>
         </div>
     </div>

@@ -118,8 +118,8 @@ Environment: {{ COBALT_HOSTNAME }}
                                 </a>
                             </li>
 
-                            <li class="nav-item {% if request.path|slice:":14" == "/organisations" %}active{% endif %} ">
-                                <a class="nav-link" href="/organisations">
+                            <li class="nav-item {% if request.path|slice:":22" == "/organisations/general" %}active{% endif %} ">
+                                <a class="nav-link" href="/organisations/general">
                                     <i class="material-icons">groups</i>
                                     <p>Clubs</p>
                                 </a>
@@ -162,7 +162,7 @@ Environment: {{ COBALT_HOSTNAME }}
                         <hr>
 
                         {% if club_staff %}
-                            <li class="nav-item {% if request.path|slice:":14" == "/organisations" %}active{% endif %} ">
+                            <li class="nav-item {% if request.path|slice:":24" == "/organisations/club-menu" %}active{% endif %} ">
                                 <a class="nav-link" href="{% url "organisations:club_menu" club_id=club_staff %}">
                                     <i class="material-icons">storefront</i>
                                     <p>Club Admin</p>
