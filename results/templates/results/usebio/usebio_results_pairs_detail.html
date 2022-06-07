@@ -19,7 +19,7 @@
                     <h3>Pair {{ pair_id }} ({{ position|ordinal }} with {{ pair_percentage|floatformat:2 }}%)</h3>
                 </div>
                 <div class="card-body table-responsive">
-                    <table class="table table-condensed table-hover" style="font-size: large">
+                    <table class="table table-condensed" style="font-size: large">
                         <thead>
                             <tr class="text-primary">
                                 <th>Board</th>
@@ -35,7 +35,11 @@
                         </thead>
                         <tbody>
                             {% for row in pair_data %}
-                                <tr style="background-color: red">
+                                <tr
+                                    {% if row.bg_colour %}
+                                        style="background-color: #E5E4E2"
+                                    {% endif %}
+                                >
 
                                     <td onclick="window.location='{% url "results:usebio_mp_pairs_board_view" results_file_id=results_file.id board_number=row.board_number pair_id=pair_id %}'";>{{ row.board_number }}</td>
                                     <td
@@ -60,7 +64,7 @@
                                     <td
                                         onclick="window.location='{% url "results:usebio_mp_pairs_board_view" results_file_id=results_file.id board_number=row.board_number pair_id=pair_id %}'";
                                         class="text-right">{{ row.percentage|floatformat:0 }}%</td>
-                                    <td><div class="{{ row.indicator }}"></div></td>
+                                    <td><div>{{ row.indicator|safe }}</div></td>
                                 </tr>
                             {% endfor %}
                         </tbody>

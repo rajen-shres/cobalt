@@ -77,6 +77,24 @@ def _set_indicator_based_on_percentage(percentage):
     return indicator
 
 
+def _set_icon_based_on_percentage(percentage):
+    """set a value for material icons to be used in the template based upon the percentage"""
+
+    indicator = "<i class='material-icons' style='color: black'>cancel</i>"
+    if percentage > 20:
+        indicator = "<i class='material-icons' style='color: black'>cancel</i>"
+    if percentage >= 40:
+        indicator = "<i class='material-icons' style='color: blue'>grade</i>"
+    if percentage >= 60:
+        indicator = "<i class='material-icons' style='color: green'>star_half</i>"
+    if percentage >= 80:
+        indicator = "<i class='material-icons' style='color: blue'>check_circle</i>"
+    if percentage == 100:
+        indicator = "<i class='material-icons' style='color: orange'>star</i>"
+
+    return indicator
+
+
 def _percentage_from_match_points(ns_match_points, ew_match_points, ns_flag):
     """calculate the percentage using the matchpoints. Include the direction as well"""
 
@@ -266,7 +284,6 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
 
     for item in usebio["PARTICIPANTS"]["PAIR"]:
         pair = item["PAIR_NUMBER"]
-        print(pair, pair_id)
         if pair == pair_id:
             position = int(item["PLACE"])
             pair_percentage = item["PERCENTAGE"]
@@ -276,6 +293,8 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
     player_dict = _get_player_names_by_id(usebio)
 
     pair_data = []
+    last_opponent = 0
+    bg_colour = False
 
     for board in usebio["BOARD"]:
         board_number = int(board.get("BOARD_NUMBER"))
@@ -304,9 +323,13 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
                     ns_match_points, ew_match_points, ns_flag
                 )
 
-                indicator = _set_indicator_based_on_percentage(percentage)
+                indicator = _set_icon_based_on_percentage(percentage)
 
                 # change background colour so boards played against same opponents are grouped
+                if opponents_pair_id != last_opponent:
+                    # Has changed
+                    bg_colour = not bg_colour
+                    last_opponent = opponents_pair_id
 
                 row = {
                     "board_number": board_number,
@@ -319,6 +342,7 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
                     "opponents": opponents,
                     "opponents_pair_id": opponents_pair_id,
                     "percentage": percentage,
+                    "bg_colour": bg_colour,
                 }
 
                 pair_data.append(row)
