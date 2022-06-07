@@ -109,7 +109,8 @@
                                         <td class="d-none d-sm-table-cell {{ row.tr_highlight }}">{{ row.tricks|default_if_none:"" }}</td>
                                         <td class="{{ row.tr_highlight }}">{{ row.score|default_if_none:"" }}</td>
                                         <td class="{{ row.tr_highlight }} text-right">{{ row.percentage|floatformat:0 }}%</td>
-                                        <td><div class="{{ row.indicator }}"></div></td>
+                                        {#                                        <td><div class="{{ row.indicator }}"></div></td>#}
+                                        <td><div>{{ row.indicator|safe }}</div></td>
                                     </tr>
                                 {% endif %}
                             {% endfor %}

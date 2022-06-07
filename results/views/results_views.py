@@ -81,10 +81,12 @@ def _set_icon_based_on_percentage(percentage):
     """set a value for material icons to be used in the template based upon the percentage"""
 
     indicator = "<i class='material-icons' style='color: black'>cancel</i>"
+    if percentage >= 1:
+        indicator = "<i class='material-icons' style='color: red'>cancel</i>"
     if percentage > 20:
-        indicator = "<i class='material-icons' style='color: black'>cancel</i>"
+        indicator = "<i class='material-icons' style='color: red'>expand_more</i>"
     if percentage >= 40:
-        indicator = "<i class='material-icons' style='color: blue'>grade</i>"
+        indicator = "<span class='' style='color: blue; font-size: larger;'>=</span>"
     if percentage >= 60:
         indicator = "<i class='material-icons' style='color: green'>star_half</i>"
     if percentage >= 80:
@@ -493,7 +495,8 @@ def get_traveller_info(usebio, board_number, player_dict, ns_flag, pair_id, requ
                         ns_match_points, ew_match_points, ns_flag
                     )
 
-                indicator = _set_indicator_based_on_percentage(percentage)
+                # indicator = _set_indicator_based_on_percentage(percentage)
+                indicator = _set_icon_based_on_percentage(percentage)
 
                 # highlight row of interest
                 if pair_id in [ns_pair_number, ew_pair_number]:
