@@ -123,7 +123,6 @@
 
 {% block footer %}
     <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
-    {% include "utils/include_htmx.html"%}
     {% include "accounts/search/user_search_include_js_htmx.html" %}
     <script>
         function changeMember(search_id, member_id){

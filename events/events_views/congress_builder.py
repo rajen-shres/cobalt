@@ -247,7 +247,7 @@ def create_congress_wizard_1(request, step_list):
 
 
 def create_congress_wizard_2(request, step_list, congress):
-    """wizard step 2 - general"""
+    """wizard step 2 - home"""
 
     # Get the path to this event for the slug (which may or may not exist). Slugs are used so conveners can
     # send links to myabf/huntershill rather than myabf/events/6567

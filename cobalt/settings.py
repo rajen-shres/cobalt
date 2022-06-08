@@ -323,7 +323,7 @@ EMAIL_SUBJECT_PREFIX = "[%s] " % COBALT_HOSTNAME
 
 GLOBAL_ORG = "ABF"
 GLOBAL_TITLE = "My ABF"
-GLOBAL_CONTACT = "support/contact"
+GLOBAL_CONTACT = "/support/contact-logged-in"
 GLOBAL_ABOUT = "https://abf.com.au"
 GLOBAL_COOKIES = "/support/cookies"
 GLOBAL_PRODUCTION = "www.myabf.com.au"

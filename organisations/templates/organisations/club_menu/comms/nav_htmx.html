@@ -10,6 +10,7 @@
 type="button"
 hx-post="{% url "organisations:club_menu_tab_comms_email_htmx" %}"
 hx-target="#id_panel_comms"
+hx-push-url="true"
 >Emails
 </button>
 
@@ -23,6 +24,7 @@ hx-target="#id_panel_comms"
 type="button"
 hx-post="{% url "organisations:club_menu_tab_comms_public_info_htmx" %}"
 hx-target="#id_panel_comms"
+hx-push-url="true"
 >Public Information
 </button>
 

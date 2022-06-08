@@ -1,11 +1,22 @@
 {% extends 'base.html' %}
 {% load cobalt_tags %}
+{% load static %}
 {% block title %} - Results{% endblock %}
 
 {% block content %}
 
+    <div id="ignore_cobalt_save"></div>
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "results:results" %}">Results</a></li>
+            <li class="breadcrumb-item"><a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=results_file.id %}">{{ usebio.EVENT_DESCRIPTION }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Traveller - Board {{ board_number }}</li>
+        </ol>
+    </nav>
+
     <div class="card">
-        {% include "results/usebio_results_header.html" %}
+        {% include "results/usebio/usebio_results_header.html" %}
         <div class="card-body">
             <div class="card">
                 <div class="card-header card-header-warning">
@@ -15,18 +26,44 @@
                                 <a href="{% url "results:usebio_mp_pairs_board_view" board_number=previous_board pair_id=pair_id results_file_id=results_file.id %}" class="btn btn-sm btn-secondary">Previous</a>
                             {% endif %}
                         </div>
+
                         <div>
                             {% if next_board %}
                                 <a href="{% url "results:usebio_mp_pairs_board_view" board_number=next_board pair_id=pair_id results_file_id=results_file.id %}" class="btn btn-sm btn-secondary">Next</a>
                             {% endif %}
                         </div>
                     </div>
-                    <h2>Traveller for Board {{ board_number }}</h2>
+
+                    <div class="d-flex">
+                        <div class="mt-3">
+                            <h2>Traveller for Board {{ board_number }}</h2>
+                        </div>
+                        <div class="ml-auto">
+                            <h5 class="text-dark">
+                                Jump to
+                                <select
+                                    class="selectpicker"
+                                    data-style="btn btn-secondary btn-sm"
+                                    name="board_jump"
+                                    id="board_jump"
+                                >
+                                    {% for i in total_boards_range %}
+                                        <option value="{{ i }}"
+                                            {% if i == board_number %}
+                                                selected
+                                            {% endif %}
+                                        >Board {{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </h5>
+                        </div>
+                    </div>
+
                 </div>
                 <div class="card-body table-responsive">
                     <table class="table table-condensed table-hover" style="font-size: large">
                         <thead>
-                            <tr class="text-primary">
+                            <tr class="text-danger">
                                 <th class="text-left">North-South</th>
                                 <th class="text-left">East-West</th>
                                 <th>
@@ -64,15 +101,16 @@
 
                                 {% else %}
                                     <tr>
-                                        <td class="text-left {{ row.tr_highlight }}">{{ row.ns_pair }}</td>
-                                        <td class="text-left {{ row.tr_highlight }}">{{ row.ew_pair }}</td>
+                                        <td class="text-left {{ row.tr_highlight }}"><a href="{% url "results:usebio_mp_pairs_details_view" pair_id=row.ns_pair_number results_file_id=results_file.id %}">{{ row.ns_pair }}</a></td>
+                                        <td class="text-left {{ row.tr_highlight }}"><a href="{% url "results:usebio_mp_pairs_details_view" pair_id=row.ew_pair_number results_file_id=results_file.id %}">{{ row.ew_pair }}</a></td>
                                         <td class="{{ row.tr_highlight }}">{{ row.contract|cobalt_suit_replace|default_if_none:""|safe }}</td>
                                         <td class="{{ row.tr_highlight }}">{{ row.played_by|default_if_none:"" }}</td>
                                         <td class="d-none d-sm-table-cell {{ row.tr_highlight }}">{{ row.lead|cobalt_suit_replace|default_if_none:""|safe }}</td>
                                         <td class="d-none d-sm-table-cell {{ row.tr_highlight }}">{{ row.tricks|default_if_none:"" }}</td>
                                         <td class="{{ row.tr_highlight }}">{{ row.score|default_if_none:"" }}</td>
                                         <td class="{{ row.tr_highlight }} text-right">{{ row.percentage|floatformat:0 }}%</td>
-                                        <td><div class="{{ row.indicator }}"></div></td>
+                                        {#                                        <td><div class="{{ row.indicator }}"></div></td>#}
+                                        <td><div>{{ row.indicator|safe }}</div></td>
                                     </tr>
                                 {% endif %}
                             {% endfor %}
@@ -94,24 +132,24 @@
                             <tr>
                                 <td>&nbsp;</td>
                                 <td>
-                                    {% include "results/usebio_results_board_detail_hand.html" with cards=hand.North direction="North" %}
+                                    {% include "results/usebio/usebio_results_board_detail_hand.html" with cards=hand.North direction="North" %}
                                 </td>
                                 <td>&nbsp;</td>
                             </tr>
                             <tr>
                                 <td>
-                                    {% include "results/usebio_results_board_detail_hand.html" with cards=hand.West direction="West" %}
+                                    {% include "results/usebio/usebio_results_board_detail_hand.html" with cards=hand.West direction="West" %}
 
                                 </td>
                                 <td class="text-center d-flex align-items-center justify-content-center font-weight-bold" style="font-size:large; width: 140px; height: 140px; background-color: darkgreen; display:inline-block; color: white">Dealer {{ dealer }}<br>{{ vulnerability}}</td>
                                 <td>
-                                    {% include "results/usebio_results_board_detail_hand.html" with cards=hand.East direction="East" %}
+                                    {% include "results/usebio/usebio_results_board_detail_hand.html" with cards=hand.East direction="East" %}
                                 </td>
                             </tr>
                             <tr>
                                 <td>&nbsp;</td>
                                 <td>
-                                    {% include "results/usebio_results_board_detail_hand.html" with cards=hand.South direction="South" %}
+                                    {% include "results/usebio/usebio_results_board_detail_hand.html" with cards=hand.South direction="South" %}
 
                                 </td>
                                 <td>&nbsp;</td>
@@ -260,7 +298,14 @@
                                 </div>
                                 <button
                                     class="btn btn-sm btn-info float-right"
-                                    _="on click toggle .d-none on #total_tricks then toggle .d-none on #normal_table"
+                                    _="on click toggle .d-none on #total_tricks
+                                    then toggle .d-none on #normal_table
+                                    then
+                                    js
+                                    toggle_cookie();
+                                    end
+
+                                    "
                                 >toggle view</button>
 
 
@@ -323,5 +368,40 @@
 {% endblock %}
 
 {% block footer %}
-    {% include "utils/include_htmx.html" %}
+    <script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
+    <script src="{% static "assets/js/js.cookie.min.js" %}"></script>
+    <script>
+
+        // add or remove cookie flag for trick count view
+        function toggle_cookie() {
+            if (Cookies.get('results-show-total-tricks') === 'set') {
+                Cookies.remove('results-show-total-tricks');
+
+            } else {
+
+                Cookies.set('results-show-total-tricks', 'set', {
+                    expires: 100000,
+                    domain: '',
+                    path: '/'
+                });
+
+            }
+        }
+
+        $(document).ready( function () {
+
+            // Handle Jump to Board dropdown changing
+            $('#board_jump').on('change',function() {
+                const board = $(this).val()
+                window.location = "/results/mp-pairs-results-board-details/{{ results_file.id}}/" + board + "/{{ pair_id }}"
+            });
+
+            // Handle preference for number of tricks view using a cookie
+            if (Cookies.get('results-show-total-tricks') === 'set') {
+                $("#total_tricks").toggleClass("d-none");
+                $("#normal_table").toggleClass("d-none");
+            }
+
+        });
+    </script>
 {% endblock footer %}

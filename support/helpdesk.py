@@ -969,8 +969,6 @@ def create_ticket_api(
 
     ticket.save()
 
-    print(ticket)
-
     # IncidentLineItem(
     #     incident=ticket,
     #     description="Ticket raised by the system.",

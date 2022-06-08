@@ -46,11 +46,14 @@ def cobalt_nice_date(value):
 
 @register.filter(name="cobalt_nice_date_short", expects_localtime=True)
 def cobalt_nice_date_short(value):
-    """custom filter for date to format as full date and time"""
-    if not value:
-        return None
+    """custom filter for date to format as full date"""
+    return DateFormat(value).format("j-M-y") if value else None
 
-    return DateFormat(value).format("j-M-y")
+
+@register.filter(name="cobalt_date_dashboard", expects_localtime=True)
+def cobalt_date_dashboard(value):
+    """custom filter for date to format as full date - used by dashboard to match event date format"""
+    return DateFormat(value).format("j M Y") if value else None
 
 
 @register.filter(name="cobalt_nice_datetime", expects_localtime=True)
@@ -186,7 +189,7 @@ def cobalt_bs4_field(field, no_label=False):
     Returns a form-group div with the field rendered inside
     Will include a label if the type of field suits it.
 
-    This is a general tag to be used for any field. It tries
+    This is a home tag to be used for any field. It tries
     to work out how to format the HTML based upon the type of field.
 
     use it per field so you can format the elements individually.

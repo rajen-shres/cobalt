@@ -10,6 +10,7 @@
 type="button"
 hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
 hx-target="#id_panel_members"
+hx-push-url="true"
 >List
 </button>
 
@@ -27,6 +28,7 @@ hx-target="#id_panel_members"
     id="t_member_tab_add"
     hx-post="{% url "organisations:club_menu_tab_members_add_htmx" %}"
     hx-target="#id_panel_members"
+    hx-push-url="true"
     >Add
     </button>
 
@@ -42,5 +44,6 @@ hx-target="#id_panel_members"
 type="button"
 hx-post="{% url "organisations:club_menu_tab_members_reports_htmx" %}"
 hx-target="#id_panel_members"
+hx-push-url="true"
 >Reports
 </button>

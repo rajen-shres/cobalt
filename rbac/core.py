@@ -327,16 +327,10 @@ def rbac_user_has_role_exact_explain(member, role):
 
     for m in matches:
         if m.role == role:
-            print(m.rule_type)
-            print(m)
-            print(m.group)
-            return (m.rule_type, m, m.group)
+            return m.rule_type, m, m.group
 
         if m.role == all_role:
-            print(m.rule_type)
-            print(m)
-            print(m.group)
-            return (m.rule_type, m, m.group)
+            return m.rule_type, m, m.group
 
     # no match
     return (None, None, None)
@@ -726,7 +720,7 @@ def rbac_user_is_role_admin(member, role):
     if len(parts) == 3:
         role = ".".join(parts[:-1])
 
-        # look for general rule
+        # look for home rule
         for m in matches:
             # compare strings not objects
             role_str = "%s" % role

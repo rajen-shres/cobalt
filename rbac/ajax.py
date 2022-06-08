@@ -293,10 +293,8 @@ def rbac_delete_user_from_group_ajax(request):
 
         if rbac_user_is_group_admin(request.user, group):
             rbac_remove_user_from_group(member, group)
-            print("User %s delete from group %s" % (member, group))
             msg = "Success"
         else:
-            print("Access Denied")
             msg = "Access Denied"
 
     else:
@@ -362,12 +360,6 @@ def rbac_delete_role_from_group_ajax(request):
 
         role_ok = rbac_user_is_role_admin(request.user, role.path)
         group_ok = rbac_user_is_group_admin(request.user, role.group)
-
-        print("Deleting Role")
-        print(role.role)
-        print(role.group)
-        print(role_ok)
-        print(group_ok)
 
         if role_ok and group_ok:
 

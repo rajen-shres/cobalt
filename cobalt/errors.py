@@ -24,10 +24,8 @@ def server_error_500(request):
 
 
 def permission_denied_403(request, exception):
-    print("403")
     return render(request, "errors/500.html")
 
 
 def bad_request_400(request, exception):
-    print("400")
     return render(request, "errors/500.html")

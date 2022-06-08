@@ -509,8 +509,6 @@ def forum_list(request):
     else:
         is_admin = False
 
-    print(is_admin)
-
     return render(
         request, "forums/forum_list.html", {"forums": forums_all, "is_admin": is_admin}
     )

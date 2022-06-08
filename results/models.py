@@ -59,6 +59,8 @@ class PlayerSummaryResult(models.Model):
     """ optional what percentage they got """
     result_string = models.CharField(max_length=200, null=True, blank=True)
     """ de-normalised string to show as summary """
+    partner_or_team_name = models.CharField(max_length=100, blank=True, null=True)
+    """ who was their partner or team for this event """
     event_name = models.CharField(max_length=200, null=True, blank=True)
     """ name of event """
     results_file = models.ForeignKey(

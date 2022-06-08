@@ -641,6 +641,10 @@ def get_events(user):
         .order_by("-id")[:50]
     )
 
+    # Only return first 5
+    max_length = 5
+    count = 0
+
     # Only include the ones in the future
     upcoming = {}
     unpaid = False
@@ -649,6 +653,9 @@ def get_events(user):
         # start_date on event is a function, not a field
         start_date = event_entry_player.event_entry.event.start_date()
         if start_date >= datetime.now().date():
+
+            count += 1
+
             # Check if still in cart
             in_cart = (
                 BasketItem.objects.filter(event_entry=event_entry_player.event_entry)
@@ -665,7 +672,8 @@ def get_events(user):
             )
             if in_other_cart:
                 event_entry_player.in_other_cart = in_other_cart.player
-                # we do not want to show other player's cart item as unpaid item, in fact we do not want to show them to the player at all
+                # we do not want to show other player's cart item as unpaid item, in fact
+                # we do not want to show them to the player at all
                 continue
 
             # check if unpaid
@@ -673,9 +681,10 @@ def get_events(user):
                 unpaid = True
             upcoming[event_entry_player] = start_date
 
-    upcoming_sorted = {
-        key: value for key, value in sorted(upcoming.items(), key=lambda item: item[1])
-    }
+            if count == max_length:
+                break
+
+    upcoming_sorted = dict(sorted(upcoming.items(), key=lambda item: item[1]))
 
     return upcoming_sorted, unpaid
 

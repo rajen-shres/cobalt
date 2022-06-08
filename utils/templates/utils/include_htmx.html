@@ -2,7 +2,10 @@
 
 {#Include file for HTMX. Loads HTMX library and adds csrf token #}
 
-<script src="{% static "assets/packages/htmx-1.7.0/htmx.js" %}"></script>
+{#<script src="{% static "assets/packages/htmx-1.7.0/htmx.min.js" %}"></script>#}
+{# Note htmx needs to be loaded in the head to handle being loaded twice https://github.com/bigskysoftware/htmx/issues/854 #}
+{# This is done in base.html. If you update HTMX change both locations #}
+
 <script src="{% static "assets/packages/_hyperscript@0.9.1/_hyperscript_web.min.js" %}"></script>
 <link rel="stylesheet" href="{% static "assets/packages/growl-notification/colored-theme.min.css" %}">
 <script src="{% static "assets/packages/growl-notification/growl-notification.min.js" %}"></script>
@@ -12,8 +15,9 @@
         event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
     });
 
+    // functions to show pop up error messages
+
     htmx.on("htmx:responseError", function(evt) {
-        {# TODO: Consider adding a callback to the server - will already be logged on the server side though #}
         GrowlNotification.notify({
             title: 'The server returned an error',
             description: 'If this problem continues, please notify support.',

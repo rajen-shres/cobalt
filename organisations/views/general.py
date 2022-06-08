@@ -1,13 +1,10 @@
-from pprint import pprint
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import Q
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
-from accounts.models import UnregisteredUser, User
+from accounts.models import User
 from cobalt.settings import GLOBAL_MPSERVER, GLOBAL_TITLE
 from organisations.forms import OrgFormOld
 from organisations.models import (
@@ -20,7 +17,7 @@ from organisations.models import (
 )
 from payments.models import OrganisationTransaction
 from rbac.core import rbac_user_has_role
-from rbac.models import RBACUserGroup, RBACGroupRole
+from rbac.models import RBACGroupRole
 from rbac.views import rbac_forbidden
 from utils.views import masterpoint_query
 
@@ -87,7 +84,6 @@ def get_club_data_from_masterpoints_centre(club_number):
     club_data = {}
 
     if club_details:
-
         club_data = {
             "name": club_details["ClubName"],
             "club_secretary": club_details["ClubSecName"].strip(),

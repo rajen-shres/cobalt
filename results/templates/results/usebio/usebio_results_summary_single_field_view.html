@@ -2,9 +2,16 @@
 {% block title %} - Results{% endblock %}
 {% block content %}
 
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "results:results" %}">Results</a></li>
+            <li class="breadcrumb-item active">{{ usebio.EVENT_DESCRIPTION }}</li>
+        </ol>
+    </nav>
+
     <div class="card">
         <div class="card-header card-header-primary">
-            {% include "results/usebio_results_header.html" %}
+            {% include "results/usebio/usebio_results_header.html" %}
         </div>
         <div class="card-body">
             <div class="card">
@@ -12,7 +19,7 @@
                     <h2>Results</h2>
                 </div>
                 <div class="card-body">
-                    {% include "results/usebio_results_summary_results_view_table.html" with scores=scores %}
+                    {% include "results/usebio/usebio_results_summary_results_view_table.html" with scores=scores %}
                 </div>
             </div>
         </div>

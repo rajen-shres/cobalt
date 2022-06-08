@@ -1,0 +1,67 @@
+{# Main Results PAge shown when user clicks on Results in the side menu #}
+
+{% extends 'base.html' %}
+{% block title %} - Results{% endblock %}
+{% block content %}
+
+    <div class="card">
+        <div class="card-header card-header-warning">
+
+            <h1>
+                <div class="d-flex justify-content-between">
+                    <div>
+                        Results
+                    </div>
+                    <div>
+                        <i class="material-icons" style="font-size:50px">content_paste</i>
+                    </div>
+                </h1>
+
+            </div>
+            <div class="card-body">
+
+                <!-- YOUR RECENT RESULTS -->
+
+                <div class="card col-md-9">
+                    <div class="card-header card-header-info">
+                        <h3>Your Recent Results</h3>
+                    </div>
+                    <div
+                        id="your_recent_results"
+                    >
+                        {% include "results/home/recent_results_table_htmx.html" with things=your_results hx_post=hx_post_dict.yours %}
+                    </div>
+                </div>
+
+                <!-- YOUR TEAM MATES RESULTS -->
+
+                <div class="card col-md-9">
+                    <div class="card-header card-header-primary">
+                        <h3>Your Team Mates Recent Results</h3>
+                        <p>You can add and remove Team Mates from <a class="btn btn-sm" href="{% url "accounts:user_profile" %}">Your Profile</a></p>
+                    </div>
+                    <div
+                        id="team_mate_results"
+                    >
+                        {% include "results/home/teammate_results_table_htmx.html" with things=teammate_results hx_post=hx_post_dict.teammate %}
+                    </div>
+                </div>
+
+                <!-- YOUR CLUB(S) RESULTS -->
+
+                <div class="card col-md-9">
+                    <div class="card-header card-header-success">
+                        <h3>Your Club Recent Results</h3>
+                    </div>
+                    <div
+                        id="club_results"
+                    >
+                        {% include "results/home/club_results_table_htmx.html" with things=club_results hx_post=hx_post_dict.club %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+{% endblock content %}

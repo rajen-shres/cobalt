@@ -118,7 +118,7 @@ class ClubMenuDecoratorTests:
             self.manager,
             self.club,
             self.betty,
-            "Basic RBAC - Betty does have general access",
+            "Basic RBAC - Betty does have home access",
             "basic",
             expected_to_work=True,
         )
@@ -126,7 +126,7 @@ class ClubMenuDecoratorTests:
             self.manager,
             self.club,
             self.colin,
-            "Basic RBAC - Colin doesn't have general access",
+            "Basic RBAC - Colin doesn't have home access",
             "basic",
             expected_to_work=False,
         )
@@ -174,7 +174,7 @@ class ClubMenuDecoratorTests:
             self.manager,
             self.club,
             self.betty,
-            "Advanced RBAC - Betty does have general access",
+            "Advanced RBAC - Betty does have home access",
             "basic",
             expected_to_work=True,
         )
@@ -182,7 +182,7 @@ class ClubMenuDecoratorTests:
             self.manager,
             self.club,
             self.colin,
-            "Advanced RBAC - Colin doesn't have general access",
+            "Advanced RBAC - Colin doesn't have home access",
             "basic",
             expected_to_work=False,
         )

@@ -16,339 +16,365 @@
 Version: {{ COBALT_VERSION }}
 Environment: {{ COBALT_HOSTNAME }}
 
---!>
+-->
 
 <html lang="en">
 
-<head>
-  <meta charset="utf-8" />
-  <link rel="apple-touch-icon" sizes="76x76" href="{% static "assets/img/favicon.png" %}">
-  <link rel="icon" type="image/png" href="{% static "assets/img/favicon.png" %}">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+    <!-- HEAD -->
 
-{% include "newrelic-include.html" %}
+    <head>
+        <meta charset="utf-8" />
+        <link rel="apple-touch-icon" sizes="76x76" href="{% static "assets/img/favicon.png" %}">
+        <link rel="icon" type="image/png" href="{% static "assets/img/favicon.png" %}">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
 
-  <title>
-     {{ GLOBAL_TITLE }}
+        <!-- INCLUDE NEW RELIC FOR MONITORING -->
 
-{# Override this block to set the page title that appears as the name in the browser tab #}
-      {% block title %}
-      {% endblock title %}
-  </title>
+        {% include "newrelic-include.html" %}
 
-{# Standard CSS for all pages #}
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
-  <link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
-  <link href="{% static "assets/css/cobalt.css" %}" rel="stylesheet" />
-  <link href="{% static "assets/css/font-awesome.5.14/css/all.min.css" %}" rel="stylesheet" />
-  <link href="{% static "assets/css/animate.4.0.0/animate.min.css" %}" rel="stylesheet" />
+        <!-- END NEW RELIC -->
 
-{# These can cause problems, for example in forums with Summernote so we allow them to be overridden #}
-  {% block headerjs %}
-    <script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
-    <script src="{% static "assets/js/core/popper.min.js" %}"></script>
-    <script src="{% static "assets/js/plugins/jquery-ui.min.js" %}"></script>
-    <script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
-    <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
-    {% endblock %}
+        <title>
+            {{ GLOBAL_TITLE }}
 
-{# Standard Javascript libraries for all pages #}
-    <script src="{% static "assets/js/cobalt-core.js" %}"></script>
-    <script src="{% static "assets/js/jquery-validation-1.19.2/jquery.validate.min.js" %}"></script>
-    <script src="{% static "assets/js/jquery-validation-1.19.2/additional-methods.min.js" %}"></script>
+            {# Override this block to set the page title that appears as the name in the browser tab #}
+            {% block title %}
+            {% endblock title %}
+        </title>
 
-{# Placeholder for any extra stuff that a page needs in the header #}
-    {% block header %}
-    {% endblock %}
-</head>
+        {# Standard CSS for all pages #}
+        <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
+        <link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
+        <link href="{% static "assets/css/cobalt.css" %}" rel="stylesheet" />
+        <link href="{% static "assets/css/font-awesome.5.14/css/all.min.css" %}" rel="stylesheet" />
+        <link href="{% static "assets/css/animate.4.0.0/animate.min.css" %}" rel="stylesheet" />
 
-<body>
-{# login_as sets this variable to we how if this is a session controlled by an admin - show message if true #}
-    {% if is_impersonated_session %}
-        <div class="card-body bg-danger text-white">
-            <h1 class="text-center">!!!--Admin Override--!!!</h1>
-            <p class="text-center font-italic">This session for {{ request.user }} is being controlled by an administrator</p>
-        </div>
-    {% endif %}
+        {# These can cause problems, for example in forums with Summernote so we allow them to be overridden #}
+        {% block headerjs %}
+            <script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
+            <script src="{% static "assets/js/core/popper.min.js" %}"></script>
+            <script src="{% static "assets/js/plugins/jquery-ui.min.js" %}"></script>
+            <script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
+            <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
+        {% endblock %}
 
-{# Main part of page #}
-    <div class="wrapper">
+        {# Standard Javascript libraries for all pages #}
+        <script src="{% static "assets/js/cobalt-core.js" %}"></script>
+        {# Note htmx needs to be loaded in the head to handle being loaded twice https://github.com/bigskysoftware/htmx/issues/854 #}
+        <script src="{% static "assets/packages/htmx-1.7.0/htmx.min.js" %}"></script>
+        <script src="{% static "assets/js/jquery-validation-1.19.2/jquery.validate.min.js" %}"></script>
+        <script src="{% static "assets/js/jquery-validation-1.19.2/additional-methods.min.js" %}"></script>
 
-{# Sidebar - shows fully on a large screen or as three horizontal bars on a small screen #}
-        <div class="sidebar" data-color="orange" data-background-color="white" data-image="{% static "assets/img/slider.jpg" %}">
+        {# Placeholder for any extra stuff that a page needs in the header #}
+        {% block header %}
+        {% endblock %}
+    </head>
 
-{# logo #}
-            <div class="logo text-center">
-                <a href="/" class="simple-text logo-normal">
-
-                    <img src="{% static "assets/img/abftechlogo.png" %}" style="width:250px">
-                </a>
+    <body>
+        {# login_as sets this variable to we how if this is a session controlled by an admin - show message if true #}
+        {% if is_impersonated_session %}
+            <div class="card-body bg-danger text-white">
+                <h1 class="text-center">!!!--Admin Override--!!!</h1>
+                <p class="text-center font-italic">This session for {{ request.user }} is being controlled by an administrator</p>
             </div>
+        {% endif %}
 
-{# Sidebar elements #}
-            <div class="sidebar-wrapper">
-                <ul class="nav">
-                    <li class="nav-item
-                        {% if request.path|slice:":10" == "/dashboard" %}active{% endif %}
-                        {% if request.path == "/" %}active{% endif %}
-                        ">
-                        <a class="nav-link" href="/dashboard">
-                            <i class="material-icons">dashboard</i>
-                            <p>Dashboard</p>
-                        </a>
-                    </li>
-                    {#                     <li class="nav-item {% if request.path|slice:":8" == "/results" %}active{% endif %} ">#}
-                    {#            <a class="nav-link" href="/results">#}
-                    {#              <i class="material-icons">content_paste</i>#}
-                    {#              <p>Results</p>#}
-                    {#            </a>#}
-                    {#          </li>#}
-                    <li class="nav-item {% if request.path|slice:":13" == "/masterpoints" %}active{% endif %} ">
-                        <a class="nav-link" href="/masterpoints">
-                            <i class="material-icons">call_made</i>
-                            <p>Masterpoints</p>
-                        </a>
-                    </li>
-                    <li class="nav-item {% if request.path|slice:":7" == "/events" %}active{% endif %} ">
-                        <a class="nav-link" href="/events">
-                            <i class="material-icons">book_online</i>
-                            <p>Congresses</p>
-                        </a>
-                    </li>
-                    <!-- <li class="nav-item {% if request.path|slice:":9" == "/calendar" %}active{% endif %} ">
+        {# Main part of page #}
+        <div class="wrapper">
+
+            {# Sidebar - shows fully on a large screen or as three horizontal bars on a small screen #}
+            <div class="sidebar" data-color="orange" data-background-color="white" data-image="{% static "assets/img/slider.jpg" %}">
+
+                {# logo #}
+                <div class="logo text-center">
+                    <a href="/" class="simple-text logo-normal">
+
+                        <img src="{% static "assets/img/abftechlogo.png" %}" style="width:250px">
+                    </a>
+                </div>
+
+                {# Sidebar elements #}
+                <div class="sidebar-wrapper">
+                    <ul class="nav">
+                        <li class="nav-item
+                            {% if request.path|slice:":10" == "/dashboard" %}active{% endif %}
+                            {% if request.path == "/" %}active{% endif %}
+                            ">
+                            <a class="nav-link" href="/dashboard">
+                                <i class="material-icons">dashboard</i>
+                                <p>Dashboard</p>
+                            </a>
+                        </li>
+
+                        {# Temp - only show extra tabs for super users #}
+
+                        {% if COBALT_HOSTNAME != "myabf.com.au" %}
+
+                            <li class="nav-item {% if request.path|slice:":8" == "/results" %}active{% endif %} ">
+                                <a class="nav-link" href="/results">
+                                    <i class="material-icons">content_paste</i>
+                                    <p>Results</p>
+                                </a>
+                            </li>
+
+                            <li class="nav-item {% if request.path|slice:":22" == "/organisations/general" %}active{% endif %} ">
+                                <a class="nav-link" href="/organisations/general">
+                                    <i class="material-icons">groups</i>
+                                    <p>Clubs</p>
+                                </a>
+                            </li>
+
+                        {% endif %}
+
+
+                        <li class="nav-item {% if request.path|slice:":13" == "/masterpoints" %}active{% endif %} ">
+                            <a class="nav-link" href="/masterpoints">
+                                <i class="material-icons">call_made</i>
+                                <p>Masterpoints</p>
+                            </a>
+                        </li>
+                        <li class="nav-item {% if request.path|slice:":7" == "/events" %}active{% endif %} ">
+                            <a class="nav-link" href="/events">
+                                <i class="material-icons">book_online</i>
+                                <p>Congresses</p>
+                            </a>
+                        </li>
+                        <!-- <li class="nav-item {% if request.path|slice:":9" == "/calendar" %}active{% endif %} ">
             <a class="nav-link" href="/calendar">
               <i class="material-icons">date_range</i>
               <p>Calendar</p>
             </a>
           </li> -->
-<li class="nav-item {% if request.path|slice:":7" == "/forums" %}active{% endif %} ">
+                        <li class="nav-item {% if request.path|slice:":7" == "/forums" %}active{% endif %} ">
 
-    <a class="nav-link" href="/forums">
-        <i class="material-icons">chat</i>
-        <p>Forums</p>
-    </a>
-</li>
-<li class="nav-item {% if request.path|slice:":9" == "/payments" %}active{% endif %} ">
-    <a class="nav-link" href="/payments">
-        <i class="material-icons">account_balance</i>
-        <p>Bridge Credits</p>
-    </a>
-</li>
-<hr>
+                            <a class="nav-link" href="/forums">
+                                <i class="material-icons">chat</i>
+                                <p>Forums</p>
+                            </a>
+                        </li>
+                        <li class="nav-item {% if request.path|slice:":9" == "/payments" %}active{% endif %} ">
+                            <a class="nav-link" href="/payments">
+                                <i class="material-icons">account_balance</i>
+                                <p>Bridge Credits</p>
+                            </a>
+                        </li>
+                        <hr>
 
-{% if club_staff %}
-    <li class="nav-item {% if request.path|slice:":14" == "/organisations" %}active{% endif %} ">
-        <a class="nav-link" href="{% url "organisations:club_menu" club_id=club_staff %}">
-            <i class="material-icons">storefront</i>
-            <p>Club Admin</p>
-        </a>
-{% endif %}
+                        {% if club_staff %}
+                            <li class="nav-item {% if request.path|slice:":24" == "/organisations/club-menu" %}active{% endif %} ">
+                                <a class="nav-link" href="{% url "organisations:club_menu" club_id=club_staff %}">
+                                    <i class="material-icons">storefront</i>
+                                    <p>Club Admin</p>
+                                </a>
+                        {% endif %}
 
-{% if show_admin_on_template %}
-    <li class="nav-item">
-        <a class="nav-link" href="{% url "rbac:admin_menu" %}">
-            <i class="material-icons">recent_actors</i>
-            <p>Admin</p>
-        </a>
-    </li>
-{% endif %}
+                        {% if show_admin_on_template %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url "rbac:admin_menu" %}">
+                                    <i class="material-icons">recent_actors</i>
+                                    <p>Admin</p>
+                                </a>
+                            </li>
+                        {% endif %}
 
-<li class="nav-item {% if request.path|slice:":8" == "/support" %}active{% endif %} ">
-    <a class="nav-link" href="/support">
-        <i class="material-icons">support_agent</i>
-        <p>Support</p>
-    </a>
-</li>
-<li class="nav-item">
-    <a class="nav-link" href="{{ GLOBAL_ABOUT }}" target="_blank">
-        <i class="material-icons">home</i>
-        <p>{{ GLOBAL_ORG }} Site</p>
-    </a>
-</li>
-<br>
-<br>
-<br>
-<br>
-<br>
-</ul>
-</div>
-</div>
-
-{#     main panel #}
-
-<div class="main-panel">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-transparent navbar-absolute fixed-top">
-        <div class="container-fluid">
-            <div class="navbar-wrapper" id="base-user-name">
-                <span>
-                    Hi
-                    {% if request.user.first_name %}
-                        {{ request.user.first_name }}
-                    {% else %}
-                        {{ request.user.username }}
-                    {% endif %}
-                </span>
+                        <li class="nav-item {% if request.path|slice:":8" == "/support" %}active{% endif %} ">
+                            <a class="nav-link" href="/support">
+                                <i class="material-icons">support_agent</i>
+                                <p>Support</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ GLOBAL_ABOUT }}" target="_blank">
+                                <i class="material-icons">home</i>
+                                <p>{{ GLOBAL_ORG }} Site</p>
+                            </a>
+                        </li>
+                        <br>
+                        <br>
+                        <br>
+                        <br>
+                        <br>
+                    </ul>
+                </div>
             </div>
 
-            {# fiddly navbar #}
-            <button id='base-navbar' class="navbar-toggler" type="button" data-toggle="collapse" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
-                <span id='sr-only' class="sr-only">Toggle navigation</span>
-                <span class="navbar-toggler-icon icon-bar"></span>
-                <span class="navbar-toggler-icon icon-bar"></span>
-                <span class="navbar-toggler-icon icon-bar"></span>
-            </button>
+            {#     main panel #}
 
-            {# search #}
-            <div class="collapse navbar-collapse justify-content-end">
-                <form class="navbar-form" method="get" action="{% url "support:search" %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="include_people" value="checked">
-                    <input type="hidden" name="include_forums" value="checked">
-                    <input type="hidden" name="include_posts" value="checked">
-                    <input type="hidden" name="include_events" value="checked">
-                    <input type="hidden" name="include_payments" value="checked">
-                    <input type="hidden" name="include_orgs" value="checked">
-                    <div class="input-group no-border">
-                        <input type="text" value="" class="form-control" name="search_string" id="search_string" placeholder="Search...">
-                        <button type="submit" class="btn btn-white btn-round btn-just-icon cobalt-save">
-                            <i class="material-icons">search</i>
-                            <div class="ripple-container"></div>
-                        </button>
-                    </div>
-                </form>
-
-                {# notifications icon with counter#}
-                <ul class="navbar-nav">
-                    {% if notifications %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link" href="javascript:void(0)" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="material-icons">notifications</i>
-                                <span class="notification">{{ notification_count }}</span>
-                                <p class="d-lg-none d-md-block">
-                                    Notification{{ notification_count|pluralize }}
-                                </p>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                                {% for msg in notifications %}
-                                    <a class="dropdown-item" href=" {{ msg.1 }}">{{ msg.0 }}</a>
-                                {% endfor %}
-                            </div>
-                        </li>
-                    {% endif %}
-
-                    {# basket items with counter for things in shopping basket #}
-                    {% if basket_items %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link" href="{% url "events:checkout" %}" id="navbarDropdownMenuLink2"  aria-haspopup="true" aria-expanded="false">
-                                <i class="material-icons">shopping_cart</i>
-
-                                <span class="notification">{{ basket_items }}</span>
-
-                                <p class="d-lg-none d-md-block">
-                                    Cart Item{{ basket_items|pluralize }}
-                                </p>
-                            </a>
-                        </li>
-                    {% endif %}
-
-                    {# Account settings - appears as little head and shoulders on large screen or the word "account" on a small one #}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link" href="javascript:void(0)" id="navbarDropdownProfile" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="material-icons">person</i>
-                            <p class="d-lg-none d-md-block">
-                                Account
-                            </p>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownProfile">
-                            <a class="dropdown-item" href="{% url "accounts:user_profile" %}">Profile</a>
-                            <a class="dropdown-item" href="{% url "accounts:user_settings" %}">Settings</a>
-                            {% if support_tickets %}
-                                <a class="dropdown-item" href="{% url "support:helpdesk_user_list" %}">Support Tickets</a>
-                            {% endif %}
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="/accounts/logout">Log out</a>
+            <div class="main-panel">
+                <!-- Navbar -->
+                <nav class="navbar navbar-expand-lg navbar-transparent navbar-absolute fixed-top">
+                    <div class="container-fluid">
+                        <div class="navbar-wrapper" id="base-user-name">
+                            <span>
+                                Hi
+                                {% if request.user.first_name %}
+                                    {{ request.user.first_name }}
+                                {% else %}
+                                    {{ request.user.username }}
+                                {% endif %}
+                            </span>
                         </div>
-                    </li>
-                </ul>
+
+                        {# fiddly navbar #}
+                        <button id='base-navbar' class="navbar-toggler" type="button" data-toggle="collapse" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
+                            <span id='sr-only' class="sr-only">Toggle navigation</span>
+                            <span class="navbar-toggler-icon icon-bar"></span>
+                            <span class="navbar-toggler-icon icon-bar"></span>
+                            <span class="navbar-toggler-icon icon-bar"></span>
+                        </button>
+
+                        {# search #}
+                        <div class="collapse navbar-collapse justify-content-end">
+                            <form class="navbar-form" method="get" action="{% url "support:search" %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="include_people" value="checked">
+                                <input type="hidden" name="include_forums" value="checked">
+                                <input type="hidden" name="include_posts" value="checked">
+                                <input type="hidden" name="include_events" value="checked">
+                                <input type="hidden" name="include_payments" value="checked">
+                                <input type="hidden" name="include_orgs" value="checked">
+                                <div class="input-group no-border">
+                                    <input type="text" value="" class="form-control" name="search_string" id="search_string" placeholder="Search...">
+                                    <button type="submit" class="btn btn-white btn-round btn-just-icon cobalt-save">
+                                        <i class="material-icons">search</i>
+                                        <div class="ripple-container"></div>
+                                    </button>
+                                </div>
+                            </form>
+
+                            {# notifications icon with counter#}
+                            <ul class="navbar-nav">
+                                {% if notifications %}
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link" href="javascript:void(0)" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="material-icons">notifications</i>
+                                            <span class="notification">{{ notification_count }}</span>
+                                            <p class="d-lg-none d-md-block">
+                                                Notification{{ notification_count|pluralize }}
+                                            </p>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                                            {% for msg in notifications %}
+                                                <a class="dropdown-item" href=" {{ msg.1 }}">{{ msg.0 }}</a>
+                                            {% endfor %}
+                                        </div>
+                                    </li>
+                                {% endif %}
+
+                                {# basket items with counter for things in shopping basket #}
+                                {% if basket_items %}
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link" href="{% url "events:checkout" %}" id="navbarDropdownMenuLink2"  aria-haspopup="true" aria-expanded="false">
+                                            <i class="material-icons">shopping_cart</i>
+
+                                            <span class="notification">{{ basket_items }}</span>
+
+                                            <p class="d-lg-none d-md-block">
+                                                Cart Item{{ basket_items|pluralize }}
+                                            </p>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {# Account settings - appears as little head and shoulders on large screen or the word "account" on a small one #}
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link" href="javascript:void(0)" id="navbarDropdownProfile" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="material-icons">person</i>
+                                        <p class="d-lg-none d-md-block">
+                                            Account
+                                        </p>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownProfile">
+                                        <a class="dropdown-item" href="{% url "accounts:user_profile" %}">Profile</a>
+                                        <a class="dropdown-item" href="{% url "accounts:user_settings" %}">Settings</a>
+                                        {% if support_tickets %}
+                                            <a class="dropdown-item" href="{% url "support:helpdesk_user_list" %}">Support Tickets</a>
+                                        {% endif %}
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="/accounts/logout">Log out</a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+                <!-- End Navbar -->
+                <div class="content" style="margin-top:20px; overflow: hidden;">
+
+                    {# messages is how we give extra feedback to the user. Called from views to add to alerts to the request #}
+                    {% include 'messages.html' %}
+
+                    {# This is where the page content goes#}
+                    {% block content %}
+                    {% endblock %}
+
+                </div>
+                <!-- Show on large screens, not small for the mobile app -->
+                <footer class="footer d-none d-md-block d-lg-block">
+                    <div class="container-fluid">
+                        <nav class="float-left">
+                            <ul>
+                                <li>
+                                    <a href="{% url "support:contact_logged_in" %}">
+                                        Contact Us
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url "support:guidelines" %}">
+                                        Forum Guidelines
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url "support:acceptable_use" %}">
+                                        Acceptable Use
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ GLOBAL_PRIVACY }}">
+                                        Privacy
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url "support:cookies" %}">
+                                        Cookies
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                        <div class="copyright float-right">
+                            {% if request.META.HTTP_HOST == GLOBAL_TEST %}
+                                <small>Cobalt Test System</small>
+                            {% else %}
+                                <small>Cobalt {{ COBALT_VERSION }}</small>
+                            {% endif %}
+                            {{ GLOBAL_ORG }} &copy;
+                            {% now "Y" %}
+                        </div>
+                    </div>
+                </footer>
             </div>
         </div>
-    </nav>
-    <!-- End Navbar -->
-    <div class="content" style="margin-top:20px; overflow: hidden;">
 
-        {# messages is how we give extra feedback to the user. Called from views to add to alerts to the request #}
-        {% include 'messages.html' %}
-
-        {# This is where the page content goes#}
-        {% block content %}
+        {# Additional footer things go here #}
+        {% block footer %}
         {% endblock %}
 
-    </div>
-    <!-- Show on large screens, not small for the mobile app -->
-    <footer class="footer d-none d-md-block d-lg-block">
-        <div class="container-fluid">
-            <nav class="float-left">
-                <ul>
-                    <li>
-                        <a href="{% url "support:contact_logged_in" %}">
-                            Contact Us
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url "support:guidelines" %}">
-                            Forum Guidelines
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url "support:acceptable_use" %}">
-                            Acceptable Use
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ GLOBAL_PRIVACY }}">
-                            Privacy
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url "support:cookies" %}">
-                            Cookies
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            <div class="copyright float-right">
-                {% if request.META.HTTP_HOST == GLOBAL_TEST %}
-                    <small>Cobalt Test System</small>
-                {% else %}
-                    <small>Cobalt {{ COBALT_VERSION }}</small>
-                {% endif %}
-                {{ GLOBAL_ORG }} &copy;
-                {% now "Y" %}
-            </div>
-        </div>
-    </footer>
-</div>
-</div>
+        <!-- Include a polyfill for ES6 Promises (optional) for IE11, UC Browser and Android browser support SweetAlert -->
+        <script src="{% static "assets/js/polyfill.core-js.2.4.1.js" %}">
 
-{# Additional footer things go here #}
-{% block footer %}
-{% endblock %}
+            <script src="{% static "assets/js/plugins/arrive.min.js" %}"></script>
 
-<!-- Include a polyfill for ES6 Promises (optional) for IE11, UC Browser and Android browser support SweetAlert -->
-<script src="{% static "assets/js/polyfill.core-js.2.4.1.js" %}">
+        {# Some people don't like perfect scrollbar. Default is not to use it #}
 
-    <script src="{% static "assets/js/plugins/arrive.min.js" %}"></script>
+        {% if request.user.windows_scrollbar %}
+            <script src="{% static "assets/js/material-dashboard.js" %}?v=2.1.1" type="text/javascript"></script>
+        {% else %}
+            <script src="{% static "assets/js/material-dashboard-noscroll.js" %}?v=2.1.1" type="text/javascript"></script>
+        {% endif %}
 
-{# Some people don't like perfect scrollbar. Default is not to use it #}
+        {% include "utils/include_htmx.html" %}
 
-{% if request.user.windows_scrollbar %}
-    <script src="{% static "assets/js/material-dashboard.js" %}?v=2.1.1" type="text/javascript"></script>
-{% else %}
-    <script src="{% static "assets/js/material-dashboard-noscroll.js" %}?v=2.1.1" type="text/javascript"></script>
-{% endif %}
-
-</body>
+    </body>
 
 </html>

@@ -77,6 +77,26 @@ def _set_indicator_based_on_percentage(percentage):
     return indicator
 
 
+def _set_icon_based_on_percentage(percentage):
+    """set a value for material icons to be used in the template based upon the percentage"""
+
+    indicator = "<i class='material-icons' style='color: black'>cancel</i>"
+    if percentage >= 1:
+        indicator = "<i class='material-icons' style='color: red'>cancel</i>"
+    if percentage > 20:
+        indicator = "<i class='material-icons' style='color: red'>expand_more</i>"
+    if percentage >= 40:
+        indicator = "<span class='' style='color: blue; font-size: larger;'>=</span>"
+    if percentage >= 60:
+        indicator = "<i class='material-icons' style='color: green'>star_half</i>"
+    if percentage >= 80:
+        indicator = "<i class='material-icons' style='color: blue'>check_circle</i>"
+    if percentage == 100:
+        indicator = "<i class='material-icons' style='color: orange'>star</i>"
+
+    return indicator
+
+
 def _percentage_from_match_points(ns_match_points, ew_match_points, ns_flag):
     """calculate the percentage using the matchpoints. Include the direction as well"""
 
@@ -178,7 +198,7 @@ def usebio_mp_pairs_results_summary_view_two_field(
 
     return render(
         request,
-        "results/usebio_results_summary_two_field_view.html",
+        "results/usebio/usebio_results_summary_two_field_view.html",
         {
             "results_file": results_file,
             "usebio": usebio,
@@ -243,7 +263,7 @@ def usebio_mp_pairs_results_summary_view_single_field(
 
     return render(
         request,
-        "results/usebio_results_summary_single_field_view.html",
+        "results/usebio/usebio_results_summary_single_field_view.html",
         {
             "results_file": results_file,
             "usebio": usebio,
@@ -260,10 +280,23 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
     results_file = get_object_or_404(ResultsFile, pk=results_file_id)
     usebio = parse_usebio_file(results_file)["EVENT"]
 
+    # Get position and percentage from usebio
+    position = ""
+    pair_percentage = ""
+
+    for item in usebio["PARTICIPANTS"]["PAIR"]:
+        pair = item["PAIR_NUMBER"]
+        if pair == pair_id:
+            position = int(item["PLACE"])
+            pair_percentage = item["PERCENTAGE"]
+            break
+
     # First get all the players names and details
     player_dict = _get_player_names_by_id(usebio)
 
     pair_data = []
+    last_opponent = 0
+    bg_colour = False
 
     for board in usebio["BOARD"]:
         board_number = int(board.get("BOARD_NUMBER"))
@@ -292,7 +325,13 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
                     ns_match_points, ew_match_points, ns_flag
                 )
 
-                indicator = _set_indicator_based_on_percentage(percentage)
+                indicator = _set_icon_based_on_percentage(percentage)
+
+                # change background colour so boards played against same opponents are grouped
+                if opponents_pair_id != last_opponent:
+                    # Has changed
+                    bg_colour = not bg_colour
+                    last_opponent = opponents_pair_id
 
                 row = {
                     "board_number": board_number,
@@ -305,6 +344,7 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
                     "opponents": opponents,
                     "opponents_pair_id": opponents_pair_id,
                     "percentage": percentage,
+                    "bg_colour": bg_colour,
                 }
 
                 pair_data.append(row)
@@ -314,13 +354,15 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
 
     return render(
         request,
-        "results/usebio_results_pairs_detail.html",
+        "results/usebio/usebio_results_pairs_detail.html",
         {
             "usebio": usebio,
             "results_file": results_file,
             "pair_data": pair_data,
             "pair_id": pair_id,
             "pair_name": player_dict["names"][pair_id],
+            "position": position,
+            "pair_percentage": pair_percentage,
         },
     )
 
@@ -392,7 +434,7 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
 
     return render(
         request,
-        "results/usebio_results_board_detail.html",
+        "results/usebio/usebio_results_board_detail.html",
         {
             "usebio": usebio.get("EVENT"),
             "results_file": results_file,
@@ -409,6 +451,8 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
             "losing_trick_count": losing_trick_count,
             "next_board": next_board,
             "previous_board": previous_board,
+            "total_boards": total_boards,
+            "total_boards_range": range(1, total_boards + 1),
         },
     )
 
@@ -451,7 +495,8 @@ def get_traveller_info(usebio, board_number, player_dict, ns_flag, pair_id, requ
                         ns_match_points, ew_match_points, ns_flag
                     )
 
-                indicator = _set_indicator_based_on_percentage(percentage)
+                # indicator = _set_indicator_based_on_percentage(percentage)
+                indicator = _set_icon_based_on_percentage(percentage)
 
                 # highlight row of interest
                 if pair_id in [ns_pair_number, ew_pair_number]:
@@ -475,6 +520,8 @@ def get_traveller_info(usebio, board_number, player_dict, ns_flag, pair_id, requ
                     "tricks": tricks,
                     "score": score,
                     "percentage": percentage,
+                    "ns_pair_number": ns_pair_number,
+                    "ew_pair_number": ew_pair_number,
                     "ns_pair": ns_pair,
                     "ew_pair": ew_pair,
                     "tr_highlight": tr_highlight,

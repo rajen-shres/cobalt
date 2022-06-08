@@ -13,7 +13,7 @@ var django = {
     jQuery: grp.jQuery
 };
 
-// general jQuery instance
+// home jQuery instance
 var jQuery = grp.jQuery;
 
 var inputTypes = [

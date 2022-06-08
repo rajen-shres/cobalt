@@ -549,7 +549,6 @@ def group_edit(request, group_id):
 
     users = RBACUserGroup.objects.filter(group=group)
     admin_roles = rbac_admin_all_rights(request.user)
-    print(admin_roles)
     roles = RBACGroupRole.objects.filter(group=group)
 
     warning = None
