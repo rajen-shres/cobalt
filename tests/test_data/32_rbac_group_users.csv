@@ -31,16 +31,16 @@ global_mods            , kk                     , , , , , , , ,
 abfp                   , dd                     , , , , , , , , 
 abfp                   , ii                     , , , , , , , , 
 abfpv                  , julian                 , , , , , , , , 
-fbc_congress           , cc                     , , , , , , , , 
-fbc_congress           , ee                     , , , , , , , , 
-fbc_congress           , ff                     , , , , , , , , 
-fbc_congress           , gg                     , , , , , , , , 
-fbc_congress           , mark                   , , , , , , , , 
-rbc_congress           , bb                     , , , , , , , , 
-rbc_congress           , dd                     , , , , , , , , 
-rbc_congress           , hh                     , , , , , , , , 
-rbc_congress           , mark                   , , , , , , , , 
-abfp                   , mark                   , , , , , , , , 
+fbc_generated, mark
+fbc_generated, julian
+fbc_generated, aa
+rbc_generated, mark
+rbc_generated, julian
+rbc_generated, aa
+lmbc_generated, mark
+lmbc_generated, julian
+lmbc_generated, aa
+abfp                   , mark                   , , , , , , , ,
 abfe                   , mark                   , , , , , , , , 
 abfe                   , ff                     , , , , , , , , 
 abfe                   , julian                 , , , , , , , ,

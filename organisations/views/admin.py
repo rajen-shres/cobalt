@@ -418,7 +418,7 @@ def _admin_club_rbac_add_advanced_sub(club):
         )
 
         # Add admin tree
-        rbac_admin_add_tree_to_group(admin_group, club.rbac_name_qualifier + f".{rule}")
+        rbac_admin_add_tree_to_group(admin_group, f"{club.rbac_name_qualifier}.{rule}")
 
 
 @login_required()

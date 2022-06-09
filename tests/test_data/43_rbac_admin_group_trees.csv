@@ -14,5 +14,6 @@
 rbac                        , RBACAdminTree                          , , , , , , , , , 
 id.group.rbac.RBACAdminGroup, tree                                   , , , , , , , , , 
 p_group                     , rbac.orgs.abf.abf_roles                , , , , , , , , , 
-fbc                         , rbac.orgs.clubs.act.fantasy_bridge_club, , , , , , , , , 
-rbc                         , rbac.orgs.clubs.act.rival_bridge_club  , , , , , , , , , 
+fbc_generated                         , admin.clubs.generated.act.10.basic, , , , , , , , ,
+rbc_generated                         , admin.clubs.generated.act.11.basic, , , , , , , , ,
+lmbc_generated                         , admin.clubs.generated.act.13.basic, , , , , , , , ,
