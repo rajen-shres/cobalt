@@ -11,11 +11,11 @@
 #                                                                 # 
 ################################################################### 
 
-rbac    , RBACAdminGroup          ,                    ,                                               , , , , , , , , , 
-id      , name_qualifier          , name_item          , description                                   , , , , , , , , , 
-ad_group, admin.cobalt.global     , system_gods        , Highest level of admin to all functions.      , , , , , , , , , 
-f_group , admin.cobalt.global     , forums             , All forum admin                               , , , , , , , , , 
-p_group , admin.orgs.abf.abf_roles, payments           , Group to manage access to payments for the ABF, , , , , , , , , 
-fbc_generated, admin.clubs.generated.act.10, admin, Admin people for 10 (Fantasy Bridge Club)
-rbc_generated, admin.clubs.generated.act.11, admin, Admin people for 11 (Rival Bridge Club)
-lmbc_generated, admin.clubs.generated.nsw.13, admin, Admin people for 13 (Lake Macquarie Bridge Club)
+rbac          , RBACAdminGroup              ,            ,                                                 , , , , , , , , , , , , , 
+id            , name_qualifier              , name_item  , description                                     , , , , , , , , , , , , , 
+ad_group      , admin.cobalt.global         , system_gods, Highest level of admin to all functions.        , , , , , , , , , , , , , 
+f_group       , admin.cobalt.global         , forums     , All forum admin                                 , , , , , , , , , , , , , 
+p_group       , admin.orgs.abf.abf_roles    , payments   , Group to manage access to payments for the ABF  , , , , , , , , , , , , , 
+fbc_generated , admin.clubs.generated.act.10, admin      , Admin people for 10 (Fantasy Bridge Club)       , , , , 
+rbc_generated , admin.clubs.generated.act.11, admin      , Admin people for 11 (Rival Bridge Club)         , , , , 
+lmbc_generated, admin.clubs.generated.nsw.13, admin      , Admin people for 13 (Lake Macquarie Bridge Club), , , , 

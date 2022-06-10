@@ -1,0 +1,4 @@
+organisations, MemberClubEmail
+id, id.organisation.organisations.Organisation, system_number, email
+dummy, fbc, 620254, julie.private.for.fbc@a.com
+dummy, rbc, 289698, carol.private.for.rbc@a.com

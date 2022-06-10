@@ -1,0 +1,6 @@
+organisations, MemberMembershipType,                                                ,                   , 
+id           , system_number       , id.membership_type.organisations.MembershipType, termination_reason, home_club, start_date, end_date, id.last_modified_by.accounts.User, t.created_at, t.updated_at, , , , 
+dummy        , 105                 , mt1                                            ,                   ,          ,           ,         , mark                             , 5           , 5           , , 
+dummy        , 620254                 , mt1                                            ,                   ,          ,           ,         , mark                             , 5           , 5           , ,
+dummy        , 289698                 , mt1                                            ,                   ,          ,           ,         , mark                             , 5           , 5           , ,
+dummy        , 1099868                 , mt1                                            ,                   ,          ,           ,         , mark                             , 5           , 5           , ,

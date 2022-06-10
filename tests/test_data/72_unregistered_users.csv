@@ -1,0 +1,5 @@
+accounts, UnregisteredUser, 
+id      , system_number   , first_name , last_name, email, origin, id.last_updated_by.accounts.User, t.created_at, t.updated_at, last_registration_invite_sent, last_registration_invite_by_user, last_registration_invite_by_club, id.added_by_club.organisations.Organisation,
+dummy   , 620254          , Julie Unreg, Guthrie  ,      , manual, mark                            , 5           , 5           ,                              ,                                  ,,fbc
+dummy   , 289698          , Carol Unreg, McMurray  ,  carol.unreg.public@a.com    , manual, mark                            , 5           , 5           ,                              ,                                  ,,fbc
+dummy   , 1099868          , Jake Unreg, Andrew  ,  jake.unreg.public@a.com    , manual, mark                            , 5           , 5           ,                              ,                                  ,,rbc
