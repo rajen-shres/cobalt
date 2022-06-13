@@ -14,7 +14,7 @@
                         <tr>
                             <th>Start Date</th>
                             <th>Status</th>
-                            <th>Actions</th>
+                            <th class="text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -22,30 +22,52 @@
                             <tr>
                                 <td>{{ congress.start_date|default_if_none:"Not Set" }}</td>
                                 <td>{{ congress.status }}</td>
-                                <td>
+                                <td class="text-right">
 
                                     <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}"
-                                        class="btn btn-sm btn-success"
                                         target="_blank"
+                                        data-toggle="tooltip"
+                                        title="Edit"
                                     >
-                                        Edit
+                                        <span
+                                            class="material-icons text-info"
+                                        >edit
+                                        </span>
                                     </a>
                                     <a href="{% url "events:admin_summary" congress_id=congress.id %}"
-                                        class="btn btn-sm btn-info"
+
                                         target="_blank"
+                                        data-toggle="tooltip"
+                                        title="Manage"
                                     >
-                                        Manage
+                                        <span
+                                            class="material-icons text-warning"
+                                        >handyman
+                                        </span>
                                     </a>
-                                    <button class="btn btn-warning btn-sm"
+                                    <a
                                         hx-post="{% url "organisations:club_menu_tab_congress_copy_congress_htmx" %}"
                                         hx-vars="club_id:{{ club.id }},congress_id:{{ congress.id }},congress_master_id:{{ congress_master.id }}"
                                         hx-target="#congress-list"
-                                    >Copy
-                                    </button>
+                                        data-toggle="tooltip"
+                                        title="Copy this congress"
+                                    >
+                                        <span
+                                            class="material-icons text-primary"
+                                        >file_copy
+                                        </span>
+                                    </a>
 
                                     <a href="{% url "events:delete_congress" congress_id=congress.id %}"
-                                        class="btn btn-danger btn-sm"
-                                    >Delete</a>
+
+                                        data-toggle="tooltip"
+                                        title="delete"
+                                    >
+                                        <span
+                                            class="material-icons text-danger"
+                                        >delete
+                                        </span>
+                                    </a>
 
                                 </td>
                             </tr>
@@ -73,3 +95,17 @@
     </div>
 </div>
 </div>
+
+<script>
+    $(document).ready( function () {
+
+        // initialise tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+
+        // hide tooltip if clicked, otherwise hangs around like a bad smell
+        $('[data-toggle="tooltip"]').on('click', function () {
+            $(this).tooltip('hide')
+        });
+
+    });
+</script>

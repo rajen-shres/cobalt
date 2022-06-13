@@ -32,23 +32,46 @@
                                                 </a>
                                             </td>
                                             <td>
-                                                <button class="btn btn-sm btn-success"
+                                                <a
                                                     hx-post="{% url "organisations:club_menu_tab_congress_list_htmx" %}"
                                                     hx-vars="club_id:{{ club.id }},congress_master_id:{{ congress_master.id }}"
                                                     hx-target="#congress-list"
-                                                >View</button>
-                                                <button class="btn btn-sm btn-info"
+                                                    title="View Congresses"
+                                                    data-toggle="tooltip"
+                                                >
+                                                    <span class="material-icons text-info">visibility</span>
+                                                </a>
+                                                <a
                                                     hx-post="{% url "organisations:club_menu_tab_congress_rename_series_form_htmx" %}"
                                                     hx-vars="club_id:{{ club.id }},congress_master_id:{{ congress_master.id }}"
                                                     hx-target="#rename-{{ congress_master.id }}"
-                                                >Rename</button>
-                                                <button class="btn btn-sm btn-danger"
-                                                    id="btn-congress-master-delete-{{ congress_master.id }}"
-                                                    {% if congress_master.has_congresses %}disabled{% endif %}
-                                                    hx-post="{% url "organisations:club_menu_tab_congress_delete_congress_master_htmx" %}"
-                                                    hx-vars="club_id:{{ club.id }},congress_master_id:{{ congress_master.id }}"
-                                                    hx-target="#id_panel_congress"
-                                                >Delete</button>
+                                                    title="Rename"
+                                                    data-toggle="tooltip"
+                                                >
+                                                    <span class="material-icons text-primary">edit_note</span>
+                                                </a>
+                                                {% if not congress_master.has_congresses %}
+                                                    <a
+                                                        id="btn-congress-master-delete-{{ congress_master.id }}"
+                                                        hx-post="{% url "organisations:club_menu_tab_congress_delete_congress_master_htmx" %}"
+                                                        hx-vars="club_id:{{ club.id }},congress_master_id:{{ congress_master.id }}"
+                                                        hx-target="#id_panel_congress"
+                                                        title="Delete"
+                                                        data-toggle="tooltip"
+                                                    >
+                                                        <span class="material-icons text-danger">delete</span>
+                                                    </a>
+                                                {% else %}
+                                                    <a href="javascript:void(0)"
+                                                        title="Cannot delete - active congresses"
+                                                        data-toggle="tooltip"
+                                                    >
+                                                        <span
+                                                            class="material-icons text-secondary"
+                                                        >delete
+                                                        </span>
+                                                    </a>
+                                                {% endif %}
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -80,3 +103,18 @@
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready( function () {
+
+        // initialise tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+
+        // hide tooltip if clicked, otherwise hangs around like a bad smell
+        $('[data-toggle="tooltip"]').on('click', function () {
+            $(this).tooltip('hide')
+        });
+
+    });
+</script>
+
