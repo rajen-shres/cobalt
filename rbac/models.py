@@ -38,11 +38,11 @@ class RBACGroup(models.Model):
         unique_together = ["name_qualifier", "name_item"]
 
     def __str__(self):
-        return "%s.%s - %s" % (self.name_qualifier, self.name_item, self.description)
+        return f"{self.name_qualifier}.{self.name_item} - {self.description}"
 
     @property
     def name(self):
-        return "%s.%s" % (self.name_qualifier, self.name_item)
+        return f"{self.name_qualifier}.{self.name_item}"
 
 
 class RBACUserGroup(models.Model):
@@ -55,7 +55,7 @@ class RBACUserGroup(models.Model):
     """ RBAC Group """
 
     def __str__(self):
-        return "%s - %s" % (self.group, self.member)
+        return f"{self.group} - {self.member}"
 
 
 class RBACGroupRole(models.Model):
@@ -80,23 +80,23 @@ class RBACGroupRole(models.Model):
     """ Rules can Allow or Block permissions """
 
     def __str__(self):
-        return "%s - %s - %s" % (self.group, self.role, self.rule_type)
+        return f"{self.group} - {self.role} - {self.rule_type}"
 
     @property
     def role(self):
         "Returns the role in dotted format including the action."
         if self.model_id:
-            return "%s.%s.%s.%s" % (self.app, self.model, self.model_id, self.action)
+            return f"{self.app}.{self.model}.{self.model_id}.{self.action}"
         else:
-            return "%s.%s.%s" % (self.app, self.model, self.action)
+            return f"{self.app}.{self.model}.{self.action}"
 
     @property
     def path(self):
         "Returns the role in dotted format excluding the action."
         if self.model_id:
-            return "%s.%s.%s" % (self.app, self.model, self.model_id)
+            return f"{self.app}.{self.model}.{self.model_id}"
         else:
-            return "%s.%s" % (self.app, self.model)
+            return f"{self.app}.{self.model}"
 
 
 class RBACModelDefault(models.Model):
@@ -116,7 +116,7 @@ class RBACModelDefault(models.Model):
     )
 
     def __str__(self):
-        return "%s.%s %s" % (self.app, self.model, self.default_behaviour)
+        return f"{self.app}.{self.model} {self.default_behaviour}"
 
 
 class RBACAppModelAction(models.Model):
@@ -166,11 +166,11 @@ class RBACAdminGroup(models.Model):
         unique_together = ["name_qualifier", "name_item"]
 
     def __str__(self):
-        return "%s.%s - %s" % (self.name_qualifier, self.name_item, self.description)
+        return f"{self.name_qualifier}.{self.name_item} - {self.description}"
 
     @property
     def name(self):
-        return "%s.%s" % (self.name_qualifier, self.name_item)
+        return f"{self.name_qualifier}.{self.name_item}"
 
 
 class RBACAdminUserGroup(models.Model):
@@ -183,7 +183,7 @@ class RBACAdminUserGroup(models.Model):
     """ RBAC Group """
 
     def __str__(self):
-        return "%s - %s" % (self.group, self.member)
+        return f"{self.group} - {self.member}"
 
 
 class RBACAdminGroupRole(models.Model):
@@ -202,15 +202,15 @@ class RBACAdminGroupRole(models.Model):
     """ Instance of model level hierarchy """
 
     def __str__(self):
-        return "%s - %s" % (self.group, self.role)
+        return f"{self.group} - {self.role}"
 
     @property
     def role(self):
         """Returns the role in dotted format."""
         if self.model_id:
-            return "%s.%s.%s" % (self.app, self.model, self.model_id)
+            return f"{self.app}.{self.model}.{self.model_id}"
         else:
-            return "%s.%s" % (self.app, self.model)
+            return f"{self.app}.{self.model}"
 
 
 class RBACAdminTree(models.Model):

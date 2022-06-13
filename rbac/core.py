@@ -1045,10 +1045,7 @@ def rbac_group_id_from_name(name_qualifier, name_item):
         .first()
     )
 
-    if group:
-        return group.id
-    else:
-        return None
+    return group.id if group else None
 
 
 def rbac_show_admin(request):
@@ -1061,8 +1058,12 @@ def rbac_show_admin(request):
         boolean:   True to show it, False to not show it
     """
 
-    # Probably good enough for now just to show it if the user is in any RBAC group
-    return RBACUserGroup.objects.filter(member=request.user).exists()
+    # Show admin menu if user has any RBAC role that is not generated
+    return (
+        RBACUserGroup.objects.filter(member=request.user)
+        .exclude(group__name_qualifier__icontains="generated")
+        .exists()
+    )
 
 
 def rbac_user_has_any_model(member, app, model):

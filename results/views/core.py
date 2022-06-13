@@ -1,8 +1,15 @@
 from types import SimpleNamespace
 
-from ddstable import ddstable
-
 from results.models import PlayerSummaryResult, ResultsFile
+
+try:
+    from ddstable import ddstable
+except OSError as err:
+    print(err)
+    print(
+        "Error loading ddstable. Most likely cause is wrong version or missing libdds.so"
+    )
+    print("Double dummy analysis will fail affecting Results")
 
 
 def higher_than_other_suit(suit, other_suit):
