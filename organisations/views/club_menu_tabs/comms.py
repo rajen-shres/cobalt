@@ -120,9 +120,11 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
         override = overrides.filter(system_number=recipient["system_number"]).first()
         if override:
             email = override["email"]
-            print(f"overriding email address for {recipient['system_number']}")
+            logger.info(f"overriding email address for {recipient['system_number']}")
         else:
             email = recipient["email"]
+
+        logger.debug(f"about to send to {email}")
 
         _send_email_sub(
             first_name=recipient["first_name"],
