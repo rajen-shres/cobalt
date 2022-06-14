@@ -218,7 +218,8 @@ def email_send_htmx(request, club):
             template_id = email_form.cleaned_data["template"]
             club_template = get_object_or_404(OrgEmailTemplate, pk=template_id)
         else:
-            club_template = None
+            # Create but don't save so we get the club admin logo, not the system default
+            club_template = OrgEmailTemplate()
 
         # Get any attachments and convert to Django post office expected format
         attachment_ids = request.POST.getlist("selected_attachments")

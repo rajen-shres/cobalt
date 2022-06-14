@@ -164,7 +164,7 @@ def send_cobalt_email_with_template(
     # Augment context
     context["host"] = COBALT_HOSTNAME
     if "img_src" not in context:
-        context["img_src"] = "/static/notifications/img/myabf-email.png"
+        context["img_src"] = "notifications/img/myabf-email.png"
     if "box_colour" not in context:
         context["box_colour"] = "primary"
     if "link_colour" not in context:

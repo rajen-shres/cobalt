@@ -23,21 +23,23 @@
                 </thead>
                 <tbody>
                     {% for snooper in snoopers %}
-                        <td class="text-left">
-                            {# We may get a list of names or an email address #}
-                            {% if snooper.user %}
-                                {#  Actual User #}
-                                {% for this_user in snooper.user %}
-                                    {{ this_user }}{% if not forloop.last %}, {% endif %}
-                                {% endfor %}
-                            {% else %}
-                                {# Un reg user #}
-                                {{ snooper.post_office_email.to.0 }}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {{ snooper.ses_delivered_at|cobalt_nice_datetime_short|default_if_none:"No" }}
-                        </td>
+                        <tr>
+                            <td class="text-left">
+                                {# We may get a list of names or an email address #}
+                                {% if snooper.user %}
+                                    {#  Actual User #}
+                                    {% for this_user in snooper.user %}
+                                        {{ this_user }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    {# Un reg user #}
+                                    {{ snooper.post_office_email.to.0 }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ snooper.ses_delivered_at|cobalt_nice_datetime_short|default_if_none:"No" }}
+                            </td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
