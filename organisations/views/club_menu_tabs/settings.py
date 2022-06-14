@@ -1102,7 +1102,9 @@ def add_all_members_to_tag_htmx(request, club):
     if club_tag.organisation != club:
         return HttpResponse("Incorrect tag value for this club")
 
-    all_members = MemberMembershipType.objects.active()
+    all_members = MemberMembershipType.objects.active().filter(
+        membership_type__organisation=club
+    )
 
     for member in all_members:
         member_club_tag, _ = MemberClubTag.objects.get_or_create(
