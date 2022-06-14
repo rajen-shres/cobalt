@@ -671,9 +671,13 @@ def email_recipients_list_htmx(request, club):
     # Get email addresses that received this
     email_list = [snooper.post_office_email.to[0] for snooper in snoopers]
 
+    logger.debug(f"email_list: {email_list}")
+
     # Get users for those email addresses
     users = User.objects.filter(email__in=email_list)
     # un_regs = UnregisteredUser.objects.filter(email__in=email_list)
+
+    logger.debug(f"users: {users}")
 
     # Create dict of email_address to user name
     email_dict = {}
