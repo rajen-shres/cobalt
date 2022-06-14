@@ -18,7 +18,7 @@
                 hx-target="#id_pane_settings"
                 hx-post="{% url "club_sessions:tab_settings_htmx" %}"
                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, save_settings:1"
-                hx-push-url="true"
+                {#                hx-push-url="true"#}
             >Update</button>
         </div>
     </form>

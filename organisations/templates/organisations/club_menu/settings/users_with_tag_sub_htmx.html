@@ -36,16 +36,16 @@
 
 {% endif %}
 
-<script>
-    $(document).ready( function () {
-
-        // Initialise datatable - only show pagination if more than one page, sort in reverse date order, column 0
-        $('#users_with_tab_table').DataTable({
-            drawCallback: function (settings) {
-                const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
-                pagination.toggle(this.api().page.info().pages > 1);
-            },
-        });
-
-    });
-</script>
+{#<script>#}
+{#    $(document).ready( function () {#}
+{##}
+{#        // Initialise datatable - only show pagination if more than one page, sort in reverse date order, column 0#}
+{#        $('#users_with_tab_table').DataTable({#}
+{#            drawCallback: function (settings) {#}
+{#                const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');#}
+{#                pagination.toggle(this.api().page.info().pages > 1);#}
+{#            },#}
+{#        });#}
+{##}
+{#    });#}
+{#</script>#}

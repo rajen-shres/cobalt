@@ -1,5 +1,11 @@
-<tr>
-    <td>{{ item.name|title }} {{ item.amount }}/{{ details.number_sent }}</td>
+<tr _="on click toggle .d-none on #help_for_{{ item.name }}">
+    <td><span class="material-icons text-info">help</span></td>
+    <td class="text-left">
+        {{ item.name|title }} {{ item.amount }}/{{ details.number_sent }}
+        <div class="d-none text-danger font-italic" id="help_for_{{ item.name }}">
+            {{ help_text}}
+        </div>
+    </td>
     <td>
         <div class="progress-container progress-primary">
             <span class="progress-badge">{{ item.percent }}%</span>
