@@ -265,7 +265,7 @@ class MemberMembershipType(models.Model):
         ("Expired", "Expired"),
     ]
     system_number = models.IntegerField("%s Number" % GLOBAL_ORG, blank=True)
-    membership_type = models.ForeignKey(MembershipType, on_delete=models.PROTECT)
+    membership_type = models.ForeignKey(MembershipType, on_delete=models.CASCADE)
     termination_reason = models.CharField(
         "Reason for Membership Termination",
         choices=TERMINATION_REASON,
@@ -282,8 +282,9 @@ class MemberMembershipType(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        unique_together = ["system_number", "membership_type"]
+    # It is valid to have duplicates as someone can leave and come back
+    # class Meta:
+    #     unique_together = ["system_number", "membership_type"]
 
     @property
     def active(self):
