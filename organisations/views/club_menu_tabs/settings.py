@@ -1079,7 +1079,7 @@ def club_menu_tab_settings_payment_edit_name_htmx(request, club):
 
 @check_club_menu_access(check_comms=True)
 def club_menu_tab_settings_tag_edit_name_htmx(request, club):
-    """Edit the name of a tag. Returns th whole section"""
+    """Edit the name of a tag. Returns the whole section"""
 
     tag = get_object_or_404(ClubTag, pk=request.POST.get("tag_id"))
     if tag.organisation != club:
@@ -1091,3 +1091,23 @@ def club_menu_tab_settings_tag_edit_name_htmx(request, club):
     tag.save()
 
     return tags_htmx(request)
+
+
+@check_club_menu_access(check_comms=True)
+def add_all_members_to_tag_htmx(request, club):
+    """Add a tag to all members of a club. Returns the users with tag section"""
+
+    club_tag = get_object_or_404(ClubTag, pk=request.POST.get("tag_id"))
+
+    if club_tag.organisation != club:
+        return HttpResponse("Incorrect tag value for this club")
+
+    all_members = MemberMembershipType.objects.active()
+
+    for member in all_members:
+        member_club_tag, _ = MemberClubTag.objects.get_or_create(
+            club_tag=club_tag, system_number=member.system_number
+        )
+        member_club_tag.save()
+
+    return users_with_tag_htmx(request, partial=True)

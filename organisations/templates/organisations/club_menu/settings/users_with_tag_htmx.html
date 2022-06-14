@@ -3,10 +3,12 @@
 {% load cobalt_tags %}
 
 <div class="card" style="min-height: 800px; height: auto">
+
     <div class="card-header card-header-info">
         <h2>Club Settings</h2>
         {% include "organisations/club_menu/settings/nav_htmx.html" with selected="tags" %}
     </div>
+
     <div class="card-body" id="id_settings_users_with_tags_tab">
 
         <button class="btn btn-sm btn-outline-secondary text-dark"
@@ -17,16 +19,33 @@
 
         {% if club_has_members %}
 
-            <h3>Users with Tag "{{ tag.tag_name }}"</h3>
+            <div class="card">
+                <div class="card-header card-header-success">
+                    <h3>Users with Tag "{{ tag.tag_name }}"</h3>
+                </div>
 
-            <div id="list_of_users_with_this_tag">
+                <div class="card-body">
+                    <div id="list_of_users_with_this_tag">
 
-                {% include "organisations/club_menu/settings/users_with_tag_sub_htmx.html" %}
+                        {% include "organisations/club_menu/settings/users_with_tag_sub_htmx.html" %}
 
+                    </div>
+                </div>
             </div>
+
 
             <button class="btn btn-info" _="on click remove .d-none from #users_without_tab_table_div then hide me">
                 Add Member to Tag
+            </button>
+
+            <button
+                class="btn btn-danger"
+                hx-post="{% url "organisations:club_menu_tab_settings_add_all_members_to_tag_htmx" %}"
+                hx-target="#list_of_users_with_this_tag"
+                hx-vars="club_id:{{ club.id }}, tag_id:{{ tag.id }}"
+
+            >
+                Add All Members to Tag
             </button>
 
         {% else %}
@@ -39,33 +58,42 @@
 
             {% if users_without_tag %}
 
-                <h3>Users without the Tag "{{ tag.tag_name }}"</h3>
-                <table id="users_without_tab_table" class="table table-hover table-condensed">
-                    <thead class="text-info">
-                        <tr>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user_without_tag in users_without_tag %}
-                            <tr id="add_user_to_tag_{{ user_without_tag.system_number }}">
-                                <td>{{ user_without_tag.first_name }}</td>
-                                <td>{{ user_without_tag.last_name }}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-warning"
-                                        hx-post="{% url "organisations:club_menu_tab_settings_add_user_to_tag_htmx" %}"
-                                        hx-target="#list_of_users_with_this_tag"
-                                        hx-vars="club_id:{{ club.id }}, tag_id:{{ tag.id }}, system_number:{{ user_without_tag.system_number }}"
-                                        _="on click remove #add_user_to_tag_{{ user_without_tag.system_number }}"
-                                    >Add Tag
-                                    </button>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="card">
+                    <div class="card-header card-header-warning">
+                        <h3>Users without the Tag "{{ tag.tag_name }}"</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive col-md-6">
+                            <table id="users_without_tab_table" class="table table-hover table-condensed">
+                                <thead class="text-info">
+                                    <tr>
+                                        <th>First Name</th>
+                                        <th>Last Name</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user_without_tag in users_without_tag %}
+                                        <tr id="add_user_to_tag_{{ user_without_tag.system_number }}">
+                                            <td>{{ user_without_tag.first_name }}</td>
+                                            <td>{{ user_without_tag.last_name }}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-warning"
+                                                    hx-post="{% url "organisations:club_menu_tab_settings_add_user_to_tag_htmx" %}"
+                                                    hx-target="#list_of_users_with_this_tag"
+                                                    hx-vars="club_id:{{ club.id }}, tag_id:{{ tag.id }}, system_number:{{ user_without_tag.system_number }}"
+                                                    _="on click remove #add_user_to_tag_{{ user_without_tag.system_number }}"
+                                                >Add Tag
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
 
             {% else %}
 
@@ -78,16 +106,18 @@
     </div>
 </div>
 
-<script>
-    $(document).ready( function () {
+{#Just give them the whole list#}
 
-        // Initialise datatable - only show pagination if more than one page, sort in reverse date order, column 0
-        $('#users_without_tab_table').DataTable({
-            drawCallback: function (settings) {
-                const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
-                pagination.toggle(this.api().page.info().pages > 1);
-            },
-        });
-
-    });
-</script>
+{#<script>#}
+{#    $(document).ready( function () {#}
+{##}
+{#        // Initialise datatable - only show pagination if more than one page, sort in reverse date order, column 0#}
+{#        $('#users_without_tab_table').DataTable({#}
+{#            drawCallback: function (settings) {#}
+{#                const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');#}
+{#                pagination.toggle(this.api().page.info().pages > 1);#}
+{#            },#}
+{#        });#}
+{##}
+{#    });#}
+{#</script>#}

@@ -223,6 +223,11 @@ urlpatterns = [
         name="club_menu_tab_settings_membership_htmx",
     ),
     path(
+        "club-menu/tabs/settings-membership-add-all",
+        organisations.views.club_menu_tabs.settings.add_all_members_to_tag_htmx,
+        name="club_menu_tab_settings_add_all_members_to_tag_htmx",
+    ),
+    path(
         "club-menu/tabs/settings-logs",
         organisations.views.club_menu_tabs.settings.logs_htmx,
         name="club_menu_tab_settings_logs_htmx",
