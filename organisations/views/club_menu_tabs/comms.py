@@ -1,3 +1,4 @@
+import logging
 from itertools import chain
 
 from django.contrib.auth.decorators import login_required
@@ -32,6 +33,8 @@ from organisations.views.club_menu_tabs.utils import (
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
+
+logger = logging.getLogger("cobalt")
 
 
 @check_club_menu_access(check_comms=True)
@@ -142,6 +145,8 @@ def _send_email_sub(
         club_template(OrgEmailTemplate): has banner, footer etc for club
         attachments(dict): dict of attachments ('filename', 'path-to-file')
     """
+
+    logger.debug(f"email address is {email}")
 
     context = {
         "name": first_name,
