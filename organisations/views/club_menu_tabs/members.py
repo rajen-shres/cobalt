@@ -76,6 +76,11 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
 def add_htmx(request, club):
     """Add sub menu"""
 
+    if not MembershipType.objects.filter(organisation=club).exists():
+        return HttpResponse(
+            "<h4>Your club has no membership types defined. You cannot add a member until you fix this.</h4>"
+        )
+
     total_members = organisations.views.club_menu_tabs.utils._member_count(club)
 
     # Check level of access

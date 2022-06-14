@@ -360,7 +360,7 @@ def club_menu_tab_settings_sessions_htmx(request, club):
 
 
 @check_club_menu_access()
-def club_menu_tab_settings_session_edit_htmx(request, club):
+def club_menu_tab_settings_session_edit_htmx(request, club, check_org_edit=True):
     """Part of the settings tab for session types to allow user to edit the session type
 
     When a session type is clicked on, this code is run and returns a form to edit the
@@ -584,6 +584,9 @@ def club_menu_tab_settings_misc_pay_delete_htmx(request, club):
 def club_menu_tab_settings_table_fee_update_htmx(request, club):
     """Change table fees"""
 
+    if not rbac_user_has_role(request.user, f"orgs.org.{club.id}.edit"):
+        return HttpResponse("You do not have access to change rates")
+
     session = get_object_or_404(
         SessionTypePaymentMethodMembership, pk=request.POST.get("session_id")
     )
@@ -606,7 +609,7 @@ def club_menu_tab_settings_table_fee_update_htmx(request, club):
 
 
 @check_club_menu_access()
-def club_menu_tab_settings_session_delete_htmx(request, club):
+def club_menu_tab_settings_session_delete_htmx(request, club, check_org_edit=True):
     """Delete entire session"""
 
     session = get_object_or_404(SessionType, pk=request.POST.get("session_id"))
@@ -623,7 +626,7 @@ def club_menu_tab_settings_session_delete_htmx(request, club):
 
 
 @check_club_menu_access()
-def club_menu_tab_settings_session_add_htmx(request, club):
+def club_menu_tab_settings_session_add_htmx(request, club, check_org_edit=True):
     """Add new session"""
 
     session_name = request.POST.get("session_name")
