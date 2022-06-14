@@ -385,12 +385,16 @@ def un_reg_edit_htmx(request, club):
     un_reg_id = request.POST.get("un_reg_id")
     un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
 
+    print("Unregistered user is", un_reg_id, un_reg)
+
     # Get first membership record for this user and this club
     membership = (
         MemberMembershipType.objects.active()
         .filter(system_number=un_reg.system_number, membership_type__organisation=club)
         .first()
     )
+
+    print("Membership is", membership)
 
     message = ""
 
