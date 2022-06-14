@@ -93,6 +93,8 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
             .values("system_number")
             # go through list of tags and create list of recipients, members could be in multiple tags
         )
+
+    logger.debug(f"tag_system_numbers: {tag_system_numbers}")
     # Get real members
     members = User.objects.filter(system_number__in=tag_system_numbers).values(
         "email", "first_name", "system_number"
@@ -108,6 +110,8 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
     ).values("email", "system_number")
 
     combined_list = list(chain(members, un_regs))
+
+    logger.debug(f"combined list {combined_list}")
 
     if not combined_list:
         return "There are no recipients for this email"
