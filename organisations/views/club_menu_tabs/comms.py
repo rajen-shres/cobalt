@@ -109,6 +109,8 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
         system_number__in=tag_system_numbers
     ).values("email", "system_number")
 
+    logger.debug(f"email overrides {overrides}")
+
     combined_list = list(chain(members, un_regs))
 
     logger.debug(f"combined list {combined_list}")
