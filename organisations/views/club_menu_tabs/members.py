@@ -773,7 +773,7 @@ def add_un_reg_htmx(request, club):
 
     # Add email
     club_email = form.cleaned_data["club_email"]
-    if club_email:
+    if club_email and club_email != "":
         club_email_entry, _ = MemberClubEmail.objects.get_or_create(
             organisation=club, system_number=form.cleaned_data["system_number"]
         )
