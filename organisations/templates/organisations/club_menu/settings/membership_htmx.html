@@ -25,7 +25,7 @@
                                     hx-target="#id_membership_edit"
                                     hx-vars="membership_type_id:{{ membership_type.id }}"
                                     onclick="membershipTypeButtonSelect(this);"
-                                >{{ membership_type.name }} ({{ membership_type.membermembershiptype_set.all|length }})</button>
+                                >{{ membership_type.name }} ({{ membership_type.member_count }})</button>
                             </div>
                         {% endfor %}
                         <div class="col-12 d-inline-flex w-100 mx-0 px-0 justify-content-between">

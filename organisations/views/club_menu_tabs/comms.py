@@ -680,8 +680,6 @@ def email_recipients_list_htmx(request, club):
     # Get email addresses that received this
     email_list = [snooper.post_office_email.to[0] for snooper in snoopers]
 
-    print(email_list)
-
     # Get users for those email addresses
     users = User.objects.filter(email__in=email_list)
 
@@ -704,7 +702,6 @@ def email_recipients_list_htmx(request, club):
         ).first()
         if match_un_reg:
             club_emails[override["email"]].append(match_un_reg.full_name)
-    print(club_emails)
 
     # Create dict of email_address to username
     email_dict = {}
@@ -722,12 +719,9 @@ def email_recipients_list_htmx(request, club):
     # Add in overrides as well, just add on top, don't replace
     for email_item in email_list:
         if email_item in club_emails:
-            print("Match!")
             if email_item not in email_dict:
                 email_dict[email_item] = []
             email_dict[email_item] = email_dict[email_item] + club_emails[email_item]
-
-    print(email_dict)
 
     # augment snoopers
     for snooper in snoopers:

@@ -198,6 +198,14 @@ def membership_htmx(request, club):
 
     membership_types = MembershipType.objects.filter(organisation=club)
 
+    # Add in number of members
+    for membership_type in membership_types:
+        membership_type.member_count = (
+            MemberMembershipType.objects.active()
+            .filter(membership_type=membership_type)
+            .count()
+        )
+
     return render(
         request,
         "organisations/club_menu/settings/membership_htmx.html",
@@ -223,10 +231,11 @@ def club_menu_tab_settings_membership_edit_htmx(request, club):
     # This is a POST even the first time so look for "save" to see if this really is a form submit
     real_post = "save" in request.POST
 
-    if not real_post:
-        form = MembershipTypeForm(instance=membership_type)
-    else:
-        form = MembershipTypeForm(request.POST, instance=membership_type)
+    form = (
+        MembershipTypeForm(request.POST, instance=membership_type)
+        if real_post
+        else MembershipTypeForm(instance=membership_type)
+    )
 
     message = ""
 
@@ -249,7 +258,7 @@ def club_menu_tab_settings_membership_edit_htmx(request, club):
         .exclude(pk=membership_type.id)
         .exists()
     ):
-        # This throws a non fatal error but actually works!
+        # This throws a non-fatal error but actually works!
         del form.fields["is_default"]
 
     # Don't allow delete for last membership type
