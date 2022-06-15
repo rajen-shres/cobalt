@@ -262,6 +262,11 @@ def _cancel_membership(request, club, system_number):
             action=f"Cancelled membership for {system_number}",
         ).save()
 
+    # Delete any tags
+    MemberClubTag.objects.filter(club_tag__organisation=club).filter(
+        system_number=system_number
+    ).delete()
+
 
 @check_club_menu_access(check_members=True)
 def delete_un_reg_htmx(request, club):
@@ -276,8 +281,6 @@ def delete_un_reg_htmx(request, club):
 @check_club_menu_access(check_members=True)
 def delete_member_htmx(request, club):
     """Remove a registered user from club membership"""
-
-    print("member_id:", request.POST.get("member_id"))
 
     member = get_object_or_404(User, pk=request.POST.get("member_id"))
     _cancel_membership(request, club, member.system_number)
