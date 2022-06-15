@@ -64,6 +64,7 @@
                         {% if empty_tags %}
                             <p class="font-italic">Some of your tags have no members and cannot be selected.</p>
                         {% endif %}
+
                         {% for key, value in tag_form.tags.field.choices %}
                             <div>
                                 <label class="text-dark" for="id_tags_{{ key }}">
@@ -73,7 +74,7 @@
                                     {% if key in empty_tags %}
                                         <del>{{ value }} ({{ tag_count|cobalt_dict_key:value }})</del>
                                     {% else %}
-                                        <input type="checkbox" name="tags" value="{{ key }}" id="id_tags_{{ key }}" class="tag-checkbox">
+                                        <input type="checkbox" name="selected_tags" value="{{ key }}" id="id_tags_{{ key }}" class="tag-checkbox">
                                         {{ value }} ({{ tag_count|cobalt_dict_key:value }})
                                     {% endif %}
 

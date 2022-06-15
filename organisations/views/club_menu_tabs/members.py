@@ -534,14 +534,16 @@ def _send_welcome_pack(club, first_name, email, user, invite_to_join):
     }
 
     # Get the extra fields from the template if we have one
-    reply_to = None
-    from_name = None
     if welcome_pack.template:
-        reply_to = welcome_pack.template.reply_to
-        from_name = welcome_pack.template.from_name
-        if welcome_pack.template.banner:
-            context["img_src"] = welcome_pack.template.banner.url
-        context["footer"] = welcome_pack.template.footer
+        use_template = welcome_pack.template
+    else:
+        use_template = OrgEmailTemplate()
+
+    reply_to = use_template.reply_to
+    from_name = use_template.from_name
+    if use_template.banner:
+        context["img_src"] = use_template.banner.url
+    context["footer"] = use_template.footer
 
     sender = f"{from_name}<donotreply@myabf.com.au>" if from_name else None
 

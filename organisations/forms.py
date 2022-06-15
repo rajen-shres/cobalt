@@ -375,7 +375,7 @@ class TagMultiForm(forms.Form):
         self.fields["tags"].choices = [
             (club_tag[0], club_tag[1]) for club_tag in club_tags
         ]
-        self.fields["tags"].choices.insert(0, (0, "EVERYONE"))
+        self.fields["tags"].choices.insert(0, ("0", "EVERYONE"))
 
     def clean_tags(self):
         tags = self.cleaned_data["tags"]
