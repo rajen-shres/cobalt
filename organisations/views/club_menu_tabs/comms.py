@@ -648,7 +648,9 @@ def delete_email_attachment_htmx(request, club):
 def club_menu_tab_comms_emails_from_tags_htmx(request, club):
     """takes in tags and lists out who will be emailed. Called from the email wizard"""
 
-    tag_list = request.POST.getlist("tags")
+    tag_list = request.POST.getlist("selected_tags")
+
+    print(tag_list)
 
     # Check for everyone
     if "0" in tag_list:
@@ -658,6 +660,7 @@ def club_menu_tab_comms_emails_from_tags_htmx(request, club):
         system_numbers = MemberClubTag.objects.filter(
             club_tag__pk__in=tag_list
         ).values_list("system_number")
+        print(system_numbers)
         members = get_club_members_from_system_number_list(system_numbers, club)
 
     return render(

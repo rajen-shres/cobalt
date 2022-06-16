@@ -25,6 +25,8 @@
 
                     <div class="cobalt_form_errors">{{ form.errors }}</div>
 
+                    <input type="hidden" name="system_number" value="{{ member.system_number }}">
+
                     <div id="div_id_membership_type" class="form-group row">
                         <div class="col-6">
                             <label for="id_membership_type" class="bmd-label-static">
@@ -48,7 +50,7 @@
 
                     <button type="submit" name="save" class="btn btn-success">Save</button>
                     {% include "utils/htmx_confirm_modal.html" with id="memdel" delete_item=member.first_name delete_button="Remove" hx_target="#id_panel_members" hx_post=hx_delete hx_vars=hx_vars %}
-                    <button id="id_delete_user_1" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModalmemdel">Remove</button>
+                    <button id="id_delete_user_1" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModalmemdel">Remove Membership</button>
                 </form>
 
             </div>
