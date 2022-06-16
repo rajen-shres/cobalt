@@ -20,7 +20,7 @@
     {% endif %}
 
     <button name="save" id="id_save_welcome" class="btn btn-sm btn-success">Save</button>
-    <button name="save" id="id_save_welcome" class="btn btn-sm btn-info">Test (save first)</button>
+    <button name="test" id="id_save_welcome" class="btn btn-sm btn-info">Test (save first)</button>
 
     {% url 'organisations:club_menu_tab_settings_welcome_pack_delete_htmx' as hx_delete %}
     {% include "utils/htmx_confirm_modal.html" with id="del_welcome" delete_item="the welcome email" hx_target="#id_panel_settings" hx_post=hx_delete hx_vars=hx_vars delete_button="Remove" %}

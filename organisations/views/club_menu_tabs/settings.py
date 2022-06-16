@@ -39,6 +39,7 @@ from organisations.models import (
     WelcomePack,
 )
 from organisations.views.admin import get_secretary_from_org_form
+from organisations.views.club_menu_tabs.members import _send_welcome_pack
 from organisations.views.club_menu_tabs.utils import (
     _user_is_uber_admin,
     get_club_members_from_system_number_list,
@@ -940,6 +941,18 @@ def welcome_pack_edit_htmx(request, club):
             message = welcome_form.errors
 
         return welcome_pack_htmx(request, message=message)
+
+    elif "test" in request.POST:
+        _send_welcome_pack(
+            club,
+            request.user.first_name,
+            request.user.email,
+            request.user,
+            invite_to_join=False,
+        )
+        return welcome_pack_htmx(
+            request, message=f"Test email sent to {request.user.email}"
+        )
 
     else:
         welcome_form = WelcomePackForm(instance=welcome_pack, club=club)

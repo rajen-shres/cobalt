@@ -231,7 +231,9 @@ class MembershipType(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT)
     name = models.CharField("Name of Membership", max_length=20)
     description = models.TextField("Description", blank=True, null=True)
-    annual_fee = models.DecimalField("Annual Fee", max_digits=12, decimal_places=2)
+    annual_fee = models.DecimalField(
+        "Annual Fee", max_digits=12, decimal_places=2, blank=True, null=True
+    )
     part_year_fee = models.DecimalField(
         "Part Year Fee (for joining later in year)",
         max_digits=12,

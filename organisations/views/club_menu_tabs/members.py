@@ -240,7 +240,7 @@ def _cancel_membership(request, club, system_number):
     """Common function to cancel membership"""
 
     # Memberships are coming later. For now we treat as basically binary - they start on the date they are
-    # entered and we assume only one without checking
+    # entered, and we assume only one without checking
     now = timezone.now()
     memberships = (
         MemberMembershipType.objects.filter(start_date__lte=now)
@@ -255,6 +255,9 @@ def _cancel_membership(request, club, system_number):
         membership.termination_reason = "Cancelled by Club"
         membership.end_date = now - datetime.timedelta(days=1)
         membership.save()
+
+        # Also remove any tags
+        MemberClubTag.objects.filter(system_number=membership.system_number).delete()
 
         ClubLog(
             organisation=club,
@@ -277,8 +280,6 @@ def delete_un_reg_htmx(request, club):
 def delete_member_htmx(request, club):
     """Remove a registered user from club membership"""
 
-    print("member_id:", request.POST.get("member_id"))
-
     member = get_object_or_404(User, pk=request.POST.get("member_id"))
     _cancel_membership(request, club, member.system_number)
 
@@ -293,22 +294,35 @@ def _un_reg_edit_htmx_process_form(
     # Assume the worst
     message = "Errors found on Form"
 
-    if user_form.is_valid() and club_membership_form.is_valid():
+    if user_form.is_valid():
         new_un_reg = user_form.save()
-        if club_membership_form.changed_data:
-            membership.home_club = club_membership_form.cleaned_data["home_club"]
-            membership_type = MembershipType.objects.get(
-                pk=club_membership_form.cleaned_data["membership_type"]
-            )
-            membership.membership_type = membership_type
-            membership.save()
-
         message = "Data Saved"
         ClubLog(
             organisation=club,
             actor=request.user,
             action=f"Updated details for {new_un_reg}",
         ).save()
+
+    else:
+        print(user_form.errors)
+
+    if club_membership_form.is_valid():
+        membership.home_club = club_membership_form.cleaned_data["home_club"]
+        membership_type = MembershipType.objects.get(
+            pk=club_membership_form.cleaned_data["membership_type"]
+        )
+        membership.membership_type = membership_type
+        membership.save()
+
+        message = "Data Saved"
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Updated membership for {membership.system_number}",
+        ).save()
+
+    else:
+        print(club_membership_form.errors)
 
     if club_email_form.is_valid():
         club_email = club_email_form.cleaned_data["email"]
@@ -390,16 +404,12 @@ def un_reg_edit_htmx(request, club):
     un_reg_id = request.POST.get("un_reg_id")
     un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
 
-    print("Unregistered user is", un_reg_id, un_reg)
-
     # Get first membership record for this user and this club
     membership = (
         MemberMembershipType.objects.active()
         .filter(system_number=un_reg.system_number, membership_type__organisation=club)
         .first()
     )
-
-    print("Membership is", membership)
 
     message = ""
 
@@ -537,11 +547,15 @@ def _send_welcome_pack(club, first_name, email, user, invite_to_join):
     reply_to = None
     from_name = None
     if welcome_pack.template:
-        reply_to = welcome_pack.template.reply_to
-        from_name = welcome_pack.template.from_name
-        if welcome_pack.template.banner:
-            context["img_src"] = welcome_pack.template.banner.url
-        context["footer"] = welcome_pack.template.footer
+        template = welcome_pack.template
+    else:
+        template = OrgEmailTemplate()
+
+    reply_to = template.reply_to
+    from_name = template.from_name
+    if template.banner:
+        context["img_src"] = template.banner.url
+    context["footer"] = template.footer
 
     sender = f"{from_name}<donotreply@myabf.com.au>" if from_name else None
 

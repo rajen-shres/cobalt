@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# about: Copy Test or UAT database to development
+
+if [ $# -ne 1 ];then
+  echo ""
+  echo ""
+  echo "Usage: $0 env"
+  echo "e.g. $0 cobalt-test-black"
+ exit 1
+fi
+
+ENV=$1
+
+# Generate a random string to act as a 'password'
+# The file will be publicly readable so obscure it
+SESSIONID=$(openssl rand -hex 12)
+DUMPFILE="$SESSIONID.json.gz"
+
+# Override some vars
+unset AWS_SECRET_ACCESS_KEY
+unset AWS_ACCESS_KEY_ID
+
+# Get an instance
+INSTANCE=$(eb list --verbose | grep $ENV | awk 'NF>1{print $NF}' | tr -d "'" | tr -d "]" | tr -d "[")
+echo "Instance is $INSTANCE"
+
+# Get IP of instance
+IP=$(aws ec2 describe-instances --instance-ids $INSTANCE | grep PublicIpAddress | head -1 | awk '{print $2}' | tr -d '",')
+echo "IP Address of $ENV is $IP"
+
+# Dump data
+echo "sshing to $ENV to run dump command..."
+eb ssh -n 1 $ENV --command "sudo /var/app/current/utils/aws/copy_data_from_production_dump.sh $SESSIONID"
+
+# Copy data down
+echo "Downloading file..."
+echo "scp -i ~/.ssh/cobalt.pem ec2-user@$IP:/cobalt-media/$DUMPFILE ~/$DUMPFILE"
+scp -i ~/.ssh/cobalt.pem ec2-user@$IP:/cobalt-media/$DUMPFILE ~/$DUMPFILE
+
+# Delete dump file from server
+echo "sshing to $ENV to delete backup file..."
+eb ssh -n 1 $ENV --command "-f sudo rm /cobalt-media/$DUMPFILE"
+
+# Kill manage.py if running
+lsof -i tcp:8000 | awk 'NR!=1 {print $2}' | xargs kill
+
+# Drop and recreate database
+echo "Loading database, dropping old DB..."
+psql -f ~/Dropbox/bin/rebuild_dev_db.sql
+
+# Run migrations and load the database
+./manage.py migrate
+echo "Loading the data, this will take a while..."
+./manage.py loaddata ~/$SESSIONID.json
+
+rm ~/$SESSIONID.json
+
+# check it works
+./manage.py count_users
+
+# scp the media directory
+# Very likely the IP has changed since we started so get it again
+# Get an instance
+INSTANCE=$(eb list --verbose | grep $ENV | awk 'NF>1{print $NF}' | tr -d "'" | tr -d "]" | tr -d "[")
+echo "Instance is $INSTANCE"
+
+# Get IP of instance
+IP=$(aws ec2 describe-instances --instance-ids $INSTANCE | grep PublicIpAddress | head -1 | awk '{print $2}' | tr -d '",')
+echo "IP Address of $ENV is $IP"
+
+rsync -ahp -e "ssh -i ~/.ssh/cobalt.pem" ec2-user@$IP:/cobalt-media/ media/
