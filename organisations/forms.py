@@ -385,14 +385,20 @@ class TagMultiForm(forms.Form):
         return tags
 
 
-class TemplateFooterForm(forms.ModelForm):
-    """Form for editing email template footer"""
+class TemplateForm(forms.ModelForm):
+    """Form for editing email template"""
 
     class Meta:
         model = OrgEmailTemplate
-        fields = ("footer",)
+        fields = (
+            "footer",
+            "template_name",
+            "from_name",
+            "reply_to",
+        )
 
     footer = forms.CharField(
+        required=False,
         widget=SummernoteInplaceWidget(
             attrs={
                 "summernote": {
@@ -401,7 +407,7 @@ class TemplateFooterForm(forms.ModelForm):
                     "placeholder": "<br><br>(Optional) Enter your footer here. This will appear at the bottom of your email.",
                 }
             }
-        )
+        ),
     )
 
 

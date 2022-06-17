@@ -587,7 +587,7 @@ def _email_attachment_list_htmx(request, club, hx_trigger_response=None):
         email_attachment.modal_id = f"del_attachment{email_attachment.id}"
 
     # For delete we need to trigger a response in the browser to remove this from the list (if present)
-    # We use the hx_trigger repsonse header for this
+    # We use the hx_trigger response header for this
 
     response = render(
         request,

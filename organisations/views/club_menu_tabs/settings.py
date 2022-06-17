@@ -23,9 +23,9 @@ from organisations.forms import (
     VenueForm,
     PaymentTypeForm,
     TagForm,
-    TemplateFooterForm,
     TemplateBannerForm,
     WelcomePackForm,
+    TemplateForm,
 )
 from organisations.models import (
     ClubLog,
@@ -758,18 +758,54 @@ def edit_template_htmx(request, club):
         template.save()
         message = "Created new template"
 
-    footer_form = TemplateFooterForm(instance=template)
+    if "save" in request.POST:
+        form = TemplateForm(request.POST, instance=template)
+        # form.fields['footer'].required = False
+        if form.is_valid():
+            form.save()
+        else:
+            print(form.errors)
+
+    form = TemplateForm(instance=template)
     banner_form = TemplateBannerForm(instance=template)
 
-    return render(
+    response = render(
         request,
         "organisations/club_menu/settings/template_form_htmx.html",
         {
             "club": club,
-            "footer_form": footer_form,
+            "form": form,
             "banner_form": banner_form,
             "template": template,
             "message": message,
+        },
+    )
+
+    # Use HX-Trigger to update the list of templates
+    response["HX-Trigger"] = "update_template_list"
+
+    return response
+
+
+@check_club_menu_access(check_comms=True)
+def template_list_htmx(request, club):
+    """Returns a list of templates to update the top part of the tempaltes view in Settings when things change"""
+
+    templates = OrgEmailTemplate.objects.filter(organisation=club)
+
+    # Add htmx tags
+    for template in templates:
+        template.hx_post = reverse(
+            "organisations:club_menu_tab_settings_delete_template_htmx"
+        )
+        template.hx_vars = f"club_id:{club.id}, template_id:{template.id}"
+
+    return render(
+        request,
+        "organisations/club_menu/settings/templates_list_htmx.html",
+        {
+            "club": club,
+            "templates": templates,
         },
     )
 

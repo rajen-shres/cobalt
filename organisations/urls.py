@@ -393,6 +393,11 @@ urlpatterns = [
         name="club_menu_tab_settings_edit_template_htmx",
     ),
     path(
+        "club-menu/settings/list-template",
+        organisations.views.club_menu_tabs.settings.template_list_htmx,
+        name="club_menu_tab_settings_template_list_htmx",
+    ),
+    path(
         "club-menu/settings/template-preview",
         organisations.views.club_menu_tabs.settings.template_preview_htmx,
         name="club_menu_tab_settings_template_preview_htmx",

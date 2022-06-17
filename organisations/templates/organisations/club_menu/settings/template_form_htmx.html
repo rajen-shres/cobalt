@@ -1,7 +1,10 @@
+{# Edit panel for templates. Appears in Settings when a template is chosen or a new one added #}
+
 {% load cobalt_tags %}
 
 <hr>
 
+{# Left is the form, right is the preview #}
 <div class="row">
     <div class="card col-md-6">
         <div class="card-header card-header-warning">
@@ -9,37 +12,60 @@
         </div>
         <div class="card-body">
 
-            {# We do these three parts as 3 different forms that update immediately and update the prview when they change #}
-
-            {#         <form hx-encoding='multipart/form-data'#}
-            {#               hx-post="{% url "organisations:club_menu_tab_comms_templates_htmx" %}"#}
-            {#               hx-target="#id_panel_settings"#}
-            {#               hx-vars="club_id:{{ club.id }}{% if template %},template_id:{{ template.id }}{% endif %}"#}
-            {#          _='on htmx:xhr:progress(loaded, total) set #progress.value to (loaded/total)*100'#}
-            {#            >#}
-
-            <div class="container">
-                <div class="row">
-                    <div class="col-12" id="template_form_name">
-                        {% include "organisations/club_menu/settings/template_form_name_htmx.html" %}
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-12" id="template_form_banner">
-                        {% include "organisations/club_menu/settings/template_form_banner_htmx.html" %}
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-12" id="template_form_footer">
-                        {% include "organisations/club_menu/settings/template_form_footer_htmx.html" %}
-                    </div>
+            {#  Too hard to do the banner as part of the form, do it separately #}
+            <div class="row">
+                <div class="col-12" id="template_form_banner">
+                    {% include "organisations/club_menu/settings/template_form_banner_htmx.html" %}
                 </div>
             </div>
+
+            <form
+                hx-post="{% url "organisations:club_menu_tab_settings_edit_template_htmx" %}"
+                hx-vars="club_id:{{ club.id }}, template_id:{{ template.id }}"
+                hx-target="#id_edit_template"
+            >
+
+                <div class="container">
+
+                    <div class="row">
+                        <div class="col-12">
+                            {% cobalt_bs4_field form.template_name %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            {% cobalt_bs4_field form.from_name %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            {% cobalt_bs4_field form.reply_to %}
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div class="col-12" id="template_form_footer">
+                            <div class="form-group">
+
+                                <label class="bmd-label-static" for="id_footer">
+                                    Footer (optional)
+                                </label>
+
+                                {% cobalt_bs4_field form.footer %}
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-2">
+                        <button class="btn btn-sm btn-info" name="save">Save</button>
+                    </div>
+                </div>
+            </form>
         </div>
-
-
     </div>
 
     <div id="email_template_preview" class="col-md-4 mx-auto"
@@ -48,5 +74,6 @@
         hx-trigger="load"
     >
     </div>
+
 
 </div>

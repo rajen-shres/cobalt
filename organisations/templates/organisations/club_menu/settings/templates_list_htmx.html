@@ -1,0 +1,35 @@
+{# Show list of templates - called from the main template view in settings #}
+
+{% load cobalt_tags %}
+
+<div class="table-responsive">
+    <table class="table table-hover table-condensed">
+        <thead>
+            <tr>
+                <th class="text-left">Template Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for template in templates %}
+                <tr>
+                    <td class="text-left"><span class="font-weight-bold">{{ template.template_name }}</span> (last modified {{ template.updated_at|cobalt_nice_date }} by {{ template.last_modified_by.full_name }})</td>
+
+                    {% include "utils/htmx_confirm_modal.html" with id=template.id delete_item=template.template_name hx_vars=template.hx_vars hx_target="#id_panel_settings" hx_post=template.hx_post %}
+                    <td>
+                        <button
+                            class="btn btn-sm btn-info"
+                            hx-post="{% url "organisations:club_menu_tab_settings_edit_template_htmx" %}"
+                            hx-target="#id_edit_template"
+                            hx-vars="club_id:{{ club.id }},template_id:{{ template.id }}"
+
+                        >Edit</button>
+                        <button id="t_delete_template_{{ tag.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ template.id }}">
+                            Delete Template
+                        </button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
