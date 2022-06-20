@@ -174,6 +174,8 @@ def _send_email_sub(
         context["img_src"] = club_template.banner.url
         context["footer"] = club_template.footer
 
+    print(reply_to)
+
     send_cobalt_email_with_template(
         to_address=email,
         context=context,
@@ -269,7 +271,7 @@ def email_send_htmx(request, club):
         else:
 
             # convert tags from strings to ints
-            send_tags = list(map(int, tag_form.cleaned_data["tags"]))
+            send_tags = list(map(int, tag_form.cleaned_data["selected_tags"]))
 
             message = _send_email_to_tags(
                 request=request,

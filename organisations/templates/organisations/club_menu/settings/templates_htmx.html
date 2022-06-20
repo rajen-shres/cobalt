@@ -1,3 +1,5 @@
+{# main template tab in settings #}
+
 {% load crispy_forms_filters %}
 {% load humanize %}
 {% load cobalt_tags %}
@@ -15,47 +17,46 @@
 
         <h3 class="text-info font-weight-bold settings_message" id="template_message">{{ message| default_if_none:"" }}</h3>
 
-        {% if templates %}
+        <div
+            id="id_template_list"
+            hx-post="{% url "organisations:club_menu_tab_settings_template_list_htmx" %}"
+            hx-vars="club_id:{{ club.id }}"
+            {# We get triggered by a header response so need to listen to message from body #}
+            hx-trigger="update_template_list from:body"
+        >
 
-            <div
-                id="id_template_list"
-                hx-post="{% url "organisations:club_menu_tab_settings_template_list_htmx" %}"
-                hx-vars="club_id:{{ club.id }}"
-                {# We get triggered by a header response so need to listen to message from body #}
-                hx-trigger="update_template_list from:body"
-            >
-
+            {% if templates %}
                 {% include "organisations/club_menu/settings/templates_list_htmx.html" %}
+            {% else %}
+                <h4>No templates defined</h4>
 
+                </div>
+
+
+
+            {% endif %}
+
+            <button
+                class="btn btn-sm btn-info"
+                hx-post="{% url "organisations:club_menu_tab_settings_edit_template_htmx" %}"
+                hx-target="#id_edit_template"
+                hx-vars="club_id:{{ club.id }}"
+            >Add New Template</button>
+
+            <h3 class="text-danger font-weight-bold">{{ message|default_if_none:"" }}</h3>
+
+            <div id="id_edit_template"
+
+                {# If template is set then we were editing a template so re-open it #}
+
+                {% if template %}
+                    hx-post="{% url "organisations:club_menu_tab_settings_edit_template_htmx" %}"
+                    hx-vars="club_id:{{ club.id }},template_id:{{ template.id }}"
+                    hx-trigger="load"
+                {% endif %}
+            >
             </div>
 
-
-        {% else %}
-            <h4>No templates defined</h4>
-
-        {% endif %}
-
-        <button
-            class="btn btn-sm btn-info"
-            hx-post="{% url "organisations:club_menu_tab_settings_edit_template_htmx" %}"
-            hx-target="#id_edit_template"
-            hx-vars="club_id:{{ club.id }}"
-        >Add New Template</button>
-
-        <h3 class="text-danger font-weight-bold">{{ message|default_if_none:"" }}</h3>
-
-        <div id="id_edit_template"
-
-            {# If template is set then we were editing a template so re-open it #}
-
-            {% if template %}
-                hx-post="{% url "organisations:club_menu_tab_settings_edit_template_htmx" %}"
-                hx-vars="club_id:{{ club.id }},template_id:{{ template.id }}"
-                hx-trigger="load"
-            {% endif %}
-        >
         </div>
-
     </div>
-</div>
 

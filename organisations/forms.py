@@ -358,7 +358,7 @@ class TagForm(forms.Form):
 class TagMultiForm(forms.Form):
     """Form to select multiple tags"""
 
-    tags = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
+    selected_tags = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
@@ -372,13 +372,13 @@ class TagMultiForm(forms.Form):
         )
 
         # Add as choices
-        self.fields["tags"].choices = [
+        self.fields["selected_tags"].choices = [
             (club_tag[0], club_tag[1]) for club_tag in club_tags
         ]
-        self.fields["tags"].choices.insert(0, ("0", "EVERYONE"))
+        self.fields["selected_tags"].choices.insert(0, ("0", "EVERYONE"))
 
     def clean_tags(self):
-        tags = self.cleaned_data["tags"]
+        tags = self.cleaned_data["selected_tags"]
         if len(tags) == 0:
             self.add_error("tags", "You must select at least one tag")
 
@@ -398,6 +398,7 @@ class TemplateForm(forms.ModelForm):
         )
 
     footer = forms.CharField(
+        # This shouldn't be needed but is
         required=False,
         widget=SummernoteInplaceWidget(
             attrs={
@@ -409,6 +410,7 @@ class TemplateForm(forms.ModelForm):
             }
         ),
     )
+    reply_to = forms.EmailField()
 
 
 class TemplateBannerForm(forms.ModelForm):

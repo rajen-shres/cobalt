@@ -760,9 +760,9 @@ def edit_template_htmx(request, club):
 
     if "save" in request.POST:
         form = TemplateForm(request.POST, instance=template)
-        # form.fields['footer'].required = False
         if form.is_valid():
             form.save()
+            print("saving template")
         else:
             print(form.errors)
 

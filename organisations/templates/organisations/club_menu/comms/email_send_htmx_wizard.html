@@ -58,14 +58,14 @@
         <div class="tab-pane active" id="send-email-recipients" aria-expanded="true">
             <div class="row">
 
-                {% if tag_form.tags.field.choices|length > 1 %}
+                {% if tag_form.selected_tags.field.choices|length > 1 %}
                     <div>
                         <p>Send to members using tags or select Everyone to send to all members.</p>
                         {% if empty_tags %}
                             <p class="font-italic">Some of your tags have no members and cannot be selected.</p>
                         {% endif %}
 
-                        {% for key, value in tag_form.tags.field.choices %}
+                        {% for key, value in tag_form.selected_tags.field.choices %}
                             <div>
                                 <label class="text-dark" for="id_tags_{{ key }}">
 
@@ -88,7 +88,7 @@
                     <h3>You don't have any tags set up so this will be sent to all of your members.</h3>
                     <p class="font-italic">You can use tags to organise your members into groups if you like.
                         Tags can be set up from the Settings Tab above.</p>
-                    <input type="hidden" name="tags" value="0">
+                    <input type="hidden" name="selected_tags" value="0">
 
                 {% endif %}
 
