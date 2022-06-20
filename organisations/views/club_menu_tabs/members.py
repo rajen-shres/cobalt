@@ -472,13 +472,12 @@ def add_member_htmx(request, club):
     form = UserMembershipForm(request.POST, club=club)
 
     if form.is_valid():
+
+        # get data from form
         system_number = int(form.cleaned_data["system_number"])
         membership_type_id = form.cleaned_data["membership_type"]
         home_club = form.cleaned_data["home_club"]
-        try:
-            send_welcome_pack = form.cleaned_data["send_welcome_pack"]
-        except KeyError:
-            send_welcome_pack = False
+        send_welcome_pack = form.cleaned_data.get("send_welcome_email")
 
         member = User.objects.filter(system_number=system_number).first()
         membership_type = MembershipType(pk=membership_type_id)
@@ -541,11 +540,7 @@ def _send_welcome_pack(club, first_name, email, user, invite_to_join):
     }
 
     # Get the extra fields from the template if we have one
-    if welcome_pack.template:
-        use_template = welcome_pack.template
-    else:
-        use_template = OrgEmailTemplate()
-
+    use_template = welcome_pack.template or OrgEmailTemplate()
     reply_to = use_template.reply_to
     from_name = use_template.from_name
     if use_template.banner:
@@ -801,7 +796,7 @@ def add_un_reg_htmx(request, club):
 
         message += " Club specific email added."
 
-    if "send_welcome_pack" in form.cleaned_data:
+    if form.cleaned_data.get("send_welcome_email"):
 
         email_address = club_email or form.cleaned_data["mpc_email"]
         if email_address:

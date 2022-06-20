@@ -206,7 +206,7 @@ class UserMembershipForm(forms.Form):
     system_number = forms.IntegerField()
     membership_type = forms.ChoiceField()
     home_club = forms.BooleanField(initial=False, required=False)
-    send_welcome_pack = forms.BooleanField(initial=True, required=False)
+    send_welcome_email = forms.BooleanField(initial=True, required=False)
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
@@ -255,7 +255,7 @@ class UnregisteredUserAddForm(forms.Form):
     )
     membership_type = forms.ChoiceField()
     home_club = forms.BooleanField(initial=True, required=False)
-    send_welcome_pack = forms.BooleanField(initial=True, required=False)
+    send_welcome_email = forms.BooleanField(initial=True, required=False)
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
@@ -395,6 +395,8 @@ class TemplateForm(forms.ModelForm):
             "template_name",
             "from_name",
             "reply_to",
+            "box_colour",
+            "box_font_colour",
         )
 
     footer = forms.CharField(
@@ -410,7 +412,7 @@ class TemplateForm(forms.ModelForm):
             }
         ),
     )
-    reply_to = forms.EmailField()
+    reply_to = forms.EmailField(required=False)
 
 
 class TemplateBannerForm(forms.ModelForm):

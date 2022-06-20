@@ -8,6 +8,6 @@
     srcdoc='
 
 
-    {% include "notifications/django_post_office_core_templates/po_club_template.html" with img_src=template.banner.url title="Example Email" name="Member" email_body="This is some example text for a member email.<br><br>Regards<br>The Committee"  %}
+    {% include "notifications/django_post_office_core_templates/po_club_template.html" with img_src=template.banner.url title="Example Email" name="Member" email_body="This is some example text for a member email.<br><br>Regards<br>The Committee" box_colour=template.box_colour box_font_colour=template.box_font_colour footer=template.footer %}
 
     '></iframe>
