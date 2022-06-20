@@ -161,7 +161,6 @@ def _send_email_sub(
         "subject": email_form.cleaned_data["subject"],
         "title": email_form.cleaned_data["subject"],
         "email_body": email_form.cleaned_data["org_email_body"],
-        "box_colour": "danger",
     }
 
     # Get the extra fields that could have been overridden by the user
@@ -170,11 +169,13 @@ def _send_email_sub(
 
     sender = f"{from_name}<donotreply@myabf.com.au>" if from_name else None
 
-    if club_template:
-        context["img_src"] = club_template.banner.url
-        context["footer"] = club_template.footer
+    if not club_template:
+        club_template = OrgEmailTemplate()
 
-    print(reply_to)
+    context["img_src"] = club_template.banner.url
+    context["footer"] = club_template.footer
+    context["box_colour"] = club_template.box_colour
+    context["box_font_colour"] = club_template.box_font_colour
 
     send_cobalt_email_with_template(
         to_address=email,
@@ -498,10 +499,8 @@ def email_preview_htmx(request):
     template_id = request.POST.get("template")
     if template_id:
         template = get_object_or_404(OrgEmailTemplate, pk=template_id)
-        img_src = template.banner.url
     else:
-        template = None
-        img_src = "/media/email_banners/default_banner.jpg"
+        template = OrgEmailTemplate()
 
     # Get user input
     title = request.POST.get("subject")
@@ -522,7 +521,7 @@ def email_preview_htmx(request):
         "organisations/club_menu/comms/email_preview_htmx.html",
         {
             "template": template,
-            "img_src": img_src,
+            "img_src": template.banner.url,
             "host": COBALT_HOSTNAME,
             "title": title,
             "email_body": email_body,
