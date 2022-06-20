@@ -24,7 +24,7 @@ from firebase_admin.messaging import (
 )
 from post_office import mail as po_email
 
-from accounts.models import User, UserAdditionalInfo
+from accounts.models import User, UserAdditionalInfo, UnregisteredUser
 from cobalt.settings import (
     COBALT_HOSTNAME,
     DISABLE_PLAYPEN,
@@ -108,7 +108,11 @@ def _email_address_on_bounce_list(to_address):
         user__email=to_address
     ).first()
 
-    if user_additional_info and user_additional_info.email_hard_bounce:
+    un_reg = UnregisteredUser.objects.filter(email=to_address).first()
+
+    if (user_additional_info and user_additional_info.email_hard_bounce) or (
+        un_reg and un_reg.email_hard_bounce
+    ):
         logger.info(f"Not sending email to suppressed address - {to_address}")
         return True
 
@@ -158,8 +162,6 @@ def send_cobalt_email_with_template(
     if _email_address_on_bounce_list(to_address):
         logger.info(f"Ignoring email on bounce list {to_address}")
         return
-
-    # TODO: link_colour and box_colour are not yet implemented in the template. Setting a value has no effect
 
     # Augment context
     context["host"] = COBALT_HOSTNAME

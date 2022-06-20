@@ -1,3 +1,6 @@
+import random
+import string
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -732,9 +735,13 @@ def _next_template_name(club):
     if last_default_template.template_name == "New Template":
         return "New Template(1)"
 
-    number_and_last_bracket = last_default_template.template_name[13:]
-    number = int(number_and_last_bracket[:-1])
-    return f"New Template({number + 1})"
+    try:  # usual case of New Template(n)
+        number_and_last_bracket = last_default_template.template_name[13:]
+        number = int(number_and_last_bracket[:-1])
+        return f"New Template({number + 1})"
+    except ValueError:  # Error case e.g. New Template Julian
+        append = "".join(random.choices(string.ascii_uppercase + string.digits, k=3))
+        return f"New Template({append})"
 
 
 @check_club_menu_access(check_comms=True)

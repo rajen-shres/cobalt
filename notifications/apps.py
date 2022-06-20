@@ -1,9 +1,12 @@
+from itertools import chain
+
 from django.apps import AppConfig
 from django.utils import timezone
 import logging
 
 # TODO: This code always makes me want to take a shower after I look at it.
 # TODO: I'm not going to fix it. I'm just going to have a shower.
+
 logger = logging.getLogger("cobalt")
 
 
@@ -48,7 +51,7 @@ class NotificationsConfig(AppConfig):
         from post_office.models import Email as PostOfficeEmail
         from logs.views import log_event
         from django.utils.inspect import func_accepts_kwargs
-        from accounts.models import UserAdditionalInfo, User
+        from accounts.models import UserAdditionalInfo, User, UnregisteredUser
 
         def _get_message_id(mail_obj):
             """Utility to get the message_id from the message"""
@@ -67,8 +70,9 @@ class NotificationsConfig(AppConfig):
             any more emails to this address
             """
 
-            # Mark user as bounced, could be multiple users with this email address
+            # Mark user as bounced, could be multiple users with this email address. Could be a user or un_reg user
             users = User.objects.filter(email=email_address)
+
             for user in users:
                 user_additional_info, _ = UserAdditionalInfo.objects.get_or_create(
                     user=user
@@ -77,6 +81,14 @@ class NotificationsConfig(AppConfig):
                 user_additional_info.email_hard_bounce_reason = message
                 user_additional_info.email_hard_bounce_date = timezone.now()
                 user_additional_info.save()
+
+            un_regs = UnregisteredUser.objects.filter(email=email_address)
+
+            for un_reg in un_regs:
+                un_reg.email_hard_bounce = True
+                un_reg.email_hard_bounce_reason = message
+                un_reg.email_hard_bounce_date = timezone.now()
+                un_reg.save()
 
         @receiver(send_received)
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):

@@ -164,6 +164,11 @@ class UnregisteredUser(models.Model):
     email = models.EmailField(
         "Email Address (accessible by all clubs)", blank=True, null=True
     )
+    email_hard_bounce = models.BooleanField(default=False)
+    """ Set this flag if we get a hard bounce from sending an email """
+    email_hard_bounce_reason = models.TextField(null=True, blank=True)
+    """ Reason for the bounce """
+    email_hard_bounce_date = models.DateTimeField(null=True, blank=True)
     origin = models.CharField("Origin", choices=ORIGINS, max_length=10)
     last_updated_by = models.ForeignKey(
         User, on_delete=models.PROTECT, related_name="last_updated"
