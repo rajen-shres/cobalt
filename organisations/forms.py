@@ -215,7 +215,7 @@ class UserMembershipForm(forms.Form):
 
         # If this club doesn't have a membership pack then don't show on form
         if not WelcomePack.objects.filter(organisation=self.club).exists():
-            del self.fields["send_welcome_pack"]
+            del self.fields["send_welcome_email"]
 
     # def clean_home_club(self):
     #     """Check that this user doesn't already have a home club"""
