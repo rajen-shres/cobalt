@@ -54,24 +54,29 @@
                                                     {# hide the sidebar if there so it doesn't jump #}
                                                     onclick='$("#email_info").hide();'
                                                 >
-                                                    <td class="text-left">{{ thing.created|cobalt_nice_datetime }}</td>
+                                                    <td class="text-left">{{ thing.created|cobalt_nice_datetime|default_if_none:"Nothing sent" }}</td>
                                                     <td class="text-left">{{ thing.subject }}</td>
                                                     <td class="text-right">
 
-                                                        <button class="btn btn-sm btn-success">View</button>
+                                                        {#  Don't show buttons if nothing was sent #}
+                                                        {% if thing.number_sent > 0 %}
 
-                                                        <!-- BUTTON TO SHOW RECIPIENTS -->
-                                                        <button
-                                                            class="btn btn-sm btn-info"
-                                                            style="width: 80px;"
-                                                            _="on click
-                                                            js
-                                                            htmx.trigger('#hidden_recipients_{{ thing.id }}', 'doit');
-                                                            end
-                                                            "
-                                                        >
-                                                            {{ thing.number_sent|intcomma }}
-                                                        </button>
+                                                            <button class="btn btn-sm btn-success">View</button>
+
+                                                            <!-- BUTTON TO SHOW RECIPIENTS -->
+                                                            <button
+                                                                class="btn btn-sm btn-info"
+                                                                style="width: 80px;"
+                                                                _="on click
+                                                                js
+                                                                htmx.trigger('#hidden_recipients_{{ thing.id }}', 'doit');
+                                                                end
+                                                                "
+                                                            >
+                                                                {{ thing.number_sent|intcomma }}
+                                                            </button>
+
+                                                        {% endif %}
 
                                                     </td>
                                                 </tr>

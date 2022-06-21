@@ -373,10 +373,11 @@ def email_view_htmx(request, club):
 
     # Build dictionary of items from Snoopers - this is how the email got on after we sent it according to AWS SES
     for db_total in db_totals:
-        line = {}
-        line["name"] = db_total.split("_")[-1]
-        line["amount"] = db_totals[db_total]
-        line["percent"] = int(db_totals[db_total] * 100.0 / count)
+        line = {
+            "name": db_total.split("_")[-1],
+            "amount": db_totals[db_total],
+            "percent": int(db_totals[db_total] * 100.0 / count),
+        }
         if line["percent"] == 100:
             line["colour"] = "success"
         elif line["percent"] >= 80:
