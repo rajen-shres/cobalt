@@ -59,7 +59,7 @@
                                 'club_id': {{ club.id }},
                                 'session_name': result.value
                             };
-                            htmx.ajax('POST', '{% url "organisations:club_menu_tab_settings_session_add_htmx" %}', {'target': '#id_settings_form', 'values': postData });
+                            htmx.ajax('POST', '{% url "organisations:club_menu_tab_settings_session_add_htmx" %}', {'target': '#id_panel_settings', 'values': postData });
                         }
                     }
                 });

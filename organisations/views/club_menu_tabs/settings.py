@@ -638,9 +638,11 @@ def club_menu_tab_settings_session_delete_htmx(request, club, check_org_edit=Tru
     return club_menu_tab_settings_sessions_htmx(request)
 
 
-@check_club_menu_access()
-def club_menu_tab_settings_session_add_htmx(request, club, check_org_edit=True):
+@check_club_menu_access(check_org_edit=True)
+def club_menu_tab_settings_session_add_htmx(request, club):
     """Add new session"""
+
+    print("inside")
 
     session_name = request.POST.get("session_name")
 
