@@ -13,7 +13,7 @@ from django.utils import timezone
 import organisations.views.club_menu_tabs.utils
 from accounts.accounts_views.api import search_for_user_in_cobalt_and_mpc
 from accounts.forms import UnregisteredUserForm
-from accounts.models import User, UnregisteredUser
+from accounts.models import User, UnregisteredUser, UserAdditionalInfo
 from cobalt.settings import GLOBAL_ORG, GLOBAL_TITLE, COBALT_HOSTNAME
 from notifications.notifications_views.core import (
     send_cobalt_email_with_template,
@@ -59,6 +59,8 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
     # Check level of access
     member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
 
+    has_errors = _check_member_errors(club)
+
     return render(
         request,
         "organisations/club_menu/members/list_htmx.html",
@@ -68,6 +70,7 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
             "total_members": total_members,
             "message": message,
             "member_admin": member_admin,
+            "has_errors": has_errors,
         },
     )
 
@@ -86,6 +89,8 @@ def add_htmx(request, club):
     # Check level of access
     member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
 
+    has_errors = _check_member_errors(club)
+
     return render(
         request,
         "organisations/club_menu/members/add_menu_htmx.html",
@@ -93,6 +98,7 @@ def add_htmx(request, club):
             "club": club,
             "total_members": total_members,
             "member_admin": member_admin,
+            "has_errors": has_errors,
         },
     )
 
@@ -104,12 +110,15 @@ def reports_htmx(request, club):
     # Check level of access
     member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
 
+    has_errors = _check_member_errors(club)
+
     return render(
         request,
         "organisations/club_menu/members/reports_htmx.html",
         {
             "club": club,
             "member_admin": member_admin,
+            "has_errors": has_errors,
         },
     )
 
@@ -334,6 +343,19 @@ def _un_reg_edit_htmx_process_form(
             actor=request.user,
             action=f"Updated club email address for {un_reg}",
         ).save()
+
+        # See if we have a bounce on this user and clear it
+        if un_reg.email_hard_bounce:
+            un_reg.email_hard_bounce = False
+            un_reg.email_hard_bounce_reason = None
+            un_reg.email_hard_bounce_date = None
+            un_reg.save()
+
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action=f"Cleared email hard bounce for {un_reg} by editing email address",
+            ).save()
 
     return message, un_reg, membership
 
@@ -610,9 +632,9 @@ def add_member_search_htmx(request):
     club = get_object_or_404(Organisation, pk=club_id)
 
     member_list = (
-        MemberMembershipType.objects.filter(system_number__in=user_list_system_numbers)
+        MemberMembershipType.objects.active()
+        .filter(system_number__in=user_list_system_numbers)
         .filter(membership_type__organisation=club)
-        .filter(termination_reason=None)
         .values_list("system_number", flat=True)
     )
 
@@ -813,3 +835,43 @@ def add_un_reg_htmx(request, club):
 
     # club is added to the call by the decorator
     return list_htmx(request, message=message)
+
+
+def _check_member_errors(club):
+    """Check if there are any errors such as bounced email addresses"""
+
+    members_system_numbers = (
+        MemberMembershipType.objects.active()
+        .filter(
+            membership_type__organisation=club,
+        )
+        .values_list("system_number")
+    )
+
+    # Check for bounced status. For registered users this is stored on a separate table,
+    # for unregistered it is on same table
+    # additional_users = UserAdditionalInfo.objects.filter(system_number__in=members_system_numbers).filter(email_hard_bounce=True)
+    users = User.objects.filter(system_number__in=members_system_numbers).filter(
+        useradditionalinfo__email_hard_bounce=True
+    )
+    un_regs = UnregisteredUser.objects.filter(
+        system_number__in=members_system_numbers
+    ).filter(email_hard_bounce=True)
+
+    return list(chain(users, un_regs))
+
+
+@check_club_menu_access(check_members=True)
+def errors_htmx(request, club):
+    """Show errors tab (only shows if errors present)"""
+
+    has_errors = _check_member_errors(club)
+
+    # Check level of access
+    member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
+
+    return render(
+        request,
+        "organisations/club_menu/members/errors_htmx.html",
+        {"has_errors": has_errors, "member_admin": member_admin, "club": club},
+    )

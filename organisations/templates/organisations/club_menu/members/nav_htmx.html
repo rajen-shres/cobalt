@@ -14,7 +14,7 @@ hx-target="#id_panel_members"
 >List
 </button>
 
-{#Show add only if user can change things#}
+{# Show add and error only if user can change things #}
 {% if member_admin %}
 
     {% if selected == "add" %}
@@ -32,6 +32,25 @@ hx-target="#id_panel_members"
     >Add
     </button>
 
+    {# Only show errors tab if there are errors #}
+    {% if has_errors %}
+
+        {% if selected == "errors" %}
+            <button class="btn bg-light text-dark"
+        {% else %}
+            <button class="btn bg-transparent"
+            style="outline: 0; outline-offset: 0; box-shadow: none;"
+        {% endif %}
+
+        type="button"
+        id="t_member_tab_errors"
+        hx-post="{% url "organisations:club_menu_tab_members_errors_htmx" %}"
+        hx-target="#id_panel_members"
+        {#    hx-push-url="{% url "organisations:club_menu" club_id=club.id %}"#}
+        >Errors!
+        </button>
+
+    {% endif %}
 {% endif %}
 
 {% if selected == "reports" %}

@@ -193,6 +193,11 @@ urlpatterns = [
         name="club_menu_tab_members_add_htmx",
     ),
     path(
+        "club-menu/tabs/members/errors",
+        organisations.views.club_menu_tabs.members.errors_htmx,
+        name="club_menu_tab_members_errors_htmx",
+    ),
+    path(
         "club-menu/tabs/results",
         club_menu.tab_results_htmx,
         name="club_menu_tab_results_htmx",

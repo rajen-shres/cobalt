@@ -48,11 +48,17 @@
                                             {% for thing in things %}
                                                 <tr
                                                     style="cursor: pointer;"
-                                                    hx-post="{% url "organisations:club_menu_tab_comms_email_view_htmx" %}"
-                                                    hx-vars="club_id:{{ club.id }},batch_id:{{ thing.id }}"
-                                                    hx-target="#id_comms_email_details"
-                                                    {# hide the sidebar if there so it doesn't jump #}
-                                                    onclick='$("#email_info").hide();'
+
+                                                    {#  Don't make clickable if nothing was sent #}
+                                                    {% if thing.number_sent > 0 %}
+
+                                                        hx-post="{% url "organisations:club_menu_tab_comms_email_view_htmx" %}"
+                                                        hx-vars="club_id:{{ club.id }},batch_id:{{ thing.id }}"
+                                                        hx-target="#id_comms_email_details"
+                                                        {# hide the sidebar if there so it doesn't jump #}
+                                                        onclick='$("#email_info").hide();'
+
+                                                    {% endif %}
                                                 >
                                                     <td class="text-left">{{ thing.created|cobalt_nice_datetime|default_if_none:"Nothing sent" }}</td>
                                                     <td class="text-left">{{ thing.subject }}</td>

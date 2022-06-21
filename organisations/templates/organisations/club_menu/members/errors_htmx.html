@@ -1,0 +1,39 @@
+{# Basic list view of members, shown under the membership tab #}
+
+{% load humanize %}
+{% load cobalt_tags %}
+
+<div class="card" style="min-height: 800px; height: auto">
+
+    <!-- SUB-LEVEL NAVIGATION -->
+
+    <div class="card-header card-header-info">
+        {% include "organisations/club_menu/members/nav_htmx.html" with selected="errors" %}
+    </div>
+
+    <div class="card-body" id="id_member_errors_tab">
+
+        <!-- HEADINGS -->
+
+        <h3>Members with Errors</h3>
+
+        <ul>
+            {% for user in has_errors %}
+                <li>
+
+                    {% if user|get_class == "User" %}
+
+                        {{ user.full_name }} - ask them to check their email address
+
+                    {% else %}
+
+                        {{ user.full_name }} - invalid email address. Edit in member List tab.
+
+                    {% endif %}
+
+                </li>
+            {% endfor %}
+        </ul>
+
+    </div>
+</div>
