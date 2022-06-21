@@ -264,7 +264,7 @@ class UnregisteredUserAddForm(forms.Form):
 
         # If this club doesn't have a membership pack then don't show on form
         if not WelcomePack.objects.filter(organisation=self.club).exists():
-            del self.fields["send_welcome_pack"]
+            del self.fields["send_welcome_email"]
 
     def clean_system_number(self):
         system_number = self.cleaned_data["system_number"]
