@@ -61,7 +61,7 @@ def toggle_result_publish_state_htmx(request, club):
 
     if results_file.status == ResultsFile.ResultsStatus.PENDING:
         results_file.status = ResultsFile.ResultsStatus.PUBLISHED
-        message = f"{results_file.description} published, and players emailed"
+        message = f"{results_file.description} published, and players emailed (not implemented yet)"
     else:
         results_file.status = ResultsFile.ResultsStatus.PENDING
         message = f"{results_file.description} changed to pending"
