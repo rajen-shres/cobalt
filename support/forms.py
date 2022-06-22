@@ -113,6 +113,7 @@ class IncidentLineItemForm(forms.ModelForm):
         choices=[
             ("add-comment", "Add Comment"),
             ("add-close", "Add Comment and Close Ticket"),
+            ("add-close-silent", "Add Comment and Close Ticket (don't notify user)"),
             ("add-awaiting", "Add Comment and set to awaiting user feedback"),
         ]
     )

@@ -224,7 +224,7 @@
                 </div>
 
 
-                {#                Cannot comment on a closed ticket #}
+                {# Cannot comment on a closed ticket #}
                 {% if ticket.status != "Closed" %}
                     <div id="add_new_comment">
 
@@ -238,12 +238,13 @@
                             <div id="comment_form_block" style="display: none;">
                                 <input type="checkbox" id="private" name="private" value="Private">
                                 <label for="private" style="color: black">Private comment (not shared with user)</label><br>
-                                <select class="selectpicker our_input" data-style="btn btn-success btn-sm"
+                                <select class="selectpicker" data-style="btn btn-success btn-sm"
                                     id="id_action" name="action">
 
                                     <option value="add-comment" selected>Add Comment</option>
                                     <option value="add-awaiting">Add Comment and Change to Awaiting User Feedback</option>
                                     <option value="add-close">Add Comment and Close Ticket</option>
+                                    <option value="add-close-silent">Add Comment and Close Ticket (don't notify user)</option>
 
                                 </select><br>
 

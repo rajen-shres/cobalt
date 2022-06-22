@@ -1,3 +1,7 @@
+{# Row for ticket view #}
+
+{% load cobalt_tags %}
+
 <tr>
     <td class="{{ td_class }}"><a href="{% url "support:helpdesk_edit" ticket_id=thing.id %}">
 
@@ -11,9 +15,9 @@
         </div>
     </a>
     </td>
-    <td class="text-right">{{ thing.id }}</td>
-    <td title="{{ thing.created_date|timesince }} ago"
-        data-toggle="tooltip">{{ thing.created_date|date:'Y-m-d H:i:s' }}</td>
+    <td class="text-left">{{ thing.id }}</td>
+    <td class="text-left" title="{{ thing.created_date|timesince }} ago"
+        data-toggle="tooltip">{{ thing.created_date|cobalt_nice_datetime_short }}</td>
     <td class="text-left">{{ thing.status }}</td>
     {% if thing.reported_by_user %}
         <td class="text-left">{{ thing.reported_by_user }}</td>

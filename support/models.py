@@ -53,7 +53,7 @@ class Incident(models.Model):
         null=True,
         related_name="reporter",
     )
-    """ Standard User object - who reported it"""
+    """ Standard User object - who reported it """
 
     assigned_to = models.ForeignKey(
         User,

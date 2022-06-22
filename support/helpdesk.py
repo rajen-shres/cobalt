@@ -1,4 +1,5 @@
 import copy
+import logging
 import re
 from datetime import timedelta
 
@@ -43,6 +44,8 @@ from support.forms import (
 from support.models import Incident, IncidentLineItem, Attachment, NotifyUserByType
 
 TZ = pytz.timezone(TIME_ZONE)
+
+logger = logging.getLogger("cobalt")
 
 
 def _get_user_details_from_ticket(ticket):
@@ -572,12 +575,14 @@ def edit_ticket(request, ticket_id):
 
     staff_list = rbac_get_users_with_role("support.helpdesk.edit")
 
-    staff = ""
-    for staff_list_item in staff_list:
-        staff += "'%s-%s', " % (
+    staff = "".join(
+        "'%s-%s', "
+        % (
             escape(staff_list_item.first_name),
             escape(staff_list_item.last_name),
         )
+        for staff_list_item in staff_list
+    )
     if len(staff) > 0:
         staff = staff[:-2]
 
@@ -623,7 +628,7 @@ def add_comment(request, ticket_id):
         action = form.cleaned_data["action"]
 
         # See if we are also closing the ticket
-        and_close = action == "add-close"
+        and_close = action in ["add-close", "add-close-silent"]
 
         # See if we are also changing status to awaiting user feedback
         and_awaiting = action == "add-awaiting"
@@ -662,11 +667,16 @@ def add_comment(request, ticket_id):
 
             if private:
                 text = ""
-            _notify_user_resolved_ticket(request, ticket, text)
+
+            if action != "add-close-silent":
+                _notify_user_resolved_ticket(request, ticket, text)
+                msg = "Ticket closed and user notified."
+            else:
+                msg = "Ticket closed, user NOT notified."
 
             messages.success(
                 request,
-                "Ticket closed and user notified.",
+                msg,
                 extra_tags="cobalt-message-success",
             )
             return redirect("support:helpdesk_menu")
@@ -985,3 +995,33 @@ def create_ticket_api(
     # if unassigned, notify everyone
     if ticket.status == "Unassigned":
         notify_group_new_ticket_by_staff("The System", ticket)
+
+
+def close_old_tickets():
+    """Called from cron via a management command to close any tickets over 30 days old with no activity"""
+
+    logger.info("Looking for old tickets to close")
+
+    # Get date 30 days ago
+    ref_date = timezone.now() - timedelta(days=30)
+
+    # Get tickets which are in progress or waiting for user feedback which haven't have any action for 30 days or more
+    inactive_tickets = Incident.objects.filter(
+        incidentlineitem__created_date__lt=ref_date
+    ).filter(status__in=["In Progress", "Pending User Feedback"])
+
+    if not inactive_tickets:
+        logger.info("No tickets are old enough to close")
+        return
+
+    system_account = User.objects.get(pk=ABF_USER)
+
+    for inactive_ticket in inactive_tickets:
+        logger.info(f"Closing ticket {inactive_ticket}")
+        IncidentLineItem(
+            incident=inactive_ticket,
+            staff=system_account,
+            description="Ticket automatically closed after 30 days of inactivity",
+        ).save()
+        inactive_ticket.status = "Closed"
+        inactive_ticket.save()
