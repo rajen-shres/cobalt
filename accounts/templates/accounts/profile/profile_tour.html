@@ -81,11 +81,6 @@
                 intro: 'Your picture will save immediately, but you need to click this button if you write about yourself.',
             },
             {
-                title: 'Covid',
-                element: document.querySelector('#covid-status'),
-                intro: 'Here you can record your Covid vaccination status. This is needed for some events.',
-            },
-            {
                 title: 'Team Mates',
                 element: document.querySelector('#teammates'),
                 intro: "Here you can set up the people that you play with regularly. They will be available on " +
@@ -109,7 +104,7 @@
                 '<a href="{% url "dashboard:dashboard" %}?tour=yes"><b>Dashboard Tour</b></a> gives an overview of the whole system.' +
                 '<br><br><ul>' +
                 '<li><a href="{% url "dashboard:dashboard" %}?tour=yes"><b>Dashboard Tour</b></a>' +
-                '<li><a href="/"><b>Bridge Credits Tour</b></a>' +
+                '<li><a href="{% url "payments:payments" %}?tour=yes"><b>{{ BRIDGE_CREDITS }} Tour</b></a>' +
                 '</ul>',
             },
         ]

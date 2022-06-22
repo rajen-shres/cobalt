@@ -1,0 +1,80 @@
+{#This file is the script for the tour. It is called by adding ?tour=anything to the URL#}
+
+{% load static %}
+<script src="{% static "assets/packages/intro.js.4.3.0/intro.min.js" %}"></script>
+<script>
+    $(document).ready(function() {
+
+        const steps = [
+            {
+                title: '{{ BRIDGE_CREDITS }} Tour',
+                intro: '<img src="{% static "assets/img/abftechlogo.png" %}" style="width:170px ; display: block; margin-left: auto; margin-right: auto;">' +
+                '<br>{{ BRIDGE_CREDITS }} are how you pay for things on {{ GLOBAL_TITLE }}.' +
+                '<br><br>If you would like a quick tour click <b>Next</b>. If not, then press Escape or click the X at the top right. ',
+                element: document.querySelector('.wrapper'),
+            },
+            {
+                title: 'Using {{ BRIDGE_CREDITS }}',
+                intro: 'You can add {{ BRIDGE_CREDITS }} to your account at any time by using the manual ' +
+                'top up button.',
+                element: document.querySelector('#manual_top_up'),
+            },
+            {
+                title: 'Using {{ BRIDGE_CREDITS }}',
+                intro: 'If you do not have enough {{ BRIDGE_CREDITS }} to pay for what you are trying to do ' +
+                'then you will be taken to the card payment screen to make your payment.',
+            },
+            {
+                title: 'Auto Top Up',
+                intro: 'We recommend that you enable auto top up. This means that any time you have  ' +
+                'insufficient funds, we will debit your card automatically.',
+                element: document.querySelector('#auto_top_up'),
+            },
+            {
+                title: 'Auto Top Up is Secure',
+                intro: 'We use Stripe to make payments and your card details are not stored and cannot '+
+                'be compromised. We will send you an email every time an auto top up takes place.',
+                element: document.querySelector('#auto_top_up'),
+            },
+            {
+                title: 'Balance',
+                intro: 'You can see your balance here, or on the Dashboard.',
+                element: document.querySelector('#balance'),
+            },
+            {
+                title: 'Transfer',
+                intro: 'You can transfer {{ BRIDGE_CREDITS }} to another user on {{ GLOBAL_TITLE }}.',
+                element: document.querySelector('#transfer'),
+            },
+            {
+                title: 'Download as CSV',
+                intro: 'You can download all of your transactions as a CSV to use in Excel or other programs if you wish.',
+                element: document.querySelector('#csv'),
+            },
+            {
+                title: 'Transactions',
+                {% if things %}
+                    intro: 'You can see your transactions here. For details click on the info button to the left.',
+                {% else %}
+                    intro: 'You do not have any transactions yet. When you do they will appear here.',
+                {% endif %}
+                element: document.querySelector('#transactions'),
+            },
+
+            {
+                title: '{{ BRIDGE_CREDITS }} Tour',
+                intro: '<img src="{% static "assets/img/abftechlogo.png" %}" ' +
+                'style="width:170px ; display: block; margin-left: auto; margin-right: auto;">' +
+                '<br>That is the end of the <b>{{ BRIDGE_CREDITS }} Tour</b> but you can take tours of other pages if ' +
+                'you like. Tours can be found under the <b>Support</b> menu. <br><br>The ' +
+                '<a href="{% url "dashboard:dashboard" %}?tour=yes"><b>Dashboard Tour</b></a> gives an overview of the whole system.',
+            },
+        ]
+
+        introJs().setOptions({
+            showBullets: false,
+            steps: steps,
+        }).start();
+
+    });
+</script>

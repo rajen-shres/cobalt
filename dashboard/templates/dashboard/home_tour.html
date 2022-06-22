@@ -51,8 +51,8 @@
             {
                 element: document.querySelector('#dashboard-results'),
                 title: 'Results',
-                intro: "We haven't added results to {{ GLOBAL_TITLE }} yet, but when "  +
-                "we do this is where your recent results will show."
+                intro: "We are in the process of adding results to {{ GLOBAL_TITLE }}, "  +
+                "this is where your recent results will show."
             },
             {
                 element: document.querySelector('#dashboard-upcoming'),
@@ -141,7 +141,7 @@
                 '<br>That is the end of the <b>Dashboard Tour</b> but you can take tours of other pages if ' +
                 'you like. Tours can be found under the <b>Support</b> menu.<br><br><ul>' +
                 '<li><a href="{% url "accounts:user_profile" %}?tour=yes"><b>Profile Tour</b></a>' +
-                '<li><a href="/"><b>Bridge Credits Tour</b></a>' +
+                '<li><a href="{% url "payments:statement" %}?tour=yes"><b>{{ BRIDGE_CREDITS }} Tour</b></a>' +
                 '</ul>',
                 element: document.querySelector('.wrapper'),
             },

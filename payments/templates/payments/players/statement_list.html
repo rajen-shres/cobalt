@@ -4,7 +4,7 @@
 
 {% if things %}
 
-    <div class="table_responsive">
+    <div class="table-responsive" id="transactions">
         <table class="table table-hover">
             <thead class="text-info">
                 <tr>
@@ -13,8 +13,14 @@
                     <th>Counterparty</th>
                     <th>Type</th>
                     <th>Description</th>
-                    <th class="text-right">Credits In</th>
-                    <th class="text-right">Credits Out</th>
+                    <th class="text-right">
+                        <span class="d-none d-md-inline">Credits</span>
+                        In
+                    </th>
+                    <th class="text-right">
+                        <span class="d-none d-md-inline">Credits</span>
+                        Out
+                    </th>
                     <th class="text-right">Balance</th>
                 </tr>
             </thead>

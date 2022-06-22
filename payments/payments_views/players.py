@@ -67,6 +67,9 @@ def statement(request):
         ):
             thing.show_refund = True
 
+    # Show tour for this page?
+    tour = request.GET.get("tour", None)
+
     return render(
         request,
         "payments/players/statement.html",
@@ -78,6 +81,7 @@ def statement(request):
             "balance": balance,
             "auto_button": auto_button,
             "auto_amount": request.user.auto_amount,
+            "tour": tour,
         },
     )
 
