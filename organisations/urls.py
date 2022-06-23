@@ -218,7 +218,7 @@ urlpatterns = [
         name="club_menu_tab_settings_reload_basic_htmx",
     ),
     path(
-        "club-menu/tabs/settings-home",
+        "club-menu/tabs/settings-general",
         organisations.views.club_menu_tabs.settings.general_htmx,
         name="club_menu_tab_settings_general_htmx",
     ),

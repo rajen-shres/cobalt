@@ -154,7 +154,7 @@ def logs_htmx(request, club):
 
 @check_club_menu_access()
 def general_htmx(request, club):
-    """build the settings tab in club menu for editing home details"""
+    """build the settings tab in club menu for editing general details"""
 
     message = ""
 
@@ -176,7 +176,7 @@ def general_htmx(request, club):
             org.save()
 
             ClubLog(
-                organisation=club, actor=request.user, action="Updated home settings"
+                organisation=club, actor=request.user, action="Updated general settings"
             ).save()
 
             # We can't use Django messages as they won't show until the whole page reloads

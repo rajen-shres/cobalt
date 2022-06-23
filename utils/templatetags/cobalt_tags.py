@@ -189,7 +189,7 @@ def cobalt_bs4_field(field, no_label=False):
     Returns a form-group div with the field rendered inside
     Will include a label if the type of field suits it.
 
-    This is a home tag to be used for any field. It tries
+    This is a general tag to be used for any field. It tries
     to work out how to format the HTML based upon the type of field.
 
     use it per field so you can format the elements individually.

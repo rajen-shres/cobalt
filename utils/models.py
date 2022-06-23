@@ -1,6 +1,6 @@
 """ Utilities.
 
-    This handles the models for home things such as batch processing.
+    This handles the models for general things such as batch processing.
 
 """
 from datetime import timedelta
