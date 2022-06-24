@@ -126,6 +126,30 @@ class CobaltTestManagerAbstract(ABC):
         """Get a user by username"""
         return User.objects.filter(username=username).first()
 
+    def sleep(self, duration=99999999):
+        """Util to sleep for a long time to allow DB to be investigated when there are problems with tests"""
+
+        stack = inspect.stack()
+        calling_lineno = stack[1][0].f_lineno
+        calling_file = stack[1][0].f_code.co_filename
+
+        print(
+            "\n\n------------------------------------------------------------------\n"
+        )
+        print("Sleeping so you can investigate a test issue.")
+        print("Connect through a web browser at http://127.0.0.1:8088")
+        print("Or use manage.py shell_plus with export RDS_DB_NAME=test\n")
+        print(f"Stopped by {calling_file} at line {calling_lineno}.")
+        print(
+            "\n\n------------------------------------------------------------------\n"
+        )
+        try:
+            time.sleep(duration)
+        except KeyboardInterrupt:
+            pass
+
+        print("Continuing...")
+
     def save_results(self, status, test_name, test_description=None, output=None):
         """handle logging results
 
@@ -531,30 +555,6 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
             (By.ID, element_id), text
         )
         return self._selenium_wait(element_has_text, element_id, timeout=timeout)
-
-    def sleep(self, duration=99999999):
-        """Util to sleep for a long time to allow DB to be investigated when there are problems with tests"""
-
-        stack = inspect.stack()
-        calling_lineno = stack[1][0].f_lineno
-        calling_file = stack[1][0].f_code.co_filename
-
-        print(
-            "\n\n------------------------------------------------------------------\n"
-        )
-        print("Sleeping so you can investigate a test issue.")
-        print("Connect through a web browser at http://127.0.0.1:8088")
-        print("Or use manage.py shell_plus with export RDS_DB_NAME=test\n")
-        print(f"Stopped by {calling_file} at line {calling_lineno}.")
-        print(
-            "\n\n------------------------------------------------------------------\n"
-        )
-        try:
-            time.sleep(duration)
-        except KeyboardInterrupt:
-            pass
-
-        print("Continuing...")
 
     def run(self):
 

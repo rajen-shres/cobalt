@@ -9,7 +9,7 @@ printf "\nWhat Have You Forgotten Now?${NC}\n"
 printf "${YELLOW}----------------------------${NC}\n\n"
 
 PS3='Select: '
-options=("Full name in a template" "JS Ready Function" "EB Memory Error" "Quit")
+options=("Full name in a template" "JS Ready Function" "EB Memory Error" "Upgrade Chromedriver" "Quit")
 select opt in "${options[@]}"
 do
     case $opt in
@@ -36,6 +36,11 @@ do
            echo "unset AWS_SECRET_ACCESS_KEY; unset AWS_ACCESS_KEY_ID"
            echo "aws ec2 terminate-instances --instance-ids <id>"
            echo "eb scale 1 <env>"
+           exit
+           ;;
+         "Upgrade Chromedriver")
+           echo "brew update; brew upgrade chromedriver"
+           echo "sudo xattr -d com.apple.quarantine '/opt/homebrew/bin/chromedriver'"
            exit
            ;;
         "Quit")

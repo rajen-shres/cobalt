@@ -106,6 +106,7 @@ def _event_entry_test_helper(manager, test_name, event, entrants, expected_statu
             test_description="Check the email for the convener was sent",
             subject_search="New Entry to ",
             email_to=convener,
+            debug=True,
         )
 
 
@@ -137,6 +138,8 @@ class CallbackTests:
             ],
             expected_status="Complete",
         )
+
+        self.manager.sleep()
 
         # Pairs - my-system-dollars and ask them
         _event_entry_test_helper(
