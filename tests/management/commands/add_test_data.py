@@ -24,6 +24,7 @@ from importlib import import_module
 
 TZ = pytz.timezone(TIME_ZONE)
 DATA_DIR = "tests/test_data"
+CORE_DATA_DIR = "tests/test_data_core"
 
 
 class Command(BaseCommand):
@@ -31,6 +32,34 @@ class Command(BaseCommand):
         super().__init__()
         self.gen = DocumentGenerator()
         self.id_array = {}
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--core_test_files",
+            action="store_true",
+            help="Use the core files directory instead of default",
+        )
+
+    def handle(self, *args, **options):
+
+        data_dir = CORE_DATA_DIR if options["core_test_files"] else DATA_DIR
+
+        if COBALT_HOSTNAME in ["myabf.com.au", "www.myabf.com.au"]:
+            raise SuspiciousOperation(
+                "Not for use in production. This cannot be used in a production system."
+            )
+
+        print("Running add_rbac_test_data")
+
+        try:
+            for fname in sorted(glob.glob(f"{data_dir}/*.csv")):
+                print("\n#########################################################")
+                print(f"Processing: {fname}")
+                self.process_csv(fname)
+
+        except KeyboardInterrupt:
+            print("\n\nTest data loading interrupted by user\n")
+            sys.exit(0)
 
     def parse_csv(self, file):
         """try to sort out the mess Excel makes of CSV files.
@@ -246,21 +275,3 @@ class Command(BaseCommand):
             dic["mark"] = User.objects.filter(system_number="620246").first()
             dic["julian"] = User.objects.filter(system_number="518891").first()
         self.id_array["accounts.User"] = dic
-
-    def handle(self, *args, **options):
-        if COBALT_HOSTNAME in ["myabf.com.au", "www.myabf.com.au"]:
-            raise SuspiciousOperation(
-                "Not for use in production. This cannot be used in a production system."
-            )
-
-        print("Running add_rbac_test_data")
-
-        try:
-            for fname in sorted(glob.glob(f"{DATA_DIR}/*.csv")):
-                print("\n#########################################################")
-                print(f"Processing: {fname}")
-                self.process_csv(fname)
-
-        except KeyboardInterrupt:
-            print("\n\nTest data loading interrupted by user\n")
-            sys.exit(0)

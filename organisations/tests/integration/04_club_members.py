@@ -127,18 +127,18 @@ class ClubMembers:
         self.manager.selenium_wait_for("t_member_tab_add").click()
         # Click Add Member
         self.manager.selenium_wait_for("t_member_add_individual_member").click()
-        # First name Julie
+        # First name Ian
         self.manager.selenium_wait_for("id_member_first_name_search").click()
         self.manager.selenium_wait_for_clickable(
             "id_member_first_name_search"
         ).send_keys("ian")
-        # last name Guthrie
+        # last name Thomson
         self.manager.selenium_wait_for("id_member_last_name_search").click()
         self.manager.selenium_wait_for_clickable(
             "id_member_last_name_search"
         ).send_keys("thomson")
-        # click on user.
-        self.manager.selenium_wait_for("id_show_add_un_reg_modal_148911").click()
+        # click on user
+        self.manager.selenium_wait_for("id_show_add_mpc_modal_148911").click()
         # Click on add in modal
         self.manager.selenium_wait_for_clickable("t_add_unreg_member").click()
 

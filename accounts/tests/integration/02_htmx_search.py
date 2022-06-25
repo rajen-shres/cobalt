@@ -1,5 +1,3 @@
-import time
-
 from django.urls import reverse
 
 from accounts.models import User
@@ -13,7 +11,7 @@ class HTMXSearch:
         self.manager = manager
         self.manager.login_user(self.manager.alan)
 
-        # Create a user so we have letters in common with Fiona
+        # Create a user, so we have letters in common with Fiona
         self.finn = User(first_name="Finn", last_name="Fredrick", system_number=9999999)
         self.finn.save()
 
@@ -36,11 +34,7 @@ class HTMXSearch:
             "Finn", "name-matchesinline-callback"
         )
 
-        if ff and finn:
-            success = True
-        else:
-            success = False
-
+        success = bool(ff and finn)
         self.manager.save_results(
             status=success,
             test_name="Last Name both match",

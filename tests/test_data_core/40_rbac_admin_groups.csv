@@ -1,0 +1,20 @@
+################################################################### 
+# Test data format. See read the docs for details                 # 
+################################################################### 
+# First line is application                                         Model                                # 
+#                                                                 # 
+# Second line is headings                                         # 
+#                                                                 # 
+# Blank lines or lines starting with # are ignored                # 
+#                                                                 # 
+# REFORMAT files with ./manage.py reformat_test_csvs              # 
+#                                                                 # 
+################################################################### 
+
+rbac    , RBACAdminGroup          ,                    ,                                               , , , , , , , , 
+id      , name_qualifier          , name_item          , description                                   , , , , , , , , 
+ad_group, admin.cobalt.global     , system_gods        , Highest level of admin to all functions.      , , , , , , , , 
+f_group , admin.cobalt.global     , forums             , All forum admin                               , , , , , , , , 
+p_group , admin.orgs.abf.abf_roles, payments           , Group to manage access to payments for the ABF, , , , , , , , 
+fbc     , admin.clubs.act         , fantasy_bridge_club, Fantasy Bridge Club admins                    , , , , , , , , 
+rbc     , admin.clubs.act         , rival_bridge_club  , Rival Bridge Club admins                      , , , , , , , , 

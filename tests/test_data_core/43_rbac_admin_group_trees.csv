@@ -1,0 +1,18 @@
+################################################################### 
+# Test data format. See read the docs for details                 # 
+################################################################### 
+# First line is application                                         Model                                #  
+#                                                                 # 
+# Second line is headings                                         # 
+#                                                                 # 
+# Blank lines or lines starting with # are ignored                # 
+#                                                                 # 
+# REFORMAT files with ./manage.py reformat_test_csvs              # 
+#                                                                 # 
+################################################################### 
+
+rbac                        , RBACAdminTree                          , , , , , , , , 
+id.group.rbac.RBACAdminGroup, tree                                   , , , , , , , , 
+p_group                     , rbac.orgs.abf.abf_roles                , , , , , , , , 
+fbc                         , rbac.orgs.clubs.act.fantasy_bridge_club, , , , , , , , 
+rbc                         , rbac.orgs.clubs.act.rival_bridge_club  , , , , , , , , 

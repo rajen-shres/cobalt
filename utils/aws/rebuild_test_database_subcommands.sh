@@ -13,5 +13,12 @@
 ./manage.py add_rbac_static_club_sessions
 ./manage.py create_states
 ./manage.py add_notifications_templates
-./manage.py add_test_data
+
+# If parameter core is passed then use the core files, not the user ones
+if [ "$1" = "core" ]; then
+  ./manage.py add_test_data --core_test_files
+else
+  ./manage.py add_test_data
+fi
+
 ./manage.py add_test_data_forum_posts

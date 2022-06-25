@@ -1,0 +1,35 @@
+################################################################### 
+# Test data format. See read the docs for details                 # 
+################################################################### 
+# First line is application                                         Model                                # 
+#                                                                 # 
+# Second line is headings                                         # 
+#                                                                 # 
+# Blank lines or lines starting with # are ignored                # 
+#                                                                 # 
+# REFORMAT files with ./manage.py reformat_test_csvs              # 
+#                                                                 # 
+################################################################### 
+
+rbac                   , RBACGroupRole,         ,       ,          ,         , , , , , , , , 
+id.group.rbac.RBACGroup, app          , model   , action, rule_type, model_id, , , , , , , , 
+fbc_staff              , orgs         , org     , edit  , Allow    , 10      , , , , , , , , 
+fbc_pay                , payments     , manage  , all   , Allow    , 10      , , , , , , , , 
+forum_admin            , forums       , admin   , edit  , Allow    ,         , , , , , , , , 
+public_mods            , forums       , moderate, edit  , Allow    , 1       , , , , , , , , 
+public_mods            , forums       , moderate, edit  , Allow    , 2       , , , , , , , , 
+public_mods            , forums       , moderate, edit  , Allow    , 3       , , , , , , , , 
+public_mods            , forums       , moderate, edit  , Allow    , 4       , , , , , , , , 
+public_mods            , forums       , moderate, edit  , Allow    , 5       , , , , , , , , 
+block_all              , forums       , forum   , all   , Block    , 6       , , , , , , , , 
+allow_specific         , forums       , forum   , all   , Allow    , 6       , , , , , , , , 
+secret_mods            , forums       , moderate, edit  , Allow    , 6       , , , , , , , , 
+global_mods            , forums       , moderate, edit  , Allow    ,         , , , , , , , , 
+abfp                   , payments     , global  , all   , Allow    ,         , , , , , , , , 
+abfpv                  , payments     , global  , view  , Allow    ,         , , , , , , , , 
+fbc_congress           , events       , org     , all   , Allow    , 10      , , , , , , , , 
+rbc_congress           , events       , org     , all   , Allow    , 11      , , , , , , , , 
+abfe                   , events       , global  , all   , Allow    ,         , , , , , , , , 
+abf_org                , orgs         , admin   , all   , Allow    ,         , , , , , , , 
+nsw_org                , orgs         , state   , all   , Allow    , 3       , , , , , , , , 
+qld_org                , orgs         , state   , edit  , Allow    , 5       , , , , , , , , 

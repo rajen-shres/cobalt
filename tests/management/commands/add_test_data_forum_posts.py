@@ -125,8 +125,7 @@ class Command(BaseCommand):
 
         try:
             # create dummy Posts
-            print("\nCreating dummy forum posts")
-            print("Running", end="", flush=True)
+            print(f"\nCreating {DUMMY_DATA_COUNT *10} dummy forum posts")
             for count, _ in enumerate(range(DUMMY_DATA_COUNT * 10), start=1):
 
                 user_list = User.objects.exclude(id__in=ALL_SYSTEM_ACCOUNTS)
