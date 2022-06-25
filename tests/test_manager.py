@@ -38,7 +38,7 @@ setup_test_environment()
 # For the integration tests we are telling a story and the order matters
 # For unit tests each test should stand alone and they are dynamically found
 LIST_OF_INTEGRATION_TESTS = {
-    # "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
+    "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
     "HTMXSearch": "accounts.tests.integration.02_htmx_search",
     "EventEntry": "events.tests.integration.01_user_event_entry",
     "APITests": "api.tests.integration.01_authorisation_tests",

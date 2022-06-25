@@ -68,6 +68,14 @@ def _check_email_sent_tests(
 ):
     """Sub step of check_email_sent. Does the actual checking."""
 
+    if debug:
+        mail_count = Email.objects.count()
+        print(
+            f"----> Inside _check_email_sent_tests. There are {mail_count} emails. Email list is:"
+        )
+        for email in emails:
+            print(f"To: {email.context['name']}   Subject: {email.context['title']}")
+
     if not emails:
         return False, "No emails found at all. Could not search."
 
@@ -81,7 +89,7 @@ def _check_email_sent_tests(
                 if email.context["name"] == email_to:
                     ok = True
                     if debug:
-                        print("Email Check: Matched email in email_to check")
+                        print(f"Email Check: Matched email in email_to check - {email}")
                 else:
                     emails.exclude(pk=email.id)
             except TypeError:
@@ -104,7 +112,9 @@ def _check_email_sent_tests(
                 if email.context["subject"].find(subject_search) >= 0:
                     ok = True
                     if debug:
-                        print("Email Check: Matched email in subject_search check")
+                        print(
+                            f"Email Check: Matched email in subject_search check - {email}"
+                        )
                 else:
                     emails.exclude(pk=email.id)
             except TypeError:
@@ -127,7 +137,9 @@ def _check_email_sent_tests(
                 if email.context["email_body"].find(body_search) >= 0:
                     ok = True
                     if debug:
-                        print("Email Check: Matched email in body_search check")
+                        print(
+                            f"Email Check: Matched email in body_search check: {email}"
+                        )
             except TypeError:
                 if debug:
                     print(
