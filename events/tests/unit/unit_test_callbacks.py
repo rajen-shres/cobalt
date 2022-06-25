@@ -120,105 +120,105 @@ class CallbackTests:
         self.pairs_event = Event.objects.get(pk=1)
         self.teams_event = Event.objects.get(pk=2)
 
-    # def primary_functions_pairs(self):
-    #     """Tests for the callback for the primary entrant - pairs"""
-    #
-    #     lucy = self.manager.lucy
-    #     morris = self.manager.morris
-    #     # natalie = self.manager.natalie
-    #     # penelope = self.manager.penelope
-    #
-    #     print("******About to run lucy/morris test")
-    #     emails = Email.objects.all()
-    #     print(emails)
-    #
-    #     # Pairs - both my-system-dollars
-    #     _event_entry_test_helper(
-    #         manager=self.manager,
-    #         test_name="Pairs entry - Both My Bridge Credits",
-    #         event=self.pairs_event,
-    #         entrants=[
-    #             [lucy, "my-system-dollars", "Paid"],
-    #             [morris, "my-system-dollars", "Paid"],
-    #         ],
-    #         expected_status="Complete",
-    #     )
-    #
-    #     print("******Finished lucy/morris test")
-    #     emails = Email.objects.all()
-    #     print(emails)
-    #
-    #     # Pairs - my-system-dollars and ask them
-    #     _event_entry_test_helper(
-    #         manager=self.manager,
-    #         test_name="Pairs entry My Bridge Credits and ask them",
-    #         event=self.pairs_event,
-    #         entrants=[
-    #             [lucy, "my-system-dollars", "Paid"],
-    #             [morris, "unknown", "Unpaid"],
-    #         ],
-    #         expected_status="Pending",
-    #     )
-    #
-    #     print("******Finished lucy/morris test 2")
-    #     emails = Email.objects.all()
-    #     print(emails)
-    #
-    #     # Pairs - other-pp and bank-transfer
-    #     _event_entry_test_helper(
-    #         manager=self.manager,
-    #         test_name="Pairs entry Club PP and Bank Transfer",
-    #         event=self.pairs_event,
-    #         entrants=[
-    #             [
-    #                 lucy,
-    #                 "off-system-pp",
-    #                 "Unpaid",
-    #                 "We are expecting some payments for this entry from another pre-paid system",
-    #             ],
-    #             [
-    #                 morris,
-    #                 "bank-transfer",
-    #                 "Unpaid",
-    #                 "We are expecting some payments for this entry by bank transfer.",
-    #             ],
-    #         ],
-    #         expected_status="Pending",
-    #     )
-    #
-    #     # TODO: Check why this fails
-    #
-    #     # # Pairs - My Bridge Credits and Their Bridge Credits Insufficient funds
-    #     # _event_entry_test_helper(
-    #     #     manager=self.manager,
-    #     #     test_name="Pairs entry My Bridge Credits and Their Bridge Credits. Insufficient funds",
-    #     #     event=self.pairs_event,
-    #     #     entrants=[
-    #     #         [lucy, "my-system-dollars", "Paid"],
-    #     #         [morris, "their-system-dollars", "Unpaid"],
-    #     #     ],
-    #     #     expected_status="Pending",
-    #     # )
-    #
-    #     # Give poor Morris some cash and try again
-    #     update_account(
-    #         member=morris,
-    #         amount=1000.0,
-    #         description="Cash",
-    #         payment_type="Refund",
-    #     )
-    #
-    #     # Pairs - My Bridge Credits and Their Bridge Credits
-    #     _event_entry_test_helper(
-    #         manager=self.manager,
-    #         test_name="Pairs entry My Bridge Credits and Their Bridge Credits. Sufficient funds",
-    #         event=self.pairs_event,
-    #         entrants=[
-    #             [lucy, "my-system-dollars", "Paid"],
-    #             [morris, "their-system-dollars", "Paid"],
-    #         ],
-    #         expected_status="Complete",
-    #     )
+    def primary_functions_pairs(self):
+        """Tests for the callback for the primary entrant - pairs"""
+
+        lucy = self.manager.lucy
+        morris = self.manager.morris
+        # natalie = self.manager.natalie
+        # penelope = self.manager.penelope
+
+        print("******About to run lucy/morris test")
+        emails = Email.objects.all()
+        print(emails)
+
+        # Pairs - both my-system-dollars
+        _event_entry_test_helper(
+            manager=self.manager,
+            test_name="Pairs entry - Both My Bridge Credits",
+            event=self.pairs_event,
+            entrants=[
+                [lucy, "my-system-dollars", "Paid"],
+                [morris, "my-system-dollars", "Paid"],
+            ],
+            expected_status="Complete",
+        )
+
+        print("******Finished lucy/morris test")
+        emails = Email.objects.all()
+        print(emails)
+
+        # Pairs - my-system-dollars and ask them
+        _event_entry_test_helper(
+            manager=self.manager,
+            test_name="Pairs entry My Bridge Credits and ask them",
+            event=self.pairs_event,
+            entrants=[
+                [lucy, "my-system-dollars", "Paid"],
+                [morris, "unknown", "Unpaid"],
+            ],
+            expected_status="Pending",
+        )
+
+        print("******Finished lucy/morris test 2")
+        emails = Email.objects.all()
+        print(emails)
+
+        # Pairs - other-pp and bank-transfer
+        _event_entry_test_helper(
+            manager=self.manager,
+            test_name="Pairs entry Club PP and Bank Transfer",
+            event=self.pairs_event,
+            entrants=[
+                [
+                    lucy,
+                    "off-system-pp",
+                    "Unpaid",
+                    "We are expecting some payments for this entry from another pre-paid system",
+                ],
+                [
+                    morris,
+                    "bank-transfer",
+                    "Unpaid",
+                    "We are expecting some payments for this entry by bank transfer.",
+                ],
+            ],
+            expected_status="Pending",
+        )
+
+        # TODO: Check why this fails
+
+        # # Pairs - My Bridge Credits and Their Bridge Credits Insufficient funds
+        # _event_entry_test_helper(
+        #     manager=self.manager,
+        #     test_name="Pairs entry My Bridge Credits and Their Bridge Credits. Insufficient funds",
+        #     event=self.pairs_event,
+        #     entrants=[
+        #         [lucy, "my-system-dollars", "Paid"],
+        #         [morris, "their-system-dollars", "Unpaid"],
+        #     ],
+        #     expected_status="Pending",
+        # )
+
+        # Give poor Morris some cash and try again
+        update_account(
+            member=morris,
+            amount=1000.0,
+            description="Cash",
+            payment_type="Refund",
+        )
+
+        # Pairs - My Bridge Credits and Their Bridge Credits
+        _event_entry_test_helper(
+            manager=self.manager,
+            test_name="Pairs entry My Bridge Credits and Their Bridge Credits. Sufficient funds",
+            event=self.pairs_event,
+            entrants=[
+                [lucy, "my-system-dollars", "Paid"],
+                [morris, "their-system-dollars", "Paid"],
+            ],
+            expected_status="Complete",
+        )
 
     def primary_functions_teams(self):
         """Tests for the callback for the primary entrant - teams"""
