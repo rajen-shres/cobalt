@@ -11,3 +11,4 @@ ipdb
 # pytest-django
 # pytest-html
 coverage==6.4.1
+PySimpleGUI==4.60.1
