@@ -49,11 +49,13 @@
 
         <!-- TOP NAVIGATION TABS -->
 
+        <!-- WE SHOW ICONS AND LONG NAMES ONLY ON LARGE SCREENS -->
+
         <div class="card-body">
             <div class="mx-auto">
                 <div class="card">
                     <div class="card-header card-header-secondary">
-                        <ul id="id_menu" class="nav nav-pills nav-pills-icons nav-pills-warning" role="tablist">
+                        <ul id="id_menu" class="nav nav-pills nav-justified nav-pills-icons nav-pills-warning" role="tablist">
                             <li class="nav-item">
                                 <a id="id_tab_general" class="nav-link active auto-refresh" href="#general" role="tab" data-toggle="tab">
                                     <span class="d-none d-md-block">
@@ -65,6 +67,7 @@
                                     </span>
                                 </a>
                             </li>
+
                             {% if forums_admin %}
                                 <li class="nav-item">
                                     <a id="id_tab_forums" class="nav-link auto-refresh" href="#forums" role="tab" data-toggle="tab">
@@ -138,7 +141,7 @@
                                         Access
                                     </span>
                                     <span class="d-md-none">
-                                        RBAC
+                                        Access
                                     </span>
                                 </a>
                             </li>
@@ -184,7 +187,7 @@
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <a class="btn btn-sm btn-success btn-block" href="/admin_1234567">Django Admin Pages</a>
+                                                    <a class="btn btn-sm btn-success btn-block" href="/admin_1234567">Django Admin</a>
                                                 </td>
                                                 <td class="text-left pl-5">
                                                     Django built in admin functions
@@ -278,7 +281,7 @@
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <a class="btn btn-sm btn-warning btn-block" href="{% url "events:global_admin_congress_masters" %}">Manage Congress Masters</a>
+                                                    <a class="btn btn-sm btn-warning btn-block" href="{% url "events:global_admin_congress_masters" %}">Congress Masters</a>
                                                 </td>
                                                 <td class="text-left pl-5">
                                                     Add a congress definition for an organisation
@@ -370,7 +373,9 @@
                                                     <a class="btn btn-sm btn-info btn-block" href="{% url "rbac:view_screen" %}">View Your Access</a>
                                                 </td>
                                                 <td class="text-left pl-5">
-                                                    Show your RBAC groups and roles
+                                                    <span class="d-none d-md-inline-flex">
+                                                        Show your RBAC groups and roles
+                                                    </span>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -378,7 +383,9 @@
                                                     <a class="btn btn-sm btn-info btn-block" href="{% url "rbac:tree_screen" %}">View The Whole Tree</a>
                                                 </td>
                                                 <td class="text-left pl-5">
-                                                    View entire RBAC (normal) tree
+                                                    <span class="d-none d-md-inline-flex">
+                                                        View entire RBAC (normal) tree
+                                                    </span>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -386,7 +393,9 @@
                                                     <a class="btn btn-sm btn-info btn-block" href="{% url "rbac:list_screen" %}">View The Whole Tree as List</a>
                                                 </td>
                                                 <td class="text-left pl-5">
-                                                    View entire RBAC (normal) tree as a list
+                                                    <span class="d-none d-md-inline-flex">
+                                                        View entire RBAC (normal) tree as a list
+                                                    </span>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -403,7 +412,9 @@
                                                     <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:rbac_admin" %}">View Your Admin Access</a>
                                                 </td>
                                                 <td class="text-left pl-5">
-                                                    Show your RBAC admin groups and roles
+                                                    <span class="d-none d-md-inline-flex">
+                                                        Show your RBAC admin groups and roles
+                                                    </span>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -411,7 +422,9 @@
                                                     <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:admin_tree_screen" %}">View The Whole Admin Tree</a>
                                                 </td>
                                                 <td class="text-left pl-5">
-                                                    View entire RBAC admin tree
+                                                    <span class="d-none d-md-inline-flex">
+                                                        View entire RBAC admin tree
+                                                    </span>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -419,7 +432,9 @@
                                                     <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:role_view_screen" %}">View All Models and Roles</a>
                                                 </td>
                                                 <td class="text-left pl-5">
-                                                    View models and roles in RBAC
+                                                    <span class="d-none d-md-inline-flex">
+                                                        View models and roles in RBAC
+                                                    </span>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -427,7 +442,9 @@
                                                     <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:group_create" %}">Create A New Group</a>
                                                 </td>
                                                 <td class="text-left pl-5">
-                                                    Create an RBAC (normal) group
+                                                    <span class="d-none d-md-inline-flex">
+                                                        Create an RBAC (normal) group
+                                                    </span>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -435,7 +452,9 @@
                                                     <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:rbac_tests" %}">Tools</a>
                                                 </td>
                                                 <td class="text-left pl-5">
-                                                    Tools to examine RBAC
+                                                    <span class="d-none d-md-inline-flex">
+                                                        Tools to examine RBAC
+                                                    </span>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -452,7 +471,9 @@
                                                     <a class="btn btn-sm btn-danger btn-block" href="{% url "rbac:admin_group_create" %}">Create A New Admin Group</a>
                                                 </td>
                                                 <td class="text-left pl-5">
-                                                    Add an admin group to the admin tree
+                                                    <span class="d-none d-md-inline-flex">
+                                                        Add an admin group to the admin tree
+                                                    </span>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -494,7 +515,7 @@
                                         {% if email_site_admin %}
                                             <tr>
                                                 <td>
-                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:admin_view_all" %} ">View Emails</a>
+                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:admin_view_all" %} ">Emails</a>
                                                 </td>
                                                 <td class="text-left pl-5">
                                                     View status and content of sent emails
@@ -504,7 +525,7 @@
                                         {% if realtime_sender %}
                                             <tr>
                                                 <td>
-                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:admin_view_realtime_notifications" %} ">View Real Time Notifications</a>
+                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:admin_view_realtime_notifications" %} ">Real Time Msgs</a>
                                                 </td>
                                                 <td class="text-left pl-5">
                                                     View status and content of real time notifications you have sent
@@ -514,7 +535,7 @@
                                         {% if email_site_admin %}
                                             <tr>
                                                 <td>
-                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:global_admin_view_realtime_notifications" %} ">View All Real Time Notifications</a>
+                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:global_admin_view_realtime_notifications" %} ">All Real Time Msgs</a>
                                                 </td>
                                                 <td class="text-left pl-5">
                                                     View status and content of real time notifications sent by anyone
