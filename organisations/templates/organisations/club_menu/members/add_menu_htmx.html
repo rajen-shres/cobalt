@@ -10,45 +10,47 @@
 
         <h3>{{ club }} has {{ total_members|intcomma }} Member{{ total_members|pluralize }}. Here you can add more.</h3>
 
-        <table class="table table-condensed">
-            <tbody>
-                <tr>
-                    <td>
-                        <button class="btn bg-primary btn-block"
-                            id="t_member_add_individual_member"
-                            hx-post="{% url "organisations:club_menu_tab_members_add_any_member_htmx" %}"
-                            hx-target="#id_member_add_tab"
-                            hx-vars="club_id:{{ club.id }}"
-                        >Add Member</button>
-                    </td>
-                    <td class="text-left pl-5">
-                        Add a member to the club
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <button class="btn bg-primary btn-block"
-                            id="t_mpc_import"
-                            hx-post="{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}"
-                            hx-target="#id_member_add_tab"
-                        >MPC Import</button>
-                    </td>
-                    <td class="text-left pl-5">
-                        Import members directly from the Masterpoints Centre
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <button class="btn bg-primary btn-block"
-                            hx-post="{% url "organisations:club_menu_tab_members_upload_csv" %}"
-                            hx-target="#id_member_add_tab"
-                        >CSV Upload</button>
-                    </td>
-                    <td class="text-left pl-5">
-                        Upload your membership list in various formats
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-condensed">
+                <tbody>
+                    <tr>
+                        <td>
+                            <button class="btn bg-primary btn-block"
+                                id="t_member_add_individual_member"
+                                hx-post="{% url "organisations:club_menu_tab_members_add_any_member_htmx" %}"
+                                hx-target="#id_member_add_tab"
+                                hx-vars="club_id:{{ club.id }}"
+                            >Add Member</button>
+                        </td>
+                        <td class="text-left pl-5">
+                            Add a member to the club
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button class="btn bg-primary btn-block"
+                                id="t_mpc_import"
+                                hx-post="{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}"
+                                hx-target="#id_member_add_tab"
+                            >MPC Import</button>
+                        </td>
+                        <td class="text-left pl-5">
+                            Import members directly from the Masterpoints Centre
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button class="btn bg-primary btn-block"
+                                hx-post="{% url "organisations:club_menu_tab_members_upload_csv" %}"
+                                hx-target="#id_member_add_tab"
+                            >CSV Upload</button>
+                        </td>
+                        <td class="text-left pl-5">
+                            Upload your membership list in various formats
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

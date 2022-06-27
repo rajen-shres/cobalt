@@ -6,7 +6,7 @@ import PySimpleGUI as sg
 from tkinter import Tk
 
 
-def format_comment(lines):
+def format_comment(lines, open_comment, close_comment):
     """takes in the lines from the GUI and formats as comments"""
 
     output = ""
@@ -20,25 +20,18 @@ def format_comment(lines):
 
     # Create top and bottom line
     filler = "".join("-" for _ in range(max_len))
-    outside_line = f"{{#-{filler}-#}}\n"
+    outside_line = f"{open_comment}-{filler}-{close_comment}\n"
 
     # Add top lines
     output += outside_line
-    output += f"{{# {' ': <{max_len}} #}}\n"
+    output += f"{open_comment} {' ': <{max_len}} {close_comment}\n"
 
     # fill in middle bit
     for line in lines:
-        output += f"{{# {line: <{max_len}} #}}\n"
-
-    # Blank line
-    output += f"{{# {' ': <{max_len}} #}}\n"
-
-    # # How to edit line
-    # line = "You can edit this with cgit_util_doc_editor "
-    # output += f"{{# {line: <{max_len}} #}}\n"
+        output += f"{open_comment} {line: <{max_len}} {close_comment}\n"
 
     # Add bottom lines
-    output += f"{{# {' ': <{max_len}} #}}\n"
+    output += f"{open_comment} {' ': <{max_len}} {close_comment}\n"
     output += outside_line
 
     return output
@@ -49,7 +42,16 @@ def handle_copy(values):
 
     # build formatted output
     lines = values["-IN-"].split("\n")
-    output = format_comment(lines)
+
+    # Default to template comments
+    open_comment = "{#"
+    close_comment = "#}"
+
+    if values["-html-"]:
+        open_comment = "<!--"
+        close_comment = "-->"
+
+    output = format_comment(lines, open_comment, close_comment)
 
     # Use tkinter to copy to clipboard
     root = Tk()
@@ -107,6 +109,18 @@ def main():
     layout = [
         [sg.Text("Enter comments to format", font="Verdana 16 bold")],
         [sg.Multiline(size=(80, 40), font="Verdana 16", key="-IN-")],
+        [
+            sg.Radio(
+                "Template Comment",
+                "RADIO1",
+                default=True,
+                key="-template-",
+                font="Verdana 14",
+            ),
+            sg.Radio(
+                "HTML Comment", "RADIO1", default=False, key="-html-", font="Verdana 14"
+            ),
+        ],
         [
             sg.Button("Copy", font="Verdana 16 bold"),
             sg.Button("Paste", font="Verdana 16 bold"),
