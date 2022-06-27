@@ -33,15 +33,68 @@ def format_comment(lines):
     # Blank line
     output += f"{{# {' ': <{max_len}} #}}\n"
 
-    # How to edit line
-    line = " You can edit this with cgit_util_doc_editor "
-    output += f"{{# {line: <{max_len}} #}}\n"
+    # # How to edit line
+    # line = "You can edit this with cgit_util_doc_editor "
+    # output += f"{{# {line: <{max_len}} #}}\n"
 
     # Add bottom lines
     output += f"{{# {' ': <{max_len}} #}}\n"
     output += outside_line
 
     return output
+
+
+def handle_copy(values):
+    """handle the copy button being pressed - format and put data onto clipboard"""
+
+    # build formatted output
+    lines = values["-IN-"].split("\n")
+    output = format_comment(lines)
+
+    # Use tkinter to copy to clipboard
+    root = Tk()
+    root.withdraw()
+    root.clipboard_clear()
+    root.clipboard_append(output)
+    root.update()  # now it stays on the clipboard after the window is closed
+    root.destroy()
+
+
+def handle_paste(window, values):
+    """handle the paste button being pressed - remove comments and update UI
+
+    This is intended to handle pasting our output back into the window to edit later, ie it removes
+    the comment formatting to give the user just the raw text.
+
+    """
+
+    # Get clipboard data
+    root = Tk()
+    root.withdraw()
+    data = root.clipboard_get()
+
+    # Remove comments
+    new_data = ""
+    lines = data.split("\n")
+
+    if lines[0].find("{#---") == -1:
+        # Not our formatted data
+        new_data = data
+
+    else:
+        # Likely to be our format - remove top 2 lines and bottom 4
+        lines = lines[2:-4]
+
+        for line in lines:
+            for unwanted_char in ["{", "}", "#"]:
+                line = line.replace(unwanted_char, "")
+            line = line.strip()
+            new_data += line
+
+    # Update UI
+    text_field = window["-IN-"]
+    text_field.update(value=new_data)
+    # text_field.Widget.xview("end")
 
 
 def main():
@@ -53,9 +106,10 @@ def main():
     # Screen layout
     layout = [
         [sg.Text("Enter comments to format", font="Verdana 16 bold")],
-        [sg.Multiline(size=(80, 40), font="Verdana 16")],
+        [sg.Multiline(size=(80, 40), font="Verdana 16", key="-IN-")],
         [
             sg.Button("Copy", font="Verdana 16 bold"),
+            sg.Button("Paste", font="Verdana 16 bold"),
             sg.Button("Exit", font="Verdana 16 bold"),
         ],
     ]
@@ -66,20 +120,14 @@ def main():
     # Main loop
     while True:
         event, values = window.read()
-        if event in [sg.WIN_CLOSED, "Cancel"]:
+        if event in [sg.WIN_CLOSED, "Exit"]:
             break
 
-        # build formatted output
-        lines = values[0].split("\n")
-        output = format_comment(lines)
+        elif event == "Copy":
+            handle_copy(values)
 
-        # Use tkinter to copy to clipboard
-        r = Tk()
-        r.withdraw()
-        r.clipboard_clear()
-        r.clipboard_append(output)
-        r.update()  # now it stays on the clipboard after the window is closed
-        r.destroy()
+        elif event == "Paste":
+            handle_paste(window, values)
 
     window.close()
 

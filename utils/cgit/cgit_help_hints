@@ -9,7 +9,7 @@ printf "\nWhat Have You Forgotten Now?${NC}\n"
 printf "${YELLOW}----------------------------${NC}\n\n"
 
 PS3='Select: '
-options=("Full name in a template" "JS Ready Function" "EB Memory Error" "Upgrade Chromedriver" "Quit")
+options=("Full name in a template" "JS Ready Function" "Bootstrap change text with size" "EB Memory Error" "Upgrade Chromedriver" "Quit")
 select opt in "${options[@]}"
 do
     case $opt in
@@ -28,6 +28,18 @@ do
             echo "        });"
             echo "    </script>"
             echo "{% endblock footer %}\n\n"
+            exit
+            ;;
+        "Bootstrap change text with size")
+            echo '{# Show this on screens smaller than md #}'
+            echo '<span class="d-md-none">'
+            echo '    Short Text'
+            echo '</span>'
+            echo ' '
+            echo '{# Show this on screens md or larger #}'
+            echo '<span class="d-none d-md-inline">'
+            echo '    Longer Text Can Go Here'
+            echo '</span>'
             exit
             ;;
         "EB Memory Error")

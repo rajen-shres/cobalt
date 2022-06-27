@@ -1,4 +1,9 @@
-{# Main page to view an individual congress details #}
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Main page to view an individual congress details                       #}
+{# Has links to enter and view entries                                    #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 
 {% extends template %}
 {% load static %}
@@ -13,53 +18,52 @@
         {{ congress.raw_html|safe }}
     {% else %}
 
+        <!-- CARD FOR WHOLE PAGE -->
+
         <div class="col-md-12 mx-0 bx-0 px-0">
             <div class="card">
+
+                <!-- CARD HEADER FOR WHOLE PAGE -->
+
                 <div class="card-header card-header-warning">
                     <h2 class="card-title"><a href="#program">{{ congress.name }}<a></h2>
                         <h3>{{ congress.congress_master.org }}</h3>
                         <h3>{{ congress.date_string }}</h3>
                     </div>
 
+                        <!-- CARD BODY FOR WHOLE PAGE -->
+
                         <div class="card-body table-responsive">
 
-                            <div class="d-flex">
+                            <!-- TOP ROW QUICK ACTION BUTTONS -->
 
-                                <div>
-                                    <a href="#program" style="text-transform: none;" class="btn btn-sm btn-success">
-                                        <span style="font-size: 150%;">
-                                            {# Show this on screens smaller than md #}
-                                            <span class="d-md-none">
-                                                Program...
-                                            </span>
+                            <div class="row">
 
-                                            {# Show this on screens md or larger #}
-                                            <span class="d-none d-md-inline">
-                                                Click here to jump to program...
-                                            </span>
-                                        </span>
-                                    </a>
-                                </div>
-
-                                {% if congress.contact_email %}
-                                    <div>
-                                        <a href="mailto:{{ congress.contact_email }}?subject={{ congress.name }}"
-                                            target="_blank" style="text-transform: none;" class="btn btn-sm btn-rose">
+                                <div class="col-12 col-md-6">
+                                    <div class="text-center">
+                                        <a href="#program" style="text-transform: none;" class="btn btn-sm btn-success">
                                             <span style="font-size: 150%;">
-                                                {# Show this on screens smaller than md #}
-                                                <span class="d-md-none">
-                                                    Email...
-                                                </span>
-
-                                                {# Show this on screens md or larger #}
-                                                <span class="d-none d-md-inline">
-                                                    Email Tournament Organiser...
-                                                </span>
+                                                Click here to jump to program...
                                             </span>
                                         </a>
                                     </div>
+                                </div>
+
+                                {% if congress.contact_email %}
+                                    <div class="col-12 col-md-6">
+                                        <div class=text-center>
+                                            <a href="mailto:{{ congress.contact_email }}?subject={{ congress.name }}"
+                                                target="_blank" style="text-transform: none;" class="btn btn-sm btn-rose">
+                                                <span style="font-size: 150%;">
+                                                    Email Tournament Organiser
+                                                </span>
+                                            </a>
+                                        </div>
+                                    </div>
                                 {% endif %}
                             </div>
+
+                            <!-- SPONSORS -->
 
                             {% if congress.sponsors %}
                                 <div class="row">
@@ -74,6 +78,8 @@
                                 </div>
                             {% endif %}
 
+                            <!-- LATEST NEWS -->
+
                             {% if congress.latest_news %}
                                 <div class="row">
                                     <div class="card col-lg-10 mx-auto">
@@ -87,44 +93,49 @@
                                 </div>
                             {% endif %}
 
+                            <!-- PEOPLE AND LINKS GO ON SAME ROW IF SCREEN IS BIG ENOUGH -->
+
                             <div class="row">
                                 <div class="col-lg-10 mx-auto">
 
-                                    <div class="row mx-0">
+                                    <div class="row">
 
-                                        <div class="col-xl-6 col-12">
-                                            <div class="card">
-                                                <div class="card-header card-header-warning">
-                                                    <h4 class="card-title">People</h4>
-                                                </div>
-                                                <div class="card-body table-responsive">
-                                                    {{ congress.people|safe }}
-                                                    <a href="fake_link_to_fix_spacing"></a>
-                                                </div>
+                                        <!-- PEOPLE -->
+
+                                        <div class=" col-xl-6 col-12 card">
+                                            <div class="card-header card-header-warning">
+                                                <h4 class="card-title">People</h4>
+                                            </div>
+                                            <div class="card-body table-responsive">
+                                                {{ congress.people|safe }}
+                                                {#                                            <a href="fake_link_to_fix_spacing"></a>#}
                                             </div>
                                         </div>
 
-                                        <div class="col-xl-6 col-12">
-                                            <div class="card">
-                                                <div class="card-header card-header-primary">
-                                                    <h4 class="card-title">Links</h4>
-                                                </div>
-                                                <div class="card-body table-responsive">
-                                                    {{ congress.links|safe }}
-                                                    <a href="fake_link_to_fix_spacing"></a>
-                                                </div>
+                                        <!-- LINKS -->
+
+                                        <div class="card col-xl-6 col-12 mx-auto">
+                                            <div class="card-header card-header-primary">
+                                                <h4 class="card-title">Links</h4>
+                                            </div>
+                                            <div class="card-body table-responsive">
+                                                {{ congress.links|safe }}
+                                                {#                                            <a href="fake_link_to_fix_spacing"></a>#}
                                             </div>
                                         </div>
+
 
 
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- BULLETINS -->
+
                             {% if bulletins %}
                                 <a id="bulletins"></a>
-                                <div class="col-lg-10 mx-auto">
-                                    <div class="card">
+                                <div class="row">
+                                    <div class="card col-lg-10 mx-auto">
                                         <div class="card-header card-header-info">
                                             <h4 class="card-title">Bulletins</h4>
                                         </div>
@@ -139,9 +150,11 @@
                                 </div>
                             {% endif %}
 
+                            <!-- DOWNLOADS -->
+
                             {% if downloads %}
-                                <div class="col-lg-10 mx-auto">
-                                    <div class="card">
+                                <div class="row">
+                                    <div class="card col-lg-10 mx-auto">
                                         <div class="card-header card-header-info">
                                             <h4 class="card-title">Downloads</h4>
                                         </div>
@@ -158,8 +171,11 @@
                                 <br>
                             {% endif %}
 
-                            <div class="col-lg-10 mx-auto">
-                                <div class="card">
+
+                            <!-- GENERAL INFO -->
+
+                            <div class="row">
+                                <div class="card col-lg-10 mx-auto">
                                     <div class="card-header card-header-danger">
                                         <h4 class="card-title">General Information</h4>
                                     </div>
@@ -169,8 +185,10 @@
                                 </div>
                             </div>
 
-                            <div class="col-lg-10 mx-auto">
-                                <div class="card">
+                            <!-- VENUE LOCATION -->
+
+                            <div class="row">
+                                <div class="card col-lg-10 mx-auto">
                                     <div class="card-header card-header-success">
                                         <h4 class="card-title">Location - {{ congress.venue_name }}</h4>
                                     </div>
@@ -182,9 +200,11 @@
                                 </div>
                             </div>
 
+                            <!-- VENUE TRANSPORT -->
+
                             {% if congress.venue_transport %}
-                                <div class="col-lg-10 mx-auto">
-                                    <div class="card">
+                                <div class="row">
+                                    <div class="card col-lg-10 mx-auto">
                                         <div class="card-header card-header-info">
                                             <h4 class="card-title">Transport</h4>
                                         </div>
@@ -195,9 +215,11 @@
                                 </div>
                             {% endif %}
 
+                            <!-- VENUE CATERING -->
+
                             {% if congress.venue_catering %}
-                                <div class="col-lg-10 mx-auto">
-                                    <div class="card">
+                                <div class="row">
+                                    <div class="card col-lg-10 mx-auto">
                                         <div class="card-header card-header-primary">
                                             <h4 class="card-title">Catering</h4>
                                         </div>
@@ -208,9 +230,11 @@
                                 </div>
                             {% endif %}
 
+                            <!-- VENUE ADDITIONAL INFO -->
+
                             {% if congress.venue_additional_info %}
-                                <div class="col-lg-10 mx-auto">
-                                    <div class="card">
+                                <div class="row">
+                                    <div class="card col-lg-10 mx-auto">
                                         <div class="card-header card-header-warning">
                                             <h4 class="card-title">Venue Additional Information</h4>
                                         </div>
@@ -220,6 +244,8 @@
                                     </div>
                                 </div>
                             {% endif %}
+
+                            <!-- PARTNERSHIP DESK -->
 
                             {% if congress.allow_partnership_desk %}
 
@@ -255,8 +281,9 @@
 
                             {% endif %}
 
-                            <div class="col-lg-10 mx-auto">
-                                <div class="card">
+                            <!-- PROGRAM -->
+                            <div class="row">
+                                <div class="card col-lg-10 mx-auto">
                                     <div class="card-header card-header-success">
                                         <h4 class="card-title">Program</h4>
                                         <a name="Program"></a>
