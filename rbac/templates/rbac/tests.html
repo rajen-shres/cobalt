@@ -1,3 +1,11 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Page to explore RBAC                                                   #}
+{#                                                                        #}
+{# Has helpers to look at different aspects of security                   #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
 {% extends 'base.html' %}
 {% load widget_tweaks %}
 {% load static %}
@@ -39,8 +47,7 @@
             /* IE 9 */
             -webkit-transform: rotate(90deg);
             /* Safari */
-            '
-            transform: rotate(90deg);
+            ' transform: rotate(90 deg);
         }
 
         .nested {
@@ -55,6 +62,8 @@
 
 {% block content %}
 
+    <!-- BREADCRUMBS -->
+
     <nav aria-label="breadcrumb" role="navigation">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#rbac">Admin</a></li>
@@ -62,14 +71,25 @@
         </ol>
     </nav>
 
+    <!-- MAIN PAGE CARD -->
+
     <div>
         <div class="card">
+
+            <!-- MAIN PAGE CARD HEADER -->
+
             <div class="card-header card-header-warning">
                 <h1>Role Based Access Controls - Tests</h1>
                 <p>You can use these tests to see what RBAC is doing.</p>
             </div>
+
+            <!-- MAIN PAGE CARD BODY -->
+
             <div class="card-body">
                 <div class="container">
+
+                    <!-- ANSWER TO QUESTION -->
+
                     {% if ans %}
                         <div class="card">
                             <div class="card-header card-header-info">
@@ -103,6 +123,11 @@
                                                                     </div>
                                                                 </div>
                     {% endif %}
+
+                    <!-- END ANSWER -->
+
+                    <!-- SECTION TO CHOOSE MODELS, ROLES OR GROUPS -->
+
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header">
@@ -112,7 +137,8 @@
                             <div class="card-body">
                                 <div class="form-check form-check-radio form-check-inline">
                                     <label class="form-check-label">
-                                        <input class="form-check-input" name="inlineRadioOptions" type="radio" id="button_models"> Models
+                                        <input class="form-check-input" name="inlineRadioOptions" type="radio"
+                                            id="button_models"> Models
                                         <span class="circle">
                                             <span class="check"></span>
                                         </span>
@@ -120,7 +146,8 @@
                                 </div>
                                 <div class="form-check form-check-radio form-check-inline">
                                     <label class="form-check-label">
-                                        <input class="form-check-input" name="inlineRadioOptions" type="radio" id="button_roles"> Roles
+                                        <input class="form-check-input" name="inlineRadioOptions" type="radio"
+                                            id="button_roles"> Roles
                                         <span class="circle">
                                             <span class="check"></span>
                                         </span>
@@ -128,7 +155,8 @@
                                 </div>
                                 <div class="form-check form-check-radio form-check-inline">
                                     <label class="form-check-label">
-                                        <input class="form-check-input" name="inlineRadioOptions" type="radio" id="button_groups"> Groups
+                                        <input class="form-check-input" name="inlineRadioOptions" type="radio"
+                                            id="button_groups"> Groups
                                         <span class="circle">
                                             <span class="check"></span>
                                         </span>
@@ -137,70 +165,78 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- END SECTION TO CHOOSE MODELS, ROLES OR GROUPS -->
+
+                    <!-- END CONTAINER -->
                 </div>
+
+                <!-- HELPER SECTION -->
+
                 <div id="group_box" class="card col-12" style="display: none;">
                     <div class="card-header card-header-success">
                         <h3>RBAC Tree (Groups)</h3>
                     </div>
                     <div class="card-body">
                         <ul id="myUL">
-                            {{ tree|safe}}
+                            {{ tree|safe }}
                         </ul>
                     </div>
                 </div>
-                <!-- <div class="card col-8">
-  <div class="card-header card-header-danger">
-    <h3>Admin Tree</h3>
-  </div>
-  <div class="card-body">
-    <ul id="myUL">
-      {{ admin_tree|safe}}
-    </ul>
-  </div>
-</div> -->
-                <div id="role_box" class="card col-8" style="display: none;">
+
+                <div id="role_box" class="card col-lg-8" style="display: none;">
                     <div class="card-header card-header-warning">
                         <h3>Roles</h3>
                         <i>Most roles also take an optional model_id e.g. events.org.5.edit. You can add this below.</i>
                     </div>
                     <div class="card-body">
-                        <table class="table table-responsive">
-                            <thead>
-                                <th>Role + Action</th>
-                                <th>Description</th>
-                            </thead>
-                            <tbody>
-                                {% for role in roles %}
-                                    <tr>
-                                        <td class="py-0"><button style="width: 250px" class="tree-btn cobalt-rbac-role btn btn-sm btn-info" value="{{ role.app }}.{{ role.model }}.{{ role.valid_action }}">{{ role.app }}.{{ role.model }}.{{ role.valid_action }}</button>
-                                            <td class="py-0">{{ role.description }}
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-condensed">
+                                <thead>
+                                    <th>Role + Action</th>
+                                    <th>Description</th>
+                                </thead>
+                                <tbody>
+                                    {% for role in roles %}
+                                        <tr>
+                                            <td class="py-0">
+                                                <button style="width: 250px" class="tree-btn cobalt-rbac-role btn btn-sm btn-info"
+                                                    value="{{ role.app }}.{{ role.model }}.{{ role.valid_action }}">{{ role.app }}.{{ role.model }}.{{ role.valid_action }}</button>
+                                                <td class="py-0">{{ role.description }}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <div class="card col-8" id="model_box" style="display: none;">
+                <div class="card col-lg-8" id="model_box" style="display: none;">
                     <div class="card-header card-header-warning">
                         <h3>Models</h3>
                     </div>
                     <div class="card-body">
-                        <table class="table table-responsive">
-                            <thead>
-                                <th>Application-Model</th>
-                            </thead>
-                            <tbody>
-                                {% for model in models %}
-                                    <tr>
-                                        <td class="py-0"><button style="width: 250px" class="tree-btn cobalt-rbac-model btn btn-sm btn-info" value="{{ model.app }}.{{ model.model }}">{{ model.app }}.{{ model.model }}</button>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <th>Application-Model</th>
+                                </thead>
+                                <tbody>
+                                    {% for model in models %}
+                                        <tr>
+                                            <td class="py-0">
+                                                <button style="width: 250px" class="tree-btn cobalt-rbac-model btn btn-sm btn-info"
+                                                    value="{{ model.app }}.{{ model.model }}">{{ model.app }}.{{ model.model }}</button>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 <hr>
                 <div id="user_box">
                     {% include "utils/generic_user_search_body.html" with search_id=1 %}
-                    <button style="width: 150px" class="cobalt_generic_member btn btn-sm btn-primary" data-toggle="modal" id="unique_id" data-target="#cobalt_general_member_search1">Select User</button>
+                    <button style="width: 150px" class="cobalt_generic_member btn btn-sm btn-primary"
+                        data-toggle="modal" id="unique_id" data-target="#cobalt_general_member_search1">Select User
+                    </button>
                     <span id="id_user">
                         {% if member_id %}
                             = {{ member_id }} {{ user }}
@@ -212,82 +248,119 @@
                     <button class="btn btn-sm btn-warning" id="id_self" style="width: 150px">Select Yourself</button>
                 </div>
                 <br>
+
+                <!-- ACTUAL FORM -->
+
                 <form method="POST">
                     {% csrf_token %}
                     <br>
-                    <span id="hidden_user"><input type='hidden' id='id_user' name='id_user' value='{{ member_id|default_if_none:"" }}'></span>
-                    <strong><span id="text_type">Group, Model or Role: </span></strong>
-                    <br>
-                    <input type="text" style="width: 400px" id="id_text" name="id_text" value="{{ text }}">
-                    <br>
+                    <span id="hidden_user"><input type='hidden' id='id_user' name='id_user'
+                        value='{{ member_id|default_if_none:"" }}'></span>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="bmd-label-static">Group, Model or Role:</label>
+                                <input type="text"  id="id_text" name="id_text" value="{{ text }}" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+
                     <i><span id="id_role_text"></span></i>
                     <br><br>
-                    <table>
-                        <tr>
-                            <th class="text-center">Required</th>
-                            <th class="text-center">Function</th>
-                            <th class="text-center">Description</th>
-                        </tr>
-                        <!-- <tr>
-    <td class="px-3"><kbd>User</kbd> + <kbd>Role</kbd>
-    <td class="px-3"><button type="submit" style="width:300px" class="btn btn-sm btn-success" name="user_has_role">User Has Role</button>
-    <td class="px-3">Test if a user has access to a role.
-  </tr> -->
-                        <tr>
-                            <td class="px-3"><kbd>User</kbd> + <kbd>Role</kbd>
-                                <td class="px-3"><button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save" name="user_has_role_explain">User Has Role Explain</button>
-                                    <td class="px-3">Explain how RBAC decided whether a user has access or not.
-                                    </tr>
-                                    <tr>
-                                        <td class="px-3"><kbd>User</kbd> + <kbd>Model</kbd>
-                                            <td class="px-3"><button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save" name="user_blocked_for_model">User Blocked For Model</button>
-                                                <td class="px-3">List blocked items for a model (e.g. Forums.forum). Only for default Allow.
-                                                </tr>
-                                                <tr>
-                                                    <td class="px-3"><kbd>User</kbd> + <kbd>Model</kbd>
-                                                        <td class="px-3"><button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save" name="user_allowed_for_model">User Allowed For Model</button>
-                                                            <td class="px-3">List allowed items for a model (e.g. orgs.org). Only for default Block.
-                                                            </tr>
-                                                            <tr>
-                                                                <td class="px-3"><kbd>User</kbd>
-                                                                    <td class="px-3"><button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save" name="user_access_in_english">User Access in English</button>
-                                                                        <td class="px-3">Explain users access in English.
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="px-3"><kbd>Role</kbd>
-                                                                                <td class="px-3"><button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save" name="get_users_with_role">Get Users With Allow Role</button>
-                                                                                    <td class="px-3">Show which users have a role.
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td class="px-3"><kbd>Group</kbd>
-                                                                                            <td class="px-3"><button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save" name="get_admins_for_group">Get Admins for Group</button>
-                                                                                                <td class="px-3">Show who is an admin for a group.
-                                                                                                </tr>
-                                                                                                <tr>
-                                                                                                    <td class="px-3"><kbd>User</kbd> + <kbd>Group</kbd>
-                                                                                                        <td class="px-3"><button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save" name="user_is_group_admin">User is Group Admin</button>
-                                                                                                            <td class="px-3">Check if this user is an admin for this group.
-                                                                                                            </tr>
-                                                                                                            <tr>
-                                                                                                                <td class="px-3"><kbd>User</kbd> + <kbd>Role</kbd>
-                                                                                                                    <td class="px-3"><button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save" name="user_is_role_admin">User is Role Admin</button>
-                                                                                                                        <td class="px-3">Check if this user is an admin for this role.
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <td class="px-3"><kbd>User</kbd>
-                                                                                                                                <td class="px-3"><button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save" name="admin">Admin Rights for User</button>
-                                                                                                                                    <td class="px-3">List all admin rights for this user.
-                                                                                                                                    </tr>
-                                                                                                                                    <tr>
-                                                                                                                                        <td class="px-3"><kbd>User</kbd>
-                                                                                                                                            <td class="px-3"><button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save" name="admin-tree">Tree Rights for User</button>
-                                                                                                                                                <td class="px-3">List all places in the tree that this user can manage.
-                                                                                                                                                </tr>
-                                                                                                                                            </table>
+                    <div class="table-responsive">
+                        <table class="table table-condensed">
+                            <tr>
+                                <th class="text-center">Required</th>
+                                <th class="text-center">Function</th>
+                                <th class="text-center">Description</th>
+                            </tr>
+                            <tr>
+                                <td class="px-3"><kbd>User</kbd> + <kbd>Role</kbd>
+                                    <td class="px-3">
+                                        <button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save"
+                                            name="user_has_role_explain">User Has Role Explain
+                                        </button>
+                                        <td class="px-3">Explain how RBAC decided whether a user has access or not.
+                                        </tr>
+                                        <tr>
+                                            <td class="px-3"><kbd>User</kbd> + <kbd>Model</kbd>
+                                                <td class="px-3">
+                                                    <button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save"
+                                                        name="user_blocked_for_model">User Blocked For Model
+                                                    </button>
+                                                    <td class="px-3">List blocked items for a model (e.g. Forums.forum). Only for default Allow.
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="px-3"><kbd>User</kbd> + <kbd>Model</kbd>
+                                                            <td class="px-3">
+                                                                <button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save"
+                                                                    name="user_allowed_for_model">User Allowed For Model
+                                                                </button>
+                                                                <td class="px-3">List allowed items for a model (e.g. orgs.org). Only for default Block.
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="px-3"><kbd>User</kbd>
+                                                                        <td class="px-3">
+                                                                            <button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save"
+                                                                                name="user_access_in_english">User Access in English
+                                                                            </button>
+                                                                            <td class="px-3">Explain users access in English.
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td class="px-3"><kbd>Role</kbd>
+                                                                                    <td class="px-3">
+                                                                                        <button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save"
+                                                                                            name="get_users_with_role">Get Users With Allow Role
+                                                                                        </button>
+                                                                                        <td class="px-3">Show which users have a role.
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="px-3"><kbd>Group</kbd>
+                                                                                                <td class="px-3">
+                                                                                                    <button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save"
+                                                                                                        name="get_admins_for_group">Get Admins for Group
+                                                                                                    </button>
+                                                                                                    <td class="px-3">Show who is an admin for a group.
+                                                                                                    </tr>
+                                                                                                    <tr>
+                                                                                                        <td class="px-3"><kbd>User</kbd> + <kbd>Group</kbd>
+                                                                                                            <td class="px-3">
+                                                                                                                <button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save"
+                                                                                                                    name="user_is_group_admin">User is Group Admin
+                                                                                                                </button>
+                                                                                                                <td class="px-3">Check if this user is an admin for this group.
+                                                                                                                </tr>
+                                                                                                                <tr>
+                                                                                                                    <td class="px-3"><kbd>User</kbd> + <kbd>Role</kbd>
+                                                                                                                        <td class="px-3">
+                                                                                                                            <button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save"
+                                                                                                                                name="user_is_role_admin">User is Role Admin
+                                                                                                                            </button>
+                                                                                                                            <td class="px-3">Check if this user is an admin for this role.
+                                                                                                                            </tr>
+                                                                                                                            <tr>
+                                                                                                                                <td class="px-3"><kbd>User</kbd>
+                                                                                                                                    <td class="px-3">
+                                                                                                                                        <button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save"
+                                                                                                                                            name="admin">Admin Rights for User
+                                                                                                                                        </button>
+                                                                                                                                        <td class="px-3">List all admin rights for this user.
+                                                                                                                                        </tr>
+                                                                                                                                        <tr>
+                                                                                                                                            <td class="px-3"><kbd>User</kbd>
+                                                                                                                                                <td class="px-3">
+                                                                                                                                                    <button type="submit" style="width:300px" class="btn btn-sm btn-success cobalt-save"
+                                                                                                                                                        name="admin-tree">Tree Rights for User
+                                                                                                                                                    </button>
+                                                                                                                                                    <td class="px-3">List all places in the tree that this user can manage.
+                                                                                                                                                    </tr>
+                                                                                                                                                </table>
+                                                                                                                                            </div>
                                                                                                                                         </form>
                                                                                                                                     </div>
                                                                                                                                 </div>
-                                                                                                                            </div>
 
 {% endblock %}
 
@@ -307,16 +380,16 @@
         var i;
 
         for (i = 0; i < toggler.length; i++) {
-            toggler[i].addEventListener("click", function() {
+            toggler[i].addEventListener("click", function () {
                 this.parentElement.querySelector(".nested").classList.toggle("active");
                 this.classList.toggle("caret-down");
             });
         }
 
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             // get tree value if clicked
-            $(".tree-btn").click(function(event) {
+            $(".tree-btn").click(function (event) {
 
                 // set label
                 if ($(this).hasClass("cobalt-rbac-tree")) {
@@ -348,21 +421,21 @@
             // {% endif %}
 
             // reveal boxes
-            $("#button_roles").click(function(event) {
+            $("#button_roles").click(function (event) {
                 $("#group_box").hide()
                 $("#model_box").hide()
                 $("#role_box").show()
                 $("#id_role_text").text("");
             });
 
-            $("#button_groups").click(function(event) {
+            $("#button_groups").click(function (event) {
                 $("#group_box").show()
                 $("#model_box").hide()
                 $("#role_box").hide()
                 $("#id_role_text").text("");
             });
 
-            $("#button_models").click(function(event) {
+            $("#button_models").click(function (event) {
                 $("#group_box").hide()
                 $("#model_box").show()
                 $("#role_box").hide()
@@ -371,7 +444,7 @@
 
             // select self as user
 
-            $("#id_self").click(function(event) {
+            $("#id_self").click(function (event) {
                 $("#hidden_user").html("<input type='hidden' id='id_user' name='id_user' value='{{ request.user.pk }}'>");
                 $("#id_user").html(" = {{ request.user.pk }} {{ request.user }}");
             });
