@@ -1,3 +1,11 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Admin screen menu.                                                     #}
+{#                                                                        #}
+{# This lives in RBAC but should probably be somewhere else.              #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
@@ -5,7 +13,7 @@
 {% block title %}- Admin Menu{% endblock %}
 {% block content %}
 
-    <!-- Header -->
+    <!-- HEADER -->
 
     <div class="card">
         <div class="card-header card-header-danger">
@@ -39,7 +47,7 @@
             </h4>
         </div>
 
-        <!-- Top Navigation Tabs -->
+        <!-- TOP NAVIGATION TABS -->
 
         <div class="card-body">
             <div class="mx-auto">
@@ -48,30 +56,50 @@
                         <ul id="id_menu" class="nav nav-pills nav-pills-icons nav-pills-warning" role="tablist">
                             <li class="nav-item">
                                 <a id="id_tab_general" class="nav-link active auto-refresh" href="#general" role="tab" data-toggle="tab">
-                                    <i class="material-icons">list</i>
-                                    General
+                                    <span class="d-none d-md-block">
+                                        <i class="material-icons d-none d-md-block">list</i>
+                                        General
+                                    </span>
+                                    <span class="d-md-none">
+                                        General
+                                    </span>
                                 </a>
                             </li>
                             {% if forums_admin %}
                                 <li class="nav-item">
                                     <a id="id_tab_forums" class="nav-link auto-refresh" href="#forums" role="tab" data-toggle="tab">
-                                        <i class="material-icons">chat</i>
-                                        Forums
+                                        <span class="d-none d-md-block">
+                                            <i class="material-icons d-none d-md-block">chat</i>
+                                            Forums
+                                        </span>
+                                        <span class="d-md-none">
+                                            Forums
+                                        </span>
                                     </a>
                                 </li>
                             {% endif %}
 
                             <li class="nav-item">
                                 <a id="id_tab_orgs" class="nav-link" href="#orgs" role="tab" data-toggle="tab">
-                                    <i class="material-icons">corporate_fare</i>
-                                    Organisations
+                                    <span class="d-none d-md-block">
+                                        <i class="material-icons d-none d-md-block">corporate_fare</i>
+                                        Organisations
+                                    </span>
+                                    <span class="d-md-none">
+                                        Orgs
+                                    </span>
                                 </a>
                             </li>
                             {% if payments_site_admin or payments_admin %}
                                 <li class="nav-item">
                                     <a id="id_tab_payments" class="nav-link" href="#payments" role="tab" data-toggle="tab">
-                                        <i class="material-icons">account_balance</i>
-                                        Finance
+                                        <span class="d-none d-md-block">
+                                            <i class="material-icons d-none d-md-block">account_balance</i>
+                                            Finance
+                                        </span>
+                                        <span class="d-md-none">
+                                            Finance
+                                        </span>
                                     </a>
                                 </li>
                             {% endif %}
@@ -79,8 +107,13 @@
                             {% if events_site_admin %}
                                 <li class="nav-item">
                                     <a id="id_tab_events" class="nav-link" href="#events" role="tab" data-toggle="tab">
-                                        <i class="material-icons">book_online</i>
-                                        Congresses
+                                        <span class="d-none d-md-block">
+                                            <i class="material-icons d-none d-md-block">book_online</i>
+                                            GCongresses
+                                        </span>
+                                        <span class="d-md-none">
+                                            Congress
+                                        </span>
                                     </a>
                                 </li>
                             {% endif %}
@@ -88,209 +121,240 @@
                             {% if email_site_admin or realtime_sender %}
                                 <li class="nav-item">
                                     <a id="id_tab_email" class="nav-link" href="#email" role="tab" data-toggle="tab">
-                                        <i class="material-icons">campaign</i>
-                                        Communications
+                                        <span class="d-none d-md-block">
+                                            <i class="material-icons d-none d-md-block">campaign</i>
+                                            Communications
+                                        </span>
+                                        <span class="d-md-none">
+                                            Comms
+                                        </span>
                                     </a>
                                 </li>
                             {% endif %}
                             <li class="nav-item">
                                 <a id="id_tab_rbac" class="nav-link" href="#rbac" role="tab" data-toggle="tab">
-                                    <i class="material-icons">lock_open</i>
-                                    Access
+                                    <span class="d-none d-md-block">
+                                        <i class="material-icons d-none d-md-block">lock_open</i>
+                                        Access
+                                    </span>
+                                    <span class="d-md-none">
+                                        RBAC
+                                    </span>
                                 </a>
                             </li>
                             {% if request.user.is_superuser %}
                                 <li class="nav-item">
                                     <a id="id_tab_dev" class="nav-link" href="#it" role="tab" data-toggle="tab">
-                                        <i class="material-icons">architecture</i>
-                                        IT
+                                        <span class="d-none d-md-block">
+                                            <i class="material-icons d-none d-md-block">architecture</i>
+                                            IT
+                                        </span>
+                                        <span class="d-md-none">
+                                            IT
+                                        </span>
                                     </a>
                                 </li>
                             {% endif %}
                             {% if development_admin %}
                                 <li class="nav-item">
                                     <a id="id_tab_dev" class="nav-link" href="#dev" role="tab" data-toggle="tab">
-                                        <i class="material-icons">code</i>
-                                        Development
+                                        <span class="d-none d-md-block">
+                                            <i class="material-icons d-none d-md-block">code</i>
+                                            Development
+                                        </span>
+                                        <span class="d-md-none">
+                                            Dev
+                                        </span>
                                     </a>
                                 </li>
                             {% endif %}
                         </ul>
                     </div>
 
-                    <!-- Content Part -->
+                    <!-- CONTENT PART -->
 
                     <div class="card-body" style="min-height: 500px;">
                         <div class="tab-content tab-space">
 
-                            <!-- General -->
+                            <!-- GENERAL -->
 
                             <div class="tab-pane fade show active" id="general">
-
-                                <table class="table table-condensed">
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-success btn-block" href="/admin_1234567">Django Admin Pages</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                Django built in admin functions
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-success btn-block" href="{% url "utils:status" %}">System Status</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                Overall health of the system
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-success btn-block" href="{% url "utils:user_activity" %}">User Activity</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                Recent activity by users
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-success btn-block" href="{% url "accounts:user_signed_up_list" %}">User Sign Ups</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                Users who have signed up for {{ GLOBAL_TITLE }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <div class="table-responsive">
+                                    <table class="table table-condensed">
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-success btn-block" href="/admin_1234567">Django Admin Pages</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    Django built in admin functions
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "utils:status" %}">System Status</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    Overall health of the system
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "utils:user_activity" %}">User Activity</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    Recent activity by users
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "accounts:user_signed_up_list" %}">User Sign Ups</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    Users who have signed up for {{ GLOBAL_TITLE }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
-                            <!-- Forums -->
+                            <!-- FORUMS -->
 
                             <div class="tab-pane fade" id="forums">
-                                <table class="table table-condensed">
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-primary btn-block" href="/forums/forum/create">Add Forum</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                Add a forum to the system
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <div class="table-responsive">
+                                    <table class="table table-condensed">
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-primary btn-block" href="/forums/forum/create">Add Forum</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    Add a forum to the system
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
-                            <!-- Orgs -->
+                            <!-- ORGS -->
 
                             <div class="tab-pane fade" id="orgs">
+                                <div class="table-responsive">
 
-                                <table class="table table-condensed">
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-info btn-block" href="{% url "organisations:admin_list_clubs" %}">List Clubs</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                List all clubs in {{ GLOBAL_TITLE }}
-                                            </td>
-                                        </tr>
-                                        {% if orgs_site_admin %}
+
+                                    <table class="table table-condensed">
+                                        <tbody>
                                             <tr>
                                                 <td>
-                                                    <a class="btn btn-sm btn-info btn-block" href="{% url "organisations:admin_add_club" %}">Add Club</a>
+                                                    <a class="btn btn-sm btn-info btn-block" href="{% url "organisations:admin_list_clubs" %}">List Clubs</a>
                                                 </td>
                                                 <td class="text-left pl-5">
-                                                    Add a club to {{ GLOBAL_TITLE }}
+                                                    List all clubs in {{ GLOBAL_TITLE }}
                                                 </td>
                                             </tr>
-                                        {% endif %}
-                                    </tbody>
-                                </table>
+                                            {% if orgs_site_admin %}
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-info btn-block" href="{% url "organisations:admin_add_club" %}">Add Club</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Add a club to {{ GLOBAL_TITLE }}
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
-                            <!-- Events -->
+                            <!-- EVENTS -->
 
                             <div class="tab-pane fade" id="events">
-                                <table class="table table-condensed">
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-warning btn-block" href="{% url "events:global_admin_congress_masters" %}">Manage Congress Masters</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                Add a congress definition for an organisation
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <div class="table-responsive">
+
+                                    <table class="table table-condensed">
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-warning btn-block" href="{% url "events:global_admin_congress_masters" %}">Manage Congress Masters</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    Add a congress definition for an organisation
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
-                            <!-- Payments -->
+                            <!-- PAYMENTS -->
 
                             <div class="tab-pane fade" id="payments">
+                                <div class="table-responsive">
 
-                                <table class="table table-condensed">
-                                    <tbody>
+                                    <table class="table table-condensed">
+                                        <tbody>
 
-                                        {% for org in payments_admin %}
-                                            <tr>
-                                                <td>
-                                                    <a class="btn btn-sm btn-primary btn-block" href="{% url "payments:statement_org" org_id=org.id %}">{{org}}</a>
-                                                </td>
-                                                <td class="text-left pl-5">
-                                                    View statement for {{ org }}
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
+                                            {% for org in payments_admin %}
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-primary btn-block" href="{% url "payments:statement_org" org_id=org.id %}">{{org}}</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        View statement for {{ org }}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
 
-                                        {% if payments_site_admin %}
+                                            {% if payments_site_admin %}
 
-                                            <tr>
-                                                <td>
-                                                    <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:statement_admin_summary" %}">{{ GLOBAL_ORG}} Payments</a>
-                                                </td>
-                                                <td class="text-left pl-5">
-                                                    Payments functions for the whole of {{ GLOBAL_TITLE }}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:stripe_pending" %}">Stripe Transactions</a>
-                                                </td>
-                                                <td class="text-left pl-5">
-                                                    View Stripe Transactions
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:admin_payments_static" %}">Settings</a>
-                                                </td>
-                                                <td class="text-left pl-5">
-                                                    Global payments settings
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:settlement" %}">Settlement</a>
-                                                </td>
-                                                <td class="text-left pl-5">
-                                                    Record payments to organisations
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:admin_stripe_rec" %}">Stripe Reconciliation</a>
-                                                </td>
-                                                <td class="text-left pl-5">
-                                                    Reconcile Stripe data with {{ GLOBAL_TITLE }}
-                                                </td>
-                                            </tr>
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:statement_admin_summary" %}">{{ GLOBAL_ORG}} Payments</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Payments functions for the whole of {{ GLOBAL_TITLE }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:stripe_pending" %}">Stripe Transactions</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        View Stripe Transactions
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:admin_payments_static" %}">Settings</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Global payments settings
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:settlement" %}">Settlement</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Record payments to organisations
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-danger btn-block" href="{% url "payments:admin_stripe_rec" %}">Stripe Reconciliation</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Reconcile Stripe data with {{ GLOBAL_TITLE }}
+                                                    </td>
+                                                </tr>
 
-                                        {% endif %}
-                                    </tbody>
-                                </table>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
 
                             </div>
 
@@ -298,123 +362,133 @@
 
                             <div class="tab-pane fade" id="rbac">
                                 <h3>User</h3>
-                                <table class="table table-condensed">
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-info btn-block" href="{% url "rbac:view_screen" %}">View Your Access</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                Show your RBAC groups and roles
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-info btn-block" href="{% url "rbac:tree_screen" %}">View The Whole Tree</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                View entire RBAC (normal) tree
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-info btn-block" href="{% url "rbac:list_screen" %}">View The Whole Tree as List</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                View entire RBAC (normal) tree as a list
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <div class="table-responsive">
+                                    <table class="table table-condensed">
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-info btn-block" href="{% url "rbac:view_screen" %}">View Your Access</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    Show your RBAC groups and roles
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-info btn-block" href="{% url "rbac:tree_screen" %}">View The Whole Tree</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    View entire RBAC (normal) tree
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-info btn-block" href="{% url "rbac:list_screen" %}">View The Whole Tree as List</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    View entire RBAC (normal) tree as a list
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
 
                                 <h3>Admin</h3>
 
-                                <table class="table table-condensed">
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:rbac_admin" %}">View Your Admin Access</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                Show your RBAC admin groups and roles
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:admin_tree_screen" %}">View The Whole Admin Tree</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                View entire RBAC admin tree
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:role_view_screen" %}">View All Models and Roles</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                View models and roles in RBAC
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:group_create" %}">Create A New Group</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                Create an RBAC (normal) group
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:rbac_tests" %}">Tools</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                Tools to examine RBAC
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <div class="table-responsive">
+                                    <table class="table table-condensed">
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:rbac_admin" %}">View Your Admin Access</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    Show your RBAC admin groups and roles
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:admin_tree_screen" %}">View The Whole Admin Tree</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    View entire RBAC admin tree
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:role_view_screen" %}">View All Models and Roles</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    View models and roles in RBAC
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:group_create" %}">Create A New Group</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    Create an RBAC (normal) group
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-warning btn-block" href="{% url "rbac:rbac_tests" %}">Tools</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    Tools to examine RBAC
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
 
                                 <h3>Admin of Admin</h3>
-                                <table class="table table-condensed">
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <a class="btn btn-sm btn-danger btn-block" href="{% url "rbac:admin_group_create" %}">Create A New Admin Group</a>
-                                            </td>
-                                            <td class="text-left pl-5">
-                                                Add an admin group to the admin tree
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-
-                            </div>
-
-                            <!-- Dev -->
-
-                            <div class="tab-pane fade" id="dev">
-
-                                {% if user.is_superuser %}
+                                <div class="table-responsive">
 
                                     <table class="table table-condensed">
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <a class="btn btn-sm btn-warning btn-block" href="{% url "support:non_production_email_changer" %}">Non-production Email
-                                                        Changer</a>
+                                                    <a class="btn btn-sm btn-danger btn-block" href="{% url "rbac:admin_group_create" %}">Create A New Admin Group</a>
                                                 </td>
                                                 <td class="text-left pl-5">
-                                                    Change all Test/UAT emails to the same address for testing
+                                                    Add an admin group to the admin tree
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
+                                </div>
+
+                            </div>
+
+                            <!-- DEV -->
+
+                            <div class="tab-pane fade" id="dev">
+
+                                {% if user.is_superuser %}
+
+                                    <div class="table-responsive">
+
+                                        <table class="table table-condensed">
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-warning btn-block" href="{% url "support:non_production_email_changer" %}">Non-production Email
+                                                            Changer</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Change all Test/UAT emails to the same address for testing
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 {% endif %}
                             </div>
 
-                            <!-- Communications -->
+                            <!-- COMMUNICATIONS -->
 
-                            <div class="tab-pane fade" id="email">
+                            <div class="tab-pane fade table-responsive" id="email">
                                 <table class="table table-condensed">
                                     <tbody>
                                         {% if email_site_admin %}
@@ -483,7 +557,6 @@
                                     </tbody>
                                 </table>
                             </div>
-
                         </div>
                     </div>
                 </div>
