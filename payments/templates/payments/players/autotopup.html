@@ -1,11 +1,19 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# User screen to set up auto top up                                      #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
 {% load cobalt_tags %}
+
 {% block title %} - Auto Top Up{% endblock %}
+
 {% block header %}
-    <link href="{% static "payments/css/normalize.css" %}" rel="stylesheet" />
-    <link href="{% static "payments/css/stripe-global.css" %}" rel="stylesheet" />
+    <link href="{% static "payments/css/normalize.css" %}" rel="stylesheet"/>
+    <link href="{% static "payments/css/stripe-global.css" %}" rel="stylesheet"/>
 
     <!-- Must load Stripe js from their server to be PCI compliant -->
     <script src="https://js.stripe.com/v3/"></script>
@@ -22,21 +30,21 @@
         }
 
         /* IMAGE STYLES */
-        [type=radio]+img {
+        [type=radio] + img {
             cursor: pointer;
         }
 
         /* CHECKED STYLES */
-        [type=radio]:checked+img {
+        [type=radio]:checked + img {
             outline: 4px solid #f00;
         }
     </style>
 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div class="justify-content-center d-flex">
-            <div class="row col-md-8">
+    <div class="">
+        <div class="justify-content-center d-flex row">
+            <div class="col-md-8">
                 <div class="card">
                     <div class="card-header card-header-primary">
                         <h3 class="card-title">{{ BRIDGE_CREDITS }}</h3>
@@ -47,7 +55,7 @@
                         <div id="cobalt-main-body">
                             <p class="cobalt-form-error">{{ warn }}</p>
                             <p>Thank you for choosing auto top up. When your balance falls below
-                                {{AUTO_TOP_UP_LOW_LIMIT|cobalt_credits}} your account will automatically be topped up.
+                                {{ AUTO_TOP_UP_LOW_LIMIT|cobalt_credits }} your account will automatically be topped up.
                                 <h3 class="text-center">Today's Exchange Rate: $1 AUD buys 1 Bridge Credit</h3>
 
                                 <div align="center">
@@ -57,28 +65,35 @@
                                                 <h3>Auto Top Up Amount</h3>
 
                                                 <label>
-                                                    <input type="radio" name="cobalt-amount-radio" value="50" {% if topup == 50 %}checked{% endif %}>
+                                                    <input type="radio" name="cobalt-amount-radio" value="50"
+                                                        {% if topup == 50 %}checked{% endif %}>
                                                     <img width="60px" src="{% static "assets/img/50.png" %}">
                                                 </label>
 
                                                 <label>
-                                                    <input type="radio" name="cobalt-amount-radio" value="100" {% if topup == 100 %}checked{% endif %}>
+                                                    <input type="radio" name="cobalt-amount-radio" value="100"
+                                                        {% if topup == 100 %}checked{% endif %}>
                                                     <img width="60px" src="{% static "assets/img/100.png" %}">
                                                 </label>
 
                                                 <label>
-                                                    <input type="radio" name="cobalt-amount-radio" value="150" {% if topup == 150 %}checked{% endif %}>
+                                                    <input type="radio" name="cobalt-amount-radio" value="150"
+                                                        {% if topup == 150 %}checked{% endif %}>
                                                     <img width="60px" src="{% static "assets/img/150.png" %}">
                                                 </label>
 
                                                 <label>
-                                                    <input type="radio" name="cobalt-amount-radio" value="200" {% if topup == 200 %}checked{% endif %}>
+                                                    <input type="radio" name="cobalt-amount-radio" value="200"
+                                                        {% if topup == 200 %}checked{% endif %}>
                                                     <img width="60px" src="{% static "assets/img/200.png" %}">
                                                 </label>
                                             </div>
                                         </form>
                                     </div>
-                                    <div class="sr-main">
+
+                                    <!-- STRIPE FORM -->
+
+                                    <div id="cobalt-stripe-main" class="sr-main">
                                         <h3 align="center">Card Details</h3>
                                         <form id="payment-form" class="sr-payment-form">
                                             <div class="sr-combo-inputs-row">
@@ -89,20 +104,20 @@
                                                 <div class="spinner hidden" id="spinner"></div>
                                                 <span id="button-text">Save Card</span><span id="order-amount"></span>
                                             </button>
-
-
                                         </form>
                                         <div class="sr-result hidden">
-                                            <p>Payment completed<br /></p>
+                                            <p>Payment completed<br/></p>
                                             <pre>
-                    <code></code>
-                  </pre>
+                                            <code></code>
+                                        </pre>
                                         </div>
                                     </div>
 
-
+                                    <!-- CANCEL BUTTON -->
                                     <br>
-                                    <button id="cancel" name="cancel" class="btn btn-info col-3" onclick="history.back();">Cancel</button>
+                                    <a href="{% url "payments:statement" %}" id="cancel" class="btn btn-info">
+                                        Cancel
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -118,22 +133,25 @@
     <script>
         // change auto top up amount when user clicks on a value
 
-        $(document).ready(function() {
+        $(document).ready(function () {
 
+            // Remove stripe class on small devices so we use all of the space
+            if ($(window).width() < 768) {
+                $('#cobalt-stripe-main').removeClass("sr-main");
+            }
+
+            // Not sure if this gets used for anything? LEaving for now
             const id = $("[name*=privateStripeFrame]");
-            console.log(id);
 
-
-
-
-            $("input[name='cobalt-amount-radio']").click(function() {
-                var auto_amt = $('input[name="cobalt-amount-radio"]:checked').val();
-                var strURL = "{% url "payments:update_auto_amount" %}?amount=" + auto_amt;
+            // Handle changing top up amount
+            $("input[name='cobalt-amount-radio']").click(function () {
+                const auto_amt = $('input[name="cobalt-amount-radio"]:checked').val();
+                const strURL = "{% url "payments:update_auto_amount" %}?amount=" + auto_amt;
 
                 $.ajax({
                     url: strURL,
                     context: document.body,
-                    success: function(txt) {
+                    success: function (txt) {
                         swal.fire({
                             title: "Updated",
                             html: "Auto top up amount updated.",
