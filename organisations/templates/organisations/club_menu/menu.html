@@ -16,6 +16,7 @@
     {# These are used by the image cropper for template banners #}
     <link href="{% static 'assets/css/cropper.min.css' %}" rel="stylesheet">
     <script src="{% static 'assets/js/cropper.min.js' %}"></script>
+
 {% endblock header %}
 {% block content %}
 
@@ -45,12 +46,20 @@
 
     <!-- HEADING -->
 
-    <h1 class="text-center pt-4"><span id="t_club_name">{{ club }}</span> - {{ club.state }}</h1>
-    <h2 class="text-center"><span class="text-primary" style="font-size: 50px;">&clubs;</span> Club Menu <span class="text-danger" style="font-size: 50px;">&clubs;</span></h2>
+    <!-- BIG SCREEN HEADING -->
+    <span class="d-none d-md-block">
+        <h1 class="text-center pt-4"><span id="t_club_name">{{ club }}</span> - {{ club.state }}</h1>
+        <h2 class="text-center"><span class="text-primary" style="font-size: 50px;">&clubs;</span> Club Menu <span class="text-danger" style="font-size: 50px;">&clubs;</span></h2>
+    </span>
+
+    <!-- SMALL SCREEN - SIMPLE HEADING -->
+    <span class="d-md-none">
+        <h2 class="text-center pt-4"><span id="t_club_name">{{ club }}</span></h2>
+    </span>
 
     <!-- NAV CARD -->
 
-    <div class="card-body">
+    <div>
         <div class="card">
 
             <!-- NAVIGATION TOP PARTS (ICONS AND WORDS) -->
@@ -177,6 +186,7 @@
                             </span>
                         </a>
                     </li>
+
                     <li class="nav-item">
                         <a id="id_tab_settings" class="nav-link auto-refresh" href="#settings" role="tab" data-toggle="tab">
                             <span class="d-none d-md-block">
@@ -188,7 +198,9 @@
                             </span>
                         </a>
                     </li>
+
                 </ul>
+
                 <div class='justify-content-center text-center'>
                     <span class="htmx-indicator">
                         <img style="width: 40px" src="{% static "assets/img/spinners/bars.svg" %}"/>

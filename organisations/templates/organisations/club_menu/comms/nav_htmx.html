@@ -25,7 +25,15 @@ type="button"
 hx-post="{% url "organisations:club_menu_tab_comms_public_info_htmx" %}"
 hx-target="#id_panel_comms"
 {#hx-push-url="true"#}
->Public Information
+>
+    <span class="d-none d-md-block">
+        <i class="material-icons d-none d-md-block">settings</i>
+        Public Information
+    </span>
+    <span class="d-md-none">
+        Public Info
+    </span>
+
 </button>
 
 
