@@ -30,8 +30,11 @@
         </div>
     </span>
 
+    <!-- LOAD SUMMERNOTE -->
 
     {% include "utils/summernote_heading.html" %}
+
+    <!-- SHOW OTHER ADMIN LINKS IF THEY EXISTS -->
 
     {% if other_clubs %}
         <h4>You have access to multiple clubs, change club:</h4>
@@ -40,23 +43,42 @@
         {% endfor %}
     {% endif %}
 
+    <!-- HEADING -->
+
     <h1 class="text-center pt-4"><span id="t_club_name">{{ club }}</span> - {{ club.state }}</h1>
     <h2 class="text-center"><span class="text-primary" style="font-size: 50px;">&clubs;</span> Club Menu <span class="text-danger" style="font-size: 50px;">&clubs;</span></h2>
 
+    <!-- NAV CARD -->
+
     <div class="card-body">
         <div class="card">
+
+            <!-- NAVIGATION TOP PARTS (ICONS AND WORDS) -->
+
             <div class="card-header card-header-secondary">
                 <ul id="id_menu" class="nav nav-pills nav-pills-icons" role="tablist">
+
                     <li class="nav-item">
                         <a id="id_tab_dashboard" class="nav-link active auto-refresh" href="#dashboard" role="tab" data-toggle="tab">
-                            <i class="material-icons">space_dashboard</i>
-                            Club
+                            <span class="d-none d-md-block">
+                                <i class="material-icons d-none d-md-block">space_dashboard</i>
+                                Club
+                            </span>
+                            <span class="d-md-none">
+                                Club
+                            </span>
                         </a>
                     </li>
+
                     <li class="nav-item">
                         <a id="id_tab_members" class="nav-link auto-refresh" href="#members" role="tab" data-toggle="tab">
-                            <i class="material-icons">manage_accounts</i>
-                            Members
+                            <span class="d-none d-md-block">
+                                <i class="material-icons d-none d-md-block">manage_accounts</i>
+                                Members
+                            </span>
+                            <span class="d-md-none">
+                                Members
+                            </span>
                         </a>
                     </li>
 
@@ -64,8 +86,13 @@
 
                         <li class="nav-item">
                             <a id="id_tab_sessions" class="nav-link auto-refresh" href="#sessions" role="tab" data-toggle="tab">
-                                <i class="material-icons">games</i>
-                                Sessions
+                                <span class="d-none d-md-block">
+                                    <i class="material-icons d-none d-md-block">games</i>
+                                    Sessions
+                                </span>
+                                <span class="d-md-none">
+                                    Sessions
+                                </span>
                             </a>
                         </li>
 
@@ -75,32 +102,51 @@
 
                         <li class="nav-item">
                             <a id="id_tab_congress" class="nav-link auto-refresh" href="#congress" role="tab" data-toggle="tab">
-                                <i class="material-icons">book_online</i>
-                                Congresses
+                                <span class="d-none d-md-block">
+                                    <i class="material-icons d-none d-md-block">book_online</i>
+                                    Congresses
+                                </span>
+                                <span class="d-md-none">
+                                    Congress
+                                </span>
                             </a>
                         </li>
 
                     {% endif %}
 
-                    {#                                        <li class="nav-item">#}
-                    {#                                            <a id="id_tab_forums" class="nav-link" href="#forums" role="tab" data-toggle="tab">#}
-                    {#                                                <i class="material-icons">chat</i>#}
-                    {#                                                Forums#}
-                    {#                                            </a>#}
-                    {#                                        </li>#}
+                    {#                                                            <li class="nav-item">#}
+                    {#                                                                <a id="id_tab_forums" class="nav-link" href="#forums" role="tab" data-toggle="tab">#}
+                    {#                                                                    <span class="d-none d-md-block">#}
+                    {#                                            <i class="material-icons d-none d-md-block">chat</i>#}
+                    {#                                            Forums#}
+                    {#                                        </span>#}
+                    {#                                        <span class="d-md-none">#}
+                    {#                                            Forums#}
+                    {#                                        </span>#}
+                    {#                                                                </a>#}
+                    {#                                                            </li>#}
+
                     <li class="nav-item">
                         <a id="id_tab_results" class="nav-link auto-refresh" href="#results" role="tab" data-toggle="tab">
-                            <i class="material-icons">content_paste</i>
-                            Results
+                            <span class="d-none d-md-block">
+                                <i class="material-icons d-none d-md-block">content_paste</i>
+                                Results
+                            </span>
+                            <span class="d-md-none">
+                                Results
+                            </span>
                         </a>
                     </li>
 
-
-
                     <li class="nav-item">
                         <a id="id_tab_comms" class="nav-link auto-refresh" href="#comms" role="tab" data-toggle="tab">
-                            <i class="material-icons">alternate_email</i>
-                            Communications
+                            <span class="d-none d-md-block">
+                                <i class="material-icons d-none d-md-block">alternate_email</i>
+                                Communications
+                            </span>
+                            <span class="d-md-none">
+                                Comms
+                            </span>
                         </a>
                     </li>
 
@@ -108,8 +154,13 @@
 
                         <li class="nav-item">
                             <a id="id_tab_finance" class="nav-link auto-refresh" href="#finance" role="tab" data-toggle="tab">
-                                <i class="material-icons">monetization_on</i>
-                                Finance
+                                <span class="d-none d-md-block">
+                                    <i class="material-icons d-none d-md-block">monetization_on</i>
+                                    Finance
+                                </span>
+                                <span class="d-md-none">
+                                    Finance
+                                </span>
                             </a>
                         </li>
 
@@ -117,14 +168,24 @@
 
                     <li class="nav-item">
                         <a id="id_tab_access" class="nav-link" href="#access" role="tab" data-toggle="tab">
-                            <i class="material-icons">face</i>
-                            Access
+                            <span class="d-none d-md-block">
+                                <i class="material-icons d-none d-md-block">face</i>
+                                Access
+                            </span>
+                            <span class="d-md-none">
+                                Access
+                            </span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a id="id_tab_settings" class="nav-link auto-refresh" href="#settings" role="tab" data-toggle="tab">
-                            <i class="material-icons">settings</i>
-                            Settings
+                            <span class="d-none d-md-block">
+                                <i class="material-icons d-none d-md-block">settings</i>
+                                Settings
+                            </span>
+                            <span class="d-md-none">
+                                Settings
+                            </span>
                         </a>
                     </li>
                 </ul>
@@ -135,6 +196,9 @@
                 </div>
 
             </div>
+
+            <!-- CONTENTS PARTS -->
+
             <div class="card-body" style="min-height: 500px;">
                 <div class="tab-content tab-space">
                     <div class="tab-pane active" id="dashboard">
@@ -171,7 +235,6 @@
             </div>
         </div>
     </div>
-
 
 {% endblock content %}
 
