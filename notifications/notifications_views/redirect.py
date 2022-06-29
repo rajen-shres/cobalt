@@ -24,6 +24,10 @@ def email_click_handler(request, message_id, redirect_path):
     Parameters are message_id (maps to Django Post Office id) and path. The path has ! instead of /
     """
 
+    # TODO: This is not in use yet. We need to change the email sender to use these links and it also
+    # TODO: needs to be extended to allow urls for other sites
+    # TODO: To implement you need to go to AWS SES and change the configuration set to not track clicks
+
     # Try to load Django Post Office email with this id
     email = Email.objects.filter(message_id=message_id).first()
     if email:

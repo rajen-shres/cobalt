@@ -169,12 +169,13 @@ def club_staff(user):
         .filter(app="orgs")
         .filter(model="org")
         .values_list("model_id")
+        .last()
     )
 
     # We return the latest added access, should maybe allow a user preference here
 
     if access:
-        return access.last()[0]  # first item in tuple (model_id)
+        return access[0]  # first item in tuple (model_id)
 
     return None
 

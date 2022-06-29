@@ -12,7 +12,6 @@
                 intro: '<img src="{% static "assets/img/abftechlogo.png" %}" style="width:170px ; display: block; margin-left: auto; margin-right: auto;">' +
                 '<br>This short tour will introduce you to the features available on the {{ GLOBAL_TITLE }} ' +
                 '<b>Dashboard</b>. This is the main screen in the system.',
-                element: document.querySelector('.wrapper'),
                 scrollTo: document.querySelector('.wrapper'),
             },
             {
@@ -143,7 +142,6 @@
                 '<li><a href="{% url "accounts:user_profile" %}?tour=yes"><b>Profile Tour</b></a>' +
                 '<li><a href="{% url "payments:statement" %}?tour=yes"><b>{{ BRIDGE_CREDITS }} Tour</b></a>' +
                 '</ul>',
-                element: document.querySelector('.wrapper'),
             },
         ]
 

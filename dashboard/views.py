@@ -105,8 +105,10 @@ def get_announcements(request):
     """internal function to get Posts for forum_type="Announcements" """
 
     # TODO: Add clubs
-    posts_list = Post.objects.filter(forum__forum_type="Announcement").order_by(
-        "-created_date"
+    posts_list = (
+        Post.objects.filter(forum__forum_type="Announcement")
+        .select_related("author", "forum")
+        .order_by("-created_date")
     )
 
     return cobalt_paginator(request, posts_list, 20)
@@ -140,6 +142,7 @@ def get_posts(request):
         posts_list = (
             Post.objects.exclude(forum__in=blocked)
             .filter(forum__forum_type="Discussion")
+            .select_related("author", "forum")
             .order_by("-created_date")
         )
 

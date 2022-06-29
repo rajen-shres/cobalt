@@ -26,7 +26,7 @@ django-otp==1.1.1
 qrcode==7.3.1
 django-loginas==0.3.10
 django-ninja==0.16.1
-django-debug-toolbar==3.2.2
+django-debug-toolbar==3.5.0
 fcm-django==1.0.11
 firebase-admin==5.2.0
 urllib3==1.26.9

@@ -1126,8 +1126,10 @@ def statement_common(user):
     balance = last_tran.balance if last_tran else "Nil"
     # get auto top up
     auto_button = user.stripe_auto_confirmed == "On"
-    events_list = MemberTransaction.objects.filter(member=user).order_by(
-        "-created_date"
+    events_list = (
+        MemberTransaction.objects.filter(member=user)
+        .select_related("member", "other_member")
+        .order_by("-created_date")
     )
 
     return summary, club, balance, auto_button, events_list
