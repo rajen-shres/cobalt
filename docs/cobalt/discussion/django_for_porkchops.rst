@@ -8,9 +8,9 @@
  :width: 300
  :alt: Pork Chops
 
-=====================
-Django for Pork Chops
-=====================
+============================
+Django for Pork Chops (edit)
+============================
 
 This assumes you know Python,
 if you don't then you should first read :doc:`python_for_porkchops`.

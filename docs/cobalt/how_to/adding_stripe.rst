@@ -5,7 +5,7 @@
  :alt: Cobalt Chemical Symbol
 
 ==================================
-Adding Stripe to Cobalt
+Adding Stripe to Cobalt (edit)
 ==================================
 
 TBA

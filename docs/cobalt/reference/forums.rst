@@ -24,9 +24,8 @@ Forums Application
 Module Purpose
 --------------
 
-Account handles things relating to User accounts such as profiles and settings.
-There are multiple user types to support the need to deal with users who have not
-registered for the system as well as real, registered users.
+Forums simply handles blog posts and responses. We have discussion forums and
+announcement forums.
 
 --------------
 External Usage
@@ -38,5 +37,7 @@ and other organisations to connect with their members and followers.
 
 The codebase for Forums is relatively small and not too hard to understand
 by reading the code.
+
+There are no external API calls for Forums.
 
 Forums uses RBAC for security. See :doc:`rbac` for more details.

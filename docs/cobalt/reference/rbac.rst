@@ -8,8 +8,27 @@
  :width: 300
  :alt: RBAC
 
-RBAC Application
-================
+:doc:`../how_to/using_references`
+
+#######################
+RBAC Application (edit)
+#######################
+
+.. note::
+    This page has the documentation on how to use this application
+    (externally provided APIs etc). If you are looking for
+    information on how it works internally, you can find that in :doc:`./rbac_support`.
+
+
+--------------
+Module Purpose
+--------------
+
+Role Based Access Control (**RBAC**) handles authorisation within Cobalt. It is
+the module that controls what things a user can do within the system
+
+Stuff
+
 
 Role Based Access Control (**RBAC**) is a standard approach to security within
 applications that have multiple users with different roles. This allows us to
@@ -40,7 +59,7 @@ permission of anyone else. RBAC is the mechanism for achieving this.
 .. image:: ../../images/rbac_overview.png
 
 Security Basics
-===============
+###############
 
 There are two main things when it comes to user security:
 
@@ -52,10 +71,11 @@ The RBAC module is about **Authorisation**. It has nothing to do with checking
 who you are, just what you can do.
 
 Background
-==========
+##########
 
+***************
 Django Options
---------------
+***************
 
 *Django already provides this, so why are we not using that here?*
 
@@ -66,15 +86,16 @@ a forum post,
 delete a forum post, etc but not which forums they can do this in. We need
 our security to be at the next level down, which Django doesn't support.
 
+*******************
 Third Party Options
--------------------
+*******************
 
 Short answer, we couldn't find one that works, is supported and isn't massively
 more complicated to learn than writing our own. The code here is not difficult so
 if a better third part option appears then we should use it.
 
 RBAC Model Overview
-===================
+####################
 
 .. image:: ../../images/rbac.png
  :width: 800

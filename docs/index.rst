@@ -34,7 +34,7 @@ national level including:
 - Memberships
 - Discussion Forums
 - Pre-paid Systems
-- Results (*in the future*)
+- Results
 - Scoring (*in the future*)
 
 Cobalt is built in `Django <https://www.djangoproject.com/>`_.
@@ -83,21 +83,28 @@ Content
 
     .. container:: reference
 
-        **Reference**
+        **Reference - General**
 
         - :doc:`cobalt/reference/cobalt_in_two_minutes`
-        - :doc:`cobalt/reference/environment_variables`
-        - :doc:`cobalt/reference/accounts`
-        - :doc:`cobalt/reference/payments`
-        - :doc:`cobalt/reference/events`
-        - :doc:`cobalt/reference/notifications`
-        - :doc:`cobalt/reference/rbac`
-        - :doc:`cobalt/reference/forums`
-        - :doc:`cobalt/reference/utilities`
-        - :doc:`cobalt/reference/support`
         - :doc:`cobalt/reference/test_data`
-        - :doc:`cobalt/reference/api`
         - :doc:`cobalt/reference/snippets`
+        - :doc:`cobalt/reference/environment_variables`
+
+        **Reference - Applications**
+
+        - :doc:`cobalt/reference/accounts`
+        - :doc:`cobalt/reference/api`
+        - :doc:`cobalt/reference/club_sessions`
+        - :doc:`cobalt/reference/events`
+        - :doc:`cobalt/reference/forums`
+        - :doc:`cobalt/reference/notifications`
+        - :doc:`cobalt/reference/organisations`
+        - :doc:`cobalt/reference/payments`
+        - :doc:`cobalt/reference/rbac`
+        - :doc:`cobalt/reference/results`
+        - :doc:`cobalt/reference/support`
+        - :doc:`cobalt/reference/utilities`
+
 
 
 Appendices

@@ -8,8 +8,8 @@
  :width: 300
  :alt: Pork Chops
 
-Python for Pork Chops
-=====================
+Python for Pork Chops (edit)
+=============================
 
 Do a course. Learn some basic things but don't get stressed about the advanced
 things, you will learn them when you need them.

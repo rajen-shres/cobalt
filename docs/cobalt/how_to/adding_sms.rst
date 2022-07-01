@@ -5,7 +5,7 @@
  :alt: Cobalt Chemical Symbol
 
 ==================================
-Adding SMS to Cobalt
+Adding SMS to Cobalt (edit)
 ==================================
 
 TBA

@@ -8,9 +8,9 @@
  :width: 300
  :alt: Pork Chops
 
-=====================
-Cobalt for Pork Chops
-=====================
+============================
+Cobalt for Pork Chops (edit)
+============================
 
 If you have recently got involved in Cobalt, then before you start
 carrying on like a pork chop, read this.

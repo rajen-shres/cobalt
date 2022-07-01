@@ -28,18 +28,16 @@ Notifications Application
 Module Purpose
 --------------
 
-Account handles things relating to User accounts such as profiles and settings.
-There are multiple user types to support the need to deal with users who have not
-registered for the system as well as real, registered users.
+Notifications handles user communications from within Cobalt. All interaction with
+users that do not go through a screen or an API should go through Notifications.
 
 --------------
 External Usage
 --------------
 
-
 Notifications is the communication centre of Cobalt. It is how all other modules
-communicate with members and is also a notice board for events (actions, not
-bridge events) that members may want to subscribe to be notified about.
+communicate with members and is also a notice board for events (as in actions, not
+bridge events!) that members may want to subscribe to be notified about.
 
 There are many events that a Cobalt user may wish to be notified about.
 For example, they may want to hear when a new post is added to a particular

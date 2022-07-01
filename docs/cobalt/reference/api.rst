@@ -10,9 +10,9 @@
 
 :doc:`../how_to/using_references`
 
-====================
-API
-====================
+######################
+API Application (edit)
+######################
 
 .. note::
     This page has the documentation on how to use this application
@@ -24,9 +24,8 @@ API
 Module Purpose
 --------------
 
-Account handles things relating to User accounts such as profiles and settings.
-There are multiple user types to support the need to deal with users who have not
-registered for the system as well as real, registered users.
+The API is not widely used, we are basically a Django web system, but any external interactions
+that we offer to developers go through the API.
 
 --------------
 External Usage

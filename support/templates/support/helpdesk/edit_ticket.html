@@ -1,16 +1,26 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Main page for support staff to edit helpdesk tickets                   #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% extends 'base.html' %}
+
 {% load crispy_forms_filters %}
 {% load widget_tweaks %}
 {% load cobalt_tags %}
 {% load static %}
+
 {% block title %} - Helpdesk Edit Ticket #{{ ticket.id }}{% endblock %}
+
 {% block header %}
     <link href="{% static "assets/css/cobalt-summernote.css" %}" rel="stylesheet">
 {% endblock header %}
-{% block content %}
 
+{% block content %}
     {% include "utils/summernote_heading.html" %}
     {% include "utils/generic_user_search_body.html" with search_id=1 %}
+
+    <!-- BREADCRUMBS -->
     <nav aria-label="breadcrumb" role="navigation">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url "support:helpdesk_menu" %}">Helpdesk</a></li>
@@ -21,7 +31,10 @@
 
     <div class="container">
         <div class="row">
+            <!-- MAIN CARD FOR PAGE -->
             <div class="card mx-auto">
+
+                <!-- MAIN CARD HEADER FOR PAGE -->
                 <div class="card-header card-header-info">
                     <h1>
                         <div class="d-flex justify-content-between">
@@ -35,15 +48,19 @@
                     </h1>
                     <p>Ticket is {{ ticket.created_date|timesince }} old</p>
                 </div>
+
+                <!-- MAIN CARD BODY FOR PAGE -->
                 <div class="card-body">
 
+                    <!-- FORM -->
                     <form method="POST" id="ticket_form">
                         {% csrf_token %}
 
                         {% if user %}
-                            {# user #}
+
+                            <!-- REGISTERED USER -->
                             <div class="row" id="impacted_user_fields">
-                                <div class="col-4">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label class="bmd-label-floating">Impacted User</label>
                                         <span class="cobalt-form-error"
@@ -53,7 +70,7 @@
                                         <p>{{ user.email }}</p>
                                     </div>
                                 </div>
-                                <div class="col-2">
+                                <div class="col-md-2">
                                     <div id="id_member_button_div">
                                         <a class="cobalt_generic_member btn btn-sm btn-info" data-toggle="modal"
                                             data-target="#cobalt_general_member_search1"><span
@@ -64,9 +81,10 @@
                                 <input type="hidden" id="id_reported_by_user" name="reported_by_user" value="{{ user.id }}">
 
                         {% else %}
-                            {# user email #}
+
+                            <!-- NOT A REGISTERED USER -->
                             <div class="row" id="user_email">
-                                <div class="col-3">
+                                <div class="col-md-3">
                                     <div class="form-group">
                                         <label class="bmd-label-floating">Impacted User Email</label>
                                         <span class="cobalt-form-error"
@@ -75,7 +93,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-3">
+                                <div class="col-md-3">
                                     <div class="form-group">
                                         <label class="bmd-label-floating">Name</label>
                                         <span class="cobalt-form-error"
@@ -86,8 +104,7 @@
 
                         {% endif %}
 
-                        {# severity #}
-
+                        <!-- SEVERITY -->
                         <div class="col-md-3">
                             <div>
                                 <span class="cobalt-form-error"
@@ -97,9 +114,7 @@
                             </div>
                         </div>
 
-
-                        {# status #}
-
+                        <!-- STATUS -->
                         <div class="col-md-3">
                             <div>
                                 <span class="cobalt-form-error"
@@ -107,12 +122,10 @@
                                 <label for="id_status" class="bmd-label-static">Status</label>
                                 {% render_field form.status class+="form-control our_input" %}
                             </div>
-
-
                         </div>
                     </div>
 
-                    {# title #}
+                    <!-- SUBJECT -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -123,8 +136,7 @@
                             </div>
                         </div>
 
-                        {# assigned to #}
-
+                        <!-- ASSIGNED TO -->
                         <div class="col-md-3">
                             <div>
                                 <span class="cobalt-form-error"
@@ -134,9 +146,7 @@
                             </div>
                         </div>
 
-
-                        {# incident type #}
-
+                        <!-- INCIDENT TYPE -->
                         <div class="col-md-3">
                             <div>
                                 <span class="cobalt-form-error"
@@ -147,7 +157,7 @@
                         </div>
                     </div>
 
-                    {# description #}
+                    <!-- DESCRIPTION -->
                     <div class="row">
                         <div class="col-md-6">
                             <p>Created: {{ ticket.created_date|cobalt_nice_datetime }}</p>
@@ -159,6 +169,7 @@
                             </div>
                         </div>
 
+                        <!-- ATTACHMENTS -->
                         <div class="col-md-6">
                             {% if attachments %}
                                 <h3>Attachments</h3>
@@ -178,6 +189,7 @@
                         </div>
                     </div>
 
+                    <!-- BUTTONS -->
                     <button class="btn btn-success mx-auto mt-4 cobalt-save" id="button_save" style="display: none">Save</button>
                     <a href="{% url "support:helpdesk_menu" %}" id="id_top_cancel" class="btn btn-info mt-4">Cancel</a>
                     <button class="btn btn-danger mx-auto mt-4 cobalt-save" id="id_delete">Delete Ticket</button>
@@ -191,6 +203,8 @@
                     </a>
                 </form>
                 <br>
+
+                <!-- HISTORY -->
                 {% if incident_line_items %}
                     <button class="btn btn-danger btn-sm" id="id_toggle_history">Show History</button>
                 {% endif %}
@@ -224,7 +238,7 @@
                 </div>
 
 
-                {# Cannot comment on a closed ticket #}
+                <!-- CANNOT COMMENT ON A CLOSED TICKET -->
                 {% if ticket.status != "Closed" %}
                     <div id="add_new_comment">
 
@@ -248,7 +262,6 @@
 
                                 </select><br>
 
-
                                 <button class="btn btn-primary cobalt-save"
                                     id="add_comment" name="add">
                                     Save
@@ -265,7 +278,6 @@
             </div>
         </div>
     </div>
-
     </div>
 
 

@@ -1,30 +1,58 @@
-<table id="ticket_table{{ counter|default_if_none:""}}" class="table table-hover table-condensed" style="display: none;">
-    <thead class="text-info">
-        <tr>
-            <th class="text-center">Severity</th>
-            <th class="text-left">Ticket #</th>
-            <th class="text-left">Created Time</th>
-            <th class="text-left">Status</th>
-            <th class="text-left">Reported By</th>
-            <th class="text-left">Title</th>
-            <th class="text-left">Product Area</th>
-            <th class="text-left">Assigned to</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for thing in things %}
-            {% if thing.severity == "Low" %}
-                {% include "support/helpdesk/list_tickets_tr.html" with icon="bug_report" td_class="bg-white" icon_colour="text-primary" %}
-            {% endif %}
-            {% if thing.severity == "Medium" %}
-                {% include "support/helpdesk/list_tickets_tr.html" with icon="info" td_class="bg-light" icon_colour="text-info" %}
-            {% endif %}
-            {% if thing.severity == "High" %}
-                {% include "support/helpdesk/list_tickets_tr.html" with icon="warning" td_class="bg-danger text-white" icon_colour="text-white" %}
-            {% endif %}
-            {% if thing.severity == "Critical" %}
-                {% include "support/helpdesk/list_tickets_tr.html" with icon="priority_high" icon_colour="text-white" td_class="bg-dark text-white font-weight-bold" %}
-            {% endif %}
-        {% endfor %}
-    </tbody>
-</table>
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{#  Table for the list view                                               #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+<div class="table-responsive">
+    <table id="ticket_table{{ counter|default_if_none:""}}" class="table table-hover table-condensed" style="display: none;">
+        <thead class="text-info">
+            <tr>
+                <th class="text-center">&nbsp;</th>
+
+                <!-- DON'T SHOW ON SMALL SCREENS -->
+                <th class="text-left">
+                    <span class="d-none d-md-inline">
+                        Severity
+                    </span>
+                </th>
+
+                <!-- DON'T SHOW ON SMALL SCREENS -->
+                <th class="text-right">
+                    <span class="d-none d-md-inline">
+                        Ticket #
+                    </span>
+                </th>
+
+                <th class="text-left">
+                    Created
+                    <span class="d-none d-md-inline">Time</span>
+                </th>
+                <th class="text-left"><span class="d-none d-md-inline">Status</span></th>
+                <th class="text-left">
+                    <span class="d-none d-md-inline">Reported</span>
+                    By
+                </th>
+                <th class="text-left">Title</th>
+                <th class="text-left"><span class="d-none d-md-inline">Product Area</span></th>
+                <th class="text-left"><span class="d-none d-md-inline">Assigned to</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for thing in things %}
+                {% if thing.severity == "Low" %}
+                    {% include "support/helpdesk/list_tickets_tr.html" with icon="bug_report" td_class="bg-white" icon_colour="text-primary" %}
+                {% endif %}
+                {% if thing.severity == "Medium" %}
+                    {% include "support/helpdesk/list_tickets_tr.html" with icon="info" td_class="bg-light" icon_colour="text-info" %}
+                {% endif %}
+                {% if thing.severity == "High" %}
+                    {% include "support/helpdesk/list_tickets_tr.html" with icon="warning" td_class="bg-danger text-white" icon_colour="text-white" %}
+                {% endif %}
+                {% if thing.severity == "Critical" %}
+                    {% include "support/helpdesk/list_tickets_tr.html" with icon="priority_high" icon_colour="text-white" td_class="bg-dark text-white font-weight-bold" %}
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

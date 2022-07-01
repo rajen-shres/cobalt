@@ -1,30 +1,44 @@
-{# Row for ticket view #}
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Row for the table in the list view                                     #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 
 {% load cobalt_tags %}
 
 <tr>
-    <td class="{{ td_class }}"><a href="{% url "support:helpdesk_edit" ticket_id=thing.id %}">
+    <td class="text-left {{ td_class }}"><a href="{% url "support:helpdesk_edit" ticket_id=thing.id %}">
+        <span class="float-left material-icons {{ icon_colour }}">{{ icon }}</span>
+    </a></td>
 
-        <div class="row m-0 border-0">
-            <div class="col float-left">
-                <span class="float-left material-icons {{ icon_colour }}">{{ icon }}</span>
-            </div>
-            <div class="col float-right {{  td_class }}">
-                {{ thing.severity }}
-            </div>
-        </div>
-    </a>
+    <!-- DON'T SHOW ON SMALL SCREENS -->
+    <td class="text-left {{  td_class }}">
+        <span class="d-none d-md-inline">{{ thing.severity }}</span>
     </td>
-    <td class="text-left">{{ thing.id }}</td>
+
+    <!-- DON'T SHOW ON SMALL SCREENS -->
+    <td class="text-right">
+        <span class="d-none d-md-inline">{{ thing.id }}</span>
+    </td>
+
     <td class="text-left" title="{{ thing.created_date|timesince }} ago"
         data-toggle="tooltip">{{ thing.created_date|cobalt_nice_datetime_short }}</td>
-    <td class="text-left">{{ thing.status }}</td>
+
+    <td class="text-left"><span class="d-none d-md-inline">{{ thing.status }}</span></td>
+
     {% if thing.reported_by_user %}
-        <td class="text-left">{{ thing.reported_by_user }}</td>
+        <td class="text-left">
+            <span class="d-md-none">{{ thing.reported_by_user.full_name }}</span>
+            <span class="d-none d-md-inline">{{ thing.reported_by_user }}</span>
+        </td>
     {% else %}
-        <td class="text-left">{{ thing.reported_by_name }} ({{ thing.reported_by_email }})</td>
+        <td class="text-left">
+            {{ thing.reported_by_name }}
+            <span class="d-none d-md-inline">({{ thing.reported_by_email }})</span>
+        </td>
     {% endif %}
+
     <td class="text-left">{{ thing.title }}</td>
-    <td class="text-left">{{ thing.incident_type }}</td>
-    <td class="text-left">{{ thing.assigned_to.first_name }}</td>
+    <td class="text-left"><span class="d-none d-md-inline">{{ thing.incident_type }}</span></td>
+    <td class="text-left"><span class="d-none d-md-inline">{{ thing.assigned_to.first_name }}</span></td>
 </tr>

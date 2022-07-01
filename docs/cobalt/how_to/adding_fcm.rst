@@ -5,7 +5,7 @@
  :alt: Cobalt Chemical Symbol
 
 ==================================
-Adding FCM to Cobalt
+Adding FCM to Cobalt (edit)
 ==================================
 
 TBA

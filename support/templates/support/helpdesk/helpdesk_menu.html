@@ -1,10 +1,22 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{#  Main page for helpdesks users                                         #}
+{#                                                                        #}
+{# Shows open tickets by group - yours, unassigned, all                   #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% extends 'base.html' %}
 {% block title %} - Helpdesk Menu{% endblock %}
+
 {% block content %}
 
     <div class="container">
         <div class="row">
+
+            <!-- MAIN CARD FOR PAGE -->
             <div class="card col-12 mx-auto">
+
+                <!-- MAIN CARD HEADER FOR PAGE -->
                 <div class="card-header card-header-info">
                     <h1>
                         <div class="d-flex justify-content-between">
@@ -18,16 +30,36 @@
                     </h1>
                     <h3>Open Tickets: {{ open_tickets }}</h3>
                 </div>
+
+                <!-- MAIN CARD BODY FOR PAGE -->
                 <div class="card-body">
+
+                    <!-- TOP BUTTONS -->
                     <a href="{% url "support:create_ticket" %}" class="btn-success btn-sm btn">Create New Ticket</a>
                     <a href="{% url "support:helpdesk_list" %}" class="btn-rose btn-sm btn">Filter Tickets</a>
-                    <div class="float-right">
-                        <a href="{% url "support:helpdesk_admin" %}" class="btn-danger btn-sm btn">Admin</a>
-                    </div>
 
+                    <!-- SMALL SCREENS - DON'T FLOAT RIGHT -->
+                    <span class="d-md-none">
+                        <div>
+                            <a href="{% url "support:helpdesk_admin" %}" class="btn-danger btn-sm btn">Admin</a>
+                        </div>
+                    </span>
+
+                    <!-- LARGE SCREENS - DO FLOAT RIGHT -->
+                    <span class="d-none d-md-inline">
+                        <div class="float-right">
+                            <a href="{% url "support:helpdesk_admin" %}" class="btn-danger btn-sm btn">Admin</a>
+                        </div>
+                    </span>
+
+                    <!-- YOUR LIST -->
                     <div class="card">
                         <div class="card-header card-header-danger">
-                            <h2>Assigned to You({{ assigned_to_you.count }})</h2>
+                            <h2>
+                                <span class="d-md-none">You</span>
+                                <span class="d-none d-md-inline">Assigned to You</span>
+                                ({{ assigned_to_you.count }})
+                            </h2>
                         </div>
                         <div class="card-body">
                             {% if assigned_to_you %}
@@ -37,9 +69,14 @@
                             {% endif %}
                         </div>
                     </div>
+
+                    <!-- UNASSIGNED LIST -->
                     <div class="card">
                         <div class="card-header card-header-warning">
-                            <h2>Unassigned({{ unassigned_tickets.count }})</h2>
+                            <h2>
+                                <span class="d-md-none">Incoming</span>
+                                <span class="d-none d-md-inline">Unassigned</span>
+                                ({{ unassigned_tickets.count }})</h2>
                         </div>
                         <div class="card-body">
                             {% if unassigned_tickets %}
@@ -50,9 +87,15 @@
                             {% endif %}
                         </div>
                     </div>
+
+                    <!-- ASSIGNED TO OTHERS -->
                     <div class="card">
                         <div class="card-header card-header-success">
-                            <h2>Assigned to Others({{ assigned_to_others.count }})</h2>
+                            <h2>
+                                <span class="d-md-none">Others</span>
+                                <span class="d-none d-md-inline">Assigned to Others</span>
+                                ({{ assigned_to_others.count }})
+                            </h2>
                         </div>
                         <div class="card-body">
                             {% if assigned_to_others %}

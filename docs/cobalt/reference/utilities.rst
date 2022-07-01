@@ -10,9 +10,9 @@
 
 :doc:`../how_to/using_references`
 
-=====================
-Utilities Application
-=====================
+############################
+Utilities Application (edit)
+############################
 
 .. note::
     This page has the documentation on how to use this application
@@ -24,9 +24,11 @@ Utilities Application
 Module Purpose
 --------------
 
-Account handles things relating to User accounts such as profiles and settings.
-There are multiple user types to support the need to deal with users who have not
-registered for the system as well as real, registered users.
+Utilities is the place where we put things that don't fit nicely anywhere else
+and aren't big enough to warrant their own application.
+
+There is much discussion in the community about whether you should have a utilities
+section, but Django has utilities so that is good enough for us.
 
 --------------
 External Usage

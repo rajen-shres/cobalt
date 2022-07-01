@@ -8,9 +8,9 @@
  :width: 300
  :alt: Amazon Web Services
 
-################
-Deploying on AWS
-################
+#######################
+Deploying on AWS (edit)
+#######################
 
 Amazon Web Services (AWS) is not required to use Cobalt, but the ABF version runs on AWS and
 this document describes some of the parts of that.

@@ -8,9 +8,9 @@
  :width: 300
  :alt: Design
 
-===============
-Design Overview
-===============
+=======================
+Design Overview (edit)
+=======================
 
 Cobalt is built using vanilla Django. Where possible we try to follow the path of least resistance by using
 defaults or common packages and approaches. The one main difference here is with HTMX which is described below.

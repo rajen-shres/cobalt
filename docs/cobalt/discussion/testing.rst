@@ -8,8 +8,8 @@
  :width: 300
  :alt: Testing
 
-Testing Overview
-================
+Testing Overview (edit)
+=======================
 
 This page describes the testing strategy for Cobalt. Also see the documentation on building core test data -
 :doc:`test_data`.

@@ -4,8 +4,8 @@
  :width: 300
  :alt: Cobalt Chemical Symbol
 
-==================================
-Adding Google Recaptcha to Cobalt
-==================================
+========================================
+Adding Google Recaptcha to Cobalt (edit)
+========================================
 
 TBA

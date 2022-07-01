@@ -25,7 +25,7 @@ div.howto {
 
 div.discussions {
     width: 50%;
-    height: 400px;
+    height: 550px;
     float: left;
     background: #ededed;
     margin: 0px 5px 5px 0px;
@@ -33,7 +33,7 @@ div.discussions {
 
 div.reference {
     border: 10px;
-    height: 400px;
+    height: 550px;
     width: 50%;
     margin: 40px 5px 5px 60%;
     background: #e8e8e8;

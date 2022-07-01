@@ -9,7 +9,7 @@
  :alt: RBAC
 
 ===================================
-Supporting the Accounts Application
+Supporting the RBAC Application
 ===================================
 
 *This page describes the internal workings of this application and is intended to
