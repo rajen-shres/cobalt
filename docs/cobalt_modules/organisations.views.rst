@@ -36,6 +36,14 @@ organisations.views.general module
    :undoc-members:
    :show-inheritance:
 
+organisations.views.home module
+-------------------------------
+
+.. automodule:: organisations.views.home
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
