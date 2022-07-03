@@ -22,14 +22,7 @@
 
     <!-- WARNING ON SMALL SCREENS -->
 
-    <span class="d-sm-none" _="init transition #warning opacity to 0% over 7 seconds then remove me">
-        <div id="warning" class="alert alert-warning" role="alert">
-            <h2 class="alert-heading">Turn Your Phone Sideways</h2>
-            <p>This part of the system does not work well in portrait mode.</p>
-            <hr>
-            <p class="mb-0">You will have a better experience if you can turn your device sideways.</p>
-        </div>
-    </span>
+    {% include "utils/small_screen_warning_banner.html" %}
 
     <!-- LOAD SUMMERNOTE -->
 
