@@ -1,3 +1,9 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Screen for a user to edit their existing entry to an event             #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
 {% extends 'base.html' %}
 {% load static %}
 {% load cobalt_tags %}
@@ -22,11 +28,19 @@
     <script src="{% static "assets/js/bootstrap4-toggle.min.js" %}"></script>
 
 {% endblock %}
+
 {% block content %}
+
+    <!-- IGNORE WARNING IF THERE ARE CHANGES TO SCREEN AND USER NAVIGATES AWAY -->
     <div id="ignore_cobalt_save"></div>
+
     <div class="container">
         <div class="row text-center">
+
+            <!-- MAIN CARD FOR PAGE -->
             <div class="card">
+
+                <!-- MAIN CARD HEADER FOR PAGE -->
                 <div class="card-header card-header-primary">
 
                     <h1>
@@ -37,335 +51,325 @@
                             <div>
                                 <i class="material-icons" id="icon" style="font-size:60px; display:none;">edit</i>
                             </div>
-                        </h1>
-
-
-                        <h2>{{ event.event_name }} in {{ congress.name }}</h2>
-
-                        <!-- Edit checkbox -->
-                        {#                Get rid of this#}
-                        {#                        <div class="text-left">#}
-                        {#                            <span class="font-weight-bold" style="font-size: 120%">Edit Entry</span>#}
-                        {#                            <input type="checkbox" id="enable_edit" data-toggle="toggle" data-size="sm"#}
-                        {#                                data-onstyle="danger"#}
-                        {#                                {% if edit_flag %} checked {% endif %}#}
-                        {#                            >#}
-                        {#                        </div>#}
-
-                        {% if in_basket %}
-                            <h3>This item is still in
-                                {% if event_entry.primary_entrant == request.user %}
-                                    your shopping cart <a class="btn btn-sm btn-secondary" href="{% url "events:checkout" %}">Checkout</a></h3>
-                                {% else %}
-                                    {{ event_entry.primary_entrant.full_name }}'s shopping cart</h3>
-                                {% endif %}
-                        {% endif %}
-                    </div>
-                    <div class="card-body text-center mx-auto">
-                        <div class="text-left"><a href="{% url "events:view_event_entries" congress_id=congress.id event_id=event.id %}">View all entries</a></div>
-
-                        <p class="display-4">Entry status is: <b>{{ event_entry.entry_status }}</b></p>
-
-                        {% if event_entry.primary_entrant == user %}
-                            <p>You made this entry</p>
-                        {% else %}
-                            <p>Entry made by: <b>{{ event_entry.primary_entrant.full_name }}</b></p>
-                        {% endif %}
-
-                        <!-- outer wrapper for extra info -->
-                        {% if categories or event.free_format_question %}
-
-                            <!-- category and question display only if not in edit mode -->
-                            {% if categories %}
-                                <div class="category editable"><b>Category:</b> {{ event_entry.category }}</div>
-                            {% endif %}
-                            {% if event.free_format_question %}
-                                <div class="category editable"><b>{{ event.free_format_question }}:</b> {{ event_entry.free_format_answer|default_if_none:"" }}</div>
-                            {% endif %}
-                            <div style = "border-radius: 25px; border: 2px solid grey; padding: 20px; display:none" class="editable extras">
-
-                                <!-- categories -->
-                                {% if categories %}
-                                    <div class="editable" style="display:none">
-                                        <label for="id_category">Category</label>
-                                        <select class="selectpicker" data-style="btn btn-info" id="id_category" name="category">
-                                            {% for category in categories %}
-                                                <option value="{{ category.id }}"
-
-                                                    {% if category == event_entry.category %}
-                                                        selected
-                                                    {% endif %}
-
-                                                >{{ category }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                {% endif %}
-
-                                <!-- question -->
-                                {% if event.free_format_question %}
-                                    <div class="editable" style="display:none">
-
-                                        <div class="form-group">
-                                            <label class="bmd-label-static">{{ event.free_format_question }}</label>
-                                            <input type="text" name="question" id="id_question" class="form-control" value="{{ event_entry.free_format_answer|default_if_none:"" }}">
-
-
-                                        </div>
-                                        <button id="id_change" class="btn btn-sm btn-success" disabled>change answer</button>
-                                    </div>
-
-                                {% endif %}
-                            </div>
-                        {% endif %}
-
-
-                        <!-- table -->
-
-                        <div class="container" style="overflow: scroll">
-                            <div class="row table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th class="px-lg-5"></th>
-                                            <th class="px-lg-5">Player</th>
-                                            <th class="editable" style="display:none">Change</th>
-                                            <th class="px-lg-5">Payment Method</th>
-                                            <th class="px-lg-5">Entry Fee</th>
-                                            <th class="px-lg-5">Status</th>
-                                            {% if event_entry.entry_status != "Complete" %}
-                                                <th class="editable" style="display:none">Action</th>
-                                            {% endif %}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-
-                                        {% for event_entry_player in event_entry_players %}
-                                            {% include "utils/generic_user_search_body.html" with search_id=event_entry_player.id %}
-                                            <tr>
-
-                                                <!-- nasty code to enable popup -->
-
-                                                <td><a href="javascript:void(0)" onclick="
-                                                    swal.fire({
-                                                    title: 'Details',
-                                                    showClass: {
-                                                    popup: 'animate__animated animate__fadeInDown'
-                                                    },
-                                                    hideClass: {
-                                                    popup: 'animate__animated animate__fadeOutUp'
-                                                    },
-                                                    html: '<table class=cobalt-table>\
-                                                    <tr>\
-                                                        <td class=cobalt-left>Player: </td>\
-                                                        <td class=cobalt-left id=popup-name-{{ event_entry_player.id }}>{{ event_entry_player.player }}</td>\
-                                                    </tr>\
-                                                    <tr>\
-                                                        <td class=cobalt-left>Payment Method: </td>\
-                                                        <td class=cobalt-left>{{ event_entry_player.get_payment_type_display }}</td>\
-                                                    </tr>\
-                                                    <tr>\
-                                                        <td class=cobalt-left>Entry Fee Reason: </td>\
-                                                        <td class=cobalt-left>{{ event_entry_player.reason|default_if_none:"" }}</td>\
-                                                    </tr>\
-                                                    <tr>\
-                                                        <td class=cobalt-left>Entry Fee: </td>\
-                                                        <td class=cobalt-left>{{ event_entry_player.entry_fee|cobalt_credits }}</td>\
-                                                    </tr>\
-                                                    <tr>\
-                                                        <td class=cobalt-left>Paid: </td>\
-                                                        <td class=cobalt-left>{{ event_entry_player.payment_received|cobalt_credits }}</td>\
-                                                    </tr>\
-                                                    <tr>\
-                                                        <td class=cobalt-left>Payment Date: </td>\
-                                                        <td class=cobalt-left>{{ event_entry_player.entry_complete_date|cobalt_nice_datetime|default_if_none:"" }}</td>\
-                                                    </tr>\
-                                                    <tr>\
-                                                        <td class=cobalt-left>Payment By: </td>\
-                                                        <td class=cobalt-left>{{ event_entry_player.paid_by|default_if_none:"" }}</td>\
-                                                    </tr>\
-                                                </table>',
-                                                    icon: 'info',
-                                                    confirmButtonColor: '#3085d6',
-                                                    cancelButtonColor: '#d33',
-                                                    confirmButtonText: 'Dismiss'
-                                                    })">
-                                                    <i class="material-icons" data-toggle="tooltip" title="Show details">info</i></a>
-                                            </td>
-
-                                            <!-- name and picture -->
-                                            <td class="px-0 py-1 mx-0 my-2">
-                                                <div class="px-0 py-0 mx-0 my-0 text-center">
-                                                    <img id="cobalt-pic-{{ event_entry_player.id }}"
-                                                        class="cobalt-rounded text-center px-0 py-0  mx-0 my-0"
-                                                        style="height: 60px; width: 60px;"
-                                                        src="/media/{{ event_entry_player.player.pic }}" />
-                                                    <p class="px-0 py-0  mx-0 my-0" id="player-name-{{ event_entry_player.id }}">
-                                                        {{ event_entry_player.player.full_name }}
-                                                    </p>
-                                                </div>
-                                            </td>
-
-
-                                            <!-- action buttons - hidden by default -->
-                                            <td class="td-actions text-right editable" style="display:none">
-                                                <div style="white-space: nowrap;">
-                                                    <!-- only show delete if player isn't already TBA -->
-                                                    <!-- Also the delete button is different for players 5 and 6 (actually deletes) -->
-                                                    {% if event_entry_player.extra_player %}
-                                                        <!-- delete should actually delete player -->
-                                                        <button type="button" id="really_delete_team_mate_{{ event_entry_player.id }}"
-                                                            data-toggle="tooltip"
-                                                            class="btn btn-danger really_delete_team_mate"
-                                                            title="Remove {{ event_entry_player.player.first_name }} from team."
-                                                        >
-                                                            <i class="material-icons">delete_forever</i>
-                                                        </button>
-                                                    {% else %} <!-- player 1 to 4 -->
-                                                        {% if event_entry_player.player.id != TBA_PLAYER %}
-                                                            <button type="button" id="delete_team_mate_{{ event_entry_player.id }}"
-                                                                data-toggle="tooltip"
-                                                                class="btn btn-danger delete_team_mate"
-                                                                title="Remove {{ event_entry_player.player.first_name }} from entry and replace with TBA."
-                                                            >
-                                                                <i class="material-icons">delete</i>
-                                                            </button>
-                                                        {% endif %}
-                                                    {% endif %}
-
-                                                    <!-- Button to swap players -->
-                                                    <button type="button" id="toggle_team_mate_{{ team_mate.team_mate.id }}"
-                                                        data-toggle="modal"
-                                                        data-target="#cobalt_general_member_search{{ event_entry_player.id }}"
-                                                        class="btn btn-info cobalt_generic_member btn-sm">
-                                                        <i class="material-icons"
-                                                            title="Swap {{ event_entry_player.player.first_name }} for someone else"
-                                                            data-toggle="tooltip"
-                                                        >
-                                                            swap_vertical_circle
-                                                        </i>
-                                                    </button>
-
-
-                                                </div>
-                                            </td>
-
-                                            <!-- Payment method -->
-                                            <td style="white-space: nowrap;">
-                                                {{ event_entry_player.get_payment_type_display }}
-                                                <!-- check if payment method is editable -->
-                                                {% if event_entry_player.payment_status != "Paid" and event_entry_player.payment_status != "Free" %}
-                                                    <a class="change_payment_method editable" href="javascript:void(0)" style="display: none">
-                                                        <i class="material-icons" id="change_payment_{{ event_entry_player.id }}">edit</i>
-                                                    </a>
-                                                {% endif %}
-                                            </td>
-
-                                            <!-- Entry fee -->
-                                            <td>
-                                                {{ event_entry_player.entry_fee|cobalt_credits }}
-                                            </td>
-                                            <td>
-                                                <div>
-
-                                                    <!-- Status -->
-                                                    <div>
-                                                        {% if event_entry_player.payment_status == "Paid" %}
-                                                            <span class="text-success"><i class="material-icons">check_circle</i></span>
-                                                        {% elif event_entry_player.payment_status == "Free" %}
-                                                            <span class="text-success"><i class="material-icons">favorite</i></span>
-                                                        {% else %}
-                                                            <span class="text-primary"><i class="material-icons">warning</i></span>
-                                                        {% endif %}
-                                                    </div>
-                                                    <div>
-                                                        {{ event_entry_player.payment_status }}
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            <!-- Action - hidden by default -->
-                                            {% if event_entry_player.payment_status != "Paid" and event_entry_player.payment_status != "Free" %}
-                                                <td class="editable" style="display:none">
-                                                    <button class="btn btn-sm btn-info single_pay"
-                                                        id="single_pay_{{ event_entry_player.id }}"
-                                                        data-toggle="tooltip"
-                                                        title="Pay now using your bridge credits"
-                                                    >Pay Now</button>
-                                                </td>
-                                            {% else %}
-                                                {% if event_entry.entry_status != "Complete" %}
-                                                    <td></td>
-                                                {% endif %}
-                                            {% endif %}
-
-                                            </tr>
-                                        {% endfor %}
-
-                                        <!-- bottom row of table has add player and pay all -->
-                                        <tr>
-                                            <td colspan='6'>
-                                                <!-- Show add player button if allowed -->
-                                                {% if event_entry_players.count == 4  or event_entry_players.count == 5 %}
-                                                    <div class="row table-responsive text-left pb-5">
-                                                        <button id="add_player" class="editable btn btn-sm btn-primary text-left" style="display:none"><i class="fas fa-plus-circle display-5"></i>&nbsp;Add Player to Team</button>
-                                                    </div>
-                                                {% endif %}
-                                            </td>
-
-                                            <!-- Show pay all if valid option -->
-                                            {% if pay_all %}
-                                                <td class="editable" style="display:none">
-                                                    <div class="row table-responsive text-left pb-5 px-0 mx-0">
-                                                        <button class="btn btn-sm btn-info font-weight-bold"
-                                                            {#                                                        style="font-size: 105%;"#}
-                                                            id="pay_all"
-                                                            data-toggle="tooltip"
-                                                            title="Pay all outstanding now using your bridge credits"
-                                                        >Pay For Everyone</button>
-                                                    </div>
-                                                </td>
-                                            {% endif %}
-                                        </tr>
-
-                                    </tbody>
-                                </table>
-                            </div>
-
                         </div>
-                        <!-- comments-->
-                        <label> Click to view or edit comment</label>
-                        <a href="javascript:void(0)" onclick='editComment({{event_entry.id}}, "{{event_entry.comment}}");'>
-                            <i class="material-icons" id="id_comment">comment</i></a>
-                        <!-- team name -->
-                        {% if event.allow_team_names %}
-                            <br>
-                            <label>Team Name: <strong class="text-dark">
-                                <span id="team_name_value">{{ event_entry.get_team_name }}</span>
-                            </strong></label>
-                            <i class="material-icons text-info" id="id_team_name" style="cursor: pointer">edit</i></a>
+                    </h1>
+
+                    <h2>{{ event.event_name }} in {{ congress.name }}</h2>
+
+                    <!-- WARNING IF NOT CHECKED OUT -->
+                    {% if in_basket %}
+                        <h3>This item is still in
+                            {% if event_entry.primary_entrant == request.user %}
+                                your shopping cart <a class="btn btn-sm btn-secondary" href="{% url "events:checkout" %}">Checkout</a></h3>
+                            {% else %}
+                                {{ event_entry.primary_entrant.full_name }}'s shopping cart</h3>
+                            {% endif %}
+                    {% endif %}
+                </div>
+
+                <!-- MAIN CARD BODY FOR PAGE -->
+                <div class="card-body">
+                    <div class="text-left"><a href="{% url "events:view_event_entries" congress_id=congress.id event_id=event.id %}">View all entries</a></div>
+
+                    <p class="display-4">Entry status is: <b>{{ event_entry.entry_status }}</b></p>
+
+                    {% if event_entry.primary_entrant == user %}
+                        <p>You made this entry</p>
+                    {% else %}
+                        <p>Entry made by: <b>{{ event_entry.primary_entrant.full_name }}</b></p>
+                    {% endif %}
+
+                    <!-- OUTER WRAPPER FOR EXTRA INFO -->
+                    {% if categories or event.free_format_question %}
+
+                        {% if categories %}
+                            <div class="category editable"><b>Category:</b> {{ event_entry.category }}</div>
                         {% endif %}
+                        {% if event.free_format_question %}
+                            <div class="category editable"><b>{{ event.free_format_question }}:</b> {{ event_entry.free_format_answer|default_if_none:"" }}</div>
+                        {% endif %}
+                        <div style = "border-radius: 25px; border: 2px solid grey; padding: 20px; display:none" class="editable extras">
+
+                            <!-- CATEGORIES -->
+                            {% if categories %}
+                                <div class="editable" style="display:none">
+                                    <label for="id_category">Category</label>
+                                    <select class="selectpicker" data-style="btn btn-info" id="id_category" name="category">
+                                        {% for category in categories %}
+                                            <option value="{{ category.id }}"
+
+                                                {% if category == event_entry.category %}
+                                                    selected
+                                                {% endif %}
+
+                                            >{{ category }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            {% endif %}
+
+                            <!-- QUESTION -->
+                            {% if event.free_format_question %}
+                                <div class="editable" style="display:none">
+
+                                    <div class="form-group">
+                                        <label class="bmd-label-static">{{ event.free_format_question }}</label>
+                                        <input type="text" name="question" id="id_question" class="form-control" value="{{ event_entry.free_format_answer|default_if_none:"" }}">
+
+
+                                    </div>
+                                    <button id="id_change" class="btn btn-sm btn-success" disabled>change answer</button>
+                                </div>
+
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <!-- MAIN TABLE -->
+
+                    <div class="container" style="overflow: scroll">
+                        <div class="row table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th class="px-lg-5"></th>
+                                        <th class="px-lg-5">Player</th>
+                                        <th class="editable" style="display:none">Change</th>
+                                        <th class="px-lg-5">Payment Method</th>
+                                        <th class="px-lg-5">Entry Fee</th>
+                                        <th class="px-lg-5">Status</th>
+                                        {% if event_entry.entry_status != "Complete" %}
+                                            <th class="editable" style="display:none">Action</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                    {% for event_entry_player in event_entry_players %}
+                                        {% include "utils/generic_user_search_body.html" with search_id=event_entry_player.id %}
+                                        <tr>
+
+                                            <!-- NASTY CODE TO ENABLE POPUP -->
+
+                                            <td><a href="javascript:void(0)" onclick="
+                                                swal.fire({
+                                                title: 'Details',
+                                                showClass: {
+                                                popup: 'animate__animated animate__fadeInDown'
+                                                },
+                                                hideClass: {
+                                                popup: 'animate__animated animate__fadeOutUp'
+                                                },
+                                                html: '<table class=cobalt-table>\
+                                                <tr>\
+                                                    <td class=cobalt-left>Player: </td>\
+                                                    <td class=cobalt-left id=popup-name-{{ event_entry_player.id }}>{{ event_entry_player.player }}</td>\
+                                                </tr>\
+                                                <tr>\
+                                                    <td class=cobalt-left>Payment Method: </td>\
+                                                    <td class=cobalt-left>{{ event_entry_player.get_payment_type_display }}</td>\
+                                                </tr>\
+                                                <tr>\
+                                                    <td class=cobalt-left>Entry Fee Reason: </td>\
+                                                    <td class=cobalt-left>{{ event_entry_player.reason|default_if_none:"" }}</td>\
+                                                </tr>\
+                                                <tr>\
+                                                    <td class=cobalt-left>Entry Fee: </td>\
+                                                    <td class=cobalt-left>{{ event_entry_player.entry_fee|cobalt_credits }}</td>\
+                                                </tr>\
+                                                <tr>\
+                                                    <td class=cobalt-left>Paid: </td>\
+                                                    <td class=cobalt-left>{{ event_entry_player.payment_received|cobalt_credits }}</td>\
+                                                </tr>\
+                                                <tr>\
+                                                    <td class=cobalt-left>Payment Date: </td>\
+                                                    <td class=cobalt-left>{{ event_entry_player.entry_complete_date|cobalt_nice_datetime|default_if_none:"" }}</td>\
+                                                </tr>\
+                                                <tr>\
+                                                    <td class=cobalt-left>Payment By: </td>\
+                                                    <td class=cobalt-left>{{ event_entry_player.paid_by|default_if_none:"" }}</td>\
+                                                </tr>\
+                                            </table>',
+                                                icon: 'info',
+                                                confirmButtonColor: '#3085d6',
+                                                cancelButtonColor: '#d33',
+                                                confirmButtonText: 'Dismiss'
+                                                })">
+                                                <i class="material-icons" data-toggle="tooltip" title="Show details">info</i></a>
+                                        </td>
+
+                                        <!-- name and picture -->
+                                        <td class="px-0 py-1 mx-0 my-2">
+                                            <div class="px-0 py-0 mx-0 my-0 text-center">
+                                                <img id="cobalt-pic-{{ event_entry_player.id }}"
+                                                    alt="profile picture for {{ event_entry_player.player.full_name }}"
+                                                    class="cobalt-rounded text-center px-0 py-0  mx-0 my-0"
+                                                    style="height: 60px; width: 60px;"
+                                                    src="/media/{{ event_entry_player.player.pic }}" />
+                                                <p class="px-0 py-0  mx-0 my-0" id="player-name-{{ event_entry_player.id }}">
+                                                    {{ event_entry_player.player.full_name }}
+                                                </p>
+                                            </div>
+                                        </td>
+
+                                        <!-- ACTION BUTTONS - HIDDEN BY DEFAULT -->
+                                        <td class="td-actions text-right editable" style="display:none">
+                                            <div style="white-space: nowrap;">
+                                                <!-- ONLY SHOW DELETE IF PLAYER ISN'T ALREADY TBA -->
+                                                <!-- ALSO, THE DELETE BUTTON IS DIFFERENT FOR PLAYERS 5 AND 6 (ACTUALLY DELETES) -->
+                                                {% if event_entry_player.extra_player %}
+                                                    <!-- DELETE SHOULD ACTUALLY DELETE PLAYER -->
+                                                    <button type="button" id="really_delete_team_mate_{{ event_entry_player.id }}"
+                                                        data-toggle="tooltip"
+                                                        class="btn btn-danger really_delete_team_mate"
+                                                        title="Remove {{ event_entry_player.player.first_name }} from team."
+                                                    >
+                                                        <i class="material-icons">delete_forever</i>
+                                                    </button>
+                                                {% else %} <!-- PLAYER 1 TO 4 -->
+                                                    {% if event_entry_player.player.id != TBA_PLAYER %}
+                                                        <button type="button" id="delete_team_mate_{{ event_entry_player.id }}"
+                                                            data-toggle="tooltip"
+                                                            class="btn btn-danger delete_team_mate"
+                                                            title="Remove {{ event_entry_player.player.first_name }} from entry and replace with TBA."
+                                                        >
+                                                            <i class="material-icons">delete</i>
+                                                        </button>
+                                                    {% endif %}
+                                                {% endif %}
+
+                                                <!-- BUTTON TO SWAP PLAYERS -->
+                                                <button type="button" id="toggle_team_mate_{{ team_mate.team_mate.id }}"
+                                                    data-toggle="modal"
+                                                    data-target="#cobalt_general_member_search{{ event_entry_player.id }}"
+                                                    class="btn btn-info cobalt_generic_member btn-sm">
+                                                    <i class="material-icons"
+                                                        title="Swap {{ event_entry_player.player.first_name }} for someone else"
+                                                        data-toggle="tooltip"
+                                                    >
+                                                        swap_vertical_circle
+                                                    </i>
+                                                </button>
+                                            </div>
+                                        </td>
+
+                                        <!-- PAYMENT METHOD -->
+                                        <td style="white-space: nowrap;">
+                                            {{ event_entry_player.get_payment_type_display }}
+                                            <!-- CHECK IF PAYMENT METHOD IS EDITABLE -->
+                                            {% if event_entry_player.payment_status != "Paid" and event_entry_player.payment_status != "Free" %}
+                                                <a class="change_payment_method editable" href="javascript:void(0)" style="display: none">
+                                                    <i class="material-icons" id="change_payment_{{ event_entry_player.id }}">edit</i>
+                                                </a>
+                                            {% endif %}
+                                        </td>
+
+                                        <!-- ENTRY FEE -->
+                                        <td>
+                                            {{ event_entry_player.entry_fee|cobalt_credits }}
+                                        </td>
+                                        <td>
+                                            <div>
+
+                                                <!-- STATUS -->
+                                                <div>
+                                                    {% if event_entry_player.payment_status == "Paid" %}
+                                                        <span class="text-success"><i class="material-icons">check_circle</i></span>
+                                                    {% elif event_entry_player.payment_status == "Free" %}
+                                                        <span class="text-success"><i class="material-icons">favorite</i></span>
+                                                    {% else %}
+                                                        <span class="text-primary"><i class="material-icons">warning</i></span>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    {{ event_entry_player.payment_status }}
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- ACTION - HIDDEN BY DEFAULT -->
+                                        {% if event_entry_player.payment_status != "Paid" and event_entry_player.payment_status != "Free" %}
+                                            <td class="editable" style="display:none">
+                                                <button class="btn btn-sm btn-info single_pay"
+                                                    id="single_pay_{{ event_entry_player.id }}"
+                                                    data-toggle="tooltip"
+                                                    title="Pay now using your bridge credits"
+                                                >Pay Now</button>
+                                            </td>
+                                        {% else %}
+                                            {% if event_entry.entry_status != "Complete" %}
+                                                <td></td>
+                                            {% endif %}
+                                        {% endif %}
+
+                                        </tr>
+                                    {% endfor %}
+
+                                    <!-- BOTTOM ROW OF TABLE HAS ADD PLAYER AND PAY ALL -->
+                                    <tr>
+                                        <td colspan='6'>
+                                            <!-- Show add player button if allowed -->
+                                            {% if event_entry_players.count == 4  or event_entry_players.count == 5 %}
+                                                <div class="row table-responsive text-left pb-5">
+                                                    <button id="add_player" class="editable btn btn-sm btn-primary text-left" style="display:none"><i class="fas fa-plus-circle display-5"></i>&nbsp;Add Player to Team</button>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+
+                                        <!-- SHOW PAY ALL IF VALID OPTION -->
+                                        {% if pay_all %}
+                                            <td class="editable" style="display:none">
+                                                <div class="row table-responsive text-left pb-5 px-0 mx-0">
+                                                    <button class="btn btn-sm btn-info font-weight-bold"
+                                                        {#                                                        style="font-size: 105%;"#}
+                                                        id="pay_all"
+                                                        data-toggle="tooltip"
+                                                        title="Pay all outstanding now using your bridge credits"
+                                                    >Pay For Everyone</button>
+                                                </div>
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
 
                     </div>
-                </div>
-                <div class="text-center">
-                    <a href="{% url "events:delete_event_entry" event_entry_id=event_entry.id %}"
-                        class="btn btn-danger cobalt-save">
-                        Withdraw
-                        {% if event.player_format == "Pairs" %}
-                            Pair
-                        {% elif event.player_format == "Individual" %}
-                            Player
-                        {% else %}
-                            Whole Team
-                        {% endif %}
-                        From Event
-                    </a>
-                    <a href="{% url "events:events" %}" class="btn btn-success">Exit</a>
+                    <!-- COMMENTS-->
+                    <label> Click to view or edit comment</label>
+                    <a href="javascript:void(0)" onclick='editComment({{event_entry.id}}, "{{event_entry.comment}}");'>
+                        <i class="material-icons" id="id_comment">comment</i></a>
+                    <!-- TEAM NAME -->
+                    {% if event.allow_team_names %}
+                        <br>
+                        <label>Team Name: <strong class="text-dark">
+                            <span id="team_name_value">{{ event_entry.get_team_name }}</span>
+                        </strong></label>
+                        <i class="material-icons text-info" id="id_team_name" style="cursor: pointer">edit</i></a>
+                    {% endif %}
+
                 </div>
             </div>
+            <div class="text-center">
+                <a href="{% url "events:delete_event_entry" event_entry_id=event_entry.id %}"
+                    class="btn btn-danger cobalt-save">
+                    Withdraw
+                    {% if event.player_format == "Pairs" %}
+                        Pair
+                    {% elif event.player_format == "Individual" %}
+                        Player
+                    {% else %}
+                        Whole Team
+                    {% endif %}
+                    From Event
+                </a>
+                <a href="{% url "events:events" %}" class="btn btn-success">Exit</a>
+            </div>
         </div>
+    </div>
+
 {% endblock %}
 
 {% block footer %}
@@ -456,7 +460,7 @@
 
             // TODO: Add in their-bridge-credits and ask them as options if not the logged in user
 
-            // This seems to needed to force Django's late/lazy eval stuff to actually work
+            // This seems be to needed to force Django's late/lazy eval stuff to actually work
             // Doesn't make any sense but fails without it
             console.log(input_options);
 
@@ -510,6 +514,11 @@
                 });
                 $("#title").html("Edit");
                 $("#icon").show();
+            });
+
+            // Hide tooltip if clicked - problem for mobile devices - it gets in the way
+            $('.cobalt_generic_member, .delete_team_mate').click(function(){
+                $(".tooltip").tooltip("hide");
             });
 
             // handle delete button - replace player with TBA
@@ -596,7 +605,6 @@
             // handle pay all
             $("#pay_all").click(function(){
 
-
                 Swal.fire({
                     title: 'Pay with Your Bridge Credits',
                     text: "Pay for all outstanding players now using your Bridge Credits?",
@@ -657,8 +665,9 @@
                                 url: url,
                                 headers: {
                                     "Content-Type": "application/json",
-                                    "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
+                                    "X-CSRFToken": '{{ csrf_token }}' // This is needed to pass xsite scripting errors
                                 },
+
                                 type: "post",
                                 data: JSON.stringify(serializedData),
                                 dataType: "json",
@@ -672,15 +681,12 @@
                                     });
                                 },
                             });
-                        } // dismissed dont do anything
+                        } // dismissed - don't do anything
                     })
                 });
             {% endif %}
 
-
-
         }); // end doc ready
-
 
         // edit comment and show it as well
         function editComment(id, old_comment) {
@@ -707,7 +713,7 @@
                         url: url,
                         headers: {
                             "Content-Type": "application/json",
-                            "X-CSRFToken": $.cookie("csrftoken") // This is needed to pass xsite scripting errors
+                            "X-CSRFToken": '{{ csrf_token }}' // This is needed to pass xsite scripting errors
                         },
                         type: "post",
                         data: JSON.stringify(serializedData),
@@ -725,7 +731,7 @@
                             console.log(textStatus, errorThrown);
                         }
                     });
-                } // dismissed dont do anything
+                } // dismissed - don't do anything
             })
         }
     </script>
