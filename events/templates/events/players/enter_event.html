@@ -11,12 +11,17 @@
 {% load widget_tweaks %}
 {% load crispy_forms_tags %}
 {% load cobalt_tags %}
+
 {% block title %} - Enter Event{% endblock %}
+
 {% block header %}
     <style>
-        select{
-            width: 100px;
-            text-overflow: ellipsis;
+
+        th, td {
+            /*use this property to disable soft wrap*/
+            white-space: nowrap;
+            /*To make extra certain,add this css property*/
+            word-break: keep-all;
         }
 
         .borderless td, .borderless th {
@@ -34,7 +39,11 @@
 
     <div class="container">
         <div class="row text-center">
+
+            <!-- MAIN CARD FOR PAGE -->
             <div class="card">
+
+                <!-- MAIN CARD HEADER FOR PAGE -->
                 <div class="card-header card-header-primary">
 
                     <h1>
@@ -59,7 +68,7 @@
 
                         <!-- PLAYER SEARCHES -->
 
-                        <!-- Player 0 -->
+                        <!-- PLAYER 0 -->
                         {% include "utils/generic_user_search_body.html" with search_id=0 %}
 
                         <!-- OTHERS -->
@@ -75,7 +84,12 @@
                             <!-- OPTIONAL CATEGORIES -->
                             {% if categories %}
                                 <label for="id_category">Category</label>
-                                <select required class="selectpicker" data-style="btn btn-info" id="id_category" name="category">
+                                <select
+                                    required
+                                    class="selectpicker"
+                                    data-style="btn btn-info"
+                                    id="id_category"
+                                    name="category">
                                     <option value="">Select...</option>
                                     {% for category in categories %}
                                         <option value="{{ category.id }}">{{ category }}</option>
@@ -96,12 +110,12 @@
                                             <thead>
                                                 <tr>
 
-                                                    <th class="px-lg-5 text-left text-primary">Player</th>
-                                                    <th class="px-lg-5">Payment Method
+                                                    <th class="text-left text-primary">Player</th>
+                                                    <th class="text-left text-primary">Payment Method
                                                     </th>
                                                     <th></th>
-                                                    <th class="px-lg-5">Pay Now</th>
-                                                    <th class="px-lg-5">Pending</th>
+                                                    <th class="text-right text-primary">Pay Now</th>
+                                                    <th class="text-right text-primary">Pending</th>
                                                 </tr>
                                             </thead>
 
@@ -112,13 +126,21 @@
                                                 <tr>
 
                                                     <!-- PLAYER NAME - ALLOW IT TO BE CHANGED -->
-                                                    <td class="col text-center">
-                                                        <div id="div_id_player0" class="form-group">
-                                                            <select class="cobalt-playerN form-control input-sm" data-style="btn btn-link" title="Select" id="id_player0" name="player0">
-                                                                <option value="{{ player0.id }}" selected>{{ player0.name }}</option>
+                                                    <td class="col">
+                                                        <div id="div_id_player0">
+                                                            <select class="form-control cobalt-playerN"
+                                                                title="Select"
+                                                                id="id_player0"
+                                                                name="player0">
+                                                                <option value="{{ player0.id }}"
+                                                                    selected>{{ player0.name }}</option>
                                                                 {% for val,item in player0.name_choices %}
 
-                                                                    <option value="{{ val }}" {% if our_form_row.name_selected == val %} selected {% endif %}>{{ item }}</option>
+                                                                    <option value="{{ val }}"
+                                                                        {% if our_form_row.name_selected == val %}
+                                                                            selected
+                                                                        {% endif %}
+                                                                    >{{ item }}</option>
 
                                                                 {% endfor %}
                                                             </select>
@@ -126,108 +148,152 @@
                                                     </td>
 
                                                     <!-- PAYMENT CHOICES -->
-                                                    <td>
-                                                        <div class="form-group">
-                                                            <select id="id_player0_payment" name="player0_payment" data-style="btn btn-link" class="form-control  input-sm payment-method">
+                                                    <td class="col">
+                                                        <div>
+                                                            <select id="id_player0_payment"
+                                                                name="player0_payment"
+                                                                style="width: 160px"
+                                                                class="form-control payment-method">
                                                                 {% for val,item in player0.payment_choices %}
                                                                     <option value="{{ val }}">{{ item }}</option>
                                                                 {% endfor %}
                                                             </select>
                                                         </div>
                                                     </td>
+
+                                                    <!-- DISCOUNT ALERT -->
                                                     <td class="col">
-                                                        <nobr>
-                                                            {% if discount %}
-                                                                <span class="myHover" data-toggle="tooltip" title="{{ description }}" data-delay="100" data-placement="bottom">
-                                                                    <i class="fas fa-tag"></i>
-                                                                </span>
-                                                            {% else %}
-                                                                &nbsp;
-                                                            {% endif %}
-                                                        </td>
-                                                        <td class="text-right">
-                                                            <input id="fee_0_now" class="pay_now" type="text" size="12" readonly style="border: none;" value="{{ player0.entry_fee_you|cobalt_credits }}">
-                                                        </td>
-                                                    </nobr>
-                                                    <td class="col">
-                                                        <input id="fee_0_later" class="pay_later" type="text" size="12" readonly style="border: none;" value="">
+                                                        {% if discount %}
+                                                            <span class="myHover"
+                                                                data-toggle="tooltip"
+                                                                title="{{ description }}"
+                                                                data-delay="100"
+                                                                data-placement="bottom">
+                                                                <i class="fas fa-tag"></i>
+                                                            </span>
+                                                        {% else %}
+                                                            &nbsp;
+                                                        {% endif %}
+                                                    </td>
+
+                                                    <!-- READ ONLY AMOUNT TO PAY NOW -->
+                                                    <td class="text-right">
+                                                        <input id="fee_0_now"
+                                                            class="pay_now text-right"
+                                                            type="text"
+                                                            size="12"
+                                                            readonly
+                                                            style="border: none;"
+                                                            value="{{ player0.entry_fee_you|cobalt_credits }}">
+                                                    </td>
+
+                                                    <!-- READ ONLY AMOUNT TO PAY LATER -->
+                                                    <td class="col text-right">
+                                                        <input id="fee_0_later"
+                                                            class="pay_later text-right"
+                                                            type="text"
+                                                            size="12"
+                                                            readonly
+                                                            style="border: none;"
+                                                            value="">
                                                     </td>
                                                 </tr>
 
                                                 <!-- END TOP ROW = PLAYER 0 -->
 
                                                 <!-- ADDITIONAL PLAYERS -->
-
                                                 {% for our_form_row in our_form %}
                                                     {% include "events/players/enter_event_sub.html" with row=our_form_row %}
                                                 {% endfor %}
 
                                                 <!-- TOTALS ROW -->
+                                                <tr><td>&nbsp;</td></tr>
                                                 <tr>
-                                                    <td>
-                                                        <td>
-                                                            <td class="col" style="text-align: right; padding-right:18px;"><b>Total</b>
-                                                                <td class="col" align="right">
-                                                                    <input id="total_now" type="text" size="12" readonly style="border: none;" value="">
-                                                                    <td class="col">
-                                                                        <input id="total_later" type="text" size="12" style="border: none;" readonly value="">
-                                                                    </tr>
+                                                    <td colspan="3" class="col font-weight-bold" style="text-align: right; padding-right:18px; font-size: larger">
+                                                        <b>Total</b>
+                                                    </td>
+                                                    <td class="col text-right">
+                                                        <input id="total_now"
+                                                            type="text"
+                                                            size="12"
+                                                            readonly
+                                                            style="border: none; font-size: larger"
+                                                            class = "font-weight-bold text-right"
+                                                            value="">
+                                                    </td>
+                                                    <td class="col text-right">
+                                                        <input id="total_later"
+                                                            type="text"
+                                                            size="12"
+                                                            style="border: none; font-size: larger"
+                                                            readonly
+                                                            class = "font-weight-bold text-right"
+                                                            value="">
+                                                    </td>
+                                                </tr>
 
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                    <hr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <hr>
 
-                                                    {% if event.allow_team_names %}
-                                                        <div class="row">
-                                                            <label class="col-5 col-form-label">Team Name</label>
-                                                            <div class="col-5">
-                                                                <div class="form-group has-success">
-                                                                    <input type="text"maxlength="15" class="form-control" id="id_team_name" autocomplete="off" name="team_name" value="{{ request.user.last_name }}" style="cursor: auto;">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    {% endif %}
+                                {% if event.allow_team_names %}
+                                    <div class="row">
+                                        <label class="col-md-5 col-form-label">Team Name</label>
+                                        <div class="col-md-5">
+                                            <div class="form-group has-success">
+                                                <input type="text"maxlength="15" class="form-control" id="id_team_name" autocomplete="off" name="team_name" value="{{ request.user.last_name }}" style="cursor: auto;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
 
-                                                    <!-- OPTIONAL RANDOM QUESTION -->
-                                                    {% if event.free_format_question %}
-                                                        <div class="row">
-                                                            <label class="col-sm-5 col-form-label">{{ event.free_format_question }}</label>
-                                                            <div class="col-sm-7">
-                                                                <div class="form-group has-success">
-                                                                    <input type="text" maxlength="60" class="form-control" id="id_free_format_answer" name="free_format_answer" autocomplete="off" style="cursor: auto;">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    {% endif %}
+                                <!-- OPTIONAL RANDOM QUESTION -->
+                                {% if event.free_format_question %}
+                                    <div class="row">
+                                        <label class="col-sm-5 col-form-label">{{ event.free_format_question }}</label>
+                                        <div class="col-sm-7">
+                                            <div class="form-group has-success">
+                                                <input type="text" maxlength="60" class="form-control" id="id_free_format_answer" name="free_format_answer" autocomplete="off" style="cursor: auto;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
 
-                                                    <!-- PLAYER SUPPLIED COMMENTS FOR CONVENER -->
-                                                    <div class="row">
-                                                        <label class="col-sm-5 col-form-label">Comments</label>
-                                                        <div class="col-sm-7">
-                                                            <div class="form-group has-success">
-                                                                <input type="text" class="form-control" id="id_comment" autocomplete="off" name="comment" style="cursor: auto;">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- ROW OF ACTION BUTTONS -->
-                                                    <div class="row">
-                                                        <div class="col text-center">
-                                                            <button id="id_checkout" type="submit" name="now" class="btn btn-success cobalt-save" style="width:200px" disabled>Confirm and Pay Now</button>
-                                                            <button id="id_cart" type="submit" name="cart" class="btn btn-success cobalt-save" style="width:200px" disabled>Save and Pay Later</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                            <!-- END FORM -->
+                                <!-- PLAYER SUPPLIED COMMENTS FOR CONVENER -->
+                                <div class="row">
+                                    <label class="col-sm-5 col-form-label">Comments</label>
+                                    <div class="col-sm-7">
+                                        <div class="form-group has-success">
+                                            <input type="text" class="form-control" id="id_comment" autocomplete="off" name="comment" style="cursor: auto;">
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- ROW OF ACTION BUTTONS -->
+                                <div class="row">
+                                    <div class="col text-center">
+                                        <button id="id_checkout" type="submit" name="now"
+                                            class="btn btn-success cobalt-save" style="width:200px" disabled>Confirm
+                                            and Pay Now
+                                        </button>
+                                        <button id="id_cart" type="submit" name="cart"
+                                            class="btn btn-success cobalt-save" style="width:200px" disabled>Save
+                                            and Pay Later
+                                        </button>
+                                    </div>
+                                </div>
+
                             </div>
-                        </div>
+                        </form>
+                        <!-- END FORM -->
+
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
 {% block footer %}

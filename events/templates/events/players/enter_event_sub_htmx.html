@@ -30,6 +30,7 @@
             {% if our_form_row.player_no > 3 %}style="display: none;"{% endif %}>
             <div class="player-selectpicker"
                 id="div_id_player_sub_{{ our_form_row.player_no }}">
+
                 <select class="selectpicker cobalt-playerN"
                     data-container="body"
                     data-style="btn btn-info"
@@ -38,8 +39,11 @@
                     <option selected disabled>Select...</option>
                     {% for val,item in our_form_row.name_choices %}
 
-                        <option value="{{ val }}" {% if our_form_row.name_selected == val %}
-                            selected {% endif %}>{{ item }}</option>
+                        <option value="{{ val }}"
+                            {% if our_form_row.name_selected == val %}
+                                selected
+                            {% endif %}
+                        >{{ item }}</option>
 
                     {% endfor %}
                 </select>
@@ -51,13 +55,17 @@
     <td class="col">
         <div class="form-group"
             id="id_player{{ our_form_row.player_no }}_paydiv"
-            {% if our_form_row.player_no > 3 %}style="display: none;"{% endif %}>
+            {% if our_form_row.player_no > 3 %}
+                style="display: none;"
+            {% endif %}
+        >
             <select id="id_player{{ our_form_row.player_no }}_payment"
                 name="player{{ our_form_row.player_no }}_payment"
                 class="payment-method selectpicker"
                 data-container="body"
                 data-style="btn btn-warning"
-                disabled>
+                disabled
+            >
 
                 <!-- PLAYER 5 AND 6 SET TO FREE -->
                 {% if our_form_row.player_no > 3 %}
