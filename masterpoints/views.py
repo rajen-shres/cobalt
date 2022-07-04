@@ -333,30 +333,8 @@ def user_summary(system_number):
     It gets basic things such as home club and masterpoints.
     """
 
-    # Get summary data
-    qry = "%s/mps/%s" % (GLOBAL_MPSERVER, system_number)
-    try:
-        r = requests.get(qry).json()
-    except (
-        IndexError,
-        requests.exceptions.InvalidSchema,
-        requests.exceptions.MissingSchema,
-        ConnectionError,
-    ):
-        r = []
-
-    if not r:
-        return None
-
-    summary = r[0]
-
-    # Set active to a boolean
-    summary["IsActive"] = summary["IsActive"] == "Y"
-    # Get home club name
-    qry = "%s/club/%s" % (GLOBAL_MPSERVER, summary["HomeClubID"])
-    summary["home_club"] = requests.get(qry).json()[0]["ClubName"]
-
-    return summary
+    mp_source = masterpoint_factory_creator()
+    return mp_source.user_summary(system_number)
 
 
 def get_abf_checksum(abf_raw: int) -> int:
@@ -364,7 +342,7 @@ def get_abf_checksum(abf_raw: int) -> int:
 
     Formula is:
 
-    convert to 6 digit with trailing 0, e.g. 62024 becomes 062024
+    convert to 6 digit with leading 0, e.g. 62024 becomes 062024
     total is 0th place x 7, 1st place x 6, 2nd place x 5 etc
     result = total mod 11
     if result = 0 checksum = 0

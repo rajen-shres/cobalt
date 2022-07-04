@@ -333,8 +333,6 @@ def add_un_registered_user_with_mpc_data(
     if not details:
         return None
 
-    print(details)
-
     UnregisteredUser(
         system_number=system_number,
         last_updated_by=added_by,

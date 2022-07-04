@@ -52,6 +52,9 @@ class MasterpointFactory:
     def system_number_valid(self, system_number):
         """Look up the system number and return True if okay to add this user"""
 
+    def user_summary(self, system_number):
+        """Get basic information about a user"""
+
 
 class MasterpointDB(MasterpointFactory):
     """Concrete implementation of a masterpoint factory using a database to get the data"""
@@ -111,6 +114,34 @@ class MasterpointDB(MasterpointFactory):
 
         return False, "Invalid or inactive number"
 
+    def user_summary(self, system_number):
+
+        # Get summary data
+        qry = f"{GLOBAL_MPSERVER}/mps/{system_number}"
+        try:
+            r = requests.get(qry).json()
+        except (
+            IndexError,
+            requests.exceptions.InvalidSchema,
+            requests.exceptions.MissingSchema,
+            requests.exceptions.ConnectionError,
+            ConnectionError,
+        ):
+            r = []
+
+        if not r:
+            return None
+
+        summary = r[0]
+
+        # Set active to a boolean
+        summary["IsActive"] = summary["IsActive"] == "Y"
+        # Get home club name
+        qry = f'{GLOBAL_MPSERVER}/club/{summary["HomeClubID"]}'
+        summary["home_club"] = requests.get(qry).json()[0]["ClubName"]
+
+        return summary
+
 
 class MasterpointFile(MasterpointFactory):
     """Concrete implementation of a masterpoint factory using a file to get the data"""
@@ -162,9 +193,21 @@ class MasterpointFile(MasterpointFactory):
             ).exists()
         )
 
+    def user_summary(self, system_number):
+
+        pattern = f"{int(system_number):07}"
+        result = mp_file_grep(pattern)
+
+        if not result:
+            return None
+
+        return {
+            "GivenNames": result[2],
+            "Surname": result[1],
+            "IsActive": result[6],
+            "home_club": None,
+        }
+
 
 def masterpoint_factory_creator():
-    if MP_USE_FILE:
-        return MasterpointFile()
-    else:
-        return MasterpointDB()
+    return MasterpointFile() if MP_USE_FILE else MasterpointDB()
