@@ -8,53 +8,39 @@
  :width: 300
  :alt: Coding
 
-Development Approach (edit)
-===========================
+#####################
+Development Approach
+#####################
 
+This document describes some of the key factors for development of Cobalt.
 
+*****************
 Design Principles
-=================
+*****************
 
 Comments
---------
+========
 
-A lot of programmers view comments in code as a sign of weakness.
+Comments make code easier to understand. We aim to over-comment rather than
+under-comment. Don't think of the comments as being there to explain the code to a human,
+think of the code being there because the compiler cannot read the comments.
 
-*"You are obviously
-a very poor programmer if you can't work out what it does from the code alone."*
-
-There are two main reasons why you will be looking at the code after
-it has been completed:
-
-#. It doesn't do what it is supposed to do (bug)
-#. It doesn't do what it now needs to do (enhancement)
-
-In neither case will you be very happy if the bare code is all you have to help you.
-
-   **Comment your code, you might be the poor bugger who has to support it**
-
-It is often thought that the comments are there to explain the code to a programmer.
-In fact it should be the opposite. The code is there to explain the comments
-to the computer.
+- Comment functions and classes with descriptions using """ at the top of the section
+- Comment python code with # anywhere it makes sense
+- Put a header at the top of each template to explain what it does. You can use `cgit_util_doc_editor` to make it easy to generate.
+- Use whatever comment method you like in templates - Django ({# #}), HTML (<!-- -->), CSS (/* */), or JavaScript (//)
 
 HTML not JSON
--------------
+=============
 
-Django is very good at producing HTML but merely average at producing JSON. In
-Cobalt we prefer to have Django produce formatted HTML that can be replaced
-on the page rather than JSON that we have to format in the client. This
-isn't what all the smart people who write articles about Django say, but they
-are wrong. Even if they are right, it's not the way we do it in Cobalt and
-consistency is more important than perfection.
+We use HTMX wherever possible. It makes the code much easier to develop and maintain.
 
-There is still some code in Cobalt that uses JSON (we listened to the
-experts at the beginning before working it out for ourselves). Feel free to replace it with
-HTML as you go.
+Avoid using Ajax and JSON to communicate with the server from the browser. Instead use
+HTMX to return pre-formatted HTML to add to the DOM.
 
-We use HTMX to swap out one bit of HTML for another using Ajax. It is a
-small and fairly simple library. If you find something that you can't do using
-HTMX, that is okay. Use JQuery but make the payload HTML not JSON and replace it
-directly into a DIV.
+Some of the older code was built using JSON, but nothing new should follow this pattern.
+
+For more information on why HTMX is used see :doc:`../discussion/design_overview`.
 
 Coding Standards
 ================
@@ -77,22 +63,23 @@ before allowing it to be committed would be too much. However, pylint will find 
 lot of things that Flake8 won't. Run pylint but take its findings as recommendations
 not hard requirements.
 
+****************
 Github Branching
-================
+****************
 
 The documentation for this is in Confluence.
 
 https://abftech.atlassian.net/wiki/spaces/COBALT/pages/6586408/Git+Process+for+Working+on+Jira+Tasks
 
-There are also some support tools to assist with this.
+There are also some support tools to assist with this. See the CGIT section in :doc:`../reference/utilities`.
 
-https://abftech.atlassian.net/wiki/spaces/COBALT/pages/576651366/CGIT
 
+=============
 Documentation
 =============
 
 If you found this then you presumably know where the documentation lives. If not,
-look at https://cobalt-bridge.readthedocs.io.
+look at https://docs.myabf.com.au
 
 To update the documentation look in the cobalt sub-directory docs.
 

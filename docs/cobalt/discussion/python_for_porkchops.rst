@@ -8,8 +8,15 @@
  :width: 300
  :alt: Pork Chops
 
-Python for Pork Chops (edit)
-=============================
+######################
+Python for Pork Chops
+#####################
+
+.. admonition:: About
+
+    The Pork Chop pages are intended to help people coming into Cobalt from a bridge
+    background who are not experienced Django developers. They are **NOT** required
+    reading for Django developers.
 
 Do a course. Learn some basic things but don't get stressed about the advanced
 things, you will learn them when you need them.
@@ -17,8 +24,9 @@ things, you will learn them when you need them.
 A lot of python developers work in data science so try not to go down a rabbit warren
 of things you don't need to know as a Django developer.
 
+********************
 Key Things to Learn
--------------------
+********************
 
 Basic Structure
     No brackets, no endifs, no endfors, indentation is king

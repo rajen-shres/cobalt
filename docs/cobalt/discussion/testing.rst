@@ -8,14 +8,16 @@
  :width: 300
  :alt: Testing
 
-Testing Overview (edit)
-=======================
+##################
+Testing Overview
+##################
 
 This page describes the testing strategy for Cobalt. Also see the documentation on building core test data -
 :doc:`test_data`.
 
+*******
 Basics
-------
+*******
 We have a Test environment as well as a User Acceptance Testing (UAT) environment for the
 ABF instance of Cobalt (My ABF). Either of these can be used for testing, but generally Test is used for
 normal user testing by the core team and UAT is used for a wider group of people. UAT is also a core
@@ -41,8 +43,9 @@ Tests work off a clean, empty database. Production
 isn’t clean nor empty so we need to be careful with
 changes that can affect existing production data.
 
+*************
 User Testing
-------------
+*************
 
 * Humans can test in any environment, it doesn’t matter
 * UAT is intended for use by people outside the core team, Test is intended to be internal
@@ -53,8 +56,9 @@ User Testing
 * Humans should do post-install testing on production whenever possible
 * Since we don't store anything particularly confidential, we can also test against copies of production data before releasing to production as data is the biggest cause of problems
 
+***************************
 Automated Testing - General
----------------------------
+***************************
 
 To run the automated tests together you can use `cgit_dev_test_all`.
 
@@ -62,7 +66,7 @@ This will run both types of test and also produce a coverage report. This is int
 as part of the development process.
 
 Automated Testing - Unit
----------------------------
+========================
 
 The unit tests are generally short and work at the function level. You can run them with `cgit_dev_test_unit`.
 
@@ -73,7 +77,7 @@ Unit tests are easier to write than integration tests and you are encouraged to 
 Unit tests are automatically discovered but can be run in any random order.
 
 Automated Testing - Integration
---------------------------------
+===============================
 
 There are two basic types of automated tests used:
 
@@ -89,27 +93,37 @@ The easiest way to build new tests is to copy existing ones. Integration tests l
 
 Integration tests must run in order so they are manually configured in `tests/test_manager.py`.
 
+********************
 Performance Testing
--------------------
+********************
 
-There are currently over 3,000 people involved in performance testing.
+There are currently over 5,000 people involved in performance testing.
 
     "Premature optimization is the root of all evil." Sir Tony Hoare
 
-*It is planned to add New Relic for capture and alerting around key metrics*.
+We are also using New Relic for performance monitoring, however at this stage there are very
+few problems coming up.
 
+****************
 Security Testing
-----------------
+****************
 
 Some of the automated tests focus on specific aspects of security and one module tests for URLs that do not
 require authorisation.
 
-Why Don't We Use a Testing Framework?
--------------------------------------
+************************************************
+Why Don't We Use a Recognised Testing Framework?
+************************************************
 
-We started out with minimal testing and then added pytest. We quickly hit limitation with this and
-ended up building a very simple test framework ourselves.
+We started out with minimal testing and then added pytest. We quickly hit limitation
+with this and ended up building a very simple test framework ourselves.
 
-It is very easy to use (copy an example) and produces human readable HTML files that explain what
+It is easy to use (copy an example) and produces human readable HTML files that explain what
 was tested and what the outcome was. Neither pytest nor unittest can do this.
+
+However, the Cobalt testing framework is fairly brittle and especially subject to problems
+when there are changes to the underlying test data or when there are timeout problems.
+
+It might be worth revisiting the decision not to use a recognised test framework at
+some point in the future.
 

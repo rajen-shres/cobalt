@@ -9,8 +9,14 @@
  :alt: Pork Chops
 
 ============================
-Django for Pork Chops (edit)
+Django for Pork Chops
 ============================
+
+.. admonition:: About
+
+    The Pork Chop pages are intended to help people coming into Cobalt from a bridge
+    background who are not experienced Django developers. They are **NOT** required
+    reading for Django developers.
 
 This assumes you know Python,
 if you don't then you should first read :doc:`python_for_porkchops`.

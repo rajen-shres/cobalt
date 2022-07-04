@@ -9,8 +9,14 @@
  :alt: Pork Chops
 
 ============================
-Cobalt for Pork Chops (edit)
+Cobalt for Pork Chops
 ============================
+
+.. admonition:: About
+
+    The Pork Chop pages are intended to help people coming into Cobalt from a bridge
+    background who are not experienced Django developers. They are **NOT** required
+    reading for Django developers.
 
 If you have recently got involved in Cobalt, then before you start
 carrying on like a pork chop, read this.
@@ -50,7 +56,7 @@ Tools
 =====
 
 With the ``utils`` application in Cobalt there are a number of tools that can help with
-development activities. See :doc:`utilities_overview` for details.
+development activities. See :doc:`../reference/utilities` for details.
 
 - **cgit** is a set of tools for working with github and AWS Elastic Beanstalk.
 - Inside the aws folder of utils you can find tools related to building environments on AWS

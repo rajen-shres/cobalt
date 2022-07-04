@@ -8,9 +8,9 @@
  :width: 300
  :alt: Design
 
-=======================
-Design Overview (edit)
-=======================
+##################
+Design Overview
+##################
 
 Cobalt is built using vanilla Django. Where possible we try to follow the path of least resistance by using
 defaults or common packages and approaches. The one main difference here is with HTMX which is described below.
@@ -262,6 +262,26 @@ Avoid loading JavaScript in an HTMX page that gets incorporated in
 an existing page. The results can be variable. Better to load
 static functions in the initial page and call them from the loaded
 page.
+
+Hyperscript
+===========
+
+From the same developers that brought us HTMX, we also use Hyperscript.
+
+Hyperscript can be used to replace jquery or native JavaScript. It is intended to be highly
+supportable and the code is mostly humanly readable.
+
+Hyperscript can be added to any DOM element in the same was as HTMX.
+
+For example::
+
+    <span
+    _='on load wait 5 seconds
+            then transition opacity to 0
+            over 2 seconds
+            then remove me'>
+            Some Text
+    </span>
 
 ***************
 Users in Cobalt
