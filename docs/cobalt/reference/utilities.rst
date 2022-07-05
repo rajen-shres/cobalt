@@ -48,8 +48,7 @@ The user search uses HTMX for a much cleaner coding experience.
 To use it, add the following to your HTML template::
 
     {% block footer %}
-    {% include "utils/include_htmx.html" %}
-     {% include "accounts/user_search_include_htmx.html" with search_id={{ search_id}} include_me=True callback="MyFunc" %}
+     {% include "accounts/search/user_search_include_htmx.html" with search_id={{ search_id}} include_me=True callback="MyFunc" %}
 
     <script>
         function MyFunc(search_id, user_id, user_name){
@@ -66,6 +65,9 @@ To call it add a line to your HTML body::
    <button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal{{ search_id }}">Add</button>
 
 Drop the include_me option if you do not want the logged in user to be included in the search results.
+
+Note: You will often want to put this into an HTMX part of the system, in which case you don't need
+the `{% block footer %}` part.
 
 The user search dynamically adds functions using HTMX (https://htmx.org).
 

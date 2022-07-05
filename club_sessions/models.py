@@ -136,3 +136,6 @@ class SessionEntry(models.Model):
         if self.seat:
             self.seat_number_internal = "NSEW".find(self.seat)
         super(SessionEntry, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.session}: {self.system_number}"

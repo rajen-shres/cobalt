@@ -25,7 +25,7 @@ from rbac.views import rbac_forbidden
 from rbac.core import rbac_user_has_role
 from .decorators import user_is_club_director
 
-from ..forms import SessionForm, FileImportForm
+from ..forms import SessionForm, FileImportForm, UserSessionForm
 from ..models import (
     Session,
     SessionEntry,
@@ -275,7 +275,7 @@ def _calculate_payment_method_and_balance(session_entries, session_fees, club):
                 session_entry.payment_method = bridge_credit_payment_method
 
         # fee due
-        if session_entry.payment_method:
+        if session_entry.payment_method and not session_entry.fee:
             session_entry.fee = session_fees[session_entry.membership][
                 session_entry.payment_method.payment_method
             ]
@@ -525,59 +525,33 @@ def edit_session_entry_htmx(request, club, session, session_entry):
     """Edit a single session_entry on the session page"""
 
     # See if POSTed form or not
-    if "save_session" not in request.POST:
-        # Not - so build form
-
-        is_user = False
-        is_un_reg = False
-        is_valid_number = False
-        player_type = "Invalid System Number"
-
-        # See if user is a member
-        membership_type = get_membership_type_for_players(
-            [session_entry.system_number], club
-        )
-
-        is_member = bool(len(membership_type))
-
-        # Try to load User
-        player = User.objects.filter(system_number=session_entry.system_number).first()
-
-        # Try to load un_reg if not a member
-        if player:
-            is_user = True
-            player_type = "Registered User"
+    if "save_session" in request.POST:
+        form = UserSessionForm(request.POST, club=club, session_entry=session_entry)
+        if form.is_valid():
+            print(session_entry)
+            session_entry.fee = form.cleaned_data["fee"]
+            session_entry.amount_paid = form.cleaned_data["amount_paid"]
+            payment_method = OrgPaymentMethod.objects.get(
+                pk=form.cleaned_data["payment_method"]
+            )
+            session_entry.payment_method = payment_method
+            session_entry.save()
+            print(session_entry.payment_method)
         else:
-            player = UnregisteredUser.objects.filter(
-                system_number=session_entry.system_number
-            ).first()
+            print(form.errors)
+    else:
+        form = UserSessionForm(club=club, session_entry=session_entry)
 
-            # See if this is even a valid system_number, if neither are true. Usually we add the un_reg automatically
-            if player:
-                is_un_reg = True
-                player_type = "Unregistered User"
-            # else:
-            #     # TODO: Add later
-            #     invalid_number = True
-
-        return render(
-            request,
-            "club_sessions/manage/edit_session_entry_htmx.html",
-            {
-                "club": club,
-                "session": session,
-                "session_entry": session_entry,
-                "player": player,
-                "is_member": is_member,
-                "is_user": is_user,
-                "is_un_reg": is_un_reg,
-                "is_valid_number": is_valid_number,
-                "player_type": player_type,
-                "membership_type": membership_type,
-            },
-        )
-
-    return HttpResponse("edit it")
+    return render(
+        request,
+        "club_sessions/manage/edit_session_entry_htmx.html",
+        {
+            "club": club,
+            "session": session,
+            "session_entry": session_entry,
+            "form": form,
+        },
+    )
 
 
 @user_is_club_director(include_session_entry=True)

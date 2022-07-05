@@ -10,6 +10,7 @@
                 hx-post='{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}'
                 hx-target='#id_panel_members'
                 hx-vars="club_id:{{ club.id }}"
+                hx-indicator=".htmx-indicator"
             >
 
                 <div id="div_id_membership_type" class="form-group">

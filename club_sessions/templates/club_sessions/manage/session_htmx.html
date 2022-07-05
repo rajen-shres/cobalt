@@ -200,7 +200,7 @@
                                     type="checkbox"
 
                                     {# mark as paid if paid >= due #}
-                                    {% if session_entry.paid_flag >= session_entry.fee %}
+                                    {% if session_entry.amount_paid >= session_entry.fee %}
                                         checked
                                     {% endif %}
 

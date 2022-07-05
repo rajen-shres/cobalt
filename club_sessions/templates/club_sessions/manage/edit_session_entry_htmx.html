@@ -1,5 +1,11 @@
+{#---------------------------------------------------------------------------------#}
+{#                                                                                 #}
+{# Screen to allow a director to edit the details for a single player in a session #}
+{#                                                                                 #}
+{#---------------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 
+<!-- BUTTON TO RETURN TO SESSION PAGE -->
 <button class="btn btn-outline-secondary btn-sm"
     hx-post="{% url "club_sessions:tab_session_htmx" %}"
     hx-target="#id_pane_session"
@@ -10,19 +16,21 @@
 </button>
 
 <div>
-    <div class="card card-profile">
+    <!-- PLAYER DETAILS -->
+    {#    <div class="card card-profile">#}
+    <div class="card">
         <div class="card-header card-header-{% cobalt_random_colour %}">
-            <h4 class="card-title">{{ player.full_name }} ({{ player_type }})</h4>
+            <h4 class="card-title">{{ form.player.full_name }} ({{ form.player_type }})</h4>
             <h5>{{ GLOBAL_ORG }} Number: {{ session_entry.system_number }}</h5>
         </div>
         <div class="card-body">
-            {% if is_user %}
-                <div>
+            {% if form.is_user %}
+                <div class="card-profile">
                     <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 50px; width: 50px;" src="/media/{{ player.pic }}" />
                 </div>
             {% endif %}
-            {% if is_member %}
-                {{ membership_type }} Member
+            {% if form.is_member %}
+                {{ form.membership_type }} Member
             {% else %}
                 Not a member. Add.
             {% endif %}
@@ -39,15 +47,85 @@
                 <li>One off payments</li>
             </ul>
 
-            <button class="btn btn-sm btn-success"
-            >Save</button>
-            <button class="btn btn-sm btn-info"
-                hx-post="{% url "club_sessions:tab_session_htmx" %}"
+            <form
+                hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
                 hx-target="#id_pane_session"
-                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
-            >Cancel</button>
+                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+            >
+
+                <div class="container">
+
+                    {% if form.is_user %}
+
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal9">Change User</button>
+
+                    {% endif %}
+                    <!-- PLAYER NO -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {% cobalt_bs4_field form.player_no  %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FEE -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {% cobalt_bs4_field form.fee  %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AMOUNT PAID -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {% cobalt_bs4_field form.amount_paid  %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PAYMENT METHOD -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {% cobalt_bs4_field form.payment_method  %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-5">
+                    <div class="col">
+                        <button class="btn btn-sm btn-success" name="save_session"
+                        >Save</button>
+
+                        <button class="btn btn-sm btn-info"
+                            hx-post="{% url "club_sessions:tab_session_htmx" %}"
+                            hx-target="#id_pane_session"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                        >Cancel</button>
+                    </div>
+                </div>
+
+            </form>
 
         </div>
     </div>
 </div>
+
+
+{% include "accounts/search/user_search_include_htmx.html" with search_id=9 include_me=True callback="ChangeUser" %}
+
+<script>
+    function ChangeUser(search_id, user_id, user_name){
+        // do something
+        console.log(search_id);
+        console.log(user_id);
+        console.log(user_name);
+    }
+</script>
+
 
