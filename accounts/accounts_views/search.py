@@ -5,7 +5,7 @@ from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 
-from accounts.models import User
+from accounts.models import User, UnregisteredUser
 from cobalt.settings import (
     RBAC_EVERYONE,
     TBA_PLAYER,
@@ -151,8 +151,8 @@ def member_search_htmx(request):
                    user_id input. If not specified then member{search_id} is used.
     include_me:    Flag to include the logged in user in the search. Default is no.
     callback:      Optional. If provided then this will be called when a member is picked.
+    unregistered:  Optional. If provided then we search for UnregisteredUsers instead of Users.
     """
-
     # Get parameters
     search_id = request.POST.get("search_id", "")
     user_id_field = request.POST.get("user_id_field", "")
@@ -166,21 +166,26 @@ def member_search_htmx(request):
     if not last_name_search and not first_name_search:
         return HttpResponse("")
 
-    # ignore system accounts
-    include_me, exclude_list = _get_exclude_list_for_search(request)
+    # Get exclude list etc
+    (
+        include_me,
+        unregistered,
+        base_queryset,
+        exclude_list,
+    ) = _get_exclude_list_and_base_values(request)
 
     if last_name_search and first_name_search:
         name_list = (
-            User.objects.filter(last_name__istartswith=last_name_search)
+            base_queryset.filter(last_name__istartswith=last_name_search)
             .filter(first_name__istartswith=first_name_search)
             .exclude(pk__in=exclude_list)
         )
     elif last_name_search:
-        name_list = User.objects.filter(
+        name_list = base_queryset.filter(
             last_name__istartswith=last_name_search
         ).exclude(pk__in=exclude_list)
     else:
-        name_list = User.objects.filter(
+        name_list = base_queryset.filter(
             first_name__istartswith=first_name_search
         ).exclude(pk__in=exclude_list)
 
@@ -199,6 +204,7 @@ def member_search_htmx(request):
             "search_id": search_id,
             "user_id_field": user_id_field,
             "include_me": include_me,
+            "unregistered": unregistered,
             "callback": callback,
         },
     )
@@ -220,11 +226,16 @@ def system_number_search_htmx(request):
             # "<span class='cobalt-form-error''>Enter a number to look up, or type in the name fields</span>"
         )
 
-    # ignore system accounts
-    include_me, exclude_list = _get_exclude_list_for_search(request)
+    # Get exclude list etc
+    (
+        include_me,
+        unregistered,
+        base_queryset,
+        exclude_list,
+    ) = _get_exclude_list_and_base_values(request)
 
     member = (
-        User.objects.filter(system_number=system_number)
+        base_queryset.filter(system_number=system_number)
         .exclude(pk__in=exclude_list)
         .first()
     )
@@ -256,10 +267,15 @@ def member_match_htmx(request):
     user_id_field = request.POST.get("user_id_field", "")
     callback = request.POST.get("callback", "")
 
-    # ignore system accounts
-    include_me, exclude_list = _get_exclude_list_for_search(request)
+    # Get exclude list etc
+    (
+        include_me,
+        unregistered,
+        base_queryset,
+        exclude_list,
+    ) = _get_exclude_list_and_base_values(request)
 
-    member = User.objects.filter(pk=member_id).exclude(pk__in=exclude_list).first()
+    member = base_queryset.filter(pk=member_id).exclude(pk__in=exclude_list).first()
 
     if member:
         return render(
@@ -444,17 +460,25 @@ def search_ajax(request):
     )
 
 
-def _get_exclude_list_for_search(request):
-    """get the exclude list. System IDs and this user are excluded unless include_me is set"""
+def _get_exclude_list_and_base_values(request):
+    """get the 'exclude' list. System IDs and this user are excluded unless include_me is set"""
 
     # Check for include_me flag, otherwise don't include current user
     include_me = bool(request.POST.get("include_me"))
 
-    # ignore system accounts
-    exclude_list = [RBAC_EVERYONE, TBA_PLAYER, ABF_USER]
+    # Check for unregistered, controls which user type we search User or UnregisteredUser
+    unregistered = bool(request.POST.get("unregistered"))
+
+    if unregistered:
+        exclude_list = []
+        base_queryset = UnregisteredUser.objects.all()
+    else:
+        # ignore system accounts
+        exclude_list = [RBAC_EVERYONE, TBA_PLAYER, ABF_USER]
+        base_queryset = User.objects.all()
 
     # Ignore this user unless overridden
     if not include_me:
         exclude_list.append(request.user.id)
 
-    return include_me, exclude_list
+    return include_me, unregistered, base_queryset, exclude_list

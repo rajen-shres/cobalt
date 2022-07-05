@@ -1,19 +1,33 @@
+{#-------------------------------------------------------------------------------------------#}
+{#                                                                                           #}
+{# This is the final part of the user search which is shown when we have found an individual #}
+{#                                                                                           #}
+{#-------------------------------------------------------------------------------------------#}
 <div class="card card-profile px-5">
     <div class="card-body">
-        <img class="cobalt-rounded" src="/media/{{ member.pic }}" />
+
+        <!-- ONLY SHOW PIC IF WE HAVE ONE -->
+        {% if member.pic %}
+            <img class="cobalt-rounded" src="/media/{{ member.pic }}" />
+        {% endif %}
+
         <h3>{{ member.full_name }}</h3>
         <h4>{{ GLOBAL_ORG }} Number: {{ member.system_number }}</h4>
         {% for club in clubs %}
             <h4>{{ club.organisation }}</h4>
         {% endfor %}
     </div>
+
     <div class="row justify-content-center">
         <button id="id_cobalt_search_ok{{ search_id }}"
             class="btn btn-sm btn-success"
             {# must close modal or HTMX will hang the page #}
             {% if callback %}
+
                 onclick="$('.modal').modal('hide'); {{ callback }}('{{ search_id }}', {{ member.id }}, '{{ member.full_name|escapejs }}'); return false;"
+
             {% else %}
+
                 onclick="$('.modal').modal('hide'); return false;"
                 hx-post="{% url "accounts:member_match_summary_htmx" %}"
                 hx-target="#htmx_search_out_boundary{{ search_id }}"
@@ -26,6 +40,7 @@
         >
             Ok
         </button>
+
         <button id="id_cobalt_search_cancel{{ search_id }}"
             onclick="$('.modal-input').val(''); $('.name-match').html(''); $('.modal').modal('hide');"
             class="search-cancel btn btn-sm btn-secondary"

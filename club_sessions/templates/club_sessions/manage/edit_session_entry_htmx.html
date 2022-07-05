@@ -55,19 +55,20 @@
 
                 <div class="container">
 
+                    <!-- SEARCH BUTTONS DEPENDING UPON USER TYPE -->
                     {% if form.is_user %}
-
                         <button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal9">Change User</button>
-
                     {% endif %}
-                    <!-- PLAYER NO -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                {% cobalt_bs4_field form.player_no  %}
-                            </div>
-                        </div>
-                    </div>
+
+                    {% if form.is_un_reg %}
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal99">Change User</button>
+                    {% endif %}
+
+                    <!-- PLAYER NO - HIDDEN -->
+                    <input type="hidden" value="{{ form.player_no.value }}" name="player_no" id="id_player_no">
+
+                    <!-- PLAYER NAME - SHOWN IF CHANGED -->
+                    <div id="player_name"></div>
 
                     <!-- FEE -->
                     <div class="row">
@@ -118,14 +119,28 @@
 
 
 {% include "accounts/search/user_search_include_htmx.html" with search_id=9 include_me=True callback="ChangeUser" %}
+{% include "accounts/search/user_search_include_htmx.html" with unregistered=True search_id=99 include_me=True callback="ChangeUnReg" %}
 
 <script>
     function ChangeUser(search_id, user_id, user_name){
-        // do something
+        // update player number
+        $("#id_player_no").val(user_id);
+        $("#id_player_name").innerHTML(user_name);
+
         console.log(search_id);
         console.log(user_id);
         console.log(user_name);
-    }
-</script>
+
+        function ChangeUnReg(search_id, user_id, user_name){
+            // update player number
+            $("#id_player_no").val(user_id);
+            $("#id_player_name").innerHTML(user_name);
+
+            console.log(search_id);
+            console.log(user_id);
+            console.log(user_name);
+
+        }
+        </script>
 
 

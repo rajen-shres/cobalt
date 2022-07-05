@@ -12,6 +12,7 @@
                         Parameters are: (search_id, user_id, user_name)
                         cobaltMemberSearchOk() - what is this?
     include_me:    flag to decide if the user can pick themselves
+    unregistered:  look for UnregisteredUsers instead of Users
 -->
 
 {% load static %}
@@ -51,6 +52,7 @@
                     search_id:'{{ search_id }}'
                     {% if callback %}, callback:'{{ callback }}'{% endif %}
                     {% if include_me %}, include_me:'yes'{% endif %}
+                    {% if unregistered %}, unregistered:'yes'{% endif %}
                     "
                     {# Use hyperscript to clear ABF Number #}
                     _="on click put '' into #id_system_number{{ search_id }}.value"
@@ -82,6 +84,7 @@
                     search_id:'{{ search_id }}'
                     {% if callback %}, callback:'{{ callback }}'{% endif %}
                     {% if include_me %}, include_me:'yes'{% endif %}
+                    {% if unregistered %}, unregistered:'yes'{% endif %}
                     "
                     {# Use hyperscript to clear ABF Number #}
                     _="on click put '' into #id_system_number{{ search_id }}.value"
@@ -104,6 +107,7 @@
                         search_id:'{{ search_id }}'
                         {% if callback %}, callback:'{{ callback }}'{% endif %}
                         {% if include_me %}, include_me:'yes'{% endif %}
+                        {% if unregistered %}, unregistered:'yes'{% endif %}
                         "
                         {# Use hyperscript to clear other inputs #}
                         _="on click

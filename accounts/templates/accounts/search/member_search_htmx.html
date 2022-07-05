@@ -11,6 +11,7 @@
             search_id:'{{ search_id }}'
             {% if callback %}, callback:'{{ callback }}'{% endif %}
             {% if include_me %}, include_me:'yes'{% endif %}
+            {% if unregistered %}, unregistered:'yes'{% endif %}
             "
         >{{ name }}</li>
     {% empty %}
