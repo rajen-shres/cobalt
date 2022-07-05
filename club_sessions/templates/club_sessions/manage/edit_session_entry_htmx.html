@@ -36,8 +36,6 @@
             {% endif %}
 
             <ul class="text-left">
-                <li>Change player</li>
-                <li>Change fee</li>
                 <li>Add as member</li>
                 <li>Invite to join MyABF</li>
                 <li>Show balance</li>
@@ -50,25 +48,39 @@
             <form
                 hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
                 hx-target="#id_pane_session"
-                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}
+                {% if form.is_user %}, is_user:1{% endif %}
+                {% if form.is_un_reg %}, is_un_reg:1{% endif %}
+                "
             >
 
                 <div class="container">
 
+                    <!-- PLAYER NAME - SHOWN IF CHANGED -->
+                    <div id="id_player_name" class="d-none">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="bmd-label-floating" for="id_player_name_input">
+                                        Changing Name To
+                                    </label>
+                                    <input class="form-control" id="id_player_name_input" type="text" value="" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- SEARCH BUTTONS DEPENDING UPON USER TYPE -->
                     {% if form.is_user %}
-                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal9">Change User</button>
+                        <button id="user_change_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal9">Change User</button>
                     {% endif %}
 
                     {% if form.is_un_reg %}
-                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal99">Change User</button>
+                        <button id="user_change_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal99">Change User</button>
                     {% endif %}
 
                     <!-- PLAYER NO - HIDDEN -->
                     <input type="hidden" value="{{ form.player_no.value }}" name="player_no" id="id_player_no">
-
-                    <!-- PLAYER NAME - SHOWN IF CHANGED -->
-                    <div id="player_name"></div>
 
                     <!-- FEE -->
                     <div class="row">
@@ -92,15 +104,19 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label class="bmd-label-floating" for="id_payment_method">
+                                    Payment Method
+                                </label>
                                 {% cobalt_bs4_field form.payment_method  %}
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- BUTTONS -->
                 <div class="row mt-5">
                     <div class="col">
-                        <button class="btn btn-sm btn-success" name="save_session"
+                        <button id="id_save_session" class="btn btn-sm btn-success" disabled name="save_session"
                         >Save</button>
 
                         <button class="btn btn-sm btn-info"
@@ -119,28 +135,27 @@
 
 
 {% include "accounts/search/user_search_include_htmx.html" with search_id=9 include_me=True callback="ChangeUser" %}
-{% include "accounts/search/user_search_include_htmx.html" with unregistered=True search_id=99 include_me=True callback="ChangeUnReg" %}
+{% include "accounts/search/user_search_include_htmx.html" with unregistered=True search_id=99 include_me=True callback="ChangeUser" %}
 
 <script>
-    function ChangeUser(search_id, user_id, user_name){
-        // update player number
+    function ChangeUser(search_id, user_id, user_name) {
+        // update player number and name and display name
         $("#id_player_no").val(user_id);
-        $("#id_player_name").innerHTML(user_name);
+        $("#id_player_name").removeClass("d-none");
+        $("#id_player_name_input").val(user_name);
+        $("#user_change_button").text("Change User Again");
+        $("#id_save_session").prop("disabled", false);
+    };
 
-        console.log(search_id);
-        console.log(user_id);
-        console.log(user_name);
+    $(document).ready( function () {
 
-        function ChangeUnReg(search_id, user_id, user_name){
-            // update player number
-            $("#id_player_no").val(user_id);
-            $("#id_player_name").innerHTML(user_name);
+        // Enable save button if changes are made
+        // TODO: On boat - work out how to appy to all input fields
+        $("#id_payment_method, #id_fee, #id_amount_paid").change(function(){
+            $("#id_save_session").prop("disabled", false);
+        });
+    });
 
-            console.log(search_id);
-            console.log(user_id);
-            console.log(user_name);
-
-        }
-        </script>
+</script>
 
 

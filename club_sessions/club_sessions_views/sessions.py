@@ -520,25 +520,49 @@ def _import_file_upload_htmx_fill_in_table_gaps(session):
                 ).save()
 
 
+def _edit_session_entry_handle_post(request, club, session_entry):
+    """Sub for edit_session_entry_htmx to handle the form being posted"""
+
+    form = UserSessionForm(request.POST, club=club, session_entry=session_entry)
+    if not form.is_valid():
+        print(form.errors)
+        return form
+
+    # get user type
+    is_user = request.POST.get("is_user")
+    is_un_reg = request.POST.get("is_un_reg")
+
+    # Handle session data
+    session_entry.fee = form.cleaned_data["fee"]
+    session_entry.amount_paid = form.cleaned_data["amount_paid"]
+    payment_method = OrgPaymentMethod.objects.get(
+        pk=form.cleaned_data["payment_method"]
+    )
+    session_entry.payment_method = payment_method
+
+    # Handle player being changed
+    new_user_id = form.cleaned_data["player_no"]
+    system_number = None
+    if new_user_id:
+        if is_user:
+            system_number = User.objects.get(pk=new_user_id).system_number
+        elif is_un_reg:
+            system_number = UnregisteredUser.objects.get(pk=new_user_id).system_number
+    if system_number:
+        session_entry.system_number = system_number
+
+    session_entry.save()
+
+    return form
+
+
 @user_is_club_director(include_session_entry=True)
 def edit_session_entry_htmx(request, club, session, session_entry):
     """Edit a single session_entry on the session page"""
 
     # See if POSTed form or not
     if "save_session" in request.POST:
-        form = UserSessionForm(request.POST, club=club, session_entry=session_entry)
-        if form.is_valid():
-            print(session_entry)
-            session_entry.fee = form.cleaned_data["fee"]
-            session_entry.amount_paid = form.cleaned_data["amount_paid"]
-            payment_method = OrgPaymentMethod.objects.get(
-                pk=form.cleaned_data["payment_method"]
-            )
-            session_entry.payment_method = payment_method
-            session_entry.save()
-            print(session_entry.payment_method)
-        else:
-            print(form.errors)
+        form = _edit_session_entry_handle_post(request, club, session_entry)
     else:
         form = UserSessionForm(club=club, session_entry=session_entry)
 
