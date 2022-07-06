@@ -2,7 +2,7 @@ from django import forms
 
 from accounts.models import UnregisteredUser, User
 from club_sessions.models import Session, SessionType
-from organisations.models import OrgVenue
+from organisations.models import OrgVenue, MemberMembershipType
 from organisations.views.general import get_membership_type_for_players
 from payments.models import OrgPaymentMethod
 
@@ -70,11 +70,14 @@ class UserSessionForm(forms.Form):
         # Abuse the form to add some other fields to it
 
         # See if user is a member
-        self.membership_type = get_membership_type_for_players(
-            [session_entry.system_number], club
+        self.membership_type = (
+            MemberMembershipType.objects.active()
+            .filter(system_number=session_entry.system_number)
+            .filter(membership_type__organisation=club)
+            .first()
         )
 
-        self.is_member = bool(len(self.membership_type))
+        self.is_member = self.membership_type is not None
 
         # Try to load User - Note: Player may end up as a User or an Unregistered User
         self.player = User.objects.filter(

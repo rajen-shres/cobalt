@@ -36,6 +36,7 @@ import stripe
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -113,6 +114,33 @@ def get_balance(member):
 
     last_tran = MemberTransaction.objects.filter(member=member).last()
     return float(last_tran.balance) if last_tran else 0.0
+
+
+#####################
+# get_balance_htmx  #
+#####################
+@login_required()
+@require_POST
+def get_balance_htmx(request):
+    """Gets member account balance and returns as Http
+
+    This function returns the current balance of the member's account.
+
+    Args:
+        request (HttpRequest): Standard request object
+
+    Returns:
+        float: The member's current balance
+
+    """
+
+    member_id = request.POST.get("member")
+    if not member_id:
+        return HttpResponse("No member found in request")
+
+    member = get_object_or_404(User, pk=member_id)
+
+    return HttpResponse(f"${get_balance(member):,.2f}")
 
 
 ################

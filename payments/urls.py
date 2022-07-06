@@ -231,4 +231,9 @@ urlpatterns = [
         payments.payments_views.orgs.get_org_fees,
         name="orgs_get_org_fees",
     ),
+    path(
+        "get-member-balance",
+        payments.payments_views.core.get_balance_htmx,
+        name="get_balance_htmx",
+    ),
 ]

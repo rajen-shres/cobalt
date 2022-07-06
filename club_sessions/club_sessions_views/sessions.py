@@ -526,7 +526,7 @@ def _edit_session_entry_handle_post(request, club, session_entry):
     form = UserSessionForm(request.POST, club=club, session_entry=session_entry)
     if not form.is_valid():
         print(form.errors)
-        return form
+        return form, "There were errors on the form"
 
     # get user type
     is_user = request.POST.get("is_user")
@@ -553,7 +553,7 @@ def _edit_session_entry_handle_post(request, club, session_entry):
 
     session_entry.save()
 
-    return form
+    return form, "Data saved"
 
 
 @user_is_club_director(include_session_entry=True)
@@ -562,9 +562,10 @@ def edit_session_entry_htmx(request, club, session, session_entry):
 
     # See if POSTed form or not
     if "save_session" in request.POST:
-        form = _edit_session_entry_handle_post(request, club, session_entry)
+        form, message = _edit_session_entry_handle_post(request, club, session_entry)
     else:
         form = UserSessionForm(club=club, session_entry=session_entry)
+        message = ""
 
     return render(
         request,
@@ -574,6 +575,7 @@ def edit_session_entry_htmx(request, club, session, session_entry):
             "session": session,
             "session_entry": session_entry,
             "form": form,
+            "message": message,
         },
     )
 

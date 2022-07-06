@@ -14,25 +14,39 @@
 >
     Back To Full List
 </button>
-
 <div>
     <!-- PLAYER DETAILS -->
-    {#    <div class="card card-profile">#}
     <div class="card">
+
         <div class="card-header card-header-{% cobalt_random_colour %}">
-            <h4 class="card-title">{{ form.player.full_name }} ({{ form.player_type }})</h4>
+            <h1>Edit Session Player</h1>
+            <h2 class="card-title">{{ form.player.full_name }} ({{ form.player_type }})</h2>
+
+            <!-- SHOW BALANCE IF A REAL USER -->
+            {% if form.is_user %}
+                <h3>Balance:
+                    <span
+                        hx-trigger="load"
+                        hx-post="{% url "payments:get_balance_htmx" %}"
+                        hx-vars="member: {{ form.player.id }}"
+                    >
+
+                    </span></h3>
+            {% endif %}
             <h5>{{ GLOBAL_ORG }} Number: {{ session_entry.system_number }}</h5>
+
+            {% if form.is_member %}
+                <h5>{{ form.membership_type.membership_type.name }} Member</h5>
+            {% else %}
+                <h4>Not a Member</h4>
+            {% endif %}
         </div>
+
         <div class="card-body">
             {% if form.is_user %}
                 <div class="card-profile">
-                    <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 50px; width: 50px;" src="/media/{{ player.pic }}" />
+                    <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 100px; width: 100px;" src="/media/{{ form.player.pic }}" />
                 </div>
-            {% endif %}
-            {% if form.is_member %}
-                {{ form.membership_type }} Member
-            {% else %}
-                Not a member. Add.
             {% endif %}
 
             <ul class="text-left">
@@ -45,89 +59,128 @@
                 <li>One off payments</li>
             </ul>
 
-            <form
-                hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
-                hx-target="#id_pane_session"
-                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}
-                {% if form.is_user %}, is_user:1{% endif %}
-                {% if form.is_un_reg %}, is_un_reg:1{% endif %}
-                "
-            >
+            <!-- MESSAGE -->
+            <h3 class="text-primary font-weight-bold">{{ message }}</h3>
 
-                <div class="container">
+            <!-- CARD FOR BASIC INFO -->
+            <div class="container">
+                <div class="row">
+                    <div class="card col-md-6">
+                        <div class="card-header-danger">
+                            <h3>Basics</h3>
+                        </div>
+                        <div class="card-body">
 
-                    <!-- PLAYER NAME - SHOWN IF CHANGED -->
-                    <div id="id_player_name" class="d-none">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="bmd-label-floating" for="id_player_name_input">
-                                        Changing Name To
-                                    </label>
-                                    <input class="form-control" id="id_player_name_input" type="text" value="" readonly>
+                            <form
+                                id="player_form"
+                                hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
+                                hx-target="#id_pane_session"
+                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}
+                                {% if form.is_user %}, is_user:1{% endif %}
+                                {% if form.is_un_reg %}, is_un_reg:1{% endif %}
+                                "
+                            >
+
+                                <div class="container">
+
+                                    <!-- PLAYER NAME - SHOWN IF CHANGED -->
+                                    <div id="id_player_name" class="d-none">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="form-group">
+                                                    <label class="bmd-label-floating" for="id_player_name_input">
+                                                        Changing Name To
+                                                    </label>
+                                                    <input class="form-control" id="id_player_name_input" type="text" value="" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- SEARCH BUTTONS DEPENDING UPON USER TYPE -->
+                                    {% if form.is_user %}
+                                        <button id="user_change_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal9">Change User</button>
+                                    {% endif %}
+
+                                    {% if form.is_un_reg %}
+                                        <button id="user_change_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal99">Change User</button>
+                                    {% endif %}
+
+                                    <!-- PLAYER NO - HIDDEN -->
+                                    <input type="hidden" value="{{ form.player_no.value }}" name="player_no" id="id_player_no">
+
+                                    <!-- FEE -->
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="form-group">
+                                                {% cobalt_bs4_field form.fee  %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- AMOUNT PAID -->
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="form-group">
+                                                {% cobalt_bs4_field form.amount_paid  %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- PAYMENT METHOD -->
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <label class="bmd-label-floating" for="id_payment_method">
+                                                    Payment Method
+                                                </label>
+                                                {% cobalt_bs4_field form.payment_method  %}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+
+                                <!-- BUTTONS -->
+                                <div class="row mt-5">
+                                    <div class="col">
+                                        <button id="id_save_session" class="btn btn-sm btn-success" disabled name="save_session"
+                                        >Save</button>
+
+                                        <button class="btn btn-sm btn-info"
+                                            hx-post="{% url "club_sessions:tab_session_htmx" %}"
+                                            hx-target="#id_pane_session"
+                                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                                        >Cancel</button>
+                                    </div>
+                                </div>
+
+                            </form>
                         </div>
                     </div>
 
-                    <!-- SEARCH BUTTONS DEPENDING UPON USER TYPE -->
-                    {% if form.is_user %}
-                        <button id="user_change_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal9">Change User</button>
-                    {% endif %}
-
-                    {% if form.is_un_reg %}
-                        <button id="user_change_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal99">Change User</button>
-                    {% endif %}
-
-                    <!-- PLAYER NO - HIDDEN -->
-                    <input type="hidden" value="{{ form.player_no.value }}" name="player_no" id="id_player_no">
-
-                    <!-- FEE -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                {% cobalt_bs4_field form.fee  %}
+                    <!-- ADVANCED CARD -->
+                    <div class="col-md-6">
+                        <a href="javascript:void(0)" class="text-primary mt-5 ml-5 pt-5 font-weight-bold" style="font-size: larger"
+                            _="on click toggle .d-none on #extras then hide me"
+                        >
+                            Extras...</a>
+                        <div class="card d-none" id="extras">
+                            <div class="card-header-warning">
+                                <h3>Extras</h3>
                             </div>
-                        </div>
-                    </div>
+                            <div class="card-body">
 
-                    <!-- AMOUNT PAID -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                {% cobalt_bs4_field form.amount_paid  %}
-                            </div>
-                        </div>
-                    </div>
+                                {% if form.is_member %}
+                                    {{ form.membership_type }} Member
+                                {% else %}
+                                    {{  form.player.first_name }} is not a member. You can add them from the membership tab.
+                                {% endif %}
 
-                    <!-- PAYMENT METHOD -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="bmd-label-floating" for="id_payment_method">
-                                    Payment Method
-                                </label>
-                                {% cobalt_bs4_field form.payment_method  %}
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- BUTTONS -->
-                <div class="row mt-5">
-                    <div class="col">
-                        <button id="id_save_session" class="btn btn-sm btn-success" disabled name="save_session"
-                        >Save</button>
-
-                        <button class="btn btn-sm btn-info"
-                            hx-post="{% url "club_sessions:tab_session_htmx" %}"
-                            hx-target="#id_pane_session"
-                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
-                        >Cancel</button>
-                    </div>
-                </div>
-
-            </form>
+            </div>
 
         </div>
     </div>
@@ -150,8 +203,7 @@
     $(document).ready( function () {
 
         // Enable save button if changes are made
-        // TODO: On boat - work out how to appy to all input fields
-        $("#id_payment_method, #id_fee, #id_amount_paid").change(function(){
+        $("#player_form input, #id_payment_method").change(function(){
             $("#id_save_session").prop("disabled", false);
         });
     });
