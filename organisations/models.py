@@ -390,6 +390,7 @@ class MiscPayType(models.Model):
 
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     description = models.CharField(max_length=30)
+    default_amount = models.DecimalField(default=0, decimal_places=2, max_digits=8)
 
 
 class OrgVenue(models.Model):

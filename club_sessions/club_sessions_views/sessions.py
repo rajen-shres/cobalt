@@ -2,6 +2,7 @@ import codecs
 import csv
 import re
 
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -19,7 +20,7 @@ from organisations.models import (
     MembershipType,
 )
 from organisations.views.general import get_membership_type_for_players
-from payments.models import OrgPaymentMethod, MemberTransaction
+from payments.models import OrgPaymentMethod, MemberTransaction, UserPendingPayment
 
 from rbac.views import rbac_forbidden
 from rbac.core import rbac_user_has_role
@@ -559,6 +560,8 @@ def _edit_session_entry_handle_post(request, club, session_entry):
 @user_is_club_director(include_session_entry=True)
 def edit_session_entry_htmx(request, club, session, session_entry):
     """Edit a single session_entry on the session page"""
+
+    # We hide a lot of extra things in the form for this view
 
     # See if POSTed form or not
     if "save_session" in request.POST:

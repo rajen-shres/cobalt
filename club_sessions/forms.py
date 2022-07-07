@@ -1,10 +1,11 @@
 from django import forms
+from django.db.models import Q
 
 from accounts.models import UnregisteredUser, User
 from club_sessions.models import Session, SessionType
 from organisations.models import OrgVenue, MemberMembershipType
 from organisations.views.general import get_membership_type_for_players
-from payments.models import OrgPaymentMethod
+from payments.models import OrgPaymentMethod, UserPendingPayment
 
 
 class SessionForm(forms.ModelForm):
@@ -116,6 +117,11 @@ class UserSessionForm(forms.Form):
         self.fields["payment_method"].choices = payment_methods
         if session_entry.payment_method:
             self.fields["payment_method"].initial = session_entry.payment_method.id
+
+        # Check for IOUs
+        self.user_pending_payments = UserPendingPayment.objects.filter(
+            system_number=session_entry.system_number
+        ).filter(organisation=club)
 
 
 class FileImportForm(forms.Form):

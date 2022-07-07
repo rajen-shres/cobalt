@@ -10,7 +10,6 @@
     hx-post="{% url "club_sessions:tab_session_htmx" %}"
     hx-target="#id_pane_session"
     hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
-    {#    hx-push-url="true"#}
 >
     Back To Full List
 </button>
@@ -36,7 +35,7 @@
             <h5>{{ GLOBAL_ORG }} Number: {{ session_entry.system_number }}</h5>
 
             {% if form.is_member %}
-                <h5>{{ form.membership_type.membership_type.name }} Member</h5>
+                <h5>Membership Type: {{ form.membership_type.membership_type.name }}</h5>
             {% else %}
                 <h4>Not a Member</h4>
             {% endif %}
@@ -45,7 +44,7 @@
         <div class="card-body">
             {% if form.is_user %}
                 <div class="card-profile">
-                    <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 100px; width: 100px;" src="/media/{{ form.player.pic }}" />
+                    <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 140px; width: 140px;" src="/media/{{ form.player.pic }}" />
                 </div>
             {% endif %}
 
@@ -170,10 +169,24 @@
                             </div>
                             <div class="card-body">
 
+                                <h4>Miscellaneous Payments</h4>
+
                                 {% if form.is_member %}
                                     {{ form.membership_type }} Member
                                 {% else %}
                                     {{  form.player.first_name }} is not a member. You can add them from the membership tab.
+                                {% endif %}
+
+                                {% if form.user_pending_payments %}
+
+                                    <h3>IOUs</h3>
+                                    <ul>
+                                        {% for iou in form.user_pending_payments %}
+                                            <li>{{ iou.amount }} - {{ iou.description }}</li>
+                                        {% endfor %}
+                                    </ul>
+
+
                                 {% endif %}
 
                             </div>

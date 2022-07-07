@@ -68,9 +68,8 @@ class OrgPaymentMethodAdmin(admin.ModelAdmin):
 class UserPendingPaymentAdmin(admin.ModelAdmin):
     """Admin class for model UserPendingPayment"""
 
-    search_fields = ["user", "description"]
+    search_fields = ["system_number", "description"]
     autocomplete_fields = [
-        "user",
         "organisation",
         "session_entry",
     ]

@@ -420,7 +420,7 @@ def club_menu_tab_settings_session_edit_htmx(request, club, check_org_edit=True)
 
 
 @check_club_menu_access(check_payments=True)
-def club_menu_tab_settings_payment_htmx(request, club):
+def club_menu_tab_settings_payment_htmx(request, club, message=""):
     """Show club payment types"""
 
     if "add" in request.POST:
@@ -459,6 +459,7 @@ def club_menu_tab_settings_payment_htmx(request, club):
             "club": club,
             "form": form,
             "misc_pay_types": misc_pay_types,
+            "message": message,
         },
     )
 
@@ -591,6 +592,25 @@ def club_menu_tab_settings_misc_pay_delete_htmx(request, club):
     misc_pay.delete()
 
     return club_menu_tab_settings_payment_htmx(request)
+
+
+@check_club_menu_access()
+def club_menu_tab_settings_misc_pay_amount_htmx(request, club):
+    """Change the default amount of a miscellaneous payment"""
+
+    misc_pay_id = request.POST.get("misc_pay_id")
+    misc_pay = get_object_or_404(MiscPayType, pk=misc_pay_id)
+    amount = request.POST.get("misc_pay_amount", 0)
+
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Updated miscellaneous payment type: {misc_pay.description}. Amount set to {amount}.",
+    ).save()
+    misc_pay.default_amount = amount
+    misc_pay.save()
+
+    return club_menu_tab_settings_payment_htmx(request, "Amount updated")
 
 
 @check_club_menu_access()

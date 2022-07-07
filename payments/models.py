@@ -16,7 +16,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
-from accounts.models import User
+from accounts.models import User, UnregisteredUser
 from organisations.models import Organisation
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, GLOBAL_ORG
 
@@ -390,7 +390,8 @@ class UserPendingPayment(models.Model):
 
     from club_sessions.models import SessionEntry
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    system_number = models.IntegerField(f"{GLOBAL_ORG} Number")
+    """ We use system_number to cover both Users and UnregisteredUsers """
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=100, blank=True, null=True)

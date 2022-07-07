@@ -378,6 +378,11 @@ urlpatterns = [
         name="club_menu_tab_settings_misc_pay_add_htmx",
     ),
     path(
+        "club-menu/settings/misc-pay-amount",
+        organisations.views.club_menu_tabs.settings.club_menu_tab_settings_misc_pay_amount_htmx,
+        name="club_menu_tab_settings_misc_pay_amount_htmx",
+    ),
+    path(
         "club-menu/settings/session-fee-change",
         organisations.views.club_menu_tabs.settings.club_menu_tab_settings_table_fee_update_htmx,
         name="club_menu_tab_settings_table_fee_update_htmx",
