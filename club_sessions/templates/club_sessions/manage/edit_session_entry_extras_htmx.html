@@ -10,38 +10,88 @@
         <h3>Extras</h3>
     </div>
     <div class="card-body">
-        <ul class="text-left">
-            <li>Add as member</li>
-            <li>Invite to join MyABF</li>
-            <li>Show balance</li>
-            <li>Edit name</li>
-            <li>Show/change pay for other</li>
-            <li>IOU</li>
-            <li>One off payments</li>
-        </ul>
 
-        {% if misc_payment_types %}
-            <h4>Miscellaneous Payments</h4>
-
-        {% endif %}
-
-        {% if form.is_member %}
-            {{ form.membership_type }} Member
-        {% else %}
-            {{  player.first_name }} is not a member. You can add them from the membership tab.
-        {% endif %}
+        <!-- USER PENDING PAYMENTS -->
 
         {% if user_pending_payments %}
 
-            <h3>User has Outstanding IOUs</h3>
-            <ul>
-                {% for iou in user_pending_payments %}
-                    <li>{{ GLOBAL_CURRENCY_SYMBOL }}{{ iou.amount|floatformat:2 }} - {{ iou.description }} at {{ iou.organisation }} on {{ iou.created_at }}</li>
-                {% endfor %}
-            </ul>
+            <div class="card">
+                <div class="card-header card-header-danger">
+                    <h4>User has Outstanding IOUs</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th class="text-left">Club</th>
+                                    <th class="text-left">Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for iou in user_pending_payments %}
+                                    <tr>
+                                        <td class="text-left">{{ iou.organisation }}</td>
+                                        <td class="text-left">{{ GLOBAL_CURRENCY_SYMBOL }}{{ iou.amount|floatformat:2 }}</td>
+                                        <td>{{ iou.created_at|cobalt_nice_datetime_short }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        {% endif %}
+
+        <!-- ONLY SHOW MISC PAYMENTS IF SET UP AND THIS IS A REAL USER -->
+        {% if misc_payment_types and player|get_class == "User" %}
+            <div class="card">
+                <div class="card-header card-header-success">
+                    <h4>Miscellaneous Payments</h4>
+                </div>
 
 
+                <!-- ADD NEW MISC PAYMENT FORM -->
+                <div class="card-body">
+                    <ul>
+                        <li>Old ones go here for this session</li>
+                    </ul>
+                    <form>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="id_misc_payment" class="bmd-label-static">Item</label>
+                                    <select class="selectpicker" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
+                                        <option selected value="-1">---select---</option>
+                                        {% for misc_payment_type in misc_payment_types %}
+                                            <option value="{{ misc_payment_type.description }}">{{ misc_payment_type.description }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="id_amount" class="bmd-label-floating">Amount</label>
+                                    <input type="number" value="" class="form-control" id="id_amount" name="amount">
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <button class="btn btn-info btn-sm" disabled type="submit">Add</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         {% endif %}
 
     </div>
 </div>
+
+<script>
+    $(document).ready( function () {
+        $(".selectpicker").selectpicker();
+    });
+</script>

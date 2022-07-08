@@ -74,7 +74,7 @@ def check_club_menu_access(
 
             # Check for state level access
             rbac_model_for_state = get_rbac_model_for_state(club.state)
-            state_role = "orgs.state.%s.edit" % rbac_model_for_state
+            state_role = f"orgs.state.{rbac_model_for_state}.edit"
             if rbac_user_has_role(request.user, state_role):
                 return function(request, club, *args, **kwargs)
 
