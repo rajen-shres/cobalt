@@ -395,7 +395,11 @@ class UserPendingPayment(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     session_entry = models.ForeignKey(
         SessionEntry, on_delete=models.CASCADE, blank=True, null=True
     )
     """ Optional but likely that this IOU is for a session that they played in"""
+
+    def __str__(self):
+        return f"{self.system_number} - {GLOBAL_CURRENCY_SYMBOL}{self.amount:,.2f} - {self.description}"

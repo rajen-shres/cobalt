@@ -118,11 +118,6 @@ class UserSessionForm(forms.Form):
         if session_entry.payment_method:
             self.fields["payment_method"].initial = session_entry.payment_method.id
 
-        # Check for IOUs
-        self.user_pending_payments = UserPendingPayment.objects.filter(
-            system_number=session_entry.system_number
-        ).filter(organisation=club)
-
 
 class FileImportForm(forms.Form):
     """Session file upload form"""

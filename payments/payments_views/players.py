@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone, dateformat
 
 from accounts.models import User, TeamMate
@@ -16,12 +16,16 @@ from cobalt.settings import (
     AUTO_TOP_UP_MAX_AMT,
     GLOBAL_CURRENCY_SYMBOL,
     BRIDGE_CREDITS,
-    COBALT_HOSTNAME,
 )
 from logs.views import log_event
 from notifications.notifications_views.core import contact_member
 from payments.forms import MemberTransfer, ManualTopup
-from payments.models import MemberTransaction, PaymentStatic, StripeTransaction
+from payments.models import (
+    MemberTransaction,
+    PaymentStatic,
+    StripeTransaction,
+    UserPendingPayment,
+)
 from payments.payments_views.admin import refund_stripe_transaction_sub
 from payments.payments_views.core import (
     get_balance,
@@ -659,7 +663,6 @@ def refund_stripe_transaction(request, stripe_transaction_id):
             )
 
         if rc["status"] not in ["succeeded", "pending"]:
-
             log_event(
                 user=request.user.full_name,
                 severity="CRITICAL",
@@ -715,3 +718,42 @@ def refund_stripe_transaction(request, stripe_transaction_id):
             "member_card_refund": member_card_refund,
         },
     )
+
+
+@login_required()
+def pay_user_pending_payment(request, user_pending_payment_id):
+    """Pay for an IOU to a club"""
+
+    user_pending_payment = get_object_or_404(
+        UserPendingPayment, pk=user_pending_payment_id
+    )
+
+    return payment_api_interactive(
+        request=request,
+        member=request.user,
+        description=user_pending_payment.description,
+        amount=user_pending_payment.amount,
+        organisation=user_pending_payment.organisation,
+        route_code="UPP",
+        route_payload=user_pending_payment_id,
+        book_internals=True,
+    )
+
+
+def user_pending_payment_callback(status, user_pending_payment_id):
+    """Callback for a user_pending_payment being made"""
+
+    if status == "Success":
+        user_pending_payment = UserPendingPayment.objects.filter(
+            pk=user_pending_payment_id
+        ).first()
+        if not user_pending_payment:
+            log_event(
+                user="Stripe API",
+                severity="CRITICAL",
+                source="Payments",
+                sub_source="user_pending_payment",
+                message=f"Callback could not find matching UserPendingPayment for pk={user_pending_payment_id}",
+            )
+            return
+        user_pending_payment.delete()

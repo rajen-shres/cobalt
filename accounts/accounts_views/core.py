@@ -18,6 +18,7 @@ from cobalt.settings import GLOBAL_TITLE
 from logs.views import log_event
 from masterpoints.views import user_summary
 from notifications.notifications_views.core import send_cobalt_email_with_template
+from organisations.models import MemberClubEmail
 from organisations.views.general import replace_unregistered_user_with_real_user
 
 
@@ -344,3 +345,48 @@ def add_un_registered_user_with_mpc_data(
     ).save()
 
     return details
+
+
+def get_user_or_unregistered_user_from_system_number(system_number):
+    """return a User or UnregisteredUser object for a given system number"""
+
+    # User takes precedence if somehow both exist (shouldn't happen)
+    user = User.objects.filter(system_number=system_number).first()
+
+    if user:
+        return user
+
+    return UnregisteredUser.objects.filter(system_number=system_number).first()
+
+
+def get_email_address_and_name_from_system_number(system_number, club=None):
+    """returns email address for a user or unregistered user
+
+    If we get a club passed in, then we check for club level overrides on the email address
+
+    """
+
+    # Try user
+    user = User.objects.filter(system_number=system_number).first()
+
+    if user:
+        return user.email, user.first_name
+
+    # try Unregistered user
+    un_reg = UnregisteredUser.objects.filter(system_number=system_number).first()
+
+    if not un_reg:
+        return None, None
+
+    # Check for club level overrides
+    if club:
+        override = MemberClubEmail.objects.filter(
+            system_number=system_number, organisation=club
+        )
+    else:
+        override = None
+
+    if override:
+        return override.email, un_reg.first_name
+
+    return un_reg.email, un_reg.first_name

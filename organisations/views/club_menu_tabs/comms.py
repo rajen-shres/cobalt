@@ -106,7 +106,7 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
 
     # get club level email overrides
     overrides = MemberClubEmail.objects.filter(
-        system_number__in=tag_system_numbers
+        system_number__in=tag_system_numbers, organisation=club
     ).values("email", "system_number")
 
     combined_list = list(chain(members, un_regs))
@@ -143,7 +143,7 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
 def _send_email_sub(
     first_name, email, email_form, batch_id=None, club_template=None, attachments=None
 ):
-    """Send an email sub task
+    """Send an email subtask
 
     Args:
         first_name(str): name of person to send to

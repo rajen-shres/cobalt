@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from fcm_django.models import FCMDevice
 
 from masterpoints.views import get_masterpoints
-from payments.payments_views.core import get_balance_detail
+from payments.payments_views.core import get_balance_detail, get_user_pending_payments
 from events.events_views.core import get_events
 from results.views.core import get_recent_results
 from utils.models import Slug
@@ -36,6 +36,7 @@ def home(request):
         posts2 = get_announcements(request)
         events, unpaid = get_events(request.user)
         recent_results = get_recent_results(request.user)
+        user_pending_payments = get_user_pending_payments(system_number)
 
         # Show tour for this page?
         tour = request.GET.get("tour", None)
@@ -51,6 +52,7 @@ def home(request):
                 "events": events,
                 "unpaid": unpaid,
                 "recent_results": recent_results,
+                "user_pending_payments": user_pending_payments,
                 "tour": tour,
             },
         )

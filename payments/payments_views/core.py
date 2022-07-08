@@ -63,6 +63,7 @@ from payments.models import (
     MemberTransaction,
     OrganisationTransaction,
     StripeLog,
+    UserPendingPayment,
 )
 from payments.payments_views.payments_api import notify_member_to_member_transfer
 
@@ -171,6 +172,15 @@ def get_balance_and_recent_trans_org(org):
 
     balance = float(last_tran.balance) if last_tran else 0.0
     return balance, trans
+
+
+#############################
+# get_user_pending_payments #
+#############################
+def get_user_pending_payments(system_number):
+    """Get any IOUs for this user. Called by the dashboard"""
+
+    return UserPendingPayment.objects.filter(system_number=system_number)
 
 
 ################################
@@ -755,6 +765,12 @@ def callback_router(
     # Member to member transfers - we also pass the Stripe transaction
     elif route_code == "M2M":
         member_to_member_transfer_callback(stripe_transaction)
+
+    # User Pending Payment
+    elif route_code == "UPP":
+        from payments.payments_views.players import user_pending_payment_callback
+
+        user_pending_payment_callback(status, route_payload)
 
     else:
         log_event(

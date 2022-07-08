@@ -1,0 +1,47 @@
+{#---------------------------------------------------------------------------------#}
+{#                                                                                 #}
+{# Extra parts of the session edit screen                                          #}
+{#                                                                                 #}
+{#---------------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+
+<div class="card" id="extras">
+    <div class="card-header-warning">
+        <h3>Extras</h3>
+    </div>
+    <div class="card-body">
+        <ul class="text-left">
+            <li>Add as member</li>
+            <li>Invite to join MyABF</li>
+            <li>Show balance</li>
+            <li>Edit name</li>
+            <li>Show/change pay for other</li>
+            <li>IOU</li>
+            <li>One off payments</li>
+        </ul>
+
+        {% if misc_payment_types %}
+            <h4>Miscellaneous Payments</h4>
+
+        {% endif %}
+
+        {% if form.is_member %}
+            {{ form.membership_type }} Member
+        {% else %}
+            {{  player.first_name }} is not a member. You can add them from the membership tab.
+        {% endif %}
+
+        {% if user_pending_payments %}
+
+            <h3>User has Outstanding IOUs</h3>
+            <ul>
+                {% for iou in user_pending_payments %}
+                    <li>{{ GLOBAL_CURRENCY_SYMBOL }}{{ iou.amount|floatformat:2 }} - {{ iou.description }} at {{ iou.organisation }} on {{ iou.created_at }}</li>
+                {% endfor %}
+            </ul>
+
+
+        {% endif %}
+
+    </div>
+</div>

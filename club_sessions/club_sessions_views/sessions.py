@@ -8,16 +8,24 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 
-from accounts.accounts_views.core import add_un_registered_user_with_mpc_data
+from accounts.accounts_views.core import (
+    add_un_registered_user_with_mpc_data,
+    get_user_or_unregistered_user_from_system_number,
+)
 from accounts.models import User, UnregisteredUser
-from cobalt.settings import BRIDGE_CREDITS
+from cobalt.settings import BRIDGE_CREDITS, GLOBAL_CURRENCY_SYMBOL
 from masterpoints.views import abf_checksum_is_valid
+from notifications.notifications_views.core import (
+    send_cobalt_email_with_template,
+    send_cobalt_email_to_system_number,
+)
 from organisations.models import (
     Organisation,
     OrgVenue,
     ClubLog,
     MemberMembershipType,
     MembershipType,
+    MiscPayType,
 )
 from organisations.views.general import get_membership_type_for_players
 from payments.models import OrgPaymentMethod, MemberTransaction, UserPendingPayment
@@ -539,7 +547,6 @@ def _edit_session_entry_handle_post(request, club, session_entry):
     payment_method = OrgPaymentMethod.objects.get(
         pk=form.cleaned_data["payment_method"]
     )
-    session_entry.payment_method = payment_method
 
     # Handle player being changed
     new_user_id = form.cleaned_data["player_no"]
@@ -552,9 +559,56 @@ def _edit_session_entry_handle_post(request, club, session_entry):
     if system_number:
         session_entry.system_number = system_number
 
+    # Handle IOUs
+    if "payment_method" in form.changed_data:
+        _handle_iou_changes(payment_method, club, session_entry, request.user)
+
+    session_entry.payment_method = payment_method
     session_entry.save()
 
     return form, "Data saved"
+
+
+def _handle_iou_changes(payment_method, club, session_entry, administrator):
+    """handle the payment type toggling between IOU and something else"""
+
+    # Check for turning on
+    if payment_method.payment_method == "IOU":
+        # For safety ensure we don't duplicate
+        user_pending_payment, _ = UserPendingPayment.objects.get_or_create(
+            organisation=club,
+            system_number=session_entry.system_number,
+            session_entry=session_entry,
+            amount=session_entry.fee,
+            description=session_entry.session.description,
+        )
+        user_pending_payment.save()
+
+        subject = f"Pending Payment to {club}"
+        message = f"""
+        {administrator.full_name} has recorded you as entering {session_entry.session} but not paying.
+        That is fine, you can pay later.
+        <br><br>
+        The amount owing is {GLOBAL_CURRENCY_SYMBOL}{session_entry.fee}.
+        <br><br>
+        If you believe this to be incorrect please contact {club} directly in the first instance.
+        """
+
+        send_cobalt_email_to_system_number(
+            session_entry.system_number,
+            subject,
+            message,
+            club=club,
+            administrator=administrator,
+        )
+
+    # Check for turning off
+    if session_entry.payment_method.payment_method == "IOU":
+        UserPendingPayment.objects.filter(
+            organisation=club,
+            system_number=session_entry.system_number,
+            session_entry=session_entry,
+        ).delete()
 
 
 @user_is_club_director(include_session_entry=True)
@@ -584,12 +638,42 @@ def edit_session_entry_htmx(request, club, session, session_entry):
 
 
 @user_is_club_director(include_session_entry=True)
+def edit_session_entry_extras_htmx(request, club, session, session_entry):
+    """Handle the extras part of the session entry edit screen - IOUs, misc payments etc"""
+
+    misc_payment_types = MiscPayType.objects.filter(organisation=club)
+
+    # Check for IOUs from any club
+    user_pending_payments = UserPendingPayment.objects.filter(
+        system_number=session_entry.system_number
+    )
+
+    player = get_user_or_unregistered_user_from_system_number(
+        session_entry.system_number
+    )
+
+    return render(
+        request,
+        "club_sessions/manage/edit_session_entry_extras_htmx.html",
+        {
+            "misc_payment_types": misc_payment_types,
+            "user_pending_payments": user_pending_payments,
+            "session_entry": session_entry,
+            "player": player,
+        },
+    )
+
+
+@user_is_club_director(include_session_entry=True)
 def change_payment_method_htmx(request, club, session, session_entry):
     """called when the payment method dropdown is changed on the session tab"""
 
     payment_method = get_object_or_404(
         OrgPaymentMethod, pk=request.POST.get("payment_method")
     )
+
+    # IOU is a special case. Clubs can disable it, but if it is there we generate an IOU for the user
+    _handle_iou_changes(payment_method, club, session_entry, request.user)
 
     # Get the membership_type for this user and club, None means they are a guest
     member_membership_type = (

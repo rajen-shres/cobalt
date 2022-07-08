@@ -17,6 +17,7 @@ DEFAULT_PAYMENT_METHODS = [
     "EFTPOS",
     "Credit Card",
     "Bank Transfer",
+    "IOU",
 ]
 DEFAULT_SESSION_TYPES = [
     MasterSessionType.DUPLICATE,

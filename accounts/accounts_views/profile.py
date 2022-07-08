@@ -9,6 +9,7 @@ from accounts.accounts_views.core import _check_duplicate_email
 from forums.models import Post, Comment1, Comment2
 from masterpoints.views import user_summary
 from organisations.views.general import get_clubs_for_player
+from payments.payments_views.core import get_user_pending_payments
 from rbac.core import rbac_user_has_role
 from support.models import Incident
 from utils.utils import cobalt_paginator
@@ -69,6 +70,9 @@ def profile(request):
     # Get clubs
     member_of_clubs = get_clubs_for_player(request.user)
 
+    # Get any outstanding debt
+    user_pending_payments = get_user_pending_payments(request.user.system_number)
+
     # Show tour for this page?
     tour = request.GET.get("tour", None)
 
@@ -82,6 +86,7 @@ def profile(request):
             "team_mates": team_mates,
             "user_additional_info": user_additional_info,
             "member_of_clubs": member_of_clubs,
+            "user_pending_payments": user_pending_payments,
             "tour": tour,
         },
     )

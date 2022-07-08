@@ -232,6 +232,11 @@ urlpatterns = [
         name="orgs_get_org_fees",
     ),
     path(
+        "pay-user-pending-payment/<int:user_pending_payment_id>",
+        payments.payments_views.players.pay_user_pending_payment,
+        name="pay_user_pending_payment",
+    ),
+    path(
         "get-member-balance",
         payments.payments_views.core.get_balance_htmx,
         name="get_balance_htmx",

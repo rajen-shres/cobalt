@@ -720,3 +720,51 @@ def send_fcm_message(fcm_device, msg, admin=None):
     logger.info(rc)
 
     return rc
+
+
+def send_cobalt_email_to_system_number(
+    system_number, subject, message, club=None, administrator=None
+):
+    """Generic function to send a simple email to a user or unregistered user
+
+    if we get a club then we will use that to look for club specific email addresses
+
+    """
+
+    from accounts.accounts_views.core import (
+        get_email_address_and_name_from_system_number,
+    )
+
+    email_address, first_name = get_email_address_and_name_from_system_number(
+        system_number, club
+    )
+    if not email_address:
+        logger.warning(
+            f"Unable to send email to {system_number}. No email address found."
+        )
+        return
+
+    context = {
+        "box_colour": "#4bb027",
+        "name": first_name,
+        "title": subject,
+        "email_body": message,
+        "img_src": "/static/notifications/img/myabf-email.png",
+    }
+
+    if club:
+        # Create batch id so admins can see this email
+        batch_id = create_rbac_batch_id(
+            rbac_role=f"notifications.orgcomms.{club.id}.edit",
+            user=administrator,
+            organisation=club,
+        )
+    else:
+        batch_id = None
+
+    send_cobalt_email_with_template(
+        to_address=email_address,
+        context=context,
+        batch_id=batch_id,
+        template="system - club",
+    )
