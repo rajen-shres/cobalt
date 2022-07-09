@@ -16,19 +16,17 @@ from accounts.models import User, UnregisteredUser
 from cobalt.settings import BRIDGE_CREDITS, GLOBAL_CURRENCY_SYMBOL
 from masterpoints.views import abf_checksum_is_valid
 from notifications.notifications_views.core import (
-    send_cobalt_email_with_template,
     send_cobalt_email_to_system_number,
 )
 from organisations.models import (
     Organisation,
-    OrgVenue,
     ClubLog,
     MemberMembershipType,
-    MembershipType,
     MiscPayType,
 )
 from organisations.views.general import get_membership_type_for_players
 from payments.models import OrgPaymentMethod, MemberTransaction, UserPendingPayment
+from payments.payments_views.payments_api import payment_api_batch
 
 from rbac.views import rbac_forbidden
 from rbac.core import rbac_user_has_role
@@ -39,7 +37,6 @@ from ..models import (
     Session,
     SessionEntry,
     SessionTypePaymentMethodMembership,
-    SessionTypePaymentMethod,
 )
 
 
@@ -108,9 +105,13 @@ def tab_settings_htmx(request, club, session):
         session_form = SessionForm(request.POST, club=club, instance=session)
         if session_form.is_valid():
             session = session_form.save()
+        else:
+            print(session_form.errors)
 
     else:
         session_form = SessionForm(club=club)
+
+    # initial["entry_open_date"] = congress.entry_open_date.strftime("%d/%m/%Y")
 
     return render(
         request,
@@ -204,6 +205,11 @@ def _augment_session_entries(
 
     """
 
+    # The payment method may no longer be valid, we want to flag this
+    valid_payment_methods = OrgPaymentMethod.objects.filter(
+        organisation=club, active=True
+    ).values_list("payment_method", flat=True)
+
     # Now add the object to the session list, also add colours for alternate tables
     for session_entry in session_entries:
 
@@ -245,9 +251,18 @@ def _augment_session_entries(
                 session_entry.membership_type = "Invalid Number"
                 session_entry.icon_colour = "dark"
 
+        # valid payment method. In list of valid is fine, or simple not set is fine too
+        if session_entry.payment_method:
+            session_entry.payment_method_is_valid = (
+                session_entry.payment_method.payment_method in valid_payment_methods
+            )
+        else:
+            session_entry.payment_method_is_valid = True
+
+        # Add icon text
         session_entry.icon_text = icon_text
 
-    # workout payment method and if user has sufficient funds
+    # work out payment method and if user has sufficient funds
     return _calculate_payment_method_and_balance(session_entries, session_fees, club)
 
 
@@ -288,8 +303,6 @@ def _calculate_payment_method_and_balance(session_entries, session_fees, club):
             session_entry.fee = session_fees[session_entry.membership][
                 session_entry.payment_method.payment_method
             ]
-
-    # session_entries.update()
 
     return session_entries
 
@@ -624,6 +637,15 @@ def edit_session_entry_htmx(request, club, session, session_entry):
         form = UserSessionForm(club=club, session_entry=session_entry)
         message = ""
 
+    # Check if payment method used is still valid
+    valid_payment_methods = [item[1] for item in form.fields["payment_method"].choices]
+
+    # unset or in the list are both valid
+    if session_entry.payment_method:
+        payment_method_is_valid = session_entry.payment_method in valid_payment_methods
+    else:
+        payment_method_is_valid = True
+
     return render(
         request,
         "club_sessions/manage/edit_session_entry_htmx.html",
@@ -633,15 +655,20 @@ def edit_session_entry_htmx(request, club, session, session_entry):
             "session_entry": session_entry,
             "form": form,
             "message": message,
+            "payment_method_is_valid": payment_method_is_valid,
         },
     )
 
 
 @user_is_club_director(include_session_entry=True)
-def edit_session_entry_extras_htmx(request, club, session, session_entry):
+def edit_session_entry_extras_htmx(request, club, session, session_entry, message=""):
     """Handle the extras part of the session entry edit screen - IOUs, misc payments etc"""
 
+    # get this orgs miscellaneous payment types
     misc_payment_types = MiscPayType.objects.filter(organisation=club)
+
+    # get misc payments for this user through the extended info table
+    #    misc_payments_for_user =
 
     # Check for IOUs from any club
     user_pending_payments = UserPendingPayment.objects.filter(
@@ -659,7 +686,10 @@ def edit_session_entry_extras_htmx(request, club, session, session_entry):
             "misc_payment_types": misc_payment_types,
             "user_pending_payments": user_pending_payments,
             "session_entry": session_entry,
+            "session": session,
             "player": player,
+            "club": club,
+            "message": message,
         },
     )
 
@@ -747,19 +777,34 @@ def _session_totals_calculations(session_entries, session_fees, membership_type_
         # we only store system_number on the session_entry. Need to look up amount due via membership type for
         # this system number and the session_fees for this club for each membership type
 
+        # It is also possible that the static data has changed since this was created, so we need to
+        # handle the session_fees not existing for this payment_method
+
+        # Get membership for user, if not found then this will be a Guest
         membership_for_this_user = membership_type_dict.get(
             session_entry.system_number, "Guest"
         )
 
+        if session_entry.fee:
+            # If fee is set then use that
+            this_fee = session_entry.fee
+        else:
+            # Otherwise, try to look it up
+            try:
+                this_fee = session_fees[membership_for_this_user][
+                    session_entry.payment_method.payment_method
+                ]
+            except KeyError:
+                # if that fails default to 0 - will mean the static has changed since we set the payment_method
+                # and this payment method is no longer in use. 0 seems a good default
+                this_fee = 0
+
+        # Update totals
         if session_entry.payment_method.payment_method == BRIDGE_CREDITS:
-            totals["bridge_credits_due"] += session_fees[membership_for_this_user][
-                BRIDGE_CREDITS
-            ]
+            totals["bridge_credits_due"] += this_fee
             totals["bridge_credits_received"] += session_entry.amount_paid
         else:
-            totals["other_methods_due"] += session_fees[membership_for_this_user][
-                session_entry.payment_method.payment_method
-            ]
+            totals["other_methods_due"] += this_fee
             totals["other_methods_received"] += session_entry.amount_paid
 
     totals["tables"] = totals["players"] / 4
@@ -796,3 +841,40 @@ def session_totals_htmx(request, club, session):
     )
 
     return render(request, "club_sessions/manage/totals_htmx.html", {"totals": totals})
+
+
+@user_is_club_director(include_session_entry=True)
+def add_misc_payment_htmx(request, club, session, session_entry):
+    """Adds a miscellaneous payment for a user in a session"""
+
+    # load data from form
+    misc_payment = get_object_or_404(MiscPayType, pk=request.POST.get("misc_payment"))
+    amount = float(request.POST.get("amount"))
+
+    # validate
+    if amount <= 0:
+        return edit_session_entry_extras_htmx(
+            request, message="Amount must be greater than zero"
+        )
+
+    # load member
+    member = get_user_or_unregistered_user_from_system_number(
+        session_entry.system_number
+    )
+    if not member:
+        return edit_session_entry_extras_htmx(request, message="Error loading member")
+
+    # Try payment
+    if payment_api_batch(
+        member=member,
+        amount=amount,
+        description=f"{session} - {misc_payment.description}",
+        organisation=club,
+        session=session,
+    ):
+        message = "Payment successful"
+
+    else:
+        message = "Payment failed"
+
+    return edit_session_entry_extras_htmx(request, message=message)

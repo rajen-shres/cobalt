@@ -48,4 +48,9 @@ urlpatterns = [
         sessions.session_totals_htmx,
         name="session_entry_session_totals_htmx",
     ),
+    path(
+        "session/add-misc-payment",
+        sessions.add_misc_payment_htmx,
+        name="session_add_misc_payment_htmx",
+    ),
 ]

@@ -199,6 +199,12 @@ class AbstractTransaction(models.Model):
 
     type = models.CharField("Transaction Type", choices=TRANSACTION_TYPE, max_length=20)
 
+    # Sessions are important enough to Organisations that we add them here. Lets us summarise by session
+    # We can't use a foreign key as there is a circular import issue
+    club_session_id = models.IntegerField(blank=True, null=True)
+
+    #    session = models.ForeignKey(Session, blank=True, null=True, on_delete=models.PROTECT)
+
     class Meta:  # pylint: disable=too-few-public-methods,missing-class-docstring
         abstract = True
 
@@ -403,3 +409,20 @@ class UserPendingPayment(models.Model):
 
     def __str__(self):
         return f"{self.system_number} - {GLOBAL_CURRENCY_SYMBOL}{self.amount:,.2f} - {self.description}"
+
+
+class MemberOrganisationLink(models.Model):
+    """This was built to provide the linkage between users, clubs and general, small payments. However,
+    it can be used any time you want to link a specific member_transaction to a specific organisation_transaction.
+    These link to a user or an org, but you won't know which specific transaction without this linkage.
+
+    We could have solved this by adding an optional field to MemberTransaction and OrganisationTransaction
+    but they are already overloaded. Another option would have been to add a metaclass to both with
+    extended data. This looks like the most generic solution, however.
+
+    """
+
+    member_transaction = models.ForeignKey(MemberTransaction, on_delete=models.CASCADE)
+    organisation_transaction = models.ForeignKey(
+        OrganisationTransaction, on_delete=models.CASCADE
+    )

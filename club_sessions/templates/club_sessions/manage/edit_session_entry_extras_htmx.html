@@ -11,6 +11,9 @@
     </div>
     <div class="card-body">
 
+        <!-- MESSAGE -->
+        <h3 class="text-primary font-weight-bold">{{ message }}</h3>
+
         <!-- USER PENDING PAYMENTS -->
 
         {% if user_pending_payments %}
@@ -59,7 +62,11 @@
                     <ul>
                         <li>Old ones go here for this session</li>
                     </ul>
-                    <form>
+                    <form
+                        hx-post="{% url "club_sessions:session_add_misc_payment_htmx" %}"
+                        hx-target="#entry_extras"
+                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                    >
                         <div class="row">
                             <div class="col-6">
                                 <div class="form-group">
@@ -67,7 +74,7 @@
                                     <select class="selectpicker" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
                                         <option selected value="-1">---select---</option>
                                         {% for misc_payment_type in misc_payment_types %}
-                                            <option value="{{ misc_payment_type.description }}">{{ misc_payment_type.description }}</option>
+                                            <option value="{{ misc_payment_type.id }}">{{ misc_payment_type.description }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
@@ -79,7 +86,7 @@
                                 </div>
                             </div>
                             <div class="col-2">
-                                <button class="btn btn-info btn-sm" disabled type="submit">Add</button>
+                                <button class="btn btn-info btn-sm" id="id_misc_button" disabled type="submit">Add</button>
                             </div>
                         </div>
                     </form>
@@ -92,6 +99,16 @@
 
 <script>
     $(document).ready( function () {
+
+        // enable selectpicker
         $(".selectpicker").selectpicker();
+
+        // Handle changing the misc payment type
+
+        $("#id_misc_payment").change( function(){
+            // enable button
+            $("#id_misc_button").removeAttr("disabled");
+            $("#id_amount").val(12);
+        });
     });
 </script>

@@ -29,6 +29,7 @@ def payment_api_interactive(
     route_code=None,
     route_payload=None,
     book_internals=True,
+    session=None,
 ):
     """Payments API when we have an attached user. This will try to make a payment and if need be
     take the user to the Stripe payment screen to handle a manual payment.
@@ -56,6 +57,7 @@ def payment_api_interactive(
                          for example, event entry may be booking a whole team of entries as part of this so we
                          only want the stripe transaction to go through and the call back will book all of the
                          individual deals. Default is to have us book the internals too.
+        session (Session): optional club_session.session to link payment to
 
     returns:
         HttpResponse - either the Stripe manual payment screen or the next_url
@@ -74,6 +76,7 @@ def payment_api_interactive(
         other_member=other_member,
         payment_type=payment_type,
         book_internals=book_internals,
+        session=session,
     ):
         logger.info(f"{request.user} paid {amount:.2f} for {description}")
 
@@ -179,6 +182,7 @@ def payment_api_batch(
     other_member=None,
     payment_type=None,
     book_internals=True,
+    session=None,
 ):
     """This API is used by other parts of the system to make payments or
     fail. It will use existing funds or try to initiate an auto top up.
@@ -205,6 +209,7 @@ def payment_api_batch(
                          for example, event entry may be booking a whole team of entries as part of this so we
                          only want the stripe transaction to go through and the call back will book all of the
                          individual deals. Default is to have us book the internals too.
+        session (Session): optional club_session.session to link payment to
 
     returns:
         bool - success or failure
@@ -236,6 +241,7 @@ def payment_api_batch(
             payment_type,
             balance,
             book_internals,
+            session,
         )
     else:
         return _payment_with_insufficient_funds(
@@ -247,6 +253,7 @@ def payment_api_batch(
             payment_type,
             balance,
             book_internals,
+            session,
         )
 
 
@@ -259,13 +266,20 @@ def _payment_with_sufficient_funds(
     payment_type,
     balance,
     book_internals,
+    session,
 ):
     """Handle a payment when the user has enough money to cover it"""
 
     # Record the internal transactions unless asked not to by calling module
     if book_internals:
         _update_account_entries_for_member_payment(
-            member, amount, description, organisation, other_member, payment_type
+            member,
+            amount,
+            description,
+            organisation,
+            other_member,
+            payment_type,
+            session,
         )
 
     # For member to member transfers, we notify both parties
@@ -279,7 +293,7 @@ def _payment_with_sufficient_funds(
 
 
 def _update_account_entries_for_member_payment(
-    member, amount, description, organisation, other_member, payment_type
+    member, amount, description, organisation, other_member, payment_type, session
 ):
     """Make the actual updates to the tables for a member transaction. Doesn't check anything, just does the work."""
 
@@ -290,6 +304,7 @@ def _update_account_entries_for_member_payment(
         other_member=other_member,
         description=description,
         payment_type=payment_type,
+        session=session,
     )
 
     # If we got an organisation then make their payment too
@@ -300,6 +315,7 @@ def _update_account_entries_for_member_payment(
             description=description,
             payment_type=payment_type,
             member=member,
+            session=session,
         )
 
     # If we got an other_member then make their payment too
@@ -310,6 +326,7 @@ def _update_account_entries_for_member_payment(
             payment_type=payment_type,
             other_member=member,
             member=other_member,
+            session=session,
         )
 
 
@@ -383,6 +400,7 @@ def _payment_with_insufficient_funds(
     payment_type,
     balance,
     book_internals,
+    session,
 ):
     """Handle a member not having enough money to pay"""
 
@@ -401,7 +419,13 @@ def _payment_with_insufficient_funds(
 
         if amount <= balance and book_internals:
             _update_account_entries_for_member_payment(
-                member, amount, description, organisation, other_member, payment_type
+                member,
+                amount,
+                description,
+                organisation,
+                other_member,
+                payment_type,
+                session,
             )
             # For member to member transfers, we notify both parties
             if other_member:

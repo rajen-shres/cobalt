@@ -728,6 +728,12 @@ def pay_user_pending_payment(request, user_pending_payment_id):
         UserPendingPayment, pk=user_pending_payment_id
     )
 
+    # Add session if we can
+    if user_pending_payment.session_entry:
+        session = user_pending_payment.session_entry.session
+    else:
+        session = None
+
     return payment_api_interactive(
         request=request,
         member=request.user,
@@ -737,6 +743,7 @@ def pay_user_pending_payment(request, user_pending_payment_id):
         route_code="UPP",
         route_payload=user_pending_payment_id,
         book_internals=True,
+        session=session,
     )
 
 

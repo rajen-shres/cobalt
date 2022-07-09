@@ -140,6 +140,11 @@
 
                         {% else %}
 
+                            <!-- HANDLE INVALID PAYMENT METHOD IF STATIC DATA HAS CHANGED SINCE THIS WAS SET -->
+                            {% if not session_entry.payment_method_is_valid %}
+                                <p class="font-weight-bold">"{{ session_entry.payment_method.payment_method }}" is no longer valid</p>
+                            {% endif %}
+
                             <select
                                 id="payment_method_select_{{ session_entry.id }}"
                                 class="selectpicker"
@@ -149,8 +154,8 @@
                                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
                                 hx-target="#id_session_entry_fee_{{ session_entry.id }}"
                             >
-                                {# if no selection then show heading #}
-                                {% if not session_entry.payment_method %}
+                                {# if no selection then show heading, also if invalid #}
+                                {% if not session_entry.payment_method or not session_entry.payment_method_is_valid %}
                                     <option selected disabled value="">Select...</option>
                                 {% endif %}
 

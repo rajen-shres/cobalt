@@ -122,6 +122,14 @@
                                     <div class="row">
                                         <div class="col">
                                             <div class="form-group">
+
+                                                <!-- HANDLE PAYMENT METHOD NOT BEING VALID ANY MORE -->
+                                                {% if not payment_method_is_valid %}
+
+                                                    <h4>Payment method {{ session_entry.payment_method.payment_method }} is no longer accepted. Changing this entry in any way will change the payment method to a valid one</h4>
+
+                                                {% endif %}
+
                                                 <label class="bmd-label-floating" for="id_payment_method">
                                                     Payment Method
                                                 </label>

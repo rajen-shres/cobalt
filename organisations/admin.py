@@ -105,6 +105,10 @@ class MiscPayTypeAdmin(admin.ModelAdmin):
 class OrgVenueAdmin(admin.ModelAdmin):
     """Admin class for model OrgVenue"""
 
+    search_fields = [
+        "organisation",
+    ]
+
     autocomplete_fields = [
         "organisation",
     ]

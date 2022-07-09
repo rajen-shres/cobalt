@@ -793,6 +793,7 @@ def update_account(
     stripe_transaction=None,
     other_member=None,
     organisation=None,
+    session=None,
 ):
     """Function to update a customer account by adding a transaction.
 
@@ -804,6 +805,7 @@ def update_account(
         stripe_transaction (StripeTransaction, optional): linked Stripe transaction
         other_member (User, optional): linked member
         organisation (Organisation, optional): linked organisation
+        session (Session, optional): club_session.session linked to this transaction
 
     returns:
         MemberTransaction
@@ -822,6 +824,8 @@ def update_account(
     act.balance = balance
     act.description = description
     act.type = payment_type
+    if session:
+        act.club_session_id = session.id
 
     act.save()
 
@@ -839,6 +843,7 @@ def update_organisation(
     other_organisation=None,
     member=None,
     bank_settlement_amount=None,
+    session=None,
 ):
     """method to update an organisations account
 
@@ -850,7 +855,7 @@ def update_organisation(
         member (User, optional): linked member
         other_organisation (Organisation, optional): linked organisation
         bank_settlement_amount (float): How much we expect to be settled. Used for ABF deducting fees for card payments
-
+        session (Session, optional): club_session.session linked to this transaction
     """
 
     last_tran = OrganisationTransaction.objects.filter(organisation=organisation).last()
@@ -864,6 +869,8 @@ def update_organisation(
     act.description = description
     act.type = payment_type
     act.bank_settlement_amount = bank_settlement_amount
+    if session:
+        act.club_session_id = session.id
 
     act.save()
 
