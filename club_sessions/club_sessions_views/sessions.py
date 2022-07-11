@@ -642,7 +642,9 @@ def edit_session_entry_htmx(request, club, session, session_entry):
 
     # unset or in the list are both valid
     if session_entry.payment_method:
-        payment_method_is_valid = session_entry.payment_method in valid_payment_methods
+        payment_method_is_valid = (
+            session_entry.payment_method.payment_method in valid_payment_methods
+        )
     else:
         payment_method_is_valid = True
 
@@ -664,8 +666,9 @@ def edit_session_entry_htmx(request, club, session, session_entry):
 def edit_session_entry_extras_htmx(request, club, session, session_entry, message=""):
     """Handle the extras part of the session entry edit screen - IOUs, misc payments etc"""
 
-    # get this orgs miscellaneous payment types
+    # get this orgs miscellaneous payment types and payment methods
     misc_payment_types = MiscPayType.objects.filter(organisation=club)
+    payment_methods = OrgPaymentMethod.objects.filter(active=True, organisation=club)
 
     # get misc payments for this user through the extended info table
     #    misc_payments_for_user =
@@ -684,6 +687,7 @@ def edit_session_entry_extras_htmx(request, club, session, session_entry, messag
         "club_sessions/manage/edit_session_entry_extras_htmx.html",
         {
             "misc_payment_types": misc_payment_types,
+            "payment_methods": payment_methods,
             "user_pending_payments": user_pending_payments,
             "session_entry": session_entry,
             "session": session,
