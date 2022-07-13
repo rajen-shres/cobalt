@@ -49,9 +49,9 @@
 
         {% endif %}
 
-        <!-- ONLY SHOW MISC PAYMENTS IF SET UP AND THIS IS A REAL USER -->
+        <!-- ONLY SHOW MISC PAYMENTS IF SET UP  -->
 
-        {% if misc_payment_types and player|get_class == "User" %}
+        {% if misc_payment_types %}
             <div class="card">
                 <div class="card-header card-header-success">
                     <h4>Miscellaneous Payments</h4>

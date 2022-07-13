@@ -126,7 +126,7 @@
                                                 <!-- HANDLE PAYMENT METHOD NOT BEING VALID ANY MORE -->
                                                 {% if not payment_method_is_valid %}
 
-                                                    <h4>Payment method {{ session_entry.payment_method.payment_method }} is no longer accepted. Changing this entry in any way will change the payment method to a valid one</h4>
+                                                    <h4>Payment method {{ session_entry.payment_method.payment_method }} is no longer accepted. Changing this entry in any way will change the payment method to a currently valid one</h4>
 
                                                 {% endif %}
 

@@ -1,3 +1,10 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Session view tab                                                       #}
+{#                                                                        #}
+{# This is the main tab for this page                                     #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 {% load static %}
 
@@ -24,7 +31,6 @@
         <li>Flag for automatic IOUs?</li>
         <li>Block editing paid_amount field for bridge credits</li>
         <li>Hover text on player icon</li>
-        <li><b>ADD RANDOM PAYMENTS TO CLUB MENU - MEMBERS ONLY</b></li>
         <li>Change the colours on the email when you have internet access</li>
     </ul>
 
@@ -49,6 +55,8 @@
                     <th class="text-left">Player</th>
                     <th>Pay By</th>
                     <th>Fee</th>
+                    <th>Extras</th>
+                    <th>Total</th>
                     <th>Paid</th>
                 </tr>
 
@@ -182,6 +190,14 @@
                     <td id="id_session_entry_fee_{{ session_entry.id }}">
                         {{ session_entry.fee|default_if_none:'-' }}
                     </td>
+
+                    <!-- EXTRAS -->
+
+                    <td>0.00</td>
+
+                    <!-- PLAYER TOTAL -->
+
+                    <td>TBA</td>
 
                     <!-- AMOUNT PAID -->
 

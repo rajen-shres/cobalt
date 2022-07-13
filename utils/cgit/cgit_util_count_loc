@@ -7,8 +7,8 @@ TOTAL=$(git ls-files | grep -Ev 'static|_build' | xargs wc -l | tail -1 | awk '{
 
 # print header
 echo ""
-echo "Application         Models  Functions  Lines of Code  Percentage"
-echo "===========         ======  =========  =============  =========="
+echo "Application         Models  Functions  Templates  Lines of Code  Percentage"
+echo "===========         ======  =========  =========  =============  =========="
 
 # go through dirs (some excluded) and get size of each cobalt app
 for DIR in $(ls -d */ | grep -Ev 'static|docs|media|htmlcov|__pycache__')
@@ -18,11 +18,13 @@ do
   APP=$(git ls-files | grep -Ev 'static|_build' | xargs wc -l | tail -1 | awk '{print $1}')
   FUNCS=$(grep -r --include "*.py" "^def " . | grep -v migrations | wc | awk '{print $1}')
   MODELS=$(grep -r --include "models.py" "^class" . | wc | awk '{print $1}')
+  TEMPLATES=$(find . -name "*.html" | grep template | wc | awk '{print $1}')
   APP_FMT=$(printf "%'d\n" $APP)
   PERCENT=$(echo "scale=0; 100 * $APP / $TOTAL" | bc)
   printf '%-20s' "$NAME"
   printf '%6s' "$MODELS"
   printf '%11s' "$FUNCS"
+  printf '%11s' "$TEMPLATES"
   printf '%15s' "$APP_FMT"
   printf '%11s%%' "$PERCENT"
   printf "  "
