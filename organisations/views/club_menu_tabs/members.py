@@ -678,13 +678,26 @@ def edit_member_htmx(request, club):
     hx_delete = reverse("organisations:club_menu_tab_member_delete_member_htmx")
     hx_vars = f"club_id:{club.id},member_id:{member.id}"
 
-    member_tags = MemberClubTag.objects.prefetch_related("club_tag").filter(
-        club_tag__organisation=club, system_number=member.system_number
-    )
-    used_tags = member_tags.values("club_tag__tag_name")
-    available_tags = ClubTag.objects.filter(organisation=club).exclude(
-        tag_name__in=used_tags
-    )
+    # Check if club even has any tags
+    club_has_tags = ClubTag.objects.filter(organisation=club).exists()
+
+    if club_has_tags:
+
+        # Get member tags
+        member_tags = MemberClubTag.objects.prefetch_related("club_tag").filter(
+            club_tag__organisation=club, system_number=member.system_number
+        )
+        used_tags = member_tags.values("club_tag__tag_name")
+        available_tags = ClubTag.objects.filter(organisation=club).exclude(
+            tag_name__in=used_tags
+        )
+
+    else:
+        member_tags = None
+        available_tags = None
+
+    # See if club has misc payments
+    club_has_misc = MiscPayType.objects.filter(organisation=club).exists()
 
     # Get recent emails too
     if rbac_user_has_role(
@@ -711,6 +724,8 @@ def edit_member_htmx(request, club):
             "emails": emails,
             "recent_misc_payments": recent_misc_payments,
             "misc_payment_types": misc_payment_types,
+            "club_has_tags": club_has_tags,
+            "club_has_misc": club_has_misc,
         },
     )
 

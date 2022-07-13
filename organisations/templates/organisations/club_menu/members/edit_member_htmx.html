@@ -59,15 +59,19 @@
                 >Show Emails...
                 </button>
 
-                <button class="mt-5 btn btn-sm btn-primary"
-                    _="on click toggle .d-none on #id_misc_pay_box then remove me"
-                >Misc Payments...
-                </button>
+                {% if club_has_misc %}
+                    <button class="mt-5 btn btn-sm btn-primary"
+                        _="on click toggle .d-none on #id_misc_pay_box then remove me"
+                    >Misc Payments...
+                    </button>
+                {% endif %}
 
-                <button class="mt-5 btn btn-sm btn-primary"
-                    _="on click toggle .d-none on #id_manage_tags then remove me"
-                >User tags...
-                </button>
+                {% if club_has_tags %}
+                    <button class="mt-5 btn btn-sm btn-primary"
+                        _="on click toggle .d-none on #id_manage_tags then remove me"
+                    >User tags...
+                    </button>
+                {% endif %}
 
 
                 <!-- MISCELLANEOUS PAYMENTS -->
