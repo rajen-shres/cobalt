@@ -851,8 +851,14 @@ def session_totals_htmx(request, club, session):
 def add_misc_payment_htmx(request, club, session, session_entry):
     """Adds a miscellaneous payment for a user in a session"""
 
+    # TODO: Change this to save to DB rather than make payment
+
     # load data from form
     misc_payment = get_object_or_404(MiscPayType, pk=request.POST.get("misc_payment"))
+    payment_method = get_object_or_404(
+        OrgPaymentMethod, pk=request.POST.get("payment_method")
+    )
+    print(payment_method)
     amount = float(request.POST.get("amount"))
 
     # validate

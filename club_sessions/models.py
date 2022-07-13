@@ -5,7 +5,7 @@ from django.db import models
 from django.utils import timezone
 
 from accounts.models import User
-from organisations.models import Organisation, MembershipType, OrgVenue
+from organisations.models import Organisation, MembershipType, OrgVenue, MiscPayType
 from payments.models import OrgPaymentMethod, OrganisationTransaction, MemberTransaction
 from utils.models import Seat
 
@@ -132,10 +132,30 @@ class SessionEntry(models.Model):
         ordering = ["pair_team_number", "seat_number_internal"]
 
     def save(self, *args, **kwargs):
-        """We add the seat number internal on save so we can load from database in order NSEW"""
+        """We add the seat number internal on save, so we can load from database in order NSEW"""
         if self.seat:
             self.seat_number_internal = "NSEW".find(self.seat)
         super(SessionEntry, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.session}: {self.system_number}"
+
+
+class SessionMiscPayment(models.Model):
+    """holds miscellaneous payments associated with a session. These are not paid until the payments
+    for this session are all processed."""
+
+    session_entry = models.ForeignKey(SessionEntry, on_delete=models.PROTECT)
+    payment_made = models.BooleanField(default=False)
+    """ Has this payment been processes, yes or no """
+
+    misc_pay_type = models.ForeignKey(
+        MiscPayType, on_delete=models.CASCADE, blank=True, null=True
+    )
+    """ either payment type or optional_description are required"""
+
+    optional_description = models.TextField(max_length=50, blank=True, null=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f"{self.session_entry} - {self.amount}"

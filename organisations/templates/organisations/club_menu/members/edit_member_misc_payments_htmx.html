@@ -1,0 +1,124 @@
+{% load humanize %}
+{% load cobalt_tags %}
+
+<!-- MISCELLANEOUS PAYMENTS -->
+
+<div class="card mt-5 {% if not is_reload %}d-none{% endif %}" id="id_misc_pay_box">
+    <div class="card-header card-header-primary">
+        <h2>Miscellaneous Payments</h2>
+    </div>
+    <div class="card-body">
+
+        <!-- MESSAGE -->
+        <h3 class="text-primary font-weight-bold">{{ misc_message }}</h3>
+
+        {% if recent_misc_payments %}
+
+            <div class="table-responsive">
+                <table class="table table-condensed">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Date</th>
+                            <th class="text-left">Description</th>
+                            <th class="text-right cobalt-no-wrap">Amount ({{ GLOBAL_CURRENCY_SYMBOL }})</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for recent_misc_payment in recent_misc_payments %}
+                            <tr>
+                                <td class="text-left">{{ recent_misc_payment.created_date|cobalt_nice_datetime_short }}</td>
+                                <td class="text-left">{{ recent_misc_payment.description }}</td>
+                                <td class="text-right">{{ recent_misc_payment.amount|floatformat:2|intcomma }}</td>
+
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- NEW MISC PAYMENT -->
+
+            <div class="card">
+                <div class="card-header card-header-warning">
+                    <h3>Add New Payment for {{ member.first_name }}</h3>
+                </div>
+                <div class="card-body">
+
+                    <form
+                        hx-post="{% url "organisations:club_menu_tab_members_add_misc_payment_htmx" %}"
+                        hx-target="#id_misc_pay_member"
+                        hx-vars="club_id:{{ club.id }}"
+                    >
+                        <input type="hidden" name="member_id" value="{{ member.id }}">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="id_misc_payment" class="bmd-label-static">Item</label>
+                                        <select class="selectpicker form-control" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
+                                            <option selected value="-1">---select---</option>
+                                            {% for misc_payment_type in misc_payment_types %}
+                                                <option value="{{ misc_payment_type.id }}">{{ misc_payment_type.description }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="id_misc_description" class="bmd-label-floating">Description</label>
+                                        <input type="text" value="" maxlength="15" class="form-control" id="id_misc_description" name="misc_description">
+                                    </div>
+                                </div>
+
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="id_amount" class="bmd-label-floating">Amount</label>
+                                        <input type="number" value="" min="0.00" step="0.01" class="form-control" id="id_amount" name="amount">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col text-center">
+                                <button class="btn btn-info btn-sm" id="id_misc_button" disabled type="submit">Add</button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+    $(document).ready( function () {
+
+        // enable selectpicker
+        $(".selectpicker").selectpicker();
+
+        // Handle changing the misc payment type
+        $("#id_misc_payment").change( function(){
+
+            // description
+            $("#id_misc_description").val($('#id_misc_payment option:selected').text());
+
+            // enable button
+            $("#id_misc_button").removeAttr("disabled");
+
+            // add default payment amount as a dictionary from Django
+            const default_amount = {
+                {% for misc_payment_type in misc_payment_types %}
+                    "{{ misc_payment_type.id }}": "{{ misc_payment_type.default_amount }}",
+                {% endfor %}
+            };
+
+            const new_val = default_amount[$(this).val()];
+            $("#id_amount").val(new_val);
+        });
+    });
+</script>

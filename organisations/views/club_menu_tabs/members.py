@@ -14,7 +14,12 @@ import organisations.views.club_menu_tabs.utils
 from accounts.accounts_views.api import search_for_user_in_cobalt_and_mpc
 from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser, UserAdditionalInfo
-from cobalt.settings import GLOBAL_ORG, GLOBAL_TITLE, COBALT_HOSTNAME
+from cobalt.settings import (
+    GLOBAL_ORG,
+    GLOBAL_TITLE,
+    COBALT_HOSTNAME,
+    GLOBAL_CURRENCY_SYMBOL,
+)
 from notifications.notifications_views.core import (
     send_cobalt_email_with_template,
     create_rbac_batch_id,
@@ -36,11 +41,14 @@ from organisations.models import (
     MembershipType,
     WelcomePack,
     OrgEmailTemplate,
+    MiscPayType,
 )
 from organisations.views.general import (
     _active_email_for_un_reg,
     get_rbac_model_for_state,
 )
+from payments.models import MemberTransaction, OrgPaymentMethod
+from payments.payments_views.payments_api import payment_api_batch
 from rbac.core import rbac_user_has_role
 from post_office.models import Email as PostOfficeEmail
 
@@ -660,51 +668,12 @@ def edit_member_htmx(request, club):
 
     # Look for save as all requests are posts
     if "save" in request.POST:
-        form = UserMembershipForm(request.POST, club=club)
 
-        if form.is_valid():
+        return _edit_member_htmx_save(request, club, member)
 
-            # Get details
-            membership_type_id = form.cleaned_data["membership_type"]
-            membership_type = get_object_or_404(MembershipType, pk=membership_type_id)
-            home_club = form.cleaned_data["home_club"]
-
-            # Get the member membership objects
-            member_membership = (
-                MemberMembershipType.objects.active()
-                .filter(system_number=member.system_number)
-                .filter(membership_type__organisation=club)
-                .first()
-            )
-
-            # Update and save
-            member_membership.membership_type = membership_type
-            member_membership.home_club = home_club
-            member_membership.save()
-            message = f"{member.full_name} updated"
-            ClubLog(
-                organisation=club,
-                actor=request.user,
-                action=f"Edited details for member {member}",
-            ).save()
-            return list_htmx(request, message)
-
-        else:
-            print(form.errors)
     else:
-        member_membership = (
-            MemberMembershipType.objects.active()
-            .filter(system_number=member.system_number)
-            .filter(membership_type__organisation=club)
-            .first()
-        )
-        initial = {
-            "member": member.id,
-            "membership_type": member_membership.membership_type.id,
-            "home_club": member_membership.home_club,
-        }
-        form = UserMembershipForm(club=club)
-        form.initial = initial
+
+        form = _edit_member_htmx_default(club, member)
 
     hx_delete = reverse("organisations:club_menu_tab_member_delete_member_htmx")
     hx_vars = f"club_id:{club.id},member_id:{member.id}"
@@ -725,6 +694,8 @@ def edit_member_htmx(request, club):
     else:
         emails = None
 
+    recent_misc_payments, misc_payment_types = _get_misc_payment_vars(member, club)
+
     return render(
         request,
         "organisations/club_menu/members/edit_member_htmx.html",
@@ -738,8 +709,87 @@ def edit_member_htmx(request, club):
             "member_tags": member_tags,
             "available_tags": available_tags,
             "emails": emails,
+            "recent_misc_payments": recent_misc_payments,
+            "misc_payment_types": misc_payment_types,
         },
     )
+
+
+def _get_misc_payment_vars(member, club):
+    """get variables relating to this members misc payments for this club"""
+
+    # Get recent misc payments
+    recent_misc_payments = MemberTransaction.objects.filter(
+        member=member, organisation=club, type="Miscellaneous"
+    ).order_by("-created_date")[:10]
+
+    # get this orgs miscellaneous payment types
+    misc_payment_types = MiscPayType.objects.filter(organisation=club)
+
+    return recent_misc_payments, misc_payment_types
+
+
+def _edit_member_htmx_save(request, club, member):
+    """sub for edit_member_htmx to handle getting a real POST"""
+
+    form = UserMembershipForm(request.POST, club=club)
+
+    if form.is_valid():
+
+        # Get details
+        membership_type_id = form.cleaned_data["membership_type"]
+        membership_type = get_object_or_404(MembershipType, pk=membership_type_id)
+        home_club = form.cleaned_data["home_club"]
+
+        # Get the member membership objects
+        member_membership = (
+            MemberMembershipType.objects.active()
+            .filter(system_number=member.system_number)
+            .filter(membership_type__organisation=club)
+            .first()
+        )
+
+        # Update and save
+        member_membership.membership_type = membership_type
+        member_membership.home_club = home_club
+        member_membership.save()
+        message = f"{member.full_name} updated"
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Edited details for member {member}",
+        ).save()
+
+    else:
+        # Very unlikely
+        print(form.errors)
+        message = f"Errors on form: {form.errors}"
+
+    return list_htmx(request, message=message)
+
+
+def _edit_member_htmx_default(club, member):
+    """sub of edit_member_htmx for when we don't get a POST"""
+
+    member_membership = (
+        MemberMembershipType.objects.active()
+        .filter(system_number=member.system_number)
+        .filter(membership_type__organisation=club)
+        .first()
+    )
+    initial = {
+        "member": member.id,
+        "membership_type": member_membership.membership_type.id,
+        "home_club": member_membership.home_club,
+    }
+    form = UserMembershipForm(club=club)
+    form.initial = initial
+
+    return form
+
+
+def _edit_member_htmx_common():
+    """Sub for common parts of edit_member_htmx"""
 
 
 @check_club_menu_access(check_members=True)
@@ -874,4 +924,50 @@ def errors_htmx(request, club):
         request,
         "organisations/club_menu/members/errors_htmx.html",
         {"has_errors": has_errors, "member_admin": member_admin, "club": club},
+    )
+
+
+@check_club_menu_access(check_members=True)
+def add_misc_payment_htmx(request, club):
+    """Adds a miscellaneous payment for a user"""
+
+    # load data from form
+    misc_description = request.POST.get("misc_description")
+    member = get_object_or_404(User, pk=request.POST.get("member_id"))
+    amount = float(request.POST.get("amount"))
+
+    if amount <= 0:
+        misc_message = "Amount must be greater than zero"
+
+    elif payment_api_batch(
+        member=member,
+        amount=amount,
+        description=f"{misc_description}",
+        organisation=club,
+    ):
+        misc_message = "Payment successful"
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Made misc payment of {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} for '{misc_description}' - {member}",
+        ).save()
+
+    else:
+        misc_message = "Payment failed"
+
+    # Get relevant data
+    recent_misc_payments, misc_payment_types = _get_misc_payment_vars(member, club)
+
+    # return part of edit_member screen
+    return render(
+        request,
+        "organisations/club_menu/members/edit_member_misc_payments_htmx.html",
+        {
+            "club": club,
+            "member": member,
+            "misc_message": misc_message,
+            "recent_misc_payments": recent_misc_payments,
+            "misc_payment_types": misc_payment_types,
+            "is_reload": True,  # when we reload, we don't want to be hidden (default)
+        },
     )

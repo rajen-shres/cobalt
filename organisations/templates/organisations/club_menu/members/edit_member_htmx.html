@@ -5,10 +5,9 @@
 <div class="container">
     <div class="row">
 
-        <div class="card col-md-6">
+        <div class="card col-lg-6">
             <div class="card-header card-header-rose">
                 <h2 class="text-center">Edit Member</h2>
-
             </div>
 
             <div class="card-body">
@@ -34,7 +33,7 @@
                             </label>
                         </div>
 
-                        <div class="col-6">
+                        <div class="col-6 mb-5">
                             <select name="membership_type" class="select form-control" id="id_membership_type">
                                 {% for option in form.membership_type.field.choices %}
                                     <option value="{{ option.0 }}" {% if form.membership_type.value == option.0 %}selected{% endif %}>{{ option.1 }}</option>
@@ -53,6 +52,30 @@
                     <button id="id_delete_user_1" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModalmemdel">Remove Membership</button>
                 </form>
 
+                <!-- EXTRAS BUTTONS -->
+
+                <button class="mt-5 btn btn-sm btn-primary"
+                    _="on click toggle .d-none on #id_recent_emails then remove me"
+                >Show Emails...
+                </button>
+
+                <button class="mt-5 btn btn-sm btn-primary"
+                    _="on click toggle .d-none on #id_misc_pay_box then remove me"
+                >Misc Payments...
+                </button>
+
+                <button class="mt-5 btn btn-sm btn-primary"
+                    _="on click toggle .d-none on #id_manage_tags then remove me"
+                >User tags...
+                </button>
+
+
+                <!-- MISCELLANEOUS PAYMENTS -->
+                <div id="id_misc_pay_member">
+
+                    {% include "organisations/club_menu/members/edit_member_misc_payments_htmx.html" %}
+
+                </div>
             </div>
         </div>
 

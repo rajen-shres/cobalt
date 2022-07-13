@@ -572,4 +572,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.comms.email_recipients_list_htmx,
         name="club_menu_tab_comms_email_recipients_list_htmx",
     ),
+    path(
+        "club-menu/member/add-misc-payment",
+        organisations.views.club_menu_tabs.members.add_misc_payment_htmx,
+        name="club_menu_tab_members_add_misc_payment_htmx",
+    ),
 ]

@@ -167,3 +167,10 @@ img.cobalt-rounded {
     margin-top: 15px;
     margin-left: 25px;
 }
+
+/* style to stop text wrapping onto new line */
+
+.cobalt-no-wrap {
+    overflow: auto;
+    white-space: nowrap;
+}
