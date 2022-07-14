@@ -1,0 +1,22 @@
+{% load cobalt_simple_tables_tags %}
+
+<div class="table-responsive">
+
+    <table class="table table-condensed table-hover">
+        <thead>
+            {% cobalt_simple_table_header_tag headers=headers align=align heading_colour=heading_colour %}
+        </thead>
+
+        <tbody>
+
+            {% for thing in things %}
+
+                {% cobalt_simple_table_row_tag row=thing fields=fields align=align %}
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>

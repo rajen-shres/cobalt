@@ -13,7 +13,7 @@ from django.utils import timezone
 import organisations.views.club_menu_tabs.utils
 from accounts.accounts_views.api import search_for_user_in_cobalt_and_mpc
 from accounts.forms import UnregisteredUserForm
-from accounts.models import User, UnregisteredUser, UserAdditionalInfo
+from accounts.models import User, UnregisteredUser
 from cobalt.settings import (
     GLOBAL_ORG,
     GLOBAL_TITLE,
@@ -47,8 +47,7 @@ from organisations.views.general import (
     _active_email_for_un_reg,
     get_rbac_model_for_state,
 )
-from payments.models import MemberTransaction, OrgPaymentMethod
-from payments.payments_views.core import get_balance
+from payments.models import MemberTransaction, OrganisationTransaction
 from payments.payments_views.payments_api import payment_api_batch
 from rbac.core import rbac_user_has_role
 from post_office.models import Email as PostOfficeEmail
@@ -711,6 +710,11 @@ def edit_member_htmx(request, club):
     # Get payment stuff
     recent_misc_payments, misc_payment_types = _get_misc_payment_vars(member, club)
 
+    # See if this user has payments access
+    user_has_payments = rbac_user_has_role(
+        request.user, f"club_sessions.sessions.{club.id}.edit"
+    ) or rbac_user_has_role(request.user, f"payments.manage.{club.id}.edit")
+
     return render(
         request,
         "organisations/club_menu/members/edit_member_htmx.html",
@@ -728,6 +732,7 @@ def edit_member_htmx(request, club):
             "misc_payment_types": misc_payment_types,
             "club_has_tags": club_has_tags,
             "club_has_misc": club_has_misc,
+            "user_has_payments": user_has_payments,
         },
     )
 
@@ -803,10 +808,6 @@ def _edit_member_htmx_default(club, member):
     form.initial = initial
 
     return form
-
-
-def _edit_member_htmx_common():
-    """Sub for common parts of edit_member_htmx"""
 
 
 @check_club_menu_access(check_members=True)
@@ -987,4 +988,30 @@ def add_misc_payment_htmx(request, club):
             "misc_payment_types": misc_payment_types,
             "is_reload": True,  # when we reload, we don't want to be hidden (default)
         },
+    )
+
+
+@check_club_menu_access()
+def recent_payments_for_user_htmx(request, club):
+    """Show recent payments for this club and this user"""
+
+    # Check access
+    if not (
+        rbac_user_has_role(request.user, f"club_sessions.sessions.{club.id}.edit")
+        or rbac_user_has_role(request.user, f"payments.manage.{club.id}.edit")
+    ):
+        return HttpResponse("Access Denied")
+
+    # Get user
+    player = get_object_or_404(User, pk=request.POST.get("member_id"))
+
+    # Get recent transactions for this user and club
+    recent_transactions = OrganisationTransaction.objects.filter(
+        member=player, organisation=club
+    ).order_by("-created_date")[:20]
+
+    return render(
+        request,
+        "organisations/club_menu/members/recent_payments_for_user_htmx.html",
+        {"recent_transactions": recent_transactions},
     )

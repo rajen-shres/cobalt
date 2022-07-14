@@ -1,3 +1,8 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Edit member screen                                                     #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% load crispy_forms_filters %}
 {% load cobalt_tags %}
 {% load crispy_forms_tags %}
@@ -15,15 +20,6 @@
                 <h3 class="text-info font-weight-bold settings_message" id="user_add_message">{{ message| default_if_none:"" }}</h3>
 
                 <h3>{{ member }}</h3>
-                <h3>Balance:
-                    <span
-                        hx-trigger="load"
-                        hx-post="{% url "payments:get_balance_htmx" %}"
-                        hx-vars="member: {{ member.id }}"
-                    >
-
-                    </span>
-                </h3>
 
                 <form
                     hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
@@ -65,20 +61,27 @@
 
                 <button class="mt-5 btn btn-sm btn-primary"
                     _="on click toggle .d-none on #id_recent_emails then remove me"
-                >Show Emails...
+                >Emails...
                 </button>
 
                 {% if club_has_misc %}
                     <button class="mt-5 btn btn-sm btn-primary"
                         _="on click toggle .d-none on #id_misc_pay_box then remove me"
-                    >Misc Payments...
+                    >Misc...
                     </button>
                 {% endif %}
 
                 {% if club_has_tags %}
                     <button class="mt-5 btn btn-sm btn-primary"
                         _="on click toggle .d-none on #id_manage_tags then remove me"
-                    >User tags...
+                    >Tags...
+                    </button>
+                {% endif %}
+
+                {% if user_has_payments %}
+                    <button class="mt-5 btn btn-sm btn-primary"
+                        _="on click toggle .d-none on #id_user_payments then remove me"
+                    >Payments...
                     </button>
                 {% endif %}
 
@@ -89,12 +92,47 @@
                     {% include "organisations/club_menu/members/edit_member_misc_payments_htmx.html" %}
 
                 </div>
+
+                <!-- PAYMENTS -->
+
+                {% if user_has_payments %}
+
+                    <div class="row d-none" id="id_user_payments">
+
+                        <div class="card">
+                            <div class="card-header card-header-success">
+                                <h3>Recent Transactions</h3>
+                                <h4>Balance:
+                                    <span
+                                        hx-trigger="load"
+                                        hx-post="{% url "payments:get_balance_htmx" %}"
+                                        hx-vars="member: {{ member.id }}"
+                                    >
+                                    </span>
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <span
+                                    hx-trigger="load"
+                                    hx-post="{% url "organisations:club_menu_tab_members_recent_payments_for_user_htmx" %}"
+                                    hx-vars="club: {{ club.id }}, member_id: {{ member.id }}"
+                                >
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                {% endif %}
+
             </div>
         </div>
+
+        <!-- EMAILS AND TAGS -->
 
         <div class="col-md-6">
             {% include "organisations/club_menu/members/drag_and_drop.html" %}
             {% include "organisations/club_menu/members/recent_emails.html" %}
         </div>
     </div>
+
 </div>

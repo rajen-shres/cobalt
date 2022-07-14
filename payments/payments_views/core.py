@@ -165,9 +165,6 @@ def get_balance_and_recent_trans_org(org):
         :20
     ]
 
-    print(org)
-    print(trans)
-
     last_tran = trans.first()
 
     balance = float(last_tran.balance) if last_tran else 0.0

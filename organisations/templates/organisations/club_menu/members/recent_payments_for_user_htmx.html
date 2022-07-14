@@ -1,0 +1,11 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Recent payments for user table                                         #}
+{#                                                                        #}
+{# It doesn't get much easier than this one                               #}
+{#                                                                        #}
+{# This is the first trial of the cobalt_simple_table                     #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+{% include "utils/cobalt_simple_table.html" with things=recent_transactions headers="Date Description Amount" fields="created_date description amount" align="left left right" heading_colour="danger" %}

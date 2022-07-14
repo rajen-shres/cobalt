@@ -583,4 +583,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.finance.cancel_user_pending_debt_htmx,
         name="club_menu_tab_finance_cancel_user_pending_debt_htmx",
     ),
+    path(
+        "club-menu/member/recent-payments-for-user",
+        organisations.views.club_menu_tabs.members.recent_payments_for_user_htmx,
+        name="club_menu_tab_members_recent_payments_for_user_htmx",
+    ),
 ]
