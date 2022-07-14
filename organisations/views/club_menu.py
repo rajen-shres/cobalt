@@ -13,6 +13,9 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 
+from accounts.accounts_views.core import (
+    get_user_or_unregistered_user_from_system_number,
+)
 from club_sessions.models import Session
 from events.models import Congress, CongressMaster
 from organisations.decorators import check_club_menu_access
@@ -30,6 +33,7 @@ from organisations.views.club_menu_tabs.utils import (
     _member_count,
     get_members_balance,
 )
+from payments.models import UserPendingPayment
 from payments.payments_views.core import get_balance_and_recent_trans_org
 from rbac.core import (
     rbac_user_has_role,
@@ -204,6 +208,12 @@ def tab_finance_htmx(request, club):
 
     members_balance = get_members_balance(club)
 
+    user_pending_payments = UserPendingPayment.objects.filter(organisation=club)
+    for user_pending_payment in user_pending_payments:
+        user_pending_payment.player = get_user_or_unregistered_user_from_system_number(
+            user_pending_payment.system_number
+        )
+
     return render(
         request,
         "organisations/club_menu/finance/finance_htmx.html",
@@ -212,6 +222,7 @@ def tab_finance_htmx(request, club):
             "balance": balance,
             "recent_trans": recent_trans,
             "members_balance": members_balance,
+            "user_pending_payments": user_pending_payments,
         },
     )
 

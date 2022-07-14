@@ -13,7 +13,7 @@ Testing Overview
 ##################
 
 This page describes the testing strategy for Cobalt. Also see the documentation on building core test data -
-:doc:`test_data`.
+:doc:`../reference/test_data`.
 
 *******
 Basics

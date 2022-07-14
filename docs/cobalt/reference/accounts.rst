@@ -41,6 +41,13 @@ We are in the process of moving some of the less commonly used attributes from
 ``accounts.models.User`` into ``accounts.models.UserAdditionalInfo`` so you may need
 to load this for some fields.
 
+APIs
+====
+
+:func:`rbac.core.rbac_user_has_role`
+
+:func:`accounts.accounts_views.core.get_user_or_unregistered_user_from_system_number`
+
 Reserved Users
 ==============
 

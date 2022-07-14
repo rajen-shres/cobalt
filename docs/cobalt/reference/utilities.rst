@@ -20,9 +20,9 @@ Utilities Application (edit)
     information on how it works internally, you can find that in :doc:`./utilities_support`.
 
 
---------------
+**************
 Module Purpose
---------------
+**************
 
 Utilities is the place where we put things that don't fit nicely anywhere else
 and aren't big enough to warrant their own application.
@@ -30,13 +30,13 @@ and aren't big enough to warrant their own application.
 There is much discussion in the community about whether you should have a utilities
 section, but Django has utilities so that is good enough for us.
 
---------------
+**************
 External Usage
---------------
+**************
 
 
 Generic User Search
--------------------
+===================
 
 This replaces the original generic user search which is still in the
 documentation below to allow supporting older code within Cobalt.
@@ -77,7 +77,7 @@ still there to support the inline version (include search_include_inline_htmx.ht
 but it was never finished or tested.
 
 Design
-^^^^^^
+------
 
 If you have to support this, here is how it works.
 
@@ -114,7 +114,7 @@ With HTMX avoid adding Javascript dynamically over HTMX as it can be problematic
 functions which are loaded with the main page.
 
 Generic User Search - Old. Do Not Use
--------------------------------------
+=====================================
 
 This is a client side utility that shows a pop up box for the user to search
 for another user. In order to implement this you need to do 4 things:
@@ -208,7 +208,7 @@ into a separate HTMX.HTML document and include it so that the list code
 is re-used by the initial and the replace (delete) functionality.
 
 Pagination Footer
------------------
+=================
 
 To use the same pagination footer (Next Page, Previous Page, etc at the bottom of a screen that is too big to show everything on one page.),
 you can use::
@@ -231,7 +231,7 @@ If you are paginating over a search list you will need to supply your search str
     )
 
 HTMX Pagination Footer
-----------------------
+======================
 
 For HTMX you can use::
 
@@ -240,7 +240,7 @@ For HTMX you can use::
 Your template should have ``tx_target``, ``hx_post`` and ``hx_vars`` set.
 
 Pagination Formatter
---------------------
+====================
 
 Pagination in views is a common thing so we have a central utility for it::
 
@@ -252,7 +252,7 @@ Pagination in views is a common thing so we have a central utility for it::
     return render(request, "mypage.html" {"things": things})
 
 Unsaved Changes
----------------
+===============
 
 Lots of forms need to handle users navigating away from the page without saving
 changes. We have a JavaScript function to handle this::
@@ -272,7 +272,7 @@ You can do this by adding any element with the id ignore_cobalt_save. e.g.::
     <div id="ignore_cobalt_save"></div>
 
 Template Filters
-----------------
+================
 
 You can use the following template filters::
 

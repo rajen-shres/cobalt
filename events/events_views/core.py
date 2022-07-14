@@ -3,22 +3,18 @@ from datetime import datetime, timedelta, date
 
 import pytz
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
 from django.template import loader
-from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 
 import payments.payments_views.core as payments_core  # circular dependency
-from accounts.models import User
+
 from cobalt.settings import (
-    COBALT_HOSTNAME,
     BRIDGE_CREDITS,
-    GLOBAL_ORG,
     TIME_ZONE,
     TBA_PLAYER,
 )
-from events.models import PAYMENT_TYPES
+
 from logs.views import log_event
 from notifications.models import BlockNotification
 from notifications.notifications_views.core import send_cobalt_email_with_template

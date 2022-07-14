@@ -21,7 +21,7 @@ Design
 
 - Vanilla Django application with multiple modules and a Postgres database
 - Interfaces with Stripe (for payments) and AWS (for email sending)
-- Custom built security sub-system (*See* :doc:`rbac_overview`)
+- Custom built security sub-system (*See* :doc:`rbac`)
 - Heavy backend, light frontend
 
 ***************************
@@ -33,7 +33,7 @@ Things You May Find Unusual
 - No Celery. Too complicated for this project. We use cron instead.
 - No Docker. We don't need it. We deploy on a standardised VM environment and use a virtual environment.
 - No Class Based Views. In our opinion it was a mistake adding these to Django and they should be avoided. `This explains it well <https://lukeplant.me.uk/blog/posts/djangos-cbvs-were-a-mistake/>`_.
-- Custom testing framework (*See* :doc:`testing` and :doc:`test_data`).
+- Custom testing framework (*See* :doc:`../discussion/testing` and :doc:`test_data`).
 
 ******************
 Client Side

@@ -153,7 +153,7 @@ def get_balance_and_recent_trans_org(org):
     This function returns the current balance of the organisation's account and the most recent transactions.
 
     Args:
-        org (Organisation): An Organisation object
+        org (organisations.models.Organisation): An Organisation object
 
     Returns:
         float: The member's current balance
@@ -804,8 +804,8 @@ def update_account(
         payment_type (str): type of payment
         stripe_transaction (StripeTransaction, optional): linked Stripe transaction
         other_member (User, optional): linked member
-        organisation (Organisation, optional): linked organisation
-        session (Session, optional): club_session.session linked to this transaction
+        organisation (organisations.models.Organisation, optional): linked organisation
+        session (club_sessions.models.Session, optional): club_session.session linked to this transaction
 
     returns:
         MemberTransaction
@@ -848,14 +848,14 @@ def update_organisation(
     """method to update an organisations account
 
     args:
-        organisation (Organisation): organisation to update
+        organisation (organisations.models.Organisation): organisation to update
         amount (float): value (plus is a deduction, minus is a credit)
         description (str): to appear on statement
         payment_type (str): type of payment
         member (User, optional): linked member
-        other_organisation (Organisation, optional): linked organisation
+        other_organisation (organisations.model.Organisation, optional): linked organisation
         bank_settlement_amount (float): How much we expect to be settled. Used for ABF deducting fees for card payments
-        session (Session, optional): club_session.session linked to this transaction
+        session (club_sessions.models.Session, optional): club_session.session linked to this transaction
     """
 
     last_tran = OrganisationTransaction.objects.filter(organisation=organisation).last()
@@ -1084,7 +1084,7 @@ def org_balance(organisation):
     """Returns org balance
 
     Args:
-        organisation (Organisation): Organisation object
+        organisation (organisations.models.Organisation): Organisation object
 
     Returns:
         float: balance

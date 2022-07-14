@@ -47,7 +47,7 @@ def payment_api_interactive(
         description (str): text description of the payment
         amount (float): A positive amount is a charge, a negative amount is an incoming payment.
         member (User): User object related to the payment
-        organisation (Organisation): linked organisation
+        organisation (organisations.models.Organisation): linked organisation
         other_member (User): User object
         payment_type (str): description of payment
         next_url (str): where to take the user next
@@ -57,7 +57,7 @@ def payment_api_interactive(
                          for example, event entry may be booking a whole team of entries as part of this so we
                          only want the stripe transaction to go through and the call back will book all of the
                          individual deals. Default is to have us book the internals too.
-        session (Session): optional club_session.session to link payment to
+        session (club_sessions.models.Session): optional club_session.session to link payment to
 
     returns:
         HttpResponse - either the Stripe manual payment screen or the next_url
@@ -209,7 +209,7 @@ def payment_api_batch(
                          for example, event entry may be booking a whole team of entries as part of this so we
                          only want the stripe transaction to go through and the call back will book all of the
                          individual deals. Default is to have us book the internals too.
-        session (Session): optional club_session.session to link payment to
+        session (club_sessions.models.Session): optional club_session.session to link payment to
 
     returns:
         bool - success or failure

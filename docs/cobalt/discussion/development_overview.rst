@@ -28,7 +28,7 @@ think of the code being there because the compiler cannot read the comments.
 - Comment functions and classes with descriptions using """ at the top of the section
 - Comment python code with # anywhere it makes sense
 - Put a header at the top of each template to explain what it does. You can use `cgit_util_doc_editor` to make it easy to generate.
-- Use whatever comment method you like in templates - Django ({# #}), HTML (<!-- -->), CSS (/* */), or JavaScript (//)
+- Use whatever comment method you like in templates - Django (`{# #}`), HTML (`<!-- -->`), CSS (`/* */`), or JavaScript (`//`)
 
 HTML not JSON
 =============
@@ -74,9 +74,9 @@ https://abftech.atlassian.net/wiki/spaces/COBALT/pages/6586408/Git+Process+for+W
 There are also some support tools to assist with this. See the CGIT section in :doc:`../reference/utilities`.
 
 
-=============
+*************
 Documentation
-=============
+*************
 
 If you found this then you presumably know where the documentation lives. If not,
 look at https://docs.myabf.com.au

@@ -19,7 +19,7 @@ of security around, em... security. The main security defenses are:
 - Standard libraries (Django and ``pip`` installed Python modules) which are updates regularly and monitored for vulnerabilities
 - `Django <https://www.djangoproject.com/>`_ itself which is a highly secure web framework
 - `OWASP <https://owasp.org/>`_ approach to secure development
-- Role Base Access Control (:doc:`rbac_overview`) which provides granular authorisation security within Cobalt
+- Role Base Access Control (:doc:`rbac`) which provides granular authorisation security within Cobalt
 - `Bandit <https://pypi.org/project/bandit/>`_ and `Safety <https://pypi.org/project/safety/>`_ are run daily against the main branch of code to identify security exposures
 - `Git Guardian <https://www.gitguardian.com/>`_ runs automatically to check requirements.txt for any vulnerabilities
 - `Sonarqube <https://www.sonarqube.org/>`_ is run on the build server which checks for a number of things including security
@@ -109,7 +109,7 @@ All views should check for authorised access, unless they are explicitly intende
 As a minimum the decorator ``@login_required()`` should be used to check that the user is
 authenticated.
 
-Also look at :doc:`rbac_overview` which covers how to use Cobalt's built in role based security
+Also look at :doc:`rbac` which covers how to use Cobalt's built in role based security
 system.
 
 One useful decorator is::

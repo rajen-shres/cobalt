@@ -3,12 +3,41 @@
 <h3>Club Balance: {{ balance|cobalt_currency }}</h3>
 <h3>Total Members' Balance: {{ members_balance|cobalt_currency }}</h3>
 
+<div class="table-responsive align-content-center">
+    <table class="table table-condensed">
+        <thead>
+            <tr>
+                <th class="text-primary text-left">Player</th>
+                <th class="text-primary text-left">Description</th>
+                <th class="text-primary text-left">Date</th>
+                <th class="text-primary text-right">Amount</th>
+                <th class="text-primary">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user_pending_payment in user_pending_payments %}
+                <tr>
+
+                    <td class="text-left">{{ user_pending_payment.player }}</td>
+                    <td class="text-left">{{ user_pending_payment.description }}</td>
+                    <td class="text-left">{{ user_pending_payment.created_at|cobalt_nice_datetime_short }}</td>
+                    <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ user_pending_payment.amount|floatformat:2 }}</td>
+                    <td class="text-primary">
+                        <a href="{% url "payments:pay_user_pending_payment" user_pending_payment_id=user_pending_payment.id %}" class="btn btn-sm btn-success">pay now</a>
+                    </td>
+
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 <h2 class="text-primary">Recent Transactions</h2>
 <div class="table-responsive">
     <table class="table table-hover table-condensed">
         <thead>
             <tr>
-                <th class="text-left"h>Date</th>
+                <th class="text-left">Date</th>
                 <th class="text-left">Description</th>
                 <th class="text-left">Who</th>
                 <th class="text-right">Amount</th>
