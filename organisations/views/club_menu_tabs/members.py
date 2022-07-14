@@ -48,6 +48,7 @@ from organisations.views.general import (
     get_rbac_model_for_state,
 )
 from payments.models import MemberTransaction, OrgPaymentMethod
+from payments.payments_views.core import get_balance
 from payments.payments_views.payments_api import payment_api_batch
 from rbac.core import rbac_user_has_role
 from post_office.models import Email as PostOfficeEmail
@@ -707,6 +708,7 @@ def edit_member_htmx(request, club):
     else:
         emails = None
 
+    # Get payment stuff
     recent_misc_payments, misc_payment_types = _get_misc_payment_vars(member, club)
 
     return render(

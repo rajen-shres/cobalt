@@ -4,9 +4,16 @@
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
-
-<h3>Club Balance: {{ balance|cobalt_currency }}</h3>
-<h3>Total Members' Balance: {{ members_balance|cobalt_currency }}</h3>
+<h2>
+    <div class="d-flex justify-content-between">
+        <div>
+            Club Balance: {{ balance|cobalt_currency }}
+        </div>
+        <div>
+            Members' Balance: {{ members_balance|cobalt_currency }}
+        </div>
+    </div>
+</h2>
 
 <!-- MESSAGE -->
 <h3 class="text-primary font-weight-bold">{{ message }}</h3>
