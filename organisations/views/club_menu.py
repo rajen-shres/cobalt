@@ -201,7 +201,7 @@ def tab_sessions_htmx(request, club):
 
 
 @check_club_menu_access()
-def tab_finance_htmx(request, club):
+def tab_finance_htmx(request, club, message=""):
     """build the finance tab in club menu"""
 
     balance, recent_trans = get_balance_and_recent_trans_org(club)
@@ -209,9 +209,17 @@ def tab_finance_htmx(request, club):
     members_balance = get_members_balance(club)
 
     user_pending_payments = UserPendingPayment.objects.filter(organisation=club)
+
+    # augment data
     for user_pending_payment in user_pending_payments:
         user_pending_payment.player = get_user_or_unregistered_user_from_system_number(
             user_pending_payment.system_number
+        )
+        user_pending_payment.hx_delete = reverse(
+            "organisations:club_menu_tab_finance_cancel_user_pending_debt_htmx"
+        )
+        user_pending_payment.hx_vars = (
+            f"club_id:{club.id}, user_pending_payment_id:{user_pending_payment.id}"
         )
 
     return render(
@@ -223,6 +231,7 @@ def tab_finance_htmx(request, club):
             "recent_trans": recent_trans,
             "members_balance": members_balance,
             "user_pending_payments": user_pending_payments,
+            "message": message,
         },
     )
 

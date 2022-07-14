@@ -6,6 +6,7 @@ import organisations.views.club_menu_tabs.access
 import organisations.views.club_menu_tabs.comms
 import organisations.views.club_menu_tabs.congresses
 import organisations.views.club_menu_tabs.dashboard
+import organisations.views.club_menu_tabs.finance
 import organisations.views.club_menu_tabs.import_data
 import organisations.views.club_menu_tabs.members
 import organisations.views.club_menu_tabs.results
@@ -576,5 +577,10 @@ urlpatterns = [
         "club-menu/member/add-misc-payment",
         organisations.views.club_menu_tabs.members.add_misc_payment_htmx,
         name="club_menu_tab_members_add_misc_payment_htmx",
+    ),
+    path(
+        "club-menu/finance/cancel-user-pending-debt",
+        organisations.views.club_menu_tabs.finance.cancel_user_pending_debt_htmx,
+        name="club_menu_tab_finance_cancel_user_pending_debt_htmx",
     ),
 ]

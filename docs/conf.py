@@ -18,7 +18,7 @@ author = "ABF"
 
 extensions = [
     #     "sphinx.ext.todo",
-    #     "sphinx.ext.viewcode",
+    "sphinx.ext.viewcode",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
 ]

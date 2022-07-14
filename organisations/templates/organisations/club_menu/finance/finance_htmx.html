@@ -1,36 +1,63 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Finance view tab under club admin                                      #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 
 <h3>Club Balance: {{ balance|cobalt_currency }}</h3>
 <h3>Total Members' Balance: {{ members_balance|cobalt_currency }}</h3>
 
-<div class="table-responsive align-content-center">
-    <table class="table table-condensed">
-        <thead>
-            <tr>
-                <th class="text-primary text-left">Player</th>
-                <th class="text-primary text-left">Description</th>
-                <th class="text-primary text-left">Date</th>
-                <th class="text-primary text-right">Amount</th>
-                <th class="text-primary">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user_pending_payment in user_pending_payments %}
-                <tr>
+<!-- MESSAGE -->
+<h3 class="text-primary font-weight-bold">{{ message }}</h3>
 
-                    <td class="text-left">{{ user_pending_payment.player }}</td>
-                    <td class="text-left">{{ user_pending_payment.description }}</td>
-                    <td class="text-left">{{ user_pending_payment.created_at|cobalt_nice_datetime_short }}</td>
-                    <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ user_pending_payment.amount|floatformat:2 }}</td>
-                    <td class="text-primary">
-                        <a href="{% url "payments:pay_user_pending_payment" user_pending_payment_id=user_pending_payment.id %}" class="btn btn-sm btn-success">pay now</a>
-                    </td>
+<!-- SHOW ANY PLAYER DEBTS -->
 
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+{% if user_pending_payments %}
+    <div class="card">
+        <div class="card-header card-header-danger">
+            <h3>Outstanding Debts</h3>
+        </div>
+        <div class="card-body">
+
+
+
+            <div class="table-responsive align-content-center">
+                <table class="table table-condensed">
+                    <thead>
+                        <tr>
+                            <th class="text-primary text-left">Player</th>
+                            <th class="text-primary text-left">Description</th>
+                            <th class="text-primary text-left">Date</th>
+                            <th class="text-primary text-right">Amount</th>
+                            <th class="text-primary">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_pending_payment in user_pending_payments %}
+                            <tr>
+
+                                <td class="text-left">{{ user_pending_payment.player }}</td>
+                                <td class="text-left">{{ user_pending_payment.description }}</td>
+                                <td class="text-left">{{ user_pending_payment.created_at|cobalt_nice_datetime_short }}</td>
+                                <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ user_pending_payment.amount|floatformat:2 }}</td>
+                                <td class="text-primary">
+
+                                    {% include "utils/htmx_confirm_modal.html" with id=user_pending_payment.id delete_message="Cancel this debt" delete_button="Cancel Debt" hx_target="#id_panel_finance" hx_post=user_pending_payment.hx_delete hx_vars=user_pending_payment.hx_vars %}
+                                    <button id="{{ user_pending_payment.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user_pending_payment.id }}">Cancel Debt</button>
+
+                                </td>
+
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+{% endif %}
 
 <h2 class="text-primary">Recent Transactions</h2>
 <div class="table-responsive">
