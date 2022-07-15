@@ -191,7 +191,7 @@ def invite_user_to_join_htmx(request, club):
         requested_by_org=club,
     )
 
-    return list_htmx(request, f"Invite sent to {un_reg.full_name}")
+    return list_htmx(request, message=f"Invite sent to {un_reg.full_name}")
 
 
 def get_members_for_club(club):

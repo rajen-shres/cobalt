@@ -588,4 +588,29 @@ urlpatterns = [
         organisations.views.club_menu_tabs.members.recent_payments_for_user_htmx,
         name="club_menu_tab_members_recent_payments_for_user_htmx",
     ),
+    path(
+        "member/get-member-balance",
+        organisations.views.club_menu_tabs.members.get_member_balance_htmx,
+        name="get_member_balance_htmx",
+    ),
+    path(
+        "finance/transactions",
+        organisations.views.club_menu_tabs.finance.transactions_htmx,
+        name="transactions_htmx",
+    ),
+    path(
+        "finance/pay-member",
+        organisations.views.club_menu_tabs.finance.pay_member_htmx,
+        name="pay_member_htmx",
+    ),
+    path(
+        "finance/charge-member",
+        organisations.views.club_menu_tabs.finance.charge_member_htmx,
+        name="charge_member_htmx",
+    ),
+    path(
+        "finance/pay-org",
+        organisations.views.club_menu_tabs.finance.pay_org_htmx,
+        name="pay_org_htmx",
+    ),
 ]

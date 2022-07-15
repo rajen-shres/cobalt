@@ -4,6 +4,15 @@
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
+
+<!-- SHOW WARNING IF BSB NOT SET -->
+{% if not club.bank_bsb or not club.bank_account %}
+
+    <h3 class="text-primary font-weight-bold">This club doesn't have bank details set up</h3>
+    <h4 class="text-primary font-weight-bold">You will not receive any settlements until this is resolved. Please go to Settings to update your details.</h4>
+
+{% endif %}
+
 <h3>
     <div class="d-flex justify-content-between">
         <div>
@@ -21,13 +30,22 @@
 <!-- SHOW ANY PLAYER DEBTS -->
 
 {% if user_pending_payments %}
-    <div class="card">
+    <div class="card mb-5" id="id_outstanding_debt">
         <div class="card-header card-header-danger">
-            <h3>Outstanding Debts</h3>
+
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h3>Outstanding Debts</h3>
+                </div>
+                <div>
+                    <span class="align-left text-white"
+                        _="on click toggle .d-none on #id_outstanding_debt"
+                        style="cursor: pointer"
+                    ><i class="material-icons">close</i></span>
+                </div>
+            </div>
         </div>
         <div class="card-body">
-
-
 
             <div class="table-responsive align-content-center">
                 <table class="table table-condensed">
@@ -66,30 +84,10 @@
 
 {% endif %}
 
-<h2 class="text-primary">Recent Transactions</h2>
-<div class="table-responsive">
-    <table class="table table-hover table-condensed">
-        <thead>
-            <tr>
-                <th class="text-left">Date</th>
-                <th class="text-left">Description</th>
-                <th class="text-left">Who</th>
-                <th class="text-right">Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for tran in recent_trans %}
-                <tr>
-                    <td class="text-left">{{ tran.created_date|cobalt_nice_datetime_short }}</td>
-                    <td class="text-left">{{ tran.description }}</td>
-                    <td class="text-left">{{ tran.member|default_if_none:tran.other_organisation|default_if_none:"" }}</td>
-                    <td class="text-right">{{ tran.amount }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-<a href="{% url "payments:statement_org" org_id=club.id %}" class="btn btn-success">Go To Club Statement</a>
+<!-- SHOW TRANSACTIONS -->
 
-
-
+<div id="id_finance_transactions"
+    hx-trigger="load"
+    hx-post="{% url "organisations:transactions_htmx" %}"
+    hx-vars="club_id: {{ club.id }}"
+></div>

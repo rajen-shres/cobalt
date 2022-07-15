@@ -1,0 +1,95 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Payments - allow club to pay to any member                             #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+<!-- WORK AROUND FOR Z-AXIS PROBLEM WITH DROPDOWN -->
+<br><br><br>
+
+<div class="card col-lg-6 mx-lg-auto">
+
+    <div class="card-header card-header-success">
+        <h2>{{ title }}</h2>
+    </div>
+
+    <div class="card-body">
+
+        {% include "accounts/search/user_search_include_htmx.html" with search_id="pay_member" callback="PayMemberSearch" %}
+
+        <span id="id_user_name" class="font-weight-bold text-primary"></span>
+
+        <button
+            id="id_member_search_button"
+            type="button"
+            class="btn btn-sm btn-info"
+            data-toggle="modal"
+            data-target="#userSearchModalpay_member"
+        >Search for User
+        </button>
+
+        <!-- FORM -->
+
+        <form
+            hx-post={{ hx_post }}
+            hx-vars="club_id:{{ club.id }}"
+            hx-target="#id_panel_finance"
+        >
+
+            <input type="hidden" id="id_pay_member_user" name="member_id">
+
+            <div id="id_hidden_form" class="d-none">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <input placeholder="Description" required type="text" id="id_pay_member_description"
+                                name="description" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_pay_member_amount" class="bmd-label-static">Amount</label>
+                            <input required type="number" step="0.01" min="0" id="id_pay_member_amount" name="amount"
+                                class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row text-center">
+                    <button type="submit" name="save" class="btn btn-sm btn-success">{{ button }}</button>
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function PayMemberSearch(search_id, user_id, user_name) {
+
+        // update display name
+        $("#id_user_name").text(user_name);
+
+        // update hidden field value
+        $("#id_pay_member_user").val(user_id);
+
+        // change button text
+        $("#id_member_search_button").text("Search Again");
+
+        // reveal form
+        $("#id_hidden_form").removeClass("d-none");
+    }
+
+    jQuery(document).ready(function () {
+        // show modal straight away
+        $('#userSearchModalpay_member').modal('show');
+    });
+
+
+</script>

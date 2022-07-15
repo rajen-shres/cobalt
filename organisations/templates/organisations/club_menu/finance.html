@@ -3,6 +3,52 @@
 <div class="card">
     <div class="card-header card-header-primary">
         <h2>Finance</h2>
+
+        <!-- ACTION BUTTONS -->
+
+        <div class="container-flex">
+            <div class="d-flex justify-content-between">
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <i class="material-icons">more_vert</i>&nbsp;Transact
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="javascript:void(0)"
+                            hx-post="{% url "organisations:charge_member_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}"
+                            hx-target="#id_panel_finance"
+                            class="btn btn-sm btn-secondary">
+                            Charge Member
+                        </a>
+                        <a href="javascript:void(0)"
+                            hx-post="{% url "organisations:pay_member_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}"
+                            hx-target="#id_panel_finance"
+                            class="btn btn-sm btn-secondary">
+                            Pay Anyone
+                        </a>
+                        <a href="javascript:void(0)"
+                            hx-post="{% url "organisations:pay_org_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}"
+                            hx-target="#id_panel_finance"
+                            class="btn btn-sm btn-secondary">
+                            Pay Organisation
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-6 col-lg-4 text-right">
+                    <a href="{% url 'payments:statement_csv_org' org_id=club.id %}">
+                        <button class="text-center btn btn-primary float-right" style="width: 170px;">
+                            <i class="material-icons">arrow_downward</i>&nbsp;CSV Download
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+        </div>
     </div>
     <div class="card-body">
         <div id="id_panel_finance"

@@ -34,7 +34,7 @@ from organisations.views.club_menu_tabs.utils import (
     get_members_balance,
 )
 from payments.models import UserPendingPayment
-from payments.payments_views.core import get_balance_and_recent_trans_org
+from payments.payments_views.core import get_balance_and_recent_trans_org, org_balance
 from rbac.core import (
     rbac_user_has_role,
 )
@@ -204,10 +204,13 @@ def tab_sessions_htmx(request, club):
 def tab_finance_htmx(request, club, message=""):
     """build the finance tab in club menu"""
 
-    balance, recent_trans = get_balance_and_recent_trans_org(club)
+    # Get balance and transactions
+    balance = org_balance(club)
 
+    # Get member balances
     members_balance = get_members_balance(club)
 
+    # Get any outstanding debts
     user_pending_payments = UserPendingPayment.objects.filter(organisation=club)
 
     # augment data
@@ -228,7 +231,6 @@ def tab_finance_htmx(request, club, message=""):
         {
             "club": club,
             "balance": balance,
-            "recent_trans": recent_trans,
             "members_balance": members_balance,
             "user_pending_payments": user_pending_payments,
             "message": message,

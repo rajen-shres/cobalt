@@ -34,7 +34,7 @@
                 <h3 class="text-center">Balance:
                     <span
                         hx-trigger="load"
-                        hx-post="{% url "payments:get_balance_htmx" %}"
+                        hx-post="{% url "organisations:get_member_balance_htmx" %}"
                         hx-vars="member: {{ form.player.id }}"
                     >
 

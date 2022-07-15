@@ -26,7 +26,7 @@
         </table>
     </div>
 
-    {% include 'utils/pagination_footer_htmx.html' with target="#id_panel_sessions" %}
+    {% include 'utils/pagination_footer_htmx.html' with hx_target="#id_panel_sessions" %}
 
 {% else %}
     <h3>This club has not run any sessions yet</h3>

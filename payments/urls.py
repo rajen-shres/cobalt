@@ -236,9 +236,4 @@ urlpatterns = [
         payments.payments_views.players.pay_user_pending_payment,
         name="pay_user_pending_payment",
     ),
-    path(
-        "get-member-balance",
-        payments.payments_views.core.get_balance_htmx,
-        name="get_balance_htmx",
-    ),
 ]

@@ -48,6 +48,7 @@ from organisations.views.general import (
     get_rbac_model_for_state,
 )
 from payments.models import MemberTransaction, OrganisationTransaction
+from payments.payments_views.core import get_balance
 from payments.payments_views.payments_api import payment_api_batch
 from rbac.core import rbac_user_has_role
 from post_office.models import Email as PostOfficeEmail
@@ -991,16 +992,9 @@ def add_misc_payment_htmx(request, club):
     )
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_session_or_payments=True)
 def recent_payments_for_user_htmx(request, club):
     """Show recent payments for this club and this user"""
-
-    # Check access
-    if not (
-        rbac_user_has_role(request.user, f"club_sessions.sessions.{club.id}.edit")
-        or rbac_user_has_role(request.user, f"payments.manage.{club.id}.edit")
-    ):
-        return HttpResponse("Access Denied")
 
     # Get user
     player = get_object_or_404(User, pk=request.POST.get("member_id"))
@@ -1015,3 +1009,16 @@ def recent_payments_for_user_htmx(request, club):
         "organisations/club_menu/members/recent_payments_for_user_htmx.html",
         {"recent_transactions": recent_transactions},
     )
+
+
+@check_club_menu_access(check_session_or_payments=True)
+def get_member_balance_htmx(request, club):
+    """Show balance for this user"""
+
+    member_id = request.POST.get("member")
+    if not member_id:
+        return HttpResponse("No member found in request")
+
+    member = get_object_or_404(User, pk=member_id)
+
+    return HttpResponse(f"${get_balance(member):,.2f}")

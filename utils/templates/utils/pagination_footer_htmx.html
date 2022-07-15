@@ -10,7 +10,7 @@
                 <a class="page-link"
                     hx-post="{{ hx_post }}?page={{ things.previous_page_number }}"
                     hx-vars="{{ hx_vars }}"
-                    hx-target="{{ target }}"
+                    hx-target="{{ hx_target }}"
                     style="cursor: pointer"
                 >
                     PREV
@@ -33,7 +33,7 @@
                     <a class="page-link"
                         hx-post="{{ hx_post }}?page={{ num }}"
                         hx-vars="{{ hx_vars }}"
-                        hx-target="{{ target }}"
+                        hx-target="{{ hx_target }}"
                         style="cursor: pointer"
                     >
 
@@ -52,7 +52,7 @@
                 <a class="page-link"
                     hx-post="{{ hx_post }}?page={{ things.next_page_number }}"
                     hx-vars="{{ hx_vars }}"
-                    hx-target="{{ target }}"
+                    hx-target="{{ hx_target }}"
                     style="cursor: pointer"
                 >
                     NEXT

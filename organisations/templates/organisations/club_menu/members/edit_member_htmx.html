@@ -3,17 +3,20 @@
 {# Edit member screen                                                     #}
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
-{% load crispy_forms_filters %}
 {% load cobalt_tags %}
-{% load crispy_forms_tags %}
 
 <div class="container">
     <div class="row">
 
-        <div class="card col-lg-6">
+        <!-- MAIN EDIT MEMBER CARD -->
+
+        <div id="id_main_member_card" class="card col-lg-9 mx-auto">
+
             <div class="card-header card-header-rose">
                 <h2 class="text-center">Edit Member</h2>
             </div>
+
+            <!-- EDIT MEMBER CARD BODY -->
 
             <div class="card-body">
 
@@ -21,15 +24,23 @@
 
                 <h3>{{ member }}</h3>
 
+                <!-- FORM -->
+
                 <form
                     hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
                     hx-target="#id_panel_members"
                     hx-vars="club_id:{{ club.id }},member:{{ member.id }}"
                 >
 
+                    <!-- ERRORS -->
+
                     <div class="cobalt_form_errors">{{ form.errors }}</div>
 
+                    <!-- SYSTEM NUMBER -->
+
                     <input type="hidden" name="system_number" value="{{ member.system_number }}">
+
+                    <!-- MEMBERSHIP TYPE -->
 
                     <div id="div_id_membership_type" class="form-group row">
                         <div class="col-6">
@@ -52,15 +63,24 @@
                     {#                        <label for="id_home_club" style="color: black">&nbsp;Home Club</label><br>#}
                     {#                    </div>#}
 
+                    <!-- BUTTONS -->
+
                     <button type="submit" name="save" class="btn btn-success">Save</button>
                     {% include "utils/htmx_confirm_modal.html" with id="memdel" delete_item=member.first_name delete_button="Remove" hx_target="#id_panel_members" hx_post=hx_delete hx_vars=hx_vars %}
                     <button id="id_delete_user_1" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModalmemdel">Remove Membership</button>
                 </form>
 
+                <!-- END FORM -->
+
                 <!-- EXTRAS BUTTONS -->
 
                 <button class="mt-5 btn btn-sm btn-primary"
-                    _="on click toggle .d-none on #id_recent_emails then remove me"
+                    _="on click
+                    toggle .d-none on #id_recent_emails
+                    then toggle .col-lg-9 on #id_main_member_card
+                    then toggle .mx-auto on #id_main_member_card
+                    then toggle .col-lg-6 on #id_main_member_card
+                    then remove me"
                 >Emails...
                 </button>
 
@@ -80,13 +100,16 @@
 
                 {% if user_has_payments %}
                     <button class="mt-5 btn btn-sm btn-primary"
-                        _="on click toggle .d-none on #id_user_payments then remove me"
+                        _="on click
+                        toggle .d-none on #id_user_payments
+                        then remove me
+                        then go to the top of #id_user_payments"
                     >Payments...
                     </button>
                 {% endif %}
 
-
                 <!-- MISCELLANEOUS PAYMENTS -->
+
                 <div id="id_misc_pay_member">
 
                     {% include "organisations/club_menu/members/edit_member_misc_payments_htmx.html" %}
@@ -105,7 +128,7 @@
                                 <h4>Balance:
                                     <span
                                         hx-trigger="load"
-                                        hx-post="{% url "payments:get_balance_htmx" %}"
+                                        hx-post="{% url "organisations:get_member_balance_htmx" %}"
                                         hx-vars="member: {{ member.id }}"
                                     >
                                     </span>

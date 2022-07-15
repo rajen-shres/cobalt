@@ -745,7 +745,7 @@ def send_cobalt_email_to_system_number(
         return
 
     context = {
-        "box_colour": "#4bb027",
+        "box_colour": "#00bcd4",
         "name": first_name,
         "title": subject,
         "email_body": message,
