@@ -613,4 +613,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.finance.pay_org_htmx,
         name="pay_org_htmx",
     ),
+    path(
+        "org-search-generic",
+        organisations.views.general.generic_org_search_htmx,
+        name="generic_org_search_htmx",
+    ),
 ]

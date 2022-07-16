@@ -1,0 +1,43 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Basic org search using htmx - this is a list of matches                #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+<ul style="font-size: larger">
+
+    <!-- GO THROUGH MATCHES OR SHOW WARNING IF NONE -->
+
+    {% for org_match in org_matches %}
+
+        <!-- USE HYPERSCRIPT TO HANDLE CLICKS -->
+
+        <li
+            _="on click put '{{ org_match.id }}' into #{{ hidden_id_field }}.value
+            then put '{{ org_match.name }}' into #{{ display_name }}
+            then put '' into {{ hx_target }}
+
+            {% if select_callback %}
+
+                then
+                js
+                {{ select_callback }}({{ org_match.id }}, '{{ org_match.name }}');
+                end
+
+            {% endif %}
+            "
+        >
+            <a href="javascript:void(0)">{{ org_match }}</a>
+        </li>
+
+    {% empty %}
+
+        <h4>No matches found</h4>
+
+    {% endfor %}
+</ul>
+
+<!-- SHOW INDICATOR IF MORE AVAILABLE -->
+
+{% if more %}
+    more...
+{% endif %}

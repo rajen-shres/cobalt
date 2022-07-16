@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
@@ -246,3 +247,47 @@ def get_membership_type_for_players(system_number_list, club):
         membership_type.system_number: membership_type.membership_type.name
         for membership_type in membership_types
     }
+
+
+def generic_org_search_htmx(request):
+    """basic search for organisation by name
+
+    We accept a few parameters passed in through hx-vars:
+
+    hidden_id_field: field to put the org id into
+    display_name: field to put the name of the org into
+    return_trigger: trigger to call when we return
+
+    """
+
+    search = request.POST.get("org_search_htmx")
+
+    if not search:
+        return HttpResponse("")
+
+    org_matches = Organisation.objects.filter(name__istartswith=search)[:11]
+
+    # we get 11 but show 10, so we know if there are more
+    more = len(org_matches) == 11
+
+    if org_matches.count() == 1:
+        print("Unique")
+
+    # Get extra values
+    hidden_id_field = request.POST.get("hidden_id_field")
+    display_name = request.POST.get("display_name")
+    select_callback = request.POST.get("select_callback")
+    hx_target = request.POST.get("hx_target")
+
+    return render(
+        request,
+        "organisations/htmx_search/search_results_htmx.html",
+        {
+            "org_matches": org_matches[:10],
+            "more": more,
+            "display_name": display_name,
+            "hidden_id_field": hidden_id_field,
+            "select_callback": select_callback,
+            "hx_target": hx_target,
+        },
+    )

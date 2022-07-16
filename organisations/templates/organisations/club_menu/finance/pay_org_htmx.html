@@ -1,1 +1,99 @@
-<h2>Coming Soon</h2>
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Payments - allow club to pay to another club                           #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+<!-- WORK AROUND FOR Z-AXIS PROBLEM WITH DROPDOWN -->
+<br><br><br>
+
+<div class="card col-lg-6 mx-lg-auto">
+
+    <div class="card-header card-header-success">
+        <h2>Pay Another Organisation</h2>
+    </div>
+
+    <div class="card-body">
+
+        <!-- FORM -->
+
+        <form
+            hx-post="{% url "organisations:pay_org_htmx" %}"
+            hx-vars="club_id:{{ club.id }}"
+            hx-target="#id_panel_finance"
+        >
+
+            <div class="row" id="id_org_search_box">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <input
+                            placeholder="Club search..."
+                            type="text"
+                            id="id_org_search"
+                            name="org_search_htmx"
+                            class="form-control"
+                            hx-trigger="keyup changed delay:500ms"
+                            hx-post="{% url "organisations:generic_org_search_htmx" %}"
+                            hx-target="#id_org_search_results"
+                            hx-vars="hidden_id_field:'id_pay_org', display_name:'id_org_name', select_callback:'SelectCallback', hx_target:'id_org_search_results'"
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <div id="id_org_search_results"></div>
+
+            <input type="hidden" id="id_pay_org" name="org_id">
+            <h3 id="id_org_name" class="font-weight-bold text-primary"></h3>
+
+            <div id="id_hidden_form" class="d-none">
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <input placeholder="Description" required type="text" id="id_pay_member_description"
+                                name="description" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_pay_member_amount" class="bmd-label-static">Amount</label>
+                            <input required type="number" step="0.01" min="0" id="id_pay_member_amount" name="amount"
+                                class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row text-center">
+                    <button type="submit" name="save" class="btn btn-sm btn-success">Transfer</button>
+                    <button type="submit"
+                        class="btn btn-sm btn-info"
+                        hx-post="{% url "organisations:pay_org_htmx" %}"
+                        hx-vars="club_id:{{ club.id }}"
+                        hx-target="#id_panel_finance"
+                    >
+                        Reset</button>
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function SelectCallback(user_id, user_name) {
+
+        // reveal form
+        $("#id_hidden_form").removeClass("d-none");
+
+        // hide org search
+        $("#id_org_search_box").addClass("d-none");
+
+    }
+
+</script>

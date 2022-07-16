@@ -6,7 +6,7 @@ from accounts.models import User
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS
 from notifications.notifications_views.core import send_cobalt_email_to_system_number
 from organisations.decorators import check_club_menu_access
-from organisations.models import ClubLog, MemberMembershipType
+from organisations.models import ClubLog, MemberMembershipType, Organisation
 from organisations.views.club_menu import tab_finance_htmx
 from payments.models import UserPendingPayment, OrganisationTransaction
 from payments.payments_views.core import (
@@ -205,8 +205,67 @@ def charge_member_htmx(request, club):
 
 @check_club_menu_access(check_payments=True)
 def pay_org_htmx(request, club):
-    """make a payment to a club"""
+    """make a payment to another club"""
 
-    return render(
-        request, "organisations/club_menu/finance/pay_org_htmx.html", {"club": club}
+    if "save" not in request.POST:
+        return render(
+            request,
+            "organisations/club_menu/finance/pay_org_htmx.html",
+            {"club": club},
+        )
+
+    org = get_object_or_404(Organisation, pk=request.POST.get("org_id"))
+    description = request.POST.get("description")
+    amount = float(request.POST.get("amount"))
+
+    # Validate
+    if amount <= 0:
+        return tab_finance_htmx(request, message="Amount was less than zero")
+
+    if amount > org_balance(club):
+        return tab_finance_htmx(
+            request, message="Club has insufficient funds for this transfer"
+        )
+
+    # debit this club
+    update_organisation(
+        organisation=club,
+        amount=-amount,
+        description=description,
+        payment_type="Org Transfer",
+        other_organisation=org,
+    )
+
+    # credit other club
+    update_organisation(
+        organisation=org,
+        amount=amount,
+        description=description,
+        payment_type="Org Transfer",
+        other_organisation=club,
+    )
+
+    # log it
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Transferred {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} to {org}",
+    ).save()
+
+    # notify users TODO
+
+    # msg = f"""{request.user} has charged {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} to your {BRIDGE_CREDITS}
+    # account for {description}.
+    #     <br><br>If you have any queries please contact {club} in the first instance.
+    # """
+    # send_cobalt_email_to_system_number(
+    #     system_number=member.system_number,
+    #     subject=f"Charge from {club}",
+    #     message=msg,
+    #     club=club,
+    # )
+
+    return tab_finance_htmx(
+        request,
+        message=f"Transfer of {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} made to {org} via {BRIDGE_CREDITS}",
     )
