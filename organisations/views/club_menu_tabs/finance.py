@@ -15,6 +15,11 @@ from payments.payments_views.core import (
     org_balance,
 )
 from payments.payments_views.payments_api import payment_api_batch
+from rbac.core import (
+    rbac_get_users_with_role,
+    rbac_user_has_role_exact,
+    rbac_get_users_in_group_by_name,
+)
 from utils.utils import cobalt_paginator
 
 
@@ -252,18 +257,35 @@ def pay_org_htmx(request, club):
         action=f"Transferred {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} to {org}",
     ).save()
 
-    # notify users TODO
+    # notify payments users at other club, not general admins though
+    # There is no really clean way to do this. We use the rbac tree to find either the basic group (basic RBAC) or
+    # the payments_edit group (advanced RBAC).
 
-    # msg = f"""{request.user} has charged {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} to your {BRIDGE_CREDITS}
-    # account for {description}.
-    #     <br><br>If you have any queries please contact {club} in the first instance.
-    # """
-    # send_cobalt_email_to_system_number(
-    #     system_number=member.system_number,
-    #     subject=f"Charge from {club}",
-    #     message=msg,
-    #     club=club,
-    # )
+    # try basic
+    other_club_admins = rbac_get_users_in_group_by_name(
+        f"{club.rbac_name_qualifier}.basic"
+    )
+
+    if not other_club_admins:
+        # try advanced
+        other_club_admins = rbac_get_users_in_group_by_name(
+            f"{club.rbac_name_qualifier}payments_edit"
+        )
+
+    for other_club_admin in other_club_admins:
+
+        print(other_club_admin)
+
+        msg = f"""{request.user} from {club} has paid {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} into the {BRIDGE_CREDITS}
+        account for {org}. The description was: {description}.
+            <br><br>If you have any queries please contact {club} in the first instance.
+        """
+        send_cobalt_email_to_system_number(
+            system_number=other_club_admin.system_number,
+            subject=f"Transfer from {club}",
+            message=msg,
+            club=club,
+        )
 
     return tab_finance_htmx(
         request,
