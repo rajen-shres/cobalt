@@ -1,3 +1,4 @@
+{% load humanize %}
 {#------------------------------------------------------------------------#}
 {#                                                                        #}
 {# view transactions - sub part of finance tab page                       #}
@@ -24,7 +25,8 @@
                         <th class="text-left text-primary">Date</th>
                         <th class="text-left text-primary">Description</th>
                         <th class="text-left text-primary">Who</th>
-                        <th class="text-right text-primary">Amount</th>
+                        <th class="text-right text-primary cobalt-no-wrap">Amount({{ GLOBAL_CURRENCY_SYMBOL }})</th>
+                        <th class="text-right text-primary cobalt-no-wrap">Balance({{ GLOBAL_CURRENCY_SYMBOL }})</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -34,12 +36,14 @@
                             hx-post="{% url "organisations:transaction_details_htmx" %}"
                             hx-vars="club_id:{{ club.id }}, trans_id:{{ thing.id }}"
                             hx-target="#trans_dets_{{ thing.id }}"
+                            {#                            style="font-size: larger"#}
                         >
                             <td><i class="material-icons text-primary">info</i></td>
-                            <td class="text-left">{{ thing.created_date|cobalt_nice_datetime_short }}</td>
+                            <td class="text-left cobalt-no-wrap">{{ thing.created_date|cobalt_nice_datetime_short }}</td>
                             <td class="text-left">{{ thing.description }}</td>
                             <td class="text-left">{{ thing.member|default_if_none:thing.other_organisation|default_if_none:"" }}</td>
-                            <td class="text-right">{{ thing.amount }}</td>
+                            <td class="text-right font-weight-bold">{{ thing.amount|cobalt_currency_colour }}</td>
+                            <td class="text-right">{{ thing.balance|cobalt_currency_colour }}</td>
                         </tr>
                         <tr class="trans_detail_class" id="trans_dets_{{ thing.id }}"
                             _="on click put '' into me"

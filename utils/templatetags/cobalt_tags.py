@@ -164,6 +164,22 @@ def cobalt_currency(dollars):
     return f'{GLOBAL_CURRENCY_SYMBOL}{intcomma(int(dollars))}{("%0.2f" % dollars)[-3:]}'
 
 
+@register.filter(name="cobalt_currency_colour", is_safe=True)
+def cobalt_currency_colour(dollars):
+    """Return number formatted as currency with bootstrap colours"""
+    dollars = round(float(dollars), 2)
+    if dollars < 0:
+        open_span = "<span class='text-danger'>"
+        close_span = "</span>"
+    else:
+        open_span = ""
+        close_span = ""
+
+    num = f"{GLOBAL_CURRENCY_SYMBOL}{dollars:,.2f}".replace("$-", "-$")
+
+    return mark_safe(f"{open_span}{num}{close_span}")
+
+
 @register.simple_tag(name="cobalt_random_colour")
 def cobalt_random_colour():
     """Return random bootstrap colour - useful for card headers from lists."""

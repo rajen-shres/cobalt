@@ -37,7 +37,11 @@
                         </tr>
                         <tr>
                             <td class="font-weight-bold text-left">Amount:</td>
-                            <td class="text-left">{{ GLOBAL_CURRENCY_SYMBOL }}{{ trans.amount|floatformat:2|intcomma }}</td>
+                            <td class="text-left">{{ trans.amount|cobalt_currency_colour }}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold text-left">Balance:</td>
+                            <td class="text-left">{{ trans.balance|cobalt_currency_colour }}</td>
                         </tr>
                         <tr>
                             <td class="font-weight-bold text-left">Description:</td>
