@@ -618,4 +618,9 @@ urlpatterns = [
         organisations.views.general.generic_org_search_htmx,
         name="generic_org_search_htmx",
     ),
+    path(
+        "finance/transaction-details",
+        organisations.views.club_menu_tabs.finance.transaction_details_htmx,
+        name="transaction_details_htmx",
+    ),
 ]

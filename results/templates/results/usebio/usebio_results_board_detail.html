@@ -1,3 +1,8 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Basic view of a board with traveller for usebio format                 #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% extends 'base.html' %}
 {% load cobalt_tags %}
 {% load static %}
@@ -5,8 +10,10 @@
 
 {% block content %}
 
+    <!-- WE HAVE A 'FORM' BUT IGNORE CHANGES -->
     <div id="ignore_cobalt_save"></div>
 
+    <!-- BREADCRUMBS -->
     <nav aria-label="breadcrumb" role="navigation">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url "results:results" %}">Results</a></li>
@@ -15,10 +22,18 @@
         </ol>
     </nav>
 
+    <!-- MAIN CARD -->
     <div class="card">
+
         {% include "results/usebio/usebio_results_header.html" %}
+
+        <!-- CARD BODY -->
         <div class="card-body">
+
+            <!-- TRAVELLER -->
             <div class="card">
+
+                <!-- BOARD NAVIGATION -->
                 <div class="card-header card-header-warning">
                     <div class="d-flex justify-content-between">
                         <div>
@@ -60,6 +75,8 @@
                     </div>
 
                 </div>
+
+                <!-- RESULTS DISPLAY -->
                 <div class="card-body table-responsive">
                     <table class="table table-condensed table-hover" style="font-size: large">
                         <thead>
@@ -90,6 +107,7 @@
                         <tbody>
                             {% for row in board_data %}
 
+                                <!-- HANDLE PAR CONTRACT -->
                                 {% if row.par_score %}
                                     <tr>
                                         <td colspan="8">
@@ -120,6 +138,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- HAND DETAILS -->
 
         <div class="card">
             <div class="card-header card-header-success">
@@ -160,8 +180,7 @@
                         <div class="row">
                             <div class="col-12">
 
-
-                                {# Hidden table is shown if other table is clicked on - has total tricks not above book#}
+                                <!-- HIDDEN TABLE IS SHOWN IF OTHER TABLE IS CLICKED ON - HAS TOTAL TRICKS NOT ABOVE BOOK -->
                                 <div class="d-none" id="total_tricks">
                                     <h4>Total Number of Tricks</h4>
 
@@ -230,7 +249,7 @@
                                 </div>
 
 
-                                {# Normal table - can be swapped with other table format by clicking#}
+                                <!-- NORMAL TABLE - CAN BE SWAPPED WITH OTHER TABLE FORMAT BY CLICKING -->
                                 <div id="normal_table">
                                     <h4>Making Contracts</h4>
                                     <table class="table table-condensed" style="font-size: large">
@@ -313,7 +332,7 @@
                         </div>
 
 
-                        {# HCPs #}
+                        <!-- HCPs -->
                         <div class="row mt-5">
                             <div class="col-6">
 
@@ -336,7 +355,7 @@
                                 </table>
                             </div>
 
-                            {# Losing Trick Count #}
+                            <!-- LOSING TRICK COUNt -->
                             <div class="col-6">
                                 <table style="font-size: large">
                                     <tr>
@@ -389,6 +408,13 @@
         }
 
         $(document).ready( function () {
+
+            // handle small screens - change dropdown from "Board X" to just "X", cannot do this with bootstrap
+            if ($(window).width() <= 992){ // small
+                $("#board_jump > option").each(function(){
+                    $(this).text($(this).val());
+                });
+            }
 
             // Handle Jump to Board dropdown changing
             $('#board_jump').on('change',function() {

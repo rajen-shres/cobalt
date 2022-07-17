@@ -232,6 +232,11 @@ def pay_org_htmx(request, club):
             request, message="Club has insufficient funds for this transfer"
         )
 
+    if org == club:
+        return tab_finance_htmx(
+            request, message="Ignoring attempt to transfer to yourself"
+        )
+
     # debit this club
     update_organisation(
         organisation=club,
@@ -269,12 +274,10 @@ def pay_org_htmx(request, club):
     if not other_club_admins:
         # try advanced
         other_club_admins = rbac_get_users_in_group_by_name(
-            f"{club.rbac_name_qualifier}payments_edit"
+            f"{club.rbac_name_qualifier}.payments_edit"
         )
 
     for other_club_admin in other_club_admins:
-
-        print(other_club_admin)
 
         msg = f"""{request.user} from {club} has paid {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} into the {BRIDGE_CREDITS}
         account for {org}. The description was: {description}.
@@ -290,4 +293,19 @@ def pay_org_htmx(request, club):
     return tab_finance_htmx(
         request,
         message=f"Transfer of {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} made to {org} via {BRIDGE_CREDITS}",
+    )
+
+
+@check_club_menu_access(check_payments=True)
+def transaction_details_htmx(request, club):
+    """return details of a transaction"""
+
+    trans = get_object_or_404(OrganisationTransaction, pk=request.POST.get("trans_id"))
+    if trans.organisation != club:
+        return HttpResponse("Transaction does not belong to this club")
+
+    return render(
+        request,
+        "organisations/club_menu/finance/transaction_detail_htmx.html",
+        {"club": club, "trans": trans},
     )

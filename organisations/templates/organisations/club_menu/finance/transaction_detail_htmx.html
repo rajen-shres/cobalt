@@ -1,0 +1,69 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Show the details row for a single transaction                          #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load humanize %}
+{% load cobalt_tags %}
+
+<td></td>
+<td colspan="4">
+
+    <div class="card">
+
+        <div class="card-header card-header-rose">
+
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h3>Ref: {{ trans.reference_no }}</h3>
+                </div>
+                <div>
+                    <span class="align-left text-white"
+                        _="on click put '' into #trans_dets_{{ trans.id }}"
+                        style="cursor: pointer"
+                    ><i class="material-icons">close</i></span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-condensed">
+                    <tbody>
+                        <tr>
+                            <td class="font-weight-bold text-left">Counterparty:</td>
+                            <td class="text-left">{{ trans.member|default_if_none:"" }}{{ trans.other_organisation|default_if_none:"" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold text-left">Amount:</td>
+                            <td class="text-left">{{ GLOBAL_CURRENCY_SYMBOL }}{{ trans.amount|floatformat:2|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold text-left">Description:</td>
+                            <td class="text-left">{{ trans.description }}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold text-left">Date:</td>
+                            <td class="text-left">{{ trans.created_date|cobalt_nice_datetime }}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold text-left">Transaction Type:</td>
+                            <td class="text-left">{{ trans.get_type_display }}</td>
+                        </tr>
+
+                        {% if trans.club_session_id %}
+                            <tr>
+                                <td class="font-weight-bold text-left">Session ID:</td>
+                                <td class="text-left">{{ trans.club_session_id }}</td>
+                            </tr>
+                        {% endif %}
+
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</td>
