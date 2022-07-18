@@ -316,11 +316,9 @@ def club_menu_go_to_tab(
     """
 
     # Click on tab
-    tabs = manager.driver.find_elements_by_css_selector(
-        f"#id_tab_{tab} > .material-icons"
-    )
-    if tabs:
-        tabs[0].click()
+    tab = manager.selenium_wait_for(f"id_tab_{tab}")
+    if tab:
+        tab.click()
     else:
         manager.save_results(
             status=False,

@@ -249,6 +249,7 @@ def get_membership_type_for_players(system_number_list, club):
     }
 
 
+@login_required()
 def generic_org_search_htmx(request):
     """basic search for organisation by name
 

@@ -483,6 +483,7 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
         # Create Selenium client
         if browser == "chrome":
             options = ChromeOptions()
+            # options.add_argument("--window-size=1920,1080")
             if headless:
                 options.headless = True
             self.driver = webdriver.Chrome(options=options)
