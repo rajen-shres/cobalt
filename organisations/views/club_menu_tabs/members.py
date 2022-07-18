@@ -48,12 +48,18 @@ from organisations.views.general import (
     get_rbac_model_for_state,
 )
 from payments.models import MemberTransaction, OrganisationTransaction
-from payments.payments_views.core import get_balance
+from payments.payments_views.core import (
+    get_balance,
+    org_balance,
+    update_account,
+    update_organisation,
+)
 from payments.payments_views.payments_api import payment_api_batch
 from rbac.core import rbac_user_has_role
 from post_office.models import Email as PostOfficeEmail
 
 from rbac.views import rbac_forbidden
+from utils.utils import cobalt_currency
 
 
 @check_club_menu_access()
@@ -659,10 +665,8 @@ def add_member_search_htmx(request):
 
 
 @check_club_menu_access(check_members=True)
-def edit_member_htmx(request, club):
+def edit_member_htmx(request, club, message=""):
     """Edit a club member manually"""
-
-    message = ""
 
     member_id = request.POST.get("member")
     member = get_object_or_404(User, pk=member_id)
@@ -1022,3 +1026,50 @@ def get_member_balance_htmx(request, club):
     member = get_object_or_404(User, pk=member_id)
 
     return HttpResponse(f"${get_balance(member):,.2f}")
+
+
+@check_club_menu_access(check_session_or_payments=True)
+def top_up_member_htmx(request, club):
+    """Allows a club to top up a members balance. The funds move from the club to the user, there is no check or
+    tracking that the money comes in to the club"""
+
+    # Get form data
+    amount = float(request.POST.get("amount", 0))
+    description = request.POST.get("description")
+    member = get_object_or_404(User, pk=request.POST.get("member"))
+
+    # validate
+    if amount <= 0:
+        return edit_member_htmx(
+            request, message="Top up not made. Amount must be greater than zero."
+        )
+
+    if org_balance(club) < amount:
+        return edit_member_htmx(
+            request, message="Club has insufficient funds for this transaction."
+        )
+
+    # make payments
+    update_account(
+        member=member,
+        amount=amount,
+        description=f"Top Up - {description}",
+        organisation=club,
+        payment_type="Club Top Up",
+    )
+    update_organisation(
+        member=member,
+        amount=-amount,
+        description=f"Top Up - {description}",
+        organisation=club,
+        payment_type="Club Top Up",
+    )
+
+    # log it
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Off system top up for {member} - {cobalt_currency(amount)}",
+    ).save()
+
+    return edit_member_htmx(request, message="Top up successful")

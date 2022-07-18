@@ -1,6 +1,8 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import decimal
 
+from cobalt.settings import GLOBAL_CURRENCY_SYMBOL
+
 
 def cobalt_paginator(request, events_list, items_per_page=30, page_no=None):
     """common pagination function
@@ -43,3 +45,9 @@ def cobalt_round(number):
     return float(
         decimal.Decimal(float(number)).quantize(cent, rounding=decimal.ROUND_UP)
     )
+
+
+def cobalt_currency(number):
+    """take a number and return it as a printable currency"""
+
+    return f"{GLOBAL_CURRENCY_SYMBOL}{number:,.2f}".replace("$-", "-$")

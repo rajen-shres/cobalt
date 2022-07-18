@@ -28,6 +28,7 @@ TRANSACTION_TYPE = [
     ("Congress Entry", "Entry to an event"),
     ("CC Payment", "Credit Card payment"),
     ("Club Payment", "Club game payment"),
+    ("Club Top Up", "Club Top Up"),
     ("Club Membership", "Club membership payment"),
     ("Member Transfer", "Payment to another member"),
     ("Miscellaneous", "Miscellaneous payment"),
