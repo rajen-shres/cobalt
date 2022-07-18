@@ -14,13 +14,13 @@
                 {% if user|get_class == "User" %}
                     <a href="javascript:void(0)"
                         hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                        hx-target="#id_search_tab"
+                        hx-target="#id_member_list_tab"
                         hx-vars="club_id:{{ club.id }},member:{{ user.id }}"
                     >
                 {% else %}
                     <a href="javascript:void(0)"
                         hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                        hx-target="#id_search_tab"
+                        hx-target="#id_member_list_tab"
                         hx-vars="club_id:{{ club.id }},un_reg_id:{{ user.id }}"
                     >
                 {% endif %}
