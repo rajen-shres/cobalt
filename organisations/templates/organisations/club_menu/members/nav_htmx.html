@@ -54,6 +54,21 @@ hx-indicator=".htmx-indicator"
     {% endif %}
 {% endif %}
 
+{% if selected == "search" %}
+    <button class="btn bg-light text-dark"
+{% else %}
+    <button class="btn bg-transparent"
+    style="outline: 0; outline-offset: 0; box-shadow: none;"
+{% endif %}
+
+type="button"
+hx-post="{% url "organisations:member_search_tab_htmx" %}"
+hx-target="#id_panel_members"
+hx-indicator=".htmx-indicator"
+{#hx-push-url="true"#}
+>Search
+</button>
+
 {% if selected == "reports" %}
     <button class="btn bg-light text-dark float-right"
 {% else %}

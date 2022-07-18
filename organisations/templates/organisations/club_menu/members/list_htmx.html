@@ -23,13 +23,13 @@
         <h3>{{ club }} has {{ total_members|intcomma }} Member{{ total_members|pluralize }}</h3>
         <h3 class="text-info font-weight-bold settings_message" id="user_list_message">{{ message| default_if_none:"" }}</h3>
 
-        {% if members %}
+        {% if things %}
 
-            <!-- TABLE - WE LOAD EVERYONE AND USE DATATABLE TO SORT ON CLIENT SIDE -->
+            <!-- TABLE -->
 
             <div class="table-responsive">
 
-                <table id="id_attach_table" class="table table-condensed table-hover" style="display: none;">
+                <table id="id_attach_table" class="table table-condensed table-hover">
                     <thead>
                         <tr>
                             <th class="text-left">First Name</th>
@@ -41,7 +41,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for member in members %}
+                        {% for thing in things %}
                             <tr>
                                 <td class="text-left">
                                     {% if member_admin %}
@@ -51,18 +51,18 @@
                                         <a href="javascript:void(0)"
                                             id="t_edit_member1_{{ member.id }}"
                                             hx-target="#id_member_list_tab"
-                                            {% if member|get_class == "User" %}
+                                            {% if thing|get_class == "User" %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ member.id }}"
+                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
                                             {% else %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ member.id }}"
+                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
                                             {% endif %}
                                         >
-                                            {{ member.first_name }}
+                                            {{ thing.first_name }}
                                         </a>
                                     {% else %}
-                                        {{ member.first_name }}
+                                        {{ thing.first_name }}
                                     {% endif %}
                                 </td>
 
@@ -72,20 +72,20 @@
                                         <!-- ONLY SHOW LINKS IF ADMIN -->
 
                                         <a href="#"
-                                            id="t_edit_member2_{{ member.id }}"
+                                            id="t_edit_member2_{{ thing.id }}"
                                             hx-target="#id_member_list_tab"
                                             {% if member|get_class == "User" %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ member.id }}"
+                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
                                             {% else %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ member.id }}"
+                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
                                             {% endif %}
                                         >
-                                            {{ member.last_name }}
+                                            {{ thing.last_name }}
                                         </a>
                                     {% else %}
-                                        {{ member.last_name }}
+                                        {{ thing.last_name }}
                                     {% endif %}
                                 </td>
 
@@ -95,27 +95,27 @@
                                         <!-- ONLY SHOW LINKS IF ADMIN -->
 
                                         <a href="#"
-                                            id="t_edit_member3_{{ member.id }}"
+                                            id="t_edit_member3_{{ thing.id }}"
                                             hx-target="#id_member_list_tab"
-                                            {% if member|get_class == "User" %}
+                                            {% if thing|get_class == "User" %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ member.id }}"
+                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
                                             {% else %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ member.id }}"
+                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
                                             {% endif %}
                                         >
-                                            {{ member.system_number }}
+                                            {{ thing.system_number }}
                                         </a>
                                     {% else %}
-                                        {{ member.system_number }}
+                                        {{ thing.system_number }}
                                     {% endif %}
                                 </td>
 
-                                <td class="text-left">{{ member.membership }}</td>
+                                <td class="text-left">{{ thing.membership }}</td>
 
                                 <td class="text-left">
-                                    {% if member|get_class == "User" %}
+                                    {% if thing|get_class == "User" %}
                                         {{ GLOBAL_TITLE }} User
                                     {% else %}
                                         Unregistered User
@@ -123,17 +123,17 @@
                                 </td>
 
                                 <td class="text-center">
-                                    {% if member|get_class == "User" %}
-                                        <a target="_blank" href="{% url "accounts:public_profile" pk=member.id %}" style="width: 150px" class="btn btn-sm btn-info text-center">view profile</a>
+                                    {% if thing|get_class == "User" %}
+                                        <a target="_blank" href="{% url "accounts:public_profile" pk=thing.id %}" style="width: 150px" class="btn btn-sm btn-info text-center">view profile</a>
                                     {% else %}
                                         <a style="width: 150px"
                                             class="btn btn-sm btn-success text-center text-white"
                                             hx-post="{% url "organisations:club_menu_tab_members_invite_user_to_join_htmx" %}"
-                                            hx-vars="club_id:{{ club.id }}, un_reg_id:{{ member.id }}"
+                                            hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
                                             hx-target="#id_panel_members"
                                             onclick="GrowlNotification.notify({
                                             title: 'Sending invite...',
-                                            description: 'Sending invite to {{ member.first_name }}.',
+                                            description: 'Sending invite to {{ thing.first_name }}.',
                                             type: 'success',
                                             position: 'top-right',
                                             closeTimeout: 2000})"
@@ -145,6 +145,9 @@
                         {% endfor %}
                     </tbody>
                 </table>
+
+                {% include "utils/pagination_footer_htmx.html" with hx_target="#id_panel_members" %}
+
             </div>
 
         {% else %}
@@ -153,23 +156,23 @@
     </div>
 </div>
 
-<script>
-    $(document).ready( function () {
-
-        // Initialise datatable - only show pagination if more than one page, sort in order, column 0
-
-        $('#id_attach_table').DataTable({
-            "order": [[ 1, "asc" ]],
-            drawCallback: function(settings) {
-                const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
-                pagination.toggle(this.api().page.info().pages > 1);
-            },
-        });
-
-
-        // Unhide table now. This avoids the flicker
-        $('#id_attach_table').show();
-
-    });
-
-</script>
+{#<script>#}
+{#    $(document).ready( function () {#}
+{##}
+{#        // Initialise datatable - only show pagination if more than one page, sort in order, column 0#}
+{##}
+{#        $('#id_attach_table').DataTable({#}
+{#            "order": [[ 1, "asc" ]],#}
+{#            drawCallback: function(settings) {#}
+{#                const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');#}
+{#                pagination.toggle(this.api().page.info().pages > 1);#}
+{#            },#}
+{#        });#}
+{##}
+{##}
+{#        // Unhide table now. This avoids the flicker#}
+{#        $('#id_attach_table').show();#}
+{##}
+{#    });#}
+{##}
+{#</script>#}

@@ -1,0 +1,63 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Search panel                                                           #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+<div class="card" style="min-height: 800px; height: auto">
+
+    <!-- SUB-LEVEL NAVIGATION -->
+
+    <div class="card-header card-header-info">
+        <h2>Members</h2>
+        {% include "organisations/club_menu/members/nav_htmx.html" with selected="search" %}
+    </div>
+
+    <div class="card-body" id="id_member_list_tab">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <input type="text"
+                            id="id_member_last_name_search"
+                            name="member_last_name_search"
+                            placeholder="Last Name"
+                            class="form-control"
+                            hx-post="{% url "organisations:member_search_tab_name_htmx" %}"
+                            hx-trigger="keyup changed delay:100ms"
+                            hx-target="#member-search-results"
+                            hx-include="[id='id_member_first_name_search']"
+                            hx-vars="club_id: {{ club.id }}"
+                        >
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <input type="text"
+                            id="id_member_first_name_search"
+                            name="member_first_name_search"
+                            placeholder="First Name"
+                            class="form-control"
+                            hx-post="{% url "organisations:member_search_tab_name_htmx" %}"
+                            hx-trigger="keyup changed delay:100ms"
+                            hx-target="#member-search-results"
+                            hx-include="[id='id_member_last_name_search']"
+                            hx-vars="club_id: {{ club.id }}"
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <div class="row"></div>
+            <div class="col" id="member-search-results"></div>
+
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+</div>
+</div>

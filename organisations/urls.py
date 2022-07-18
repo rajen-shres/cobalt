@@ -628,4 +628,14 @@ urlpatterns = [
         organisations.views.club_menu_tabs.members.top_up_member_htmx,
         name="top_up_member_htmx",
     ),
+    path(
+        "member/search-tab",
+        organisations.views.club_menu_tabs.members.member_search_tab_htmx,
+        name="member_search_tab_htmx",
+    ),
+    path(
+        "member/search-tab-name",
+        organisations.views.club_menu_tabs.members.member_search_tab_name_htmx,
+        name="member_search_tab_name_htmx",
+    ),
 ]

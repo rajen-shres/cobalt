@@ -59,7 +59,7 @@ from rbac.core import rbac_user_has_role
 from post_office.models import Email as PostOfficeEmail
 
 from rbac.views import rbac_forbidden
-from utils.utils import cobalt_currency
+from utils.utils import cobalt_currency, cobalt_paginator
 
 
 @check_club_menu_access()
@@ -69,6 +69,8 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
 
     members = get_members_for_club(club)
 
+    things = cobalt_paginator(request, members)
+
     total_members = len(members)
 
     # Check level of access
@@ -76,16 +78,19 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
 
     has_errors = _check_member_errors(club)
 
+    hx_post = reverse("organisations:club_menu_tab_members_htmx")
+
     return render(
         request,
         "organisations/club_menu/members/list_htmx.html",
         {
             "club": club,
-            "members": members,
+            "things": things,
             "total_members": total_members,
             "message": message,
             "member_admin": member_admin,
             "has_errors": has_errors,
+            "hx_post": hx_post,
         },
     )
 
@@ -1073,3 +1078,60 @@ def top_up_member_htmx(request, club):
     ).save()
 
     return edit_member_htmx(request, message="Top up successful")
+
+
+@check_club_menu_access(check_members=True)
+def member_search_tab_htmx(request, club):
+    """member search tab"""
+
+    member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
+
+    return render(
+        request,
+        "organisations/club_menu/members/member_search_tab_htmx.html",
+        {"member_admin": member_admin, "club": club},
+    )
+
+
+@check_club_menu_access()
+def member_search_tab_name_htmx(request, club):
+    """Search function for searching for a member by name"""
+
+    first_name_search = request.POST.get("member_first_name_search")
+    last_name_search = request.POST.get("member_last_name_search")
+
+    # if there is nothing to search for, don't search
+    if not first_name_search and not last_name_search:
+        return HttpResponse()
+
+    member_list = (
+        MemberMembershipType.objects.active()
+        .filter(membership_type__organisation=club)
+        .values_list("system_number", flat=True)
+    )
+
+    # Users
+    users = User.objects.filter(system_number__in=member_list)
+
+    if first_name_search:
+        users = users.filter(first_name__istartswith=first_name_search)
+
+    if last_name_search:
+        users = users.filter(last_name__istartswith=last_name_search)
+
+    # Unregistered
+    un_regs = UnregisteredUser.objects.filter(system_number__in=member_list)
+
+    if first_name_search:
+        un_regs = un_regs.filter(first_name__istartswith=first_name_search)
+
+    if last_name_search:
+        un_regs = un_regs.filter(last_name__istartswith=last_name_search)
+
+    user_list = list(chain(users, un_regs))
+
+    return render(
+        request,
+        "organisations/club_menu/members/member_search_tab_name_htmx.html",
+        {"user_list": user_list, "club": club},
+    )
