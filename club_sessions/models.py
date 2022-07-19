@@ -100,6 +100,10 @@ class Session(models.Model):
         default=TimeOfDay.AM,
         null=True,
     )
+    is_complete = models.BooleanField(default=False)
+    """ shows whether this session has had payments made and is now closed """
+    additional_session_fee = models.DecimalField(max_digits=8, decimal_places=2)
+    """ allows all users to be charged an additional fee for this session """
 
     def __str__(self):
         return f"{self.description} - {self.session_date}"

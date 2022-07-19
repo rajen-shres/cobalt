@@ -11,6 +11,7 @@ from organisations.model_managers import MemberMembershipTypeManager
 # A management script runs to update RBAC structure for all clubs if a new option is found.
 # Note, if you change anything here you still need to set up the RBAC defaults and admin groups,
 # that doesn't happen automatically.
+from payments.models import OrgPaymentMethod
 
 ORGS_RBAC_GROUPS_AND_ROLES = {
     # Conveners for this orgs events
@@ -178,6 +179,11 @@ class Organisation(models.Model):
         related_name="org_last_updated_by",
     )
     last_updated = models.DateTimeField(auto_now=True)
+
+    default_secondary_payment_type = models.ForeignKey(
+        OrgPaymentMethod, blank=True, null=True, on_delete=models.PROTECT
+    )
+    """ bridge credits are the default, but we can use a secondary default if bridge credits aren't an option """
 
     @property
     def settlement_fee_percent(self):
