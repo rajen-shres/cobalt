@@ -6,6 +6,9 @@
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
+{% load static %}
+
+<h3 class="text-primary font-weight-bold">{{ message }}</h3>
 
 <form method="post">
     {% csrf_token %}
@@ -59,7 +62,7 @@
             </div>
             <div class="col-md-6">
                 <div class="form-group">
-                    {% cobalt_bs4_field session_form.session_date no_label=True %}
+                    <input type="date" name="session_date" value="{{ session_form.session_date.value|date:'Y-m-d' }}" class="form-control" id="id_session_date">
                 </div>
             </div>
         </div>

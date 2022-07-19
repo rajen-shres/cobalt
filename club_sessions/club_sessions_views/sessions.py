@@ -101,22 +101,30 @@ def manage_session(request, session_id):
 def tab_settings_htmx(request, club, session):
     """Edit fields that were set up when the session was started"""
 
+    message = ""
+
     if "save_settings" in request.POST:
         session_form = SessionForm(request.POST, club=club, instance=session)
         if session_form.is_valid():
             session = session_form.save()
+            message = "Session Updated"
         else:
             print(session_form.errors)
 
-    else:
-        session_form = SessionForm(club=club)
+    session_form = SessionForm(club=club, instance=session)
 
-    # initial["entry_open_date"] = congress.entry_open_date.strftime("%d/%m/%Y")
+    director_name = f"{session.director}"
 
     return render(
         request,
         "club_sessions/manage/settings_htmx.html",
-        {"session_form": session_form, "club": club, "session": session},
+        {
+            "session_form": session_form,
+            "club": club,
+            "session": session,
+            "message": message,
+            "director_name": director_name,
+        },
     )
 
 
