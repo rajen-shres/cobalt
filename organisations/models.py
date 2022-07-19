@@ -7,11 +7,12 @@ from django.core.validators import RegexValidator, MaxValueValidator, MinValueVa
 from cobalt.settings import GLOBAL_ORG, GLOBAL_TITLE
 from organisations.model_managers import MemberMembershipTypeManager
 
+# import payments.models as payments_models
+
 # Variable to control what is expected to be in the RBAC structure for Organisations
 # A management script runs to update RBAC structure for all clubs if a new option is found.
 # Note, if you change anything here you still need to set up the RBAC defaults and admin groups,
 # that doesn't happen automatically.
-from payments.models import OrgPaymentMethod
 
 ORGS_RBAC_GROUPS_AND_ROLES = {
     # Conveners for this orgs events
@@ -181,7 +182,11 @@ class Organisation(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
 
     default_secondary_payment_type = models.ForeignKey(
-        OrgPaymentMethod, blank=True, null=True, on_delete=models.PROTECT
+        "payments.OrgPaymentMethod",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name="org_secondary_payment_type",
     )
     """ bridge credits are the default, but we can use a secondary default if bridge credits aren't an option """
 

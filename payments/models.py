@@ -16,7 +16,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
-from accounts.models import User, UnregisteredUser
+from accounts.models import User
 from organisations.models import Organisation
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, GLOBAL_ORG
 
