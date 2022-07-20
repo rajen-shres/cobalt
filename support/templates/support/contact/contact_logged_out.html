@@ -30,6 +30,22 @@
     <div class="container animate__animated animate__fadeInUp animate__delay-1s">
 
     </div>
+
+
+    <div>
+        <h2>
+            <a href="http://www.abfmasterpoints.com.au/myawards.asp?search=name&nomenu=n">Click <span style="text-decoration: underline">Here</span> to look up your ABF number</a></h2>
+        <div style="box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px, rgb(51, 51, 51) 0px 0px 0px 3px; padding: 10px; margin: 10px 100px">
+            <h2>Registration email not coming through?</h2>
+            <ol style="text-align: left; padding-left: 50px">
+                <li>Check your junk/spam folder to see if the email is there</li>
+                <li>It is possible that you mistyped your email address, you can <a style="text-decoration: underline" href="{% url "accounts:register" %}">register</a> again, double-checking the spelling</li>
+            </ol>
+        </div>
+
+    </div>
+
+
     <h1>Contact Us</h1>
     {% if not is_human %}
         <h2>Form not submitted. Google thinks you are a robot</h2>

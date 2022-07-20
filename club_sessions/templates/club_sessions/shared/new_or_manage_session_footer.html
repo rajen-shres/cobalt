@@ -27,6 +27,8 @@
         // We use the browser time to set the time of day, not the server time.
         // That also means we have to set the default description on the client side
 
+        console.log("update desc");
+
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
         // get time on browser
@@ -52,6 +54,7 @@
     }
 
     function UpdateDescriptionAndTimeOfDay(){
+        console.log("Here we go");
         UpdateDescription();
         UpdateTimeOfDay();
     }
@@ -67,6 +70,7 @@
             UpdateDescriptionAndTimeOfDay();
         });
         $("#id_time_of_day").change(function(){
+            console.log("hook");
             UpdateDescription();
         });
     });

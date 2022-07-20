@@ -40,6 +40,9 @@
                     >
 
                     </span></h3>
+                {% if form.player.stripe_auto_confirmed %}
+                    <h4 class="text-center">Auto Top Up Enabled</h4>
+                {% endif %}
             {% endif %}
 
             {% if form.is_member %}
