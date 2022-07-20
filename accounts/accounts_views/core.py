@@ -18,7 +18,7 @@ from cobalt.settings import GLOBAL_TITLE
 from logs.views import log_event
 from masterpoints.views import user_summary
 from notifications.notifications_views.core import send_cobalt_email_with_template
-from organisations.models import MemberClubEmail
+from organisations.models import MemberClubEmail, Organisation
 from organisations.views.general import replace_unregistered_user_with_real_user
 
 
@@ -278,7 +278,6 @@ def _check_duplicate_email(user):
     )
 
     for other_same_email in others_same_email:
-
         html = render_to_string("accounts/core/duplicate_email.html", {"user": user})
 
         context = {
@@ -317,23 +316,24 @@ def _check_unregistered_user_match(user):
 
 
 def add_un_registered_user_with_mpc_data(
-    system_number, club, added_by, origin="Manual"
-):
+    system_number: int, club: Organisation, added_by: User, origin: str = "Manual"
+) -> (str, dict):
     """Add an unregistered user to the system. Called from the player import if the user isn't already
     in the system"""
 
     # do nothing if user already exists
-    if (
-        UnregisteredUser.objects.filter(system_number=system_number).exists()
-        or User.objects.filter(system_number=system_number).exists()
-    ):
-        return None
+    if User.objects.filter(system_number=system_number).exists():
+        return "user", None
+    if UnregisteredUser.objects.filter(system_number=system_number).exists():
+        return "un_reg", None
 
+    # Get data from the MPC
     details = user_summary(system_number)
 
     if not details:
-        return None
+        return None, None
 
+    # Create user
     UnregisteredUser(
         system_number=system_number,
         last_updated_by=added_by,
@@ -344,7 +344,7 @@ def add_un_registered_user_with_mpc_data(
         added_by_club=club,
     ).save()
 
-    return details
+    return "new", details
 
 
 def get_user_or_unregistered_user_from_system_number(system_number):

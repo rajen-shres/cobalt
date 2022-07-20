@@ -76,6 +76,30 @@
                 </div>
             </div>
         </div>
+
+        <div class="row align-items-center h-100 my-0 py-3">
+            <div class="col-md-6 mt-4">
+                Payment Method (if not Bridge Credits)
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    {% cobalt_bs4_field session_form.default_secondary_payment_method %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row align-items-center h-100 my-0">
+            <div class="col-md-6 mt-4">
+                Optional Additional Charge Per Player
+            </div>
+            <div class="col-md-6">
+                <div class="form-group py-3">
+                    {% cobalt_bs4_field session_form.additional_session_fee no_label=True %}
+                </div>
+            </div>
+        </div>
+
+
         <div class="row align-items-center h-100 my-4">
             <div class="col-12 my-4">
                 <div class="form-group">
@@ -83,4 +107,6 @@
                 </div>
             </div>
         </div>
+
+
     </div>

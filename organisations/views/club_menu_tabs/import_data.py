@@ -403,11 +403,11 @@ def add_member_to_membership(
 
         error = f"{name} - Already a member"
 
-        if other_home_club and home_club:
-            error = f"{name} - Already a member and has a different home club"
-        elif home_club:
-            member_membership.home_club = home_club
-            member_membership.save()
+        # if other_home_club and home_club:
+        #     error = f"{name} - Already a member and has a different home club"
+        # elif home_club:
+        #     member_membership.home_club = home_club
+        #     member_membership.save()
         return 0, error
 
     # check for other home clubs before setting this as the users home club

@@ -106,6 +106,12 @@ class Session(models.Model):
         max_digits=8, decimal_places=2, default=0
     )
     """ allows all users to be charged an additional fee for this session """
+    default_secondary_payment_method = models.ForeignKey(
+        "payments.OrgPaymentMethod",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+    )
 
     def __str__(self):
         return f"{self.description} - {self.session_date}"

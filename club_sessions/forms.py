@@ -20,6 +20,8 @@ class SessionForm(forms.ModelForm):
             "description",
             "venue",
             "time_of_day",
+            "additional_session_fee",
+            "default_secondary_payment_method",
         ]
 
     def __init__(self, *args, **kwargs):
@@ -48,6 +50,18 @@ class SessionForm(forms.ModelForm):
             self.fields["session_type"].choices = [
                 ("", "Error - No session types defined")
             ]
+
+        # Handle default_secondary_payment_methods
+        org_payment_types = (
+            OrgPaymentMethod.objects.filter(organisation=club, active=True)
+            .exclude(payment_method="Bridge Credits")
+            .values_list("id", "payment_method")
+        )
+        self.fields["default_secondary_payment_method"].choices = org_payment_types
+        if club.default_secondary_payment_method:
+            self.fields[
+                "default_secondary_payment_method"
+            ].initial = club.default_secondary_payment_method.id
 
 
 class UserSessionForm(forms.Form):

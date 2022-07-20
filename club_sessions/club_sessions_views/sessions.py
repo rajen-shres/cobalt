@@ -316,7 +316,7 @@ def _calculate_payment_method_and_balance(session_entries, session_fees, club):
 
 
 @user_is_club_director()
-def tab_session_htmx(request, club, session):
+def tab_session_htmx(request, club, session, message=""):
     """present the main session tab for the director"""
 
     # load static
@@ -343,6 +343,7 @@ def tab_session_htmx(request, club, session):
             "session": session,
             "session_entries": session_entries,
             "payment_methods": payment_methods,
+            "message": message,
         },
     )
 
@@ -501,7 +502,9 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         return f"Invalid data found on line {line_no}. Ignored."
 
     # If this user isn't registered then add them from the MPC
-    response = add_un_registered_user_with_mpc_data(system_number, club, request.user)
+    user_type, response = add_un_registered_user_with_mpc_data(
+        system_number, club, request.user
+    )
     if response:
         ClubLog(
             organisation=club,
@@ -512,6 +515,16 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
             f"Added new user to system - {response['GivenNames']} {response['Surname']}"
         )
 
+    # set payment method based upon user type
+    if user_type == "user":
+        payment_method = OrgPaymentMethod.objects.filter(
+            organisation=club, active=True, payment_method="Bridge Credits"
+        ).first()
+        if not payment_method:
+            payment_method = session.default_secondary_payment_method
+    else:
+        payment_method = session.default_secondary_payment_method
+
     # create session entry
     SessionEntry(
         session=session,
@@ -519,7 +532,7 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         seat=direction,
         system_number=system_number,
         amount_paid=0,
-        # payment_method=payment_method,
+        payment_method=payment_method,
     ).save()
 
     return message
@@ -896,3 +909,10 @@ def add_misc_payment_htmx(request, club, session, session_entry):
         message = "Payment failed"
 
     return edit_session_entry_extras_htmx(request, message=message)
+
+
+@user_is_club_director()
+def process_bridge_credits_htmx(request, club, session):
+    """handle bridge credits for the session - called from a big button"""
+
+    return tab_session_htmx(request, message="Coming soon")

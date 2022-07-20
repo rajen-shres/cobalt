@@ -75,6 +75,7 @@ class OrgForm(forms.ModelForm):
             "postcode",
             "bank_bsb",
             "bank_account",
+            "default_secondary_payment_method",
         )
 
         # Make State a choice field
@@ -97,6 +98,24 @@ class OrgForm(forms.ModelForm):
 
         # Add field
         self.user = user
+
+        # Handle default_Secondary_payment_methods
+        instance = kwargs.get("instance")
+        if instance:
+            # Org already exists so we can show choices
+            org_payment_types = (
+                OrgPaymentMethod.objects.filter(organisation=instance, active=True)
+                .exclude(payment_method="Bridge Credits")
+                .values_list("id", "payment_method")
+            )
+            self.fields["default_secondary_payment_method"].choices = org_payment_types
+            if instance.default_secondary_payment_method:
+                self.fields[
+                    "default_secondary_payment_method"
+                ].initial = instance.default_secondary_payment_method.id
+        else:
+            # New org - remove option
+            self.fields.pop("default_secondary_payment_method")
 
     def clean_state(self):
         """check this user has access to this state"""

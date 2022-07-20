@@ -1,3 +1,10 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Club Settings Basic tab                                                #}
+{#                                                                        #}
+{# Edits the Organisation object through a form                           #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% load crispy_forms_filters %}
 {% load cobalt_tags %}
 
@@ -12,7 +19,7 @@
         <div class="card-body">
             <p class="font-italic">It is not recommended to edit these fields as they will be out of step
                 with the Masterpoints Centre. It is better to first change them in the MPC
-                and then import the club here. However, bank details are fine to edit.</p>
+                and then import the club here. However, bank details and default payment methods are fine to edit.</p>
 
             {% if org_form.warnings %}
                 <span>This data is out of step with the Masterpoints Centre</span>
@@ -30,7 +37,8 @@
                 hx-target="#id_settings_form"
             >
                 <div class="row">
-                    {#                secretary           #}
+
+                    <!--SECRETARY -->
                     <div class="col-md-6">
                         <div class="form-group">
                             <b>Club Secretary: </b><span class="font-weight-bold" id="club_secretary_dummy_name">{{ secretary_name|default_if_none:"Not Set" }}</span>
@@ -41,23 +49,18 @@
                             <button id="id_search_button" type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#userSearchModal11">Edit</button>
                         </div>
                     </div>
-                    {#            state         #}
+
+                    <!--STATE (HIDDEN) -->
                     <div class="col-md-3">
-
-
                         <span class="cobalt-form-error">{{ org_form.state.errors }}</span>
                         <h3>{{ org_form.state.value }}</h3>
                         <input type="hidden" name="state" value="{{ org_form.state.value }}">
-
-
                     </div>
                 </div>
 
-
-                {#        Form        #}
-
                 <div class="row">
-                    {#                name           #}
+
+                    <!-- NAME -->
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="bmd-label-floating">Club Name</label>
@@ -72,7 +75,8 @@
                             <span class="cobalt-form-warning">{{ org_form.warnings.name }}</span>
                         </div>
                     </div>
-                    {#                org_id         #}
+
+                    <!-- ORG_ID -->
                     <div class="col-md-3">
                         <div class="form-group">
                             <label class="bmd-label-floating">{{ GLOBAL_ORG }} Club Number</label>
@@ -88,9 +92,9 @@
                     </div>
                 </div>
 
-
                 <div class="row">
-                    {#                email           #}
+
+                    <!-- EMAIL -->
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="bmd-label-floating">Club Email Address</label>
@@ -104,7 +108,8 @@
                             <span class="cobalt-form-warning">{{ org_form.warnings.club_email }}</span>
                         </div>
                     </div>
-                    {#                website           #}
+
+                    <!-- WEBSITE -->
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="bmd-label-floating">Club Website</label>
@@ -121,7 +126,8 @@
                 </div>
 
                 <div class="row">
-                    {#                address1           #}
+
+                    <!-- ADDRESS1 -->
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="bmd-label-floating">Address Line 1</label>
@@ -135,7 +141,8 @@
                             <span class="cobalt-form-warning">{{ org_form.warnings.address1 }}</span>
                         </div>
                     </div>
-                    {#                suburb           #}
+
+                    <!-- SUBURB -->
                     <div class="col-md-3">
                         <div class="form-group">
                             <label class="bmd-label-floating">Suburb</label>
@@ -152,7 +159,8 @@
                 </div>
 
                 <div class="row">
-                    {#                address2           #}
+
+                    <!-- ADDRESS2 -->
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="bmd-label-floating">Address Line 2</label>
@@ -167,7 +175,7 @@
                         </div>
                     </div>
 
-                    {#                postcode           #}
+                    <!-- POSTCODE -->
                     <div class="col-md-2">
                         <div class="form-group">
                             <label class="bmd-label-floating">Postcode</label>
@@ -184,7 +192,8 @@
                 </div>
 
                 <div class="row">
-                    {#                bank_bsb           #}
+
+                    <!-- BANK_BSB -->
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="bmd-label-floating">Bank BSB Number</label>
@@ -197,7 +206,8 @@
                             <span class="cobalt-form-error">{{ org_form.bank_bsb.errors }}</span>
                         </div>
                     </div>
-                    {#                bank_account           #}
+
+                    <!-- BANK_ACCOUNT -->
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="bmd-label-floating">Bank Account Number</label>
@@ -212,8 +222,24 @@
                     </div>
                 </div>
 
-                <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
-                <button class="btn btn-info" type=""reset">Reset</button>
+                <div class="row">
+
+                    <!-- DEFAULT_SECONDARY_PAYMENT_METHOD -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="bmd-label-floating">Default Payment Method if not {{ BRIDGE_CREDITS }}</label>
+                            <div class="form-group">
+                                {% cobalt_bs4_field org_form.default_secondary_payment_method %}
+                            </div>
+                            <span class="cobalt-form-error">{{ org_form.default_secondary_payment_method.errors }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-5">
+                    <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
+                    <button class="btn btn-info" type=""reset">Reset</button>
+                </div>
             </form>
             <div class="font-italic small">last updated {{ club.last_updated|cobalt_nice_datetime }} by {{ club.last_updated_by.full_name }}</div>
         </div>

@@ -181,7 +181,7 @@ class Organisation(models.Model):
     )
     last_updated = models.DateTimeField(auto_now=True)
 
-    default_secondary_payment_type = models.ForeignKey(
+    default_secondary_payment_method = models.ForeignKey(
         "payments.OrgPaymentMethod",
         blank=True,
         null=True,

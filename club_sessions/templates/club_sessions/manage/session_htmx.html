@@ -8,6 +8,9 @@
 {% load cobalt_tags %}
 {% load static %}
 
+<!-- MESSAGE -->
+<h3 class="text-primary font-weight-bold">{{ message }}</h3>
+
 {% if not session_entries %}
 
     <h4>No players found. Either import players from the <b>IMPORTS</b> tag or click below to add a table manually.</h4>
@@ -37,10 +40,19 @@
 
     <div id="id_totals"
         hx-post="{% url "club_sessions:session_entry_session_totals_htmx" %}"
-        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
         hx-trigger="load, other_update"
+        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
     >
     </div>
+
+    <button
+        class="btn btn-info"
+        hx-post="{% url "club_sessions:process_bridge_credits_htmx" %}"
+        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+        hx-target="#id_pane_session"
+    >
+        Process {{ BRIDGE_CREDITS }}
+    </button>
 
     <div class="table-responsive d-none" id="main_session_table">
 

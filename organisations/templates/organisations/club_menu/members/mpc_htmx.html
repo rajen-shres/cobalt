@@ -1,43 +1,59 @@
-<h3 class="text-center">Import data from the Masterpoints Centre into {{ GLOBAL_TITLE }}</h3>
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# MPC Import function                                                    #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 
-<div class="container">
-    <div class="row">
-        <div class="col-md-6 mx-auto">
+<h2 id="load_warning" class="d-none px-5 text-primary">Loading, please wait, this may take a while...</h2>
 
+<div id="main-mpc-block">
 
+    <h3 class="text-center">Import data from the Masterpoints Centre into {{ GLOBAL_TITLE }}</h3>
 
-            <form
-                hx-post='{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}'
-                hx-target='#id_panel_members'
-                hx-vars="club_id:{{ club.id }}"
-                hx-indicator=".htmx-indicator"
-            >
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 mx-auto">
 
-                <div id="div_id_membership_type" class="form-group">
-                    <div class="row">
-                        <div class="col-4">
-                            <label for="id_membership_type" class="bmd-label-static">
-                                Membership Type
-                            </label>
-                        </div>
+                <form
+                    hx-post='{% url "organisations:club_menu_tab_members_import_mpc_htmx" %}'
+                    hx-target='#id_panel_members'
+                    hx-vars="club_id:{{ club.id }}"
+                    hx-indicator=".htmx-indicator"
+                >
 
-                        <div class="col-4">
-                            <span class="cobalt-form-error">{{ form.membership_type.errors|striptags }}</span>
-                            <select name="membership_type" class="select form-control" id="id_membership_type">
-                                {% for option in form.membership_type.field.choices %}
-                                    <h1>{{ option }}</h1>
-                                    <option value="{{ option.0 }}">{{ option.1 }}</option>
-                                {% endfor %}
-                            </select>
+                    <div id="div_id_membership_type" class="form-group">
+                        <div class="row">
+                            <div class="col-4">
+                                <label for="id_membership_type" class="bmd-label-static">
+                                    Membership Type
+                                </label>
+                            </div>
+
+                            <div class="col-4">
+                                <span class="cobalt-form-error">{{ form.membership_type.errors|striptags }}</span>
+                                <select name="membership_type" class="select form-control" id="id_membership_type">
+                                    {% for option in form.membership_type.field.choices %}
+                                        <h1>{{ option }}</h1>
+                                        <option value="{{ option.0 }}">{{ option.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="text-center">
-                    <button type="submit" name="save" id="t_mpc_import_save" class="btn btn-success">Import</button>
-                </div>
-            </form>
+                    <div class="text-center">
+                        <button
+                            type="submit"
+                            name="save"
+                            id="t_mpc_import_save"
+                            class="btn btn-success"
+                            _="on click toggle .d-none on #load_warning then toggle .d-none on #main-mpc-block"
+
+                        >Import</button>
+                    </div>
+                </form>
 
 
+            </div>
         </div>
     </div>
 </div>
