@@ -161,11 +161,6 @@ class SessionMiscPayment(models.Model):
     payment_made = models.BooleanField(default=False)
     """ Has this payment been processes, yes or no """
 
-    misc_pay_type = models.ForeignKey(
-        MiscPayType, on_delete=models.CASCADE, blank=True, null=True
-    )
-    """ either payment type or optional_description are required"""
-
     optional_description = models.TextField(max_length=50, blank=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 

@@ -1,18 +1,59 @@
-{# Show totals on the sessions tab #}
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Show totals for the session tab. Updates when the data changes         #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+<div class="card">
 
-<div class="container">
-    <div class="row">
-        <div class="col">
-            <h4>Tables: {{ totals.tables }} ({{ totals.players }} players)</h4>
-        </div>
-        <div class="col">
-            <h4>To Fix: {{ totals.unknown_payment_methods }}</h4>
-        </div>
-        <div class="col">
-            <h4>{{  BRIDGE_CREDITS }} - Due {{ totals.bridge_credits_due }} Received {{ totals.bridge_credits_received }}</h4>
-        </div>
-        <div class="col">
-            <h4>Other - Due {{ totals.other_methods_due }} Received {{ totals.other_methods_received }}</h4>
+    <div class="card-header
+        {% if status == "Complete" %}
+            card-header-primary
+        {% elif status == "Ready" %}
+            card-header-info
+        {% elif status == "Fix" %}
+            card-header-danger
+        {% endif %}
+        ">
+        <h1 class="text-center my-0 py-0 by-0">
+            {{ status }}
+
+            <span class="float-right">
+                <span class="material-icons" style="font-size: 75px">
+
+                    {% if status == "Complete" %}
+                        done_outline
+                    {% elif status == "Ready" %}
+                        check
+                    {% elif status == "Fix" %}
+                        block
+                    {% endif %}
+
+                </span>
+            </span>
+
+        </h1>
+    </div>
+
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between">
+
+            <div>
+                <button class="btn btn-success">{{ totals.tables }} Tables</button>
+            </div>
+            {% if status == "Fix" %}
+                <div>
+                    <button class="btn btn-danger">To Fix: {{ totals.unknown_payment_methods }}</button>
+                </div>
+            {% endif %}
+            <div>
+                <button class="btn btn-primary">{{  BRIDGE_CREDITS }} - Due {{ totals.bridge_credits_due }} Received {{ totals.bridge_credits_received }}</button>
+            </div>
+            <div>
+                <button class="btn btn-warning">Other - Due {{ totals.other_methods_due }} Received {{ totals.other_methods_received }}</button>
+            </div>
+
         </div>
     </div>
+
 </div>

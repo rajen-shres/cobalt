@@ -2,7 +2,7 @@ import codecs
 import csv
 import re
 
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -37,6 +37,7 @@ from ..models import (
     Session,
     SessionEntry,
     SessionTypePaymentMethodMembership,
+    SessionMiscPayment,
 )
 
 
@@ -311,6 +312,8 @@ def _calculate_payment_method_and_balance(session_entries, session_fees, club):
             session_entry.fee = session_fees[session_entry.membership][
                 session_entry.payment_method.payment_method
             ]
+
+        session_entry.save()
 
     return session_entries
 
@@ -699,6 +702,11 @@ def edit_session_entry_extras_htmx(request, club, session, session_entry, messag
         system_number=session_entry.system_number
     )
 
+    # Get any existing misc payments for this session
+    session_misc_payments = SessionMiscPayment.objects.filter(
+        session_entry=session_entry
+    )
+
     player = get_user_or_unregistered_user_from_system_number(
         session_entry.system_number
     )
@@ -714,6 +722,7 @@ def edit_session_entry_extras_htmx(request, club, session, session_entry, messag
             "session": session,
             "player": player,
             "club": club,
+            "session_misc_payments": session_misc_payments,
             "message": message,
         },
     )
@@ -771,7 +780,9 @@ def change_paid_amount_status_htmx(request, club, session, session_entry):
     return HttpResponse("")
 
 
-def _session_totals_calculations(session_entries, session_fees, membership_type_dict):
+def _session_totals_calculations(
+    session, session_entries, session_fees, membership_type_dict
+):
     """sub of session_totals_htmx to build dict of totals"""
 
     # initialise totals
@@ -834,7 +845,15 @@ def _session_totals_calculations(session_entries, session_fees, membership_type_
 
     totals["tables"] = totals["players"] / 4
 
-    return totals
+    # Calculate overall status
+    if session.is_complete:
+        status = "Complete"
+    elif totals["unknown_payment_methods"] == 0:
+        status = "Ready"
+    else:
+        status = "Fix"
+
+    return totals, status
 
 
 @user_is_club_director()
@@ -861,25 +880,25 @@ def session_totals_htmx(request, club, session):
     )
 
     # calculate totals
-    totals = _session_totals_calculations(
-        session_entries, session_fees, membership_type_dict
+    totals, status = _session_totals_calculations(
+        session, session_entries, session_fees, membership_type_dict
     )
 
-    return render(request, "club_sessions/manage/totals_htmx.html", {"totals": totals})
+    return render(
+        request,
+        "club_sessions/manage/totals_htmx.html",
+        {"totals": totals, "status": status},
+    )
 
 
 @user_is_club_director(include_session_entry=True)
 def add_misc_payment_htmx(request, club, session, session_entry):
     """Adds a miscellaneous payment for a user in a session"""
 
-    # TODO: Change this to save to DB rather than make payment
+    # TODO: Change this to use the optional_description and allow user to type value in
 
     # load data from form
     misc_payment = get_object_or_404(MiscPayType, pk=request.POST.get("misc_payment"))
-    payment_method = get_object_or_404(
-        OrgPaymentMethod, pk=request.POST.get("payment_method")
-    )
-    print(payment_method)
     amount = float(request.POST.get("amount"))
 
     # validate
@@ -895,24 +914,111 @@ def add_misc_payment_htmx(request, club, session, session_entry):
     if not member:
         return edit_session_entry_extras_htmx(request, message="Error loading member")
 
-    # Try payment
-    if payment_api_batch(
-        member=member,
+    # Add misc payment
+    SessionMiscPayment(
+        session_entry=session_entry,
+        optional_description=misc_payment.description,
         amount=amount,
-        description=f"{session} - {misc_payment.description}",
-        organisation=club,
-        session=session,
-    ):
-        message = "Payment successful"
+    ).save()
 
-    else:
-        message = "Payment failed"
-
-    return edit_session_entry_extras_htmx(request, message=message)
+    return edit_session_entry_extras_htmx(
+        request, message=f"{misc_payment.description} added"
+    )
 
 
 @user_is_club_director()
 def process_bridge_credits_htmx(request, club, session):
     """handle bridge credits for the session - called from a big button"""
 
+    # Get bridge credits for this org
+    bridge_credits = OrgPaymentMethod.objects.filter(
+        active=True, organisation=club, payment_method="Bridge Credits"
+    ).first()
+
+    if not bridge_credits:
+        return tab_session_htmx(
+            request,
+            message="Bridge Credits are not set up for this organisation. Add through Settings if you wish to use Bridge Credits",
+        )
+
+    # Get any extras
+    extras_qs = (
+        SessionMiscPayment.objects.filter(session_entry__session=session)
+        .values("session_entry")
+        .annotate(extras=Sum("amount"))
+    )
+
+    # convert to dict
+    extras = {item["session_entry"]: float(item["extras"]) for item in extras_qs}
+    print(extras)
+
+    # For each player go through and work out what they owe
+    session_entries = SessionEntry.objects.filter(
+        session=session, amount_paid=0, payment_method=bridge_credits
+    )
+    system_numbers = session_entries.values_list("system_number", flat=True)
+    users_qs = User.objects.filter(system_number__in=system_numbers)
+    users_by_system_number = {user.system_number: user for user in users_qs}
+
+    print(users_by_system_number)
+
+    for session_entry in SessionEntry.objects.filter(
+        session=session, amount_paid=0, payment_method=bridge_credits
+    ):
+
+        amount_paid = (
+            float(session_entry.amount_paid) if session_entry.amount_paid else 0
+        )
+        fee = float(session_entry.fee) if session_entry.fee else 0
+        amount = fee - amount_paid + extras.get(session_entry.id, 0)
+        print(session_entry.system_number, amount)
+
+        # Try payment
+        member = users_by_system_number[session_entry.system_number]
+        if payment_api_batch(
+            member=member,
+            description=f"{session}",
+            amount=amount,
+            organisation=club,
+            payment_type="Club Payment",
+            session=session,
+        ):
+            session_entry.amount_paid = session_entry.fee
+            session_entry.save()
+
+            SessionMiscPayment.objects.filter(
+                session_entry__session=session,
+                session_entry__system_number=session_entry.system_number,
+            ).update(payment_made=True)
+
+            # session_entry.amount_paid =
+
     return tab_session_htmx(request, message="Coming soon")
+
+
+@user_is_club_director(include_session_entry=True)
+def delete_misc_session_payment_htmx(request, club, session, session_entry):
+    """Delete a misc session payment"""
+
+    # Get data
+    session_misc_payment = get_object_or_404(
+        SessionMiscPayment, pk=request.POST.get("session_misc_payment_id")
+    )
+
+    # validate
+    if session_misc_payment.session_entry != session_entry:
+        return edit_session_entry_extras_htmx(
+            request, message="Misc payment not for this session"
+        )
+
+    # handle already paid
+    if session_misc_payment.payment_made:
+        return edit_session_entry_extras_htmx(
+            request, message="Payment already made. Handle later"
+        )
+
+    # delete
+    session_misc_payment.delete()
+    return edit_session_entry_extras_htmx(
+        request, message="Miscellaneous payment deleted"
+    )

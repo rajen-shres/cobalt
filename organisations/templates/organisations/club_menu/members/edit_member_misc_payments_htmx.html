@@ -55,7 +55,7 @@
                                 <div class="col-6">
                                     <div class="form-group">
                                         <label for="id_misc_payment" class="bmd-label-static">Item</label>
-                                        <select class="selectpicker form-control" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
+                                        <select class="selectpicker" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
                                             <option selected value="-1">---select---</option>
                                             {% for misc_payment_type in misc_payment_types %}
                                                 <option value="{{ misc_payment_type.id }}">{{ misc_payment_type.description }}</option>
