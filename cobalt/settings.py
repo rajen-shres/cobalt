@@ -475,6 +475,11 @@ ABF_STATES = {
     6751: ("BAWA", "WA"),
 }
 
+# On Elastic Beanstalk the userid that we run under seems to change. Set all permissions to 777 as there is
+# no sensitive information stored here, and only Django can access the files directly.
+FILE_UPLOAD_PERMISSIONS = 0o747
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o747
+
 # Check for default value of COBALT_HOSTNAME. If this is not set to something else then we could be on Read The Docs
 # Read the Docs will fail writing to the log file
 if COBALT_HOSTNAME == "127.0.0.1:8000":

@@ -56,6 +56,6 @@ echo 'EFS mount complete.'
 # instances. There is no access to the directories from elsewhere
 # and the data is not critical so open to everyone.
 echo 'Setting Permissions'
-chmod -R 777 /cobalt-media/*
+chmod 777 /cobalt-media/*
 
 exit 0
