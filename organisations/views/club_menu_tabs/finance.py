@@ -1,9 +1,12 @@
-from django.db.models import Sum
+from itertools import chain
+
+from django.db.models import Sum, Min
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
 from accounts.models import User
+from club_sessions.models import Session
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS
 from notifications.notifications_views.core import send_cobalt_email_to_system_number
 from organisations.decorators import check_club_menu_access
@@ -60,11 +63,22 @@ def get_org_balance_htmx(request, club):
 def transactions_htmx(request, club):
     """handle the transaction listing part of the finance tab"""
 
-    transactions = OrganisationTransaction.objects.filter(organisation=club).order_by(
-        "-pk"
-    )
+    summarise = request.POST.get("summarise")
+    if not summarise:
+        summarise = request.GET.get("summarise")
 
-    things = cobalt_paginator(request, transactions)
+    # Set htmx paginate value too
+    searchparams = f"summarise={summarise}&"
+
+    # We want to summarise sessions if requested
+    if not summarise:
+        transactions = OrganisationTransaction.objects.filter(
+            organisation=club
+        ).order_by("-pk")
+        things = cobalt_paginator(request, transactions)
+
+    else:
+        things = _transactions_with_sessions(request, club)
 
     hx_post = reverse("organisations:transactions_htmx")
     hx_target = "#id_finance_transactions"
@@ -78,9 +92,76 @@ def transactions_htmx(request, club):
             "things": things,
             "hx_post": hx_post,
             "hx_target": hx_target,
-            "hx-vars": hx_vars,
+            "hx_vars": hx_vars,
+            "searchparams": searchparams,
+            "summarise": summarise,
         },
     )
+
+
+def _transactions_with_sessions(request, club):
+    """handle mixing summary lines for sessions with general transactions. Instead of a line for each user, we want
+    to have a summary of the session
+    """
+
+    # First get transactions without sections and create this page
+    no_session_transactions = OrganisationTransaction.objects.filter(
+        organisation=club, club_session_id=None
+    ).order_by("-pk")
+    no_session_things = cobalt_paginator(request, no_session_transactions)
+
+    # Now get the session transactions on their own and paginate
+    session_transactions = (
+        OrganisationTransaction.objects.filter(organisation=club)
+        .exclude(club_session_id=None)
+        .order_by("-club_session_id")
+        .values("description", "club_session_id")
+        .annotate(amount=Sum("amount"))
+        .annotate(created_date=Min("created_date"))
+    )
+    session_things = cobalt_paginator(request, session_transactions)
+
+    # Now we need to combine two quite different things with common fields
+
+    # start with no_session_things
+    things = [
+        {
+            "pk": no_session_thing.pk,
+            "id": no_session_thing.pk,
+            "created_date": no_session_thing.created_date,
+            "description": no_session_thing.description,
+            "member": no_session_thing.member,
+            "other_organisation": no_session_thing.other_organisation,
+            "amount": no_session_thing.amount,
+            "balance": no_session_thing.balance,
+        }
+        for no_session_thing in no_session_things
+    ]
+
+    # add in session details
+    for session_thing in session_things:
+        thing = {
+            "description": session_thing["description"],
+            "amount": session_thing["amount"],
+            "created_date": session_thing["created_date"],
+            "member": "--Session--",
+            "club_session_id": session_thing["club_session_id"],
+        }
+        things.append(thing)
+
+    # Sort by date
+    things.sort(key=lambda x: x["created_date"], reverse=True)
+
+    # Now we want to change it to a paginating object again
+    page_things = cobalt_paginator(request, things)
+
+    # TODO: Check if this actually works
+    page_things.has_previous = (
+        no_session_things.has_previous or session_things.has_previous
+    )
+    page_things.has_next = no_session_things.has_next or session_things.has_next
+
+    return page_things
 
 
 @check_club_menu_access(check_payments=True)
@@ -309,4 +390,27 @@ def transaction_details_htmx(request, club):
         request,
         "organisations/club_menu/finance/transaction_detail_htmx.html",
         {"club": club, "trans": trans},
+    )
+
+
+@check_club_menu_access(check_payments=True)
+def transaction_session_details_htmx(request, club):
+    """return details of a session"""
+
+    club_session = get_object_or_404(Session, pk=request.POST.get("club_session_id"))
+    session_transactions = OrganisationTransaction.objects.filter(
+        organisation=club, club_session_id=club_session.id
+    )
+    # trans = get_object_or_404(OrganisationTransaction, pk=request.POST.get("trans_id"))
+    # if trans.organisation != club:
+    #     return HttpResponse("Transaction does not belong to this club")
+
+    return render(
+        request,
+        "organisations/club_menu/finance/transaction_session_detail_htmx.html",
+        {
+            "club": club,
+            "club_session": club_session,
+            "session_transactions": session_transactions,
+        },
     )

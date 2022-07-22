@@ -169,7 +169,12 @@ def cobalt_currency(dollars):
 @register.filter(name="cobalt_currency_colour", is_safe=True)
 def cobalt_currency_colour(dollars):
     """Return number formatted as currency with bootstrap colours"""
-    dollars = round(float(dollars), 2)
+
+    try:
+        dollars = round(float(dollars), 2)
+    except ValueError:
+        return dollars
+
     if dollars < 0:
         open_span = "<span class='text-danger'>"
         close_span = "</span>"

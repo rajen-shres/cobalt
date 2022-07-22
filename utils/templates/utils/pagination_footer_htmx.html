@@ -8,7 +8,7 @@
 
             <li class="page-item">
                 <a class="page-link"
-                    hx-post="{{ hx_post }}?page={{ things.previous_page_number }}"
+                    hx-post="{{ hx_post }}?{{ searchparams }}page={{ things.previous_page_number }}"
                     hx-vars="{{ hx_vars }}"
                     hx-target="{{ hx_target }}"
                     style="cursor: pointer"
@@ -31,7 +31,7 @@
             {% elif num > things.number|add:'-3' and num < things.number|add:'3' %}
                 <li class="page-item">
                     <a class="page-link"
-                        hx-post="{{ hx_post }}?page={{ num }}"
+                        hx-post="{{ hx_post }}?{{ searchparams }}page={{ num }}"
                         hx-vars="{{ hx_vars }}"
                         hx-target="{{ hx_target }}"
                         style="cursor: pointer"
@@ -50,7 +50,7 @@
         {% if things.has_next %}
             <li class="page-item">
                 <a class="page-link"
-                    hx-post="{{ hx_post }}?page={{ things.next_page_number }}"
+                    hx-post="{{ hx_post }}?{{ searchparams }}page={{ things.next_page_number }}"
                     hx-vars="{{ hx_vars }}"
                     hx-target="{{ hx_target }}"
                     style="cursor: pointer"

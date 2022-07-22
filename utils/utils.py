@@ -1,10 +1,17 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import decimal
 
+from django.http import HttpRequest
+
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL
 
 
-def cobalt_paginator(request, events_list, items_per_page=30, page_no=None):
+def cobalt_paginator(
+    request: HttpRequest,
+    events_list: list,
+    items_per_page: int = 30,
+    page_no: int = None,
+) -> Paginator.page:
     """common pagination function
 
     Args:

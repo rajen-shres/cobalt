@@ -6,12 +6,30 @@
 {#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 
-<!-- CARD FOr TRANSACTIONS -->
+<!-- CARD FOR TRANSACTIONS -->
 <div class="card">
 
     <!-- CARD HEADER -->
     <div class="card-header card-header-info">
         <h2>Transactions</h2>
+
+        <label class="form-check-label text-white mx-5">
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="summarise"
+                id="id_summarise"
+                {% if summarise %}checked="Checked"{% endif %}
+                hx-target="#id_finance_transactions"
+                hx-trigger="change"
+                hx-post="{% url "organisations:transactions_htmx" %}"
+                hx-vars="club_id: {{ club.id }}"
+            >
+            Summarise Sessions
+            <span class="form-check-sign">
+                <span class="check"></span>
+            </span>
+        </label>
     </div>
 
     <!-- CARD BODY -->
@@ -31,25 +49,47 @@
                 </thead>
                 <tbody>
                     {% for thing in things %}
-                        <tr
-                            _="on click put '' into .trans_detail_class"
-                            hx-post="{% url "organisations:transaction_details_htmx" %}"
-                            hx-vars="club_id:{{ club.id }}, trans_id:{{ thing.id }}"
-                            hx-target="#trans_dets_{{ thing.id }}"
-                            {#                            style="font-size: larger"#}
-                        >
-                            <td><i class="material-icons text-primary">info</i></td>
-                            <td class="text-left cobalt-no-wrap">{{ thing.created_date|cobalt_nice_datetime_short }}</td>
-                            <td class="text-left">{{ thing.description }}</td>
-                            <td class="text-left">{{ thing.member|default_if_none:thing.other_organisation|default_if_none:"" }}</td>
-                            <td class="text-right font-weight-bold">{{ thing.amount|cobalt_currency_colour }}</td>
-                            <td class="text-right">{{ thing.balance|cobalt_currency_colour }}</td>
-                        </tr>
-                        <tr class="trans_detail_class" id="trans_dets_{{ thing.id }}"
-                            _="on click put '' into me"
-                        >
 
+                        {% if thing.pk %}
+                            <!-- DETAILS FOR TRANSACTIONS -->
+                            <tr
+                                _="on click put '' into .trans_detail_class"
+                                hx-post="{% url "organisations:transaction_details_htmx" %}"
+                                hx-vars="club_id:{{ club.id }}, trans_id:{{ thing.id }}"
+                                hx-target="#trans_dets_{{ thing.id }}"
+                            >
+                        {% else %}
+                            <!-- DETAILS FOR SESSIONS -->
+                            <tr
+                                _="on click put '' into .trans_detail_class"
+                                hx-post="{% url "organisations:transaction_session_details_htmx" %}"
+                                hx-vars="club_id:{{ club.id }}, club_session_id:{{ thing.club_session_id }}"
+                                hx-target="#session_dets_{{ thing.club_session_id }}"
+                            >
+                        {% endif %}
+
+                        <td><i class="material-icons text-primary">info</i></td>
+                        <td class="text-left cobalt-no-wrap">{{ thing.created_date|cobalt_nice_datetime_short }}</td>
+                        <td class="text-left">{{ thing.description }}</td>
+                        <td class="text-left">{{ thing.member|default_if_none:"" }}{{ thing.other_organisation|default_if_none:"" }}</td>
+                        <td class="text-right font-weight-bold">{{ thing.amount|cobalt_currency_colour }}</td>
+                        <td class="text-right">{{ thing.balance|cobalt_currency_colour }}</td>
                         </tr>
+
+                        <!-- HIDDEN ROW FOR DETAILS WHEN CLICKED ON -->
+                        {% if thing.pk %}
+                            <tr class="trans_detail_class" id="trans_dets_{{ thing.id }}"
+                                _="on click put '' into me"
+                            >
+                            </tr>
+                        {% else %}
+                            <tr class="trans_detail_class" id="session_dets_{{ thing.club_session_id }}"
+                                _="on click put '' into me"
+                            >
+                            </tr>
+                        {% endif %}
+
+
                     {% endfor %}
                 </tbody>
             </table>

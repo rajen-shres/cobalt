@@ -1,0 +1,58 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Show the details row for a single session                              #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load humanize %}
+{% load cobalt_tags %}
+
+<!-- THIS GETS INSERTED INTO A TR -->
+
+<td></td>
+<td colspan="4">
+
+    <div class="card col-lg-7 mx-lg-auto">
+
+        <div class="card-header card-header-rose">
+
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h3><i class="material-icons">info</i> Session Details</h3>
+                </div>
+                <div>
+                    <span class="align-left text-white"
+                        _="on click put '' into #session_dets_{{ club_session.id }}"
+                        style="cursor: pointer"
+                    ><i class="material-icons">close</i></span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <a target="_blank" href="{% url "club_sessions:manage_session" session_id=club_session.id %}" class="btn btn-sm btn-success">Open Session</a>
+
+            <div class="table-responsive">
+                <table class="table table-condensed">
+                    <thead>
+                        <tr>
+                            <th class="text-left text-primary">Player</th>
+                            <th class="text-right text-primary">Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session_transaction in session_transactions %}
+                            <tr>
+                                <td class="text-left">{{ session_transaction.member }}</td>
+                                <td class="text-right">{{ session_transaction.amount|cobalt_currency_colour }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</td>
