@@ -1790,7 +1790,7 @@ module.exports = function(XRegExp) {
     'use strict';
 
     /**
-     * Adds support for Unicode's home categories. E.g., `\p{Lu}` or `\p{Uppercase Letter}`. See
+     * Adds support for Unicode's general categories. E.g., `\p{Lu}` or `\p{Uppercase Letter}`. See
      * category descriptions in UAX #44 <http://unicode.org/reports/tr44/#GC_Values_Table>. Token
      * names are case insensitive, and any spaces, hyphens, and underscores are ignored.
      *
@@ -2056,7 +2056,7 @@ module.exports = function(XRegExp) {
      *   programming languages as "white space" for the purpose of parsing elements.
      *
      * The properties ASCII, Any, and Assigned are also included but are not defined in UAX #44. UTS
-     * #18 RL1.2 additionally requires support for Unicode scripts and home categories. These are
+     * #18 RL1.2 additionally requires support for Unicode scripts and general categories. These are
      * included in XRegExp's Unicode Categories and Unicode Scripts addons.
      *
      * Token names are case insensitive, and any spaces, hyphens, and underscores are ignored.
