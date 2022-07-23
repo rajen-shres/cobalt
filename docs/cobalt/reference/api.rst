@@ -11,7 +11,7 @@
 :doc:`../how_to/using_references`
 
 ######################
-API Application (edit)
+API Application
 ######################
 
 .. note::

@@ -86,6 +86,7 @@ Content
         **Reference - General**
 
         - :doc:`cobalt/reference/cobalt_in_two_minutes`
+        - :doc:`cobalt/reference/common_apis`
         - :doc:`cobalt/reference/test_data`
         - :doc:`cobalt/reference/snippets`
         - :doc:`cobalt/reference/environment_variables`

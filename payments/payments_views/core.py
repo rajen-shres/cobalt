@@ -52,10 +52,7 @@ from cobalt.settings import (
     TIME_ZONE,
     GLOBAL_MPSERVER,
 )
-from events.events_views.core import (
-    events_payments_primary_callback,
-    events_payments_secondary_callback,
-)
+import events.events_views.core as events_core
 from logs.views import log_event
 from notifications.notifications_views.core import contact_member
 from payments.models import (
@@ -726,11 +723,11 @@ def callback_router(
 
     # Payments made by the main entrant to an event
     if route_code == "EVT":
-        events_payments_primary_callback(status, route_payload)
+        events_core.events_payments_primary_callback(status, route_payload)
 
     # Payments made by other entrants to an event
     elif route_code == "EV2":
-        events_payments_secondary_callback(status, route_payload)
+        events_core.events_payments_secondary_callback(status, route_payload)
 
     # Member to member transfers - we also pass the Stripe transaction
     elif route_code == "M2M":

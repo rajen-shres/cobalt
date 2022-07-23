@@ -8,6 +8,8 @@ Subpackages
    :maxdepth: 4
 
    tests.integration
+   tests.management
+   tests.unit
 
 Submodules
 ----------

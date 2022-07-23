@@ -1,6 +1,14 @@
 results package
 ===============
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   results.views
+
 Submodules
 ----------
 

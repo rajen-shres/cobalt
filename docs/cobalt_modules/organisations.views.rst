@@ -1,6 +1,14 @@
 organisations.views package
 ===========================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   organisations.views.club_menu_tabs
+
 Submodules
 ----------
 

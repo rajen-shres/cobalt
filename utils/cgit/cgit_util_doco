@@ -15,11 +15,14 @@ rm docs/cobalt_modules/*
 echo "Changed made here will be lost the next time cgit_doco is run" > docs/cobalt_modules/_DO_NOT_EDIT_THESE_FILES
 
 # Get directories but exclude ones that aren't apps
-APPS=$(ls -d */ | grep -v 'htmlcov|static|media' | tr -d "/")
+APPS=$(ls -d */ | grep -v 'htmlcov|static|media|docs' | tr -d "/")
 
 for APP in $APPS
 do
+  echo "processing $APP..."
   sphinx-apidoc -o docs/cobalt_modules $APP */migrations/*
-  # We don't use the modules.rst file, but it doesn't seem that you can suppress it.
-  rm docs/cobalt_modules/modules.rst
 done
+
+# We don't use the modules.rst or conf.rst file, but it doesn't seem that you can suppress it.
+rm docs/cobalt_modules/modules.rst
+rm docs/cobalt_modules/conf.rst

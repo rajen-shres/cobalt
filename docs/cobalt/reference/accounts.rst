@@ -41,12 +41,40 @@ We are in the process of moving some of the less commonly used attributes from
 ``accounts.models.User`` into ``accounts.models.UserAdditionalInfo`` so you may need
 to load this for some fields.
 
+.. _accounts_apis_label:
+
 APIs
 ====
 
-:func:`rbac.core.rbac_user_has_role`
+Get User Details
+----------------
+:func:`~accounts.accounts_views.core.get_user_or_unregistered_user_from_system_number`
+    You can get a user (`User` or `UnregisteredUser`) from the system_number without needing to know the type of user.
 
-:func:`accounts.accounts_views.core.get_user_or_unregistered_user_from_system_number`
+.. code-block::
+
+    from accounts.accounts_views.core import get_user_or_unregistered_user_from_system_number
+
+    >>> alan = get_user_or_unregistered_user_from_system_number(100)
+    >>> alan
+    <User: Alan Admin (ABF: 100)>
+
+    >>> anna = get_user_or_unregistered_user_from_system_number(65234)
+    >>> anna
+    <UnregisteredUser: Anna Albatross (ABF: 65234)>
+
+Get Email Address
+-----------------
+:func:`~accounts.accounts_views.core.get_email_address_and_name_from_system_number`
+    Get the best email address for a user. For an Unregistered user it will return the club specific email
+    if one is set.
+
+.. code-block::
+
+    from accounts.accounts_views.core import get_email_address_and_name_from_system_number
+
+    >>> get_email_address_and_name_from_system_number(100, my_club)
+    ('a@b.com', 'Alan')
 
 Reserved Users
 ==============

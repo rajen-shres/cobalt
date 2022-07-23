@@ -18,9 +18,9 @@ Payments Application
     This page has the documentation on how to use this application (externally provided APIs etc). If you are looking for
     information on how it works internally, you can find that in :doc:`./payments_support`.
 
---------------
+**************
 Module Purpose
---------------
+**************
 
 Payments handles anything related to money within Cobalt. It is used by the
 other modules to facilitate and track payments and as such is primarily an
@@ -33,6 +33,12 @@ supporting multiple payment engines is an administrative nightmare for payment s
 so it is assumed that only one payment gateway will every be used. If a second is
 required then the code will need to be refactored to include this abstraction.
 
+.. _payments_apis_label:
+
+********
+APIs
+********
+
 ------------
 User Actions
 ------------
@@ -41,7 +47,7 @@ This section has functions related to user payments.
 Get a User's Balance
 ====================
 
-:func:`payments.payments_views.core.get_balance`
+:func:`~payments.payments_views.core.get_balance`
 
 .. code-block::
 
@@ -53,7 +59,7 @@ Get a User's Balance
 Get a User's Balance and Last Top Up Date
 =========================================
 
-:func:`payments.payments_views.core.get_balance_detail`
+:func:`~payments.payments_views.core.get_balance_detail`
 
 .. code-block::
 
@@ -67,11 +73,10 @@ Get a User's Balance and Last Top Up Date
 Update a User's Account
 =======================
 
-You cannot directly change a user's balance except by applying a transaction to their account.
-Transactions should have either Stripe, a user or an organisation as the counterparty.
+:func:`~payments.payments_views.core.update_account`
+    You cannot directly change a user's balance except by applying a transaction to their account.
+    Transactions should have either Stripe, a user or an organisation as the counterparty.
 
-
-:func:`payments.payments_views.core.update_account`
 
 .. code-block::
 
@@ -82,16 +87,16 @@ Transactions should have either Stripe, a user or an organisation as the counter
 Attempt A Payment for a Logged in User
 ======================================
 
-When you have a user trying to do something that involves a payment, you can call ``payment_api_interactive``
-to make the payment attempt. If the user has sufficient funds then the payment will be processed and you
-can optionally receive a callback (for success or failure). If the user doesn't have sufficient funds but is
-set up for auto top up, then that will be attempted next. Finally, if auto top up is not setup or fails,
-the user will be taken to the manual top up screen to make a credit card payment.
+:func:`~payments.payments_views.payments_api.payment_api_interactive`
+    When you have a user trying to do something that involves a payment, you can call ``payment_api_interactive``
+    to make the payment attempt. If the user has sufficient funds then the payment will be processed and you
+    can optionally receive a callback (for success or failure). If the user doesn't have sufficient funds but is
+    set up for auto top up, then that will be attempted next. Finally, if auto top up is not setup or fails,
+    the user will be taken to the manual top up screen to make a credit card payment.
 
-Note: callbacks are currently hardcoded. to add a new callback you need to
-update :func:`payments.payments_views.core.callback_router`.
+    Note: callbacks are currently hardcoded. to add a new callback you need to
+    update :func:`payments.payments_views.core.callback_router`.
 
-:func:`payments.payments_views.payments_api.payment_api_interactive`
 
 .. code-block::
 
@@ -119,9 +124,8 @@ Whenever you use ``payment_api_interactive`` there will be a user on the end of 
 Attempt A Payment for a User Who is Not Logged In
 =================================================
 
-If the user you are making this payment for is not attached to this session, you can use this function instead.
-
-:func:`payments.payments_views.payments_api.payment_api_batch`
+:func:`~payments.payments_views.payments_api.payment_api_batch`
+    If the user you are making this payment for is not attached to this session, you can use this function instead.
 
 .. code-block::
 
@@ -147,7 +151,7 @@ This section has functions related to organisation payments.
 Get an Organisation's Balance
 =============================
 
-:func:`payments.payments_views.core.org_balance`
+:func:`~payments.payments_views.core.org_balance`
 
 .. code-block::
 
@@ -159,11 +163,9 @@ Get an Organisation's Balance
 Update an Organisation's Account
 =================================
 
-To update an organisations account, you can use ``update_organisation``.
-Transactions should have either Stripe, a user or another organisation as the counterparty.
-
-
-:func:`payments.payments_views.core.update_organisation`
+:func:`~payments.payments_views.core.update_organisation`
+    To update an organisations account, you can use ``update_organisation``.
+    Transactions should have either Stripe, a user or another organisation as the counterparty.
 
 .. code-block::
 

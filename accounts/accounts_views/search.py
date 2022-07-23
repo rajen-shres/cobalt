@@ -26,11 +26,11 @@ def member_search_ajax(request):
     Args:
         lastname - partial lastname to search for. Wild cards the ending.
         firstname - partial firstname to search for. Wild cards the ending.
-        search_id - used if page has multiple user searches. We just pass this
-        through. Optional.
+        search_id - used if page has multiple user searches. We just pass this through. Optional.
 
     Returns:
         HttpResponse - either a message or a list of users in HTML format.
+
     """
 
     msg = ""
@@ -141,17 +141,22 @@ def member_search_htmx(request):
     the users name and a button to search again. Alternatively, a callback can be provided which will be called
     if/when a user is selected.
 
-    All parameters are passed through in the request:
+    All parameters are passed through in the request.
 
     search_id:     optional identifier, required if there are multiple user searches on same page, must be unique
                    but can be anything. Gets appended to any DOM objects that should be unique on the page. This is
                    also used as the prefix for the final user_id field if user_id_field is not specified.
+
     user_id_field: Optional. At the end, if we find a matching user we will create an element for the user_id and
                    an element for the user name to display. The user_id_field will be used as the name of the
                    user_id input. If not specified then member{search_id} is used.
+
     include_me:    Flag to include the logged in user in the search. Default is no.
+
     callback:      Optional. If provided then this will be called when a member is picked.
+
     unregistered:  Optional. If provided then we search for UnregisteredUsers instead of Users.
+
     """
     # Get parameters
     search_id = request.POST.get("search_id", "")

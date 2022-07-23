@@ -7,6 +7,8 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   utils.cgit
+   utils.management
    utils.templatetags
 
 Submodules

@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   accounts.accounts_views
    accounts.tests
 
 Submodules

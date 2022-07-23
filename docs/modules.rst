@@ -7,7 +7,6 @@
    cobalt_modules/accounts
    cobalt_modules/calendar_app
    cobalt_modules/cobalt
-   cobalt_modules/conf
    cobalt_modules/club_sessions
    cobalt_modules/dashboard
    cobalt_modules/events

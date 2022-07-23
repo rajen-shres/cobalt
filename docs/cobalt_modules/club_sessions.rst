@@ -1,6 +1,14 @@
 club\_sessions package
 ======================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   club_sessions.club_sessions_views
+
 Submodules
 ----------
 

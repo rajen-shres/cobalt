@@ -1,14 +1,6 @@
 notifications.tests package
 ===========================
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   notifications.tests.integration
-
 Submodules
 ----------
 

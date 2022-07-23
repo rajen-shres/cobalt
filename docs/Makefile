@@ -1,6 +1,12 @@
 # Minimal makefile for Sphinx documentation
 #
 
+$(info ********************************************************************)
+$(info * You can run cgit_util_doco any time to rebuilt included modules  *)
+$(info * You also need to update docs/modules.rst                         *)
+$(info * Ensure you have a __init__.py in any directory you want included *)
+$(info ********************************************************************)
+
 # You can set these variables from the command line, and also
 # from the environment for the first two.
 SPHINXOPTS    ?=
