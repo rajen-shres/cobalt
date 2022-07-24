@@ -482,7 +482,7 @@ def un_reg_edit_htmx(request, club):
         )
 
         # Set initial values for membership form
-        club_membership_form.initial["home_club"] = membership.home_club
+        #        club_membership_form.initial["home_club"] = membership.home_club
         club_membership_form.initial["membership_type"] = membership.membership_type_id
 
         # Set initial value for email if record exists
