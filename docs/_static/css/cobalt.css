@@ -8,7 +8,7 @@
 /* CSS for the 4 boxes on the index page */
 
 div.tutorials {
-    width: 50%;
+    width: 45%;
     height: 400px;
     float: left;
     background: #f6f6f6;
@@ -17,15 +17,15 @@ div.tutorials {
 
 div.howto {
     border: 10px;
-    width: 50%;
+    width: 45%;
     height: 400px;
     margin: 5px 5px 5px 60%;
     background: #f1f1f1;
 }
 
 div.discussions {
-    width: 50%;
-    height: 550px;
+    width: 45%;
+    height: 600px;
     float: left;
     background: #ededed;
     margin: 0px 5px 5px 0px;
@@ -33,8 +33,8 @@ div.discussions {
 
 div.reference {
     border: 10px;
-    height: 550px;
-    width: 50%;
+    height: 600px;
+    width: 45%;
     margin: 40px 5px 5px 60%;
     background: #e8e8e8;
 }
