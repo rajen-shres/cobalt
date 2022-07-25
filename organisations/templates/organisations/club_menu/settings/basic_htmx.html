@@ -5,10 +5,11 @@
 {# Edits the Organisation object through a form                           #}
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
-{% load crispy_forms_filters %}
 {% load cobalt_tags %}
 
 <div id="id_settings_form">
+
+
 
     <div class="card">
         <div class="card-header card-header-info">
@@ -32,6 +33,31 @@
             {% endif %}
 
             <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
+
+            <div class="row">
+
+                <!--SECRETARY -->
+
+                <div class="col-md-6">
+                    <div class="form-group">
+
+                        <b>Club Secretary: </b><span class="font-weight-bold" id="club_secretary_dummy_name">{{ secretary_name|default_if_none:"Not Set" }}</span>
+
+                        <span class="cobalt-form-error">{{ org_form.secretary.errors }}</span>
+
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+
+                    <!-- THIS NEEDS TO BE OUTSIDE THE FORM OR NOTHING WORKS -->
+
+                    {% include "accounts/search/user_search_include_htmx.html" with search_id="fish" include_me=True callback="ChangeSec" %}
+                    <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#userSearchModalfish">Edit</button>
+
+                </div>
+            </div>
+
             <form
                 hx-post="{% url "organisations:club_menu_tab_settings_basic_htmx" %}"
                 hx-target="#id_settings_form"
@@ -39,16 +65,8 @@
                 <div class="row">
 
                     <!--SECRETARY -->
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <b>Club Secretary: </b><span class="font-weight-bold" id="club_secretary_dummy_name">{{ secretary_name|default_if_none:"Not Set" }}</span>
 
-                            <input type="hidden" id="id_secretary" name="secretary" value="{{ secretary_id|default_if_none:"" }}">
-
-                            <span class="cobalt-form-error">{{ org_form.secretary.errors }}</span>
-                            <button id="id_search_button" type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#userSearchModal11">Edit</button>
-                        </div>
-                    </div>
+                    <input type="hidden" id="id_secretary" name="secretary" value="{{ secretary_id|default_if_none:"" }}">
 
                     <!--STATE (HIDDEN) -->
                     <div class="col-md-3">
@@ -237,19 +255,33 @@
                 </div>
 
                 <div class="pt-5">
-                    <button type="submit" name="Save" class="cobalt-save btn btn-success">Save</button>
+                    <button
+                        type="submit"
+                        name="Save"
+                        class="btn btn-success"
+                    >Save</button>
                     <button class="btn btn-info" type=""reset">Reset</button>
                 </div>
             </form>
             <div class="font-italic small">last updated {{ club.last_updated|cobalt_nice_datetime }} by {{ club.last_updated_by.full_name }}</div>
         </div>
     </div>
+
+    {#{% include "accounts/search/user_search_include_htmx.html" with search_id="fish" include_me=True callback="ChangeSec" %}#}
+
     <script>
 
+        function ChangeSec(search_id, member_id, member_name) {
+            console.log("yup");
+            $('#id_secretary').val(member_id);
+            $('#club_secretary_dummy_name').text(member_name);
+
+        }
+
         // Hide the message if the form changes so it is obvious when it comes back again after submission. HTMX is too smooth!
-        $(document).ready(function () {
-            $("input[type='text']").keyup( function() {
-                $('#settings_message').text("");
-            });
-        });
+        {#$(document).ready(function () {#}
+        {#    $("input[type='text']").keyup( function() {#}
+        {#        $('#settings_message').text("");#}
+        {#    });#}
+        {#});#}
     </script>
