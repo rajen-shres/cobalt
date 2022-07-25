@@ -67,9 +67,18 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
     """build the members tab in club menu"""
     from organisations.views.club_menu_tabs.utils import get_members_for_club
 
-    members = get_members_for_club(club)
+    # get sort options, could be POST or GET
+    sort_option = request.GET.get("sort_by")
+    if not sort_option:
+        sort_option = request.POST.get("sort_by", "first_desc")
 
+    print(sort_option)
+
+    members = get_members_for_club(club, sort_option=sort_option)
+
+    # pagination and params
     things = cobalt_paginator(request, members)
+    searchparams = f"sort_by={sort_option}&"
 
     total_members = len(members)
 
@@ -91,6 +100,8 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
             "member_admin": member_admin,
             "has_errors": has_errors,
             "hx_post": hx_post,
+            "searchparams": searchparams,
+            "sort_option": sort_option,
         },
     )
 
@@ -483,7 +494,10 @@ def un_reg_edit_htmx(request, club):
 
         # Set initial values for membership form
         #        club_membership_form.initial["home_club"] = membership.home_club
-        club_membership_form.initial["membership_type"] = membership.membership_type_id
+        if membership:
+            club_membership_form.initial[
+                "membership_type"
+            ] = membership.membership_type_id
 
         # Set initial value for email if record exists
         if club_email_entry:

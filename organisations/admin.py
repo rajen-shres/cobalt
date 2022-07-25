@@ -49,6 +49,8 @@ class MemberMembershipTypeAdmin(admin.ModelAdmin):
         "last_modified_by",
     ]
 
+    search_fields = ["system_number"]
+
 
 class ClubLogAdmin(admin.ModelAdmin):
     """Admin class for model ClubLog"""

@@ -194,7 +194,7 @@ def invite_user_to_join_htmx(request, club):
     return list_htmx(request, message=f"Invite sent to {un_reg.full_name}")
 
 
-def get_members_for_club(club):
+def get_members_for_club(club, sort_option="first_desc"):
     """Gets all of the members and unregistered users for a club"""
 
     # Get System Numbers for All Members
@@ -206,10 +206,14 @@ def get_members_for_club(club):
         .values("system_number")
     )
 
-    return get_club_members_from_system_number_list(club_system_numbers, club)
+    return get_club_members_from_system_number_list(
+        club_system_numbers, club, sort_option=sort_option
+    )
 
 
-def get_club_members_from_system_number_list(system_numbers, club):
+def get_club_members_from_system_number_list(
+    system_numbers, club, sort_option="first_desc"
+):
     """Takes a list of system numbers and returns the members for a given club"""
 
     # Get real members
@@ -235,6 +239,14 @@ def get_club_members_from_system_number_list(system_numbers, club):
 
     combined_list = list(combined_set)
 
-    combined_list.sort(key=lambda x: x.first_name)
+    # sort
+    if sort_option == "first_desc":
+        combined_list.sort(key=lambda x: x.first_name)
+    elif sort_option == "first_asc":
+        combined_list.sort(key=lambda x: x.first_name, reverse=True)
+    elif sort_option == "last_desc":
+        combined_list.sort(key=lambda x: x.last_name)
+    elif sort_option == "last_asc":
+        combined_list.sort(key=lambda x: x.last_name, reverse=True)
 
     return combined_list
