@@ -378,6 +378,8 @@ user more access than they already have. The roles such as *forums.forum* are
 the ones that need education so that admins at this level give admin rights to
 specific forums for other users and not global admin rights.
 
+.. _rbac_apis_label:
+
 API Functions
 =============
 
