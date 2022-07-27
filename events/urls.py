@@ -514,4 +514,9 @@ urlpatterns = [
         events.events_views.global_admin.global_admin_view_player_entries,
         name="global_admin_view_player_entries",
     ),
+    path(
+        "system-admin/global-admin-event-payment-health-report",
+        events.events_views.global_admin.global_admin_event_payment_health_report,
+        name="global_admin_event_payment_health_report",
+    ),
 ]

@@ -4,8 +4,15 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 
 from accounts.models import User
+from events.events_views.core import events_status_summary
 from events.forms import CongressMasterForm
-from events.models import CongressMaster, BasketItem, EventEntry
+from events.models import (
+    CongressMaster,
+    BasketItem,
+    EventEntry,
+    EventEntryPlayer,
+    Session,
+)
 from masterpoints.views import user_summary
 from rbac.core import (
     rbac_user_has_role,
@@ -150,5 +157,52 @@ def global_admin_view_player_entries(request, member_id):
             "basket_items_this": basket_items,
             "event_entries": event_entries,
             "show_all": show_all,
+        },
+    )
+
+
+@rbac_check_role("events.global.view")
+def global_admin_event_payment_health_report(request):
+    """Shows a basic health report across all events"""
+
+    # Events summary
+    events = events_status_summary()
+
+    # basket items with paid entries - should never happen
+    event_entries = EventEntry.objects.filter(
+        evententryplayer__payment_status="Paid"
+    ).values("id")
+
+    basket_items_with_paid_entries = BasketItem.objects.filter(
+        event_entry__in=event_entries
+    )
+
+    # Started Congresses with pending bridge credits
+
+    old_bridge_credit_entries = (
+        EventEntryPlayer.objects.filter(
+            event_entry__event__congress__start_date__gte=timezone.now()
+        )
+        .filter(payment_type="my-system-dollars")
+        .exclude(payment_status__in=["Paid", "Free"])
+        .select_related("event_entry__event")
+    )
+
+    # Finished Congresses with pending bridge credits
+    very_old_bridge_credit_entries = [
+        old_bridge_credit_entry
+        for old_bridge_credit_entry in old_bridge_credit_entries
+        if old_bridge_credit_entry.event_entry.event.congress.end_date
+        > timezone.now().date()
+    ]
+
+    return render(
+        request,
+        "events/global_admin/global_admin_event_payment_health_report.html",
+        {
+            "events": events,
+            "basket_items_with_paid_entries": basket_items_with_paid_entries,
+            "old_bridge_credit_entries": old_bridge_credit_entries,
+            "very_old_bridge_credit_entries": very_old_bridge_credit_entries,
         },
     )
