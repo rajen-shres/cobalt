@@ -53,12 +53,12 @@
 
         {% if allow_delete %}
 
-        {% include "utils/htmx_confirm_modal.html" with id=session_type.id delete_item=session_type.name hx_vars=hx_vars hx_target="#id_settings_form" hx_post=hx_post %}
-        <button id="t_delete_session_type_{{ session_type.id }}" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal{{ session_type.id }}">
-            Delete Session Type
-        </button>
+            {% include "utils/htmx_confirm_modal.html" with id=session_type.id delete_item=session_type.name hx_vars=hx_vars hx_target="#id_panel_settings" hx_post=hx_post %}
+            <button id="t_delete_session_type_{{ session_type.id }}" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal{{ session_type.id }}">
+                Delete Session Type
+            </button>
 
-            {% else %}
+        {% else %}
             <p class="font-italic">This is your only session and cannot be deleted.</p>
         {% endif %}
 
