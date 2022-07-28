@@ -16,37 +16,46 @@ from results.views.usebio import (
 logger = logging.getLogger("cobalt")
 
 
-@check_club_menu_access(check_sessions=True)
-def upload_results_file_htmx(request, club):
-    """Upload a new email attachment for a club
-    Use the HTMX hx-trigger response header to tell the browser about it
-    """
+def upload_results_file_valid(request, form, club):
+    """sub of upload_results_file_htmx. This is separated out so the tests can call it directly"""
 
-    form = ResultsFileForm(request.POST, request.FILES)
-    if form.is_valid():
-        results_file = form.save(commit=False)
+    results_file = form.save(commit=False)
 
-        # Add data
-        results_file.organisation = club
-        results_file.uploaded_by = request.user
-        results_file.save()
+    # Add data
+    results_file.organisation = club
+    results_file.uploaded_by = request.user
+    results_file.save()
 
-        # Try to parse the file
-        try:
-            usebio = parse_usebio_file(results_file)
+    # Try to parse the file
+    try:
+        usebio = parse_usebio_file(results_file)
 
-        except xml.parsers.expat.ExpatError:
-            results_file.delete()
-            logger.error(f"Invalid file format - user: {request.user}")
-            return tab_results_htmx(request, message="Invalid file format")
+    except xml.parsers.expat.ExpatError:
+        results_file.delete()
+        logger.error(f"Invalid file format - user: {request.user}")
+        return tab_results_htmx(request, message="Invalid file format")
 
-        results_file.description = usebio.get("EVENT").get("EVENT_DESCRIPTION")
-        results_file.save()
+    results_file.description = usebio.get("EVENT").get("EVENT_DESCRIPTION")
+    results_file.save()
 
-        # Create the player records so people know the results are there
-        create_player_records_from_usebio_format_pairs(results_file, usebio)
+    # Create the player records so people know the results are there
+    create_player_records_from_usebio_format_pairs(results_file, usebio)
 
     return tab_results_htmx(request, message="New results successfully uploaded")
+
+
+@check_club_menu_access(check_sessions=True)
+def upload_results_file_htmx(request, club):
+    """Upload a new results file"""
+
+    # form = ResultsFileForm(request.POST, request.FILES)
+
+    file = "/Users/guthrie/in.xml"
+    form = ResultsFileForm(request.POST, {"results_file": open(file).read()})
+
+    if form.is_valid():
+        return upload_results_file_valid(request, form, club)
+    return tab_results_htmx(request, message="Invalid data provided")
 
 
 @check_club_menu_access(check_sessions=True)
