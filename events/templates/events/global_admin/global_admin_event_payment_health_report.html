@@ -59,6 +59,7 @@
                             <thead class="text-primary">
                                 <tr>
                                     <th class="text-left">Created Date</th>
+                                    <th class="text-left">id</th>
                                     <th class="text-left">Player</th>
                                     <th class="text-left">Event</th>
                                     <th class="text-right">Amount</th>
@@ -68,6 +69,7 @@
                                 {% for thing in very_old_bridge_credit_entries %}
                                     <tr>
                                         <td class="text-left">{{ thing.first_created_date|cobalt_nice_datetime_short }}</td>
+                                        <td class="text-left">{{ thing.id }}</td>
                                         <td class="text-left">{{ thing.player }}</td>
                                         <td class="text-left">{{ thing.event_entry.event }}</td>
                                         <td class="text-right">{{ thing.entry_fee|cobalt_currency_colour }}</td>
