@@ -1,5 +1,8 @@
 from django.db.models import TextField, CharField
+from django.http import HttpRequest
 from django.test import Client
+
+from accounts.models import User
 
 
 def test_model_instance_is_safe(manager, model_instance, exclude_list=[]):
@@ -84,7 +87,7 @@ def get_django_client_object(user):
     return client
 
 
-def get_django_request_object(user):
+def get_django_request_object(user: User) -> HttpRequest:
     """return a valid request object for a user"""
 
     client = get_django_client_object(user)

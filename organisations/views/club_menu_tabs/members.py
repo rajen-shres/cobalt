@@ -823,6 +823,7 @@ def _edit_member_htmx_default(club, member):
         .filter(membership_type__organisation=club)
         .first()
     )
+
     initial = {
         "member": member.id,
         "membership_type": member_membership.membership_type.id,

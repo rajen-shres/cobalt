@@ -36,7 +36,7 @@ setup_test_environment()
 
 # List of tests to run format is "class": "location"
 # For the integration tests we are telling a story and the order matters
-# For unit tests each test should stand alone and they are dynamically found
+# For unit tests each test should stand alone, and they are dynamically found
 LIST_OF_INTEGRATION_TESTS = {
     "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
     "HTMXSearch": "accounts.tests.integration.02_htmx_search",
@@ -105,6 +105,9 @@ class CobaltTestManagerAbstract(ABC):
         # First user - Alan Admin
         self.test_user = self.alan
 
+        # Create test client
+        self.client = Client()
+
         # Variables for results of tests
         self.overall_success = True
         self.test_results = {}  # actual results
@@ -121,6 +124,10 @@ class CobaltTestManagerAbstract(ABC):
         # Document Title and Icon
         self.document_title = "Cobalt Test Results"
         self.icon = "build"
+
+    def login_test_client(self, user):
+        """login user through test client interface"""
+        self.client.force_login(user)
 
     def get_user(self, username):
         """Get a user by username"""
@@ -477,9 +484,6 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
 
         self.base_url = base_url
 
-        # Create test client
-        self.client = Client()
-
         # Create Selenium client
         if browser == "chrome":
             options = ChromeOptions()
@@ -501,10 +505,6 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
         """Login user to both test client and Pylenium"""
         self.login_test_client(user)
         self.login_selenium_user(user)
-
-    def login_test_client(self, user):
-        """login user through test client interface"""
-        self.client.force_login(user)
 
     def login_selenium_user(self, user):
         """login user through browser"""
