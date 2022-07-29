@@ -36,7 +36,7 @@ class TimeOfDay(models.TextChoices):
 class SessionType(models.Model):
     """Specific club session types"""
 
-    name = models.CharField(max_length=15)
+    name = models.CharField(max_length=20)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     master_session_type = models.CharField(
         max_length=2,

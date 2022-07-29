@@ -72,9 +72,8 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
     if not sort_option:
         sort_option = request.POST.get("sort_by", "first_desc")
 
-    print(sort_option)
-
     members = get_members_for_club(club, sort_option=sort_option)
+    print(len(members))
 
     # pagination and params
     things = cobalt_paginator(request, members)

@@ -105,9 +105,11 @@
                                             {% if thing|get_class == "User" %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
                                                 hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
+                                                hx-push-url="{{ club.id }}"
                                             {% else %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
                                                 hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
+                                                hx-push-url="{{ club.id }}"
                                             {% endif %}
                                         >
                                             {{ thing.first_name }}
@@ -128,9 +130,11 @@
                                             {% if thing|get_class == "User" %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
                                                 hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
+                                                hx-push-url="{{ club.id }}"
                                             {% else %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
                                                 hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
+                                                hx-push-url="{{ club.id }}"
                                             {% endif %}
                                         >
                                             {{ thing.last_name }}
@@ -151,9 +155,11 @@
                                             {% if thing|get_class == "User" %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
                                                 hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
+                                                hx-push-url="{{ club.id }}"
                                             {% else %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
                                                 hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
+                                                hx-push-url="{{ club.id }}"
                                             {% endif %}
                                         >
                                             {{ thing.system_number }}

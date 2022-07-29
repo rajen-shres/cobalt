@@ -47,10 +47,10 @@
                     confirmButtonText: 'Create',
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        if (result.value.length > 15) {
+                        if (result.value.length > 20) {
                             swal.fire({
                                 title: "Error",
-                                html: "Maximum length is 15 characters",
+                                html: "Maximum length is 20 characters",
                                 icon: "error"
                             });
                             return false;
