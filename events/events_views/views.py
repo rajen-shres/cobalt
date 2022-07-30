@@ -476,7 +476,9 @@ def _checkout_perform_action(request):
 def checkout(request):
     """Checkout view - make payments, get details"""
 
-    basket_items = BasketItem.objects.filter(player=request.user)
+    basket_items = BasketItem.objects.filter(player=request.user).exclude(
+        event_entry__entry_status="Cancelled"
+    )
 
     if request.method == "POST":
         return _checkout_perform_action(request)
@@ -484,9 +486,7 @@ def checkout(request):
     # Not a POST, build the form
 
     # Get list of event_entry_player records to include.
-    event_entries = BasketItem.objects.filter(player=request.user).values_list(
-        "event_entry"
-    )
+    event_entries = basket_items.values_list("event_entry")
     event_entry_players = (
         EventEntryPlayer.objects.filter(event_entry__in=event_entries).exclude(
             payment_status="Paid"
