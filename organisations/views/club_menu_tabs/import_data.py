@@ -373,34 +373,15 @@ def add_member_to_membership(
                 f"Invalid membership type {club_member['membership_type']} for {name}",
             )
 
-    # Check if already there
+    # Check if already a member (any membership type)
     member_membership = (
         MemberMembershipType.objects.active()
         .filter(system_number=club_member["system_number"])
         .filter(membership_type__organisation=club)
-        # .filter(start_date__lte=now)
-        # .filter(Q(end_date__gte=now) | Q(end_date=None))
         .first()
     )
 
     if member_membership:
-        # check for other home clubs
-        # other_home_club = (
-        #     MemberMembershipType.objects.filter(
-        #         system_number=club_member["system_number"]
-        #     )
-        #     .exclude(membership_type__organisation=club)
-        #     .filter(start_date__lte=now)
-        #     .filter(Q(end_date__gte=now) | Q(end_date=None))
-        #     .exists()
-        # )
-
-        other_home_club = (
-            MemberMembershipType.objects.active()
-            .filter(system_number=club_member["system_number"])
-            .exists()
-        )
-
         error = f"{name} - Already a member"
 
         # if other_home_club and home_club:

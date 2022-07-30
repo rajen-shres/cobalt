@@ -98,9 +98,9 @@ def _member_count(club, reference_date=None):
         reference_date = timezone.now()
 
     return (
-        MemberMembershipType.objects.filter(membership_type__organisation=club)
-        .filter(start_date__lte=reference_date)
-        .filter(Q(end_date__gte=reference_date) | Q(end_date=None))
+        MemberMembershipType.objects.active(ref_date=reference_date)
+        .filter(membership_type__organisation=club)
+        .distinct("system_number")
         .count()
     )
 
