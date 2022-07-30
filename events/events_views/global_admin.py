@@ -4,6 +4,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 
 from accounts.models import User
+from cobalt.settings import TBA_PLAYER
 from events.events_views.core import events_status_summary
 from events.forms import CongressMasterForm
 from events.models import (
@@ -181,20 +182,33 @@ def global_admin_event_payment_health_report(request):
 
     old_bridge_credit_entries = (
         EventEntryPlayer.objects.filter(
-            event_entry__event__congress__start_date__gte=timezone.now()
+            event_entry__event__congress__start_date__lte=timezone.now()
         )
         .filter(payment_type="my-system-dollars")
         .exclude(payment_status__in=["Paid", "Free"])
+        .exclude(player_id=TBA_PLAYER)
+        # .exclude(event_entry__entry_status="Cancelled")
+        .exclude(entry_fee=0)
         .select_related("event_entry__event")
+        .order_by("player__first_name")
     )
 
     # Finished Congresses with pending bridge credits
-    very_old_bridge_credit_entries = [
-        old_bridge_credit_entry
-        for old_bridge_credit_entry in old_bridge_credit_entries
-        if old_bridge_credit_entry.event_entry.event.congress.end_date
-        > timezone.now().date()
-    ]
+    very_old_bridge_credit_entries = []
+    for old_bridge_credit_entry in old_bridge_credit_entries:
+        event_end_date = old_bridge_credit_entry.event_entry.event.end_date()
+        # if not event_end_date:
+        #     print("No end date for", old_bridge_credit_entry.event_entry.event)
+        if event_end_date and event_end_date < timezone.now().date():
+            very_old_bridge_credit_entries.append(old_bridge_credit_entry)
+
+    # Finished event, pending bridge credits, and still in basket
+    dangerous_entries = []
+    for very_old_bridge_credit_entry in very_old_bridge_credit_entries:
+        if BasketItem.objects.filter(
+            event_entry=very_old_bridge_credit_entry.event_entry
+        ).exists():
+            dangerous_entries.append(very_old_bridge_credit_entry)
 
     return render(
         request,
@@ -202,7 +216,7 @@ def global_admin_event_payment_health_report(request):
         {
             "events": events,
             "basket_items_with_paid_entries": basket_items_with_paid_entries,
-            "old_bridge_credit_entries": old_bridge_credit_entries,
             "very_old_bridge_credit_entries": very_old_bridge_credit_entries,
+            "dangerous_entries": dangerous_entries,
         },
     )

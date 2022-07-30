@@ -1,0 +1,44 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Table for the Event Payment Health Report                              #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+{% load cobalt_tags %}
+
+
+{% if bridge_credit_entries %}
+
+    <h3>Total Found: {{ bridge_credit_entries|length }}</h3>
+
+    <div class="table-responsive">
+        <table class="table table-condensed table-hover">
+            <thead class="text-primary">
+                <tr>
+                    <th class="text-left">Created Date</th>
+                    <th class="text-left">Player</th>
+                    <th class="text-left">Event</th>
+                    <th class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for thing in bridge_credit_entries %}
+                    <tr>
+                        <td class="text-left">{{ thing.first_created_date|cobalt_nice_datetime_short }}</td>
+                        <td class="text-left">
+                            <a href="{% url "events:admin_evententryplayer" evententryplayer_id=thing.id %}">
+                                {{ thing.player }}
+                            </a>
+                        </td>
+                        <td class="text-left">{{ thing.event_entry.event }}</td>
+                        <td class="text-right">{{ thing.entry_fee|cobalt_currency_colour }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% else %}
+    <p>Nothing found</p>
+{% endif %}
+
