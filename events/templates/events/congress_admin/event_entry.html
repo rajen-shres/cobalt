@@ -30,6 +30,9 @@
                             {% if has_categories %}
                                 {% include "events/congress_admin/admin_event_entry_category_htmx.html" %}
                             {% endif %}
+                            {% if event_entry.entry_status == "Cancelled" %}
+                                <h2>This Entry Is Cancelled</h2>
+                            {% endif %}
                             <h3>Entry by: {{ event_entry.primary_entrant }}</h3>
                             {% if event.player_format == "Teams" %}
                                 <a href=" {% url "events:admin_event_entry_player_add" event_entry_id=event_entry.id %}" class='btn btn-sm btn-secondary'>Add player</a>
