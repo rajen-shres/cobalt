@@ -48,10 +48,7 @@ def upload_results_file_valid(request, form, club):
 def upload_results_file_htmx(request, club):
     """Upload a new results file"""
 
-    # form = ResultsFileForm(request.POST, request.FILES)
-
-    file = "/Users/guthrie/in.xml"
-    form = ResultsFileForm(request.POST, {"results_file": open(file).read()})
+    form = ResultsFileForm(request.POST, request.FILES)
 
     if form.is_valid():
         return upload_results_file_valid(request, form, club)
