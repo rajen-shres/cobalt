@@ -6,7 +6,11 @@ from django.urls import reverse
 from cobalt.settings import MEDIA_ROOT
 from organisations.models import Organisation
 from results.models import ResultsFile
-from results.views.usebio import parse_usebio_file
+from results.views.usebio import (
+    parse_usebio_file,
+    players_from_usebio,
+    boards_from_usebio,
+)
 from tests.test_manager import CobaltTestManagerUnit
 
 TEST_FILE_PATH = "results/tests/test_files"
@@ -38,6 +42,57 @@ def results_file_url_checker(results_file, manager, test_name, test_description)
     )
 
     # Now try to access the user results
+    players = players_from_usebio(results_file)
+    players_pass = []
+    players_fail = []
+    for player in players:
+        url = reverse(
+            "results:usebio_mp_pairs_details_view",
+            kwargs={"results_file_id": results_file.id, "pair_id": player},
+        )
+        response = manager.client.get(url)
+
+        print(player, url, response)
+
+        if response.status_code == 200:
+            players_pass.append(player)
+        else:
+            players_fail.append(player)
+
+    manager.save_results(
+        status=not players_fail,
+        test_name=f"{test_name} - player summary",
+        test_description=test_description,
+        output=f"Step 3 - user summary pages. Errors on {players_fail}. Succeeded on {players_pass}",
+    )
+
+    # Now do the travellers
+    boards = boards_from_usebio(results_file)
+    boards_pass = []
+    boards_fail = []
+    for player in players:
+        for board in boards:
+            url = reverse(
+                "results:usebio_mp_pairs_board_view",
+                kwargs={
+                    "results_file_id": results_file.id,
+                    "pair_id": player,
+                    "board_number": board,
+                },
+            )
+            response = manager.client.get(url)
+
+            if response.status_code == 200:
+                boards_pass.append(player)
+            else:
+                boards_fail.append(player)
+
+    manager.save_results(
+        status=not boards_fail,
+        test_name=f"{test_name} - travellers",
+        test_description=test_description,
+        output=f"Step 4 - travellers pages. Errors on {boards_fail}. Succeeded on {boards_pass}",
+    )
 
 
 def results_file_handler(club, file, manager):

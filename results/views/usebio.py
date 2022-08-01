@@ -19,6 +19,22 @@ def parse_usebio_file(results_file):
     return xml["USEBIO"]
 
 
+def players_from_usebio(results_file: ResultsFile) -> list:
+    """returns the players from a usebio results file"""
+
+    xml = parse_usebio_file(results_file)
+
+    return [player["PAIR_NUMBER"] for player in xml["EVENT"]["PARTICIPANTS"]["PAIR"]]
+
+
+def boards_from_usebio(results_file: ResultsFile) -> list:
+    """returns the boards from a usebio results file"""
+
+    xml = parse_usebio_file(results_file)
+
+    return [board["BOARD_NUMBER"] for board in xml["HANDSET"]["BOARD"]]
+
+
 def create_player_records_from_usebio_format_pairs(
     results_file: ResultsFile, xml: dict
 ):
