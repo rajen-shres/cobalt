@@ -187,7 +187,7 @@ def global_admin_event_payment_health_report(request):
         .filter(payment_type="my-system-dollars")
         .exclude(payment_status__in=["Paid", "Free"])
         .exclude(player_id=TBA_PLAYER)
-        # .exclude(event_entry__entry_status="Cancelled")
+        .exclude(event_entry__entry_status="Cancelled")
         .exclude(entry_fee=0)
         .select_related("event_entry__event")
         .order_by("player__first_name")
