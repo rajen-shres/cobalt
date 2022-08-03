@@ -244,6 +244,25 @@ class ScoringTests:
             failing.append(test_number)
             print(test_number, par_score, par_string)
 
+        #####################################
+        test_number = 10
+
+        # Real world problem board
+        dds_table = {
+            "N": {"S": 9, "H": 2, "D": 5, "C": 2, "NT": 5},
+            "S": {"S": 9, "H": 2, "D": 5, "C": 2, "NT": 5},
+            "E": {"S": 4, "H": 10, "D": 8, "C": 11, "NT": 5},
+            "W": {"S": 4, "H": 10, "D": 8, "C": 11, "NT": 5},
+        }
+
+        par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
+        if par_score != -100:
+            passing = False
+            failing.append(test_number)
+            print(test_number, par_score, par_string)
+
+        # Results
+
         self.manager.save_results(
             status=passing,
             test_name="Par contract and score testing",

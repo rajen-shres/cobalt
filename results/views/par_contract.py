@@ -276,6 +276,8 @@ def _par_score_and_contract_run_through_auction(
         #  High scores good NS, bad EW, low or negative scores good EW, bad NS
         sign = current_bidders[0] in ["N", "S"]
 
+        print(current_bidders, current_bid)
+
         # making contracts take over
         if is_making_contract(
             dds_table, current_bid, current_bidders[0]
@@ -283,7 +285,7 @@ def _par_score_and_contract_run_through_auction(
             par_contract = current_bid
             par_bidder = current_bidders[0]  # just use the first one as a placeholder
             # swap to other side to bid
-            current_bidders = opponent_for(current_bidders[0])
+            current_bidders = opponents_list_for(current_bidders[0])
 
         # handle sacrifices, could be a better score. Check for player and partner
         else:

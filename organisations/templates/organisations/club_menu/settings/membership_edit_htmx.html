@@ -1,6 +1,13 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Edit membership type screen                                            #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 {% load crispy_forms_tags %}
+
 <div class="card">
+
     <div class="card-body pt-0">
         <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
         <form
@@ -26,6 +33,7 @@
                 <p class="font-italic">This is your only membership type and cannot be deleted.</p>
             {% endif %}
         </form>
+
         {% if membership_type.last_modified_by %}
             <div class="font-italic small">last updated {{ membership_type.updated_at|cobalt_nice_datetime }}
                 by {{ membership_type.last_modified_by.full_name }}</div>

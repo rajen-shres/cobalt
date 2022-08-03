@@ -1,5 +1,6 @@
 import shutil
 import xml
+from glob import glob
 
 from django.urls import reverse
 
@@ -52,7 +53,7 @@ def results_file_url_checker(results_file, manager, test_name, test_description)
         )
         response = manager.client.get(url)
 
-        print(player, url, response)
+        print(f"Checking {url}...")
 
         if response.status_code == 200:
             players_pass.append(player)
@@ -82,10 +83,12 @@ def results_file_url_checker(results_file, manager, test_name, test_description)
             )
             response = manager.client.get(url)
 
+            print(f"Checking {url}...")
+
             if response.status_code == 200:
-                boards_pass.append(player)
+                boards_pass.append(f"{player} - {board}")
             else:
-                boards_fail.append(player)
+                boards_fail.append(f"{player} - {board}")
 
     manager.save_results(
         status=not boards_fail,
@@ -100,7 +103,7 @@ def results_file_handler(club, file, manager):
     it"""
 
     # Copy file to media, we just overwrite it each time
-    shutil.copyfile(f"{TEST_FILE_PATH}/{file}", f"{MEDIA_ROOT}{TEST_FILE_OVERWRITE}")
+    shutil.copyfile(file, f"{MEDIA_ROOT}{TEST_FILE_OVERWRITE}")
 
     # create results_file record
     results_file = ResultsFile(
@@ -147,8 +150,8 @@ class DuplicateResultsUpload:
     def duplicate_tests(self):
         """Main function"""
 
-        file = "test_results.xml"
         club = Organisation.objects.get(pk=1)
         self.manager.login_test_client(self.manager.alan)
 
-        results_file_handler(club, file, self.manager)
+        for file in glob(f"{TEST_FILE_PATH}/*.*"):
+            results_file_handler(club, file, self.manager)

@@ -288,6 +288,10 @@ def cobalt_suit_replace(string):
     string = string.replace(
         "H", '<span style="color: red; font-size: 1.5em;">&heartsuit;</span>'
     )
+
+    # Don't want to change PASS to two spade signs
+    string = string.replace("PASS", "--HOLDER--")
     string = string.replace("S", '<span style="font-size:1.5em;">&spadesuit;</span>')
+    string = string.replace("--HOLDER--", "PASS")
 
     return string

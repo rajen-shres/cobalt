@@ -1,10 +1,17 @@
+import bleach
 from django.db import models
 from django.conf import settings
 from accounts.models import User
 from django.utils import timezone
 from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator
 
-from cobalt.settings import GLOBAL_ORG, GLOBAL_TITLE
+from cobalt.settings import (
+    GLOBAL_ORG,
+    GLOBAL_TITLE,
+    BLEACH_ALLOWED_TAGS,
+    BLEACH_ALLOWED_ATTRIBUTES,
+    BLEACH_ALLOWED_STYLES,
+)
 from organisations.model_managers import MemberMembershipTypeManager
 
 # import payments.models as payments_models
@@ -438,6 +445,18 @@ class OrgEmailTemplate(models.Model):
 
     def __str__(self):
         return f"{self.organisation} - {self.template_name}"
+
+    # If the text changes, run it through bleach before saving
+    def save(self, *args, **kwargs):
+
+        if self.footer and getattr(self, "_footer_changed", True):
+            self.footer = bleach.clean(
+                self.footer,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
 
 
 class WelcomePack(models.Model):

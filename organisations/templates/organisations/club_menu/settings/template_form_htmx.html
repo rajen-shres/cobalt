@@ -1,10 +1,14 @@
+{% load crispy_forms_filters %}
+{#--------------------------------------------------------------------------------------------#}
+{#                                                                                            #}
 {# Edit panel for templates. Appears in Settings when a template is chosen or a new one added #}
-
+{#                                                                                            #}
+{#--------------------------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 
 <hr>
 
-{# Left is the form, right is the preview #}
+<!-- LEFT IS THE FORM, RIGHT IS THE PREVIEW -->
 <div class="row">
     <div class="card col-md-6">
         <div class="card-header card-header-warning">
@@ -12,7 +16,7 @@
         </div>
         <div class="card-body">
 
-            {#  Too hard to do the banner as part of the form, do it separately #}
+            <!--  TOO HARD TO DO THE BANNER AS PART OF THE FORM, DO IT SEPARATELY -->
             <div class="row">
                 <div class="col-12" id="template_form_banner">
                     {% include "organisations/club_menu/settings/template_form_banner_htmx.html" %}
@@ -88,11 +92,18 @@
                         <div class="col-12" id="template_form_footer">
                             <div class="form-group">
 
-                                <label class="bmd-label-static" for="id_footer">
-                                    Footer (optional)
-                                </label>
+                                {{ form.footer|as_crispy_field }}
 
-                                {% cobalt_bs4_field form.footer %}
+                                {#                                <label class="bmd-label-static" for="id_footer">#}
+                                {#                                    Footer (optional)#}
+                                {#                                </label>#}
+                                {##}
+                                {#                                {% cobalt_bs4_field form.footer %}#}
+
+
+
+
+
 
                             </div>
                         </div>
@@ -103,6 +114,7 @@
                     </div>
                 </div>
             </form>
+
         </div>
     </div>
 
@@ -115,12 +127,3 @@
 
 </div>
 
-{#<script>#}
-{#    $(document).ready( function () {#}
-{##}
-{#        // initialise colour pickers#}
-{##}
-{#        $('.cpicker').colorpicker();#}
-{##}
-{#    });#}
-{#</script>#}

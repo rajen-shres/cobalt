@@ -768,15 +768,16 @@ def _next_template_name(club):
 
 @check_club_menu_access(check_comms=True)
 def edit_template_htmx(request, club):
-    """HTMX form to render the email template edit screen. We create a new template if one isn't provided and we
-    don't handle the form as this is handled at a lower level. We manage template_name (no form), banner, and
-    footer, both which have a form"""
+    """HTMX form to render the email template edit screen. We create a new template if one isn't provided"""
 
+    # Try to load existing template
     template_id = request.POST.get("template_id")
+
     if template_id:
         template = get_object_or_404(OrgEmailTemplate, pk=template_id)
         message = "Editing template"
     else:
+        # Create new template
         template_name = _next_template_name(club)
         template = OrgEmailTemplate(
             organisation=club,
@@ -791,11 +792,15 @@ def edit_template_htmx(request, club):
         form = TemplateForm(request.POST, instance=template)
         if form.is_valid():
             form.save()
-            print("saving template")
+            print("SAved form")
         else:
             print(form.errors)
 
-    form = TemplateForm(instance=template)
+    else:
+
+        form = TemplateForm(instance=template)
+
+    # We don't handle the banner form in here, it has its own function
     banner_form = TemplateBannerForm(instance=template)
 
     response = render(
