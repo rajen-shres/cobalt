@@ -276,8 +276,6 @@ def _par_score_and_contract_run_through_auction(
         #  High scores good NS, bad EW, low or negative scores good EW, bad NS
         sign = current_bidders[0] in ["N", "S"]
 
-        print(current_bidders, current_bid)
-
         # making contracts take over
         if is_making_contract(
             dds_table, current_bid, current_bidders[0]
