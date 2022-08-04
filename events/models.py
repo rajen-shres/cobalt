@@ -278,6 +278,7 @@ class Congress(models.Model):
             )
 
         if self.people and getattr(self, "_people_changed", True):
+            print("before", self.people)
             self.people = bleach.clean(
                 self.people,
                 strip=True,
@@ -285,6 +286,7 @@ class Congress(models.Model):
                 attributes=BLEACH_ALLOWED_ATTRIBUTES,
                 styles=BLEACH_ALLOWED_STYLES,
             )
+            print("after", self.people)
 
         if self.links and getattr(self, "_links_changed", True):
             self.links = bleach.clean(

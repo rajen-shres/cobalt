@@ -92,11 +92,13 @@
                         <div class="col-12" id="template_form_footer">
                             <div class="form-group">
 
-                                <label class="bmd-label-static" for="id_footer">
-                                    Footer (optional)
-                                </label>
+                                {{ form.footer|as_crispy_field }}
 
-                                {% cobalt_bs4_field form.footer %}
+                                {#                                <label class="bmd-label-static" for="id_footer">#}
+                                {#                                    Footer (optional)#}
+                                {#                                </label>#}
+                                {##}
+                                {#                                {% cobalt_bs4_field form.footer %}#}
 
                             </div>
                         </div>

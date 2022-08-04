@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
 
 from club_sessions.club_sessions_views.admin import (
     add_club_session,
@@ -850,13 +851,15 @@ def template_preview_htmx(request):
 
     template_id = request.POST.get("template_id")
     template = get_object_or_404(OrgEmailTemplate, pk=template_id)
+    footer = format_html(template.footer)
+    # footer="""<p><span style="font-family: &quot;Times New Roman&quot;; font-size: 36px;">sdfsdfsdf</span></p><p><span style="font-family: &quot;Arial Black&quot;; font-size: 36px;">More Stuffs</span></p>"""
 
     host = COBALT_HOSTNAME
 
     return render(
         request,
         "organisations/club_menu/settings/template_preview_htmx.html",
-        {"template": template, "host": host},
+        {"template": template, "host": host, "footer": footer},
     )
 
 
