@@ -851,7 +851,10 @@ def template_preview_htmx(request):
 
     template_id = request.POST.get("template_id")
     template = get_object_or_404(OrgEmailTemplate, pk=template_id)
-    footer = format_html(template.footer)
+    if template.footer:
+        footer = format_html(template.footer)
+    else:
+        footer = ""
     # footer="""<p><span style="font-family: &quot;Times New Roman&quot;; font-size: 36px;">sdfsdfsdf</span></p><p><span style="font-family: &quot;Arial Black&quot;; font-size: 36px;">More Stuffs</span></p>"""
 
     host = COBALT_HOSTNAME
