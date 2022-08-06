@@ -111,7 +111,10 @@
                             {% for row in board_data %}
 
                                 <!-- HANDLE PAR CONTRACT -->
-                                {% if row.par_score %}
+
+                                {#  need to cope with par_score being zero so check for type not trueness #}
+
+                                {% if row.par_score|get_class == "int" %}
                                     <tr>
                                         <td colspan="9">
                                             <button class="btn btn-sm btn-block btn-outline cobalt-text-transform-off" style="font-size: large">

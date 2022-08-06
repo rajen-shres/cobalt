@@ -103,7 +103,7 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
-        if par_score != 430:
+        if par_score != 430 or par_string != "4N by N for 430":
             passing = False
             failing.append(test_number)
             print(test_number, par_score, par_string)
@@ -120,7 +120,7 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
-        if par_score != 100:
+        if par_score != 100 or par_string != "5HX by EW for 100":
             passing = False
             failing.append(test_number)
             print(test_number, par_score, par_string)
@@ -247,7 +247,8 @@ class ScoringTests:
         #####################################
         test_number = 10
 
-        # Real world problem board
+        # Real world problem board - EW make -420 for 4H, NS can sacrifice in 4SX for -100
+        # but EW can then bid 5C for -400 and NS can sacrifice in 5SX for -300
         dds_table = {
             "N": {"S": 9, "H": 2, "D": 5, "C": 2, "NT": 5},
             "S": {"S": 9, "H": 2, "D": 5, "C": 2, "NT": 5},
@@ -256,7 +257,7 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
-        if par_score != -100:
+        if par_score != -300 or par_string != "5SX by NS for -300":
             passing = False
             failing.append(test_number)
             print(test_number, par_score, par_string)

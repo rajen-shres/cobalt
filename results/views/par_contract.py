@@ -119,6 +119,7 @@ def _par_score_and_contract_final_check_equal_contracts_making(
         if level < 1:
             continue
         contract = f"{level}{suit}"
+
         # check for same score
         if par_score == score_for_contract(
             contract, vulnerability, par_bidder, level + 6
@@ -277,11 +278,25 @@ def _par_score_and_contract_run_through_auction(
         sign = current_bidders[0] in ["N", "S"]
 
         # making contracts take over
-        if is_making_contract(
+        making_by_first_player = is_making_contract(
             dds_table, current_bid, current_bidders[0]
-        ) or is_making_contract(dds_table, current_bid, current_bidders[1]):
+        )
+        making_by_second_player = is_making_contract(
+            dds_table, current_bid, current_bidders[1]
+        )
+
+        if making_by_first_player or making_by_second_player:
             par_contract = current_bid
-            par_bidder = current_bidders[0]  # just use the first one as a placeholder
+            if making_by_first_player:
+                par_bidder = current_bidders[0]
+            else:
+                par_bidder = current_bidders[1]
+            par_score = score_for_contract(
+                current_bid,
+                vulnerability,
+                par_bidder,
+                dds_table[par_bidder][current_bid[1]],
+            )
             # swap to other side to bid
             current_bidders = opponents_list_for(current_bidders[0])
 

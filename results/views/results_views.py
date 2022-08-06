@@ -418,55 +418,18 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
     if not double_dummy:
         return HttpResponse(f"Board {board_number} not found for this result")
 
+    # Sort data
     if ns_flag:
         board_data = sorted(board_data, key=lambda d: -d["ns_match_points"])
     else:
         board_data = sorted(board_data, key=lambda d: -d["ew_match_points"])
 
+    # Get data
     dealer, vulnerability = dealer_and_vulnerability_for_board(board_number)
     par_score, par_string = par_score_and_contract(double_dummy, vulnerability, dealer)
 
-    # Add par score into the data
-
-    # For NS view, scores are descending, for EW ascending. Insert par score at first spot we find
-
-    # set last score to be the first when we start
-    can_insert = False
-    job_done = False
-    for index, item in enumerate(board_data):
-        print(par_score, item["ns_match_points"], item["score"])
-        # skip adjusted scores
-
-        if type(item["score"]) is int:
-            print("is integer")
-
-            if can_insert and par_score >= item["score"]:
-                row = {
-                    "score": par_score,
-                    "par_score": par_score,
-                    "par_string": par_string,
-                    "ns_match_points": item["ns_match_points"],
-                    "ew_match_points": item["ew_match_points"],
-                }
-                print("Done it!")
-                board_data.insert(index, row)
-                job_done = True
-                break
-
-            if par_score <= item["score"]:
-                print("Set can_insert")
-                can_insert = True
-
-    if not job_done:
-        print("Didnt find it, adding to end")
-        row = {
-            "score": par_score,
-            "par_score": par_score,
-            "par_string": par_string,
-            "ns_match_points": item["ns_match_points"],
-            "ew_match_points": item["ew_match_points"],
-        }
-        board_data.append(row)
+    # insert par_data into board_data
+    board_data = _insert_par_data_into_list(board_data, par_score, par_string, ns_flag)
 
     # Add High card points and losing trick count
     high_card_points, losing_trick_count = calculate_hcp_and_ltc(hand)
@@ -500,6 +463,52 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
             "total_boards_range": range(1, total_boards + 1),
         },
     )
+
+
+def _insert_par_data_into_list(board_data, par_score, par_string, ns_flag):
+    """sub of usebio_mp_pairs_board_view to add in the par data"""
+
+    # For NS view, scores are descending, for EW ascending. Insert par score at first spot we find
+
+    can_insert = True  # Allow insert above first row
+    job_done = False  # Flag to see if we inserted or not, if not add at end
+
+    for index, item in enumerate(board_data):
+
+        # skip adjusted scores
+        if type(item["score"]) is not int:
+            continue
+
+        if can_insert and (
+            (par_score >= item["score"] and ns_flag)
+            or (par_score <= item["score"] and not ns_flag)
+        ):
+            row = {
+                "score": par_score,
+                "par_score": par_score,
+                "par_string": par_string,
+            }
+            board_data.insert(index, row)
+            job_done = True
+            break
+
+        if (par_score <= item["score"] and ns_flag) or (
+            par_score >= item["score"] and not ns_flag
+        ):
+            can_insert = True
+        else:
+            can_insert = False
+
+    # If we didn't find somewhere to put it, put at end
+    if not job_done:
+        row = {
+            "score": par_score,
+            "par_score": par_score,
+            "par_string": par_string,
+        }
+        board_data.append(row)
+
+    return board_data
 
 
 def _get_traveller_info_process_board(
