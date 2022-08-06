@@ -393,6 +393,7 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
     # get direction of pair on this board
     ns_flag = _get_pair_direction_for_board(usebio, board_number, pair_id)
 
+    # extract data about this board
     board_data = get_traveller_info(
         usebio, board_number, player_dict, ns_flag, pair_id, request
     )
@@ -426,15 +427,46 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
     par_score, par_string = par_score_and_contract(double_dummy, vulnerability, dealer)
 
     # Add par score into the data
-    # row = {
-    #     "score": par_score,
-    #     "par_score": par_score,
-    #     "par_string": par_string,
-    # }
-    # board_data.append(row)
 
-    # We need to work out where in the match point table this would fit
-    # for item in board_data:
+    # For NS view, scores are descending, for EW ascending. Insert par score at first spot we find
+
+    # set last score to be the first when we start
+    can_insert = False
+    job_done = False
+    for index, item in enumerate(board_data):
+        print(par_score, item["ns_match_points"], item["score"])
+        # skip adjusted scores
+
+        if type(item["score"]) is int:
+            print("is integer")
+
+            if can_insert and par_score >= item["score"]:
+                row = {
+                    "score": par_score,
+                    "par_score": par_score,
+                    "par_string": par_string,
+                    "ns_match_points": item["ns_match_points"],
+                    "ew_match_points": item["ew_match_points"],
+                }
+                print("Done it!")
+                board_data.insert(index, row)
+                job_done = True
+                break
+
+            if par_score <= item["score"]:
+                print("Set can_insert")
+                can_insert = True
+
+    if not job_done:
+        print("Didnt find it, adding to end")
+        row = {
+            "score": par_score,
+            "par_score": par_score,
+            "par_string": par_string,
+            "ns_match_points": item["ns_match_points"],
+            "ew_match_points": item["ew_match_points"],
+        }
+        board_data.append(row)
 
     # Add High card points and losing trick count
     high_card_points, losing_trick_count = calculate_hcp_and_ltc(hand)
@@ -464,6 +496,7 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
             "next_board": next_board,
             "previous_board": previous_board,
             "total_boards": total_boards,
+            "ns_flag": ns_flag,
             "total_boards_range": range(1, total_boards + 1),
         },
     )
@@ -494,14 +527,15 @@ def _get_traveller_info_process_board(
             pass
         # TODO: Test and make more robust
 
+        ew_match_points = float(traveller_line.get("EW_MATCH_POINTS"))
+        ns_match_points = float(traveller_line.get("NS_MATCH_POINTS"))
+
         # Calculate percentage and score
         if type(score) is str:
-            # Score is adjusted
+            # Score is adjusted - USEBIO says it should be A5050 or similar - use 1:3 as percentage
             percentage = int(score[1:3])
-            score = 0
+            score = "ADJ"
         else:
-            ew_match_points = float(traveller_line.get("EW_MATCH_POINTS"))
-            ns_match_points = float(traveller_line.get("NS_MATCH_POINTS"))
             # Normal numeric score
             percentage = _percentage_from_match_points(
                 ns_match_points, ew_match_points, ns_flag

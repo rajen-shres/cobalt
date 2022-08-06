@@ -97,6 +97,9 @@
                                     <span class="d-md-none">+/-</span>
                                     <span class="d-none d-md-block">Score</span>
                                 </th>
+                                <th>
+                                    <span class="d-none d-sm-table-cell">{% if ns_flag %}NS{% else %}EW{% endif %} MPs</span>
+                                </th>
                                 <th class="text-right">
                                     <span class="d-md-none">%</span>
                                     <span class="d-none d-md-block">Percentage</span>
@@ -110,7 +113,7 @@
                                 <!-- HANDLE PAR CONTRACT -->
                                 {% if row.par_score %}
                                     <tr>
-                                        <td colspan="8">
+                                        <td colspan="9">
                                             <button class="btn btn-sm btn-block btn-outline cobalt-text-transform-off" style="font-size: large">
                                                 Par Contract: {{ row.par_string }}
                                             </button>
@@ -126,6 +129,13 @@
                                         <td class="d-none d-sm-table-cell {{ row.tr_highlight }}">{{ row.lead|cobalt_suit_replace|default_if_none:""|safe }}</td>
                                         <td class="d-none d-sm-table-cell {{ row.tr_highlight }}">{{ row.tricks|default_if_none:"" }}</td>
                                         <td class="{{ row.tr_highlight }}">{{ row.score|default_if_none:"" }}</td>
+                                        <td class="d-none d-sm-table-cell {{ row.tr_highlight }}">
+                                            {% if ns_flag %}
+                                                {{ row.ns_match_points|default_if_none:"" }}
+                                            {% else %}
+                                                {{ row.ew_match_points|default_if_none:"" }}
+                                            {% endif %}
+                                        </td>
                                         <td class="{{ row.tr_highlight }} text-right">{{ row.percentage|floatformat:0 }}%</td>
                                         {#                                        <td><div class="{{ row.indicator }}"></div></td>#}
                                         <td><div>{{ row.indicator|safe }}</div></td>

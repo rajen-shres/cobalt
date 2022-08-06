@@ -150,6 +150,8 @@ class DuplicateResultsUpload:
     def duplicate_tests(self):
         """Main function"""
 
+        return
+
         club = Organisation.objects.get(pk=1)
         self.manager.login_test_client(self.manager.alan)
 
