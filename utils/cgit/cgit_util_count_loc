@@ -3,7 +3,7 @@
 # about: count lines of code in this branch
 
 # Total size of Cobalt - lines of code
-TOTAL=$(git ls-files | grep -Ev 'static|_build' | xargs wc -l | tail -1 | awk '{print $1}')
+TOTAL=$(git ls-files | grep -Ev 'static|_build|.xml' | xargs wc -l | tail -1 | awk '{print $1}')
 
 # print header
 echo ""
@@ -15,7 +15,7 @@ for DIR in $(ls -d */ | grep -Ev 'static|docs|media|htmlcov|__pycache__')
 do
   cd "$DIR"
   NAME=$(echo $DIR | cut -d "/" -f1)
-  APP=$(git ls-files | grep -Ev 'static|_build' | xargs wc -l | tail -1 | awk '{print $1}')
+  APP=$(git ls-files | grep -Ev 'static|_build|.xml' | xargs wc -l | tail -1 | awk '{print $1}')
   FUNCS=$(grep -r --include "*.py" "^def " . | grep -v migrations | wc | awk '{print $1}')
   MODELS=$(grep -r --include "models.py" "^class" . | wc | awk '{print $1}')
   TEMPLATES=$(find . -name "*.html" | grep template | wc | awk '{print $1}')
