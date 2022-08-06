@@ -329,9 +329,12 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
                 played_by = traveller_line.get("PLAYED_BY")
                 lead = traveller_line.get("LEAD")
                 tricks = traveller_line.get("TRICKS")
-                score = traveller_line.get("SCORE")
                 ns_match_points = float(traveller_line.get("NS_MATCH_POINTS"))
                 ew_match_points = float(traveller_line.get("EW_MATCH_POINTS"))
+                score = traveller_line.get("SCORE")
+                if score[0] == "A":
+                    # Adjusted score, don't show user the code, just that it was adjusted
+                    score = "ADJ"
 
                 percentage = _percentage_from_match_points(
                     ns_match_points, ew_match_points, ns_flag

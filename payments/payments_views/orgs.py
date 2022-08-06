@@ -43,6 +43,7 @@ def statement_org(request, org_id):
 
     if (
         not rbac_user_has_role(request.user, "payments.manage.%s.view" % org_id)
+        and not rbac_user_has_role(request.user, "payments.manage.%s.edit" % org_id)
         and not admin_view
     ):
         return rbac_forbidden(request, "payments.manage.%s.view" % org_id)
@@ -182,9 +183,12 @@ def statement_org_summary_ajax(request, org_id, range):
 
         organisation = get_object_or_404(Organisation, pk=org_id)
 
-        if not rbac_user_has_role(request.user, "payments.manage.%s.view" % org_id):
-            if not rbac_user_has_role(request.user, "payments.global.view"):
-                return rbac_forbidden(request, "payments.manage.%s.view" % org_id)
+        if (
+            not rbac_user_has_role(request.user, "payments.manage.%s.view" % org_id)
+            and not rbac_user_has_role(request.user, "payments.manage.%s.edit" % org_id)
+            and not rbac_user_has_role(request.user, "payments.global.view")
+        ):
+            return rbac_forbidden(request, "payments.manage.%s.view" % org_id)
 
         if range == "All":
             summary = (
@@ -208,7 +212,7 @@ def statement_org_summary_ajax(request, org_id, range):
 
     total = 0.0
     for item in summary:
-        total = total + float(item["total"])
+        total += float(item["total"])
 
     return render(
         request,

@@ -499,11 +499,6 @@ urlpatterns = [
         name="club_menu_tab_settings_edit_template_banner_htmx",
     ),
     path(
-        "club-menu/settings/templates/edit-footer",
-        organisations.views.club_menu_tabs.settings.edit_template_footer_htmx,
-        name="club_menu_tab_settings_edit_template_footer_htmx",
-    ),
-    path(
         "club-menu/settings/templates/delete",
         organisations.views.club_menu_tabs.settings.delete_template_htmx,
         name="club_menu_tab_settings_delete_template_htmx",

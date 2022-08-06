@@ -450,8 +450,6 @@ class OrgEmailTemplate(models.Model):
     def save(self, *args, **kwargs):
 
         if self.footer and getattr(self, "_footer_changed", True):
-            print("Bleaching footer")
-            print("Before", self.footer)
             self.footer = bleach.clean(
                 self.footer,
                 strip=True,
@@ -459,7 +457,6 @@ class OrgEmailTemplate(models.Model):
                 attributes=BLEACH_ALLOWED_ATTRIBUTES,
                 styles=BLEACH_ALLOWED_STYLES,
             )
-            print("After", self.footer)
 
         super().save(*args, **kwargs)
 
@@ -484,3 +481,17 @@ class WelcomePack(models.Model):
 
     def __str__(self):
         return f"{self.organisation} - {self.template}"
+
+    # If the text changes, run it through bleach before saving
+    def save(self, *args, **kwargs):
+
+        if self.welcome_email and getattr(self, "_welcome_email_changed", True):
+            self.welcome_email = bleach.clean(
+                self.welcome_email,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        super().save(*args, **kwargs)

@@ -91,15 +91,10 @@
                     <div class="row">
                         <div class="col-12" id="template_form_footer">
                             <div class="form-group">
-
-                                {{ form.footer|as_crispy_field }}
-
-                                {#                                <label class="bmd-label-static" for="id_footer">#}
-                                {#                                    Footer (optional)#}
-                                {#                                </label>#}
-                                {##}
-                                {#                                {% cobalt_bs4_field form.footer %}#}
-
+                                <label class="bmd-label-static" for="id_footer">
+                                    Footer (optional)
+                                </label>
+                                {% cobalt_bs4_field form.footer %}
                             </div>
                         </div>
                     </div>
@@ -113,7 +108,7 @@
         </div>
     </div>
 
-    <div id="email_template_preview" class="col-md-4 mx-auto"
+    <div id="email_template_preview" class="col-md-6 mx-auto"
         hx-post="{% url "organisations:club_menu_tab_settings_template_preview_htmx" %}"
         hx-vars="club_id:{{ club.id }}, template_id:{{ template.id }}"
         hx-trigger="load"

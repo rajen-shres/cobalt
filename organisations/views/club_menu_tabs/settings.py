@@ -201,7 +201,7 @@ def general_htmx(request, club):
 def membership_htmx(request, club):
     """build the settings tab in club menu for editing membership types"""
 
-    membership_types = MembershipType.objects.filter(organisation=club)
+    membership_types = MembershipType.objects.filter(organisation=club).order_by("pk")
 
     # Add in number of members
     for membership_type in membership_types:
@@ -256,6 +256,12 @@ def club_menu_tab_settings_membership_edit_htmx(request, club):
             action=f"Updated membership type: {updated}",
         ).save()
         message = "Membership Type Updated"
+
+        if "name" in form.changed_data:
+            message += (
+                ". Click on Static Data -> Membership Types above, "
+                "to refresh the list and see the name change."
+            )
 
     # Don't show option to set as default if there is already a default, unless we are it
     if (
@@ -722,7 +728,7 @@ def templates_htmx(request, club, edit_template=None, message=None):
     """build the comms template tab in club menu. The edit forms pass in a value for edit_template so
     we can re-open it"""
 
-    templates = OrgEmailTemplate.objects.filter(organisation=club)
+    templates = OrgEmailTemplate.objects.filter(organisation=club).order_by("pk")
 
     # Add htmx tags
     for template in templates:
@@ -792,14 +798,14 @@ def edit_template_htmx(request, club):
     if "save" in request.POST:
         form = TemplateForm(request.POST, instance=template)
         if form.is_valid():
-            form.save()
-            print("SAved form")
+            template = form.save(commit=False)
+            template.last_modified_by = request.user
+            template.save()
         else:
             print(form.errors)
 
-    else:
-
-        form = TemplateForm(instance=template)
+    # We need to reload the template form even if we have saved it or two word fonts get corrupted
+    form = TemplateForm(instance=template)
 
     # We don't handle the banner form in here, it has its own function
     banner_form = TemplateBannerForm(instance=template)
@@ -826,7 +832,7 @@ def edit_template_htmx(request, club):
 def template_list_htmx(request, club):
     """Returns a list of templates to update the top part of the tempaltes view in Settings when things change"""
 
-    templates = OrgEmailTemplate.objects.filter(organisation=club)
+    templates = OrgEmailTemplate.objects.filter(organisation=club).order_by("pk")
 
     # Add htmx tags
     for template in templates:
@@ -851,18 +857,11 @@ def template_preview_htmx(request):
 
     template_id = request.POST.get("template_id")
     template = get_object_or_404(OrgEmailTemplate, pk=template_id)
-    if template.footer:
-        footer = format_html(template.footer)
-    else:
-        footer = ""
-    # footer="""<p><span style="font-family: &quot;Times New Roman&quot;; font-size: 36px;">sdfsdfsdf</span></p><p><span style="font-family: &quot;Arial Black&quot;; font-size: 36px;">More Stuffs</span></p>"""
-
-    host = COBALT_HOSTNAME
 
     return render(
         request,
         "organisations/club_menu/settings/template_preview_htmx.html",
-        {"template": template, "host": host, "footer": footer},
+        {"template": template, "host": COBALT_HOSTNAME},
     )
 
 
@@ -932,22 +931,6 @@ def edit_template_banner_htmx(request, club):
     template_form = TemplateBannerForm(request.POST, request.FILES, instance=template)
     if template_form.is_valid():
         template = template_form.save()
-
-    return templates_htmx(request, edit_template=template)
-
-
-@check_club_menu_access(check_comms=True)
-def edit_template_footer_htmx(request, club):
-    """Edit the footer field on a template"""
-
-    template_id = request.POST.get("template_id")
-    template = get_object_or_404(OrgEmailTemplate, pk=template_id)
-    if template.organisation != club:
-        return HttpResponse("Access Denied")
-
-    footer = request.POST.get("footer")
-    template.footer = footer
-    template.save()
 
     return templates_htmx(request, edit_template=template)
 

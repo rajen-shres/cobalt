@@ -22,6 +22,7 @@ def check_club_menu_access(
     check_comms=False,
     check_sessions=False,
     check_payments=False,
+    check_payments_view=False,
     check_session_or_payments=False,
     check_org_edit=False,
 ):
@@ -42,6 +43,7 @@ def check_club_menu_access(
         check_comms: Will also check for the role notifications.orgcomms.{club.id}.edit
         check_sessions: Will also check for the role club_sessions.sessions.{club.id}.edit
         check_payments: Will also check for the role payments.manage.{club.id}.edit
+        check_payments_view: Will also check for the role payments.manage.{club.id}.[edit|view]
         check_org_edit: Will also check for the role orgs.org.{club.id}.edit
         check_session_or_payments: Checks for either sessions or payments. This is needed as directors as well as
         payments people need to be able to make miscellaneous payments, but we want to keep both roles
@@ -117,6 +119,17 @@ def check_club_menu_access(
                     return _check_extra_role(
                         request, function, club, extra_role, *args, **kwargs
                     )
+
+                # Check for optional sessions parameter
+                if check_payments_view:
+                    view = f"payments.manage.{club.id}.view"
+                    edit = f"payments.manage.{club.id}.edit"
+                    if rbac_user_has_role(request.user, view) or rbac_user_has_role(
+                        request.user, edit
+                    ):
+                        return function(request, club, *args, **kwargs)
+                    else:
+                        return rbac_forbidden(request, view)
 
                 # Check for optional sessions parameter
                 if check_org_edit:

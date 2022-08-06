@@ -59,7 +59,7 @@ def get_org_balance_htmx(request, club):
     return HttpResponse(f"${balance:,.2f}")
 
 
-@check_club_menu_access(check_payments=True)
+@check_club_menu_access(check_payments_view=True)
 def transactions_htmx(request, club):
     """handle the transaction listing part of the finance tab"""
 

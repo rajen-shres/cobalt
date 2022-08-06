@@ -1,107 +1,91 @@
+{#----------------------------------------------------------------------------------------------#}
+{#                                                                                              #}
+{# Template to show what an email template will look like. Used by the Settings - Templates tab #}
+{#                                                                                              #}
+{# This originally used a <iframe> but there were too many problems with it, so now             #}
+{# it just approximates to the email that will be sent.                                         #}
+{#                                                                                              #}
+{#----------------------------------------------------------------------------------------------#}
 {% load post_office %}
+{% load static %}
 
 <h3>Example Email Preview</h3>
 
-{#<div class="container">#}
-{#    {% include "notifications/django_post_office_core_templates/po_club_template.html" with img_src=template.banner.url title="Example Email" name="Member" email_body="This is some example text for a member email.<br><br>Regards<br>The Committee" box_colour=template.box_colour box_font_colour=template.box_font_colour %}#}
-{#</div>#}
-{##}
-{##}
-{#{% load post_office %}#}
-{#{% load static %}#}
-{##}
-{#<!doctype html>#}
-{#<html>#}
-{##}
-{#    <table  style="width: 100%; background-color: #f6f6f6;">#}
-{#        <tr>#}
-{#            <td style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top;">&nbsp;</td>#}
-{#            <td class="container" style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top; margin: 0 auto !important; max-width: 600px; padding: 0; padding-top: 24px; width: 600px;" width="600" valign="top">#}
-{#                <div class="content" style="box-sizing: border-box; display: block; margin: 0 auto; max-width: 600px; padding: 0;">#}
-{##}
-{#                    <!-- START CENTERED WHITE CONTAINER -->#}
-{##}
-{#                    <!-- START HEADER -->#}
-{#                    <div class="header" style="margin-bottom: 24px; margin-top: 0; width: 100%;">#}
-{#                        <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; min-width: 100%;" width="100%">#}
-{#                            <tr>#}
-{#                                <td class="align-center" style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top; text-align: center;" valign="top" align="center">#}
-{#                                    <a href="http://{{ host }}" target="_blank"><img src="http://{{ host }}{{ img_src }}" alt="Logo" align="center"></a>#}
-{#                                </td>#}
-{#                            </tr>#}
-{#                        </table>#}
-{#                    </div>#}
-{##}
-{#                    <!-- END HEADER -->#}
-{#                    <table border="0" cellpadding="0" cellspacing="0" class="main" style="margin:0px; padding:0; border:0; border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #fff; border-radius: 4px;" width="100%">#}
-{##}
-{#                        <!-- START NOTIFICATION BANNER -->#}
-{#                        <tr>#}
-{#                            <td style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top;" valign="top">#}
-{#                                <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; min-width: 100%;" width="100%">#}
-{#                                    <tr>#}
-{#                                        <td align="center"#}
-{#                                            style="font-family: Helvetica, sans-serif;#}
-{#                                            vertical-align: top;#}
-{#                                            font-size: 14px;#}
-{#                                            border-radius: 4px 4px 0 0;#}
-{#                                            color: {{ box_font_colour|default_if_none:"#ffffff" }};#}
-{#                                            font-weight: 400;#}
-{#                                            padding: 24px;#}
-{#                                            text-align: center;#}
-{#                                            background-color: {{ box_colour|default_if_none:"#9c27b0" }}"#}
-{#                                            valign="top"#}
-{#                                            bgcolor="{{ box_colour|default_if_none:"#9c27b0" }}"#}
-{#                                            color="{{ box_font_colour|default_if_none:"#ffffff" }}">#}
-{#                                            {{ title }}</td>#}
-{#                                    </tr>#}
-{#                                </table>#}
-{#                            </td>#}
-{#                        </tr>#}
-{##}
-{#                        <!-- END NOTIFICATION BANNER -->#}
-{##}
-{#                        <!-- START MAIN CONTENT AREA -->#}
-{#                        <tr>#}
-{#                            <td class="wrapper" style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 24px;" valign="top">#}
-{#                                <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">#}
-{#                                    <tr>#}
-{#                                        <td style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top;" valign="top">#}
-{#                                            <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">Hi {{ name }},</p>#}
-{#                                            <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">{{ email_body|safe }}</p>#}
-{##}
-{#                                            <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">{{ additional_words|safe }}</p>#}
-{#                                        </td>#}
-{#                                    </tr>#}
-{#                                </table>#}
-{#                            </td>#}
-{#                        </tr>#}
-{##}
-{#                        <!-- END MAIN CONTENT AREA -->#}
-{#                    </table>#}
-{##}
-{#                    <!-- START FOOTER -->#}
-{##}
-{#                    {% include "notifications/django_post_office_core_templates/po_club_template_include_footer.html" %}#}
-{##}
-{#                    <!-- END FOOTER -->#}
-{##}
-{#                    <!-- END CENTERED WHITE CONTAINER -->#}
-{#                </div>#}
-{#            </td>#}
-{#            <td style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top;" valign="top">&nbsp;</td>#}
-{#        </tr>#}
-{#    </table>#}
-{#</body>#}
-{##}
-{#</html>#}
+<table  style="width: 100%; background-color: #f6f6f6;">
+    <tr>
+        <td style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top;">&nbsp;</td>
+        <td class="container" style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top; margin: 0 auto !important;  padding: 0; padding-top: 24px; width: 600px;" width="600" valign="top">
+            <div class="content" style="box-sizing: border-box; display: block; margin: 0 auto; max-width: 600px; padding: 0;">
 
-<iframe
-    onload='javascript:(function(o){o.style.height=o.contentWindow.document.body.scrollHeight+"px";}(this));'
-    style="height:200px;width:100%;border:none;overflow:hidden;"
-    srcdoc='
+                <!-- START CENTERED WHITE CONTAINER -->
 
+                <!-- START HEADER -->
+                <div class="header" style="margin-bottom: 24px; margin-top: 0; width: 100%;">
+                    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; min-width: 100%;" width="100%">
+                        <tr>
+                            <td class="align-center" style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top; text-align: center;" valign="top" align="center">
+                                <img src="{{ template.banner.url }}" alt="Logo" align="center">
+                            </td>
+                        </tr>
+                    </table>
+                </div>
 
-    {% include "notifications/django_post_office_core_templates/po_club_template.html" with img_src=template.banner.url title="Example Email" name="Member" email_body="This is some example text for a member email.<br><br>Regards<br>The Committee" box_colour=template.box_colour box_font_colour=template.box_font_colour %}
+                <!-- END HEADER -->
+                <table border="0" cellpadding="0" cellspacing="0" class="main" style="margin:0px; padding:0; border:0; border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #fff; border-radius: 4px;" width="100%">
 
-    '></iframe>
+                    <!-- START NOTIFICATION BANNER -->
+                    <tr>
+                        <td style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top;" valign="top">
+                            <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; min-width: 100%;" width="100%">
+                                <tr>
+                                    <td align="center"
+                                        style="font-family: Helvetica, sans-serif;
+                                        vertical-align: top;
+                                        font-size: 14px;
+                                        border-radius: 4px 4px 0 0;
+                                        color: {{ template.box_font_colour|default_if_none:"#ffffff" }};
+                                        font-weight: 400;
+                                        padding: 24px;
+                                        text-align: center;
+                                        background-color: {{ template.box_colour|default_if_none:"#9c27b0" }}"
+                                        color="{{ template.box_font_colour|default_if_none:"#ffffff" }}">
+                                        Example Email</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- END NOTIFICATION BANNER -->
+
+                    <!-- START MAIN CONTENT AREA -->
+                    <tr>
+                        <td  style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 24px;">
+                            <table style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
+                                <tr>
+                                    <td style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top;" valign="top">
+                                        <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">Hi Member,</p>
+                                        <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">This is some example text for a member email.<br><br>Regards<br>The Committee</p>
+
+                                        <p style="font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 16px;">{{ additional_words|safe }}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- END MAIN CONTENT AREA -->
+                </table>
+
+                <!-- START FOOTER -->
+
+                {% include "notifications/django_post_office_core_templates/po_club_template_include_footer.html" with footer=template.footer %}
+
+                <!-- END FOOTER -->
+
+                <!-- END CENTERED WHITE CONTAINER -->
+            </div>
+        </td>
+        <td style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top;" valign="top">&nbsp;</td>
+    </tr>
+</table>
+

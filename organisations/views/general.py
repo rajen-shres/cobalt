@@ -239,6 +239,7 @@ def get_membership_type_for_players(system_number_list, club):
 
     membership_types = (
         MemberMembershipType.objects.active()
+        .select_related("membership_type")
         .filter(system_number__in=system_number_list)
         .filter(membership_type__organisation=club)
     )
