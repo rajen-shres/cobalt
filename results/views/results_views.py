@@ -427,7 +427,7 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
     else:
         board_data = sorted(board_data, key=lambda d: -d["ew_match_points"])
 
-    # Get data
+    # Get extra data and par score
     dealer, vulnerability = dealer_and_vulnerability_for_board(board_number)
     par_score, par_string = par_score_and_contract(double_dummy, vulnerability, dealer)
 
@@ -495,12 +495,11 @@ def _insert_par_data_into_list(board_data, par_score, par_string, ns_flag):
             job_done = True
             break
 
-        if (par_score <= item["score"] and ns_flag) or (
-            par_score >= item["score"] and not ns_flag
-        ):
-            can_insert = True
-        else:
-            can_insert = False
+        # where we can insert yet or not depends on scores and direction
+        can_insert = bool(
+            (par_score <= item["score"] and ns_flag)
+            or (par_score >= item["score"] and not ns_flag)
+        )
 
     # If we didn't find somewhere to put it, put at end
     if not job_done:
@@ -531,8 +530,6 @@ def _get_traveller_info_process_board(
         lead = traveller_line.get("LEAD")
         tricks = traveller_line.get("TRICKS")
         score = traveller_line.get("SCORE")
-        ns_match_points = traveller_line.get("NS_MATCH_POINTS")
-        ew_match_points = traveller_line.get("EW_MATCH_POINTS")
         try:
             score = int(score)
         except ValueError:

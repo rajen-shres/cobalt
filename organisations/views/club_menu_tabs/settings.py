@@ -804,7 +804,8 @@ def edit_template_htmx(request, club):
         else:
             print(form.errors)
 
-    # We need to reload the template form even if we have saved it or two word fonts get corrupted
+    # We need to reload the template form even if we have saved it or fonts with
+    # more than one word (e.g. "Times New Roman") get corrupted
     form = TemplateForm(instance=template)
 
     # We don't handle the banner form in here, it has its own function
