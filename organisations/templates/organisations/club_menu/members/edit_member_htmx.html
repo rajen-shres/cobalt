@@ -103,15 +103,15 @@
                     </button>
                 {% endif %}
 
-                {% if user_has_payments %}
-                    <button class="mt-5 btn btn-sm btn-primary"
-                        _="on click
-                        toggle .d-none on #id_user_payments
-                        then remove me
-                        then go to the top of #id_user_payments"
-                    >Payments...
-                    </button>
-                {% endif %}
+                {#                {% if user_has_payments %}#}
+                {#                    <button class="mt-5 btn btn-sm btn-primary"#}
+                {#                        _="on click#}
+                {#                        toggle .d-none on #id_user_payments#}
+                {#                        then remove me#}
+                {#                        then go to the top of #id_user_payments"#}
+                {#                    >Payments...#}
+                {#                    </button>#}
+                {#                {% endif %}#}
 
                 <!-- TOP UPS MODAL -->
 
@@ -183,7 +183,7 @@
 
                 {% if user_has_payments %}
 
-                    <div class="row d-none" id="id_user_payments">
+                    <div class="row d-noneXX" id="id_user_payments">
 
                         <div class="card">
                             <div class="card-header card-header-success">
