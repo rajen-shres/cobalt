@@ -15,24 +15,6 @@ from results.views.core import (
 from results.views.usebio import parse_usebio_file
 
 
-def temp(request):
-    results_file = ResultsFile.objects.filter(pk=1).first()
-    xml = parse_usebio_file(results_file)
-    hand = xml["HANDSET"]["BOARD"][0]["HAND"]
-    dd = double_dummy_from_usebio(hand)
-
-    dd = {
-        "N": {"S": 10, "H": 8, "D": 8, "C": 9, "NT": 6},
-        "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
-        "E": {"S": 5, "H": 6, "D": 6, "C": 8, "NT": 6},
-        "W": {"S": 6, "H": 9, "D": 6, "C": 9, "NT": 7},
-    }
-
-    resp = par_score_and_contract(dd, "Nil", "N")
-
-    return HttpResponse(f"<lit>{resp}</lit>")
-
-
 def _par_score_and_contract_best_contract_for_winner(
     dds_table, vulnerability, highest_bidder_player
 ):
@@ -60,7 +42,131 @@ def _par_score_and_contract_best_contract_for_winner(
         if ns and score > best_score or not ns and score < best_score:
             best_contract = contract
             best_score = score
+
+    if not best_contract:
+        print("--------------------------------")
+        print("--------------------------------")
+        print("--------------------------------")
+        print("--------------------------------")
+        print("--------------------------------")
+        print("--------------------------------")
+        print(dds_table)
+        print(highest_bidder_player)
+
+    # For game contracts reduce to game level if above
+    if 400 <= abs(best_score) <= 720:
+        if "C" in best_contract or "D" in best_contract:
+            best_contract = f"5{best_contract[1]}"
+        elif "H" in best_contract or "S" in best_contract:
+            best_contract = f"4{best_contract[1]}"
+        else:
+            best_contract = "3N"
+
+    # For part scores start at the 1 level
+    if abs(best_score) < 400:
+        best_contract = f"1{best_contract[1]}"
+
     return best_score, best_contract
+
+
+def _contract_formatted_with_overtricks(contract, par_score):
+    """take a contract and score and format. e.g. 3N 490 becomes 4N+2
+
+    Only supports making contracts.
+
+    Args:
+        contract(str): e.g. "5H"
+        par_score(int): e.g. 450 or -170
+        lowest_level(int): level that must be bid to, to beat the opponents. We don't want to say
+                           1H+2 if opponents can make 1S, need to say 2H+1
+
+    """
+
+    # Work out over tricks, possibilities are:
+    # GAMES - 400,420,430,450,460 (or 6 instead of 4)
+    # x00 -> 3N=, 5m=
+    # x20 -> 4M=, 5m+1
+    # x30 -> 3N+1
+    # x40 NA (slam)
+    # x50 -> 4M+1
+    # x60 -> 3N+2
+    # x70 NA
+    # x80 -> NA (slam)
+    # x90 -> NA (slam)
+    # PART SCORES - 70, 80, 90, 110, 120, 130, 140
+    # x70 -> 1m=
+    # x80 -> 1M=
+    # x90 -> 1N=, 1m+1, 2m=
+    # x10 -> 1M+1, 2M=, 1m+2, 2m+1, 3m=
+    # x20 -> 1N+1, 2N=
+    # x30 -> 1m+3, 2m+2, 3m+1, 4m=
+    # x40 -> 1M+2, 2M+1, 3M
+
+    last_part = f"{abs(par_score):3}"[1:3]
+    level = int(contract[0])
+
+    # Add on over tricks
+
+    if last_part == "00":
+        # 3N or 5m
+        return f"{contract}="
+
+    if last_part == "10":
+        # 1M+1, 2M=, 1m+2, 2m+1, 3m=
+        if level == 1:
+            if contract[1] in ["H", "S"]:
+                return f"{contract}+1"
+            else:
+                return f"{contract}+2"
+        if level == 2:
+            if contract[1] in ["H", "S"]:
+                return f"{contract}="
+            else:
+                return f"{contract}+1"
+        if level == 3:
+            return f"{contract}="
+
+    if last_part == "20":
+        # 4M=, 5m+1, 1N+1, 2N=
+        if level == 1:
+            return f"{contract}+1"
+        if level == 2:
+            return f"{contract}="
+        if level == 4:
+            return f"{contract}="
+        if level == 5:
+            return f"{contract}+1"
+
+    if last_part == "30":
+        # 3N+1, 1m+3, 2m+2, 3m+1, 4m=
+        if level == 1:
+            return f"{contract}+3"
+        if level == 2:
+            return f"{contract}+2"
+        if level == 3:
+            return f"{contract}+1"
+        if level == 4:
+            return f"{contract}="
+
+    if last_part == "40":
+        # 1M+2, 2M+1, 3M
+        if level == 1:
+            return f"{contract}+2"
+        if level == 2:
+            return f"{contract}+1"
+        if level == 3:
+            return f"{contract}="
+
+    if last_part == "50":
+        # 4M+1
+        return f"{contract}+1"
+
+    if last_part == "60":
+        # 3N+2
+        return f"{contract}+2"
+
+    # Just in case we failed
+    return contract
 
 
 def _par_score_and_contract_auction_winner(dds_table, dealer):
@@ -108,22 +214,50 @@ def _par_score_and_contract_auction_winner(dds_table, dealer):
 
 
 def _par_score_and_contract_final_check_equal_contracts_making(
-    par_bidder, par_score, dds_table, vulnerability, equal_contracts
+    par_bidder, par_score, par_contract, dds_table, vulnerability, equal_contracts
 ):
     """sub to find contracts with the same score"""
 
     direction = "NS" if par_bidder in ["N", "S"] else "EW"
 
+    # We know it is the first time if equal_contracts is empty.
+    if not equal_contracts:
+
+        # See if partner can make this too
+        partner_tricks_in_par_contract = dds_table[partner_for(par_bidder)][
+            par_contract[1]
+        ]
+        partner_score = score_for_contract(
+            par_contract,
+            vulnerability,
+            partner_for(par_bidder),
+            partner_tricks_in_par_contract,
+        )
+        if abs(partner_score) == abs(par_score):
+            # Partner can make this so put down both directions
+            equal_contracts[
+                _contract_formatted_with_overtricks(par_contract, par_score)
+            ] = direction
+        else:
+            # Only par_bidder makes this
+            equal_contracts[
+                _contract_formatted_with_overtricks(par_contract, par_score)
+            ] = par_bidder
+
+    # Go through all contracts
     for suit in dds_table[par_bidder]:
         level = dds_table[par_bidder][suit] - 6
         if level < 1:
             continue
         contract = f"{level}{suit}"
 
-        # check for same score
-        if par_score == score_for_contract(
+        # check for same score, but only if different suit, don't want to have 3N and 4N in list
+        if suit != par_contract[1] and par_score == score_for_contract(
             contract, vulnerability, par_bidder, level + 6
         ):
+            # put in number of overtricks
+            contract = _contract_formatted_with_overtricks(contract, par_score)
+
             # Add to list, if already present then both can make it
             if contract in equal_contracts:
                 equal_contracts[contract] = direction
@@ -193,11 +327,12 @@ def _par_score_and_contract_final_check(
     else:
         # Making. Get all contracts for this score, this player and their partner
         equal_contracts = _par_score_and_contract_final_check_equal_contracts_making(
-            par_bidder, par_score, dds_table, vulnerability, {}
+            par_bidder, par_score, par_contract, dds_table, vulnerability, {}
         )
         equal_contracts = _par_score_and_contract_final_check_equal_contracts_making(
             partner_for(par_bidder),
             par_score,
+            par_contract,
             dds_table,
             vulnerability,
             equal_contracts,
@@ -376,7 +511,7 @@ def par_score_and_contract(dds_table, vulnerability, dealer):
         highest_bidder_player,
     ) = _par_score_and_contract_auction_winner(dds_table, dealer)
 
-    # Now get the best scoring contract for this side
+    # Now get the best scoring contract for this side, e.g. 3NT+1 beats 5D=
     best_score, best_contract = _par_score_and_contract_best_contract_for_winner(
         dds_table, vulnerability, highest_bidder_player
     )

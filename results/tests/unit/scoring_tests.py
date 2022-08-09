@@ -3,6 +3,13 @@ from results.views.par_contract import par_score_and_contract
 from tests.test_manager import CobaltTestManagerIntegration
 
 
+def _handle_failing_test(failing, test_number, par_score, par_string):
+    failing.append(test_number)
+    print(test_number, par_score, par_string)
+
+    return failing
+
+
 class ScoringTests:
     """Unit tests for scoring"""
 
@@ -88,13 +95,12 @@ class ScoringTests:
     def par_score_tests(self):
         """Tests for the par score function"""
 
-        passing = True
         failing = []
 
         #####################################
         test_number = 1
 
-        # Both 3NT and 5C make. 3NT better. No sacrifice.
+        # Both 3NT and 5C make. 3NT better. No sacrifice. Need to bid to 4NT or 4CEW for 300 is better sacrifice
         dds_table = {
             "N": {"S": 8, "H": 8, "D": 8, "C": 11, "NT": 10},
             "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
@@ -104,9 +110,7 @@ class ScoringTests:
 
         par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
         if par_score != 430 or par_string != "4N by N for 430":
-            passing = False
-            failing.append(test_number)
-            print(test_number, par_score, par_string)
+            failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         #####################################
         test_number = 2
@@ -121,9 +125,7 @@ class ScoringTests:
 
         par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
         if par_score != 100 or par_string != "5HX by EW for 100":
-            passing = False
-            failing.append(test_number)
-            print(test_number, par_score, par_string)
+            failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         #####################################
         test_number = 3
@@ -137,10 +139,8 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
-        if par_score != 90:
-            passing = False
-            failing.append(test_number)
-            print(test_number, par_score, par_string)
+        if par_score != 90 or par_string != "1N by N for 90":
+            failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         ####################################
         test_number = 4
@@ -154,10 +154,8 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
-        if par_score != 100:
-            passing = False
-            failing.append(test_number)
-            print(test_number, par_score, par_string)
+        if par_score != 100 or par_string != "4CX by W for 100":
+            failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         ####################################
         test_number = 5
@@ -171,10 +169,8 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
-        if par_score != 100:
-            passing = False
-            failing.append(test_number)
-            print(test_number, par_score, par_string)
+        if par_score != 100 or par_string != "5HX by E for 100":
+            failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         ####################################
         test_number = 6
@@ -188,10 +184,8 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "Nil", "S")
-        if par_score != -100:
-            passing = False
-            failing.append(test_number)
-            print(test_number, par_score, par_string)
+        if par_score != -100 or par_string != "4NX by N for -100":
+            failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         #####################################
         test_number = 7
@@ -205,10 +199,8 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "EW", "S")
-        if par_score != -620:
-            passing = False
-            failing.append(test_number)
-            print(test_number, par_score, par_string)
+        if par_score != -620 or par_string != "4S by W or 4H by E for -620":
+            failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         #####################################
         test_number = 8
@@ -222,15 +214,13 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "All", "S")
-        if par_score != -200:
-            passing = False
-            failing.append(test_number)
-            print(test_number, par_score, par_string)
+        if par_score != -200 or par_string != "4SX by N or 4NX by N for -200":
+            failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         #####################################
         test_number = 9
 
-        # both making same contract - dealer dictates winner. South can't make 1N so E wins.
+        # both making same contract - dealer dictates winner. South can't make 1N so W wins.
         dds_table = {
             "N": {"S": 5, "H": 5, "D": 5, "C": 5, "NT": 7},
             "S": {"S": 6, "H": 5, "D": 6, "C": 4, "NT": 6},
@@ -239,10 +229,8 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "All", "S")
-        if par_score != -90:
-            passing = False
-            failing.append(test_number)
-            print(test_number, par_score, par_string)
+        if par_score != -90 or par_string != "1N by W for -90":
+            failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         #####################################
         test_number = 10
@@ -258,14 +246,12 @@ class ScoringTests:
 
         par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
         if par_score != -300 or par_string != "5SX by NS for -300":
-            passing = False
-            failing.append(test_number)
-            print(test_number, par_score, par_string)
+            failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         # Results
 
         self.manager.save_results(
-            status=passing,
+            status=not failing,
             test_name="Par contract and score testing",
             test_description="Tests for par score.",
             output=f"These tests failed (see numbers in code): {failing}",
