@@ -1,5 +1,6 @@
 import csv
 import datetime
+import logging
 from copy import copy
 from itertools import chain
 
@@ -23,6 +24,7 @@ from cobalt.settings import (
 from notifications.notifications_views.core import (
     send_cobalt_email_with_template,
     create_rbac_batch_id,
+    send_cobalt_email_to_system_number,
 )
 from organisations.decorators import check_club_menu_access
 from organisations.forms import (
@@ -61,6 +63,8 @@ from post_office.models import Email as PostOfficeEmail
 from rbac.views import rbac_forbidden
 from utils.utils import cobalt_currency, cobalt_paginator
 
+logger = logging.getLogger("cobalt")
+
 
 @check_club_menu_access()
 def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
@@ -79,6 +83,9 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
     searchparams = f"sort_by={sort_option}&"
 
     total_members = len(members)
+
+    # for member in members:
+    #     print(member)
 
     # Check level of access
     member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
@@ -822,11 +829,38 @@ def _edit_member_htmx_default(club, member):
         .first()
     )
 
-    initial = {
-        "member": member.id,
-        "membership_type": member_membership.membership_type.id,
-        "home_club": member_membership.home_club,
-    }
+    member_membership = (
+        MemberMembershipType.objects.active()
+        .filter(system_number=member.system_number)
+        .filter(membership_type__organisation=club)
+        .first()
+    )
+
+    logger.info(f"{club} {member} {member_membership}")
+
+    if not member_membership:
+        direct_member_membership = (
+            MemberMembershipType.objects.filter(system_number=member.system_number)
+            .filter(membership_type__organisation=club)
+            .first()
+        )
+
+        message = f"Club:{club}<br>Member:{member}<br>MemberMembership:{member_membership}<br>MemberMembership (no active()):{direct_member_membership}"
+
+        send_cobalt_email_to_system_number(
+            620246, "_edit_member_htmx_default Error", message
+        )
+
+        initial = {
+            "member": member.id,
+        }
+    else:
+        initial = {
+            "member": member.id,
+            "membership_type": member_membership.membership_type.id,
+            "home_club": member_membership.home_club,
+        }
+
     form = UserMembershipForm(club=club)
     form.initial = initial
 

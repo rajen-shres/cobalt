@@ -15,6 +15,51 @@ from results.views.core import (
 from results.views.usebio import parse_usebio_file
 
 
+# NEW BROKEN VERSION
+# def _par_score_and_contract_best_contract_for_winner(
+#         dds_table, vulnerability, highest_bidder_player
+# ):
+#     """sub to get the best contract for the auction winner or their partner.
+#
+#     The highest contract is not necessarily the best scoring. e.g. 3NT+1 for 430 beats 5D= for 400
+#
+#     """
+#
+#     best_score = 0
+#     best_contract = None
+#     for suit in dds_table[highest_bidder_player]:
+#         tricks_available = dds_table[highest_bidder_player][suit]
+#         if tricks_available < 7:
+#             # Don't bother if not a valid contract
+#             continue
+#         contract = f"{tricks_available - 6}{suit}"
+#         # Get score
+#         score = score_for_contract(
+#             contract, vulnerability, highest_bidder_player, tricks_available
+#         )
+#         # Update best score if better
+#         # EW scores are best if smaller
+#         ns = highest_bidder_player in ["N", "S"]
+#         if ns and score > best_score or not ns and score < best_score:
+#             best_contract = contract
+#             best_score = score
+#
+#     # For game contracts reduce to game level if above
+#     if 400 <= abs(best_score) <= 720:
+#         if "C" in best_contract or "D" in best_contract:
+#             best_contract = f"5{best_contract[1]}"
+#         elif "H" in best_contract or "S" in best_contract:
+#             best_contract = f"4{best_contract[1]}"
+#         else:
+#             best_contract = "3N"
+#
+#     # For part scores start at the 1 level
+#     if abs(best_score) < 400:
+#         best_contract = f"1{best_contract[1]}"
+#
+#     return best_score, best_contract
+
+
 def _par_score_and_contract_best_contract_for_winner(
     dds_table, vulnerability, highest_bidder_player
 ):
@@ -42,30 +87,6 @@ def _par_score_and_contract_best_contract_for_winner(
         if ns and score > best_score or not ns and score < best_score:
             best_contract = contract
             best_score = score
-
-    if not best_contract:
-        print("--------------------------------")
-        print("--------------------------------")
-        print("--------------------------------")
-        print("--------------------------------")
-        print("--------------------------------")
-        print("--------------------------------")
-        print(dds_table)
-        print(highest_bidder_player)
-
-    # For game contracts reduce to game level if above
-    if 400 <= abs(best_score) <= 720:
-        if "C" in best_contract or "D" in best_contract:
-            best_contract = f"5{best_contract[1]}"
-        elif "H" in best_contract or "S" in best_contract:
-            best_contract = f"4{best_contract[1]}"
-        else:
-            best_contract = "3N"
-
-    # For part scores start at the 1 level
-    if abs(best_score) < 400:
-        best_contract = f"1{best_contract[1]}"
-
     return best_score, best_contract
 
 
