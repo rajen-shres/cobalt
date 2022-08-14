@@ -638,4 +638,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.members.member_search_tab_name_htmx,
         name="member_search_tab_name_htmx",
     ),
+    path(
+        "member/edit/recent-misc-payments",
+        organisations.views.club_menu_tabs.members.club_menu_tab_member_edit_recent_misc_payments_htmx,
+        name="club_menu_tab_member_edit_recent_misc_payments_htmx",
+    ),
 ]

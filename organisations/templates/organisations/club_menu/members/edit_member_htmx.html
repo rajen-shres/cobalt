@@ -1,8 +1,18 @@
-{#------------------------------------------------------------------------#}
-{#                                                                        #}
-{# Edit member screen                                                     #}
-{#                                                                        #}
-{#------------------------------------------------------------------------#}
+{#----------------------------------------------------------------------------------------------#}
+{#                                                                                              #}
+{# Edit member screen                                                                           #}
+{#                                                                                              #}
+{# TODO: Julian has an issue getting the buttons to work on his browser. I can't reproduce this #}
+{# but he made a video and it definitely happens for him. The commented out code shows buttons  #}
+{# and clicking them uses hyperscript to remove d-none from the relevant div and to delete the  #}
+{# button.                                                                                      #}
+{#                                                                                              #}
+{# For Julian the div never shows.                                                              #}
+{#                                                                                              #}
+{# Commented out for now. Need to revisit. This screen is very busy otherwise.                  #}
+{#                                                                                              #}
+{#----------------------------------------------------------------------------------------------#}
+
 {% load cobalt_tags %}
 
 <div class="container">
@@ -10,7 +20,8 @@
 
         <!-- MAIN EDIT MEMBER CARD -->
 
-        <div id="id_main_member_card" class="card col-lg-9 mx-auto">
+        {#        <div id="id_main_member_card" class="card col-lg-9 mx-auto">#}
+        <div id="id_main_member_card" class="card col-lg-6">
 
             <div class="card-header card-header-rose">
                 <h2 class="text-center">Edit Member</h2>
@@ -78,30 +89,30 @@
                     onclick="$('#id_top_up').modal('show');"
                 >Top Up...
                 </button>
+                {##}
+                {#                <button class="mt-5 btn btn-sm btn-primary"#}
+                {#                    _="on click#}
+                {#                    toggle .d-none on #id_recent_emails#}
+                {#                    then toggle .col-lg-9 on #id_main_member_card#}
+                {#                    then toggle .mx-auto on #id_main_member_card#}
+                {#                    then toggle .col-lg-6 on #id_main_member_card#}
+                {#                    then remove me"#}
+                {#                >Emails...#}
+                {#                </button>#}
+                {##}
+                {#                {% if club_has_misc %}#}
+                {#                    <button class="mt-5 btn btn-sm btn-primary"#}
+                {#                        _="on click toggle .d-none on #id_misc_pay_box then remove me"#}
+                {#                    >Misc...#}
+                {#                    </button>#}
+                {#                {% endif %}#}
 
-                <button class="mt-5 btn btn-sm btn-primary"
-                    _="on click
-                    toggle .d-none on #id_recent_emails
-                    then toggle .col-lg-9 on #id_main_member_card
-                    then toggle .mx-auto on #id_main_member_card
-                    then toggle .col-lg-6 on #id_main_member_card
-                    then remove me"
-                >Emails...
-                </button>
-
-                {% if club_has_misc %}
-                    <button class="mt-5 btn btn-sm btn-primary"
-                        _="on click toggle .d-none on #id_misc_pay_box then remove me"
-                    >Misc...
-                    </button>
-                {% endif %}
-
-                {% if club_has_tags %}
-                    <button class="mt-5 btn btn-sm btn-primary"
-                        _="on click toggle .d-none on #id_manage_tags then remove me"
-                    >Tags...
-                    </button>
-                {% endif %}
+                {#                {% if club_has_tags %}#}
+                {#                    <button class="mt-5 btn btn-sm btn-primary"#}
+                {#                        _="on click toggle .d-none on #id_manage_tags then remove me"#}
+                {#                    >Tags...#}
+                {#                    </button>#}
+                {#                {% endif %}#}
 
                 {#                {% if user_has_payments %}#}
                 {#                    <button class="mt-5 btn btn-sm btn-primary"#}
@@ -169,8 +180,6 @@
                     </div>
                 </div>
 
-
-
                 <!-- MISCELLANEOUS PAYMENTS -->
 
                 <div id="id_misc_pay_member">
@@ -181,34 +190,34 @@
 
                 <!-- PAYMENTS -->
 
-                {% if user_has_payments %}
-
-                    <div class="row d-noneXX" id="id_user_payments">
-
-                        <div class="card">
-                            <div class="card-header card-header-success">
-                                <h3>Recent Transactions with Club</h3>
-                                <h4>Balance:
-                                    <span
-                                        hx-trigger="load"
-                                        hx-post="{% url "organisations:get_member_balance_htmx" %}"
-                                        hx-vars="member: {{ member.id }}"
-                                    >
-                                    </span>
-                                </h4>
-                            </div>
-                            <div class="card-body">
-                                <span
-                                    hx-trigger="load"
-                                    hx-post="{% url "organisations:club_menu_tab_members_recent_payments_for_user_htmx" %}"
-                                    hx-vars="club: {{ club.id }}, member_id: {{ member.id }}"
-                                >
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                {% endif %}
+                {#                {% if user_has_payments %}#}
+                {##}
+                {#                    <div class="row d-noneXX" id="id_user_payments">#}
+                {##}
+                {#                        <div class="card">#}
+                {#                            <div class="card-header card-header-success">#}
+                {#                                <h3>Recent Transactions with Club</h3>#}
+                {#                                <h4>Balance:#}
+                {#                                    <span#}
+                {#                                        hx-trigger="load"#}
+                {#                                        hx-post="{% url "organisations:get_member_balance_htmx" %}"#}
+                {#                                        hx-vars="member: {{ member.id }}"#}
+                {#                                    >#}
+                {#                                    </span>#}
+                {#                                </h4>#}
+                {#                            </div>#}
+                {#                            <div class="card-body">#}
+                {#                                <span#}
+                {#                                    hx-trigger="load"#}
+                {#                                    hx-post="{% url "organisations:club_menu_tab_members_recent_payments_for_user_htmx" %}"#}
+                {#                                    hx-vars="club: {{ club.id }}, member_id: {{ member.id }}"#}
+                {#                                >#}
+                {#                                </span>#}
+                {#                            </div>#}
+                {#                        </div>#}
+                {#                    </div>#}
+                {##}
+                {#                {% endif %}#}
 
             </div>
         </div>
@@ -243,6 +252,11 @@
             return false;
 
         });
+
+        {#// listen for payment being made and update summary list#}
+        {#document.body.addEventListener("misc_payment_update", function(evt){#}
+        {#    htmx.trigger(htmx.find("#misc_payment"), "misc_payment_update");#}
+        {#});#}
 
     });
 </script>

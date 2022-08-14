@@ -704,6 +704,8 @@ def edit_member_htmx(request, club, message=""):
 
         form = _edit_member_htmx_default(club, member)
 
+    # Add on common parts
+
     hx_delete = reverse("organisations:club_menu_tab_member_delete_member_htmx")
     hx_vars = f"club_id:{club.id},member_id:{member.id}"
 
@@ -739,10 +741,15 @@ def edit_member_htmx(request, club, message=""):
     # Get payment stuff
     recent_misc_payments, misc_payment_types = _get_misc_payment_vars(member, club)
 
+    # Get users balance
+    user_balance = get_balance(member)
+
     # See if this user has payments access
-    user_has_payments = rbac_user_has_role(
+    user_has_payments_edit = rbac_user_has_role(
         request.user, f"club_sessions.sessions.{club.id}.edit"
     ) or rbac_user_has_role(request.user, f"payments.manage.{club.id}.edit")
+
+    # See if user has payments view access,
 
     return render(
         request,
@@ -759,9 +766,10 @@ def edit_member_htmx(request, club, message=""):
             "emails": emails,
             "recent_misc_payments": recent_misc_payments,
             "misc_payment_types": misc_payment_types,
+            "user_balance": user_balance,
             "club_has_tags": club_has_tags,
             "club_has_misc": club_has_misc,
-            "user_has_payments": user_has_payments,
+            "user_has_payments_edit": user_has_payments_edit,
         },
     )
 
@@ -1028,13 +1036,16 @@ def add_misc_payment_htmx(request, club):
         ).save()
 
     else:
-        misc_message = "Payment failed"
+        misc_message = f"Payment FAILED for {member.full_name}. Insufficient funds."
 
     # Get relevant data
     recent_misc_payments, misc_payment_types = _get_misc_payment_vars(member, club)
 
+    # Get balance
+    user_balance = get_balance(member)
+
     # return part of edit_member screen
-    return render(
+    response = render(
         request,
         "organisations/club_menu/members/edit_member_misc_payments_htmx.html",
         {
@@ -1043,8 +1054,29 @@ def add_misc_payment_htmx(request, club):
             "misc_message": misc_message,
             "recent_misc_payments": recent_misc_payments,
             "misc_payment_types": misc_payment_types,
+            "user_balance": user_balance,
             "is_reload": True,  # when we reload, we don't want to be hidden (default)
         },
+    )
+
+    # Add header to tell recent transactions to update itself
+    response["HX-Trigger"] = "{misc_payment_update: true}'"
+
+    return response
+
+
+@check_club_menu_access(check_session_or_payments=True)
+def club_menu_tab_member_edit_recent_misc_payments_htmx(request, club):
+    """Show the summary of recent misc payments for this member"""
+
+    member_id = request.POST.get("member_id")
+    member = get_object_or_404(User, pk=member_id)
+    recent_misc_payments, misc_payment_types = _get_misc_payment_vars(member, club)
+
+    return render(
+        request,
+        "organisations/club_menu/members/edit_member_misc_payments_htmx.html",
+        {"club": club, "recent_misc_payments": recent_misc_payments},
     )
 
 

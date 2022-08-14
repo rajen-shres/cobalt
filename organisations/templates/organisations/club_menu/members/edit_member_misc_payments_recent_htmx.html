@@ -1,0 +1,28 @@
+{% load humanize %}
+{% load cobalt_tags %}
+
+{% if recent_misc_payments %}
+
+    <div class="table-responsive">
+        <table class="table table-condensed">
+            <thead>
+                <tr>
+                    <th class="text-left">Date</th>
+                    <th class="text-left">Description</th>
+                    <th class="text-right cobalt-no-wrap">Amount ({{ GLOBAL_CURRENCY_SYMBOL }})</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recent_misc_payment in recent_misc_payments %}
+                    <tr>
+                        <td class="text-left">{{ recent_misc_payment.created_date|cobalt_nice_datetime_short }}</td>
+                        <td class="text-left">{{ recent_misc_payment.description }}</td>
+                        <td class="text-right">{{ recent_misc_payment.amount|floatformat:2|intcomma }}</td>
+
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endif %}

@@ -1,9 +1,15 @@
+{#-------------------------------------------------------------------------#}
+{#                                                                         #}
+{# Sub part of the member edit screen. This shows recent payments and      #}
+{# has a form for the user to create a new misc payment                    #}
+{#                                                                         #}
+{#-------------------------------------------------------------------------#}
 {% load humanize %}
 {% load cobalt_tags %}
 
 <!-- MISCELLANEOUS PAYMENTS -->
 
-<div class="card mt-5 {% if not is_reload %}d-none{% endif %}" id="id_misc_pay_box">
+<div class="card mt-5 {% if not is_reload %}d-noneXX{% endif %}" id="id_misc_pay_box">
     <div class="card-header card-header-primary">
         <h2>Miscellaneous Payments</h2>
     </div>
@@ -11,6 +17,19 @@
 
         <!-- MESSAGE -->
         <h3 class="text-primary font-weight-bold">{{ misc_message }}</h3>
+
+        {#        <div#}
+        {#                id="recent_misc"#}
+        {#                hx-trigger="misc_payment_update"#}
+        {#                hx-post="{% url "organisations:club_menu_tab_member_edit_recent_misc_payments_htmx" %}"#}
+        {#                hx-vars="club_id:{{ club.id }}, member_id:{{ member.id }}"#}
+        {#                hx-target="this"#}
+        {##}
+        {#                hx-post="{% url "organisations:club_menu_tab_members_add_misc_payment_htmx" %}"#}
+        {#                        hx-target="#id_misc_pay_member"#}
+        {#                        hx-vars="club_id:{{ club.id }}"#}
+        {##}
+        {#        >#}
 
         {% if recent_misc_payments %}
 
@@ -36,64 +55,68 @@
                 </table>
             </div>
 
-            <!-- NEW MISC PAYMENT -->
-
-            <div class="card">
-                <div class="card-header card-header-warning">
-                    <h3>Add New Payment for {{ member.first_name }}</h3>
-                </div>
-                <div class="card-body">
-
-                    <form
-                        hx-post="{% url "organisations:club_menu_tab_members_add_misc_payment_htmx" %}"
-                        hx-target="#id_misc_pay_member"
-                        hx-vars="club_id:{{ club.id }}"
-                    >
-                        <input type="hidden" name="member_id" value="{{ member.id }}">
-                        <div class="container">
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label for="id_misc_payment" class="bmd-label-static">Item</label>
-                                        <select class="selectpicker" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
-                                            <option selected value="-1">---select---</option>
-                                            {% for misc_payment_type in misc_payment_types %}
-                                                <option value="{{ misc_payment_type.id }}">{{ misc_payment_type.description }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label for="id_misc_description" class="bmd-label-floating">Description</label>
-                                        <input type="text" value="" maxlength="15" class="form-control" id="id_misc_description" name="misc_description">
-                                    </div>
-                                </div>
-
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label for="id_amount" class="bmd-label-floating">Amount</label>
-                                        <input type="number" value="" min="0.00" step="0.01" class="form-control" id="id_amount" name="amount">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col text-center">
-                                <button class="btn btn-info btn-sm" id="id_misc_button" disabled type="submit">Add</button>
-                            </div>
-                        </div>
-
-                    </form>
-                </div>
-            </div>
-
         {% endif %}
 
     </div>
+
+    <!-- NEW MISC PAYMENT -->
+
+    <div class="card">
+        <div class="card-header card-header-warning">
+            <h3>Add New Payment for {{ member.first_name }}</h3>
+            <h4>{{ member.first_name }}'s Balance: {{ user_balance|cobalt_currency_colour }}</h4>
+            <h4>Auto Top Up is: {{ member.stripe_auto_confirmed|yesno:"On:Off" }}</h4>
+        </div>
+        <div class="card-body">
+
+            <form
+                hx-post="{% url "organisations:club_menu_tab_members_add_misc_payment_htmx" %}"
+                hx-target="#id_misc_pay_member"
+                hx-vars="club_id:{{ club.id }}"
+            >
+                <input type="hidden" name="member_id" value="{{ member.id }}">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="id_misc_payment" class="bmd-label-static">Item</label>
+                                <select class="selectpicker" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
+                                    <option selected value="-1">---select---</option>
+                                    {% for misc_payment_type in misc_payment_types %}
+                                        <option value="{{ misc_payment_type.id }}">{{ misc_payment_type.description }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="id_misc_description" class="bmd-label-floating">Description</label>
+                                <input type="text" value="" maxlength="15" class="form-control" id="id_misc_description" name="misc_description">
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="id_amount" class="bmd-label-floating">Amount</label>
+                                <input type="number" value="" min="0.00" step="0.01" class="form-control" id="id_amount" name="amount">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col text-center">
+                        <button class="btn btn-info btn-sm" id="id_misc_button" disabled type="submit">Add</button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
 </div>
+
 
 <script>
     $(document).ready( function () {
@@ -120,5 +143,16 @@
             const new_val = default_amount[$(this).val()];
             $("#id_amount").val(new_val);
         });
+
+        // handle manually entering misc payment - enable button if both fields have values
+        $("#id_amount, #id_misc_description").keyup(function() {
+            // check if form is valid to submit
+            if ($("#id_amount").val() > 0 && $("#id_misc_description").val().length > 0){
+                $("#id_misc_button").removeAttr("disabled");
+            } else {
+                $("#id_misc_button").attr("disabled", true);
+            }
+        });
+
     });
 </script>
