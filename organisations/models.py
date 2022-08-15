@@ -12,7 +12,8 @@ from cobalt.settings import (
     BLEACH_ALLOWED_ATTRIBUTES,
     BLEACH_ALLOWED_STYLES,
 )
-from organisations.model_managers import MemberMembershipTypeManager
+
+# from organisations.model_managers import MemberMembershipTypeManager
 
 # import payments.models as payments_models
 
@@ -325,7 +326,8 @@ class MemberMembershipType(models.Model):
             f"{self.system_number}, member of {self.membership_type.organisation.name}"
         )
 
-    objects = MemberMembershipTypeManager()
+
+#    objects = MemberMembershipTypeManager()
 
 
 class ClubLog(models.Model):

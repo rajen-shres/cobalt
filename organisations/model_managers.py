@@ -7,11 +7,11 @@ from django.utils import timezone
 # For now we don't call it and will probably change this to have an archive table for historic membership viewing
 
 
-class MemberMembershipTypeManager(models.Manager):
-    """Model Manager for Memberships. Creates a filter for active membership"""
-
-    def active(self, ref_date=timezone.now()):
-
-        return self.filter(start_date__lte=ref_date).filter(
-            Q(end_date__gte=ref_date) | Q(end_date=None)
-        )
+# class MemberMembershipTypeManager(models.Manager):
+#     """Model Manager for Memberships. Creates a filter for active membership"""
+#
+#     def active(self, ref_date=timezone.now()):
+#
+#         return self.filter(start_date__lte=ref_date).filter(
+#             Q(end_date__gte=ref_date) | Q(end_date=None)
+#         )

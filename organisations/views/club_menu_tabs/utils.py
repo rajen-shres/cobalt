@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from accounts.models import UnregisteredUser, User
 from accounts.accounts_views.admin import invite_to_join
-from cobalt.settings import COBALT_HOSTNAME
+from cobalt.settings import COBALT_HOSTNAME, GLOBAL_TITLE
 from organisations.decorators import check_club_menu_access
 from organisations.models import MemberMembershipType, Organisation, MemberClubEmail
 from organisations.views.club_menu_tabs.members import list_htmx
@@ -196,12 +196,9 @@ def get_members_for_club(club, sort_option="first_desc"):
     """Gets all of the members and unregistered users for a club"""
 
     # Get System Numbers for All Members
-    now = timezone.now()
-    club_system_numbers = (
-        MemberMembershipType.objects.filter(membership_type__organisation=club)
-        .filter(start_date__lte=now)
-        .values("system_number")
-    )
+    club_system_numbers = MemberMembershipType.objects.filter(
+        membership_type__organisation=club
+    ).values("system_number")
 
     return get_club_members_from_system_number_list(
         club_system_numbers, club, sort_option=sort_option
@@ -230,9 +227,12 @@ def get_club_members_from_system_number_list(
     for player in combined_set:
         if player.system_number in membership_type_dict:
             player.membership = membership_type_dict[player.system_number]
-        # else:
-        #     # Interloper - this person isn't a member!
-        #     combined_set.remove(player)
+        if type(player) is User:
+            player.status = f"{GLOBAL_TITLE} User"
+        elif type(player) is UnregisteredUser:
+            player.status = "Unregistered User"
+        else:
+            player.status = "Unknown Type"
 
     combined_list = list(combined_set)
 
@@ -245,5 +245,17 @@ def get_club_members_from_system_number_list(
         combined_list.sort(key=lambda x: x.last_name)
     elif sort_option == "last_asc":
         combined_list.sort(key=lambda x: x.last_name, reverse=True)
+    elif sort_option == "system_number_desc":
+        combined_list.sort(key=lambda x: x.system_number)
+    elif sort_option == "system_number_asc":
+        combined_list.sort(key=lambda x: x.system_number, reverse=True)
+    elif sort_option == "membership_desc":
+        combined_list.sort(key=lambda x: x.membership)
+    elif sort_option == "membership_asc":
+        combined_list.sort(key=lambda x: x.membership, reverse=True)
+    elif sort_option == "status_desc":
+        combined_list.sort(key=lambda x: x.status)
+    elif sort_option == "status_asc":
+        combined_list.sort(key=lambda x: x.status, reverse=True)
 
     return combined_list

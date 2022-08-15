@@ -84,9 +84,6 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
 
     total_members = len(members)
 
-    # for member in members:
-    #     print(member)
-
     # Check level of access
     member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
 
@@ -695,23 +692,14 @@ def edit_member_htmx(request, club, message=""):
     hx_delete = reverse("organisations:club_menu_tab_member_delete_member_htmx")
     hx_vars = f"club_id:{club.id},member_id:{member.id}"
 
-    # Check if club even has any tags
-    club_has_tags = ClubTag.objects.filter(organisation=club).exists()
-
-    if club_has_tags:
-
-        # Get member tags
-        member_tags = MemberClubTag.objects.prefetch_related("club_tag").filter(
-            club_tag__organisation=club, system_number=member.system_number
-        )
-        used_tags = member_tags.values("club_tag__tag_name")
-        available_tags = ClubTag.objects.filter(organisation=club).exclude(
-            tag_name__in=used_tags
-        )
-
-    else:
-        member_tags = None
-        available_tags = None
+    # Get member tags
+    member_tags = MemberClubTag.objects.prefetch_related("club_tag").filter(
+        club_tag__organisation=club, system_number=member.system_number
+    )
+    used_tags = member_tags.values("club_tag__tag_name")
+    available_tags = ClubTag.objects.filter(organisation=club).exclude(
+        tag_name__in=used_tags
+    )
 
     # Get recent emails too
     if rbac_user_has_role(
@@ -756,7 +744,6 @@ def edit_member_htmx(request, club, message=""):
             "recent_payments": recent_payments,
             "misc_payment_types": misc_payment_types,
             "user_balance": user_balance,
-            "club_has_tags": club_has_tags,
             "user_has_payments_edit": user_has_payments_edit,
             "user_has_payments_view": user_has_payments_view,
         },

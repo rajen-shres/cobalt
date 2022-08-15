@@ -34,7 +34,9 @@
                         <tr>
                             <th class="text-left">
 
-                                <!-- SORTABLE COLUMN -->
+                                <!-- SORTABLE COLUMNS -->
+
+                                <!-- FIRST NAME -->
 
                                 <a href="javascript:void(0)"
                                     hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
@@ -60,7 +62,7 @@
                             </th>
                             <th class="text-left">
 
-                                <!-- SORTABLE COLUMN -->
+                                <!-- LAST NAME -->
 
                                 <a href="javascript:void(0)"
                                     hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
@@ -85,9 +87,77 @@
 
 
                             </th>
-                            <th class="text-left">{{ GLOBAL_ORG }} Number</th>
-                            <th class="text-left">Membership</th>
-                            <th class="text-left">Status</th>
+                            <th class="text-left">
+
+                                <a href="javascript:void(0)"
+                                    hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
+
+                                    {% if sort_option == "system_number_desc" %}
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'system_number_asc'"
+                                    {% else %}
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'system_number_desc'"
+                                    {% endif %}
+
+                                    hx-target="#id_panel_members"
+                                >
+                                    <span class="cobalt-no-wrap">
+                                        {{ GLOBAL_ORG }} Number
+                                        {% if sort_option == "system_number_desc" %}
+                                            &darr;
+                                        {% elif sort_option == "system_number_asc"  %}
+                                            &uarr;
+                                        {% endif %}
+                                    </span>
+                                </a>
+
+
+                            </th>
+                            <th class="text-left">
+                                <a href="javascript:void(0)"
+                                    hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
+
+                                    {% if sort_option == "membership_desc" %}
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'membership_asc'"
+                                    {% else %}
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'membership_desc'"
+                                    {% endif %}
+
+                                    hx-target="#id_panel_members"
+                                >
+                                    <span class="cobalt-no-wrap">
+                                        Membership
+                                        {% if sort_option == "membership_desc" %}
+                                            &darr;
+                                        {% elif sort_option == "membership_asc"  %}
+                                            &uarr;
+                                        {% endif %}
+                                    </span>
+                                </a>
+
+                            </th>
+                            <th class="text-left">
+                                <a href="javascript:void(0)"
+                                    hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
+
+                                    {% if sort_option == "status_desc" %}
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'status_asc'"
+                                    {% else %}
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'status_desc'"
+                                    {% endif %}
+
+                                    hx-target="#id_panel_members"
+                                >
+                                    <span class="cobalt-no-wrap">
+                                        Status
+                                        {% if sort_option == "status_desc" %}
+                                            &darr;
+                                        {% elif sort_option == "status_asc"  %}
+                                            &uarr;
+                                        {% endif %}
+                                    </span>
+                                </a>
+
+                            </th>
                             <th class="text-center">Action</th>
                         </tr>
                     </thead>
@@ -172,11 +242,7 @@
                                 <td class="text-left">{{ thing.membership }}</td>
 
                                 <td class="text-left">
-                                    {% if thing|get_class == "User" %}
-                                        {{ GLOBAL_TITLE }} User
-                                    {% else %}
-                                        Unregistered User
-                                    {% endif %}
+                                    {{ thing.status }}
                                 </td>
 
                                 <td class="text-center">
