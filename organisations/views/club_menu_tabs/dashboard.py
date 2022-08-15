@@ -12,11 +12,9 @@ from rbac.models import RBACUserGroup
 def dashboard_members_htmx(request, club):
     """show basic member data"""
 
-    club_members = (
-        MemberMembershipType.objects.active()
-        .filter(membership_type__organisation=club)
-        .values_list("system_number")
-    )
+    club_members = MemberMembershipType.objects.filter(
+        membership_type__organisation=club
+    ).values_list("system_number")
     myabf_members = User.objects.filter(system_number__in=club_members).count()
     visitors = 0
     un_regs = UnregisteredUser.objects.filter(system_number__in=club_members).count()
@@ -44,7 +42,7 @@ def dashboard_member_changes_htmx(request, club):
     for month in range(-11, 1):
         ref_date = now + relativedelta(months=month)
         club_members = (
-            MemberMembershipType.objects.active(ref_date)
+            MemberMembershipType.objects.filter(start_date__lte=ref_date)
             .filter(membership_type__organisation=club)
             .values_list("system_number")
             .count()

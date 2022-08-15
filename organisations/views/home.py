@@ -22,11 +22,9 @@ def home(request):
         admin_for_clubs = None
 
     # Get club memberships
-    memberships = (
-        MemberMembershipType.objects.active()
-        .select_related("membership_type__organisation")
-        .filter(system_number=request.user.system_number)
-    )
+    memberships = MemberMembershipType.objects.select_related(
+        "membership_type__organisation"
+    ).filter(system_number=request.user.system_number)
 
     # Get all clubs (only 300)
     clubs = Organisation.objects.filter(type="Club", status="Open")

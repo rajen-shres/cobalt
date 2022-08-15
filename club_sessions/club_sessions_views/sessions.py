@@ -741,8 +741,7 @@ def change_payment_method_htmx(request, club, session, session_entry):
 
     # Get the membership_type for this user and club, None means they are a guest
     member_membership_type = (
-        MemberMembershipType.objects.active()
-        .filter(system_number=session_entry.system_number)
+        MemberMembershipType.objects.filter(system_number=session_entry.system_number)
         .filter(membership_type__organisation=club)
         .first()
     )

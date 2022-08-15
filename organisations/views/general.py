@@ -189,9 +189,7 @@ def replace_unregistered_user_with_real_user(real_user: User):
     MemberClubEmail.objects.filter(system_number=real_user.system_number).delete()
 
     # Logs
-    clubs = MemberMembershipType.objects.active().filter(
-        system_number=real_user.system_number
-    )
+    clubs = MemberMembershipType.objects.filter(system_number=real_user.system_number)
     for club in clubs:
         ClubLog(
             actor=real_user,
@@ -224,11 +222,9 @@ def org_profile(request, org_id):
 def get_clubs_for_player(player):
     """Return a list of clubs that this user is a member of. Strictly returns a MembershipType queryset."""
 
-    memberships = (
-        MemberMembershipType.objects.active()
-        .filter(system_number=player.system_number)
-        .values_list("membership_type")
-    )
+    memberships = MemberMembershipType.objects.filter(
+        system_number=player.system_number
+    ).values_list("membership_type")
 
     return MembershipType.objects.filter(id__in=memberships)
 
@@ -238,8 +234,7 @@ def get_membership_type_for_players(system_number_list, club):
     membership type name e.g. "Standard" """
 
     membership_types = (
-        MemberMembershipType.objects.active()
-        .select_related("membership_type")
+        MemberMembershipType.objects.select_related("membership_type")
         .filter(system_number__in=system_number_list)
         .filter(membership_type__organisation=club)
     )

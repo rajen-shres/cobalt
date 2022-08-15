@@ -93,6 +93,8 @@
 
         <h3 class="text-primary font-weight-bold">{{ misc_message }}</h3>
 
+        <!-- SHOW RECENT PAYMENTS IF WE HAVE ANY -->
+
         {% if recent_payments %}
 
             <div class="table-responsive">
@@ -126,7 +128,7 @@
     {% if user_has_payments_edit %}
 
         <div class="card">
-            <div class="card-header card-header-warning">
+            <div class="card-header card-header-warning my-0 py-0 by-0">
                 <h3>Add New Payment for {{ member.first_name }}</h3>
                 <h4>{{ member.first_name }}'s Balance: {{ user_balance|cobalt_currency_colour }}</h4>
                 <h4>Auto Top Up is: {{ member.stripe_auto_confirmed|yesno:"On:Off" }}</h4>

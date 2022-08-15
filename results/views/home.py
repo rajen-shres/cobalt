@@ -119,11 +119,9 @@ def club_results_paginator_htmx(request, query_only=False):
     """
 
     # club results
-    your_clubs = (
-        MemberMembershipType.objects.active()
-        .filter(system_number=request.user.system_number)
-        .values_list("membership_type__organisation", flat=True)
-    )
+    your_clubs = MemberMembershipType.objects.filter(
+        system_number=request.user.system_number
+    ).values_list("membership_type__organisation", flat=True)
 
     club_results_qs = ResultsFile.objects.filter(
         organisation_id__in=your_clubs,

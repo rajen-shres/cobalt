@@ -86,8 +86,9 @@ class UserSessionForm(forms.Form):
 
         # See if user is a member
         self.membership_type = (
-            MemberMembershipType.objects.active()
-            .filter(system_number=session_entry.system_number)
+            MemberMembershipType.objects.filter(
+                system_number=session_entry.system_number
+            )
             .filter(membership_type__organisation=club)
             .first()
         )

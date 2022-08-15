@@ -279,28 +279,32 @@ class MembershipType(models.Model):
 class MemberMembershipType(models.Model):
     """This links members to a club membership"""
 
-    TERMINATION_REASON = [
-        ("Cancelled by Member", "Cancelled by Member"),
-        ("Cancelled by Club", "Cancelled by Club"),
-        ("Expired", "Expired"),
-    ]
+    # Originally we used a model_manager to load active members ad had a start date and expiry date on this
+    # however it wasn't working properly. Changed to be a binary thing with an archive table. If this comment and the
+    # commented out parts below are still here later (15/8/2022) then delete them.
+
+    # TERMINATION_REASON = [
+    #     ("Cancelled by Member", "Cancelled by Member"),
+    #     ("Cancelled by Club", "Cancelled by Club"),
+    #     ("Expired", "Expired"),
+    # ]
     system_number = models.IntegerField("%s Number" % GLOBAL_ORG, blank=True)
     membership_type = models.ForeignKey(MembershipType, on_delete=models.CASCADE)
-    termination_reason = models.CharField(
-        "Reason for Membership Termination",
-        choices=TERMINATION_REASON,
-        max_length=20,
-        blank=True,
-        null=True,
-    )
+    # termination_reason = models.CharField(
+    #     "Reason for Membership Termination",
+    #     choices=TERMINATION_REASON,
+    #     max_length=20,
+    #     blank=True,
+    #     null=True,
+    # )
     home_club = models.BooleanField("Is Member's Home Club", default=False)
     start_date = models.DateField("Started At", auto_now_add=True)
-    end_date = models.DateField("Ends At", blank=True, null=True)
+    # end_date = models.DateField("Ends At", blank=True, null=True)
     last_modified_by = models.ForeignKey(
         User, on_delete=models.PROTECT, related_name="last_modified_by"
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    #   updated_at = models.DateTimeField(auto_now=True)
 
     # It is valid to have duplicates as someone can leave and come back
     # class Meta:

@@ -309,8 +309,7 @@ class UnregisteredUserAddForm(forms.Form):
 
         if (
             home_club
-            and MemberMembershipType.objects.active()
-            .filter(system_number=system_number)
+            and MemberMembershipType.objects.filter(system_number=system_number)
             .filter(home_club=True)
             .exclude(membership_type__organisation=self.club)
             .exists()
@@ -512,8 +511,7 @@ class UnregisteredUserMembershipForm(forms.Form):
 
         if (
             home_club
-            and MemberMembershipType.objects.active()
-            .filter(system_number=self.system_number)
+            and MemberMembershipType.objects.filter(system_number=self.system_number)
             .filter(home_club=True)
             .exclude(membership_type__organisation=self.club)
             .exists()

@@ -357,7 +357,6 @@ def add_member_to_membership(
     or 1 for counting purposes, plus an error or warning if one is found"""
 
     error = None
-    now = timezone.now()
     name = f"{club_member['system_number']} - {club_member['first_name']} {club_member['last_name']}"
 
     # See if we are overriding the membership type
@@ -375,8 +374,7 @@ def add_member_to_membership(
 
     # Check if already a member (any membership type)
     member_membership = (
-        MemberMembershipType.objects.active()
-        .filter(system_number=club_member["system_number"])
+        MemberMembershipType.objects.filter(system_number=club_member["system_number"])
         .filter(membership_type__organisation=club)
         .first()
     )
@@ -392,12 +390,9 @@ def add_member_to_membership(
         return 0, error
 
     # check for other home clubs before setting this as the users home club
-    other_home_club = (
-        MemberMembershipType.objects.filter(system_number=club_member["system_number"])
-        .filter(start_date__lte=now)
-        .filter(Q(end_date__gte=now) | Q(end_date=None))
-        .exists()
-    )
+    other_home_club = MemberMembershipType.objects.filter(
+        system_number=club_member["system_number"]
+    ).exists()
 
     if home_club and other_home_club:
         error = f"{name} - Added but already has a home club"

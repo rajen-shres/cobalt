@@ -205,11 +205,9 @@ def membership_htmx(request, club):
 
     # Add in number of members
     for membership_type in membership_types:
-        membership_type.member_count = (
-            MemberMembershipType.objects.active()
-            .filter(membership_type=membership_type)
-            .count()
-        )
+        membership_type.member_count = MemberMembershipType.objects.filter(
+            membership_type=membership_type
+        ).count()
 
     return render(
         request,
@@ -340,11 +338,7 @@ def club_menu_tab_settings_membership_delete_htmx(request, club):
     membership_type = get_object_or_404(MembershipType, pk=membership_type_id)
 
     # Check for active members in this membership type
-    if (
-        MemberMembershipType.objects.active()
-        .filter(membership_type=membership_type)
-        .exists()
-    ):
+    if MemberMembershipType.objects.filter(membership_type=membership_type).exists():
         return HttpResponse(
             f"<h2 class='text-center'>Cannot Delete {membership_type.name}</h2> "
             f"<h3 class='text-center'>There Are Active Members Here</h3> "
@@ -1175,7 +1169,7 @@ def add_all_members_to_tag_htmx(request, club):
     if club_tag.organisation != club:
         return HttpResponse("Incorrect tag value for this club")
 
-    all_members = MemberMembershipType.objects.active().filter(
+    all_members = MemberMembershipType.objects.filter(
         membership_type__organisation=club
     )
 

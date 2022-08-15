@@ -240,11 +240,9 @@ def charge_member_htmx(request, club):
         return tab_finance_htmx(request, message="Amount was less than zero")
 
     # Check membership
-    if (
-        not MemberMembershipType.objects.active()
-        .filter(system_number=member.system_number)
-        .exists()
-    ):
+    if not MemberMembershipType.objects.filter(
+        system_number=member.system_number
+    ).exists():
         return tab_finance_htmx(
             request,
             message=f"{member} is not a member of the club. Cannot charge user.",

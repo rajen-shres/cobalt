@@ -182,9 +182,9 @@ def report_all_csv(request, club_id):
     # Get club members
     now = timezone.now()
     club_members = (
-        MemberMembershipType.objects.filter(start_date__lte=now)
-        .filter(Q(end_date__gte=now) | Q(end_date=None))
-        .filter(membership_type__organisation=club)
+        MemberMembershipType.objects.filter(start_date__lte=now).filter(
+            membership_type__organisation=club
+        )
     ).values("system_number", "membership_type__name")
 
     print(club_members)
@@ -286,20 +286,13 @@ def _cancel_membership(request, club, system_number):
 
     # Memberships are coming later. For now we treat as basically binary - they start on the date they are
     # entered and we assume only one without checking
-    now = timezone.now()
-    memberships = (
-        MemberMembershipType.objects.filter(start_date__lte=now)
-        .filter(Q(end_date__gte=now) | Q(end_date=None))
-        .filter(system_number=system_number)
-        .filter(membership_type__organisation=club)
-    )
+    memberships = MemberMembershipType.objects.filter(
+        system_number=system_number
+    ).filter(membership_type__organisation=club)
 
     # Should only be one but not enforced at database level so close any that match to be safe
     for membership in memberships:
-        membership.last_modified_by = request.user
-        membership.termination_reason = "Cancelled by Club"
-        membership.end_date = now - datetime.timedelta(days=1)
-        membership.save()
+        membership.delete()
 
         ClubLog(
             organisation=club,
@@ -460,11 +453,9 @@ def un_reg_edit_htmx(request, club):
     un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
 
     # Get first membership record for this user and this club
-    membership = (
-        MemberMembershipType.objects.active()
-        .filter(system_number=un_reg.system_number, membership_type__organisation=club)
-        .first()
-    )
+    membership = MemberMembershipType.objects.filter(
+        system_number=un_reg.system_number, membership_type__organisation=club
+    ).first()
 
     message = ""
 
@@ -543,14 +534,10 @@ def add_member_htmx(request, club):
         member = User.objects.filter(system_number=system_number).first()
         membership_type = MembershipType(pk=membership_type_id)
 
-        if (
-            MemberMembershipType.objects.active()
-            .filter(
-                system_number=member.system_number,
-                membership_type__organisation=club,
-            )
-            .exists()
-        ):
+        if MemberMembershipType.objects.filter(
+            system_number=member.system_number,
+            membership_type__organisation=club,
+        ).exists():
             # shouldn't happen, but just in case
             message = f"{member.full_name} is already a member of this club"
         else:
@@ -671,8 +658,7 @@ def add_member_search_htmx(request):
     club = get_object_or_404(Organisation, pk=club_id)
 
     member_list = (
-        MemberMembershipType.objects.active()
-        .filter(system_number__in=user_list_system_numbers)
+        MemberMembershipType.objects.filter(system_number__in=user_list_system_numbers)
         .filter(membership_type__organisation=club)
         .values_list("system_number", flat=True)
     )
@@ -805,8 +791,7 @@ def _edit_member_htmx_save(request, club, member):
 
         # Get the member membership objects
         member_membership = (
-            MemberMembershipType.objects.active()
-            .filter(system_number=member.system_number)
+            MemberMembershipType.objects.filter(system_number=member.system_number)
             .filter(membership_type__organisation=club)
             .first()
         )
@@ -834,43 +819,16 @@ def _edit_member_htmx_default(club, member):
     """sub of edit_member_htmx for when we don't get a POST"""
 
     member_membership = (
-        MemberMembershipType.objects.active()
-        .filter(system_number=member.system_number)
+        MemberMembershipType.objects.filter(system_number=member.system_number)
         .filter(membership_type__organisation=club)
         .first()
     )
 
-    member_membership = (
-        MemberMembershipType.objects.active()
-        .filter(system_number=member.system_number)
-        .filter(membership_type__organisation=club)
-        .first()
-    )
-
-    logger.info(f"{club} {member} {member_membership}")
-
-    if not member_membership:
-        direct_member_membership = (
-            MemberMembershipType.objects.filter(system_number=member.system_number)
-            .filter(membership_type__organisation=club)
-            .first()
-        )
-
-        message = f"Club:{club}<br>Member:{member}<br>MemberMembership:{member_membership}<br>MemberMembership (no active()):{direct_member_membership}"
-
-        send_cobalt_email_to_system_number(
-            620246, "_edit_member_htmx_default Error", message
-        )
-
-        initial = {
-            "member": member.id,
-        }
-    else:
-        initial = {
-            "member": member.id,
-            "membership_type": member_membership.membership_type.id,
-            "home_club": member_membership.home_club,
-        }
+    initial = {
+        "member": member.id,
+        "membership_type": member_membership.membership_type.id,
+        "home_club": member_membership.home_club,
+    }
 
     form = UserMembershipForm(club=club)
     form.initial = initial
@@ -920,14 +878,10 @@ def add_un_reg_htmx(request, club):
         message = "User added."
 
     # Add to club
-    if (
-        MemberMembershipType.objects.active()
-        .filter(
-            system_number=form.cleaned_data["system_number"],
-            membership_type__organisation=club,
-        )
-        .exists()
-    ):
+    if MemberMembershipType.objects.filter(
+        system_number=form.cleaned_data["system_number"],
+        membership_type__organisation=club,
+    ).exists():
         message += " Already a member of club."
     else:
         MemberMembershipType(
@@ -976,13 +930,9 @@ def add_un_reg_htmx(request, club):
 def _check_member_errors(club):
     """Check if there are any errors such as bounced email addresses"""
 
-    members_system_numbers = (
-        MemberMembershipType.objects.active()
-        .filter(
-            membership_type__organisation=club,
-        )
-        .values_list("system_number")
-    )
+    members_system_numbers = MemberMembershipType.objects.filter(
+        membership_type__organisation=club,
+    ).values_list("system_number")
 
     # Check for bounced status. For registered users this is stored on a separate table,
     # for unregistered it is on same table
@@ -1047,6 +997,9 @@ def add_misc_payment_htmx(request, club):
     # Get balance
     user_balance = get_balance(member)
 
+    # User has payments edit, no need to check again
+    user_has_payments_edit = True
+
     # return part of edit_member screen
     return render(
         request,
@@ -1058,7 +1011,7 @@ def add_misc_payment_htmx(request, club):
             "recent_payments": recent_payments,
             "misc_payment_types": misc_payment_types,
             "user_balance": user_balance,
-            "is_reload": True,  # when we reload, we don't want to be hidden (default)
+            "user_has_payments_edit": user_has_payments_edit,
         },
     )
 
@@ -1166,11 +1119,9 @@ def member_search_tab_name_htmx(request, club):
     if not first_name_search and not last_name_search:
         return HttpResponse()
 
-    member_list = (
-        MemberMembershipType.objects.active()
-        .filter(membership_type__organisation=club)
-        .values_list("system_number", flat=True)
-    )
+    member_list = MemberMembershipType.objects.filter(
+        membership_type__organisation=club
+    ).values_list("system_number", flat=True)
 
     # Users
     users = User.objects.filter(system_number__in=member_list)

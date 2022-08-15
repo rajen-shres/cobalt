@@ -98,7 +98,7 @@ def _member_count(club, reference_date=None):
         reference_date = timezone.now()
 
     return (
-        MemberMembershipType.objects.active(ref_date=reference_date)
+        MemberMembershipType.objects.filter(start_date__lte=reference_date)
         .filter(membership_type__organisation=club)
         .distinct("system_number")
         .count()
@@ -138,11 +138,9 @@ def _tab_is_okay(request):
 def get_members_balance(club: Organisation):
     """Get the total balance for members of this club"""
 
-    member_list = (
-        MemberMembershipType.objects.active()
-        .filter(membership_type__organisation=club)
-        .values("system_number")
-    )
+    member_list = MemberMembershipType.objects.filter(
+        membership_type__organisation=club
+    ).values("system_number")
 
     member_balances = (
         MemberTransaction.objects.filter(member__system_number__in=member_list)
@@ -202,7 +200,6 @@ def get_members_for_club(club, sort_option="first_desc"):
     club_system_numbers = (
         MemberMembershipType.objects.filter(membership_type__organisation=club)
         .filter(start_date__lte=now)
-        .filter(Q(end_date__gte=now) | Q(end_date=None))
         .values("system_number")
     )
 

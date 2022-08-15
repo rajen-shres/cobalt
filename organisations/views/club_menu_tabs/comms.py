@@ -81,8 +81,7 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
     # Check for Tag=0, means everyone
     if 0 in tags:
         tag_system_numbers = (
-            MemberMembershipType.objects.active()
-            .filter(membership_type__organisation=club)
+            MemberMembershipType.objects.filter(membership_type__organisation=club)
             .distinct("system_number")
             .values("system_number")
         )
@@ -289,8 +288,7 @@ def email_send_htmx(request, club):
 
     # Get total members for the Everyone option and also to block sending if there are no members
     total_members = (
-        MemberMembershipType.objects.active()
-        .filter(membership_type__organisation=club)
+        MemberMembershipType.objects.filter(membership_type__organisation=club)
         .distinct("system_number")
         .count()
     )
