@@ -1,0 +1,259 @@
+{#-------------------------------------------------------------------------#}
+{#                                                                         #}
+{# Sub part of the member edit screen. This shows recent payments and      #}
+{# has a form for the user to create a new misc payment                    #}
+{#                                                                         #}
+{#-------------------------------------------------------------------------#}
+{% load humanize %}
+{% load cobalt_tags %}
+
+<!-- PAYMENTS -->
+
+<div class="card" id="id_misc_pay_box">
+    <div class="card-header card-header-primary">
+        <h2>Payments</h2>
+        <h3>Balance: {{ user_balance|cobalt_currency_colour }}</h3>
+
+        <!-- TOP UP BUTTON -->
+
+        {% if user_has_payments_edit %}
+
+            <button class="btn btn-sm btn-danger align-center"
+                onclick="$('#id_top_up').modal('show');"
+            >Club Top Up
+            </button>
+
+        {% endif %}
+
+    </div>
+    <div class="card-body">
+
+        <!-- TOP UP MODAL -->
+
+        <div class="modal fade" id="id_top_up" tabindex="-1" role="dialog" aria-labelledby="TopUpModal"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title w-100 font-weight-bold"><i class="material-icons">how_to_reg</i>&nbsp;&nbsp;Top
+                            Up</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('.modal-input').val(''); $('.modal').modal('hide');"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+
+                    </div>
+                    <div class="modal-body">
+                        {% if member.stripe_auto_confirmed == "Yes" %}
+                            <h2>{{ member.first_name }} is already set up for Auto Top Up</h2>
+                        {% endif %}
+
+                        <h4>Top ups are credited from your club account into the user's account if your club
+                            has sufficient funds. You are responsible for ensuring that the player pays the
+                            club.</h4>
+
+                        <form
+                            id="id_top_up_form"
+                            hx-post="{% url "organisations:top_up_member_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}, member:{{ member.id }}"
+                            hx-target="#id_panel_members"
+                            hx-trigger="submit_me"
+                        >
+
+                            <br>
+                            <div class="col-12 form-group ">
+                                <label for="amount" class="bmd-label-static">Amount
+                                </label>
+                                <input id="id_amt" required type="number" step="0.01" min="0.01" name="amount"
+                                    class="form-control">
+                            </div>
+                            <br>
+                            <div class="col-12 form-group ">
+                                <label for="description" class="bmd-label-floating">Description
+                                </label>
+                                <input type="text" id="id_desc" name="description" required maxlength="15"
+                                    class="form-control">
+                            </div>
+                            <br>
+
+                            <button class="btn btn-sm btn-success" id="id_button_top_up_save">Top Up</button>
+                            <button type="reset" class="btn btn-sm btn-info" data-dismiss="modal" aria-label="Close"
+                                onclick="handleSubmit();"
+                            >Cancel
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MESSAGE -->
+
+        <h3 class="text-primary font-weight-bold">{{ misc_message }}</h3>
+
+        {% if recent_payments %}
+
+            <div class="table-responsive">
+                <table class="table table-condensed">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Date</th>
+                            <th class="text-left">Description</th>
+                            <th class="text-right cobalt-no-wrap">Amount ({{ GLOBAL_CURRENCY_SYMBOL }})</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for recent_payment in recent_payments %}
+                            <tr>
+                                <td class="text-left">{{ recent_payment.created_date|cobalt_nice_datetime_short }}</td>
+                                <td class="text-left">{{ recent_payment.description }}</td>
+                                <td class="text-right">{{ recent_payment.amount|floatformat:2|intcomma }}</td>
+
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    <!-- NEW MISC PAYMENT -->
+
+    {% if user_has_payments_edit %}
+
+        <div class="card">
+            <div class="card-header card-header-warning">
+                <h3>Add New Payment for {{ member.first_name }}</h3>
+                <h4>{{ member.first_name }}'s Balance: {{ user_balance|cobalt_currency_colour }}</h4>
+                <h4>Auto Top Up is: {{ member.stripe_auto_confirmed|yesno:"On:Off" }}</h4>
+            </div>
+            <div class="card-body">
+
+                <!-- MISC PAYMENTS FORM -->
+                <form
+                    hx-post="{% url "organisations:club_menu_tab_members_add_misc_payment_htmx" %}"
+                    hx-target="#id_misc_pay_member"
+                    hx-vars="club_id:{{ club.id }}"
+                >
+
+                    <!-- HIDDEN MEMBER ID -->
+                    <input type="hidden" name="member_id" value="{{ member.id }}">
+
+                    <div class="container">
+
+                        <!-- SHOW DROPDOWN IF WE HAVE SET UP MISC PAYMENT TYPES -->
+
+                        {% if misc_payment_types %}
+
+                            <div class="row">
+
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="id_misc_payment" class="bmd-label-static">Item</label>
+                                        <select class="selectpicker" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
+                                            <option selected value="-1">---select---</option>
+                                            {% for misc_payment_type in misc_payment_types %}
+                                                <option value="{{ misc_payment_type.id }}">{{ misc_payment_type.description }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                        {% endif %}
+
+                        <!-- INPUT FIELDS, EITHER MANUAL OR FROM DROPDOWN OF SET UP TYPES -->
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="id_misc_description" class="bmd-label-floating">Description</label>
+                                    <input type="text" value="" maxlength="15" class="form-control" id="id_misc_description" name="misc_description">
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="id_amount" class="bmd-label-floating">Amount</label>
+                                    <input type="number" value="" min="0.00" step="0.01" class="form-control" id="id_amount" name="amount">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- SUBMIT BUTTON -->
+                    <div class="row">
+                        <div class="col text-center">
+                            <button class="btn btn-info btn-sm" id="id_misc_button" disabled type="submit">Add</button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<script>
+    $(document).ready( function () {
+
+        // enable selectpicker
+        $(".selectpicker").selectpicker();
+
+        // Handle changing the misc payment type
+        $("#id_misc_payment").change( function(){
+
+            // description
+            $("#id_misc_description").val($('#id_misc_payment option:selected').text());
+
+            // enable button
+            $("#id_misc_button").removeAttr("disabled");
+
+            // add default payment amount as a dictionary from Django
+            const default_amount = {
+                {% for misc_payment_type in misc_payment_types %}
+                    "{{ misc_payment_type.id }}": "{{ misc_payment_type.default_amount }}",
+                {% endfor %}
+            };
+
+            const new_val = default_amount[$(this).val()];
+            $("#id_amount").val(new_val);
+        });
+
+        // handle manually entering misc payment - enable button if both fields have values
+        $("#id_amount, #id_misc_description").keyup(function() {
+            // check if form is valid to submit
+            if ($("#id_amount").val() > 0 && $("#id_misc_description").val().length > 0){
+                $("#id_misc_button").removeAttr("disabled");
+            } else {
+                $("#id_misc_button").attr("disabled", true);
+            }
+        });
+
+        // handle top up form being submitted. Without this it disappears even if invalid
+        $('#id_button_top_up_save').click(function (e) {
+
+            // stop submit
+            e.preventDefault();
+
+            // validate
+            if ($('#id_amt').val() > 0 && $('#id_desc').val().length > 0) {
+
+                // hide modal and submit if valid
+                $('.modal').modal('hide');
+                htmx.trigger('#id_top_up_form', 'submit_me')
+            }
+            return false;
+
+        });
+
+    });
+</script>

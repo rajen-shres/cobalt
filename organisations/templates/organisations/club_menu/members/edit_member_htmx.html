@@ -21,205 +21,83 @@
         <!-- MAIN EDIT MEMBER CARD -->
 
         {#        <div id="id_main_member_card" class="card col-lg-9 mx-auto">#}
-        <div id="id_main_member_card" class="card col-lg-6">
+        <div class="col-lg-6">
+            <div id="id_main_member_card" class="card">
 
-            <div class="card-header card-header-rose">
-                <h2 class="text-center">Edit Member</h2>
-            </div>
-
-            <!-- EDIT MEMBER CARD BODY -->
-
-            <div class="card-body">
-
-                <h3 class="text-info font-weight-bold settings_message" id="user_add_message">{{ message| default_if_none:"" }}</h3>
-
-                <h3>{{ member }}</h3>
-
-                <!-- FORM -->
-
-                <form
-                    hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                    hx-target="#id_panel_members"
-                    hx-vars="club_id:{{ club.id }},member:{{ member.id }}"
-                >
-
-                    <!-- ERRORS -->
-
-                    <div class="cobalt_form_errors">{{ form.errors }}</div>
-
-                    <!-- SYSTEM NUMBER -->
-
-                    <input type="hidden" name="system_number" value="{{ member.system_number }}">
-
-                    <!-- MEMBERSHIP TYPE -->
-
-                    <div id="div_id_membership_type" class="form-group row">
-                        <div class="col-6">
-                            <label for="id_membership_type" class="bmd-label-static">
-                                Membership type
-                            </label>
-                        </div>
-
-                        <div class="col-6 mb-5">
-                            <select name="membership_type" class="select form-control" id="id_membership_type">
-                                {% for option in form.membership_type.field.choices %}
-                                    <option value="{{ option.0 }}" {% if form.membership_type.value == option.0 %}selected{% endif %}>{{ option.1 }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    {#                    <div class="form-group row">#}
-                    {#                        <input id="id_home_club" type="checkbox" name="home_club" {% if form.home_club.value %}checked=checked{% endif %}">#}
-                    {#                        <label for="id_home_club" style="color: black">&nbsp;Home Club</label><br>#}
-                    {#                    </div>#}
-
-                    <!-- BUTTONS -->
-
-                    <button type="submit" name="save" class="btn btn-success">Save</button>
-                    {% include "utils/htmx_confirm_modal.html" with id="memdel" delete_item=member.first_name delete_button="Remove" hx_target="#id_panel_members" hx_post=hx_delete hx_vars=hx_vars %}
-                    <button id="id_delete_user_1" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModalmemdel">Remove Membership</button>
-                </form>
-
-                <!-- END FORM -->
-
-                <!-- EXTRAS BUTTONS -->
-
-                <button class="mt-5 btn btn-sm btn-primary"
-                    onclick="$('#id_top_up').modal('show');"
-                >Top Up...
-                </button>
-                {##}
-                {#                <button class="mt-5 btn btn-sm btn-primary"#}
-                {#                    _="on click#}
-                {#                    toggle .d-none on #id_recent_emails#}
-                {#                    then toggle .col-lg-9 on #id_main_member_card#}
-                {#                    then toggle .mx-auto on #id_main_member_card#}
-                {#                    then toggle .col-lg-6 on #id_main_member_card#}
-                {#                    then remove me"#}
-                {#                >Emails...#}
-                {#                </button>#}
-                {##}
-                {#                {% if club_has_misc %}#}
-                {#                    <button class="mt-5 btn btn-sm btn-primary"#}
-                {#                        _="on click toggle .d-none on #id_misc_pay_box then remove me"#}
-                {#                    >Misc...#}
-                {#                    </button>#}
-                {#                {% endif %}#}
-
-                {#                {% if club_has_tags %}#}
-                {#                    <button class="mt-5 btn btn-sm btn-primary"#}
-                {#                        _="on click toggle .d-none on #id_manage_tags then remove me"#}
-                {#                    >Tags...#}
-                {#                    </button>#}
-                {#                {% endif %}#}
-
-                {#                {% if user_has_payments %}#}
-                {#                    <button class="mt-5 btn btn-sm btn-primary"#}
-                {#                        _="on click#}
-                {#                        toggle .d-none on #id_user_payments#}
-                {#                        then remove me#}
-                {#                        then go to the top of #id_user_payments"#}
-                {#                    >Payments...#}
-                {#                    </button>#}
-                {#                {% endif %}#}
-
-                <!-- TOP UPS MODAL -->
-
-                <div class="modal fade" id="id_top_up" tabindex="-1" role="dialog" aria-labelledby="TopUpModal" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h4 class="modal-title w-100 font-weight-bold"><i class="material-icons">how_to_reg</i>&nbsp;&nbsp;Top Up</h4>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                                    onclick="$('.modal-input').val(''); $('.modal').modal('hide');"
-                                >
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-
-                            </div>
-                            <div class="modal-body">
-                                {% if member.stripe_auto_confirmed == "Yes" %}
-                                    <h2>{{ member.first_name }} is already set up for Auto Top Up</h2>
-                                {% endif %}
-
-                                <h4>Top ups are credited from your club account into the user's account if your club
-                                    has sufficient funds. You are responsible for ensuring that the player pays the club.</h4>
-
-                                <form
-                                    id="id_top_up_form"
-                                    hx-post="{% url "organisations:top_up_member_htmx" %}"
-                                    hx-vars="club_id:{{ club.id }}, member:{{ member.id }}"
-                                    hx-target="#id_panel_members"
-                                    hx-trigger="submit_me"
-                                >
-
-                                    <br>
-                                    <div class="col-12 form-group ">
-                                        <label for="amount" class="bmd-label-static">Amount
-                                        </label>
-                                        <input id="id_amt" required type="number" step="0.01" min="0.01" name="amount" class="form-control">
-                                    </div>
-                                    <br>
-                                    <div class="col-12 form-group ">
-                                        <label for="description" class="bmd-label-floating">Description
-                                        </label>
-                                        <input type="text" id="id_desc" name="description" required maxlength="15" class="form-control">
-                                    </div>
-                                    <br>
-
-                                    <button class="btn btn-sm btn-success" id="id_button_top_up_save">Top Up</button>
-                                    <button type="reset" class="btn btn-sm btn-info" data-dismiss="modal" aria-label="Close"
-                                        onclick="handleSubmit();"
-                                    >Cancel
-                                    </button>
-                                </form>
-
-                            </div>
-                        </div>
-                    </div>
+                <div class="card-header card-header-rose">
+                    <h2 class="text-center">Edit Member</h2>
                 </div>
 
-                <!-- MISCELLANEOUS PAYMENTS -->
+                <!-- EDIT MEMBER CARD BODY -->
 
+                <div class="card-body">
+
+                    <h3 class="text-info font-weight-bold settings_message"
+                        id="user_add_message">{{ message| default_if_none:"" }}</h3>
+
+                    <h3>{{ member }}</h3>
+
+                    <!-- FORM -->
+
+                    <form
+                        hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
+                        hx-target="#id_panel_members"
+                        hx-vars="club_id:{{ club.id }},member:{{ member.id }}"
+                    >
+
+                        <!-- ERRORS -->
+
+                        <div class="cobalt_form_errors">{{ form.errors }}</div>
+
+                        <!-- SYSTEM NUMBER -->
+
+                        <input type="hidden" name="system_number" value="{{ member.system_number }}">
+
+                        <!-- MEMBERSHIP TYPE -->
+
+                        <div id="div_id_membership_type" class="form-group row">
+                            <div class="col-6">
+                                <label for="id_membership_type" class="bmd-label-static">
+                                    Membership type
+                                </label>
+                            </div>
+
+                            <div class="col-6 mb-5">
+                                <select name="membership_type" class="select form-control" id="id_membership_type">
+                                    {% for option in form.membership_type.field.choices %}
+                                        <option value="{{ option.0 }}"
+                                            {% if form.membership_type.value == option.0 %}selected{% endif %}>{{ option.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        {#                    <div class="form-group row">#}
+                        {#                        <input id="id_home_club" type="checkbox" name="home_club" {% if form.home_club.value %}checked=checked{% endif %}">#}
+                        {#                        <label for="id_home_club" style="color: black">&nbsp;Home Club</label><br>#}
+                        {#                    </div>#}
+
+                        <!-- BUTTONS -->
+
+                        <button type="submit" name="save" class="btn btn-success">Save</button>
+                        {% include "utils/htmx_confirm_modal.html" with id="memdel" delete_item=member.first_name delete_button="Remove" hx_target="#id_panel_members" hx_post=hx_delete hx_vars=hx_vars %}
+                        <button id="id_delete_user_1" type="button" class="btn btn-danger" data-toggle="modal"
+                            data-target="#deleteModalmemdel">Remove Membership
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+
+            <!-- END FORM -->
+
+            <!--  PAYMENTS -->
+
+            {% if user_has_payments_view %}
                 <div id="id_misc_pay_member">
-
-                    {% include "organisations/club_menu/members/edit_member_misc_payments_htmx.html" %}
-
+                    {% include "organisations/club_menu/members/edit_member_payments_htmx.html" %}
                 </div>
-
-                <!-- PAYMENTS -->
-
-                {#                {% if user_has_payments %}#}
-                {##}
-                {#                    <div class="row d-noneXX" id="id_user_payments">#}
-                {##}
-                {#                        <div class="card">#}
-                {#                            <div class="card-header card-header-success">#}
-                {#                                <h3>Recent Transactions with Club</h3>#}
-                {#                                <h4>Balance:#}
-                {#                                    <span#}
-                {#                                        hx-trigger="load"#}
-                {#                                        hx-post="{% url "organisations:get_member_balance_htmx" %}"#}
-                {#                                        hx-vars="member: {{ member.id }}"#}
-                {#                                    >#}
-                {#                                    </span>#}
-                {#                                </h4>#}
-                {#                            </div>#}
-                {#                            <div class="card-body">#}
-                {#                                <span#}
-                {#                                    hx-trigger="load"#}
-                {#                                    hx-post="{% url "organisations:club_menu_tab_members_recent_payments_for_user_htmx" %}"#}
-                {#                                    hx-vars="club: {{ club.id }}, member_id: {{ member.id }}"#}
-                {#                                >#}
-                {#                                </span>#}
-                {#                            </div>#}
-                {#                        </div>#}
-                {#                    </div>#}
-                {##}
-                {#                {% endif %}#}
-
-            </div>
+            {% endif %}
         </div>
 
         <!-- EMAILS AND TAGS -->
@@ -229,34 +107,4 @@
             {% include "organisations/club_menu/members/recent_emails.html" %}
         </div>
     </div>
-
 </div>
-
-<script>
-
-    $(document).ready( function () {
-
-        // handle top up form being submitted. Without this it disappears even if invalid
-        $('#id_button_top_up_save').click(function(e){
-
-            // stop submit
-            e.preventDefault();
-
-            // validate
-            if ($('#id_amt').val() > 0 && $('#id_desc').val().length > 0 ) {
-
-                // hide modal and submit if valid
-                $('.modal').modal('hide');
-                htmx.trigger('#id_top_up_form', 'submit_me')
-            }
-            return false;
-
-        });
-
-        {#// listen for payment being made and update summary list#}
-        {#document.body.addEventListener("misc_payment_update", function(evt){#}
-        {#    htmx.trigger(htmx.find("#misc_payment"), "misc_payment_update");#}
-        {#});#}
-
-    });
-</script>

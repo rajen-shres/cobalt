@@ -727,9 +727,6 @@ def edit_member_htmx(request, club, message=""):
         member_tags = None
         available_tags = None
 
-    # See if club has misc payments
-    club_has_misc = MiscPayType.objects.filter(organisation=club).exists()
-
     # Get recent emails too
     if rbac_user_has_role(
         request.user, f"notifications.orgcomms.{club.id}.edit"
@@ -739,7 +736,7 @@ def edit_member_htmx(request, club, message=""):
         emails = None
 
     # Get payment stuff
-    recent_misc_payments, misc_payment_types = _get_misc_payment_vars(member, club)
+    recent_payments, misc_payment_types = _get_misc_payment_vars(member, club)
 
     # Get users balance
     user_balance = get_balance(member)
@@ -749,7 +746,13 @@ def edit_member_htmx(request, club, message=""):
         request.user, f"club_sessions.sessions.{club.id}.edit"
     ) or rbac_user_has_role(request.user, f"payments.manage.{club.id}.edit")
 
-    # See if user has payments view access,
+    # See if user has payments view access
+    if user_has_payments_edit:
+        user_has_payments_view = True
+    else:
+        user_has_payments_view = rbac_user_has_role(
+            request.user, f"payments.manage.{club.id}.view"
+        )
 
     return render(
         request,
@@ -764,12 +767,12 @@ def edit_member_htmx(request, club, message=""):
             "member_tags": member_tags,
             "available_tags": available_tags,
             "emails": emails,
-            "recent_misc_payments": recent_misc_payments,
+            "recent_payments": recent_payments,
             "misc_payment_types": misc_payment_types,
             "user_balance": user_balance,
             "club_has_tags": club_has_tags,
-            "club_has_misc": club_has_misc,
             "user_has_payments_edit": user_has_payments_edit,
+            "user_has_payments_view": user_has_payments_view,
         },
     )
 
@@ -778,14 +781,14 @@ def _get_misc_payment_vars(member, club):
     """get variables relating to this members misc payments for this club"""
 
     # Get recent misc payments
-    recent_misc_payments = MemberTransaction.objects.filter(
-        member=member, organisation=club, type="Miscellaneous"
+    recent_payments = MemberTransaction.objects.filter(
+        member=member, organisation=club
     ).order_by("-created_date")[:10]
 
     # get this orgs miscellaneous payment types
     misc_payment_types = MiscPayType.objects.filter(organisation=club)
 
-    return recent_misc_payments, misc_payment_types
+    return recent_payments, misc_payment_types
 
 
 def _edit_member_htmx_save(request, club, member):
@@ -1010,7 +1013,7 @@ def errors_htmx(request, club):
     )
 
 
-@check_club_menu_access(check_members=True)
+@check_club_menu_access(check_session_or_payments=True)
 def add_misc_payment_htmx(request, club):
     """Adds a miscellaneous payment for a user"""
 
@@ -1039,64 +1042,44 @@ def add_misc_payment_htmx(request, club):
         misc_message = f"Payment FAILED for {member.full_name}. Insufficient funds."
 
     # Get relevant data
-    recent_misc_payments, misc_payment_types = _get_misc_payment_vars(member, club)
+    recent_payments, misc_payment_types = _get_misc_payment_vars(member, club)
 
     # Get balance
     user_balance = get_balance(member)
 
     # return part of edit_member screen
-    response = render(
+    return render(
         request,
-        "organisations/club_menu/members/edit_member_misc_payments_htmx.html",
+        "organisations/club_menu/members/edit_member_payments_htmx.html",
         {
             "club": club,
             "member": member,
             "misc_message": misc_message,
-            "recent_misc_payments": recent_misc_payments,
+            "recent_payments": recent_payments,
             "misc_payment_types": misc_payment_types,
             "user_balance": user_balance,
             "is_reload": True,  # when we reload, we don't want to be hidden (default)
         },
     )
 
-    # Add header to tell recent transactions to update itself
-    response["HX-Trigger"] = "{misc_payment_update: true}'"
 
-    return response
-
-
-@check_club_menu_access(check_session_or_payments=True)
-def club_menu_tab_member_edit_recent_misc_payments_htmx(request, club):
-    """Show the summary of recent misc payments for this member"""
-
-    member_id = request.POST.get("member_id")
-    member = get_object_or_404(User, pk=member_id)
-    recent_misc_payments, misc_payment_types = _get_misc_payment_vars(member, club)
-
-    return render(
-        request,
-        "organisations/club_menu/members/edit_member_misc_payments_htmx.html",
-        {"club": club, "recent_misc_payments": recent_misc_payments},
-    )
-
-
-@check_club_menu_access(check_session_or_payments=True)
-def recent_payments_for_user_htmx(request, club):
-    """Show recent payments for this club and this user"""
-
-    # Get user
-    player = get_object_or_404(User, pk=request.POST.get("member_id"))
-
-    # Get recent transactions for this user and club
-    recent_transactions = OrganisationTransaction.objects.filter(
-        member=player, organisation=club
-    ).order_by("-created_date")[:20]
-
-    return render(
-        request,
-        "organisations/club_menu/members/recent_payments_for_user_htmx.html",
-        {"recent_transactions": recent_transactions},
-    )
+# @check_club_menu_access(check_session_or_payments=True)
+# def recent_payments_for_user_htmx(request, club):
+#     """Show recent payments for this club and this user"""
+#
+#     # Get user
+#     player = get_object_or_404(User, pk=request.POST.get("member_id"))
+#
+#     # Get recent transactions for this user and club
+#     recent_transactions = OrganisationTransaction.objects.filter(
+#         member=player, organisation=club
+#     ).order_by("-created_date")[:20]
+#
+#     return render(
+#         request,
+#         "organisations/club_menu/members/recent_payments_for_user_htmx.html",
+#         {"recent_transactions": recent_transactions},
+#     )
 
 
 @check_club_menu_access(check_session_or_payments=True)

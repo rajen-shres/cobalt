@@ -6,3 +6,9 @@ from django.shortcuts import render
 @login_required()
 def htmx_search(request):
     return render(request, "tests/search/htmx_search.html")
+
+
+@login_required()
+def button_test(request):
+    """Test hyperscript button reveal problem"""
+    return render(request, "tests/button_test.html")

@@ -578,11 +578,11 @@ urlpatterns = [
         organisations.views.club_menu_tabs.finance.cancel_user_pending_debt_htmx,
         name="club_menu_tab_finance_cancel_user_pending_debt_htmx",
     ),
-    path(
-        "club-menu/member/recent-payments-for-user",
-        organisations.views.club_menu_tabs.members.recent_payments_for_user_htmx,
-        name="club_menu_tab_members_recent_payments_for_user_htmx",
-    ),
+    # path(
+    #     "club-menu/member/recent-payments-for-user",
+    #     organisations.views.club_menu_tabs.members.recent_payments_for_user_htmx,
+    #     name="club_menu_tab_members_recent_payments_for_user_htmx",
+    # ),
     path(
         "member/get-member-balance",
         organisations.views.club_menu_tabs.members.get_member_balance_htmx,
@@ -637,10 +637,5 @@ urlpatterns = [
         "member/search-tab-name",
         organisations.views.club_menu_tabs.members.member_search_tab_name_htmx,
         name="member_search_tab_name_htmx",
-    ),
-    path(
-        "member/edit/recent-misc-payments",
-        organisations.views.club_menu_tabs.members.club_menu_tab_member_edit_recent_misc_payments_htmx,
-        name="club_menu_tab_member_edit_recent_misc_payments_htmx",
     ),
 ]
