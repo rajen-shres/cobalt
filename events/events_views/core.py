@@ -688,7 +688,7 @@ def get_events(user):
 def get_conveners_for_congress(congress):
     """get list of conveners for a congress"""
 
-    role = "events.org.%s.edit" % congress.congress_master.org.id
+    role = f"events.org.{congress.congress_master.org.id}.edit"
     return rbac_get_users_with_role(role)
 
 
@@ -779,11 +779,7 @@ def sort_events_by_start_date(events):
     events_list = {}
     for event in events:
         event.event_start_date = event.start_date()
-        if event.event_start_date:
-            events_list[event] = event.event_start_date
-        else:
-            events_list[event] = date(year=1967, month=5, day=3)
-
+        events_list[event] = event.event_start_date or date(year=1967, month=5, day=3)
     return {
         key: value
         for key, value in sorted(events_list.items(), key=lambda item: item[1])
