@@ -36,10 +36,10 @@ echo "#########################################"
 ./manage.py migrate
 echo "..."
 
-echo "#########################################"
-echo "# Here are your branches                #"
-echo "#########################################"
-git for-each-ref --sort=-committerdate refs/heads/ --format='%(committerdate:short) %(refname:short)'
+# echo "#########################################"
+# echo "# Here are your branches                #"
+# echo "#########################################"
+# git for-each-ref --sort=-committerdate refs/heads/ --format='%(committerdate:short) %(refname:short)'
 
 
 

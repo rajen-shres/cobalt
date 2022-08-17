@@ -447,8 +447,6 @@ def process_member_import(
                 club, club_member, user, default_membership, home_club
             )
             added_users += added
-            if error:
-                errors.append(error)
         else:
             # See if we have an unregistered user already
             un_reg = UnregisteredUser.objects.filter(
@@ -491,7 +489,8 @@ def process_member_import(
             )
 
             added_unregistered_users += added
-            if error:
-                errors.append(error)
+
+        if error:
+            errors.append(error)
 
     return added_users, added_unregistered_users, errors

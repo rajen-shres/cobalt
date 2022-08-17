@@ -1,4 +1,5 @@
 import bleach
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.conf import settings
 from accounts.models import User
@@ -363,7 +364,18 @@ class MemberClubEmail(models.Model):
         unique_together = ("organisation", "system_number")
 
     def __str__(self):
-        return f"{self.organisation} - {self.email}"
+        return f"{self.organisation} - {self.system_number} - {self.email}"
+
+    def clean(self):
+        """Validate email is not empty string"""
+        if self.email == "":
+            raise ValidationError("Email field of MemberClubEmail should not be empty")
+
+    def save(self, *args, **kwargs):
+        """We want to ensure empty strings don't get into the database for the email field"""
+
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class ClubTag(models.Model):

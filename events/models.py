@@ -443,6 +443,18 @@ class Event(models.Model):
     allow_team_names = models.BooleanField(default=False)
     list_priority_order = models.IntegerField(default=0)
 
+    # Originally Congresses and Sessions had start and end dates but Events didn't
+    # We do a lot of queries that want to know when an event starts or ends but because
+    # start_date() is a property and not a field, we can't use the database for this
+    # Adding denormalised date/time fields makes things easier. These only change if
+    # the sessions change which only happens in one place, so not a big deal
+    # TODO: Add to test data
+    # TODO: Release this, then change code to update it, then run bulk update and release new code
+    denormalised_start_date = models.DateField(null=True, blank=True)
+    denormalised_start_time = models.TimeField(null=True, blank=True)
+    denormalised_end_date = models.DateField(null=True, blank=True)
+    denormalised_end_time = models.TimeField(null=True, blank=True)
+
     def __str__(self):
         return "%s - %s" % (self.congress, self.event_name)
 
