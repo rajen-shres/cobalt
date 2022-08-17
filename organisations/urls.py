@@ -624,11 +624,6 @@ urlpatterns = [
         name="transaction_session_details_htmx",
     ),
     path(
-        "member/top-up",
-        organisations.views.club_menu_tabs.members.top_up_member_htmx,
-        name="top_up_member_htmx",
-    ),
-    path(
         "member/search-tab",
         organisations.views.club_menu_tabs.members.member_search_tab_htmx,
         name="member_search_tab_htmx",

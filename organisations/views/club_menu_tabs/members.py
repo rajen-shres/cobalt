@@ -714,6 +714,7 @@ def edit_member_htmx(request, club, message=""):
 
     # Get users balance
     user_balance = get_balance(member)
+    club_balance = org_balance(club)
 
     # See if this user has payments access
     user_has_payments_edit = rbac_user_has_role(
@@ -744,6 +745,7 @@ def edit_member_htmx(request, club, message=""):
             "recent_payments": recent_payments,
             "misc_payment_types": misc_payment_types,
             "user_balance": user_balance,
+            "club_balance": club_balance,
             "user_has_payments_edit": user_has_payments_edit,
             "user_has_payments_view": user_has_payments_view,
         },
@@ -952,37 +954,32 @@ def errors_htmx(request, club):
 
 @check_club_menu_access(check_session_or_payments=True)
 def add_misc_payment_htmx(request, club):
-    """Adds a miscellaneous payment for a user"""
+    """Adds a miscellaneous payment for a user. Could be the club charging them, or the club paying them"""
 
     # load data from form
     misc_description = request.POST.get("misc_description")
     member = get_object_or_404(User, pk=request.POST.get("member_id"))
     amount = float(request.POST.get("amount"))
+    charge_or_pay = request.POST.get("charge_or_pay")
 
     if amount <= 0:
         misc_message = "Amount must be greater than zero"
 
-    elif payment_api_batch(
-        member=member,
-        amount=amount,
-        description=f"{misc_description}",
-        organisation=club,
-    ):
-        misc_message = "Payment successful"
-        ClubLog(
-            organisation=club,
-            actor=request.user,
-            action=f"Made misc payment of {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} for '{misc_description}' - {member}",
-        ).save()
-
+    if charge_or_pay == "charge":
+        misc_message = _add_misc_payment_charge(
+            request, club, member, amount, misc_description
+        )
     else:
-        misc_message = f"Payment FAILED for {member.full_name}. Insufficient funds."
+        misc_message = _add_misc_payment_pay(
+            request, club, member, amount, misc_description
+        )
 
     # Get relevant data
     recent_payments, misc_payment_types = _get_misc_payment_vars(member, club)
 
     # Get balance
     user_balance = get_balance(member)
+    club_balance = org_balance(club)
 
     # User has payments edit, no need to check again
     user_has_payments_edit = True
@@ -998,28 +995,32 @@ def add_misc_payment_htmx(request, club):
             "recent_payments": recent_payments,
             "misc_payment_types": misc_payment_types,
             "user_balance": user_balance,
+            "club_balance": club_balance,
             "user_has_payments_edit": user_has_payments_edit,
         },
     )
 
 
-# @check_club_menu_access(check_session_or_payments=True)
-# def recent_payments_for_user_htmx(request, club):
-#     """Show recent payments for this club and this user"""
-#
-#     # Get user
-#     player = get_object_or_404(User, pk=request.POST.get("member_id"))
-#
-#     # Get recent transactions for this user and club
-#     recent_transactions = OrganisationTransaction.objects.filter(
-#         member=player, organisation=club
-#     ).order_by("-created_date")[:20]
-#
-#     return render(
-#         request,
-#         "organisations/club_menu/members/recent_payments_for_user_htmx.html",
-#         {"recent_transactions": recent_transactions},
-#     )
+def _add_misc_payment_charge(request, club, member, amount, misc_description):
+    """handle club charging user"""
+
+    if payment_api_batch(
+        member=member,
+        amount=amount,
+        description=f"{misc_description}",
+        organisation=club,
+    ):
+        misc_message = "Payment successful"
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Made misc payment of {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} for '{misc_description}' - {member}",
+        ).save()
+
+    else:
+        misc_message = f"Payment FAILED for {member.full_name}. Insufficient funds."
+
+    return misc_message
 
 
 @check_club_menu_access(check_session_or_payments=True)
@@ -1035,51 +1036,36 @@ def get_member_balance_htmx(request, club):
     return HttpResponse(f"${get_balance(member):,.2f}")
 
 
-@check_club_menu_access(check_session_or_payments=True)
-def top_up_member_htmx(request, club):
-    """Allows a club to top up a members balance. The funds move from the club to the user, there is no check or
-    tracking that the money comes in to the club"""
-
-    # Get form data
-    amount = float(request.POST.get("amount", 0))
-    description = request.POST.get("description")
-    member = get_object_or_404(User, pk=request.POST.get("member"))
-
-    # validate
-    if amount <= 0:
-        return edit_member_htmx(
-            request, message="Top up not made. Amount must be greater than zero."
-        )
+def _add_misc_payment_pay(request, club, member, amount, misc_description):
+    """Handle club paying a member"""
 
     if org_balance(club) < amount:
-        return edit_member_htmx(
-            request, message="Club has insufficient funds for this transaction."
-        )
+        return "Club has insufficient funds for this transaction."
 
     # make payments
     update_account(
         member=member,
         amount=amount,
-        description=f"Top Up - {description}",
+        description=misc_description,
         organisation=club,
-        payment_type="Club Top Up",
+        payment_type="Miscellaneous",
     )
     update_organisation(
         member=member,
         amount=-amount,
-        description=f"Top Up - {description}",
+        description=misc_description,
         organisation=club,
-        payment_type="Club Top Up",
+        payment_type="Miscellaneous",
     )
 
     # log it
     ClubLog(
         organisation=club,
         actor=request.user,
-        action=f"Off system top up for {member} - {cobalt_currency(amount)}",
+        action=f"{member} - {cobalt_currency(amount)} - {misc_description}",
     ).save()
 
-    return edit_member_htmx(request, message="Top up successful")
+    return "Payment successful"
 
 
 @check_club_menu_access(check_members=True)

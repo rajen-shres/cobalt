@@ -4,12 +4,13 @@
 
     {% else %}
 
-        <h5 class="text-center">Drag and Drop tags here</h5>
         <div class="card">
             <div class="card-header card-header-primary">
                 <h3>{{ member.first_name }}'s Tags</h3>
             </div>
             <div id="member_tags" class="card-body" ondrop="drop(event)" ondragover="allowDrop(event)">
+
+                <p class="font-italic">Drag tags here to add</p>
 
                 {% for tag in member_tags %}
                     <button id="item_{{ tag.club_tag.id }}" draggable="true" ondragstart="drag(event)" class="btn btn-sm btn-danger">{{ tag.club_tag.tag_name }}</button>
@@ -23,6 +24,8 @@
                 <h3>Available Tags</h3>
             </div>
             <div class="card-body" id="available_tags" ondrop="drop(event)" ondragover="allowDrop(event)">
+
+                <p class="font-italic">Drag tags here to remove</p>
 
                 {% for tag in available_tags %}
                     <button id="item_{{ tag.id }}" draggable="true" ondragstart="drag(event)" class="btn btn-sm btn-default">{{ tag.tag_name }}</button>
