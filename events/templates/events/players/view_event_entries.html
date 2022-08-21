@@ -11,7 +11,7 @@
                     <h2>{{ event.event_name|safe }}</h2>
                     <h3>{{ congress }}</h3>
                     <h3>{{ date_string }} - {{ event.start_time|cobalt_time }} Start</h3>
-                    <h4>{{ entries|length }} entr{{ entries|length|pluralize:"y,ies" }}
+                    <h4>{{ event_entries|length }} entr{{ event_entries|length|pluralize:"y,ies" }}
                         {% if event.max_entries %}
                             out of a maximum of {{ event.max_entries }}
                         {% endif %}
@@ -40,20 +40,19 @@
                             </thead>
                             <tbody>
 
-                                {% for entry in entries %}
+                                {% for entry in event_entries %}
                                     <tr>
                                         <td class="py-1 text-left">
-                                            {% if entry.my_entry %}
+                                            {% if entry == my_entry %}
                                                 <a class="" href="{% url "events:edit_event_entry" event_id=event.id congress_id=congress.id %}/edit=1">
                                             {% endif %}
                                             {% if event.allow_team_names %}
                                                 <strong>{{ entry.get_team_name }} - </strong>
                                             {% endif %}
-                                            {% for player in entry.ordered_event_entry_player %}
-                                                {#                                            {% for player in entry.event_entry_player_all %}#}
+                                            {% for player in entry.this_event_entry_players %}
                                                 {% if player.player.id == TBA_PLAYER and player.override_tba_name %}<span class="font-italic" title="This name was added by an administrator">{{ player.override_tba_name }}</span>{% else %}{{ player.player.full_name }}{% endif %}{% if not forloop.last %}, {% endif %}
                                             {% endfor %}
-                                            {% if entry.my_entry %}
+                                            {% if entry == my_entry %}
                                                 </a>
                                             {% endif %}
                                         </td>

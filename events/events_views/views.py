@@ -659,24 +659,35 @@ def view_event_entries(request, congress_id, event_id):
 
     congress = get_object_or_404(Congress, pk=congress_id)
     event = get_object_or_404(Event, pk=event_id)
-    entries = (
+    event_entries = (
         EventEntry.objects.filter(event=event)
         .exclude(entry_status="Cancelled")
+        .select_related("category")
         .order_by("entry_complete_date")
     )
-    entries.prefetch_related("evententryplayer_set")
-    # entries.prefetch_related("evententryplayer_player_set")
 
     # identify this users entry
+    my_entry = None
+    event_entry_players = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .select_related("player", "event_entry")
+        .order_by("pk")
+    )
+
     if request.user.is_authenticated:
-        for entry in entries:
-            # Commenting this out for now as doesn't go to the entry it is intended to go to
-            # if entry.primary_entrant == request.user:
-            #     entry.my_entry = True
-            #     continue
-            for player in entry.evententryplayer_set.all():
-                if player.player == request.user:
-                    entry.my_entry = True
+        for player in event_entry_players:
+            if player.player == request.user:
+                my_entry = player.event_entry
+                break
+
+    # Loop through event entries and add event entry players
+    # We use the values we already have from the database to prevent additional calls
+    for event_entry in event_entries:
+        event_entry.this_event_entry_players = [
+            event_entry_player
+            for event_entry_player in event_entry_players
+            if event_entry_player.event_entry == event_entry
+        ]
 
     categories = Category.objects.filter(event=event).exists()
     date_string = event.print_dates()
@@ -699,10 +710,11 @@ def view_event_entries(request, congress_id, event_id):
         {
             "congress": congress,
             "event": event,
-            "entries": entries,
+            "event_entries": event_entries,
             "categories": categories,
             "date_string": date_string,
             "user_entered": user_entered,
+            "my_entry": my_entry,
         },
     )
 

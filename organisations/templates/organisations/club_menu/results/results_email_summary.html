@@ -1,0 +1,26 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Insert user results into email                                         #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load humanize %}
+
+
+
+<h1>You were {{ position|ordinal }}</h1>
+<h2>Percentage {{ percentage }}%</h2>
+<h2>Masterpoints {{ masterpoints }}</h2>
+
+<!-- START BUTTON -->
+<p style="text-align: center;">
+    <a href="http://{{ host }}{{ link }}" style="background-color: #9c27b0; font-size: 18px; font-family: Helvetica, Arial, sans-serif; font-weight: bold; text-decoration: none; padding: 8px 6px; color: #ffffff; border-radius: 5px; display: inline-block; mso-padding-alt: 0;">
+        <!--[if mso]>
+    <i style="letter-spacing: 25px; mso-font-width: -100%; mso-text-raise: 30pt;">&nbsp;</i>
+    <![endif]-->
+        <span style="mso-text-raise: 15pt;">View Results</span>
+        <!--[if mso]>
+    <i style="letter-spacing: 25px; mso-font-width: -100%;">&nbsp;</i>
+    <![endif]-->
+    </a>
+</p>
+<!-- END BUTTON -->

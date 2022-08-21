@@ -1,12 +1,16 @@
-{#This is the style content for the club admin SPA#}
+{#---------------------------------------------------------------------------------------------------#}
+{#                                                                                                   #}
+{# This is the style content for the club admin SPA.                                                 #}
+{#                                                                                                   #}
+{# Styles need to be loaded in the header so they have to cover all sub pages. Please document them. #}
+{#                                                                                                   #}
+{#---------------------------------------------------------------------------------------------------#}
 {% load static %}
 <link href="{% static "assets/css/bootstrap4-toggle.min.css" %}" rel="stylesheet">
 <script src="{% static "assets/js/bootstrap4-toggle.min.js" %}"></script>
 <link href="{% static "assets/css/cobalt-summernote.css" %}" rel="stylesheet">
 {% include "utils/data_tables_heading.html" %}
 <style>
-
-    {#Styles need to be loaded in the header so they have to cover all sub pages. Please document them.#}
 
     {#disable buttons when they are waiting for HTMX#}
     .htmx-request .btn {
@@ -17,21 +21,24 @@
     {#Otherwise it looks like we want the user to drop into the email body. #}
     .note-editor .note-dropzone { opacity: 0 !important; }
 
-    {#The empty drag classes are used by sending emails for drag and drop#}
-    .empty-drag {
-        border: 2px dashed #ccc;
+    {# The drag classes are used by member edit for drag and drop #}
+    .drag-add {
+        background-image: linear-gradient(45deg, #dae7f0 25%, #baddf2 25%, #baddf2 50%, #dae7f0 50%, #dae7f0 75%, #baddf2 75%, #baddf2 100%);
+        background-size: 14.14px 14.14px;
+    }
+    .drag-add:before{
+        content: "Drag tags here to add\A";
+        white-space: pre;
     }
 
-    .empty-drag:before{
-        content: "Drag tags here to send";
+    .drag-remove {
+        background-image: linear-gradient(45deg, #dae7f0 25%, #baddf2 25%, #baddf2 50%, #dae7f0 50%, #dae7f0 75%, #baddf2 75%, #baddf2 100%);
+        background-size: 14.14px 14.14px;
     }
 
-    .empty-drag-available {
-        border: 2px dashed grey;
-    }
-
-    .empty-drag-available:before{
-        content: "Drag tags here to remove from email";
+    .drag-remove:before{
+        content: "Drag tags here to remove\A";
+        white-space: pre;
     }
 
 </style>
