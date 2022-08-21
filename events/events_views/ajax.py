@@ -46,7 +46,9 @@ from events.models import (
 
 
 def get_all_congress_ajax(request):
-    congresses = Congress.objects.order_by("start_date")
+    congresses = Congress.objects.order_by("start_date").select_related(
+        "congress_master__org"
+    )
     congressList = []
     admin = False
     if request.user.is_authenticated:
@@ -59,6 +61,7 @@ def get_all_congress_ajax(request):
             admin = False
     else:
         admin = False
+
     if not admin:
         congresses = congresses.filter(status="Published")
 

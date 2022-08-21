@@ -680,14 +680,13 @@ def view_event_entries(request, congress_id, event_id):
                 my_entry = player.event_entry
                 break
 
-    # Loop through event entries and add event entry players
+    # Loop through event entries and add event entry players in order they entered
     # We use the values we already have from the database to prevent additional calls
     for event_entry in event_entries:
-        event_entry.this_event_entry_players = [
-            event_entry_player
-            for event_entry_player in event_entry_players
-            if event_entry_player.event_entry == event_entry
-        ]
+        event_entry.this_event_entry_players = []
+        for event_entry_player in event_entry_players:
+            if event_entry_player.event_entry == event_entry:
+                event_entry.this_event_entry_players.append(event_entry_player)
 
     categories = Category.objects.filter(event=event).exists()
     date_string = event.print_dates()

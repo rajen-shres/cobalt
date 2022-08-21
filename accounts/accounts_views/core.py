@@ -14,7 +14,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from accounts.forms import UserRegisterForm
 from accounts.models import User, UnregisteredUser
 from accounts.tokens import account_activation_token
-from cobalt.settings import GLOBAL_TITLE
+from cobalt.settings import GLOBAL_TITLE, ALL_SYSTEM_ACCOUNTS
 from logs.views import log_event
 from masterpoints.views import user_summary
 from notifications.notifications_views.core import send_cobalt_email_with_template
@@ -367,7 +367,11 @@ def get_email_address_and_name_from_system_number(system_number, club=None):
     """
 
     # Try user
-    user = User.objects.filter(system_number=system_number).first()
+    user = (
+        User.objects.filter(system_number=system_number)
+        .exclude(id__in=ALL_SYSTEM_ACCOUNTS)
+        .first()
+    )
 
     if user:
         return user.email, user.first_name
