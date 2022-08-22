@@ -626,3 +626,22 @@ class WelcomePackForm(forms.ModelForm):
         ]
 
         self.fields["template"].choices = our_templates
+
+
+class ResultsEmailMessageForm(forms.ModelForm):
+    """Form for the results email message sent to players for a club"""
+
+    results_email_message = forms.CharField(
+        widget=SummernoteInplaceWidget(
+            attrs={
+                "summernote": {
+                    "height": "250",
+                    "placeholder": "<br><br>(Optional) Add a message for your members...",
+                }
+            }
+        )
+    )
+
+    class Meta:
+        model = Organisation
+        fields = ("results_email_message",)

@@ -5,22 +5,58 @@
 {#------------------------------------------------------------------------#}
 {% load humanize %}
 
+<!-- CLUB MESSAGE IF WE HAVE ONE -->
+
+{% if club_message != "" %}
+
+    <table border="1" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
+
+        <tr>
+            <td class="wrapper">
+                {{ club_message|safe }}
+            </td>
+        </tr>
+    </table>
+    <br>
+
+{% endif %}
+
+<!-- WELCOME MESSAGE -->
+<h4 class="align-center">Results for your game at <b>{{ club}}</b> playing with {{ partner }}.</h4>
+
+<!-- NUMBERS -->
+<h3 class="align-center">You were <span style="font-size: 40px">{{ position|ordinal }}</span>
+    with <span style="font-size: 40px">{{ percentage }}%</span>
+</h3>
+
+{% if masterpoints > 0 %}
+    <br>
+    <h3 class="align-center">You earnt <span style="font-size: 35px">{{ masterpoints }}</span> Masterpoints</h3>
+{% endif %}
+
+<br>
 
 
-<h1>You were {{ position|ordinal }}</h1>
-<h2>Percentage {{ percentage }}%</h2>
-<h2>Masterpoints {{ masterpoints }}</h2>
+<!-- BUTTON IN A TABLE -->
+<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
 
-<!-- START BUTTON -->
-<p style="text-align: center;">
-    <a href="http://{{ host }}{{ link }}" style="background-color: #9c27b0; font-size: 18px; font-family: Helvetica, Arial, sans-serif; font-weight: bold; text-decoration: none; padding: 8px 6px; color: #ffffff; border-radius: 5px; display: inline-block; mso-padding-alt: 0;">
-        <!--[if mso]>
-    <i style="letter-spacing: 25px; mso-font-width: -100%; mso-text-raise: 30pt;">&nbsp;</i>
-    <![endif]-->
-        <span style="mso-text-raise: 15pt;">View Results</span>
-        <!--[if mso]>
-    <i style="letter-spacing: 25px; mso-font-width: -100%;">&nbsp;</i>
-    <![endif]-->
-    </a>
-</p>
-<!-- END BUTTON -->
+    <tr>
+        <td class="article-cta">
+            <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
+                <tbody>
+                    <tr>
+                        <td align="center">
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tbody>
+                                    <tr>
+                                        <td> <a href="http://{{ host }}{{ link }}" target="_blank">View Results</a> </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+</table>

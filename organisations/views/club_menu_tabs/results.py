@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.html import strip_tags
 
 from accounts.accounts_views.core import get_email_address_and_name_from_system_number
 from cobalt.settings import COBALT_HOSTNAME
@@ -14,7 +15,7 @@ from notifications.notifications_views.core import (
     send_cobalt_email_with_template,
 )
 from organisations.decorators import check_club_menu_access
-from organisations.forms import ResultsFileForm
+from organisations.forms import ResultsFileForm, ResultsEmailMessageForm
 from organisations.models import OrgEmailTemplate
 from organisations.views.club_menu import tab_results_htmx
 from results.models import ResultsFile
@@ -135,6 +136,8 @@ def _send_results_emails(results_file, club, request):
         try:
             player_1_system_number = int(item["PLAYER"][0]["NATIONAL_ID_NUMBER"])
             player_2_system_number = int(item["PLAYER"][1]["NATIONAL_ID_NUMBER"])
+            player_1_name = item["PLAYER"][0]["PLAYER_NAME"].title()
+            player_2_name = item["PLAYER"][1]["PLAYER_NAME"].title()
         except TypeError:
             continue
 
@@ -145,12 +148,18 @@ def _send_results_emails(results_file, club, request):
 
         for system_number in [player_1_system_number, player_2_system_number]:
 
+            if system_number == player_1_system_number:
+                partner = player_2_name
+            else:
+                partner = player_1_name
+
             # TODO: Load this higher up as a dictionary to reduce database calls
             email_address, first_name = get_email_address_and_name_from_system_number(
                 system_number, club
             )
 
             if email_address:
+
                 # Build email body
                 email_body = render_to_string(
                     "organisations/club_menu/results/results_email_summary.html",
@@ -158,8 +167,11 @@ def _send_results_emails(results_file, club, request):
                         "position": position,
                         "masterpoints": masterpoints,
                         "percentage": percentage,
+                        "club": club,
+                        "partner": partner,
                         "link": link,
                         "host": COBALT_HOSTNAME,
+                        "club_message": club.results_email_message,
                     },
                 )
 
@@ -192,3 +204,23 @@ def delete_results_file_htmx(request, club):
     results_file.delete()
 
     return tab_results_htmx(request, message="Deleted")
+
+
+@check_club_menu_access(check_sessions=True)
+def update_results_email_message_htmx(request, club):
+    """Update the club's results_email_message that is sent to players with all results"""
+
+    # Check if we got empty string - need to strip left over html tags too
+    if strip_tags(request.POST.get("results_email_message")) == "":
+        club.results_email_message = ""
+        club.save()
+        return HttpResponse("Email message is now blank. No message will be sent.")
+
+    # Handle non-blank email message
+    form = ResultsEmailMessageForm(request.POST, instance=club)
+
+    if form.is_valid():
+        form.save()
+        return HttpResponse("Email message saved")
+    else:
+        print(form.errors)

@@ -539,6 +539,11 @@ urlpatterns = [
         name="club_menu_tab_results_upload_results_file",
     ),
     path(
+        "club-menu/results/update-results-email-message",
+        organisations.views.club_menu_tabs.results.update_results_email_message_htmx,
+        name="club_menu_tab_results_update_results_email_message_htmx",
+    ),
+    path(
         "club-menu/results/toggle-result-publish-state",
         organisations.views.club_menu_tabs.results.toggle_result_publish_state_htmx,
         name="club_menu_tab_results_toggle_result_publish_state_htmx",

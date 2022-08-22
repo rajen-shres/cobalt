@@ -19,9 +19,10 @@ from accounts.accounts_views.core import (
 from club_sessions.models import Session
 from events.models import Congress, CongressMaster
 from organisations.decorators import check_club_menu_access
-from organisations.forms import ResultsFileForm
+from organisations.forms import ResultsFileForm, ResultsEmailMessageForm
 from organisations.models import (
     Organisation,
+    OrgEmailTemplate,
 )
 from organisations.views.admin import (
     rbac_get_basic_and_advanced,
@@ -264,7 +265,13 @@ def tab_results_htmx(request, club, message=None):
     for thing in things:
         thing.hx_vars = f"club_id:{club.id},results_file_id:{thing.id}"
 
-    # form = ResultsFileForm()
+    # Get results email form
+    results_email_message_form = ResultsEmailMessageForm(instance=club)
+
+    # See if a template exists for results
+    results_template_exists = OrgEmailTemplate.objects.filter(
+        organisation=club, template_name="Results"
+    ).exists()
 
     return render(
         request,
@@ -276,5 +283,7 @@ def tab_results_htmx(request, club, message=None):
             "hx_delete": hx_delete,
             "hx_vars": hx_vars,
             "message": message,
+            "results_email_message_form": results_email_message_form,
+            "results_template_exists": results_template_exists,
         },
     )

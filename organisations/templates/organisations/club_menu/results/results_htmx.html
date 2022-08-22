@@ -1,6 +1,43 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Main page for results tab                                              #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 
+<!-- LET USER KNOW THEY CAN CUSTOMISE -->
+{% if results_template_exists %}
+    <h5>Using custom template "Results". To change appearance, edit this template in Settings if you have access.</h5>
+{% else %}
+    <h5>Using default layout. To customise this, go to Templates under Settings and create a template called "Results"</h5>
+{% endif %}
+
+<!-- MESSAGE -->
+
 <h3 class="text-info font-weight-bold" id="results_message">{{ message|default_if_none:"" }}</h3>
+
+
+<!-- RESULTS EMAIL MESSAGE FORM -->
+
+<form
+    hx-post="{% url "organisations:club_menu_tab_results_update_results_email_message_htmx" %}"
+    hx-target="#results_message"
+    hx-vars="club_id:{{ club.id }}"
+>
+    <div class="container">
+        <div class="row">
+            <div class="col-10">
+                {% cobalt_bs4_field results_email_message_form.results_email_message %}
+            </div>
+            <div class="col-2 justify-content-center align-self-center">
+                <button type="submit" class="btn btn-success btn-sm">Update</button>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+<!-- UPLOAD NEW RESULTS FORM -->
 
 <form
     hx-encoding='multipart/form-data'
@@ -22,9 +59,13 @@
     </div>
 </form>
 
+<!-- PAGINATED LIST OF RECENT RESULTS WITH ACTION BUTTONS -->
+
 <H3>Recent Results</H3>
 <div class="table-responsive">
+
     <table class="table table-hover table-condensed">
+
         <thead class="text-primary">
             <tr>
                 <th class="text-left">Session</th>
@@ -34,6 +75,7 @@
                 <th>Action</th>
             </tr>
         </thead>
+
         <tbody>
             {% for recent_result in things %}
                 <tr>
@@ -42,34 +84,86 @@
                     <td class="text-left">{{ recent_result.uploaded_by.full_name }}</td>
                     <td class="text-left">{{ recent_result.get_status_display }}</td>
                     <td>
+
+                        <!-- TOGGLE PUBLISH STATUS -->
                         <button
-                            hx-post="{% url "organisations:club_menu_tab_results_toggle_result_publish_state_htmx" %}"
-                            hx-vars="club_id:{{ club.id }},results_file_id:{{ recent_result.id }}"
-                            hx-target="#id_panel_results"
-                            hx-confirm="Are you sure?"
+                            id="id_toggle_{{ recent_result.id }}"
                             style="width: 120px"
-                            class="btn btn-sm
+                            class="btn btn-sm btn-toggle-publish
                             {% if recent_result.status == "PE" %}
                                 btn-success">Publish
                             {% else %}
                                 btn-primary">Un-publish
                             {% endif %}
                         </button>
+
+                        <!-- VIEW RESULTS -->
                         <a class="btn btn-info btn-sm"
                             href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=recent_result.id %}"
                             target="_blank"
                         >View</a>
 
+                        <!-- DELETE -->
                         {% include "utils/htmx_confirm_modal.html" with id=recent_result.id hx_target="#id_panel_results" delete_item=recent_result.description hx_post=hx_delete hx_vars=recent_result.hx_vars %}
                         <button id="id_delete_result{{ recent_result.id }}" type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal{{ recent_result.id }}">Delete</button>
-
-
 
                     </td>
                 </tr>
             {% endfor %}
         </tbody>
+
     </table>
+
 </div>
 
 {% include 'utils/pagination_footer_htmx.html' with hx_target="#id_panel_results" %}
+
+<script>
+    $(document).ready( function () {
+
+        // handle clicking the toggle publish button
+        $(".btn-toggle-publish").click(function(){
+
+            // get results file id from button id
+            const results_id = this.id.split("_")[2]
+
+            // See if we are publishing or un-publishing
+            const button_text = $("#" + this.id).text().trim();
+            let text_msg;
+            if (button_text == "Publish"){
+                text_msg = "Publish results. This will make results visible to everyone and will email results to players for whom we have email addresses."
+            } else {
+                text_msg = "Un-publish results. This will prevent people from accessing the results for this session."
+            }
+
+            // Confirm with user
+            swal.fire({
+                title: 'Are you sure?',
+                text: text_msg,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+
+            }).then((result) => {
+                if (result.value) {
+
+                    // Ok, do it
+
+                    let postData = {
+                        'club_id': {{ club.id }},
+                        'results_file_id': results_id,
+                    };
+
+                    // Use htmx to handle ajax call
+                    const url = '{% url "organisations:club_menu_tab_results_toggle_result_publish_state_htmx" %}';
+                    htmx.ajax('POST', url, {'target': '#id_panel_results', 'values': postData});
+
+                }
+            });
+
+        });
+
+    });
+</script>

@@ -13,79 +13,8 @@
     <div class="card-header card-header-primary">
         <h2>Transactions</h2>
 
-        {#        <!-- TOP UP BUTTON -->#}
-        {##}
-        {#        {% if user_has_payments_edit %}#}
-        {##}
-        {#            <button class="btn btn-sm btn-danger align-center"#}
-        {#                onclick="$('#id_top_up').modal('show');"#}
-        {#            >Club Top Up#}
-        {#            </button>#}
-        {##}
-        {#        {% endif %}#}
-
     </div>
     <div class="card-body">
-
-        <!-- TOP UP MODAL -->
-
-        {#        <div class="modal fade" id="id_top_up" tabindex="-1" role="dialog" aria-labelledby="TopUpModal"#}
-        {#            aria-hidden="true">#}
-        {#            <div class="modal-dialog" role="document">#}
-        {#                <div class="modal-content">#}
-        {#                    <div class="modal-header">#}
-        {#                        <h4 class="modal-title w-100 font-weight-bold"><i class="material-icons">how_to_reg</i>&nbsp;&nbsp;Top#}
-        {#                            Up</h4>#}
-        {#                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"#}
-        {#                            onclick="$('.modal-input').val(''); $('.modal').modal('hide');"#}
-        {#                        >#}
-        {#                            <span aria-hidden="true">&times;</span>#}
-        {#                        </button>#}
-        {##}
-        {#                    </div>#}
-        {#                    <div class="modal-body">#}
-        {#                        {% if member.stripe_auto_confirmed == "Yes" %}#}
-        {#                            <h2>{{ member.first_name }} is already set up for Auto Top Up</h2>#}
-        {#                        {% endif %}#}
-        {##}
-        {#                        <h4>Top ups are credited from your club account into the user's account if your club#}
-        {#                            has sufficient funds. You are responsible for ensuring that the player pays the#}
-        {#                            club.</h4>#}
-        {##}
-        {#                        <form#}
-        {#                            id="id_top_up_form"#}
-        {#                            hx-post="{% url "organisations:top_up_member_htmx" %}"#}
-        {#                            hx-vars="club_id:{{ club.id }}, member:{{ member.id }}"#}
-        {#                            hx-target="#id_panel_members"#}
-        {#                            hx-trigger="submit_me"#}
-        {#                        >#}
-        {##}
-        {#                            <br>#}
-        {#                            <div class="col-12 form-group ">#}
-        {#                                <label for="amount" class="bmd-label-static">Amount#}
-        {#                                </label>#}
-        {#                                <input id="id_amt" required type="number" step="0.01" min="0.01" name="amount"#}
-        {#                                    class="form-control">#}
-        {#                            </div>#}
-        {#                            <br>#}
-        {#                            <div class="col-12 form-group ">#}
-        {#                                <label for="description" class="bmd-label-floating">Description#}
-        {#                                </label>#}
-        {#                                <input type="text" id="id_desc" name="description" required maxlength="15"#}
-        {#                                    class="form-control">#}
-        {#                            </div>#}
-        {#                            <br>#}
-        {##}
-        {#                            <button class="btn btn-sm btn-success" id="id_button_top_up_save">Top Up</button>#}
-        {#                            <button type="reset" class="btn btn-sm btn-info" data-dismiss="modal" aria-label="Close"#}
-        {#                            >Cancel#}
-        {#                            </button>#}
-        {#                        </form>#}
-        {##}
-        {#                    </div>#}
-        {#                </div>#}
-        {#            </div>#}
-        {#        </div>#}
 
         <!-- MESSAGE -->
 
@@ -123,7 +52,7 @@
 
     <!-- NEW MISC PAYMENT -->
 
-    {% if user_has_payments_edit %}
+    {% if user_has_payments_edit and member != request.user %}
 
         <!-- CHARGE USER -->
         <div class="card">
@@ -174,7 +103,7 @@
                             <div class="col-6">
                                 <div class="form-group">
                                     <label for="id_misc_description" class="bmd-label-floating">Description</label>
-                                    <input type="text" value="" maxlength="15" class="form-control" id="id_misc_description" name="misc_description">
+                                    <input type="text" value="" maxlength="30" class="form-control" id="id_misc_description" name="misc_description">
                                 </div>
                             </div>
 
@@ -191,7 +120,7 @@
                     <!-- SUBMIT BUTTON -->
                     <div class="row">
                         <div class="col text-center">
-                            <button class="btn btn-info btn-sm" id="id_misc_button" disabled type="submit">Charge</button>
+                            <button class="btn btn-success btn-sm" id="id_misc_button" disabled type="submit">Charge</button>
                         </div>
                     </div>
 
@@ -228,7 +157,7 @@
                             <div class="col-6">
                                 <div class="form-group">
                                     <label for="id_misc_description" class="bmd-label-floating">Description</label>
-                                    <input type="text" value="" maxlength="15" class="form-control" id="id_misc_description2" name="misc_description">
+                                    <input type="text" value="" maxlength="30" class="form-control" id="id_misc_description2" name="misc_description">
                                 </div>
                             </div>
 
@@ -245,7 +174,7 @@
                     <!-- SUBMIT BUTTON -->
                     <div class="row">
                         <div class="col text-center">
-                            <button class="btn btn-info btn-sm" id="id_misc_button2" disabled type="submit">Pay</button>
+                            <button class="btn btn-success btn-sm" id="id_misc_button2" disabled type="submit">Pay</button>
                         </div>
                     </div>
 

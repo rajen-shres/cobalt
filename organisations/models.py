@@ -199,6 +199,9 @@ class Organisation(models.Model):
     )
     """ bridge credits are the default, but we can use a secondary default if bridge credits aren't an option """
 
+    results_email_message = models.TextField(default="")
+    """ Message sent with the results emails """
+
     @property
     def settlement_fee_percent(self):
         """return what our settlement fee is set to"""
