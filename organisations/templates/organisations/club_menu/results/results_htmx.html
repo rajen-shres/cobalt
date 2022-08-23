@@ -30,7 +30,7 @@
                 {% cobalt_bs4_field results_email_message_form.results_email_message %}
             </div>
             <div class="col-2 justify-content-center align-self-center">
-                <button type="submit" class="btn btn-success btn-sm">Update</button>
+                <button type="submit" class="btn btn-success btn-sm">Update Message</button>
             </div>
         </div>
     </div>
@@ -61,60 +61,64 @@
 
 <!-- PAGINATED LIST OF RECENT RESULTS WITH ACTION BUTTONS -->
 
-<H3>Recent Results</H3>
-<div class="table-responsive">
+{% if things %}
 
-    <table class="table table-hover table-condensed">
+    <H3>Recent Results</H3>
+    <div class="table-responsive">
 
-        <thead class="text-primary">
-            <tr>
-                <th class="text-left">Session</th>
-                <th class="text-left">Date</th>
-                <th class="text-left">Uploaded By</th>
-                <th class="text-left">Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
+        <table class="table table-hover table-condensed">
 
-        <tbody>
-            {% for recent_result in things %}
+            <thead class="text-primary">
                 <tr>
-                    <td class="text-left">{{ recent_result.description }}</td>
-                    <td class="text-left">{{ recent_result.created_at|cobalt_nice_datetime_short }}</td>
-                    <td class="text-left">{{ recent_result.uploaded_by.full_name }}</td>
-                    <td class="text-left">{{ recent_result.get_status_display }}</td>
-                    <td>
-
-                        <!-- TOGGLE PUBLISH STATUS -->
-                        <button
-                            id="id_toggle_{{ recent_result.id }}"
-                            style="width: 120px"
-                            class="btn btn-sm btn-toggle-publish
-                            {% if recent_result.status == "PE" %}
-                                btn-success">Publish
-                            {% else %}
-                                btn-primary">Un-publish
-                            {% endif %}
-                        </button>
-
-                        <!-- VIEW RESULTS -->
-                        <a class="btn btn-info btn-sm"
-                            href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=recent_result.id %}"
-                            target="_blank"
-                        >View</a>
-
-                        <!-- DELETE -->
-                        {% include "utils/htmx_confirm_modal.html" with id=recent_result.id hx_target="#id_panel_results" delete_item=recent_result.description hx_post=hx_delete hx_vars=recent_result.hx_vars %}
-                        <button id="id_delete_result{{ recent_result.id }}" type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal{{ recent_result.id }}">Delete</button>
-
-                    </td>
+                    <th class="text-left">Session</th>
+                    <th class="text-left">Date</th>
+                    <th class="text-left">Uploaded By</th>
+                    <th class="text-left">Status</th>
+                    <th>Action</th>
                 </tr>
-            {% endfor %}
-        </tbody>
+            </thead>
 
-    </table>
+            <tbody>
+                {% for recent_result in things %}
+                    <tr>
+                        <td class="text-left">{{ recent_result.description }}</td>
+                        <td class="text-left">{{ recent_result.created_at|cobalt_nice_datetime_short }}</td>
+                        <td class="text-left">{{ recent_result.uploaded_by.full_name }}</td>
+                        <td class="text-left">{{ recent_result.get_status_display }}</td>
+                        <td>
 
-</div>
+                            <!-- TOGGLE PUBLISH STATUS -->
+                            <button
+                                id="id_toggle_{{ recent_result.id }}"
+                                style="width: 120px"
+                                class="btn btn-sm btn-toggle-publish
+                                {% if recent_result.status == "PE" %}
+                                    btn-success">Publish
+                                {% else %}
+                                    btn-primary">Un-publish
+                                {% endif %}
+                            </button>
+
+                            <!-- VIEW RESULTS -->
+                            <a class="btn btn-info btn-sm"
+                                href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=recent_result.id %}"
+                                target="_blank"
+                            >View</a>
+
+                            <!-- DELETE -->
+                            {% include "utils/htmx_confirm_modal.html" with id=recent_result.id hx_target="#id_panel_results" delete_item=recent_result.description hx_post=hx_delete hx_vars=recent_result.hx_vars %}
+                            <button id="id_delete_result{{ recent_result.id }}" type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal{{ recent_result.id }}">Delete</button>
+
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div>
+
+{% endif %}
 
 {% include 'utils/pagination_footer_htmx.html' with hx_target="#id_panel_results" %}
 

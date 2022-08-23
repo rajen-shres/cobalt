@@ -6,6 +6,13 @@
         <a href="{% url "club_sessions:new_session"  club_id=club.id %}" target="_blank" class="btn btn-sm btn-secondary">
             New Session
         </a>
+        <button
+            hx-post="{% url "organisations:club_menu_tab_sessions_htmx" %}"
+            hx-vars="club_id:{{ club.id }}"
+            hx-target="#id_panel_sessions"
+            class="btn btn-sm btn-secondary">
+            Refresh
+        </button>
 
     </div>
     <div class="card-body">
