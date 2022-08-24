@@ -18,7 +18,9 @@
             hx-target="#id_pane_import"
             hx-trigger="change"
             hx-indicator=".htmx-indicator"
-            hx-confirm="This will delete the existing data. Are you sure?"
+            {% if existing_data %}
+                hx-confirm="This will delete the existing data. Are you sure?"
+            {% endif %}
         />
     </span>
 </div>
@@ -35,7 +37,9 @@
             hx-target="#id_pane_import"
             hx-trigger="change"
             hx-indicator=".htmx-indicator"
-            hx-confirm="This will delete the existing data. Are you sure?"
+            {% if existing_data %}
+                hx-confirm="This will delete the existing data. Are you sure?"
+            {% endif     %}
         />
     </span>
 </div>

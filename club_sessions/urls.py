@@ -1,5 +1,6 @@
 from django.urls import path
 
+import club_sessions.club_sessions_views.imports
 from club_sessions.club_sessions_views import sessions
 
 app_name = "club_sessions"  # pylint: disable=invalid-name
@@ -10,12 +11,12 @@ urlpatterns = [
     path("session/settings", sessions.tab_settings_htmx, name="tab_settings_htmx"),
     path(
         "session/uploads",
-        sessions.tab_import_htmx,
+        club_sessions.club_sessions_views.imports.tab_import_htmx,
         name="tab_import_htmx",
     ),
     path(
         "session/uploads-file",
-        sessions.import_file_upload_htmx,
+        club_sessions.club_sessions_views.imports.import_file_upload_htmx,
         name="session_import_file_upload_htmx",
     ),
     path(

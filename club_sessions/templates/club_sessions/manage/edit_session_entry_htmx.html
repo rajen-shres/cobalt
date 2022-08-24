@@ -22,33 +22,46 @@
     <div class="card">
 
         <div class="card-header card-header-rose">
-            {% if form.is_user %}
-                <div class="card-profile">
-                    <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 100px; width: 100px;" src="/media/{{ form.player.pic }}" />
-                </div>
-            {% endif %}
-            <h3 class="card-title text-center">{{ form.player.full_name }} ({{ session_entry.system_number }})</h3>
-            <h4 class="card-title text-center">{{ form.player_type }}</h4>
 
-            <!-- SHOW BALANCE IF A REAL USER -->
-            {% if form.is_user %}
-                <h3 class="text-center">Balance:
-                    <span
-                        hx-trigger="load"
-                        hx-post="{% url "organisations:get_member_balance_htmx" %}"
-                        hx-vars="member: {{ form.player.id }}"
-                    >
+            <!-- HANDLE NON-USERS -->
 
-                    </span></h3>
-                {% if form.player.stripe_auto_confirmed %}
-                    <h4 class="text-center">Auto Top Up Enabled</h4>
-                {% endif %}
-            {% endif %}
+            {% if session_entry.system_number == -1 %}
+                <!-- SIT OUT -->
+                <h3 class="card-title text-center">Sitout</h3>
 
-            {% if form.is_member %}
-                <h3 class="text-center">Membership Type: {{ form.membership_type.membership_type.name }}</h3>
+            {% elif session_entry.system_number == 1 %}
+                <!-- PLAYING DIRECTOR -->
+                <h3 class="card-title text-center">PLAYING DIRECTOR</h3>
+
             {% else %}
-                <h3 class="text-center">Not a Member</h3>
+                {% if form.is_user %}
+                    <div class="card-profile">
+                        <img id="cobalt-pic" class="cobalt-rounded text-center" style="height: 100px; width: 100px;" src="/media/{{ form.player.pic }}" />
+                    </div>
+                {% endif %}
+                <h3 class="card-title text-center">{{ form.player.full_name }} ({{ session_entry.system_number }})</h3>
+                <h4 class="card-title text-center">{{ form.player_type }}</h4>
+
+                <!-- SHOW BALANCE IF A REAL USER -->
+                {% if form.is_user %}
+                    <h3 class="text-center">Balance:
+                        <span
+                            hx-trigger="load"
+                            hx-post="{% url "organisations:get_member_balance_htmx" %}"
+                            hx-vars="member: {{ form.player.id }}"
+                        >
+
+                        </span></h3>
+                    {% if form.player.stripe_auto_confirmed %}
+                        <h4 class="text-center">Auto Top Up Enabled</h4>
+                    {% endif %}
+                {% endif %}
+
+                {% if form.is_member %}
+                    <h3 class="text-center">Membership Type: {{ form.membership_type.membership_type.name }}</h3>
+                {% else %}
+                    <h3 class="text-center">Not a Member</h3>
+                {% endif %}
             {% endif %}
         </div>
 
