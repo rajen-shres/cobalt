@@ -11,6 +11,7 @@ from .models import (
     SessionTypePaymentMethodMembership,
     Session,
     SessionEntry,
+    SessionMiscPayment,
 )
 
 
@@ -75,6 +76,14 @@ class MemberOrganisationLinkAdmin(admin.ModelAdmin):
     ]
 
 
+class SessionMiscPaymentAdmin(admin.ModelAdmin):
+    """Admin class for model SessionMiscPayment"""
+
+    autocomplete_fields = [
+        "session_entry",
+    ]
+
+
 admin.site.register(SessionType, SessionTypeAdmin)
 admin.site.register(SessionTypePaymentMethod, SessionTypePaymentMethodAdmin)
 admin.site.register(
@@ -82,4 +91,5 @@ admin.site.register(
 )
 admin.site.register(Session, SessionAdmin)
 admin.site.register(SessionEntry, SessionEntryAdmin)
+admin.site.register(SessionMiscPayment, SessionMiscPaymentAdmin)
 admin.site.register(MemberOrganisationLink, MemberOrganisationLinkAdmin)

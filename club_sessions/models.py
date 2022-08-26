@@ -105,6 +105,9 @@ class Session(models.Model):
     additional_session_fee = models.DecimalField(
         max_digits=8, decimal_places=2, default=0
     )
+    additional_session_fee_reason = models.CharField(
+        max_length=30, default="", blank=True
+    )
     """ allows all users to be charged an additional fee for this session """
     default_secondary_payment_method = models.ForeignKey(
         "payments.OrgPaymentMethod",

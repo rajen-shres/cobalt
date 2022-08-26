@@ -64,4 +64,9 @@ urlpatterns = [
         sessions.delete_misc_session_payment_htmx,
         name="delete_misc_session_payment_htmx",
     ),
+    path(
+        "session/add-table",
+        sessions.add_table_htmx,
+        name="add_table_htmx",
+    ),
 ]

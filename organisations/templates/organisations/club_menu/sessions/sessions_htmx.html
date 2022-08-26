@@ -32,3 +32,31 @@
     <h3>This club has not run any sessions yet</h3>
 
 {% endif %}
+
+<script>
+
+    // Check if this page goes to the background. Refresh list if user returns.
+    var is_foreground = true;
+
+    function checkDocumentVisible() {
+        if (document.visibilityState === 'visible' && is_foreground === false) {
+            is_foreground = true;
+
+            // get HTMX to refresh list
+            postData = {
+                'club_id': {{ club.id }},
+            };
+
+            const url = '{% url "organisations:club_menu_tab_sessions_htmx" %}';
+            htmx.ajax('POST', url, {'target': '#id_panel_sessions', 'values': postData});
+
+        } else if (document.visibilityState !== 'visible' && is_foreground === true) {
+            is_foreground = false;
+        }
+    }
+
+    $(document).ready( function () {
+        setInterval(checkDocumentVisible, 1000);
+    });
+
+</script>

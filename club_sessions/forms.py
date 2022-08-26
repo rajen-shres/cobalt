@@ -21,6 +21,7 @@ class SessionForm(forms.ModelForm):
             "venue",
             "time_of_day",
             "additional_session_fee",
+            "additional_session_fee_reason",
             "default_secondary_payment_method",
         ]
 

@@ -1,4 +1,4 @@
-from django.db.models import Sum
+from django.db.models import Sum, Max
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -103,6 +103,10 @@ def tab_settings_htmx(request, club, session):
         if session_form.is_valid():
             session = session_form.save()
             message = "Session Updated"
+            if "additional_session_fee" in session_form.changed_data:
+                print("Handle additional session fee changing")
+            if "default_secondary_payment_method" in session_form.changed_data:
+                print("Handle change secondary payment method")
         else:
             print(session_form.errors)
 
@@ -212,6 +216,12 @@ def _augment_session_entries(
     valid_payment_methods = OrgPaymentMethod.objects.filter(
         organisation=club, active=True
     ).values_list("payment_method", flat=True)
+
+    # Get any extra payments as a dictionary
+    # session_entries_list = session_entries.values_list("id", flat=True)
+    # extras = SessionMiscPayment.objects.filter(session_entry__in=session_entries_list).values("")
+    # print(extras)
+    # TODO: aggregate by amount per user
 
     # Now add the object to the session list, also add colours for alternate tables
     for session_entry in session_entries:
@@ -816,3 +826,29 @@ def delete_misc_session_payment_htmx(request, club, session, session_entry):
     return edit_session_entry_extras_htmx(
         request, message="Miscellaneous payment deleted"
     )
+
+
+@user_is_club_director()
+def add_table_htmx(request, club, session):
+    """Add a table to a session"""
+
+    try:
+        last_table = (
+            SessionEntry.objects.filter(session=session).aggregate(
+                Max("pair_team_number")
+            )["pair_team_number__max"]
+            + 1
+        )
+    except TypeError:
+        last_table = 1
+
+    for direction in ["N", "S", "E", "W"]:
+        SessionEntry(
+            session=session,
+            pair_team_number=last_table,
+            system_number=-1,
+            seat=direction,
+            amount_paid=0,
+        ).save()
+
+    return tab_session_htmx(request, message="Table added")

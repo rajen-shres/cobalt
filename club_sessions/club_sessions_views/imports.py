@@ -7,7 +7,7 @@ from django.shortcuts import render
 from accounts.accounts_views.core import add_un_registered_user_with_mpc_data
 from club_sessions.club_sessions_views.decorators import user_is_club_director
 from club_sessions.forms import FileImportForm
-from club_sessions.models import SessionEntry
+from club_sessions.models import SessionEntry, SessionMiscPayment
 from organisations.models import ClubLog
 from payments.models import OrgPaymentMethod
 
@@ -190,14 +190,24 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         payment_method = session.default_secondary_payment_method
 
     # create session entry
-    SessionEntry(
+    session_entry = SessionEntry(
         session=session,
         pair_team_number=table,
         seat=direction,
         system_number=system_number,
         amount_paid=0,
         payment_method=payment_method,
-    ).save()
+    )
+    session_entry.save()
+
+    # Add additional session payments if set
+    if session.additional_session_fee > 0:
+        print("adding extras")
+        SessionMiscPayment(
+            session_entry=session_entry,
+            optional_description=session.additional_session_fee_reason,
+            amount=session.additional_session_fee,
+        ).save()
 
     return message
 

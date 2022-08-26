@@ -26,14 +26,10 @@
         <li>Pay all</li>
         <li>Low balance warning</li>
         <li>Change all payment methods (except already set)</li>
-        <li>Add table</li>
-        <li>Handle director playing</li>
-        <li>Handle unknown numbers</li>
         <li>Visual for being paid for</li>
         <li>Outstanding IOUs</li>
         <li>Flag for automatic IOUs?</li>
         <li>Block editing paid_amount field for bridge credits</li>
-        <li>Hover text on player icon</li>
     </ul>
 
     <!-- TOTALS - RUN ON LOAD OR TRIGGER FROM OTHER UPDATES -->
@@ -156,7 +152,7 @@
 
                     <!-- EXTRAS -->
 
-                    <td>0.00</td>
+                    <td>Calculate extras in sessions.py</td>
 
                     <!-- PLAYER TOTAL -->
 
@@ -165,8 +161,8 @@
                     <!-- PAYMENT METHOD -->
 
                     <td>
-                        {% if session_entry.system_number == 1 %}
-                            <!-- THIS IS A PLAYING DIRECTOR -->
+                        {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
+                            <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
 
                             &nbsp;
 
@@ -279,7 +275,13 @@
 
 {% endif %}
 
-<button class="btn btn-info">Add Table</button>
+<!-- ADD TABLE BUTTON -->
+<button
+    class="btn btn-info"
+    hx-post="{% url "club_sessions:add_table_htmx" %}"
+    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+    hx-target="#id_pane_session"
+>Add Table</button>
 
 <script>
     $(document).ready(function () {
