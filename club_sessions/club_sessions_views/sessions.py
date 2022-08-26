@@ -218,10 +218,16 @@ def _augment_session_entries(
     ).values_list("payment_method", flat=True)
 
     # Get any extra payments as a dictionary
-    # session_entries_list = session_entries.values_list("id", flat=True)
-    # extras = SessionMiscPayment.objects.filter(session_entry__in=session_entries_list).values("")
-    # print(extras)
-    # TODO: aggregate by amount per user
+    session_entries_list = session_entries.values_list("id", flat=True)
+    extras = SessionMiscPayment.objects.filter(
+        session_entry__in=session_entries_list
+    ).values("session_entry", "amount")
+    extras_dict = {}
+    for extra in extras:
+        if extra["session_entry"] not in extras_dict:
+            extras_dict[extra["session_entry"]] = extra["amount"]
+        else:
+            extras_dict[extra["session_entry"]] += extra["amount"]
 
     # Now add the object to the session list, also add colours for alternate tables
     for session_entry in session_entries:
@@ -291,6 +297,9 @@ def _augment_session_entries(
         # Add icon text
         session_entry.icon_text = icon_text
 
+        # Add extras
+        session_entry.extras = extras_dict.get(session_entry.id, 0)
+
     # work out payment method and if user has sufficient funds
     return _calculate_payment_method_and_balance(session_entries, session_fees, club)
 
@@ -335,6 +344,10 @@ def _calculate_payment_method_and_balance(session_entries, session_fees, club):
 
         session_entry.save()
 
+        if session_entry.fee:
+            session_entry.total = session_entry.fee + session_entry.extras
+        else:
+            session_entry.total = "NA"
     return session_entries
 
 

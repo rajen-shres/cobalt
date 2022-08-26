@@ -284,7 +284,8 @@ def charge_member_htmx(request, club):
     else:
 
         return tab_finance_htmx(
-            request, message=f"Payment FAILED for {member.full_name}"
+            request,
+            message=f"Payment FAILED for {member.full_name}. Insufficient funds.",
         )
 
 

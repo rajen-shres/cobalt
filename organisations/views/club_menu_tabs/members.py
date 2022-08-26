@@ -358,30 +358,48 @@ def _un_reg_edit_htmx_process_form(
 
     if club_email_form.is_valid():
         club_email = club_email_form.cleaned_data["email"]
-        club_email_entry, _ = MemberClubEmail.objects.get_or_create(
-            organisation=club, system_number=un_reg.system_number
-        )
-        club_email_entry.email = club_email
-        club_email_entry.save()
-        message = "Data Saved"
-        ClubLog(
-            organisation=club,
-            actor=request.user,
-            action=f"Updated club email address for {un_reg}",
-        ).save()
 
-        # See if we have a bounce on this user and clear it
-        if un_reg.email_hard_bounce:
-            un_reg.email_hard_bounce = False
-            un_reg.email_hard_bounce_reason = None
-            un_reg.email_hard_bounce_date = None
-            un_reg.save()
+        # If the club email was used but is now empty, delete the record
+        if not club_email:
+            club_email_entry = MemberClubEmail.objects.filter(
+                organisation=club, system_number=un_reg.system_number
+            )
+            if club_email_entry:
+                club_email_entry.delete()
+                message = "Local email address deleted"
+                ClubLog(
+                    organisation=club,
+                    actor=request.user,
+                    action=f"Removed club email address for {un_reg}",
+                ).save()
 
+        else:
+
+            club_email_entry, _ = MemberClubEmail.objects.get_or_create(
+                organisation=club, system_number=un_reg.system_number
+            )
+
+            club_email_entry.email = club_email
+            club_email_entry.save()
+            message = "Data Saved"
             ClubLog(
                 organisation=club,
                 actor=request.user,
-                action=f"Cleared email hard bounce for {un_reg} by editing email address",
+                action=f"Updated club email address for {un_reg}",
             ).save()
+
+            # See if we have a bounce on this user and clear it
+            if un_reg.email_hard_bounce:
+                un_reg.email_hard_bounce = False
+                un_reg.email_hard_bounce_reason = None
+                un_reg.email_hard_bounce_date = None
+                un_reg.save()
+
+                ClubLog(
+                    organisation=club,
+                    actor=request.user,
+                    action=f"Cleared email hard bounce for {un_reg} by editing email address",
+                ).save()
 
     return message, un_reg, membership
 
