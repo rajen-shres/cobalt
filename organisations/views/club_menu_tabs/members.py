@@ -376,7 +376,7 @@ def _un_reg_edit_htmx_process_form(
         else:
 
             club_email_entry, _ = MemberClubEmail.objects.get_or_create(
-                organisation=club, system_number=un_reg.system_number
+                organisation=club, system_number=un_reg.system_number, email=club_email
             )
 
             club_email_entry.email = club_email
