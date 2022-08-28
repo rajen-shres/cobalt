@@ -371,13 +371,23 @@ def tab_session_htmx(request, club, session, message=""):
     # get payment methods for this club
     payment_methods = OrgPaymentMethod.objects.filter(organisation=club, active=True)
 
+    # put session_entries into a list
+    table_list = {}
+    for session_entry in session_entries:
+        if session_entry.pair_team_number in table_list:
+            table_list[session_entry.pair_team_number].append(session_entry)
+        else:
+            table_list[session_entry.pair_team_number] = [session_entry]
+
     return render(
         request,
-        "club_sessions/manage/session_htmx.html",
+        # "club_sessions/manage/session_htmx.html",
+        "club_sessions/manage/session_table_view_htmx.html",
         {
             "club": club,
             "session": session,
             "session_entries": session_entries,
+            "table_list": table_list,
             "payment_methods": payment_methods,
             "message": message,
         },

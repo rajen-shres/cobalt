@@ -1,0 +1,116 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Session view tab                                                       #}
+{#                                                                        #}
+{# This is the main tab for this page                                     #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+{% load static %}
+
+<!-- MESSAGE -->
+<h3 class="text-primary font-weight-bold">{{ message }}</h3>
+
+{% if not session_entries %}
+
+    <h4>No players found. Either import players from the <b>IMPORTS</b> tag or click below to add a table manually.</h4>
+
+{% else %}
+
+    <!-- TOTALS - RUN ON LOAD OR TRIGGER FROM OTHER UPDATES -->
+
+    <div id="id_totals"
+        hx-post="{% url "club_sessions:session_entry_session_totals_htmx" %}"
+        hx-trigger="load, other_update"
+        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+    >
+    </div>
+
+    <button
+        class="btn btn-info"
+        hx-post="{% url "club_sessions:process_bridge_credits_htmx" %}"
+        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+        hx-target="#id_pane_session"
+    >
+        Process {{ BRIDGE_CREDITS }}
+    </button>
+
+    <div class="container-fluid" id="tables_list">
+        <div class="row">
+            {% for table_no, players in table_list.items %}
+                <div class="col-4" style="width: 200px; height: 200px">
+
+                    <div class="container">
+                        <!-- NORTH - FULL ROW -->
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <div class="mx-auto">
+                                    {{  players.0.player.full_name }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EAST/WEST AND TABLE PICTURE -->
+                        <div class="row">
+
+                            <!-- WEST -->
+                            <div class="col-4">
+                                {{ players.2.player.first_name }}
+                                <br>
+                                {{ players.2.player.last_name }}
+                            </div>
+
+                            <!-- TABLE -->
+                            <div class="col-4">
+
+                                <span style="font-size:large; width: 80px; height: 80px; background-color: darkgreen; display:inline-block; color: white">Table {{ table_no }}
+                                </span>
+                            </div>
+
+                            <!-- EAST -->
+                            <div class="col-4">
+                                {{ players.3.player.first_name }}
+                                <br>
+                                {{ players.3.player.last_name }}
+                            </div>
+                        </div>
+
+
+                        <!-- SOUTH - FULL ROW -->
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <div class="mx-auto">
+                                    {{  players.1.player.full_name }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+
+{% endif %}
+
+<!-- ADD TABLE BUTTON -->
+<button
+    class="btn btn-info"
+    hx-post="{% url "club_sessions:add_table_htmx" %}"
+    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+    hx-target="#id_pane_session"
+>Add Table</button>
+
+<script>
+    $(document).ready(function () {
+
+        // initialise the tooltips
+        $(".myHover").tooltip();
+
+    });
+</script>
+
