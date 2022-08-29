@@ -2,14 +2,19 @@ import codecs
 import csv
 import re
 
-from django.shortcuts import render
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 from accounts.accounts_views.core import add_un_registered_user_with_mpc_data
 from club_sessions.club_sessions_views.decorators import user_is_club_director
 from club_sessions.forms import FileImportForm
-from club_sessions.models import SessionEntry, SessionMiscPayment
-from organisations.models import ClubLog
+from club_sessions.models import SessionEntry, SessionMiscPayment, Session, SessionType
+from organisations.models import ClubLog, Organisation
+from organisations.views.club_menu import tab_sessions_htmx
 from payments.models import OrgPaymentMethod
+from rbac.core import rbac_user_has_role
+from rbac.views import rbac_forbidden
 
 
 @user_is_club_director()
@@ -125,16 +130,34 @@ def _import_file_upload_htmx_compscore2(request, club, session):
     return messages
 
 
-@user_is_club_director()
-def import_file_upload_htmx(request, club, session):
-    """Upload player names for a session"""
+@login_required()
+def import_file_upload_htmx(request):
+    """Upload player names for a session
+
+    Called from club admin to create a new session and fill it with players from the uploaded file
+
+    """
+
+    # Get club
+    club = get_object_or_404(Organisation, pk=request.POST.get("club_id"))
+
+    # Check access - we don't use the decorator as we don't have a session yet
+    club_role = f"club_sessions.sessions.{club.id}.edit"
+    if not rbac_user_has_role(request.user, club_role):
+        return rbac_forbidden(request, club_role)
 
     messages = []
 
     form = FileImportForm(request.POST, request.FILES)
     if form.is_valid():
 
-        SessionEntry.objects.filter(session=session).delete()
+        session_type = SessionType.objects.filter(organisation=club).first()
+        session = Session(
+            director=request.user,
+            session_type=session_type,
+            description="Added session",
+        )
+        session.save()
 
         if "generic_csv" in request.POST:
             messages = _import_file_upload_htmx_simple_csv(request, club, session)
@@ -146,10 +169,11 @@ def import_file_upload_htmx(request, club, session):
     else:
         print(form.errors)
 
-    # Tell the parent function that the button was pressed
-    reload = True
+    print(messages)
 
-    return tab_import_htmx(request, messages=messages, reload=reload)
+    response = tab_sessions_htmx(request)
+    response["HX-Trigger"] = f"""{{"file_upload_finished":{{"id": "{session.id}" }}}}"""
+    return response
 
 
 def _import_file_upload_htmx_process_line(line, line_no, session, club, request):

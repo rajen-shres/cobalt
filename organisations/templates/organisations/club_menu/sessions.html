@@ -1,13 +1,64 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Session management tab within club admin                               #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% load static %}
 
 <div class="card">
+
+    <!-- CARD HEADER WITH ACTION BUTTONS -->
     <div class="card-header card-header-warning">
         <h2>Sessions</h2>
-        <a href="{% url "club_sessions:new_session"  club_id=club.id %}" target="_blank" class="btn btn-sm btn-secondary">
-            New Session
-        </a>
+
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle btn-round" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                New Session
+            </button>
+            <div class="dropdown-menu">
+
+                <!-- COMPSCORE -->
+                <a class="btn btn-sm btn-secondary btn-file">
+                    Compscore
+                    <input
+                        type="file" name="file"
+                        id="id_upload_results_file_btn_cs"
+                        hx-encoding='multipart/form-data'
+                        hx-post="{% url "club_sessions:session_import_file_upload_htmx" %}"
+                        hx-vars="club_id:{{ club.id }},compscore2:1"
+                        hx-target="#id_panel_sessions"
+                        hx-trigger="change"
+                        hx-indicator=".htmx-indicator"
+                    />
+                </a>
+
+                <!-- GENERIC CSV -->
+                <a class="btn btn-sm btn-secondary btn-file">
+                    Generic CSV
+                    <input
+                        type="file" name="file"
+                        id="id_upload_results_file_btn_generic"
+                        hx-encoding='multipart/form-data'
+                        hx-post="{% url "club_sessions:session_import_file_upload_htmx" %}"
+                        hx-vars="club_id:{{ club.id }},generic_csv:1"
+                        hx-target="#id_panel_sessions"
+                        hx-trigger="change"
+                        hx-indicator=".htmx-indicator"
+                    />
+                </a>
+
+                <!-- BLANK -->
+
+                <a href="{% url "club_sessions:new_session"  club_id=club.id %}" target="_blank" class="btn btn-sm btn-secondary">
+                    Blank Session
+                </a>
+            </div>
+        </div>
+
 
     </div>
+
+    <!-- SESSION LISTING TABLE -->
     <div class="card-body">
         <div id="id_panel_sessions"
             hx-post="{% url "organisations:club_menu_tab_sessions_htmx" %}"
@@ -16,3 +67,32 @@
         ></div>
     </div>
 </div>
+
+
+<script>
+    $(document).ready( function () {
+
+        // We listen to be notified that the file upload has happened, and open a new tab
+        document.body.addEventListener("file_upload_finished", function(evt){
+
+            $('.dropdown-toggle').selectpicker('refresh');
+
+            const session_id = evt.detail.id;
+
+            // Try to open window
+            const win = window.open("{% url "club_sessions:manage_session_no_id" %}/" + session_id, '_blank');
+            if (win) {
+                //Browser has allowed it to be opened
+                win.focus();
+            } else {
+                //Browser has blocked it
+                swal.fire({
+                    title: "Popups are blocked",
+                    html: "Session created but your browser is blocking popups from this site so we can't open the session automatically. You can click edit below to go to the session page. To avoid this message allow popups for this site.",
+                    icon: "info"
+                })
+            }
+        })
+    });
+</script>
+
