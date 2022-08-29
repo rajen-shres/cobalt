@@ -1,0 +1,12 @@
+#!/bin/sh
+
+lsof -i tcp:8000 | awk 'NR!=1 {print $2}' | xargs kill
+
+cat << EOF > /tmp/drop_db
+\c postgres
+drop database IF EXISTS ebdb;
+create database ebdb with owner cobalt;
+EOF
+
+psql ebdb < /tmp/drop_db
+psql ebdb < ~/ebdb.db >/dev/null

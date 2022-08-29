@@ -10,6 +10,7 @@ import organisations.views.club_menu_tabs.finance
 import organisations.views.club_menu_tabs.import_data
 import organisations.views.club_menu_tabs.members
 import organisations.views.club_menu_tabs.results
+import organisations.views.club_menu_tabs.sessions
 import organisations.views.club_menu_tabs.settings
 import organisations.views.club_menu_tabs.utils
 import organisations.views.home
@@ -637,5 +638,10 @@ urlpatterns = [
         "member/search-tab-name",
         organisations.views.club_menu_tabs.members.member_search_tab_name_htmx,
         name="member_search_tab_name_htmx",
+    ),
+    path(
+        "sessions/refresh-sessions-tab",
+        organisations.views.club_menu_tabs.sessions.refresh_sessions_tab,
+        name="refresh_sessions_tab",
     ),
 ]

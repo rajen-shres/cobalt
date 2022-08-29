@@ -62,7 +62,7 @@
     <div class="card-body">
         <div id="id_panel_sessions"
             hx-post="{% url "organisations:club_menu_tab_sessions_htmx" %}"
-            hx-trigger="tab_load_event"
+            hx-trigger="load, tab_load_event"
             hx-vars="club_id:{{ club.id }}"
         ></div>
     </div>
@@ -72,26 +72,42 @@
 <script>
     $(document).ready( function () {
 
+        let win;
+
         // We listen to be notified that the file upload has happened, and open a new tab
         document.body.addEventListener("file_upload_finished", function(evt){
 
-            $('.dropdown-toggle').selectpicker('refresh');
-
             const session_id = evt.detail.id;
 
+            console.log("Before setting");
+            console.log(win);
+
             // Try to open window
-            const win = window.open("{% url "club_sessions:manage_session_no_id" %}/" + session_id, '_blank');
-            if (win) {
+            win = window.open("{% url "club_sessions:manage_session_no_id" %}/" + session_id, '_blank');
+            console.log("After setting");
+            console.log(win);
+
+            // The second time through win is set to null. Not ideal but seems to work
+            if (win !== undefined) {
                 //Browser has allowed it to be opened
-                win.focus();
-            } else {
-                //Browser has blocked it
-                swal.fire({
-                    title: "Popups are blocked",
-                    html: "Session created but your browser is blocking popups from this site so we can't open the session automatically. You can click edit below to go to the session page. To avoid this message allow popups for this site.",
-                    icon: "info"
-                })
+                if (win) {
+                    win.focus();
+                }
+                // Now reload this page as the dropdown freezes
+                htmx.ajax('POST', '{% url "organisations:refresh_sessions_tab" %}', {'target': '#sessions', 'values': {'club_id': {{ club.id }},}});
+
+                {#} else {#}
+                {#    //Browser has blocked it#}
+                {#    swal.fire({#}
+                {#        title: "Popups are blocked",#}
+                {#        html: "Session created but your browser is blocking popups from this site so we can't open the session automatically. You can click edit below to go to the session page. To avoid this message in future, allow popups for this site.",#}
+                {#        icon: "info"#}
+                {#    }).then((result) => {#}
+                {#        // Now reload this page as the dropdown freezes#}
+                {#        htmx.ajax('POST', '{% url "organisations:refresh_sessions_tab" %}', {'target': '#sessions', 'values': {'club_id': {{ club.id }},}});#}
+                {#    });#}
             }
+
         })
     });
 </script>
