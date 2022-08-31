@@ -50,17 +50,6 @@
                         </a>
                     </li>
 
-                    {#                    <li class="nav-item">#}
-                    {#                        <a id="id_tab_imports" class="nav-link#}
-                    {#                            {% if not has_session_entries %}#}
-                    {#                                active#}
-                    {#                            {% endif %}#}
-                    {#                            auto-refresh" href="#imports" role="tab" data-toggle="tab">#}
-                    {#                            <i class="material-icons">upload_file</i>#}
-                    {#                            Imports#}
-                    {#                        </a>#}
-                    {#                    </li>#}
-
                     <!-- SESSION -->
                     <li class="nav-item">
                         <a id="id_tab_session" class="nav-link
@@ -189,9 +178,7 @@
 
     </div>
 
-
 {% endblock content %}
-
 
 {% block footer %}
     <script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
@@ -225,7 +212,5 @@
         });
 
     </script>
-
-
 
 {% endblock footer %}
