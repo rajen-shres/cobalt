@@ -30,6 +30,7 @@
                     <th>Session</th>
                     <th>Date</th>
                     <th>Director</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -39,6 +40,13 @@
                         <td>{{ thing.description }}</td>
                         <td>{{ thing.session_date }}</td>
                         <td>{{ thing.director.full_name }}</td>
+                        <td>
+                            {% if thing.is_complete %}
+                                Complete
+                            {% else %}
+                                Unfinished
+                            {% endif %}
+                        </td>
                         <td>
                             <a target="_blank" href="{% url "club_sessions:manage_session" session_id=thing.id %}" class="btn btn-sm btn-success">Edit</a>
                         </td>

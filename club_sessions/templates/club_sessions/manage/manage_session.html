@@ -112,22 +112,6 @@
                         </div>
                     </div>
 
-
-                    {#                    <div class="tab-pane#}
-                    {#                        {% if not has_session_entries %}#}
-                    {#                            active#}
-                    {#                        {% endif %}#}
-                    {#                        " id="imports">#}
-                    {#                        <h3 class="mt-0">Imports</h3>#}
-                    {#                        <div id="id_pane_import">#}
-                    {#                            <div#}
-                    {#                                hx-post="{% url "club_sessions:tab_import_htmx" %}"#}
-                    {#                                hx-trigger="load"#}
-                    {#                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"#}
-                    {#                            ></div>#}
-                    {#                        </div>#}
-                    {#                    </div>#}
-
                     <!-- SESSION -->
                     <div class="tab-pane
                         {% if has_session_entries %}
@@ -135,6 +119,48 @@
                         {% endif %}
 
                         " id="session">
+
+                        <!-- TOP VIEW CHOICES - SUMMARY, DETAIL, TABLE VIEWS -->
+
+                        <div id="radio-view-options" class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <form class="view-type-radio"></form>
+
+                            <!-- SUMMARY VIEW (DEFAULT) -->
+                            <label class="btn btn-success active">
+                                <input
+                                    type="radio"
+                                    name="summary"
+                                    id="option-summary"
+                                    autocomplete="off"
+                                    checked
+                                > Summary
+                            </label>
+
+                            <!-- DETAIL VIEW -->
+                            <label class="btn btn-success">
+                                <input
+                                    type="radio"
+                                    name="detail"
+                                    id="option-summary"
+                                    autocomplete="off"
+                                > Detail
+                            </label>
+
+                            <!-- TABLE VIEW -->
+                            <label class="btn btn-success">
+                                <input
+                                    type="radio"
+                                    name="table"
+                                    id="option-summary"
+                                    autocomplete="off"
+                                > Table View
+                            </label>
+
+                        </div>
+
+
+
+                        <!-- THIS IS THE ACTUAL DIV FOR SESSIONS -->
                         <div id="id_pane_session"
                             hx-post="{% url "club_sessions:tab_session_htmx" %}"
                             hx-trigger="tab_load_event"
@@ -181,6 +207,20 @@
                 htmx.trigger(htmx.find('#id_pane_session'), "tab_load_event");
             })
 
+            // handle user clicking to change the view on the session tab
+            $("#radio-view-options :input").change(function() {
+                const selected = $(this).attr('name');
+
+                const postData = {
+                    'club_id': '{{ club.id }}',
+                    'session_id': {{ session.id }},
+                    'view_type': selected,
+                };
+
+                const url = '{% url "club_sessions:tab_session_htmx" %}';
+                htmx.ajax('POST', url, {'target': '#id_pane_session', 'values': postData});
+
+            });
 
         });
 

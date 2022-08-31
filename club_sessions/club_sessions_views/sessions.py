@@ -379,10 +379,18 @@ def tab_session_htmx(request, club, session, message=""):
         else:
             table_list[session_entry.pair_team_number] = [session_entry]
 
+    # Which template to use - summary, detail or table. Default is summary.
+    view_type = request.POST.get("view_type", "summary")
+    view_options = {
+        "summary": "club_sessions/manage/session_summary_view_htmx.html",
+        "detail": "club_sessions/manage/session_detail_view_htmx.html",
+        "table": "club_sessions/manage/session_table_view_htmx.html",
+    }
+    template = view_options[view_type]
+
     return render(
         request,
-        # "club_sessions/manage/session_htmx.html",
-        "club_sessions/manage/session_table_view_htmx.html",
+        template,
         {
             "club": club,
             "session": session,
