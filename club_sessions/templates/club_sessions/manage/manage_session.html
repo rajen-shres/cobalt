@@ -20,6 +20,8 @@
 
 {% block content %}
 
+    <!-- BASIC HEADING -->
+
     <h1 class="text-center pt-4"><span id="t_club_name">{{ club }}</span> - {{ club.state }}</h1>
 
     <h2 class="text-center border-bottom-0"><span class="text-primary" style="font-size: 50px;">&hearts;</span>
@@ -30,7 +32,7 @@
         {{ session.session_date }} <span class="text-dark" style="font-size: 40px;">&spades;</span>
     </h3>
 
-    <!-- MAIN CARD BODY -->
+    <!-- MAIN CARD BODY WITH NAVIGATION ICONS ON TOP -->
     <div class="card-body">
 
         <!-- NAVIGATION CARD -->
@@ -158,17 +160,41 @@
                     </div>
 
                     <!-- REPORTS -->
-                    <div class="tab-pane
-                        {% if has_session_entries %}
-                            active
-                        {% endif %}
+                    <div class="tab-pane" id="reports">
+                        <h3 class="mt-0">Reports</h3>
 
-                        " id="reports">
-                        <div id="id_pane_reports"
-                            {#                            hx-post="{% url "club_sessions:tab_session_htmx" %}"#}
-                            {#                            hx-trigger="tab_load_event"#}
-                            {#                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"#}
-                        >Coming Soon</div>
+                        <!-- MENU -->
+                        <!-- RECONCILIATION REPORT -->
+                        <button
+                            class="btn btn-success"
+                            hx-post="{% url "club_sessions:reports_reconciliation_htmx" %}"
+                            hx-trigger="click"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            hx-target="#id_pane_reports"
+                        >
+                            Reconciliation
+                        </button>
+
+                        <!-- SOMETHING ELSE -->
+                        <button
+                            class="btn btn-success"
+                            hx-post="{% url "club_sessions:reports_reconciliation_htmx" %}"
+                            hx-trigger="click"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            hx-target="#id_pane_reports"
+                        >
+                            Other
+                        </button>
+
+
+                        <!-- MAIN DIV - PRELOAD WITH FIRST REPORT - RECONCILIATIONS -->
+                        <div id="id_pane_reports">
+                            <div
+                                hx-post="{% url "club_sessions:reports_reconciliation_htmx" %}"
+                                hx-trigger="load"
+                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            ></div>
+                        </div>
                     </div>
 
 

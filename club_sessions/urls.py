@@ -1,7 +1,7 @@
 from django.urls import path
 
 import club_sessions.club_sessions_views.imports
-from club_sessions.club_sessions_views import sessions
+from club_sessions.club_sessions_views import sessions, reports
 
 app_name = "club_sessions"  # pylint: disable=invalid-name
 
@@ -69,5 +69,10 @@ urlpatterns = [
         "session/add-table",
         sessions.add_table_htmx,
         name="add_table_htmx",
+    ),
+    path(
+        "reports/reconciliation",
+        reports.reconciliation_htmx,
+        name="reports_reconciliation_htmx",
     ),
 ]

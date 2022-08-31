@@ -1,0 +1,31 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Basic reconciliation view for a session                                #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+<h1>Rec</h1>
+
+<div class="table-responsive">
+    <table class="table table-condensed table-hover">
+        <thead>
+            <tr>
+                <th>Membership Type</th>
+                {% for payment_method in column_headings %}
+                    <th>{{ payment_method }}</th>
+                {% endfor %}
+                <th>Total</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for membership_type, data in summary_table.items %}
+                <tr><td>{{ membership_type }}</td>
+                    {% for payment_method, row_data in data.items %}
+                        <td>{{ row_data.paid }} / {{ row_data.fee }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+</div>

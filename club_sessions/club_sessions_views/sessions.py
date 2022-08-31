@@ -127,7 +127,7 @@ def tab_settings_htmx(request, club, session):
     )
 
 
-def _load_session_entry_static(session, club):
+def load_session_entry_static(session, club):
     """Sub of tab_session_htmx. Load the data we need to be able to process the session tab"""
 
     # Get the entries for this session
@@ -361,7 +361,7 @@ def tab_session_htmx(request, club, session, message=""):
         mixed_dict,
         session_fees,
         membership_type_dict,
-    ) = _load_session_entry_static(session, club)
+    ) = load_session_entry_static(session, club)
 
     # augment the session_entries
     session_entries = _augment_session_entries(
@@ -702,7 +702,7 @@ def session_totals_htmx(request, club, session):
         mixed_dict,
         session_fees,
         membership_type_dict,
-    ) = _load_session_entry_static(session, club)
+    ) = load_session_entry_static(session, club)
 
     # augment the session_entries
     session_entries = _augment_session_entries(
