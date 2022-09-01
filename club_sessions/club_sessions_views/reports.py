@@ -163,6 +163,6 @@ def reconciliation_htmx(request, club, session):
             "column_headings": column_headings,
             "row_has_data": row_has_data,
             "column_has_data": column_has_data,
-            "show_blanks": True,
+            "show_blanks": False,
         },
     )

@@ -24,14 +24,17 @@
                     {% if this_col_has_data or show_blanks %}
                         <th class="text-right">{{ payment_method }}</th>
                     {% endif %}
+
                 {% endfor %}
 
                 <!-- ADD FINAL TOTAL COLUMN -->
                 <th class="font-weight-bold text-right">Total</th>
+
             </tr>
+
         </thead>
 
-        <!-- BODY -->
+        <!-- TABLE BODY -->
         <tbody>
 
             <!-- GO THROUGH SUMMARY DATA - GET MEMBERSHIP TYPE AND COLUMN DATA BY PAYMENT TYPE -->
@@ -44,7 +47,11 @@
 
                     <tr>
                         <!-- MEMBERSHIP TYPE IN FIRST COLUMN IN BOLD -->
-                        <td class="text-primary font-weight-bold text-left">{{ membership_type }}</td>
+                        <td class="text-primary font-weight-bold text-left"
+                            {% if membership_type == "Totals" %}
+                                style="font-size: larger"
+                            {% endif %}
+                        >{{ membership_type }}</td>
 
                         <!-- COLUMN DATA -->
                         {% for payment_method, row_data in data.items %}
@@ -58,14 +65,20 @@
 
                                         <!-- DON"T SHOW ZEROS -->
                                         {% if row_data.paid == 0 %}
-                                            &nbsp;
+                                            -
                                         {% else %}
                                             {{ row_data.paid }}
                                         {% endif %}
 
                                     {% else %}
                                         <!-- DISCREPANCY -->
-                                        {{ row_data.paid }} / {{ row_data.fee }}
+                                        <span
+                                            class="text-danger font-weight-bold"
+                                            title="Received: {{ row_data.paid }}. Expected: {{ row_data.fee }}"
+                                            data-toggle="tooltip"
+                                        >
+                                            {{ row_data.paid }}!
+                                        </span>
                                     {% endif %}
                                 </td>
 
@@ -82,3 +95,10 @@
 
     </table>
 </div>
+
+<script>
+    $(document).ready(function() {
+        // init tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
