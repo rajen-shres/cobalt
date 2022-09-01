@@ -1,8 +1,8 @@
 {#------------------------------------------------------------------------#}
 {#                                                                        #}
-{# Session view tab                                                       #}
+{# Session View - Table View                                              #}
 {#                                                                        #}
-{# This is the main tab for this page                                     #}
+{# Show the data more visually with icons for tables                      #}
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
@@ -45,7 +45,12 @@
                         <div class="row">
                             <div class="col-12 text-center">
                                 <div class="mx-auto">
-                                    {{  players.0.player.full_name }}
+                                    <span
+                                        title="{{ players.0.player.full_name }}"
+                                        data-toggle="tooltip"
+                                    >
+                                        {{ players.0.player.first_name }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -54,24 +59,36 @@
                         <div class="row">
 
                             <!-- WEST -->
-                            <div class="col-4">
-                                {{ players.2.player.first_name }}
-                                <br>
-                                {{ players.2.player.last_name }}
+                            <div class="col-4 text-right align-self-center px-0 bx-0 mx-0">
+                                <div
+                                    class="px-0 bx-0 mx-0"
+                                    title="{{ players.2.player.full_name }}"
+                                    data-toggle="tooltip"
+                                >
+                                    {{ players.2.player.first_name }}
+                                </div>
                             </div>
 
-                            <!-- TABLE -->
+                            <!-- TABLE ICON -->
                             <div class="col-4">
-
-                                <span style="font-size:large; width: 80px; height: 80px; background-color: darkgreen; display:inline-block; color: white">Table {{ table_no }}
+                                <span
+                                    class="text-center"
+                                    style="font-size:large; width: 80px; height: 80px; background-color: darkgreen; display:inline-block; color: white"
+                                >
+                                    Table {{ table_no }}
+                                    <span class="material-icons">done</span>
                                 </span>
                             </div>
 
                             <!-- EAST -->
-                            <div class="col-4">
-                                {{ players.3.player.first_name }}
-                                <br>
-                                {{ players.3.player.last_name }}
+                            <div class="col-4 text-left align-self-center px-0 bx-0 mx-0">
+                                <div
+                                    class="px-0 bx-0 mx-0"
+                                    title="{{ players.3.player.full_name }}"
+                                    data-toggle="tooltip"
+                                >
+                                    {{ players.3.player.first_name }}
+                                </div>
                             </div>
                         </div>
 
@@ -80,7 +97,12 @@
                         <div class="row">
                             <div class="col-12 text-center">
                                 <div class="mx-auto">
-                                    {{  players.1.player.full_name }}
+                                    <span
+                                        title="{{ players.1.player.full_name }}"
+                                        data-toggle="tooltip"
+                                    >
+                                        {{ players.1.player.first_name }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -108,8 +130,8 @@
 <script>
     $(document).ready(function () {
 
-        // initialise the tooltips
-        $(".myHover").tooltip();
+        // init tooltips
+        $('[data-toggle="tooltip"]').tooltip();
 
     });
 </script>

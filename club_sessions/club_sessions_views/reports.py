@@ -152,6 +152,9 @@ def reconciliation_htmx(request, club, session):
     row_has_data = _mark_rows_with_data_in_report_data_structure(summary_table)
     column_has_data = _mark_columns_with_data_in_report_data_structure(summary_table)
 
+    # See if user wants to see nothing in the report
+    show_blanks = bool(request.POST.get("show_blanks", False))
+
     return render(
         request,
         "club_sessions/reports/reconciliation.html",
@@ -163,6 +166,6 @@ def reconciliation_htmx(request, club, session):
             "column_headings": column_headings,
             "row_has_data": row_has_data,
             "column_has_data": column_has_data,
-            "show_blanks": False,
+            "show_blanks": show_blanks,
         },
     )

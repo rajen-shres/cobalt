@@ -15,6 +15,11 @@
         .amount-paid-change {
             background-color: lightgreen;
         }
+
+        .inline-icon {
+            vertical-align: bottom;
+            font-size: 22px !important;
+        }
     </style>
 {% endblock header %}
 
@@ -172,7 +177,7 @@
                             hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
                             hx-target="#id_pane_reports"
                         >
-                            Reconciliation
+                            Basic
                         </button>
 
                         <!-- SOMETHING ELSE -->
@@ -180,10 +185,10 @@
                             class="btn btn-success"
                             hx-post="{% url "club_sessions:reports_reconciliation_htmx" %}"
                             hx-trigger="click"
-                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, show_blanks:1"
                             hx-target="#id_pane_reports"
                         >
-                            Other
+                            Full
                         </button>
 
 

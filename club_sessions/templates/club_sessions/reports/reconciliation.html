@@ -5,6 +5,11 @@
 {#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 
+<!--HEADINGS -->
+
+<h2>{{ session }}</h2>
+<h3>Directed by {{ session.director }}</h3>
+
 <div class="table-responsive">
 
     <!-- MAIN TABLE OF MEMBERSHIP TYPE (Y-AXIS) AND PAYMENT METHOD (X-AXIS) -->
@@ -77,7 +82,8 @@
                                             title="Received: {{ row_data.paid }}. Expected: {{ row_data.fee }}"
                                             data-toggle="tooltip"
                                         >
-                                            {{ row_data.paid }}!
+                                            {{ row_data.paid }}
+                                            <span class="material-icons inline-icon">error</span>
                                         </span>
                                     {% endif %}
                                 </td>

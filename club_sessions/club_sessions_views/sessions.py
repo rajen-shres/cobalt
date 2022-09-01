@@ -24,6 +24,7 @@ from payments.payments_views.payments_api import payment_api_batch
 
 from rbac.views import rbac_forbidden
 from rbac.core import rbac_user_has_role
+from .common import SITOUT, VISITOR, PLAYING_DIRECTOR
 from .decorators import user_is_club_director
 
 from ..forms import SessionForm, UserSessionForm
@@ -239,17 +240,20 @@ def _augment_session_entries(
             session_entry.table_colour = "odd"
 
         # Add User or UnregisterUser to the entry and note the player_type
-        if session_entry.system_number == -1:
+        if session_entry.system_number == SITOUT:
             # Sit out
             session_entry.player_type = "NotRegistered"
             session_entry.icon = "hourglass_empty"
-            session_entry.player = {"full_name": "Sitout"}
+            session_entry.player = {"full_name": "Sitout", "first_name": "Sitout"}
             icon_text = "There is nobody at this position"
-        elif session_entry.system_number == 1:
+        elif session_entry.system_number == PLAYING_DIRECTOR:
             # Playing Director
             session_entry.player_type = "NotRegistered"
             session_entry.icon = "local_police"
-            session_entry.player = {"full_name": "PLAYING DIRECTOR"}
+            session_entry.player = {
+                "full_name": "PLAYING DIRECTOR",
+                "first_name": "DIRECTOR",
+            }
             icon_text = "Playing Director"
         elif session_entry.system_number in mixed_dict:
             session_entry.player = mixed_dict[session_entry.system_number]["value"]
@@ -264,8 +268,8 @@ def _augment_session_entries(
             icon_text = "This person is "
 
         # membership
-        if session_entry.system_number in [-1, 0, 1]:
-            # Sit out, Playing director
+        if session_entry.system_number == SITOUT:
+            # Sit out
             session_entry.membership = "Guest"
         elif session_entry.system_number in membership_type_dict:
             # This person is a member
@@ -634,8 +638,8 @@ def _session_totals_calculations(
     # go through entries and update totals
     for session_entry in session_entries:
 
-        # ignore missing players and playing directors
-        if session_entry.system_number in [-1, 0, 1]:
+        # ignore missing players
+        if session_entry.system_number == SITOUT:
             continue
 
         totals["players"] += 1
@@ -877,7 +881,7 @@ def add_table_htmx(request, club, session):
         SessionEntry(
             session=session,
             pair_team_number=last_table,
-            system_number=-1,
+            system_number=SITOUT,
             seat=direction,
             amount_paid=0,
         ).save()
