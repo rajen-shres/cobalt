@@ -6,29 +6,13 @@ from club_sessions.club_sessions_views.decorators import user_is_club_director
 from club_sessions.club_sessions_views.sessions import load_session_entry_static
 
 
-@user_is_club_director()
-def reconciliation_htmx(request, club, session):
-    """Basic report of a session"""
+def _build_empty_report_data_structure(session_fees):
+    """Build the empty data structure for the report table"""
 
-    # Load starting data
-    (
-        session_entries,
-        mixed_dict,
-        session_fees,
-        membership_type_dict,
-    ) = load_session_entry_static(session, club)
-
-    # Build summary around session_fees - start by building structure
-    print(session_fees)
     summary_table = {}
-    column_headings = []
-
-    # We want the column names so use the Guest row which is always present
-    column_headings = [payment_method for payment_method in session_fees["Guest"]]
 
     # Now build the other rows
-    membership_types = list(session_fees.keys()) + ["Totals"]
-    for membership_type in membership_types:
+    for membership_type in session_fees:
 
         summary_table[membership_type] = {}
 
@@ -41,25 +25,35 @@ def reconciliation_htmx(request, club, session):
             summary_table[membership_type][payment_method]["fee"] = Decimal(0.0)
             summary_table[membership_type][payment_method]["paid"] = Decimal(0.0)
 
-            # Include totals
-            summary_table["Totals"][payment_method] = {}
-            summary_table["Totals"][payment_method]["fee"] = Decimal(0.0)
-            summary_table["Totals"][payment_method]["paid"] = Decimal(0.0)
-
-        # Also create a total for the row, eg total for Guests for all payment types
+        # Also create a total for the row, e.g. total for Guests for all payment types
         summary_table[membership_type]["row_total"] = {}
         summary_table[membership_type]["row_total"]["fee"] = Decimal(0.0)
         summary_table[membership_type]["row_total"]["paid"] = Decimal(0.0)
 
-    # Add a bottom line total by payment type
-    # summary_table["Totals"] = {}
+    # Add totals at the bottom - again use Guest as our reference row
+    summary_table["Totals"] = {}
+    for payment_method in session_fees["Guest"]:
+        summary_table["Totals"][payment_method] = {}
+        summary_table["Totals"][payment_method]["fee"] = Decimal(0.0)
+        summary_table["Totals"][payment_method]["paid"] = Decimal(0.0)
 
-    # Add the session data in
+    # Grand totals
+    summary_table["Totals"]["row_total"] = {}
+    summary_table["Totals"]["row_total"]["paid"] = Decimal(0.0)
+    summary_table["Totals"]["row_total"]["fee"] = Decimal(0.0)
+
+    return summary_table
+
+
+def _add_data_to_report_data_structure(
+    summary_table, session_entries, membership_type_dict
+):
+    """Add in the data to the empty summary_table from the session_entries"""
+
     for session_entry in session_entries:
 
         # Skip sit outs and directors
         if session_entry.system_number not in [1, -1]:
-
             membership_type = membership_type_dict[session_entry.system_number]
             payment_method = session_entry.payment_method.payment_method
 
@@ -79,11 +73,84 @@ def reconciliation_htmx(request, club, session):
             summary_table["Totals"][payment_method]["paid"] += session_entry.amount_paid
             summary_table["Totals"][payment_method]["fee"] += session_entry.fee
 
-    print(summary_table)
+            # Grand total
+            summary_table["Totals"]["row_total"]["paid"] += session_entry.amount_paid
+            summary_table["Totals"]["row_total"]["fee"] += session_entry.fee
+
+    return summary_table
+
+
+def _mark_rows_with_data_in_report_data_structure(summary_table):
+    """We want to show if a row has data or not to remove clutter (blank rows)"""
+
+    row_has_data = {}
+
     for membership_type in summary_table:
-        print("---", payment_method)
+        row_has_data[membership_type] = False
         for payment_method in summary_table[membership_type]:
-            print(summary_table[membership_type][payment_method])
+
+            if (
+                summary_table[membership_type][payment_method]["fee"] != 0
+                or summary_table[membership_type][payment_method]["paid"] != 0
+            ):
+                row_has_data[membership_type] = True
+
+    return row_has_data
+
+
+def _mark_columns_with_data_in_report_data_structure(summary_table):
+    """We want to show if a column has data or not to remove clutter (blank payment type columns)"""
+
+    column_has_data = {}
+
+    # Go through data
+    for membership_type in summary_table:
+        for payment_method in summary_table[membership_type]:
+
+            # Add key if not set yet
+            if payment_method not in column_has_data:
+                column_has_data[payment_method] = False
+
+            # If we have data already, move on
+            if column_has_data[payment_method]:
+                continue
+
+            # Check for data
+            if (
+                summary_table[membership_type][payment_method]["fee"] != 0
+                or summary_table[membership_type][payment_method]["paid"] != 0
+            ):
+                column_has_data[payment_method] = True
+
+    return column_has_data
+
+
+@user_is_club_director()
+def reconciliation_htmx(request, club, session):
+    """Basic report of a session"""
+
+    # Load starting data
+    (
+        session_entries,
+        mixed_dict,
+        session_fees,
+        membership_type_dict,
+    ) = load_session_entry_static(session, club)
+
+    # We want the column names so use the Guest row which is always present
+    column_headings = list(session_fees["Guest"])
+
+    # Build summary around session_fees - start by building structure
+    summary_table = _build_empty_report_data_structure(session_fees)
+
+    # Add the session data in
+    summary_table = _add_data_to_report_data_structure(
+        summary_table, session_entries, membership_type_dict
+    )
+
+    # Go through and mark which rows/columns have data
+    row_has_data = _mark_rows_with_data_in_report_data_structure(summary_table)
+    column_has_data = _mark_columns_with_data_in_report_data_structure(summary_table)
 
     return render(
         request,
@@ -94,5 +161,8 @@ def reconciliation_htmx(request, club, session):
             "session_entries": session_entries,
             "summary_table": summary_table,
             "column_headings": column_headings,
+            "row_has_data": row_has_data,
+            "column_has_data": column_has_data,
+            "show_blanks": True,
         },
     )

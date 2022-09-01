@@ -197,12 +197,28 @@ def cobalt_random_colour():
 
 @register.filter(name="cobalt_dict_key")
 def cobalt_dict_key(my_dict, my_keyname):
-    """Return value from key for an array in a template. Django doesn't do this out of the box"""
+    """Return value from key for an array in a template. Django doesn't do this out of the box
+
+    Use this for {{ }} and cobalt_dict_key_tag within {% %}
+    """
 
     try:
         return my_dict[my_keyname]
     except (KeyError, TypeError):
         return ""
+
+
+@register.simple_tag(name="cobalt_dict_key_tag")
+def cobalt_dict_key_tag(my_dict, my_keyname):
+    """Return dictionary value
+
+    Use this for {% %} and cobalt_dict_key within {{ }}
+
+    """
+    try:
+        return my_dict[my_keyname]
+    except (KeyError, TypeError):
+        return False
 
 
 @register.simple_tag
