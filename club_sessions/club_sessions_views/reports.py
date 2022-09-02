@@ -1,9 +1,17 @@
+import csv
 from decimal import Decimal
 
-from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.shortcuts import render, get_object_or_404
 
 from club_sessions.club_sessions_views.decorators import user_is_club_director
 from club_sessions.club_sessions_views.sessions import load_session_entry_static
+from club_sessions.models import Session, SessionEntry
+from cobalt.settings import GLOBAL_ORG
+from rbac.core import rbac_user_has_role
+from rbac.views import rbac_forbidden
+from utils.views import download_csv
 
 
 def _build_empty_report_data_structure(session_fees):
@@ -169,3 +177,55 @@ def reconciliation_htmx(request, club, session):
             "show_blanks": show_blanks,
         },
     )
+
+
+@login_required()
+def csv_download(request, session_id):
+    """Download CSV of player details from a session"""
+
+    session = get_object_or_404(Session, pk=session_id)
+    club = session.session_type.organisation
+
+    # Check access
+    club_role = f"club_sessions.sessions.{club.id}.edit"
+    if not rbac_user_has_role(request.user, club_role):
+        return rbac_forbidden(request, club_role)
+
+    # Get session_entries
+    session_entries = SessionEntry.objects.filter(session=session)
+
+    # Create CSV
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = f'attachment; filename="{session}.csv"'
+
+    # the csv writer
+    writer = csv.writer(response)
+    writer.writerow([club.name, f"Downloaded by {request.user.full_name}"])
+
+    # Write a first row with header information
+    field_names = [
+        "Session",
+        "Date",
+        f"{GLOBAL_ORG} Number",
+        "Pair Team Number",
+        "Seat",
+        "Payment Method",
+        "Fee",
+        "Amount Paid",
+    ]
+    writer.writerow(field_names)
+    # Write data rows
+    for session_entry in session_entries:
+        values = [
+            session.description,
+            session.session_date,
+            session_entry.system_number,
+            session_entry.pair_team_number,
+            session_entry.seat,
+            session_entry.payment_method,
+            session_entry.fee,
+            session_entry.amount_paid,
+        ]
+        writer.writerow(values)
+
+    return response

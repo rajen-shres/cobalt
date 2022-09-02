@@ -55,7 +55,9 @@ def new_session(request, club_id):
     )
 
     if request.method == "POST" and session_form.is_valid():
-        session = session_form.save()
+        session = session_form.save(commit=False)
+        session.club = club
+        session.save()
         return redirect("club_sessions:manage_session", session_id=session.id)
     else:
         print(session_form.errors)
@@ -165,6 +167,9 @@ def load_session_entry_static(session, club):
 
     # Get memberships
     membership_type_dict = get_membership_type_for_players(system_number_list, club)
+
+    # Add visitor
+    membership_type_dict[VISITOR] = "Guest"
 
     # Load session fees
     session_fees = _get_session_fees_for_club(club)
@@ -684,15 +689,7 @@ def _session_totals_calculations(
 
     totals["tables"] = totals["players"] / 4
 
-    # Calculate overall status
-    if session.is_complete:
-        status = "Complete"
-    elif totals["unknown_payment_methods"] == 0:
-        status = "Ready"
-    else:
-        status = "Fix"
-
-    return totals, status
+    return totals
 
 
 @user_is_club_director()
@@ -719,14 +716,33 @@ def session_totals_htmx(request, club, session):
     )
 
     # calculate totals
-    totals, status = _session_totals_calculations(
+    totals = _session_totals_calculations(
         session, session_entries, session_fees, membership_type_dict
     )
+
+    # Progress
+    if session.status == Session.SessionStatus.DATA_LOADED:
+        progress_colour = "danger"
+        progress_percent = 20
+    elif session.status == Session.SessionStatus.CREDITS_PROCESSED:
+        progress_colour = "warning"
+        progress_percent = 60
+    elif session.status == Session.SessionStatus.OFF_SYSTEM_PAYMENTS_PROCESSED:
+        progress_colour = "info"
+        progress_percent = 80
+    elif session.status == Session.SessionStatus.COMPLETE:
+        progress_colour = "success"
+        progress_percent = 100
 
     return render(
         request,
         "club_sessions/manage/totals_htmx.html",
-        {"totals": totals, "status": status},
+        {
+            "totals": totals,
+            "session": session,
+            "progress_colour": progress_colour,
+            "progress_percent": progress_percent,
+        },
     )
 
 

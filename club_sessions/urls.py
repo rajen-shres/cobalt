@@ -75,4 +75,9 @@ urlpatterns = [
         reports.reconciliation_htmx,
         name="reports_reconciliation_htmx",
     ),
+    path(
+        "reports/csv-download/<int:session_id>",
+        reports.csv_download,
+        name="reports_csv_download",
+    ),
 ]

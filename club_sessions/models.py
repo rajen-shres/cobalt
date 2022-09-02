@@ -84,6 +84,12 @@ class SessionTypePaymentMethodMembership(models.Model):
 class Session(models.Model):
     """Basic definition of a session of bridge"""
 
+    class SessionStatus(models.TextChoices):
+        DATA_LOADED = "LD"
+        CREDITS_PROCESSED = "BC"
+        OFF_SYSTEM_PAYMENTS_PROCESSED = "OS"
+        COMPLETE = "CO"
+
     director = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -100,7 +106,9 @@ class Session(models.Model):
         default=TimeOfDay.AM,
         null=True,
     )
-    is_complete = models.BooleanField(default=False)
+    status = models.CharField(
+        choices=SessionStatus.choices, max_length=2, default=SessionStatus.DATA_LOADED
+    )
     """ shows whether this session has had payments made and is now closed """
     additional_session_fee = models.DecimalField(
         max_digits=8, decimal_places=2, default=0
@@ -135,11 +143,11 @@ class SessionEntry(models.Model):
     member_tran = models.ForeignKey(
         MemberTransaction, on_delete=models.PROTECT, null=True, blank=True
     )
-    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     payment_method = models.ForeignKey(
         OrgPaymentMethod, on_delete=models.PROTECT, null=True, blank=True
     )
-    fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         verbose_name_plural = "Session entries"
