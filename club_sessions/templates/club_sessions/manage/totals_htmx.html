@@ -7,37 +7,7 @@
 <!-- MAIN CARD -->
 <div class="card">
 
-    {#    <div class="card-header#}
-    {#        {% if status == "Complete" %}#}
-    {#            card-header-primary#}
-    {#        {% elif status == "Ready" %}#}
-    {#            card-header-info#}
-    {#        {% elif status == "Fix" %}#}
-    {#            card-header-danger#}
-    {#        {% endif %}#}
-    {#        ">#}
-    {#        <h1 class="text-center my-0 py-0 by-0">#}
-    {#            {{ status }}#}
-    {##}
-    {#            <span class="float-right">#}
-    {#                <span class="material-icons" style="font-size: 75px">#}
-    {##}
-    {#                    {% if status == "Complete" %}#}
-    {#                        done_outline#}
-    {#                    {% elif status == "Ready" %}#}
-    {#                        check#}
-    {#                    {% elif status == "Fix" %}#}
-    {#                        block#}
-    {#                    {% endif %}#}
-    {##}
-    {#                </span>#}
-    {#            </span>#}
-    {##}
-    {#        </h1>#}
-    {#    </div>#}
-
     <div class="card-body">
-
 
         <!-- WIZARD STEPS -->
         <!-- We are automatically finished step 1, or we don't see this screen. We can't control step 2, so the only -->
@@ -95,13 +65,13 @@
         </div>
 
         <!-- PROGRESS ANIMATION -->
-        <h2 class="text-center">Progress</h2>
-        <div class="animated-progress progress-{{ progress_colour }} mx-auto">
+        <h3 class="text-center pb-0 mb-1">Progress</h3>
+        <div class="animated-progress progress-{{ progress_colour }} mx-auto pt-0 mt-0">
             <span data-progress="{{ progress_percent }}"></span>
         </div>
 
         <!-- TABLE OF STATS -->
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-4 mx-auto pb-5">
             <table class="table border table-condensed table-striped">
                 <thead class="thead-dark">
                     <tr>
@@ -143,20 +113,35 @@
         <!-- NEXT STEPS -->
 
         {% if session.status == "LD" %}
-            <h3>Next Steps</h3>
-            <ul>
-                <li>Optional - Adjust settings for this session, or individuals</li>
-                <li>Process Bridge Credits</li>
-            </ul>
 
-            <button
-                class="btn btn-info"
-                hx-post="{% url "club_sessions:process_bridge_credits_htmx" %}"
-                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
-                hx-target="#id_pane_session"
-            >
-                Process {{ BRIDGE_CREDITS }}
-            </button>
+            <div class="card mx-auto col-md-6">
+                <div class="card-header card-header-rose py-0">
+                    <h3>Next Steps</h3>
+                </div>
+                <div class="card-body">
+
+                    <dl>
+                        <dt>2) Adjust settings for this session, or individuals (OPTIONAL)</dt>
+                        <dd>If you want to do anything unusual you can use the settings tab above to change things for this
+                            session, or from the detail view you can change things for individuals such as their payment method.
+                            Usually, you can skips this step.</dd>
+                        <dt>3) Process {{ BRIDGE_CREDITS }}</dt>
+                        <dd>Click the button below to process the {{ BRIDGE_CREDITS }} for players who are able to pay
+                            using this method.</dd>
+                    </dl>
+                    <div class="col text-center">
+                        <button
+                            class="btn btn-info mx-auto"
+                            hx-post="{% url "club_sessions:process_bridge_credits_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            hx-target="#id_pane_session"
+                        >
+                            Process {{ BRIDGE_CREDITS }}
+                        </button>
+                    </div>
+                </div>
+
+            </div>
 
         {% endif %}
     </div>

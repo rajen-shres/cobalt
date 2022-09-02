@@ -41,15 +41,6 @@
     >
     </div>
 
-    <button
-        class="btn btn-info"
-        hx-post="{% url "club_sessions:process_bridge_credits_htmx" %}"
-        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
-        hx-target="#id_pane_session"
-    >
-        Process {{ BRIDGE_CREDITS }}
-    </button>
-
     <div class="table-responsive d-none" id="main_session_table">
 
         <!-- MAIN TABLE -->
