@@ -644,4 +644,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.sessions.refresh_sessions_tab,
         name="refresh_sessions_tab",
     ),
+    path(
+        "general/default_secondary_payment_method",
+        organisations.views.club_menu_tabs.settings.default_secondary_payment_method_htmx,
+        name="club_menu_tab_settings_default_secondary_payment_method_htmx",
+    ),
 ]

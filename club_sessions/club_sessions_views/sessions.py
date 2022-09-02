@@ -805,7 +805,6 @@ def process_bridge_credits_htmx(request, club, session):
 
     # convert to dict
     extras = {item["session_entry"]: float(item["extras"]) for item in extras_qs}
-    print(extras)
 
     # For each player go through and work out what they owe
     session_entries = SessionEntry.objects.filter(
@@ -814,8 +813,6 @@ def process_bridge_credits_htmx(request, club, session):
     system_numbers = session_entries.values_list("system_number", flat=True)
     users_qs = User.objects.filter(system_number__in=system_numbers)
     users_by_system_number = {user.system_number: user for user in users_qs}
-
-    print(users_by_system_number)
 
     for session_entry in SessionEntry.objects.filter(
         session=session, amount_paid=0, payment_method=bridge_credits
@@ -826,7 +823,6 @@ def process_bridge_credits_htmx(request, club, session):
         )
         fee = float(session_entry.fee) if session_entry.fee else 0
         amount = fee - amount_paid + extras.get(session_entry.id, 0)
-        print(session_entry.system_number, amount)
 
         # Try payment
         member = users_by_system_number[session_entry.system_number]

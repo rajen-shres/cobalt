@@ -180,7 +180,6 @@ class Organisation(models.Model):
         null=True,
     )
     """After this date membership discounts for the rest of the year apply"""
-
     last_updated_by = models.ForeignKey(
         User,
         on_delete=models.PROTECT,

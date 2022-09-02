@@ -30,6 +30,7 @@ from organisations.forms import (
     TemplateBannerForm,
     WelcomePackForm,
     TemplateForm,
+    OrgDefaultSecondaryPaymentMethod,
 )
 from organisations.models import (
     ClubLog,
@@ -1180,3 +1181,37 @@ def add_all_members_to_tag_htmx(request, club):
         member_club_tag.save()
 
     return users_with_tag_htmx(request, partial=True)
+
+
+@check_club_menu_access(check_org_edit=True)
+def default_secondary_payment_method_htmx(request, club):
+    """handle the form for club level default payment method if not Bridge Credits"""
+
+    message = ""
+
+    if "save" in request.POST:
+        form = OrgDefaultSecondaryPaymentMethod(request.POST, club=club)
+
+        if form.is_valid():
+            default_secondary_payment_method = form.cleaned_data[
+                "default_secondary_payment_method"
+            ]
+            club.default_secondary_payment_method = default_secondary_payment_method
+            club.save()
+
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action=f"Changed default secondary payment method to: {default_secondary_payment_method}",
+            ).save()
+            message = "Change saved"
+        else:
+            print(form.errors)
+
+    form = OrgDefaultSecondaryPaymentMethod(club=club)
+
+    return render(
+        request,
+        "organisations/club_menu/settings/default_secondary_payment_method_htmx.html",
+        {"form": form, "club": club, "message": message},
+    )

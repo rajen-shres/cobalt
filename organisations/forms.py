@@ -573,6 +573,29 @@ class VenueForm(forms.Form):
         return venue_name
 
 
+class OrgDefaultSecondaryPaymentMethod(forms.ModelForm):
+    class Meta:
+        model = Organisation
+        fields = ("default_secondary_payment_method",)
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        super().__init__(*args, **kwargs)
+
+        payment_methods = OrgPaymentMethod.objects.filter(
+            organisation=self.club
+        ).exclude(payment_method="Bridge Credits")
+        our_payment_methods = [
+            (payment_method.id, payment_method.payment_method)
+            for payment_method in payment_methods
+        ]
+
+        self.fields["default_secondary_payment_method"].choices = our_payment_methods
+        self.fields[
+            "default_secondary_payment_method"
+        ].initial = self.club.default_secondary_payment_method.id
+
+
 class PaymentTypeForm(forms.Form):
     """Form to add a payment type to an organisation"""
 

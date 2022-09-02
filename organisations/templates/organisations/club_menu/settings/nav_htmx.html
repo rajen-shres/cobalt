@@ -28,8 +28,6 @@ hx-target="#id_panel_settings"
 >General
 </button>
 
-
-
 <div class="btn-group" style="z-index:9999">
     <button type="button"
         id="t_settings_static_data"
@@ -57,9 +55,8 @@ hx-target="#id_panel_settings"
             "
             hx-post="{% url "organisations:club_menu_tab_settings_membership_htmx" %}"
             hx-target="#id_panel_settings"
-            {#            hx-push-url="true"#}
             id="t_settings_membership_types"
-        >Membership Types
+        >Memberships
         </a>
 
         <a href="javascript: void(0)"
@@ -72,9 +69,8 @@ hx-target="#id_panel_settings"
             "
             hx-post="{% url "organisations:club_menu_tab_settings_payment_htmx" %}"
             hx-target="#id_panel_settings"
-            {#            hx-push-url="true"#}
             id="t_settings_payment_types"
-        >Payment Types
+        >Payments
         </a>
 
         <a href="javascript: void(0)"
@@ -87,7 +83,6 @@ hx-target="#id_panel_settings"
             "
             hx-post="{% url "organisations:club_menu_tab_settings_sessions_htmx" %}"
             hx-target="#id_panel_settings"
-            {#            hx-push-url="true"#}
             id="t_settings_sessions_types"
         >Sessions
         </a>

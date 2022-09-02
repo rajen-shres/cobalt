@@ -1,26 +1,18 @@
-{#----------------------------------------------------------------------------------------------------#}
-{#                                                                                                    #}
-{# Static data payments - this has two cards, payment_methods and misc payment types (eg car parking) #}
-{#                                                                                                    #}
-{#----------------------------------------------------------------------------------------------------#}
+{#----------------------------------------------------------------------------#}
+{#                                                                            #}
+{# Static data payments.                                                      #}
+{#                                                                            #}
+{# This has three cards, payment_methods, misc payment types (eg car parking) #}
+{# and default payment if not bridge credits                                  #}
+{#                                                                            #}
+{#----------------------------------------------------------------------------#}
+
 {% load static %}
 {% load cobalt_tags %}
 
-<style>
-    {# Hide spinners on number input #}
-    input[type='number'] {
-        -moz-appearance:textfield;
-    }
-
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-    }
-</style>
-
 <div>
 
-    <!-- INTERNAL MENU -->
+    <!-- MAIN MENU -->
 
     <div class="card">
 
@@ -34,7 +26,6 @@
         <!-- BODY -->
 
         <div class="card-body" style="z-index:1;">
-
 
             <!-- MESSAGE -->
             <h3 class="text-primary font-weight-bold">{{ message }}</h3>
@@ -224,27 +215,47 @@
                 </div>
             </div>
         </div>
+
+        <!-- DEFAULT_SECONDARY_PAYMENT_METHOD -->
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header card-header-danger">
+                    <h3>Second Choice Payment Method</h3>
+                </div>
+                <div class="card-body">
+                    <div id="club-secondary-pay"
+                        hx-post="{% url "organisations:club_menu_tab_settings_default_secondary_payment_method_htmx" %}"
+                        hx-vars="club_id:{{ club.id }}"
+                        hx-trigger="load"
+                    >
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
     </div>
-</div>
 
 
-<script>
-    $( document ).ready(function() {
+    <script>
+        $( document ).ready(function() {
 
-        // activate toggle buttons
-        $('.toggle_button').bootstrapToggle();
+            // activate toggle buttons
+            $('.toggle_button').bootstrapToggle();
 
-        // warn if enabling a payment type
-        $('.toggle_button').change(function(evt){
-            if ($(this).prop('checked')) {
-                swal.fire({
-                    title: "Warning",
-                    html: "Check the rates on your sessions (SESSION TYPES above) as a default value has been applied, which may not be what you want.",
-                    icon: "warn"
-                });
-            }
+            // warn if enabling a payment type
+            $('.toggle_button').change(function(evt){
+                if ($(this).prop('checked')) {
+                    swal.fire({
+                        title: "Warning",
+                        html: "Check the rates on your sessions (SESSION TYPES above) as a default value has been applied, which may not be what you want.",
+                        icon: "warn"
+                    });
+                }
+
+            });
 
         });
-
-    });
-</script>
+    </script>

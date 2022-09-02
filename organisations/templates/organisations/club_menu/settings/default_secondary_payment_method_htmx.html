@@ -1,0 +1,28 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Settings - General                                                     #}
+{#                                                                        #}
+{# Form for default_secondary_payment_method                              #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+
+<div class="text-primary font-weight-bold">{{ message }}</div>
+
+<p>Default payments method if bridge credits don't work</p>
+
+<div id="club_secondary_pay">
+    <div class="col-md-5 text-nowrap">
+        <form
+            hx-post="{% url "organisations:club_menu_tab_settings_default_secondary_payment_method_htmx" %}"
+            hx-target="#club-secondary-pay"
+            hx-vars="club_id:{{ club.id }}"
+        >
+            {% cobalt_bs4_field form.default_secondary_payment_method %}
+
+            <br>
+            <br>
+            <button name="save" id="id_settings_change_default_secondary_payment_method" class="btn btn-sm btn-success">Save</button>
+        </form>
+    </div>
+</div>
