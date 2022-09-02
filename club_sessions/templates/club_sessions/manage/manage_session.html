@@ -11,6 +11,14 @@
 {% block title %}- {{ session.session_date }}{% endblock %}
 
 {% block header %}
+    {#------------------------------------------------------------------------#}
+    {#                                                                        #}
+    {# Styles have to be loaded on the first html page                        #}
+    {#                                                                        #}
+    {# Please document what they do if you add any                            #}
+    {#                                                                        #}
+    {#------------------------------------------------------------------------#}
+
     <style>
         .amount-paid-change {
             background-color: lightgreen;
@@ -33,7 +41,7 @@
             border: 1px solid rgb(189, 113, 113);
             overflow: hidden;
             position: relative;
-            font-size: xx-large;
+            font-size: large;
         }
 
         .animated-progress span {
@@ -207,45 +215,58 @@
 
                         " id="session">
 
+                        <!-- TOTALS - RUN ON LOAD OR TRIGGER FROM OTHER UPDATES -->
+
+                        {% if has_session_entries %}
+
+                            <div id="id_totals"
+                                hx-post="{% url "club_sessions:session_entry_session_totals_htmx" %}"
+                                hx-trigger="load, other_update"
+                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            >
+                            </div>
+
+                        {% endif %}
+
                         <!-- TOP VIEW CHOICES - SUMMARY, DETAIL, TABLE VIEWS -->
 
-                        <div id="radio-view-options" class="btn-group btn-group-toggle" data-toggle="buttons">
-                            <form class="view-type-radio"></form>
+                        <div class="text-center">
+                            <div id="radio-view-options" class="btn-group btn-group-toggle" data-toggle="buttons">
+                                <form class="view-type-radio"></form>
 
-                            <!-- SUMMARY VIEW (DEFAULT) -->
-                            <label class="btn btn-success active">
-                                <input
-                                    type="radio"
-                                    name="summary"
-                                    id="option-summary"
-                                    autocomplete="off"
-                                    checked
-                                > Summary
-                            </label>
+                                <!-- SUMMARY VIEW (DEFAULT) -->
+                                <label class="btn btn-success active">
+                                    <input
+                                        type="radio"
+                                        name="summary"
+                                        id="option-summary"
+                                        autocomplete="off"
+                                        checked
+                                    > Summary
+                                </label>
 
-                            <!-- DETAIL VIEW -->
-                            <label class="btn btn-success">
-                                <input
-                                    type="radio"
-                                    name="detail"
-                                    id="option-summary"
-                                    autocomplete="off"
-                                > Detail
-                            </label>
+                                <!-- DETAIL VIEW -->
+                                <label class="btn btn-success">
+                                    <input
+                                        type="radio"
+                                        name="detail"
+                                        id="option-summary"
+                                        autocomplete="off"
+                                    > Detail
+                                </label>
 
-                            <!-- TABLE VIEW -->
-                            <label class="btn btn-success">
-                                <input
-                                    type="radio"
-                                    name="table"
-                                    id="option-summary"
-                                    autocomplete="off"
-                                > Table View
-                            </label>
+                                <!-- TABLE VIEW -->
+                                <label class="btn btn-success">
+                                    <input
+                                        type="radio"
+                                        name="table"
+                                        id="option-summary"
+                                        autocomplete="off"
+                                    > Table View
+                                </label>
 
+                            </div>
                         </div>
-
-
 
                         <!-- THIS IS THE ACTUAL DIV FOR SESSIONS -->
                         <div id="id_pane_session"

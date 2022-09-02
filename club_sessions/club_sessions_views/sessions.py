@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db.models import Sum, Max
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
@@ -362,7 +364,13 @@ def _calculate_payment_method_and_balance(session_entries, session_fees, club):
 
 @user_is_club_director()
 def tab_session_htmx(request, club, session, message=""):
-    """present the main session tab for the director"""
+    """present the main session tab for the director
+
+    We have 3 different views (Summary, Detail, Table) but we generate them all from this function.
+
+    That means there are some things calculated that aren't needed for a view, but it keeps it simple.
+
+    """
 
     # load static
     (
@@ -380,13 +388,42 @@ def tab_session_htmx(request, club, session, message=""):
     # get payment methods for this club
     payment_methods = OrgPaymentMethod.objects.filter(organisation=club, active=True)
 
-    # put session_entries into a list
+    # put session_entries into a dictionary for the table view
     table_list = {}
     for session_entry in session_entries:
         if session_entry.pair_team_number in table_list:
             table_list[session_entry.pair_team_number].append(session_entry)
         else:
             table_list[session_entry.pair_team_number] = [session_entry]
+
+    # summarise session_entries for the summary view
+    payment_summary = {}
+    for session_entry in session_entries:
+        # Skip sitout and director
+        if session_entry.system_number in [SITOUT, PLAYING_DIRECTOR]:
+            continue
+
+        if session_entry.payment_method:
+            pay_method = session_entry.payment_method.payment_method
+        else:
+            pay_method = "Unknown"
+
+        # Add to dict if not present
+        if session_entry.payment_method.payment_method not in payment_summary:
+            payment_summary[pay_method] = {
+                "fee": Decimal(0),
+                "amount_paid": Decimal(0),
+                "outstanding": Decimal(0),
+                "player_count": 0,
+            }
+
+        # Update dict with this session_entry
+        payment_summary[pay_method]["fee"] += session_entry.fee
+        payment_summary[pay_method]["amount_paid"] += session_entry.amount_paid
+        payment_summary[pay_method]["outstanding"] += (
+            session_entry.fee - session_entry.amount_paid
+        )
+        payment_summary[pay_method]["player_count"] += 1
 
     # Which template to use - summary, detail or table. Default is summary.
     view_type = request.POST.get("view_type", "summary")
@@ -406,6 +443,7 @@ def tab_session_htmx(request, club, session, message=""):
             "session_entries": session_entries,
             "table_list": table_list,
             "payment_methods": payment_methods,
+            "payment_summary": payment_summary,
             "message": message,
         },
     )
@@ -740,6 +778,7 @@ def session_totals_htmx(request, club, session):
         {
             "totals": totals,
             "session": session,
+            "club": club,
             "progress_colour": progress_colour,
             "progress_percent": progress_percent,
         },

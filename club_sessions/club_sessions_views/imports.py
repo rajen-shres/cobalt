@@ -156,6 +156,7 @@ def import_file_upload_htmx(request):
             director=request.user,
             session_type=session_type,
             description="Added session",
+            default_secondary_payment_method=club.default_secondary_payment_method,
         )
         session.save()
 

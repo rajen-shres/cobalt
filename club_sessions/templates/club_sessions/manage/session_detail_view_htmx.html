@@ -32,15 +32,6 @@
         <li>Block editing paid_amount field for bridge credits</li>
     </ul>
 
-    <!-- TOTALS - RUN ON LOAD OR TRIGGER FROM OTHER UPDATES -->
-
-    <div id="id_totals"
-        hx-post="{% url "club_sessions:session_entry_session_totals_htmx" %}"
-        hx-trigger="load, other_update"
-        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
-    >
-    </div>
-
     <div class="table-responsive d-none" id="main_session_table">
 
         <!-- MAIN TABLE -->

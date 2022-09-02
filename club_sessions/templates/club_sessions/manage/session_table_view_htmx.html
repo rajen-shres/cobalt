@@ -17,15 +17,6 @@
 
 {% else %}
 
-    <!-- TOTALS - RUN ON LOAD OR TRIGGER FROM OTHER UPDATES -->
-
-    <div id="id_totals"
-        hx-post="{% url "club_sessions:session_entry_session_totals_htmx" %}"
-        hx-trigger="load, other_update"
-        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
-    >
-    </div>
-
     <button
         class="btn btn-info"
         hx-post="{% url "club_sessions:process_bridge_credits_htmx" %}"

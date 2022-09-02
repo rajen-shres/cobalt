@@ -8,7 +8,7 @@ from club_sessions.models import (
     DEFAULT_FEE,
 )
 from cobalt.settings import BRIDGE_CREDITS
-from organisations.models import MembershipType
+from organisations.models import MembershipType, Organisation
 from payments.models import OrgPaymentMethod
 
 DEFAULT_PAYMENT_METHODS = [
@@ -63,7 +63,7 @@ def add_payment_method_session_type_combos(club):
                     spmm.save()
 
 
-def add_club_session_defaults(club):
+def add_club_session_defaults(club: Organisation):
     """When we add a club we set up some sensible defaults"""
 
     # Payment Methods
@@ -72,6 +72,13 @@ def add_club_session_defaults(club):
         OrgPaymentMethod(
             organisation=club, payment_method=default_payment_method, active=True
         ).save()
+
+    # Set up the default payment method for the club
+    cash = OrgPaymentMethod.objects.filter(
+        organisation=club, payment_method="Cash"
+    ).first()
+    club.default_secondary_payment_method = cash
+    club.save()
 
     # Session Type
     for default_session_type in DEFAULT_SESSION_TYPES:

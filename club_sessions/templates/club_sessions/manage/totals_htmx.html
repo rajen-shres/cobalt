@@ -64,50 +64,50 @@
             </div>
         </div>
 
-        <!-- PROGRESS ANIMATION -->
-        <h3 class="text-center pb-0 mb-1">Progress</h3>
-        <div class="animated-progress progress-{{ progress_colour }} mx-auto pt-0 mt-0">
-            <span data-progress="{{ progress_percent }}"></span>
-        </div>
-
-        <!-- TABLE OF STATS -->
-        <div class="col-md-6 col-lg-4 mx-auto pb-5">
-            <table class="table border table-condensed table-striped">
-                <thead class="thead-dark">
-                    <tr>
-                        <th colspan="2" class="text-center">Stats</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="text-left">Tables</td>
-                        <td class="text-right">{{ totals.tables }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-left">{{  BRIDGE_CREDITS }} Due</td>
-                        <td class="text-right">{{ totals.bridge_credits_due }}</td>
-                    </tr>
-                    {% if totals.unknown_payment_methods %}
-                        <tr>
-                            <td class="text-left">Unknown Payment Types</td>
-                            <td class="text-right">{{ totals.unknown_payment_methods }}</td>
-                        </tr>
-                    {% endif %}
-                    <tr>
-                        <td class="text-left">{{  BRIDGE_CREDITS }} Received</td>
-                        <td class="text-right">{{ totals.bridge_credits_received }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-left">Off System Payments Due</td>
-                        <td class="text-right">{{ totals.other_methods_due }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-left">Off System Payments Received</td>
-                        <td class="text-right">{{ totals.other_methods_received }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        {#        <!-- PROGRESS ANIMATION -->#}
+        {#        <h3 class="text-center pb-0 mb-1">Progress</h3>#}
+        {#        <div class="animated-progress progress-{{ progress_colour }} mx-auto pt-0 mt-0">#}
+        {#            <span data-progress="{{ progress_percent }}"></span>#}
+        {#        </div>#}
+        {##}
+        {#        <!-- TABLE OF STATS -->#}
+        {#        <div class="col-md-6 col-lg-4 mx-auto pb-5">#}
+        {#            <table class="table border table-condensed table-striped">#}
+        {#                <thead class="thead-dark">#}
+        {#                    <tr>#}
+        {#                        <th colspan="2" class="text-center">Stats</th>#}
+        {#                    </tr>#}
+        {#                </thead>#}
+        {#                <tbody>#}
+        {#                    <tr>#}
+        {#                        <td class="text-left">Tables</td>#}
+        {#                        <td class="text-right">{{ totals.tables }}</td>#}
+        {#                    </tr>#}
+        {#                    <tr>#}
+        {#                        <td class="text-left">{{  BRIDGE_CREDITS }} Due</td>#}
+        {#                        <td class="text-right">{{ totals.bridge_credits_due }}</td>#}
+        {#                    </tr>#}
+        {#                    {% if totals.unknown_payment_methods %}#}
+        {#                        <tr>#}
+        {#                            <td class="text-left">Unknown Payment Types</td>#}
+        {#                            <td class="text-right">{{ totals.unknown_payment_methods }}</td>#}
+        {#                        </tr>#}
+        {#                    {% endif %}#}
+        {#                    <tr>#}
+        {#                        <td class="text-left">{{  BRIDGE_CREDITS }} Received</td>#}
+        {#                        <td class="text-right">{{ totals.bridge_credits_received }}</td>#}
+        {#                    </tr>#}
+        {#                    <tr>#}
+        {#                        <td class="text-left">Off System Payments Due</td>#}
+        {#                        <td class="text-right">{{ totals.other_methods_due }}</td>#}
+        {#                    </tr>#}
+        {#                    <tr>#}
+        {#                        <td class="text-left">Off System Payments Received</td>#}
+        {#                        <td class="text-right">{{ totals.other_methods_received }}</td>#}
+        {#                    </tr>#}
+        {#                </tbody>#}
+        {#            </table>#}
+        {#        </div>#}
 
 
         <!-- NEXT STEPS -->
