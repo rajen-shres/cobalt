@@ -146,21 +146,21 @@
         {% endif %}
     </div>
 </div>
-
-<script>
-    $(document).ready( function () {
-
-        // Show animation for the progress bar
-        $(".animated-progress span").each(function () {
-            $(this).animate(
-                {
-                    width: $(this).attr("data-progress") + "%",
-                },
-                1000
-            );
-            $(this).text($(this).attr("data-progress") + "%");
-        });
-
-    });
-</script>
+{##}
+{#<script>#}
+{#    $(document).ready( function () {#}
+{##}
+{#        // Show animation for the progress bar#}
+{#        $(".animated-progress span").each(function () {#}
+{#            $(this).animate(#}
+{#                {#}
+{#                    width: $(this).attr("data-progress") + "%",#}
+{#                },#}
+{#                1000#}
+{#            );#}
+{#            $(this).text($(this).attr("data-progress") + "%");#}
+{#        });#}
+{##}
+{#    });#}
+{#</script>#}
 
