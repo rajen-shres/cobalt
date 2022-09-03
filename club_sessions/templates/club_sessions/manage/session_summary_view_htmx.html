@@ -17,13 +17,42 @@
 
 {% else %}
 
-    <ul>
-        {% for payment_type, data in payment_summary.items %}
 
-            <li>{{ payment_type }} - {{ data.outstanding }} - {{ data.player_count }}</li>
 
-        {% endfor %}
-    </ul>
+
+
+    <div class="row">
+        <div class="col-12">
+            <div class="row">
+                <div class="col-6">
+                    <button class="btn btn-block btn-{% cobalt_random_colour %}">
+                        <div class="container-fluid p-0 m-0">
+                            <div class="text-center">
+                                i am H4
+                                <span class="d-inline float-right">Demo</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for payment_type, data in payment_summary.items %}
+
+        <div class="row">
+            <div class="col-12">
+                <div class="row">
+                    <div class="col-6">
+
+                        <button class="btn btn-block btn-{% cobalt_random_colour %}">{{ payment_type }} {{ GLOBAL_CURRENCY_SYMBOL }}{{ data.outstanding }} - {{ data.player_count }} {{ data.player_count|pluralize:"person,people" }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
 
 {% endif %}
 
