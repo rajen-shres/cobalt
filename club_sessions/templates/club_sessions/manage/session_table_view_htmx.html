@@ -17,15 +17,6 @@
 
 {% else %}
 
-    <button
-        class="btn btn-info"
-        hx-post="{% url "club_sessions:process_bridge_credits_htmx" %}"
-        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
-        hx-target="#id_pane_session"
-    >
-        Process {{ BRIDGE_CREDITS }}
-    </button>
-
     <div class="container-fluid" id="tables_list">
         <div class="row">
             {% for table_no, players in table_list.items %}
