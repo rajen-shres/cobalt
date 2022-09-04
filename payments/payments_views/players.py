@@ -300,6 +300,13 @@ def setup_autotopup(request):
 
     else:
         stripe_create_customer(request)
+        log_event(
+            user=request.user.full_name,
+            severity="INFO",
+            source="Payments",
+            sub_source="Auto top up",
+            message="User setup auto top up with Stripe",
+        )
 
     balance = get_balance(request.user)
     topup = request.user.auto_amount
@@ -394,6 +401,14 @@ def update_auto_amount(request):
         request.user.auto_amount = amount
         request.user.save()
 
+        log_event(
+            user=request.user.full_name,
+            severity="INFO",
+            source="Payments",
+            sub_source="Auto top up",
+            message=f"User changed auto top up amount to {amount}",
+        )
+
     return HttpResponse("Successful")
 
 
@@ -478,10 +493,16 @@ def cancel_auto_top_up(request):
             messages.info(
                 request, "Auto top up disabled", extra_tags="cobalt-message-success"
             )
-            return redirect("payments:payments")
-        else:
-            return redirect("payments:payments")
 
+            log_event(
+                user=request.user.full_name,
+                severity="INFO",
+                source="Payments",
+                sub_source="Auto top up",
+                message="User disabled auto top up",
+            )
+
+        return redirect("payments:payments")
     balance = get_balance(request.user)
     return render(
         request, "payments/players/cancel_autotopup.html", {"balance": balance}

@@ -1,0 +1,37 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Settings - Finance                                                     #}
+{#                                                                        #}
+{# Form for minimum_balance_after_settlement                              #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+
+<div class="text-primary font-weight-bold">{{ message }}</div>
+
+<p>Amount to leave in account if possible as a float when the {{ GLOBAL_ORG }} makes settlement payments to us.</p>
+
+<form
+    hx-post="{% url "organisations:club_menu_tab_settings_edit_minimum_balance_after_settlement_htmx" %}"
+    hx-target="#minimum-balance-after-settlement"
+    hx-vars="club_id:{{ club.id }}"
+>
+    <div class="form-group">
+        <div class="col-md-5 text-nowrap">
+            <input
+                type="number"
+                name="minimum_balance_after_settlement"
+                step="0.01"
+                min="0"
+                class=" form-control"
+                required=""
+                value="{{ club.minimum_balance_after_settlement }}"
+                id="id_minimum_balance_after_settlement"
+            >
+
+        </div>
+    </div>
+    <br>
+    <br>
+    <button name="save" class="btn btn-sm btn-success">Save</button>
+</form>

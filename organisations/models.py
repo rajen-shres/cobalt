@@ -201,6 +201,11 @@ class Organisation(models.Model):
     results_email_message = models.TextField(default="")
     """ Message sent with the results emails """
 
+    minimum_balance_after_settlement = models.DecimalField(
+        decimal_places=2, max_digits=10, default=0
+    )
+    """ How much of a float to leave in the account balance when settlement takes place """
+
     @property
     def settlement_fee_percent(self):
         """return what our settlement fee is set to"""

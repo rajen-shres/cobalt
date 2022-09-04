@@ -299,12 +299,26 @@ class OrganisationTransaction(AbstractTransaction):
 
     @property
     def settlement_amount(self):
-        """How much will org actually be paid for this BALANCE (not amount) after we deduct our fees"""
+        """How much will org actually be paid for this BALANCE (not amount) after we deduct our fees
 
+        We include the organisations minimum balance after settlement in the calculation so that
+        we leave a float in the club's account to take care of any outgoings before payments come in
+
+        """
+
+        # Calculate the fee percentage. e.g. if the ABF charge this club 5%, this will be 0.95
         percent = 1.0 - (float(self.organisation.settlement_fee_percent) / 100.0)
-        amt = float(self.balance) * percent
 
-        return round(amt, 2)
+        # Include balance after settlement
+        gross_amount = float(self.balance) - float(
+            self.organisation.minimum_balance_after_settlement
+        )
+        gross_amount = max(gross_amount, 0)
+
+        # Calculate settlement amount
+        settlement_value = gross_amount * percent
+
+        return round(settlement_value, 2)
 
     def __str__(self):
         return f"{self.organisation.name} - {self.id}"

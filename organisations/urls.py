@@ -649,4 +649,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.default_secondary_payment_method_htmx,
         name="club_menu_tab_settings_default_secondary_payment_method_htmx",
     ),
+    path(
+        "settings/edit_minimum_balance_after_settlement_htmx",
+        organisations.views.club_menu_tabs.settings.edit_minimum_balance_after_settlement_htmx,
+        name="club_menu_tab_settings_edit_minimum_balance_after_settlement_htmx",
+    ),
 ]

@@ -31,6 +31,7 @@ from organisations.forms import (
     WelcomePackForm,
     TemplateForm,
     OrgDefaultSecondaryPaymentMethod,
+    MinimumBalanceAfterSettlementForm,
 )
 from organisations.models import (
     ClubLog,
@@ -1213,5 +1214,33 @@ def default_secondary_payment_method_htmx(request, club):
     return render(
         request,
         "organisations/club_menu/settings/default_secondary_payment_method_htmx.html",
+        {"form": form, "club": club, "message": message},
+    )
+
+
+@check_club_menu_access(check_org_edit=True)
+def edit_minimum_balance_after_settlement_htmx(request, club):
+    """Change the minimum balance that is left as a float after settlement"""
+
+    form = MinimumBalanceAfterSettlementForm(request.POST, instance=club)
+    message = ""
+
+    if "save" in request.POST:
+
+        if form.is_valid():
+            club = form.save()
+
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action=f"Changed minimum balance after settlement to: {club.minimum_balance_after_settlement}",
+            ).save()
+            message = "Change saved"
+        else:
+            print(form.errors)
+
+    return render(
+        request,
+        "organisations/club_menu/settings/edit_minimum_balance_after_settlement_htmx.html",
         {"form": form, "club": club, "message": message},
     )

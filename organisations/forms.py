@@ -665,6 +665,10 @@ class ResultsEmailMessageForm(forms.ModelForm):
         )
     )
 
+
+class MinimumBalanceAfterSettlementForm(forms.ModelForm):
+    """form for minimum_balance_after_settlement"""
+
     class Meta:
         model = Organisation
-        fields = ("results_email_message",)
+        fields = ("minimum_balance_after_settlement",)

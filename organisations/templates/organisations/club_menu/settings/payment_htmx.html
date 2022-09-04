@@ -146,116 +146,142 @@
                     <!-- MISC INCOME TYPES -->
 
                     <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header card-header-success">
-                                <h3>Miscellaneous Income Types</h3>
-                            </div>
-                            <div class="card-body">
-                                <i>Manage the list of payments that your club accepts. e.g. Parking, books, coffee, etc.</i>
+
+                        <div class="container">
+                            <div class="row">
+                                <div class="col">
+
+                                    <div class="card">
+                                        <div class="card-header card-header-success">
+                                            <h3>Miscellaneous Income Types</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <i>Manage the list of payments that your club accepts. e.g. Parking, books, coffee, etc.</i>
 
 
-                                {% if misc_pay_types %}
-                                    <div class="table-responsive">
-                                        <table class="table table-condensed table-hover">
-                                            <thead>
-                                                <tr class="text-primary">
-                                                    <th class="text-left">Income Type</th>
-                                                    <th class="text-right">Default Cost</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for misc_pay_type in misc_pay_types %}
-                                                    <tr>
-                                                        <td class="text-left">{{ misc_pay_type.description }}</td>
-                                                        <td class="text-right">
-                                                            <input type="number" min="0.00" max="10000.00" step="0.01"
-                                                                name="misc_pay_amount"
-                                                                value="{{ misc_pay_type.default_amount }}"
-                                                                class="form-control text-right"
-                                                                hx-post="{% url "organisations:club_menu_tab_settings_misc_pay_amount_htmx" %}"
-                                                                hx-target="#id_panel_settings"
-                                                                hx-vars="club_id:{{ club.id }},misc_pay_id:{{ misc_pay_type.id }}"
-                                                            >
-                                                        </td>
-                                                        <td>
-                                                            <button
-                                                                class="btn btn-sm btn-danger"
-                                                                hx-post="{% url "organisations:club_menu_tab_settings_misc_pay_delete_htmx" %}"
-                                                                hx-target="#id_panel_settings"
-                                                                hx-vars="club_id:{{ club.id }},misc_pay_id:{{ misc_pay_type.id }}"
-                                                            >
-                                                                Delete
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
+                                            {% if misc_pay_types %}
+                                                <div class="table-responsive">
+                                                    <table class="table table-condensed table-hover">
+                                                        <thead>
+                                                            <tr class="text-primary">
+                                                                <th class="text-left">Income Type</th>
+                                                                <th class="text-right">Default Cost</th>
+                                                                <th>Action</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for misc_pay_type in misc_pay_types %}
+                                                                <tr>
+                                                                    <td class="text-left">{{ misc_pay_type.description }}</td>
+                                                                    <td class="text-right">
+                                                                        <input type="number" min="0.00" max="10000.00" step="0.01"
+                                                                            name="misc_pay_amount"
+                                                                            value="{{ misc_pay_type.default_amount }}"
+                                                                            class="form-control text-right"
+                                                                            hx-post="{% url "organisations:club_menu_tab_settings_misc_pay_amount_htmx" %}"
+                                                                            hx-target="#id_panel_settings"
+                                                                            hx-vars="club_id:{{ club.id }},misc_pay_id:{{ misc_pay_type.id }}"
+                                                                        >
+                                                                    </td>
+                                                                    <td>
+                                                                        <button
+                                                                            class="btn btn-sm btn-danger"
+                                                                            hx-post="{% url "organisations:club_menu_tab_settings_misc_pay_delete_htmx" %}"
+                                                                            hx-target="#id_panel_settings"
+                                                                            hx-vars="club_id:{{ club.id }},misc_pay_id:{{ misc_pay_type.id }}"
+                                                                        >
+                                                                            Delete
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            {% endif %}
+                                            <div class="col-md-6 text-nowrap">
+
+                                                <form
+                                                    hx-post="{% url "organisations:club_menu_tab_settings_misc_pay_add_htmx" %}"
+                                                    hx-target="#id_panel_settings"
+                                                    hx-vars="club_id:{{ club.id }}"
+                                                >
+
+                                                    <input type="text" class="form-control" name="misc_pay_name"
+                                                        placeholder="Add new type" maxlength="30" required>
+
+                                                    <button class="btn btn-sm btn-success">Add</button>
+                                                </form>
+                                            </div>
+                                        </div>
                                     </div>
-                                {% endif %}
-                                <div class="col-md-6 text-nowrap">
+                                </div>
 
-                                    <form
-                                        hx-post="{% url "organisations:club_menu_tab_settings_misc_pay_add_htmx" %}"
-                                        hx-target="#id_panel_settings"
-                                        hx-vars="club_id:{{ club.id }}"
-                                    >
+                            </div>
+                        </div>
 
-                                        <input type="text" class="form-control" name="misc_pay_name"
-                                            placeholder="Add new type" maxlength="30" required>
+                        <!-- DEFAULT_SECONDARY_PAYMENT_METHOD -->
 
-                                        <button class="btn btn-sm btn-success">Add</button>
-                                    </form>
+                        <div class="row">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header card-header-danger">
+                                        <h3>Second Choice Payment Method</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="club-secondary-pay"
+                                            hx-post="{% url "organisations:club_menu_tab_settings_default_secondary_payment_method_htmx" %}"
+                                            hx-vars="club_id:{{ club.id }}"
+                                            hx-trigger="load"
+                                        >
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                </div>
-            </div>
-        </div>
+                    <!-- MINIMUM_BALANCE_AFTER_SETTLEMENT -->
 
-        <!-- DEFAULT_SECONDARY_PAYMENT_METHOD -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header card-header-info">
+                                <h3>Balance After Settlement</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="minimum-balance-after-settlement"
+                                    hx-post="{% url "organisations:club_menu_tab_settings_edit_minimum_balance_after_settlement_htmx" %}"
+                                    hx-vars="club_id:{{ club.id }}"
+                                    hx-trigger="load"
+                                >
+                                </div>
+                            </div>
+                        </div>
 
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header card-header-danger">
-                    <h3>Second Choice Payment Method</h3>
-                </div>
-                <div class="card-body">
-                    <div id="club-secondary-pay"
-                        hx-post="{% url "organisations:club_menu_tab_settings_default_secondary_payment_method_htmx" %}"
-                        hx-vars="club_id:{{ club.id }}"
-                        hx-trigger="load"
-                    >
                     </div>
                 </div>
             </div>
-
-
-
         </div>
     </div>
+</div>
 
+<script>
+    $( document ).ready(function() {
 
-    <script>
-        $( document ).ready(function() {
+        // activate toggle buttons
+        $('.toggle_button').bootstrapToggle();
 
-            // activate toggle buttons
-            $('.toggle_button').bootstrapToggle();
-
-            // warn if enabling a payment type
-            $('.toggle_button').change(function(evt){
-                if ($(this).prop('checked')) {
-                    swal.fire({
-                        title: "Warning",
-                        html: "Check the rates on your sessions (SESSION TYPES above) as a default value has been applied, which may not be what you want.",
-                        icon: "warn"
-                    });
-                }
-
-            });
+        // warn if enabling a payment type
+        $('.toggle_button').change(function(evt){
+            if ($(this).prop('checked')) {
+                swal.fire({
+                    title: "Warning",
+                    html: "Check the rates on your sessions (SESSION TYPES above) as a default value has been applied, which may not be what you want.",
+                    icon: "warn"
+                });
+            }
 
         });
-    </script>
+
+    });
+</script>

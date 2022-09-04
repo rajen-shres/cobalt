@@ -1436,6 +1436,10 @@ def settlement(request):
     The administrator should use this list to match with the bank transactions and
     then confirm through this view that the payments have been made.
 
+    Note: the club can set their own minimum_balance_after_settlement amount to
+    maintain a float in their account. This is so they can still make outgoing
+    payments before further incoming payments come in.
+
     Args:
         request (HTTPRequest): standard request object
 
@@ -1451,20 +1455,28 @@ def settlement(request):
         return HttpResponse("<h1>Payment Static has not been set up</h1>")
 
     # orgs with outstanding balances
-    # Django is a bit too clever here so we actually have to include balance=0.0 and filter
+    # Django is a bit too clever here, so we actually have to include balance=0.0 and filter
     # it in the code, otherwise we get the most recent non-zero balance. There may be
-    # a way to do this but I couldn't figure it out.
-    orgs = OrganisationTransaction.objects.order_by(
-        "organisation", "-created_date"
-    ).distinct("organisation")
+    # a way to do this, but I couldn't figure it out.
+    org_transactions = (
+        OrganisationTransaction.objects.order_by("organisation", "-created_date")
+        .distinct("organisation")
+        .select_related("organisation")
+    )
     org_list = []
 
     non_zero_orgs = []
-    for org in orgs:
-        print(org.id)
-        if org.balance != 0.0:
-            org_list.append((org.id, org.organisation.name))
-            non_zero_orgs.append(org)
+    for org_transaction in org_transactions:
+        # Take into account minimum_balance_after_settlement
+        amount_to_settle = float(org_transaction.balance) - float(
+            org_transaction.organisation.minimum_balance_after_settlement
+        )
+        if amount_to_settle > 0.0:
+            org_list.append((org_transaction.id, org_transaction.organisation.name))
+
+            # Add amount_to_settle field to org_transaction
+            org_transaction.amount_to_settle = amount_to_settle
+            non_zero_orgs.append(org_transaction)
 
     if request.method == "POST":
 
@@ -1474,7 +1486,9 @@ def settlement(request):
             # load balances - Important! Do not get the current balance for an
             # org as this may have changed. Use the list confirmed by the user.
             settlement_ids = form.cleaned_data["settle_list"]
-            settlements = OrganisationTransaction.objects.filter(pk__in=settlement_ids)
+            settlements = OrganisationTransaction.objects.filter(
+                pk__in=settlement_ids
+            ).select_related("organisation")
 
             if "export" in request.POST:  # CSV download
 
@@ -1490,10 +1504,11 @@ def settlement(request):
                 writer.writerow(
                     [
                         "Settlements Export",
-                        "Downloaded by %s" % request.user.full_name,
+                        f"Downloaded by {request.user.full_name}",
                         today,
                     ]
                 )
+
                 writer.writerow(
                     [
                         "CLub Number",
@@ -1501,21 +1516,26 @@ def settlement(request):
                         "BSB",
                         "Account Number",
                         "Gross Amount",
+                        "Minimum Balance",
+                        "Net Amount",
                         f"{GLOBAL_ORG} fees %",
                         "Settlement Amount",
                     ]
                 )
 
-                for org in settlements:
+                for org_transaction in settlements:
                     writer.writerow(
                         [
-                            org.organisation.org_id,
-                            org.organisation.name,
-                            org.organisation.bank_bsb,
-                            org.organisation.bank_account,
-                            org.balance,
-                            org.organisation.settlement_fee_percent,
-                            org.settlement_amount,
+                            org_transaction.organisation.org_id,
+                            org_transaction.organisation.name,
+                            org_transaction.organisation.bank_bsb,
+                            org_transaction.organisation.bank_account,
+                            org_transaction.balance,
+                            org_transaction.organisation.minimum_balance_after_settlement,
+                            org_transaction.balance
+                            - org_transaction.organisation.minimum_balance_after_settlement,
+                            org_transaction.organisation.settlement_fee_percent,
+                            org_transaction.settlement_amount,
                         ]
                     )
 
@@ -1530,11 +1550,14 @@ def settlement(request):
 
                 # Remove money from org accounts
                 for item in settlements:
-                    total += float(item.balance)
+                    amount_to_settle = float(item.balance) - float(
+                        item.organisation.minimum_balance_after_settlement
+                    )
+                    total += amount_to_settle
                     trans = update_organisation(
                         organisation=item.organisation,
                         other_organisation=system_org,
-                        amount=-item.balance,
+                        amount=-amount_to_settle,
                         description=f"Settlement from {GLOBAL_ORG}. Fees {item.organisation.settlement_fee_percent}%. Net Bank Transfer: {GLOBAL_CURRENCY_SYMBOL}{item.settlement_amount}.",
                         payment_type="Settlement",
                         bank_settlement_amount=item.settlement_amount,

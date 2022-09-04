@@ -1,3 +1,8 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Admin screen to show organisation that have positive balances          #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
@@ -5,6 +10,7 @@
 
 {% block content %}
 
+    <!-- BREADCRUMBS -->
     <nav aria-label="breadcrumb" role="navigation">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url "payments:statement_admin_summary" %}">Payments Admin</a></li>
@@ -12,36 +18,41 @@
         </ol>
     </nav>
 
-    <div class="">
-        <div class="card">
-            <div class="card-header card-header-primary">
-                <h1>{{ BRIDGE_CREDITS }} - Organisation with Open Balances</h1>
-            </div>
-            <div class="card-body table-responsive">
-                <a href="{% url "payments:admin_orgs_with_balance_csv" %}" class="btn btn-sm btn-warning">Download All as CSV</a>
-                <table class="table table-responsive">
-                    <thead class="text-primary">
-                        <th>Organisation</th>
-                        <th>Balance</th>
-                        <th class="text-center">Action</th>
-                    </thead>
-                    <tbody>
-                        {% for thing in things %}
-                            <tr>
-                                <td>
-                                    <a href="{% url "organisations:general_org_profile" org_id=thing.organisation.id %}">{{ thing.organisation }}</a>
-                                </td>
-                                <td class="text-right">{{ thing.balance }}</td>
-                                <td><a href="{% url "payments:statement_org" org_id=thing.organisation.id %}" class="btn btn-sm btn-info">View Statement</a></td>
-                            </tr>
-                        {% endfor %}
+    <!-- CARD -->
+    <div class="card">
 
-                    </tbody>
-                </table>
+        <!-- CARD HEADER -->
+        <div class="card-header card-header-primary">
+            <h1>{{ BRIDGE_CREDITS }} - Organisation with Open Balances</h1>
+        </div>
 
-                {% include 'utils/pagination_footer.html' %}
+        <!-- CARD BODY -->
+        <div class="card-body table-responsive">
+            <a href="{% url "payments:admin_orgs_with_balance_csv" %}" class="btn btn-sm btn-warning">Download All as CSV</a>
+            <table class="table table-responsive">
+                <thead class="text-primary">
+                    <th>Organisation</th>
+                    <th>Balance</th>
+                    <th>Minimum Balance After Settlement</th>
+                    <th class="text-center">Action</th>
+                </thead>
+                <tbody>
+                    {% for thing in things %}
+                        <tr>
+                            <td>
+                                <a href="{% url "organisations:general_org_profile" org_id=thing.organisation.id %}">{{ thing.organisation }}</a>
+                            </td>
+                            <td class="text-right">{{ thing.balance }}</td>
+                            <td class="text-right">{{ thing.organisation.minimum_balance_after_settlement }}</td>
+                            <td><a href="{% url "payments:statement_org" org_id=thing.organisation.id %}" class="btn btn-sm btn-info">View Statement</a></td>
+                        </tr>
+                    {% endfor %}
 
-            </div>
+                </tbody>
+            </table>
+
+            {% include 'utils/pagination_footer.html' %}
+
         </div>
     </div>
 
