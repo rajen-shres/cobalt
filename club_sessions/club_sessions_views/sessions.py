@@ -428,7 +428,12 @@ def tab_session_htmx(request, club, session, message=""):
 
         # Add session_entry as well for drop down list
         name = mixed_dict[session_entry.system_number]["value"]
-        payment_summary[pay_method]["players"].append(name)
+        item = {
+            "player": name,
+            "session_entry": session_entry,
+            "membership": membership_type_dict[session_entry.system_number],
+        }
+        payment_summary[pay_method]["players"].append(item)
 
     # Which template to use - summary, detail or table. Default is summary.
     view_type = request.POST.get("view_type", "summary")

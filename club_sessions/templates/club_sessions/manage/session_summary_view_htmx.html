@@ -28,12 +28,22 @@
                 <div class="row">
                     <div class="col-lg-8 col-xl-6">
                         <button
-                            class="btn btn-block btn-{% cobalt_random_colour %}"
+                            class="btn btn-block
+                            {% if data.outstanding > 0 %}
+                                btn-danger
+                            {% else %}
+                                btn-primary
+                            {% endif %}
+                            "
                             _="on click toggle .d-none on #id_row_{{ payment_type.split|join:"-" }}"
                         >
                             <span class="container-fluid p-0 m-0">
                                 <span class="text-center font-weight-bold" style="font-size: large">
-                                    {{ payment_type }} {{ GLOBAL_CURRENCY_SYMBOL }}{{ data.outstanding }} - {{ data.player_count }} {{ data.player_count|pluralize:"person,people" }}
+                                    {{ payment_type }}
+                                    {% if data.outstanding > 0 %}
+                                        DUE: {{ GLOBAL_CURRENCY_SYMBOL }}{{ data.outstanding }}
+                                    {% endif %}
+                                    - {{ data.player_count }} {{ data.player_count|pluralize:"person,people" }}
                                     <span class="d-inline float-right font-weight-bold" style="font-size: large">+</span>
                                 </span>
                             </span>
@@ -45,16 +55,30 @@
 
         <!-- ROW FOR THE LIST OF PEOPLE IN THIS PAYMENT METHOD -->
         <div class="row d-none" id="id_row_{{ payment_type.split|join:"-" }}">
-            <div class="col-12">
-                <ul>
-                    {% for player in data.players %}
-                        <li>{{ player }}</li>
-                    {% endfor %}
-                </ul>
+            <div class=col-lg-8 col-xl-6">
+                <table class="table table-condensed table-striped">
+                    <thead class="text-primary">
+                        <tr>
+                            <th>Player</th>
+                            <th>Membership Type</th>
+                            <th class="text-right">Fee + Extras</th>
+                            <th class="text-right">Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for player in data.players %}
+                            <tr>
+                                <td>{{ player.player }}</td>
+                                <td>{{ player.membership }}</td>
+                                <td class="text-right">{{ player.session_entry.fee }}</td>
+                                <td class="text-right">{{ player.session_entry.amount_paid }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     {% endfor %}
-
 
 {% endif %}
 
