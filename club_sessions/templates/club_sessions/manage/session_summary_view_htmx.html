@@ -21,11 +21,16 @@
 
     {% for payment_type, data in payment_summary.items %}
 
+        <!-- PUT EACH BUTTON ON ITS OWN ROW -->
         <div class="row">
             <div class="col-12">
+                <!-- USE ANOTHER ROW SO WE CAN HAVE THE TEXT IN THE MIDDLE AND + ICON AT RIGHT -->
                 <div class="row">
-                    <div class="col-6">
-                        <button class="btn btn-block btn-{% cobalt_random_colour %}">
+                    <div class="col-lg-8 col-xl-6">
+                        <button
+                            class="btn btn-block btn-{% cobalt_random_colour %}"
+                            _="on click toggle .d-none on #id_row_{{ payment_type.split|join:"-" }}"
+                        >
                             <span class="container-fluid p-0 m-0">
                                 <span class="text-center font-weight-bold" style="font-size: large">
                                     {{ payment_type }} {{ GLOBAL_CURRENCY_SYMBOL }}{{ data.outstanding }} - {{ data.player_count }} {{ data.player_count|pluralize:"person,people" }}
@@ -35,6 +40,17 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- ROW FOR THE LIST OF PEOPLE IN THIS PAYMENT METHOD -->
+        <div class="row d-none" id="id_row_{{ payment_type.split|join:"-" }}">
+            <div class="col-12">
+                <ul>
+                    {% for player in data.players %}
+                        <li>{{ player }}</li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
     {% endfor %}

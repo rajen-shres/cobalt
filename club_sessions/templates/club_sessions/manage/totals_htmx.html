@@ -114,7 +114,7 @@
 
         {% if session.status == "LD" %}
 
-            <div class="card mx-auto col-md-6">
+            <div class="card mx-auto col-md-8 col-lg-6">
                 <div class="card-header card-header-rose py-0">
                     <h3>Next Steps</h3>
                 </div>
@@ -124,7 +124,7 @@
                         <dt>2) Adjust settings for this session, or individuals (OPTIONAL)</dt>
                         <dd>If you want to do anything unusual you can use the settings tab above to change things for this
                             session, or from the detail view you can change things for individuals such as their payment method.
-                            Usually, you can skips this step.</dd>
+                            Usually, you can skip this step.</dd>
                         <dt>3) Process {{ BRIDGE_CREDITS }}</dt>
                         <dd>Click the button below to process the {{ BRIDGE_CREDITS }} for players who are able to pay
                             using this method.</dd>
@@ -137,6 +137,37 @@
                             hx-target="#id_pane_session"
                         >
                             Process {{ BRIDGE_CREDITS }}
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        {% elif session.status == "BC" %}
+
+            <div class="card mx-auto col-md-8 col-lg-6">
+                <div class="card-header card-header-rose py-0">
+                    <h3>Next Step</h3>
+                </div>
+                <div class="card-body">
+
+                    <dl>
+                        <dt>Process Off System Payments</dt>
+                        <dd>There are payments required for this session that do not go through
+                            {{ BRIDGE_CREDITS }}. We cannot handle them for you, but we can help you
+                            to track them.</dd>
+                        <dd>You can go to the Detail view below and mark people as paid one by one,
+                            or if you are happy that they have all paid, you can press the button
+                            below to mark them all as paid.</dd>
+                    </dl>
+                    <div class="col text-center">
+                        <button
+                            class="btn btn-info mx-auto"
+                            hx-post="{% url "club_sessions:process_bridge_credits_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            hx-target="#id_pane_session"
+                        >
+                            All Payments Received
                         </button>
                     </div>
                 </div>

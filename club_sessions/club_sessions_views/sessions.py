@@ -415,6 +415,7 @@ def tab_session_htmx(request, club, session, message=""):
                 "amount_paid": Decimal(0),
                 "outstanding": Decimal(0),
                 "player_count": 0,
+                "players": [],
             }
 
         # Update dict with this session_entry
@@ -424,6 +425,10 @@ def tab_session_htmx(request, club, session, message=""):
             session_entry.fee - session_entry.amount_paid
         )
         payment_summary[pay_method]["player_count"] += 1
+
+        # Add session_entry as well for drop down list
+        name = mixed_dict[session_entry.system_number]["value"]
+        payment_summary[pay_method]["players"].append(name)
 
     # Which template to use - summary, detail or table. Default is summary.
     view_type = request.POST.get("view_type", "summary")
@@ -824,6 +829,10 @@ def add_misc_payment_htmx(request, club, session, session_entry):
 def process_bridge_credits_htmx(request, club, session):
     """handle bridge credits for the session - called from a big button"""
 
+    # Counters
+    success = 0
+    failure = 0
+
     # Get bridge credits for this org
     bridge_credits = OrgPaymentMethod.objects.filter(
         active=True, organisation=club, payment_method="Bridge Credits"
@@ -873,6 +882,8 @@ def process_bridge_credits_htmx(request, club, session):
             payment_type="Club Payment",
             session=session,
         ):
+            # Success
+            success += 1
             session_entry.amount_paid = session_entry.fee
             session_entry.save()
 
@@ -881,9 +892,27 @@ def process_bridge_credits_htmx(request, club, session):
                 session_entry__system_number=session_entry.system_number,
             ).update(payment_made=True)
 
-            # session_entry.amount_paid =
+        else:
+            # Payment failed - change payment method
+            failure += 1
+            session_entry.payment_method = session.default_secondary_payment_method
+            session_entry.save()
 
-    return tab_session_htmx(request, message="Coming soon")
+        # Update status of session - see if there are any payments left
+        if (
+            SessionEntry.objects.filter(session=session)
+            .exclude(payment_method=bridge_credits)
+            .exists()
+        ):
+            session.status = Session.SessionStatus.CREDITS_PROCESSED
+        else:
+            # No further payments, move to next step
+            session.status = Session.SessionStatus.OFF_SYSTEM_PAYMENTS_PROCESSED
+        session.save()
+
+    message = f"{BRIDGE_CREDITS} processed. Success: {success}. Failure {failure}."
+
+    return tab_session_htmx(request, message=message)
 
 
 @user_is_club_director(include_session_entry=True)
