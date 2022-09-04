@@ -984,4 +984,7 @@ def process_off_system_payments_htmx(request, club, session):
         session_entry.amount_paid = session_entry.fee
         session_entry.save()
 
+    session.status = Session.SessionStatus.OFF_SYSTEM_PAYMENTS_PROCESSED
+    session.save()
+
     return tab_session_htmx(request, message="Off System payments made")
