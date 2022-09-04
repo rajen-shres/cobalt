@@ -967,3 +967,21 @@ def add_table_htmx(request, club, session):
         ).save()
 
     return tab_session_htmx(request, message="Table added")
+
+
+@user_is_club_director()
+def process_off_system_payments_htmx(request, club, session):
+    """mark all off system payments as paid - called from a big button"""
+
+    # Get bridge credits for this org
+    bridge_credits = OrgPaymentMethod.objects.filter(
+        active=True, organisation=club, payment_method="Bridge Credits"
+    ).first()
+    session_entries = SessionEntry.objects.filter(session=session).exclude(
+        payment_method=bridge_credits
+    )
+    for session_entry in session_entries:
+        session_entry.amount_paid = session_entry.fee
+        session_entry.save()
+
+    return tab_session_htmx(request, message="Off System payments made")

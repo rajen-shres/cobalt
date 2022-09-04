@@ -114,7 +114,7 @@
 
         {% if session.status == "LD" %}
 
-            <div class="card mx-auto col-md-8 col-lg-6">
+            <div class="card mx-auto col-lg-8">
                 <div class="card-header card-header-rose py-0">
                     <h3>Next Steps</h3>
                 </div>
@@ -145,7 +145,7 @@
 
         {% elif session.status == "BC" %}
 
-            <div class="card mx-auto col-md-8 col-lg-6">
+            <div class="card mx-auto col-lg-8">
                 <div class="card-header card-header-rose py-0">
                     <h3>Next Step</h3>
                 </div>
@@ -163,7 +163,7 @@
                     <div class="col text-center">
                         <button
                             class="btn btn-info mx-auto"
-                            hx-post="{% url "club_sessions:process_bridge_credits_htmx" %}"
+                            hx-post="{% url "club_sessions:process_off_system_payments_htmx" %}"
                             hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
                             hx-target="#id_pane_session"
                         >

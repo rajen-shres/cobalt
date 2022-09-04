@@ -61,6 +61,11 @@ urlpatterns = [
         name="process_bridge_credits_htmx",
     ),
     path(
+        "session/process-off-system-payments",
+        sessions.process_off_system_payments_htmx,
+        name="process_off_system_payments_htmx",
+    ),
+    path(
         "session/delete-misc-session-payment",
         sessions.delete_misc_session_payment_htmx,
         name="delete_misc_session_payment_htmx",
