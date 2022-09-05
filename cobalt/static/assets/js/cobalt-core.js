@@ -4,7 +4,7 @@
 //                                                                        //
 // This does the following:                                               //
 //                                                                        //
-// 1) Intercepts errors and sends them to the server to log               //
+// 1) Intercepts errors and sends them to the server to log - DISABLED    //
 // 2) Stops designated submit buttons from being pressed twice            //
 // 3) Warns a user if they try to leave a page with changes on it         //
 //                                                                        //
@@ -26,24 +26,24 @@ var cobalt_form_data_changed = false;
 // send client side errors to the server to log   //
 //------------------------------------------------//
 
-window.onerror =
-function (message, source, lineno, colno, error) {
-    console.log(message);
-    console.log(source);
-    console.log(lineno);
-    var errorData = {
-      'message': message,
-      'url': source,
-      'num': lineno,
-      'colno': colno,
-      'Error object': JSON.stringify(error)
-    };
-    $.post('/support/browser-errors', {
-      data: JSON.stringify(errorData)
-    });
-
-  return true;
-}
+// window.onerror =
+// function (message, source, lineno, colno, error) {
+//     console.log(message);
+//     console.log(source);
+//     console.log(lineno);
+//     var errorData = {
+//       'message': message,
+//       'url': source,
+//       'num': lineno,
+//       'colno': colno,
+//       'Error object': JSON.stringify(error)
+//     };
+//     $.post('/support/browser-errors', {
+//       data: JSON.stringify(errorData)
+//     });
+//
+//   return true;
+// }
 
 //----------------------------------------------------------------------//
 // async function to disable buttons - called by doc ready function     //

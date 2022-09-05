@@ -188,7 +188,7 @@ def _get_session_fees_for_club(club):
 
     fees = SessionTypePaymentMethodMembership.objects.filter(
         session_type_payment_method__session_type__organisation=club
-    ).filter()
+    )
 
     session_fees = {}
     for fee in fees:
@@ -363,7 +363,7 @@ def _calculate_payment_method_and_balance(session_entries, session_fees, club):
 
 
 @user_is_club_director()
-def tab_session_htmx(request, club, session, message="", bridge_credit_failures=[]):
+def tab_session_htmx(request, club, session, message="", bridge_credit_failures=None):
     """present the main session tab for the director
 
     We have 3 different views (Summary, Detail, Table) but we generate them all from this function.
@@ -372,6 +372,8 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
 
     """
 
+    if bridge_credit_failures is None:
+        bridge_credit_failures = []
     # load static
     (
         session_entries,
@@ -388,11 +390,12 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
     # get payment methods for this club
     payment_methods = OrgPaymentMethod.objects.filter(organisation=club, active=True)
 
-    # logic is too complicated for a template so build the payment_methods here for each session_entry
+    # logic is too complicated for a template, so build the payment_methods here for each session_entry
     for session_entry in session_entries:
         # paid for with credits, no change allowed
         if (
-            session_entry.payment_method.payment_method == BRIDGE_CREDITS
+            session_entry.payment_method
+            and session_entry.payment_method.payment_method == BRIDGE_CREDITS
             and session_entry.amount_paid > 0
         ):
             session_entry.payment_methods = [session_entry.payment_method]

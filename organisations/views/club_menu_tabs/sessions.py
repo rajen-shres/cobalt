@@ -6,7 +6,7 @@ from accounts.accounts_views.core import (
     get_users_or_unregistered_users_from_system_number_list,
 )
 from accounts.models import User
-from club_sessions.models import Session, SessionEntry
+from club_sessions.models import Session, SessionEntry, SessionType
 from organisations.decorators import check_club_menu_access
 from organisations.models import ClubLog
 from organisations.views.general import org_balance
@@ -123,3 +123,19 @@ def _cancel_and_refund_bridge_credits(request, payments, club, session):
     session.delete()
 
     return message
+
+
+@check_club_menu_access(check_sessions=True)
+def club_menu_tab_sessions_sub_htmx(request, club):
+    """this just loads the sessions tab in the club menu, but with some values"""
+
+    # if there are more than 1 session type, then let user choose when they create a new session
+    session_types = SessionType.objects.filter(organisation=club)
+    if len(session_types) == 1:
+        session_types = None
+
+    return render(
+        request,
+        "organisations/club_menu/sessions/session_tab.html",
+        {"club": club, "session_types": session_types},
+    )

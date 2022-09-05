@@ -6,13 +6,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
+from club_sessions.club_sessions_views.common import PLAYING_DIRECTOR, SITOUT
 from club_sessions.club_sessions_views.decorators import user_is_club_director
 from club_sessions.club_sessions_views.sessions import load_session_entry_static
 from club_sessions.models import Session, SessionEntry
 from cobalt.settings import GLOBAL_ORG
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
-from utils.views import download_csv
 
 
 def _build_empty_report_data_structure(session_fees):
@@ -27,7 +27,7 @@ def _build_empty_report_data_structure(session_fees):
 
         for payment_method in session_fees[membership_type]:
             summary_table[membership_type][payment_method] = {}
-            # Handle membership and payment eg. Guest Cash
+            # Handle membership and payment e.g. Guest Cash
             summary_table[membership_type][payment_method][
                 "default_fee"
             ] = session_fees[membership_type][payment_method]
@@ -62,7 +62,7 @@ def _add_data_to_report_data_structure(
     for session_entry in session_entries:
 
         # Skip sit outs and directors
-        if session_entry.system_number not in [1, -1]:
+        if session_entry.system_number not in [PLAYING_DIRECTOR, SITOUT]:
             membership_type = membership_type_dict.get(
                 session_entry.system_number, "Guest"
             )
@@ -149,7 +149,8 @@ def reconciliation_htmx(request, club, session):
     ) = load_session_entry_static(session, club)
 
     # We want the column names so use the Guest row which is always present
-    column_headings = list(session_fees["Guest"])
+    # This will give us e.g. ['Bank Transfer', 'Bridge Credits', 'Cash', 'IOU']
+    column_headings = sorted(session_fees["Guest"])
 
     # Build summary around session_fees - start by building structure
     summary_table = _build_empty_report_data_structure(session_fees)
@@ -163,6 +164,13 @@ def reconciliation_htmx(request, club, session):
     row_has_data = _mark_rows_with_data_in_report_data_structure(summary_table)
     column_has_data = _mark_columns_with_data_in_report_data_structure(summary_table)
 
+    # We need to sort the entries in the summary table by payment method, the same as the headers
+    new_table = {}
+    for row in summary_table:
+        new_row = dict(sorted(summary_table[row].items()))
+        new_table[row] = new_row
+    summary_table = new_table
+
     # See if user wants to see nothing in the report
     show_blanks = bool(request.POST.get("show_blanks", False))
 
@@ -172,7 +180,6 @@ def reconciliation_htmx(request, club, session):
         {
             "club": club,
             "session": session,
-            "session_entries": session_entries,
             "summary_table": summary_table,
             "column_headings": column_headings,
             "row_has_data": row_has_data,

@@ -650,6 +650,11 @@ urlpatterns = [
         name="delete_session_htmx",
     ),
     path(
+        "sessions/club-menu-tab-sessions-sub",
+        organisations.views.club_menu_tabs.sessions.club_menu_tab_sessions_sub_htmx,
+        name="club_menu_tab_sessions_sub_htmx",
+    ),
+    path(
         "general/default_secondary_payment_method",
         organisations.views.club_menu_tabs.settings.default_secondary_payment_method_htmx,
         name="club_menu_tab_settings_default_secondary_payment_method_htmx",

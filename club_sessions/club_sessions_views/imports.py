@@ -8,6 +8,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 from accounts.accounts_views.core import add_un_registered_user_with_mpc_data
+from club_sessions.club_sessions_views.common import PLAYING_DIRECTOR
 from club_sessions.club_sessions_views.decorators import user_is_club_director
 from club_sessions.forms import FileImportForm
 from club_sessions.models import SessionEntry, SessionMiscPayment, Session, SessionType
@@ -107,7 +108,9 @@ def _import_file_upload_htmx_compscore2(request, club, session):
             player = player2
 
     # The session title is the second line
-    session.description = lines[1].decode("utf-8")[:30]
+    session.description = (
+        lines[1].decode("utf-8")[:30].replace("\r", "").replace("\n", "")
+    )
     session.import_messages = json.dumps(messages)
     session.save()
 
@@ -135,7 +138,14 @@ def import_file_upload_htmx(request):
     form = FileImportForm(request.POST, request.FILES)
     if form.is_valid():
 
-        session_type = SessionType.objects.filter(organisation=club).first()
+        # If we got a session type then use that, otherwise use first (only) one
+        if "session_type" in request.POST:
+            session_type = get_object_or_404(
+                SessionType, pk=request.POST.get("session_type")
+            )
+        else:
+            session_type = SessionType.objects.filter(organisation=club).first()
+
         session = Session(
             director=request.user,
             session_type=session_type,
@@ -207,11 +217,16 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         amount_paid=0,
         payment_method=payment_method,
     )
+
+    # Handle directors
+    if system_number == PLAYING_DIRECTOR:
+        session_entry.payment_method = session.default_secondary_payment_method
+        session_entry.fee = 0
+
     session_entry.save()
 
     # Add additional session payments if set
     if session.additional_session_fee > 0:
-        print("adding extras")
         SessionMiscPayment(
             session_entry=session_entry,
             optional_description=session.additional_session_fee_reason,
