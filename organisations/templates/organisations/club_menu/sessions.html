@@ -95,7 +95,8 @@
             console.log(win);
 
             // The second time through win is set to null. Not ideal but seems to work
-            if (win !== undefined) {
+            {#if (win !== undefined) {#}
+            if (win) {
                 //Browser has allowed it to be opened
                 if (win) {
                     win.focus();
@@ -106,8 +107,8 @@
             } else {
                 //Browser has blocked it
                 swal.fire({
-                    title: "Popups are blocked",
-                    html: "Session created but your browser is blocking popups from this site so we can't open the session automatically. You can click edit below to go to the session page. To avoid this message in future, allow popups for this site.",
+                    title: "Popups may be blocked",
+                    html: "Session created but your browser is telling us that it is blocking popups from this site (some browsers lie) so we can't open the session automatically. You can click edit below to go to the session page. To avoid this message in future, allow popups for this site.",
                     icon: "info"
                 }).then((result) => {
                     // Now reload this page as the dropdown freezes

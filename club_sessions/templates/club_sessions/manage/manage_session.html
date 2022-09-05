@@ -31,46 +31,6 @@
             font-size: 22px !important;
         }
 
-        /* Used for the progress bar in totals */
-
-        {#.animated-progress {#}
-        {#    width: 600px;#}
-        {#    height: 30px;#}
-        {#    border-radius: 5px;#}
-        {#    margin: 20px 10px;#}
-        {#    border: 1px solid rgb(189, 113, 113);#}
-        {#    overflow: hidden;#}
-        {#    position: relative;#}
-        {#    font-size: large;#}
-        {#}#}
-        {##}
-        {#.animated-progress span {#}
-        {#    height: 100%;#}
-        {#    display: block;#}
-        {#    width: 0;#}
-        {#    color: rgb(255, 251, 251);#}
-        {#    line-height: 30px;#}
-        {#    position: absolute;#}
-        {#    text-align: center;#}
-        {#    padding-right: 5px;#}
-        {#}#}
-        {##}
-        {#.progress-success span {#}
-        {#    background-color: #4caf50;#}
-        {#}#}
-        {#.progress-primary span {#}
-        {#    background-color: #007bff;#}
-        {#}#}
-        {#.progress-danger span {#}
-        {#    background-color: #f44336;#}
-        {#}#}
-        {#.progress-info span {#}
-        {#    background-color: #00bcd4;#}
-        {#}#}
-        {#.progress-warning span {#}
-        {#    background-color: #ff9800;#}
-        {#}#}
-
         /* Used for progress wizard in totals */
         .steps-form {
             display: table;
@@ -221,7 +181,7 @@
 
                             <div id="id_totals"
                                 hx-post="{% url "club_sessions:session_entry_session_totals_htmx" %}"
-                                hx-trigger="load, other_update"
+                                hx-trigger="load, update_totals"
                                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
                             >
                             </div>
@@ -370,6 +330,11 @@
                 const url = '{% url "club_sessions:tab_session_htmx" %}';
                 htmx.ajax('POST', url, {'target': '#id_pane_session', 'values': postData});
 
+            });
+
+            // When totals does something it updates the bottom part, also send message to update totals
+            document.body.addEventListener("update_totals", function(evt) {
+                htmx.trigger(htmx.find('#id_totals'), "update_totals");
             });
 
         });

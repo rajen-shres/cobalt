@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from django.db.models import Sum, Max
+from django.db.models import Sum, Max, F
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -670,7 +670,29 @@ def change_paid_amount_status_htmx(request, club, session, session_entry):
         session_entry.amount_paid = session_entry.fee or 0
     session_entry.save()
 
-    return HttpResponse("")
+    # Check status now
+    unpaid_count = (
+        SessionEntry.objects.filter(session=session)
+        .exclude(amount_paid=F("fee"))
+        .count()
+    )
+    if unpaid_count > 1:
+        return HttpResponse("")
+
+    elif unpaid_count == 0:
+        # No unpaid, mark as complete
+        session.status = Session.SessionStatus.COMPLETE
+        session.save()
+
+    elif unpaid_count == 1:
+        # one unpaid, so either un-ticked, or ticked second last. reset status
+        session.status = Session.SessionStatus.CREDITS_PROCESSED
+        session.save()
+
+    # Include HX-Trigger in response so we know to update the totals too
+    response = HttpResponse("")
+    response["HX-Trigger"] = "update_totals"
+    return response
 
 
 def _session_totals_calculations(
@@ -776,12 +798,20 @@ def session_totals_htmx(request, club, session):
     elif session.status == Session.SessionStatus.CREDITS_PROCESSED:
         progress_colour = "warning"
         progress_percent = 60
-    elif session.status == Session.SessionStatus.OFF_SYSTEM_PAYMENTS_PROCESSED:
-        progress_colour = "info"
-        progress_percent = 80
     elif session.status == Session.SessionStatus.COMPLETE:
         progress_colour = "success"
         progress_percent = 100
+
+    # Get bridge credits for this org
+    bridge_credits = OrgPaymentMethod.objects.filter(
+        active=True, organisation=club, payment_method="Bridge Credits"
+    ).first()
+
+    # See if anyone is paying with bridge credits
+    paying_with_bridge_credits = any(
+        session_entry.payment_method == bridge_credits
+        for session_entry in session_entries
+    )
 
     return render(
         request,
@@ -792,6 +822,7 @@ def session_totals_htmx(request, club, session):
             "club": club,
             "progress_colour": progress_colour,
             "progress_percent": progress_percent,
+            "paying_with_bridge_credits": paying_with_bridge_credits,
         },
     )
 
@@ -864,6 +895,19 @@ def process_bridge_credits_htmx(request, club, session):
     session_entries = SessionEntry.objects.filter(
         session=session, amount_paid=0, payment_method=bridge_credits
     )
+
+    # Go back if no bridge credits being paid
+    if not session_entries:
+        session.status = Session.SessionStatus.CREDITS_PROCESSED
+        session.save()
+
+        message = f"No {BRIDGE_CREDITS} to process. Moving to Off-System Payments."
+
+        # Include HX-Trigger in response so we know to update the totals too
+        response = tab_session_htmx(request, message=message)
+        response["HX-Trigger"] = "update_totals"
+        return response
+
     system_numbers = session_entries.values_list("system_number", flat=True)
     users_qs = User.objects.filter(system_number__in=system_numbers)
     users_by_system_number = {user.system_number: user for user in users_qs}
@@ -904,21 +948,24 @@ def process_bridge_credits_htmx(request, club, session):
             session_entry.payment_method = session.default_secondary_payment_method
             session_entry.save()
 
-        # Update status of session - see if there are any payments left
-        if (
-            SessionEntry.objects.filter(session=session)
-            .exclude(payment_method=bridge_credits)
-            .exists()
-        ):
-            session.status = Session.SessionStatus.CREDITS_PROCESSED
-        else:
-            # No further payments, move to next step
-            session.status = Session.SessionStatus.OFF_SYSTEM_PAYMENTS_PROCESSED
-        session.save()
+    # Update status of session - see if there are any payments left
+    if (
+        SessionEntry.objects.filter(session=session)
+        .exclude(payment_method=bridge_credits)
+        .exists()
+    ):
+        session.status = Session.SessionStatus.CREDITS_PROCESSED
+    else:
+        # No further payments, move to next step
+        session.status = Session.SessionStatus.COMPLETE
+    session.save()
 
     message = f"{BRIDGE_CREDITS} processed. Success: {success}. Failure {failure}."
 
-    return tab_session_htmx(request, message=message)
+    # Include HX-Trigger in response so we know to update the totals too
+    response = tab_session_htmx(request, message=message)
+    response["HX-Trigger"] = "update_totals"
+    return response
 
 
 @user_is_club_director(include_session_entry=True)
@@ -990,7 +1037,10 @@ def process_off_system_payments_htmx(request, club, session):
         session_entry.amount_paid = session_entry.fee
         session_entry.save()
 
-    session.status = Session.SessionStatus.OFF_SYSTEM_PAYMENTS_PROCESSED
+    session.status = Session.SessionStatus.COMPLETE
     session.save()
 
-    return tab_session_htmx(request, message="Off System payments made")
+    # Include HX-Trigger in response so we know to update the totals too
+    response = tab_session_htmx(request, message="Off System payments made")
+    response["HX-Trigger"] = "update_totals"
+    return response

@@ -1,6 +1,9 @@
 {#------------------------------------------------------------------------#}
 {#                                                                        #}
-{# Show totals for the session tab. Updates when the data changes         #}
+{# Show top control part of session tab. Updates when the data changes.   #}
+{#                                                                        #}
+{# Totals used to just be a list of totals, but then took over control    #}
+{# so Totals is now a really silly name for it, sorry.                    #}
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 
@@ -18,97 +21,59 @@
 
                 <!-- STEP 1 - LOAD DATA - ALWAYS SET -->
                 <div class="steps-step">
-                    <span class="btn btn-circle btn-primary">1</span>
-                    <p>Load Data</p>
+                    <span class="btn btn-circle btn-success">1</span>
+                    <p><span class="material-icons inline-icon">done</span>Load Data</p>
                 </div>
 
                 <!-- STEP 2 - ADJUST SETTINGS - NEVER GETS SET - WE DON'T KNOW IF IT HAPPENS, USE HIGHER STATUS TO CHECK -->
                 <div class="steps-step">
-                    <span class="btn btn-circle
-                        {% if session.status == "BC" or session.status == "OS" or session.status == "CO" %}
-                            btn-primary
-                        {% endif %}
-                        ">2</span>
-                    <p>Adjust settings (optional)</p>
+                    {% if session.status == "CO" or session.status == "BC" %}
+                        <span class="btn btn-circle btn-success">2</span>
+                        <p><span class="material-icons inline-icon">done</span>Adjust settings (optional)</p>
+                    {% elif session.status == "LD" %}
+                        <span class="btn btn-circle btn-primary">2</span>
+                        <p>Adjust Settings (optional)</p>
+                    {% endif %}
                 </div>
 
                 <!-- STEP 3 - PROCESS BRIDGE CREDITS -->
                 <div class="steps-step">
-                    <span class="btn btn-circle
-                        {% if session.status == "BC" or session.status == "OS" or session.status == "CO" %}
-                            btn-primary
-                        {% endif %}
-                        ">3</span>
-                    <p>Process {{ BRIDGE_CREDITS }}</p>
+                    {% if session.status == "CO" or session.status == "BC" %}
+                        <span class="btn btn-circle btn-success">3</span>
+                        <p><span class="material-icons inline-icon">done</span>Process {{ BRIDGE_CREDITS }}</p>
+                    {% elif session.status == "LD" %}
+                        <span class="btn btn-circle btn-primary">3</span>
+                        <p>Process {{ BRIDGE_CREDITS }}</p>
+                    {% endif %}
                 </div>
 
                 <!-- STEP 4 - PROCESS OFF SYSTEM PAYMENTS -->
                 <div class="steps-step">
-                    <span class="btn btn-circle
-                        {% if session.status == "OS" or session.status == "CO" %}
-                            btn-primary
-                        {% endif %}
-                        ">4</span>
-                    <p>Process Off-System Payments</p>
+                    {% if session.status == "CO" %}
+                        <span class="btn btn-circle btn-success">3</span>
+                        <p><span class="material-icons inline-icon">done</span>Process Off-System Payments</p>
+                    {% elif session.status == "BC" %}
+                        <span class="btn btn-circle btn-primary">3</span>
+                        <p>Process Off-System Payments</p>
+                    {% else %}
+                        <span class="btn btn-circle">3</span>
+                        <p>Process Off-System Payments</p>
+                    {% endif %}
                 </div>
 
                 <!-- STEP 5 - COMPLETE -->
                 <div class="steps-step">
-                    <span class="btn btn-circle
-                        {% if session.status == "CO" %}
-                            btn-primary
-                        {% endif %}
-                        ">5</span>
-                    <p>Complete</p>
+                    {% if session.status == "CO" %}
+                        <span class="btn btn-circle btn-success">5</span>
+                        <p><span class="material-icons inline-icon">done</span>Complete</p>
+                    {% else %}
+                        <span class="btn btn-circle">5</span>
+                        <p>Complete</p>
+                    {% endif %}
+
                 </div>
             </div>
         </div>
-
-        {#        <!-- PROGRESS ANIMATION -->#}
-        {#        <h3 class="text-center pb-0 mb-1">Progress</h3>#}
-        {#        <div class="animated-progress progress-{{ progress_colour }} mx-auto pt-0 mt-0">#}
-        {#            <span data-progress="{{ progress_percent }}"></span>#}
-        {#        </div>#}
-        {##}
-        {#        <!-- TABLE OF STATS -->#}
-        {#        <div class="col-md-6 col-lg-4 mx-auto pb-5">#}
-        {#            <table class="table border table-condensed table-striped">#}
-        {#                <thead class="thead-dark">#}
-        {#                    <tr>#}
-        {#                        <th colspan="2" class="text-center">Stats</th>#}
-        {#                    </tr>#}
-        {#                </thead>#}
-        {#                <tbody>#}
-        {#                    <tr>#}
-        {#                        <td class="text-left">Tables</td>#}
-        {#                        <td class="text-right">{{ totals.tables }}</td>#}
-        {#                    </tr>#}
-        {#                    <tr>#}
-        {#                        <td class="text-left">{{  BRIDGE_CREDITS }} Due</td>#}
-        {#                        <td class="text-right">{{ totals.bridge_credits_due }}</td>#}
-        {#                    </tr>#}
-        {#                    {% if totals.unknown_payment_methods %}#}
-        {#                        <tr>#}
-        {#                            <td class="text-left">Unknown Payment Types</td>#}
-        {#                            <td class="text-right">{{ totals.unknown_payment_methods }}</td>#}
-        {#                        </tr>#}
-        {#                    {% endif %}#}
-        {#                    <tr>#}
-        {#                        <td class="text-left">{{  BRIDGE_CREDITS }} Received</td>#}
-        {#                        <td class="text-right">{{ totals.bridge_credits_received }}</td>#}
-        {#                    </tr>#}
-        {#                    <tr>#}
-        {#                        <td class="text-left">Off System Payments Due</td>#}
-        {#                        <td class="text-right">{{ totals.other_methods_due }}</td>#}
-        {#                    </tr>#}
-        {#                    <tr>#}
-        {#                        <td class="text-left">Off System Payments Received</td>#}
-        {#                        <td class="text-right">{{ totals.other_methods_received }}</td>#}
-        {#                    </tr>#}
-        {#                </tbody>#}
-        {#            </table>#}
-        {#        </div>#}
-
 
         <!-- NEXT STEPS -->
 
@@ -128,6 +93,10 @@
                         <dt>3) Process {{ BRIDGE_CREDITS }}</dt>
                         <dd>Click the button below to process the {{ BRIDGE_CREDITS }} for players who are able to pay
                             using this method.</dd>
+                        {% if not paying_with_bridge_credits %}
+                            <dd>You don't have anyone set up to pay with {{ BRIDGE_CREDITS }}. Click the button below
+                                to proceed to the next step once you have made any changes you need.</dd>
+                        {% endif %}
                     </dl>
                     <div class="col text-center">
                         <button
@@ -136,7 +105,11 @@
                             hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
                             hx-target="#id_pane_session"
                         >
-                            Process {{ BRIDGE_CREDITS }}
+                            {% if paying_with_bridge_credits %}
+                                Process {{ BRIDGE_CREDITS }}
+                            {% else %}
+                                Proceed to Next Step
+                            {% endif %}
                         </button>
                     </div>
                 </div>
@@ -171,27 +144,26 @@
                         </button>
                     </div>
                 </div>
+            </div>
 
+        {% elif session.status == "CO" %}
+
+            <div class="card mx-auto col-lg-8">
+                <div class="card-header card-header-rose py-0">
+                    <h3>Finished!</h3>
+                </div>
+                <div class="card-body">
+
+                    <dl>
+                        <dt>Everything is done</dt>
+                        <dd>You can check the Reports tab above, or edit a player entry if something is wrong.</dd>
+                        <dd>If you edit an entry, the overall status will revert to not being complete.</dd>
+                    </dl>
+                </div>
             </div>
 
         {% endif %}
     </div>
 </div>
-{##}
-{#<script>#}
-{#    $(document).ready( function () {#}
-{##}
-{#        // Show animation for the progress bar#}
-{#        $(".animated-progress span").each(function () {#}
-{#            $(this).animate(#}
-{#                {#}
-{#                    width: $(this).attr("data-progress") + "%",#}
-{#                },#}
-{#                1000#}
-{#            );#}
-{#            $(this).text($(this).attr("data-progress") + "%");#}
-{#        });#}
-{##}
-{#    });#}
-{#</script>#}
+
 

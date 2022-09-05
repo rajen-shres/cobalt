@@ -87,7 +87,6 @@ class Session(models.Model):
     class SessionStatus(models.TextChoices):
         DATA_LOADED = "LD"
         CREDITS_PROCESSED = "BC"
-        OFF_SYSTEM_PAYMENTS_PROCESSED = "OS"
         COMPLETE = "CO"
 
     director = models.ForeignKey(

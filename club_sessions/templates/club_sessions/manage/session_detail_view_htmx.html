@@ -290,9 +290,9 @@
         });
 
         // watch for any update field changing and reload totals
-        $('.selectpicker, .paid_flag').change(function(evt) {
-            htmx.trigger("#id_totals", "other_update");
-        });
+        {#$('.selectpicker, .paid_flag').change(function(evt) {#}
+        {#    htmx.trigger("#id_totals", "other_update");#}
+        {#});#}
 
 
         // sleep time expects milliseconds

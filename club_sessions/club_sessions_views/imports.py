@@ -18,30 +18,6 @@ from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
 
 
-@user_is_club_director()
-def tab_import_htmx(request, club, session, messages=None, reload=False):
-    """file upload tab
-
-    Can be called directly (by HTMX on tab load) or after file upload. If after file upload then
-    messages will contain any messages for the user and reload will be True.
-
-    """
-
-    existing_data = SessionEntry.objects.filter(session=session)
-
-    return render(
-        request,
-        "club_sessions/manage/import_htmx.html",
-        {
-            "session": session,
-            "club": club,
-            "existing_data": existing_data,
-            "messages": messages,
-            "reload": reload,
-        },
-    )
-
-
 def _import_file_upload_htmx_simple_csv(request, club, session):
     """Sub to handle simple CSV file. This is a generic format, not from the real world"""
 
@@ -131,10 +107,9 @@ def _import_file_upload_htmx_compscore2(request, club, session):
             player = player2
 
     # The session title is the second line
-    session.description = lines[1].decode("utf-8")
+    session.description = lines[1].decode("utf-8")[:30]
     session.import_messages = json.dumps(messages)
     session.save()
-    print(messages)
 
     return messages
 
