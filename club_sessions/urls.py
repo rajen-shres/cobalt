@@ -81,6 +81,11 @@ urlpatterns = [
         name="reports_reconciliation_htmx",
     ),
     path(
+        "reports/import-messages",
+        reports.import_messages_htmx,
+        name="reports_import_messages_htmx",
+    ),
+    path(
         "reports/csv-download/<int:session_id>",
         reports.csv_download,
         name="reports_csv_download",

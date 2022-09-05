@@ -5,18 +5,11 @@
 {#------------------------------------------------------------------------#}
 <ul>
 
-    <li>Get rid of pretty much all the code but keep the data model and strengthen it</li>
-    <li>Happy flow should be load file -> done</li>
-    <li>Get rid of extra payments from normal workflow - link only</li>
-    <li>Show confirm screen with expandable list of Bridge Credits, IOUs, Cash</li>
-    <li>Pay for someone else should be done through payments</li>
     <li>Handle messages on creating new session - maybe store on db object for session</li>
     <li>Screen freeze after uploading file - change to reload whole screen</li>
-    <li>Quick option to make payments too</li>
     <li>Default scoring program for club - allow override but automatically choose the correct one</li>
     <li>Selector for session type (F2F or Online etc) before creating session</li>
     <li>Title of session from file</li>
-    <li>Move secondary payment method onto org</li>
     <li>Fix popup window detect HTMX error when adding 2nd session</li>
 
 </ul>
@@ -48,7 +41,16 @@
                             {% endif %}
                         </td>
                         <td>
+                            <!-- EDIT - OPEN NEW WINDOW -->
                             <a target="_blank" href="{% url "club_sessions:manage_session" session_id=thing.id %}" class="btn btn-sm btn-success">Edit</a>
+                            <!-- DELETE -->
+                            <button
+                                class="btn btn-sm btn-danger"
+                                hx-post="{% url "organisations:delete_session_htmx" %}"
+                                hx-target="#id_panel_sessions"
+                                hx-trigger="click"
+                                hx-vars="club_id:{{ club.id }}, session_id:{{ thing.id }}"
+                            >Delete</button>
                         </td>
 
                     </tr>

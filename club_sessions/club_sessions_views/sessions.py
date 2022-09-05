@@ -428,10 +428,11 @@ def tab_session_htmx(request, club, session, message=""):
 
         # Add session_entry as well for drop down list
         name = mixed_dict[session_entry.system_number]["value"]
+        member_type = membership_type_dict.get(session_entry.system_number, "Guest")
         item = {
             "player": name,
             "session_entry": session_entry,
-            "membership": membership_type_dict[session_entry.system_number],
+            "membership": member_type,
         }
         payment_summary[pay_method]["players"].append(item)
 

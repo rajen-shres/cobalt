@@ -54,7 +54,7 @@ def check_club_menu_access(
     club parameter.
 
     The optional parameters are only applied for normal admin users, Global or State
-    admins get in anyway even if they don't have the extra permissions.
+    admins get in any way even if they don't have the extra permissions.
 
     """
 

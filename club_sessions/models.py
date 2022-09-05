@@ -123,6 +123,8 @@ class Session(models.Model):
         null=True,
         on_delete=models.PROTECT,
     )
+    import_messages = models.TextField(blank=True, null=True)
+    """ A place to store the messages generated when we imported the file (if we did) """
 
     def __str__(self):
         return f"{self.description} - {self.session_date}"

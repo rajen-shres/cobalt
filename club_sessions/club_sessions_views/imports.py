@@ -1,5 +1,6 @@
 import codecs
 import csv
+import json
 import re
 
 from django.http import HttpRequest, HttpResponse
@@ -91,8 +92,10 @@ def _import_file_upload_htmx_compscore2(request, club, session):
     current_direction = ["N", "S"]
     line_no = 0
 
+    lines = text_file.readlines()
+
     # Go through the lines looking for a valid line, or the change of direction line
-    for line in text_file.readlines():
+    for line in lines:
 
         # change bytes to str
         line = line.decode("utf-8")
@@ -126,6 +129,12 @@ def _import_file_upload_htmx_compscore2(request, club, session):
             if response:
                 messages.append(response)
             player = player2
+
+    # The session title is the second line
+    session.description = lines[1].decode("utf-8")
+    session.import_messages = json.dumps(messages)
+    session.save()
+    print(messages)
 
     return messages
 

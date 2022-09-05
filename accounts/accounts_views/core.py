@@ -394,3 +394,33 @@ def get_email_address_and_name_from_system_number(system_number, club=None):
         return override.email, un_reg.first_name
 
     return un_reg.email, un_reg.first_name
+
+
+def get_users_or_unregistered_users_from_system_number_list(system_number_list):
+    """takes a list of system numbers and returns a dictionary or User or UnregisteredUser objects
+    indexed by system_number
+    """
+
+    # Get Users and UnregisteredUsers
+    users = User.objects.filter(system_number__in=system_number_list)
+    un_regs = UnregisteredUser.objects.filter(system_number__in=system_number_list)
+
+    # Convert to a dictionary
+    mixed_dict = {}
+
+    for user in users:
+        user.is_user = True
+        mixed_dict[user.system_number] = {
+            "type": "User",
+            "value": user,
+        }
+
+    # Add unregistered to dictionary
+    for un_reg in un_regs:
+        un_reg.is_un_reg = True
+        mixed_dict[un_reg.system_number] = {
+            "type": "UnregisteredUser",
+            "value": un_reg,
+        }
+
+    return mixed_dict

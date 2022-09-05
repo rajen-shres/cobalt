@@ -303,6 +303,17 @@
                             Full
                         </button>
 
+                        <!-- IMPORT MESSAGES -->
+                        <button
+                            class="btn btn-success"
+                            hx-post="{% url "club_sessions:reports_import_messages_htmx" %}"
+                            hx-trigger="click"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            hx-target="#id_pane_reports"
+                        >
+                            Messages
+                        </button>
+
                         <!-- CSV -->
                         <a
                             class="btn btn-success"

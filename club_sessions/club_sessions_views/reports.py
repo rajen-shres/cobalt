@@ -1,4 +1,5 @@
 import csv
+import json
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
@@ -62,7 +63,9 @@ def _add_data_to_report_data_structure(
 
         # Skip sit outs and directors
         if session_entry.system_number not in [1, -1]:
-            membership_type = membership_type_dict[session_entry.system_number]
+            membership_type = membership_type_dict.get(
+                session_entry.system_number, "Guest"
+            )
             payment_method = session_entry.payment_method.payment_method
 
             # This cell
@@ -229,3 +232,16 @@ def csv_download(request, session_id):
         writer.writerow(values)
 
     return response
+
+
+@user_is_club_director()
+def import_messages_htmx(request, club, session):
+    """Show the messages generated when we imported the file"""
+
+    messages = json.loads(session.import_messages)
+
+    return render(
+        request,
+        "club_sessions/reports/import_messages_htmx.html",
+        {"messages": messages},
+    )
