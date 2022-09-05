@@ -11,6 +11,25 @@
 <!-- MESSAGE -->
 <h3 class="text-primary font-weight-bold">{{ message }}</h3>
 
+<!-- SHOW WHO FAILED IF WE HAVE BRIDGE CREDIT FAILURES -->
+{% if bridge_credit_failures %}
+    <div class="card col-md-6">
+        <div class="card-header card-header-danger">
+            <h3>Payment Failures</h3>
+        </div>
+        <div class="card-body">
+
+            <p>We were unable to process bridge credits for the following people:</p>
+            <ul>
+                {% for bridge_credit_failure in bridge_credit_failures %}
+                    <li>{{ bridge_credit_failure }}</li>
+                {% endfor %}
+            </ul>
+            <p>Their payment method has been changed to <b>{{ session.default_secondary_payment_method.payment_method }}</b>.</p>
+        </div>
+    </div>
+{% endif %}
+
 {% if not session_entries %}
 
     <h4>No players found. Click below to add a table manually.</h4>

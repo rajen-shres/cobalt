@@ -21,17 +21,6 @@
         <h3>Loading...</h3>
     </div>
 
-    <!-- DELETE ME -->
-    {#    <ul>#}
-    {#        <li>Pay all</li>#}
-    {#        <li>Low balance warning</li>#}
-    {#        <li>Change all payment methods (except already set)</li>#}
-    {#        <li>Visual for being paid for</li>#}
-    {#        <li>Outstanding IOUs</li>#}
-    {#        <li>Flag for automatic IOUs?</li>#}
-    {#        <li>Block editing paid_amount field for bridge credits</li>#}
-    {#    </ul>#}
-
     <div class="table-responsive d-none" id="main_session_table">
 
         <!-- MAIN TABLE -->
@@ -164,6 +153,11 @@
                                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
                                 hx-target="#id_session_entry_fee_{{ session_entry.id }}"
                                 style="width: 30px;"
+
+                                {# If payment has been made, don't allow bridge credits to be changed to something else #}
+                                {% if session_entry.amount_paid > 0 and session_entry.payment_method.payment_method == BRIDGE_CREDITS %}
+                                    disabled="true"
+                                {% endif %}
                             >
 
                                 <!-- IF NO SELECTION THEN SHOW HEADING, ALSO IF INVALID -->
@@ -172,18 +166,13 @@
                                     <option selected disabled value="">Select...</option>
                                 {% endif %}
 
-                                {% for payment_method in payment_methods %}
+                                {% for payment_method in session_entry.payment_methods %}
 
-                                    <!-- ONLY ALLOW BRIDGE CREDITS FOR REAL USERS -->
-                                    {% if payment_method.payment_method != BRIDGE_CREDITS or session_entry.player_type == "User" %}
-
-                                        <option value="{{ payment_method.id }}"
-                                            {% if session_entry.payment_method.id == payment_method.id  %}
-                                                selected
-                                            {% endif %}
-                                        >{{ payment_method.payment_method }}</option>
-
-                                    {% endif %}
+                                    <option value="{{ payment_method.id }}"
+                                        {% if session_entry.payment_method.id == payment_method.id  %}
+                                            selected
+                                        {% endif %}
+                                    >{{ payment_method.payment_method }}</option>
 
                                 {% endfor %}
                             </select>

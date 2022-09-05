@@ -10,7 +10,7 @@ from accounts.accounts_views.core import (
     get_user_or_unregistered_user_from_system_number,
 )
 from accounts.models import User, UnregisteredUser
-from cobalt.settings import BRIDGE_CREDITS, GLOBAL_CURRENCY_SYMBOL
+from cobalt.settings import BRIDGE_CREDITS, GLOBAL_CURRENCY_SYMBOL, ALL_SYSTEM_ACCOUNTS
 from masterpoints.views import abf_checksum_is_valid
 from notifications.notifications_views.core import (
     send_cobalt_email_to_system_number,
@@ -363,7 +363,7 @@ def _calculate_payment_method_and_balance(session_entries, session_fees, club):
 
 
 @user_is_club_director()
-def tab_session_htmx(request, club, session, message=""):
+def tab_session_htmx(request, club, session, message="", bridge_credit_failures=[]):
     """present the main session tab for the director
 
     We have 3 different views (Summary, Detail, Table) but we generate them all from this function.
@@ -387,6 +387,26 @@ def tab_session_htmx(request, club, session, message=""):
 
     # get payment methods for this club
     payment_methods = OrgPaymentMethod.objects.filter(organisation=club, active=True)
+
+    # logic is too complicated for a template so build the payment_methods here for each session_entry
+    for session_entry in session_entries:
+        # paid for with credits, no change allowed
+        if (
+            session_entry.payment_method.payment_method == BRIDGE_CREDITS
+            and session_entry.amount_paid > 0
+        ):
+            session_entry.payment_methods = [session_entry.payment_method]
+        # if we have processed the bridge credits already, then don't allow bridge credits as an option
+        elif session.status in [
+            Session.SessionStatus.COMPLETE,
+            Session.SessionStatus.CREDITS_PROCESSED,
+        ]:
+            session_entry.payment_methods = []
+            for payment_method in payment_methods:
+                if payment_method.payment_method != BRIDGE_CREDITS:
+                    session_entry.payment_methods.append(payment_method)
+        else:
+            session_entry.payment_methods = payment_methods
 
     # put session_entries into a dictionary for the table view
     table_list = {}
@@ -456,6 +476,7 @@ def tab_session_htmx(request, club, session, message=""):
             "payment_methods": payment_methods,
             "payment_summary": payment_summary,
             "message": message,
+            "bridge_credit_failures": bridge_credit_failures,
         },
     )
 
@@ -866,10 +887,6 @@ def add_misc_payment_htmx(request, club, session, session_entry):
 def process_bridge_credits_htmx(request, club, session):
     """handle bridge credits for the session - called from a big button"""
 
-    # Counters
-    success = 0
-    failure = 0
-
     # Get bridge credits for this org
     bridge_credits = OrgPaymentMethod.objects.filter(
         active=True, organisation=club, payment_method="Bridge Credits"
@@ -894,27 +911,44 @@ def process_bridge_credits_htmx(request, club, session):
     # For each player go through and work out what they owe
     session_entries = SessionEntry.objects.filter(
         session=session, amount_paid=0, payment_method=bridge_credits
-    )
+    ).exclude(system_number__in=ALL_SYSTEM_ACCOUNTS)
 
     # Go back if no bridge credits being paid
     if not session_entries:
         session.status = Session.SessionStatus.CREDITS_PROCESSED
         session.save()
-
         message = f"No {BRIDGE_CREDITS} to process. Moving to Off-System Payments."
 
-        # Include HX-Trigger in response so we know to update the totals too
-        response = tab_session_htmx(request, message=message)
-        response["HX-Trigger"] = "update_totals"
-        return response
+    else:
+        success, failures = _process_bridge_credits_sub(
+            session_entries, session, club, bridge_credits, extras
+        )
+        message = (
+            f"{BRIDGE_CREDITS} processed. Success: {success}. Failure {len(failures)}."
+        )
 
+    # Include HX-Trigger in response so we know to update the totals too
+    response = tab_session_htmx(
+        request, message=message, bridge_credit_failures=failures
+    )
+    response["HX-Trigger"] = "update_totals"
+    return response
+
+
+def _process_bridge_credits_sub(session_entries, session, club, bridge_credits, extras):
+    """sub of process_bridge_credits_htmx to handle looping through and making payments"""
+
+    # counters
+    success = 0
+    failures = []
+
+    # users
     system_numbers = session_entries.values_list("system_number", flat=True)
     users_qs = User.objects.filter(system_number__in=system_numbers)
     users_by_system_number = {user.system_number: user for user in users_qs}
 
-    for session_entry in SessionEntry.objects.filter(
-        session=session, amount_paid=0, payment_method=bridge_credits
-    ):
+    # loop through and try to make payments
+    for session_entry in session_entries:
 
         amount_paid = (
             float(session_entry.amount_paid) if session_entry.amount_paid else 0
@@ -937,6 +971,7 @@ def process_bridge_credits_htmx(request, club, session):
             session_entry.amount_paid = session_entry.fee
             session_entry.save()
 
+            # mark any misc payments for this session as paid
             SessionMiscPayment.objects.filter(
                 session_entry__session=session,
                 session_entry__system_number=session_entry.system_number,
@@ -944,7 +979,7 @@ def process_bridge_credits_htmx(request, club, session):
 
         else:
             # Payment failed - change payment method
-            failure += 1
+            failures.append(member)
             session_entry.payment_method = session.default_secondary_payment_method
             session_entry.save()
 
@@ -960,12 +995,7 @@ def process_bridge_credits_htmx(request, club, session):
         session.status = Session.SessionStatus.COMPLETE
     session.save()
 
-    message = f"{BRIDGE_CREDITS} processed. Success: {success}. Failure {failure}."
-
-    # Include HX-Trigger in response so we know to update the totals too
-    response = tab_session_htmx(request, message=message)
-    response["HX-Trigger"] = "update_totals"
-    return response
+    return success, failures
 
 
 @user_is_club_director(include_session_entry=True)
