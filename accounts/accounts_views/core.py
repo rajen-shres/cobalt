@@ -135,23 +135,32 @@ def activate(request, uidb64, token):
 def password_reset_request(request):
     """handle password resets from users not logged in"""
     if request.method != "POST":
-        password_reset_form = PasswordResetForm()
+        form = PasswordResetForm()
         return render(
             request,
             "registration/password_reset_form.html",
-            {"password_reset_form": password_reset_form},
+            {"form": form},
         )
 
-    password_reset_form = PasswordResetForm(request.POST)
+    form = PasswordResetForm(request.POST)
 
-    if not password_reset_form.is_valid():
+    if not form.is_valid():
+        log_event(
+            request=request,
+            user="logged out",
+            severity="WARN",
+            source="Accounts",
+            sub_source="password_reset",
+            message=f"Attempt to reset password failed. Form invalid. Email: {request.POST.get('email')}",
+        )
+
         return render(
             request,
             "registration/password_reset_form.html",
-            {"password_reset_form": password_reset_form},
+            {"form": form},
         )
 
-    email = password_reset_form.cleaned_data["email"]
+    email = form.cleaned_data["email"]
     associated_users = User.objects.filter(email=email)
 
     email_body_base = (
@@ -165,6 +174,16 @@ def password_reset_request(request):
             "only click on the link sent to the person who wants to reset their password.<br><br>"
         )
 
+    if not associated_users:
+        log_event(
+            request=request,
+            user="logged out",
+            severity="WARN",
+            source="Accounts",
+            sub_source="password_reset",
+            message=f"Attempt to reset password failed. No match for email address: {email}",
+        )
+
     for user in associated_users:
 
         if user.is_active:
@@ -172,6 +191,15 @@ def password_reset_request(request):
             link_text = "Reset Password"
             token = default_token_generator.make_token(user)
             email_body = email_body_base
+            log_event(
+                request=request,
+                user="logged out",
+                severity="INFO",
+                source="Accounts",
+                sub_source="password_reset",
+                message=f"Password reset email sent to {user} at {email}",
+            )
+
         else:
             link_type = "accounts:activate"
             link_text = "Activate Account"
@@ -180,6 +208,14 @@ def password_reset_request(request):
                 email_body_base
                 + "<h3>This account has not been activated. You must activate "
                 "the account first.</h3><br><br>"
+            )
+            log_event(
+                request=request,
+                user="logged out",
+                severity="INFO",
+                source="Accounts",
+                sub_source="password_reset",
+                message=f"Password reset (activation) email sent to {user} at {email}",
             )
 
         link = reverse(
