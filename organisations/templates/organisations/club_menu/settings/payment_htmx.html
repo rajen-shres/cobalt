@@ -79,9 +79,11 @@
                                                     <!-- SHOW CHECKBOX AS SLIDER -->
 
                                                     <td
-                                                        hx-post="{% url "organisations:club_menu_tab_settings_toggle_payment_type_htmx" %}"
-                                                        hx-vars="club_id:{{ club.id }},payment_type_id:{{ payment_method.id }}"
-                                                        hx-swap="none"
+                                                        {% if payment_method != club.default_secondary_payment_method %}
+                                                            hx-post="{% url "organisations:club_menu_tab_settings_toggle_payment_type_htmx" %}"
+                                                            hx-vars="club_id:{{ club.id }},payment_type_id:{{ payment_method.id }}"
+                                                            hx-swap="none"
+                                                        {% endif %}
                                                     >
                                                         <input
                                                             id="t_toggle_pay_method_{{ payment_method.id }}"
@@ -90,6 +92,9 @@
                                                             data-toggle="toggle"
                                                             data-size="sm"
                                                             data-onstyle="primary"
+                                                            {% if payment_method == club.default_secondary_payment_method %}
+                                                                disabled="disabled"
+                                                            {% endif %}
                                                             {% if payment_method.active %}checked{% endif %}
                                                         >
                                                     </td>
@@ -277,7 +282,7 @@
                 swal.fire({
                     title: "Warning",
                     html: "Check the rates on your sessions (SESSION TYPES above) as a default value has been applied, which may not be what you want.",
-                    icon: "warn"
+                    icon: "warning"
                 });
             }
 

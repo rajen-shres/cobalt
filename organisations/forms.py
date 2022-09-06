@@ -584,7 +584,7 @@ class OrgDefaultSecondaryPaymentMethod(forms.ModelForm):
 
         # Get payment methods for this club (excluding Bridge Credits)
         payment_methods = OrgPaymentMethod.objects.filter(
-            organisation=self.club
+            organisation=self.club, active=True
         ).exclude(payment_method="Bridge Credits")
         our_payment_methods = [
             (payment_method.id, payment_method.payment_method)
