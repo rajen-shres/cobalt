@@ -109,6 +109,7 @@
                                 hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
                                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
                                 hx-target="#id_pane_session"
+                                hx-push-url="{{ club.id }}"
                             >
                                 {{ session_entry.player.full_name|default_if_none:session_entry.system_number }}
                             </a>

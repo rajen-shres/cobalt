@@ -101,36 +101,37 @@
                         </div>
                     </div>
                 </div>
+
+                {#            <div class="footer fixed-bottom">#}
+                {#                <div class="container-fluid">#}
+                {#                    <nav class="float-left">#}
+                {#                        <ul>#}
+                {#                            <li>#}
+                {#                                <a href="{% url 'support:contact_logged_out' %}">#}
+                {#                                    Contact Us#}
+                {#                                </a>#}
+                {#                            </li>#}
+                {#                            <li>#}
+                {#                                <a href=" {{ GLOBAL_ABOUT }}">#}
+                {#                                    About Us#}
+                {#                                </a>#}
+                {#                            </li>#}
+                {#                            <li>#}
+                {#                                <a href=" {{ GLOBAL_PRIVACY }}">#}
+                {#                                    Privacy#}
+                {#                                </a>#}
+                {#                            </li>#}
+                {#                        </ul>#}
+                {#                    </nav>#}
+                {#                    <div class="copyright float-right">#}
+                {#                        {{ GLOBAL_ORG }} &copy;#}
+                {#                        <script>#}
+                {#                            document.write(new Date().getFullYear())#}
+                {#                        </script>#}
+                {#                    </div>#}
+                {#                </div>#}
+                {#            </div>#}
             </div>
-            <footer class="footer fixed-bottom">
-                <div class="container-fluid">
-                    <nav class="float-left">
-                        <ul>
-                            <li>
-                                <a href="{% url 'support:contact_logged_out' %}">
-                                    Contact Us
-                                </a>
-                            </li>
-                            <li>
-                                <a href=" {{ GLOBAL_ABOUT }}">
-                                    About Us
-                                </a>
-                            </li>
-                            <li>
-                                <a href=" {{ GLOBAL_PRIVACY }}">
-                                    Privacy
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
-                    <div class="copyright float-right">
-                        {{ GLOBAL_ORG }} &copy;
-                        <script>
-                            document.write(new Date().getFullYear())
-                        </script>
-                    </div>
-                </div>
-            </footer>
         </div>
 
 
