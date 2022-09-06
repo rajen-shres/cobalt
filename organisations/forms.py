@@ -592,10 +592,15 @@ class OrgDefaultSecondaryPaymentMethod(forms.ModelForm):
         ]
 
         self.fields["default_secondary_payment_method"].choices = our_payment_methods
+        # Default value if set, or add Select... if not set
         if self.club.default_secondary_payment_method:
             self.fields[
                 "default_secondary_payment_method"
             ].initial = self.club.default_secondary_payment_method.id
+        else:
+            self.fields["default_secondary_payment_method"].choices.insert(
+                0, (-1, "Select...")
+            )
 
 
 class PaymentTypeForm(forms.Form):
