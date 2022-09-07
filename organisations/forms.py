@@ -582,8 +582,9 @@ class OrgDefaultSecondaryPaymentMethod(forms.ModelForm):
         self.club = kwargs.pop("club")
         super().__init__(*args, **kwargs)
 
+        # Get payment methods for this club (excluding Bridge Credits)
         payment_methods = OrgPaymentMethod.objects.filter(
-            organisation=self.club
+            organisation=self.club, active=True
         ).exclude(payment_method="Bridge Credits")
         our_payment_methods = [
             (payment_method.id, payment_method.payment_method)
@@ -591,9 +592,15 @@ class OrgDefaultSecondaryPaymentMethod(forms.ModelForm):
         ]
 
         self.fields["default_secondary_payment_method"].choices = our_payment_methods
-        self.fields[
-            "default_secondary_payment_method"
-        ].initial = self.club.default_secondary_payment_method.id
+        # Default value if set, or add Select... if not set
+        if self.club.default_secondary_payment_method:
+            self.fields[
+                "default_secondary_payment_method"
+            ].initial = self.club.default_secondary_payment_method.id
+        else:
+            self.fields["default_secondary_payment_method"].choices.insert(
+                0, (-1, "Select...")
+            )
 
 
 class PaymentTypeForm(forms.Form):

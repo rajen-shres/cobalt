@@ -541,6 +541,10 @@ def club_menu_tab_settings_toggle_payment_type_htmx(request, club):
     )
 
     if payment_type.active:
+        # Check if this is default secondary payment for this club - shouldn't happen. HTML prevents this.
+        if club.default_secondary_payment_method == payment_type:
+            print("Blocking change")
+            return HttpResponse("not allowed")
         ClubLog(
             organisation=club,
             actor=request.user,
@@ -552,6 +556,7 @@ def club_menu_tab_settings_toggle_payment_type_htmx(request, club):
         # Delete any invalid session payment records
         turn_off_payment_type(club)
     else:
+        print("Activated")
         ClubLog(
             organisation=club,
             actor=request.user,
