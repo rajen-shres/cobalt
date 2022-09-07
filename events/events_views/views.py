@@ -654,39 +654,95 @@ def pay_outstanding(request):
     )
 
 
+# This was the updated version - not released due to testing differences and shortage of time
+
+# def view_event_entries(request, congress_id, event_id):
+#     """Screen to show entries to an event"""
+#
+#     congress = get_object_or_404(Congress, pk=congress_id)
+#     event = get_object_or_404(Event, pk=event_id)
+#     event_entries = (
+#         EventEntry.objects.filter(event=event)
+#         .exclude(entry_status="Cancelled")
+#         .select_related("category")
+#         .order_by("entry_complete_date")
+#     )
+#
+#     # identify this users entry
+#     my_entry = None
+#     event_entry_players = (
+#         EventEntryPlayer.objects.filter(event_entry__event=event)
+#         .select_related("player", "event_entry")
+#         .order_by("pk")
+#     )
+#
+#     if request.user.is_authenticated:
+#         for player in event_entry_players:
+#             if player.player == request.user:
+#                 my_entry = player.event_entry
+#                 break
+#
+#     # Loop through event entries and add event entry players in order they entered
+#     # We use the values we already have from the database to prevent additional calls
+#     for event_entry in event_entries:
+#         event_entry.this_event_entry_players = []
+#         for event_entry_player in event_entry_players:
+#             if event_entry_player.event_entry == event_entry:
+#                 event_entry.this_event_entry_players.append(event_entry_player)
+#
+#     categories = Category.objects.filter(event=event).exists()
+#     date_string = event.print_dates()
+#
+#     # See if this user is already entered
+#     try:
+#         user_entered = (
+#             EventEntryPlayer.objects.filter(event_entry__event=event)
+#             .filter(player=request.user)
+#             .exclude(event_entry__entry_status="Cancelled")
+#             .exists()
+#         )
+#     except TypeError:
+#         # may be anonymous
+#         user_entered = False
+#
+#     return render(
+#         request,
+#         "events/players/view_event_entries.html",
+#         {
+#             "congress": congress,
+#             "event": event,
+#             "event_entries": event_entries,
+#             "categories": categories,
+#             "date_string": date_string,
+#             "user_entered": user_entered,
+#             "my_entry": my_entry,
+#         },
+#     )
+
+
 def view_event_entries(request, congress_id, event_id):
     """Screen to show entries to an event"""
 
     congress = get_object_or_404(Congress, pk=congress_id)
     event = get_object_or_404(Event, pk=event_id)
-    event_entries = (
+    entries = (
         EventEntry.objects.filter(event=event)
         .exclude(entry_status="Cancelled")
-        .select_related("category")
         .order_by("entry_complete_date")
     )
+    entries.prefetch_related("evententryplayer_set")
+    # entries.prefetch_related("evententryplayer_player_set")
 
     # identify this users entry
-    my_entry = None
-    event_entry_players = (
-        EventEntryPlayer.objects.filter(event_entry__event=event)
-        .select_related("player", "event_entry")
-        .order_by("pk")
-    )
-
     if request.user.is_authenticated:
-        for player in event_entry_players:
-            if player.player == request.user:
-                my_entry = player.event_entry
-                break
-
-    # Loop through event entries and add event entry players in order they entered
-    # We use the values we already have from the database to prevent additional calls
-    for event_entry in event_entries:
-        event_entry.this_event_entry_players = []
-        for event_entry_player in event_entry_players:
-            if event_entry_player.event_entry == event_entry:
-                event_entry.this_event_entry_players.append(event_entry_player)
+        for entry in entries:
+            # Commenting this out for now as doesn't go to the entry it is intended to go to
+            # if entry.primary_entrant == request.user:
+            #     entry.my_entry = True
+            #     continue
+            for player in entry.evententryplayer_set.all():
+                if player.player == request.user:
+                    entry.my_entry = True
 
     categories = Category.objects.filter(event=event).exists()
     date_string = event.print_dates()
@@ -709,11 +765,10 @@ def view_event_entries(request, congress_id, event_id):
         {
             "congress": congress,
             "event": event,
-            "event_entries": event_entries,
+            "entries": entries,
             "categories": categories,
             "date_string": date_string,
             "user_entered": user_entered,
-            "my_entry": my_entry,
         },
     )
 
