@@ -149,6 +149,8 @@ class SessionEntry(models.Model):
         OrgPaymentMethod, on_delete=models.PROTECT, null=True, blank=True
     )
     fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    player_name_from_file = models.TextField(max_length=60, default="Unknown")
+    """ Player name as it appears on the file. We usually use the system_number, but for non-ABF members we need this """
 
     class Meta:
         verbose_name_plural = "Session entries"

@@ -42,12 +42,11 @@
             venue = venue + " ";
         }
 
+        // get AM/PM/Evening
+        let time_of_day = $("#id_time_of_day").val();
+
         if (dt.getHours() < 12) {
-            $("#id_description").val(venue + day + " AM");
-        } else if (dt.getHours() < 17) {
-            $("#id_description").val(venue + day + " PM");
-        } else {
-            $("#id_description").val(venue + day + " Evening");
+            $("#id_description").val(venue + day + " " + time_of_day);
         }
     }
 

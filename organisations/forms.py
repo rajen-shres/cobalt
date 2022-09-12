@@ -661,6 +661,10 @@ class WelcomePackForm(forms.ModelForm):
 class ResultsEmailMessageForm(forms.ModelForm):
     """Form for the results email message sent to players for a club"""
 
+    class Meta:
+        model = Organisation
+        fields = ("results_email_message",)
+
     results_email_message = forms.CharField(
         widget=SummernoteInplaceWidget(
             attrs={

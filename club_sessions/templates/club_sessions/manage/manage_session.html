@@ -144,7 +144,7 @@
 
                 <!-- SPINNER -->
                 <div class='justify-content-center text-center'>
-                    <span class="htmx-indicator">
+                    <span class="htmx-indicator" id="spinner">
                         <img style="width: 40px" src="{% static "assets/img/spinners/bars.svg" %}"/>
                     </span>
                 </div>
@@ -188,51 +188,13 @@
 
                         {% endif %}
 
-                        <!-- TOP VIEW CHOICES - SUMMARY, DETAIL, TABLE VIEWS -->
-
-                        <div class="text-center">
-                            <div id="radio-view-options" class="btn-group btn-group-toggle" data-toggle="buttons">
-                                <form class="view-type-radio"></form>
-
-                                <!-- SUMMARY VIEW (DEFAULT) -->
-                                <label class="btn btn-success active">
-                                    <input
-                                        type="radio"
-                                        name="summary"
-                                        id="option-summary"
-                                        autocomplete="off"
-                                        checked
-                                    > Summary
-                                </label>
-
-                                <!-- DETAIL VIEW -->
-                                <label class="btn btn-success">
-                                    <input
-                                        type="radio"
-                                        name="detail"
-                                        id="option-summary"
-                                        autocomplete="off"
-                                    > Detail
-                                </label>
-
-                                <!-- TABLE VIEW -->
-                                <label class="btn btn-success">
-                                    <input
-                                        type="radio"
-                                        name="table"
-                                        id="option-summary"
-                                        autocomplete="off"
-                                    > Table View
-                                </label>
-
-                            </div>
-                        </div>
-
                         <!-- THIS IS THE ACTUAL DIV FOR SESSIONS -->
                         <div id="id_pane_session"
                             hx-post="{% url "club_sessions:tab_session_htmx" %}"
-                            hx-trigger="tab_load_event"
+                            hx-trigger="load"
                             hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            hx-target="#id_pane_session"
+                            hx-indicator="#spinner"
                         ></div>
                     </div>
 
@@ -305,32 +267,12 @@
 
         $(document).ready(function () {
 
-            htmx.trigger(htmx.find('#id_pane_session'), "tab_load_event");
+            {#htmx.trigger(htmx.find('#id_pane_session'), "tab_load_event");#}
 
-            // refresh the session tab every time it is clicked
-            $('#id_tab_session').on('click', function (e) {
-                htmx.trigger(htmx.find('#id_pane_session'), "tab_load_event");
-            })
 
-            // refresh the report tab every time it is clicked
-            $('#id_tab_report').on('click', function (e) {
-                htmx.trigger(htmx.find('#id_pane_reports'), "tab_load_event");
-            })
 
-            // handle user clicking to change the view on the session tab
-            $("#radio-view-options :input").change(function() {
-                const selected = $(this).attr('name');
 
-                const postData = {
-                    'club_id': '{{ club.id }}',
-                    'session_id': {{ session.id }},
-                    'view_type': selected,
-                };
 
-                const url = '{% url "club_sessions:tab_session_htmx" %}';
-                htmx.ajax('POST', url, {'target': '#id_pane_session', 'values': postData});
-
-            });
 
             // When totals does something it updates the bottom part, also send message to update totals
             document.body.addEventListener("update_totals", function(evt) {

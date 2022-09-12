@@ -21,4 +21,6 @@ else
   ./manage.py add_test_data
 fi
 
+./manage.py add_additional_test_data_for_clubs
+
 ./manage.py add_test_data_forum_posts

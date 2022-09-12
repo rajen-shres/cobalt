@@ -10,7 +10,12 @@ from accounts.accounts_views.core import (
     get_user_or_unregistered_user_from_system_number,
 )
 from accounts.models import User, UnregisteredUser
-from cobalt.settings import BRIDGE_CREDITS, GLOBAL_CURRENCY_SYMBOL, ALL_SYSTEM_ACCOUNTS
+from cobalt.settings import (
+    BRIDGE_CREDITS,
+    GLOBAL_CURRENCY_SYMBOL,
+    ALL_SYSTEM_ACCOUNTS,
+    GLOBAL_ORG,
+)
 from masterpoints.views import abf_checksum_is_valid
 from notifications.notifications_views.core import (
     send_cobalt_email_to_system_number,
@@ -262,6 +267,15 @@ def _augment_session_entries(
                 "first_name": "DIRECTOR",
             }
             icon_text = "Playing Director"
+        elif session_entry.system_number == VISITOR:
+            # Visitor with no ABF number
+            session_entry.player_type = "NotRegistered"
+            session_entry.icon = "handshake"
+            session_entry.player = {
+                "full_name": session_entry.player_name_from_file.title(),
+                "first_name": session_entry.player_name_from_file.split(" ")[0].title(),
+            }
+            icon_text = f"Non-{GLOBAL_ORG} Member"
         elif session_entry.system_number in mixed_dict:
             session_entry.player = mixed_dict[session_entry.system_number]["value"]
             session_entry.player_type = mixed_dict[session_entry.system_number]["type"]
@@ -319,11 +333,12 @@ def _calculate_payment_method_and_balance(session_entries, session_fees, club):
     """work out who can pay by bridge credits and if they have enough money"""
 
     # First build list of users who are bridge credit eligible
-    bridge_credit_users = [
-        session_entry.system_number
-        for session_entry in session_entries
-        if session_entry.player_type == "User"
-    ]
+    bridge_credit_users = []
+    for session_entry in session_entries:
+        if session_entry.player_type == "User" and session_entry.system_number not in [
+            ALL_SYSTEM_ACCOUNTS
+        ]:
+            bridge_credit_users.append(session_entry.system_number)
 
     # Now get their balances
     balances = {

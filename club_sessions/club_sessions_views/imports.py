@@ -8,7 +8,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 from accounts.accounts_views.core import add_un_registered_user_with_mpc_data
-from club_sessions.club_sessions_views.common import PLAYING_DIRECTOR
+from club_sessions.club_sessions_views.common import PLAYING_DIRECTOR, VISITOR
 from club_sessions.club_sessions_views.decorators import user_is_club_director
 from club_sessions.forms import FileImportForm
 from club_sessions.models import SessionEntry, SessionMiscPayment, Session, SessionType
@@ -33,6 +33,8 @@ def _import_file_upload_htmx_simple_csv(request, club, session):
 
     # process file
     for line_no, line in enumerate(csv_data, start=2):
+        # Add dummy name to file import
+        line.append("Unknown")
         response = _import_file_upload_htmx_process_line(
             line, line_no, session, club, request
         )
@@ -89,23 +91,39 @@ def _import_file_upload_htmx_compscore2(request, club, session):
         except ValueError:
             continue
 
-        # try to get player numbers
+        # try to get player numbers and names
+        # line is (e.g.):
+        # 1(tab char)PLAYING DIRECTOR / SIMON SEZ (1 / 118)
         try:
             table = int(parts[0])
+            # Any digits are the player numbers
             player1, player2 = re.findall(r"\d+", parts[1])
+
+            # For player names, look for anything before "/" and anything after upto "("
+            player_1_file_name, player2_file_name = re.findall(
+                r"(.+)\s\/\s(.+)\(", parts[1]
+            )[0]
+            player2_file_name = player2_file_name.strip()
+
         except ValueError:
             continue
 
         # ugly way to loop through player and direction
         player = player1
+        player_file_name = player_1_file_name
         for direction in current_direction:
 
             response = _import_file_upload_htmx_process_line(
-                [table, direction, player], line_no, session, club, request
+                [table, direction, player, player_file_name],
+                line_no,
+                session,
+                club,
+                request,
             )
             if response:
                 messages.append(response)
             player = player2
+            player_file_name = player2_file_name
 
     # The session title is the second line
     session.description = (
@@ -181,6 +199,7 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         table = line[0]
         direction = line[1]
         system_number = int(line[2])
+        player_file_name = line[3]
     except ValueError:
         return f"Invalid data found on line {line_no}. Ignored."
 
@@ -199,7 +218,7 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         )
 
     # set payment method based upon user type
-    if user_type == "user":
+    if user_type == "user" and system_number not in [VISITOR, PLAYING_DIRECTOR]:
         payment_method = OrgPaymentMethod.objects.filter(
             organisation=club, active=True, payment_method="Bridge Credits"
         ).first()
@@ -216,12 +235,8 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         system_number=system_number,
         amount_paid=0,
         payment_method=payment_method,
+        player_name_from_file=player_file_name,
     )
-
-    # Handle directors
-    if system_number == PLAYING_DIRECTOR:
-        session_entry.payment_method = session.default_secondary_payment_method
-        session_entry.fee = 0
 
     session_entry.save()
 
