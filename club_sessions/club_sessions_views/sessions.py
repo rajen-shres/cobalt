@@ -546,7 +546,7 @@ def _edit_session_entry_handle_post(request, club, session_entry):
         # Handle bridge credits being changed to something else
         if is_user:
             status, message = _handle_bridge_credit_changes(
-                club, session_entry, request.user
+                payment_method, club, session_entry, request.user
             )
             if not status:
                 # reset form and return
@@ -602,48 +602,73 @@ def _handle_iou_changes(payment_method, club, session_entry, administrator):
         ).delete()
 
 
-def _handle_bridge_credit_changes(club, session_entry, director):
+def _handle_bridge_credit_changes(payment_method, club, session_entry, director):
     """When the director changes payment method from bridge credit to something else, we need to handle refunds
-    if payment already made."""
+    if payment already made.
+
+    If they change from something else to Bridge Credits then we need to change the status of the session.
+
+    Returns:
+        status(boolean): is it okay to continue, True/False
+        message(str): message to return to user, can be empty
+
+    """
 
     bridge_credit_payment_method = OrgPaymentMethod.objects.filter(
         organisation=club, payment_method=BRIDGE_CREDITS, active=True
     ).first()
 
     if (
+        session_entry.payment_method != bridge_credit_payment_method
+        and payment_method != bridge_credit_payment_method
+    ):
+        # No bridge credits involved (not old payment method or new)
+        return True, ""
+
+    if (
         session_entry.payment_method == bridge_credit_payment_method
         and session_entry.amount_paid > 0
     ):
-        # Refund needed
-        if org_balance(club) < session_entry.amount_paid:
-            return False, "Club has insufficient funds for this refund"
+        return _handle_bridge_credit_changes_refund(club, session_entry, director)
 
-        player = User.objects.filter(system_number=session_entry.system_number).first()
+    if payment_method == bridge_credit_payment_method:
+        # New payment method is bridge credits. Force status to be pending bridge credits
+        session_entry.session.status = Session.SessionStatus.DATA_LOADED
+        session_entry.session.save()
+        return True, ""
 
-        update_account(
-            member=player,
-            amount=session_entry.amount_paid,
-            description=f"{BRIDGE_CREDITS} returned for {session_entry.session}",
-            payment_type="Refund",
-            organisation=club,
-        )
 
-        update_organisation(
-            organisation=club,
-            amount=-session_entry.amount_paid,
-            description=f"{BRIDGE_CREDITS} returned for {session_entry.session}",
-            payment_type="Refund",
-            member=player,
-        )
+def _handle_bridge_credit_changes_refund(club, session_entry, director):
+    # Refund needed
+    if org_balance(club) < session_entry.amount_paid:
+        return False, "Club has insufficient funds for this refund"
 
-        # log it
-        ClubLog(
-            organisation=club,
-            actor=director,
-            action=f"Refunded {player} {GLOBAL_CURRENCY_SYMBOL}{session_entry.amount_paid:.2f} for session",
-        ).save()
+    player = User.objects.filter(system_number=session_entry.system_number).first()
 
-        return True, "Player refunded"
+    update_account(
+        member=player,
+        amount=session_entry.amount_paid,
+        description=f"{BRIDGE_CREDITS} returned for {session_entry.session}",
+        payment_type="Refund",
+        organisation=club,
+    )
+
+    update_organisation(
+        organisation=club,
+        amount=-session_entry.amount_paid,
+        description=f"{BRIDGE_CREDITS} returned for {session_entry.session}",
+        payment_type="Refund",
+        member=player,
+    )
+
+    # log it
+    ClubLog(
+        organisation=club,
+        actor=director,
+        action=f"Refunded {player} {GLOBAL_CURRENCY_SYMBOL}{session_entry.amount_paid:.2f} for session",
+    ).save()
+
+    return True, "Player refunded"
 
 
 @user_is_club_director(include_session_entry=True)
@@ -653,8 +678,7 @@ def edit_session_entry_htmx(request, club, session, session_entry):
     We hide a lot of extra things in the form for this view
 
     The most significant changes involve Bridge Credits - if credits have been paid and we change to another
-    payment method, then we need to make a refund. If we have paid everyone else's bridge credits then
-    we should process this immediately.
+    payment method, then we need to make a refund.
 
     """
 
@@ -676,7 +700,7 @@ def edit_session_entry_htmx(request, club, session, session_entry):
     else:
         payment_method_is_valid = True
 
-    return render(
+    response = render(
         request,
         "club_sessions/manage/edit_session_entry_htmx.html",
         {
@@ -688,6 +712,11 @@ def edit_session_entry_htmx(request, club, session, session_entry):
             "payment_method_is_valid": payment_method_is_valid,
         },
     )
+
+    # We might have changed the status of the session, so reload totals
+    # response["HX-Trigger"] = "update_totals"
+
+    return response
 
 
 @user_is_club_director(include_session_entry=True)

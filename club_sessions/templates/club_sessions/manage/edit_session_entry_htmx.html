@@ -96,6 +96,7 @@
                                 {% if form.is_user %}, is_user:1{% endif %}
                                 {% if form.is_un_reg %}, is_un_reg:1{% endif %}
                                 "
+                                hx-confirm="Player will be refunded their {{ BRIDGE_CREDITS }}, are you sure?"
                             >
 
                                 <div class="container">
@@ -219,6 +220,12 @@
         $("#player_form input, #id_payment_method").change(function(){
             $("#id_save_session").prop("disabled", false);
         });
+
+        // Handle save button being pressed
+        {#$("#id_save_session_entry").click(function(){#}
+        {#    console.log("save clicked");#}
+        {#});#}
+
     });
 
 </script>
