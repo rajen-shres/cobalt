@@ -24,9 +24,15 @@ from organisations.models import (
     Organisation,
     MemberMembershipType,
     MiscPayType,
+    ClubLog,
 )
 from organisations.views.general import get_membership_type_for_players
 from payments.models import OrgPaymentMethod, MemberTransaction, UserPendingPayment
+from payments.payments_views.core import (
+    org_balance,
+    update_account,
+    update_organisation,
+)
 from payments.payments_views.payments_api import payment_api_batch
 
 from rbac.views import rbac_forbidden
@@ -297,11 +303,13 @@ def _augment_session_entries(
             session_entry.membership = membership_type_dict[session_entry.system_number]
             session_entry.membership_type = "member"
             session_entry.icon_colour = "primary"
-            icon_text += f"a {session_entry.membership} member."
+            if session_entry.system_number not in [SITOUT, PLAYING_DIRECTOR, VISITOR]:
+                icon_text += f"a {session_entry.membership} member."
         else:
             # Not a member
             session_entry.membership = "Guest"
-            icon_text += "a Guest."
+            if session_entry.system_number not in [SITOUT, PLAYING_DIRECTOR, VISITOR]:
+                icon_text += "a Guest."
             if session_entry.system_number >= 0 and abf_checksum_is_valid(
                 session_entry.system_number
             ):
@@ -502,6 +510,8 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
 def _edit_session_entry_handle_post(request, club, session_entry):
     """Sub for edit_session_entry_htmx to handle the form being posted"""
 
+    message = "Data saved"
+
     form = UserSessionForm(request.POST, club=club, session_entry=session_entry)
     if not form.is_valid():
         print(form.errors)
@@ -533,10 +543,21 @@ def _edit_session_entry_handle_post(request, club, session_entry):
     if "payment_method" in form.changed_data:
         _handle_iou_changes(payment_method, club, session_entry, request.user)
 
+        # Handle bridge credits being changed to something else
+        if is_user:
+            status, message = _handle_bridge_credit_changes(
+                club, session_entry, request.user
+            )
+            if not status:
+                # reset form and return
+                form = UserSessionForm(club=club, session_entry=session_entry)
+                return form, message
+            session_entry.amount_paid = 0
+
     session_entry.payment_method = payment_method
     session_entry.save()
 
-    return form, "Data saved"
+    return form, message
 
 
 def _handle_iou_changes(payment_method, club, session_entry, administrator):
@@ -581,11 +602,61 @@ def _handle_iou_changes(payment_method, club, session_entry, administrator):
         ).delete()
 
 
+def _handle_bridge_credit_changes(club, session_entry, director):
+    """When the director changes payment method from bridge credit to something else, we need to handle refunds
+    if payment already made."""
+
+    bridge_credit_payment_method = OrgPaymentMethod.objects.filter(
+        organisation=club, payment_method=BRIDGE_CREDITS, active=True
+    ).first()
+
+    if (
+        session_entry.payment_method == bridge_credit_payment_method
+        and session_entry.amount_paid > 0
+    ):
+        # Refund needed
+        if org_balance(club) < session_entry.amount_paid:
+            return False, "Club has insufficient funds for this refund"
+
+        player = User.objects.filter(system_number=session_entry.system_number).first()
+
+        update_account(
+            member=player,
+            amount=session_entry.amount_paid,
+            description=f"{BRIDGE_CREDITS} returned for {session_entry.session}",
+            payment_type="Refund",
+            organisation=club,
+        )
+
+        update_organisation(
+            organisation=club,
+            amount=-session_entry.amount_paid,
+            description=f"{BRIDGE_CREDITS} returned for {session_entry.session}",
+            payment_type="Refund",
+            member=player,
+        )
+
+        # log it
+        ClubLog(
+            organisation=club,
+            actor=director,
+            action=f"Refunded {player} {GLOBAL_CURRENCY_SYMBOL}{session_entry.amount_paid:.2f} for session",
+        ).save()
+
+        return True, "Player refunded"
+
+
 @user_is_club_director(include_session_entry=True)
 def edit_session_entry_htmx(request, club, session, session_entry):
-    """Edit a single session_entry on the session page"""
+    """Edit a single session_entry on the session page
 
-    # We hide a lot of extra things in the form for this view
+    We hide a lot of extra things in the form for this view
+
+    The most significant changes involve Bridge Credits - if credits have been paid and we change to another
+    payment method, then we need to make a refund. If we have paid everyone else's bridge credits then
+    we should process this immediately.
+
+    """
 
     # See if POSTed form or not
     if "save_session" in request.POST:

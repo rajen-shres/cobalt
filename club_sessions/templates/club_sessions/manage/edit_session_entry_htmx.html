@@ -5,6 +5,7 @@
 {#                                                                                 #}
 {#---------------------------------------------------------------------------------#}
 {% load cobalt_tags %}
+{% load humanize %}
 
 <!-- BUTTON TO RETURN TO SESSION PAGE -->
 <button class="btn btn-outline-secondary btn-sm"
@@ -17,6 +18,7 @@
 
     Back To Full List
 </button>
+
 <div>
     <!-- PLAYER DETAILS -->
     <div class="card">
@@ -34,6 +36,11 @@
                 <!-- PLAYING DIRECTOR -->
                 <h3 class="card-title text-center">PLAYING DIRECTOR</h3>
 
+            {% elif session_entry.system_number == 0 %}
+                <!-- NON ABF GUEST -->
+                <h3 class="card-title text-center">{{ session_entry.player_name_from_file|lower|title }}</h3>
+                <h4 class="card-title text-center">Visitor without {{ GLOBAL_ORG }} Number</h4>
+
             {% else %}
                 {% if form.is_user %}
                     <div class="card-profile">
@@ -50,6 +57,7 @@
                             hx-trigger="load"
                             hx-post="{% url "organisations:get_member_balance_htmx" %}"
                             hx-vars="member: {{ form.player.id }}"
+                            hx-target="this"
                         >
 
                         </span></h3>
@@ -181,6 +189,7 @@
                             hx-post="{% url "club_sessions:edit_session_entry_extras_htmx" %}"
                             hx-trigger="load"
                             hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                            hx-target="this"
                         ></div>
 
                     </div>
