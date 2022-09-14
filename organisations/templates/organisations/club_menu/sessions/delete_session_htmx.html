@@ -23,10 +23,15 @@
     {% include "utils/cobalt_simple_table.html" with things=payments headers="Player Amount" fields="full_name amount_paid" align="left right" heading_colour="danger" %}
 {% endif %}
 
-{% if ious %}
+{% if ious_names %}
     <p>IOUs have been recorded for this session and will be cancelled if you delete it.</p>
-    {% include "utils/cobalt_simple_table.html" with things=ious headers="ABF_Number Amount" fields="system_number amount" align="left right" heading_colour="primary" %}
+    <ul>
+        {% for ious_name in ious_names %}
+            <li>{{ ious_name.full_name }}</li>
+        {% endfor %}
+    </ul>
 {% endif %}
+
 
 <button
     class="btn btn-sm btn-danger"

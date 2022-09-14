@@ -42,6 +42,7 @@ def delete_session_htmx(request, club):
     bridge_credits = OrgPaymentMethod.objects.filter(
         active=True, organisation=club, payment_method="Bridge Credits"
     ).first()
+
     payments = SessionEntry.objects.filter(
         session=session, payment_method=bridge_credits
     ).filter(amount_paid__gt=0)
@@ -59,6 +60,10 @@ def delete_session_htmx(request, club):
         )
         return refresh_sessions_tab(request, message=message)
 
+    # Get names for people rather than system numbers
+    ious_system_numbers = ious.values_list("system_number")
+    ious_names = User.objects.filter(system_number__in=ious_system_numbers)
+
     # Add name to session_entries
     system_number_list = payments.values_list("system_number", flat=True)
 
@@ -72,7 +77,12 @@ def delete_session_htmx(request, club):
     return render(
         request,
         "organisations/club_menu/sessions/delete_session_htmx.html",
-        {"club": club, "session": session, "payments": payments, "ious": ious},
+        {
+            "club": club,
+            "session": session,
+            "payments": payments,
+            "ious_names": ious_names,
+        },
     )
 
 
@@ -124,8 +134,8 @@ def _cancel_and_refund_bridge_credits_and_ious(request, payments, ious, club, se
         message = "Session deleted"
 
     if iou_count > 0:
-        action = f"{action} Cancelled {iou_count} IOUs."
-        message = f"{message} Cancelled {iou_count} IOUs."
+        action = f"{action} {iou_count} IOU(s) cancelled."
+        message = f"{message} {iou_count} IOU(s) cancelled."
 
     ClubLog(
         organisation=club,

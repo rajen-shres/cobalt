@@ -219,6 +219,12 @@
                                     {% if session_entry.payment_method.payment_method == BRIDGE_CREDITS %}
                                         disabled
                                     {% endif %}
+
+                                    {# DON'T ALLOW SITOUT OR PLAYING DIRECTOR TO BE EDITED #}
+
+                                    {% if session_entry.system_number == -1 or session_entry.system_number == 1 %}
+                                        disabled
+                                    {% endif %}
                                 >
                             </span>
 

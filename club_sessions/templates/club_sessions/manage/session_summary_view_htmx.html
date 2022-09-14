@@ -81,7 +81,7 @@
                 <table class="table table-condensed table-striped">
                     <thead class="text-primary">
                         <tr>
-                            <th>Player</th>
+                            <th class="text-left">Player</th>
                             <th>Membership Type</th>
                             <th class="text-right">Fee + Extras</th>
                             <th class="text-right">Paid</th>
@@ -90,7 +90,16 @@
                     <tbody>
                         {% for player in data.players %}
                             <tr>
-                                <td>{{ player.player }}</td>
+                                <td class="text-left">
+                                    <a href="javascript:void(0);"
+                                        hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
+                                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ player.session_entry.id }}"
+                                        hx-target="#id_pane_session"
+                                        hx-push-url="{{ session.id }}"
+                                    >
+                                        {{ player.player }}
+                                    </a>
+                                </td>
                                 <td>{{ player.membership }}</td>
                                 <td class="text-right">{{ player.session_entry.fee }}</td>
                                 <td class="text-right">{{ player.session_entry.amount_paid }}</td>
