@@ -71,7 +71,8 @@ class UserSessionForm(forms.Form):
     """
 
     fee = forms.DecimalField(min_value=0)
-    amount_paid = forms.DecimalField(min_value=0)
+    # amount_paid = forms.DecimalField(min_value=0)
+    is_paid = forms.BooleanField()
     payment_method = forms.ChoiceField()
     player_no = forms.IntegerField()
 
@@ -124,7 +125,7 @@ class UserSessionForm(forms.Form):
 
         # Add values
         self.fields["fee"].initial = session_entry.fee
-        self.fields["amount_paid"].initial = session_entry.amount_paid
+        self.fields["is_paid"].initial = bool(session_entry.amount_paid > 0)
 
         # Get payment method choices
         payment_methods = OrgPaymentMethod.objects.filter(

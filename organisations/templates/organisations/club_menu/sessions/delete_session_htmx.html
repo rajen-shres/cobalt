@@ -23,6 +23,11 @@
     {% include "utils/cobalt_simple_table.html" with things=payments headers="Player Amount" fields="full_name amount_paid" align="left right" heading_colour="danger" %}
 {% endif %}
 
+{% if ious %}
+    <p>IOUs have been recorded for this session and will be cancelled if you delete it.</p>
+    {% include "utils/cobalt_simple_table.html" with things=ious headers="ABF_Number Amount" fields="system_number amount" align="left right" heading_colour="primary" %}
+{% endif %}
+
 <button
     class="btn btn-sm btn-danger"
     hx-post="{% url "organisations:delete_session_htmx" %}"

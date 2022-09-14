@@ -96,7 +96,6 @@
                                 {% if form.is_user %}, is_user:1{% endif %}
                                 {% if form.is_un_reg %}, is_un_reg:1{% endif %}
                                 "
-                                hx-confirm="Player will be refunded their {{ BRIDGE_CREDITS }}, are you sure?"
                             >
 
                                 <div class="container">
@@ -140,7 +139,7 @@
                                     <div class="row">
                                         <div class="col">
                                             <div class="form-group">
-                                                {% cobalt_bs4_field form.amount_paid  %}
+                                                {% cobalt_bs4_field form.is_paid  %}
                                             </div>
                                         </div>
                                     </div>

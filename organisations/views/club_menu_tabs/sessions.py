@@ -10,7 +10,7 @@ from club_sessions.models import Session, SessionEntry, SessionType
 from organisations.decorators import check_club_menu_access
 from organisations.models import ClubLog
 from organisations.views.general import org_balance
-from payments.models import OrgPaymentMethod
+from payments.models import OrgPaymentMethod, UserPendingPayment
 from payments.payments_views.core import update_organisation, update_account
 
 
@@ -46,9 +46,17 @@ def delete_session_htmx(request, club):
         session=session, payment_method=bridge_credits
     ).filter(amount_paid__gt=0)
 
+    # See if we have any IOUs
+    ious = UserPendingPayment.objects.filter(
+        organisation=club,
+        session_entry__session=session,
+    )
+
     # See if this is the confirm option
     if "really_delete" in request.POST:
-        message = _cancel_and_refund_bridge_credits(request, payments, club, session)
+        message = _cancel_and_refund_bridge_credits_and_ious(
+            request, payments, ious, club, session
+        )
         return refresh_sessions_tab(request, message=message)
 
     # Add name to session_entries
@@ -64,13 +72,14 @@ def delete_session_htmx(request, club):
     return render(
         request,
         "organisations/club_menu/sessions/delete_session_htmx.html",
-        {"club": club, "session": session, "payments": payments},
+        {"club": club, "session": session, "payments": payments, "ious": ious},
     )
 
 
 @atomic()
-def _cancel_and_refund_bridge_credits(request, payments, club, session):
-    """sub of delete_session_htmx to refund money to people who paid for this session with bridge credits"""
+def _cancel_and_refund_bridge_credits_and_ious(request, payments, ious, club, session):
+    """sub of delete_session_htmx to refund money to people who paid for this session with bridge credits
+    and also cancel any IOUs for this session"""
 
     user_message = f"Refund for cancelled session({session.description}) at {club}"
     refund_count = 0
@@ -102,6 +111,10 @@ def _cancel_and_refund_bridge_credits(request, payments, club, session):
             member=member,
         )
 
+    # Delete the IOUs
+    iou_count = ious.count()
+    ious.delete()
+
     # log it
     if refund_count > 0:
         action = f"Cancelled session '{session.description}'. Refunded {refund_count} member(s)."
@@ -109,6 +122,10 @@ def _cancel_and_refund_bridge_credits(request, payments, club, session):
     else:
         action = f"Cancelled session '{session.description}'. No refunds required."
         message = "Session deleted"
+
+    if iou_count > 0:
+        action = f"{action} Cancelled {iou_count} IOUs."
+        message = f"{message} Cancelled {iou_count} IOUs."
 
     ClubLog(
         organisation=club,

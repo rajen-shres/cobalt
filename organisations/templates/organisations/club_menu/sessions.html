@@ -3,6 +3,12 @@
 {# Session management tab stub                                            #}
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
+
+<!-- MESSAGE -->
+<h3 class="text-primary font-weight-bold"
+    _="on load wait 5s then transition opacity to 0 then remove me"
+>{{ message }}</h3>
+
 <div
     hx-post="{% url "organisations:club_menu_tab_sessions_sub_htmx" %}"
     hx-trigger="load, tab_load_event"

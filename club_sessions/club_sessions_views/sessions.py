@@ -371,7 +371,11 @@ def _calculate_payment_method_and_balance(session_entries, session_fees, club):
                 session_entry.payment_method = bridge_credit_payment_method
 
         # fee due
-        if session_entry.payment_method and not session_entry.fee:
+        if (
+            session_entry.payment_method
+            and not session_entry.fee
+            and not session_entry.system_number == PLAYING_DIRECTOR
+        ):
             session_entry.fee = session_fees[session_entry.membership][
                 session_entry.payment_method.payment_method
             ]
@@ -397,6 +401,7 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
 
     if bridge_credit_failures is None:
         bridge_credit_failures = []
+
     # load static
     (
         session_entries,
@@ -413,7 +418,62 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
     # get payment methods for this club
     payment_methods = OrgPaymentMethod.objects.filter(organisation=club, active=True)
 
-    # logic is too complicated for a template, so build the payment_methods here for each session_entry
+    # Which template to use - summary, detail or table. Default is summary.
+    view_type = request.POST.get("view_type", "summary")
+    view_options = {
+        "summary": "club_sessions/manage/session_summary_view_htmx.html",
+        "detail": "club_sessions/manage/session_detail_view_htmx.html",
+        "table": "club_sessions/manage/session_table_view_htmx.html",
+    }
+    template = view_options[view_type]
+
+    if view_type == "detail":
+        # Too hard for the template, so set up allowed payment methods for dropdown in the view
+        session_entries = _tab_session_htmx_payment_methods(
+            session_entries, session, payment_methods
+        )
+
+    if view_type == "summary":
+        payment_summary = _tab_session_htmx_summary_table(
+            session_entries, mixed_dict, membership_type_dict
+        )
+    else:
+        payment_summary = {}
+
+    table_list = {}
+    if view_type == "table":
+        # put session_entries into a dictionary for the table view
+        for session_entry in session_entries:
+            if session_entry.pair_team_number in table_list:
+                table_list[session_entry.pair_team_number].append(session_entry)
+            else:
+                table_list[session_entry.pair_team_number] = [session_entry]
+
+    return render(
+        request,
+        template,
+        {
+            "club": club,
+            "session": session,
+            "session_entries": session_entries,
+            "table_list": table_list,
+            "payment_methods": payment_methods,
+            "payment_summary": payment_summary,
+            "message": message,
+            "bridge_credit_failures": bridge_credit_failures,
+        },
+    )
+
+
+def _tab_session_htmx_payment_methods(session_entries, session, payment_methods):
+    """logic is too complicated for a template, so build the payment_methods here for each session_entry
+
+    Only allow IOU for properly registered users
+    Don't allow changes to bridge credits if already paid for
+    Don't show bridge credits as an option if we have already processed them
+
+    """
+
     for session_entry in session_entries:
         # paid for with credits, no change allowed
         if (
@@ -429,20 +489,26 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
         ]:
             session_entry.payment_methods = []
             for payment_method in payment_methods:
-                if payment_method.payment_method != BRIDGE_CREDITS:
+                if payment_method.payment_method != BRIDGE_CREDITS and (
+                    session_entry.player_type == "User"
+                    or payment_method.payment_method != "IOU"
+                ):
                     session_entry.payment_methods.append(payment_method)
         else:
-            session_entry.payment_methods = payment_methods
+            session_entry.payment_methods = []
+            for payment_method in payment_methods:
+                if (
+                    session_entry.player_type == "User"
+                    or payment_method.payment_method != "IOU"
+                ):
+                    session_entry.payment_methods.append(payment_method)
 
-    # put session_entries into a dictionary for the table view
-    table_list = {}
-    for session_entry in session_entries:
-        if session_entry.pair_team_number in table_list:
-            table_list[session_entry.pair_team_number].append(session_entry)
-        else:
-            table_list[session_entry.pair_team_number] = [session_entry]
+    return session_entries
 
-    # summarise session_entries for the summary view
+
+def _tab_session_htmx_summary_table(session_entries, mixed_dict, membership_type_dict):
+    """summarise session_entries for the summary view"""
+
     payment_summary = {}
     for session_entry in session_entries:
         # Skip sitout and director
@@ -475,6 +541,10 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
         # Add session_entry as well for drop down list
         name = mixed_dict[session_entry.system_number]["value"]
         member_type = membership_type_dict.get(session_entry.system_number, "Guest")
+        # Handle visitors
+        if session_entry.system_number == VISITOR:
+            name = session_entry.player_name_from_file.title()
+
         item = {
             "player": name,
             "session_entry": session_entry,
@@ -482,29 +552,7 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
         }
         payment_summary[pay_method]["players"].append(item)
 
-    # Which template to use - summary, detail or table. Default is summary.
-    view_type = request.POST.get("view_type", "summary")
-    view_options = {
-        "summary": "club_sessions/manage/session_summary_view_htmx.html",
-        "detail": "club_sessions/manage/session_detail_view_htmx.html",
-        "table": "club_sessions/manage/session_table_view_htmx.html",
-    }
-    template = view_options[view_type]
-
-    return render(
-        request,
-        template,
-        {
-            "club": club,
-            "session": session,
-            "session_entries": session_entries,
-            "table_list": table_list,
-            "payment_methods": payment_methods,
-            "payment_summary": payment_summary,
-            "message": message,
-            "bridge_credit_failures": bridge_credit_failures,
-        },
-    )
+    return payment_summary
 
 
 def _edit_session_entry_handle_post(request, club, session_entry):
@@ -523,7 +571,10 @@ def _edit_session_entry_handle_post(request, club, session_entry):
 
     # Handle session data
     session_entry.fee = form.cleaned_data["fee"]
-    session_entry.amount_paid = form.cleaned_data["amount_paid"]
+    if form.cleaned_data["is_paid"]:
+        session_entry.amount_paid = session_entry.fee
+    else:
+        session_entry.amount_paid = 0
     payment_method = OrgPaymentMethod.objects.get(
         pk=form.cleaned_data["payment_method"]
     )
@@ -541,6 +592,7 @@ def _edit_session_entry_handle_post(request, club, session_entry):
 
     # Handle IOUs
     if "payment_method" in form.changed_data:
+        print("changed payment method")
         _handle_iou_changes(payment_method, club, session_entry, request.user)
 
         # Handle bridge credits being changed to something else
@@ -565,41 +617,58 @@ def _handle_iou_changes(payment_method, club, session_entry, administrator):
 
     # Check for turning on
     if payment_method.payment_method == "IOU":
-        # For safety ensure we don't duplicate
-        user_pending_payment, _ = UserPendingPayment.objects.get_or_create(
-            organisation=club,
-            system_number=session_entry.system_number,
-            session_entry=session_entry,
-            amount=session_entry.fee,
-            description=session_entry.session.description,
-        )
-        user_pending_payment.save()
-
-        subject = f"Pending Payment to {club}"
-        message = f"""
-        {administrator.full_name} has recorded you as entering {session_entry.session} but not paying.
-        That is fine, you can pay later.
-        <br><br>
-        The amount owing is {GLOBAL_CURRENCY_SYMBOL}{session_entry.fee}.
-        <br><br>
-        If you believe this to be incorrect please contact {club} directly in the first instance.
-        """
-
-        send_cobalt_email_to_system_number(
-            session_entry.system_number,
-            subject,
-            message,
-            club=club,
-            administrator=administrator,
-        )
+        _handle_iou_changes_on(club, session_entry, administrator)
 
     # Check for turning off
     if session_entry.payment_method.payment_method == "IOU":
-        UserPendingPayment.objects.filter(
-            organisation=club,
-            system_number=session_entry.system_number,
-            session_entry=session_entry,
-        ).delete()
+        _handle_iou_changes_off(club, session_entry)
+
+
+def _handle_iou_changes_on(club, session_entry, administrator):
+    """Handle turning on an IOU"""
+
+    # For safety ensure we don't duplicate
+    user_pending_payment, _ = UserPendingPayment.objects.get_or_create(
+        organisation=club,
+        system_number=session_entry.system_number,
+        session_entry=session_entry,
+        amount=session_entry.fee,
+        description=session_entry.session.description,
+    )
+    user_pending_payment.save()
+
+    subject = f"Pending Payment to {club}"
+    message = f"""
+    {administrator.full_name} has recorded you as entering {session_entry.session} but not paying.
+    That is fine, you can pay later.
+    <br><br>
+    The amount owing is {GLOBAL_CURRENCY_SYMBOL}{session_entry.fee}.
+    <br><br>
+    If you believe this to be incorrect please contact {club} directly in the first instance.
+    """
+
+    send_cobalt_email_to_system_number(
+        session_entry.system_number,
+        subject,
+        message,
+        club=club,
+        administrator=administrator,
+    )
+
+    session_entry.amount_paid = session_entry.fee
+    session_entry.save()
+
+
+def _handle_iou_changes_off(club, session_entry):
+    """Turn off using an IOU"""
+
+    print("Off")
+
+    UserPendingPayment.objects.filter(
+        organisation=club,
+        system_number=session_entry.system_number,
+        session_entry=session_entry,
+    ).delete()
 
 
 def _handle_bridge_credit_changes(payment_method, club, session_entry, director):
@@ -769,8 +838,8 @@ def change_payment_method_htmx(request, club, session, session_entry):
         OrgPaymentMethod, pk=request.POST.get("payment_method")
     )
 
-    # IOU is a special case. Clubs can disable it, but if it is there we generate an IOU for the user
-    _handle_iou_changes(payment_method, club, session_entry, request.user)
+    # Handle IOUs
+    # TODO: HANDLE IOUs
 
     # Get the membership_type for this user and club, None means they are a guest
     member_membership_type = (
@@ -801,13 +870,22 @@ def change_payment_method_htmx(request, club, session, session_entry):
 def change_paid_amount_status_htmx(request, club, session, session_entry):
     """Change the status of the amount paid for a user. We simply toggle the paid amount from 0 to full amount"""
 
-    # TODO: Handle bridge credits - what do we do if already paid and changed to another payment method?
-
     if session_entry.amount_paid == session_entry.fee:
         session_entry.amount_paid = 0
+        session_entry.save()
+        if (
+            session_entry.payment_method
+            and session_entry.payment_method.payment_method == "IOU"
+        ):
+            _handle_iou_changes_off(club, session_entry)
     else:
         session_entry.amount_paid = session_entry.fee or 0
-    session_entry.save()
+        session_entry.save()
+        if (
+            session_entry.payment_method
+            and session_entry.payment_method.payment_method == "IOU"
+        ):
+            _handle_iou_changes_on(club, session_entry, request.user)
 
     # Check status now
     unpaid_count = (
