@@ -109,7 +109,7 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "Nil", "N")
-        if par_score != 430 or par_string != "4N by N for 430":
+        if par_score != 430 or par_string != "4N= by N for 430":
             failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         #####################################
@@ -199,7 +199,7 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "EW", "S")
-        if par_score != -620 or par_string != "4S by W or 4H by E for -620":
+        if par_score != -620 or par_string != "4S= by W or 4H= by E for -620":
             failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         #####################################
@@ -229,7 +229,7 @@ class ScoringTests:
         }
 
         par_score, par_string = par_score_and_contract(dds_table, "All", "S")
-        if par_score != -90 or par_string != "1N by W for -90":
+        if par_score != -90 or par_string != "1N by EW for -90":
             failing = _handle_failing_test(failing, test_number, par_score, par_string)
 
         #####################################

@@ -50,7 +50,7 @@ def check_email_sent(
         emails,
         subject_search,
         body_search,
-        debug,
+        # debug,
     )
 
     output += f"Result was {ok}"
@@ -64,7 +64,7 @@ def check_email_sent(
 
 
 def _check_email_sent_tests(
-    email_count, email_to, emails, subject_search, body_search, debug
+    email_count, email_to, emails, subject_search, body_search, debug=False
 ):
     """Sub step of check_email_sent. Does the actual checking."""
 

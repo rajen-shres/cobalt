@@ -30,7 +30,7 @@ def _event_entry_test_helper(manager, test_name, event, entrants, expected_statu
     """
 
     # Generate random payload
-    route_payload = "".join(random.choice(string.ascii_letters) for i in range(10))
+    route_payload = "".join(random.choice(string.ascii_letters) for _ in range(10))
 
     primary_entrant = entrants[0][0]
 
@@ -128,10 +128,6 @@ class CallbackTests:
         # natalie = self.manager.natalie
         # penelope = self.manager.penelope
 
-        print("******About to run lucy/morris test")
-        emails = Email.objects.all()
-        print(emails)
-
         # Pairs - both my-system-dollars
         _event_entry_test_helper(
             manager=self.manager,
@@ -144,10 +140,6 @@ class CallbackTests:
             expected_status="Complete",
         )
 
-        print("******Finished lucy/morris test")
-        emails = Email.objects.all()
-        print(emails)
-
         # Pairs - my-system-dollars and ask them
         _event_entry_test_helper(
             manager=self.manager,
@@ -159,10 +151,6 @@ class CallbackTests:
             ],
             expected_status="Pending",
         )
-
-        print("******Finished lucy/morris test 2")
-        emails = Email.objects.all()
-        print(emails)
 
         # Pairs - other-pp and bank-transfer
         _event_entry_test_helper(

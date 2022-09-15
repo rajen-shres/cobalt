@@ -118,7 +118,7 @@ class ClubSettings:
         )
 
         # click on Standard !!!! Assumes Standard is pk=7, will fail if other data is added before
-        standard = self.manager.selenium_wait_for("id_membership-btn-7")
+        standard = self.manager.selenium_wait_for("id_membership-btn-10")
 
         if not standard:
             self.manager.save_results(
