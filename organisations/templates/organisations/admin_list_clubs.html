@@ -40,6 +40,10 @@
                                                 {% if club.user_can_edit %}
                                                     <a href="{% url "organisations:club_menu" club_id=club.id %}"
                                                         class="btn btn-sm btn-info">Club Menu</a>
+                                                    {% if club.manually_added %}
+                                                        <a href="{% url "organisations:admin_convert_manual_club_to_automatic" club_id=club.id %}"
+                                                            class="btn btn-sm btn-success">Convert from Manual</a>
+                                                    {% endif %}
                                                 {% endif %}
                                             </td>
                                         </tr>

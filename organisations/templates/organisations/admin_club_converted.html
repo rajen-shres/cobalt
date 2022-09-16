@@ -1,0 +1,42 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Temporary page to convert manually set up clubs to the new format      #}
+{#                                                                        #}
+{# Likely you can delete this now                                         #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+{% extends 'base.html' %}
+{% load static %}
+{% load cobalt_tags %}
+{% block title %} - Converted {{ club }}{% endblock %}
+
+{% block content %}
+
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h2>{{ club }} Converted</h2>
+        </div>
+        <div class="card-body">
+            <p>{{ club }} has been converted. RBAC has been set up and basic defaults put in place.</p>
+            <p>You can visit the <a href="{% url "organisations:club_menu" club_id=club.id %}"
+                class="btn btn-sm btn-info">Club Menu</a> to make any further changes</p>
+            <p>Old RBAC rules have not been deleted. You need to do this manually.</p>
+            <h4>Users Added to Club</h4>
+            <ul>
+                {% for added_user in added_users %}
+                    <li>{{ added_user }}</li>
+                {% endfor %}
+            </ul>
+
+            <h4>RBAC Groups to Look At</h4>
+            <ul>
+                {% for old_group in old_groups %}
+                    <li><a target="_blank" href="{% url "rbac:group_edit" group_id=old_group.id %}">{{ old_group }}</a></li>
+                {% endfor %}
+            </ul>
+
+        </div>
+    </div>
+
+{% endblock  %}

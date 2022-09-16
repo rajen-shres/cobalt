@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 
@@ -30,8 +31,9 @@ from rbac.core import (
     rbac_delete_group,
     rbac_user_has_admin_tree_access,
     rbac_user_has_any_model,
+    rbac_get_admin_group_by_name,
 )
-from rbac.models import RBACGroupRole
+from rbac.models import RBACGroupRole, RBACUserGroup, RBACGroup
 from rbac.views import rbac_forbidden
 
 
@@ -183,7 +185,14 @@ def admin_list_clubs(request):
             if club.id in clubs_rbac:
                 club.user_can_edit = True
 
-    # Group by State
+    # Check for old style clubs
+    for club in clubs:
+        if club.user_can_edit:
+            basic, advanced = rbac_get_basic_and_advanced(club)
+            if not (basic or advanced):
+                club.manually_added = True
+
+            # Group by State
     grouped_by_state = {}
 
     for club in clubs:
@@ -599,3 +608,60 @@ def admin_club_rbac_convert_advanced_to_basic_sub(club):
     # Admin groups are the same whether basic or advanced so leave alone
 
     return True, None
+
+
+@login_required()
+def convert_manual_club_to_automatic(request, club_id):
+    """This is a temporary function to convert clubs that were created before club admin to
+    be set up as "normal" clubs.
+
+    If you are looking at this in the future, you can probably delete it.
+
+    """
+
+    # Get club
+    club = get_object_or_404(Organisation, pk=club_id)
+
+    has_access, role = _rbac_user_has_admin(club, request.user)
+    if not has_access:
+        return rbac_forbidden(request, role)
+
+    basic, advanced = rbac_get_basic_and_advanced(club)
+
+    if basic or advanced:
+        return HttpResponse("Club is already set up properly")
+
+    # Now convert
+    club.last_updated_by = request.user
+    club.last_updated = timezone.localtime()
+    club.save()
+    add_club_defaults(club)
+
+    # Move people across
+    added_users = []
+    group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.basic")
+    roles_with_club = RBACGroupRole.objects.filter(model_id=club.id).exclude(
+        group=group
+    )
+    for role in roles_with_club:
+        old_accesses = RBACUserGroup.objects.filter(group=role.group)
+        for old_access in old_accesses:
+            staff = old_access.member
+            print("staff", staff)
+            print("group", group)
+            rbac_add_user_to_group(staff, group)
+            admin_group = rbac_get_admin_group_by_name(
+                f"{club.rbac_admin_name_qualifier}.admin"
+            )
+            rbac_add_user_to_admin_group(staff, admin_group)
+            if staff not in added_users:
+                added_users.append(staff)
+
+    roles_with_club_list = roles_with_club.values_list("group_id")
+    old_groups = RBACGroup.objects.filter(id__in=roles_with_club_list)
+
+    return render(
+        request,
+        "organisations/admin_club_converted.html",
+        {"club": club, "added_users": added_users, "old_groups": old_groups},
+    )

@@ -664,4 +664,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.edit_minimum_balance_after_settlement_htmx,
         name="club_menu_tab_settings_edit_minimum_balance_after_settlement_htmx",
     ),
+    path(
+        "admin/convert_manual_club_to_automatic/<int:club_id>",
+        organisations.views.admin.convert_manual_club_to_automatic,
+        name="admin_convert_manual_club_to_automatic",
+    ),
 ]
