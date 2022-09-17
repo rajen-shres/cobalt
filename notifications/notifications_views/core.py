@@ -182,8 +182,6 @@ def send_cobalt_email_with_template(
     # Check for playpen - don't send emails to users unless on production or similar
     to_address, context = _to_address_checker(to_address, context)
 
-    priority = "now"
-
     headers = {"Reply-to": reply_to} if reply_to else None
     email = po_email.send(
         sender=sender,
