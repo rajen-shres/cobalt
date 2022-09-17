@@ -23,79 +23,119 @@
     <div class="container-fluid" id="tables_list">
         <div class="row">
             {% for table_no, players in table_list.items %}
-                <div class="col-4" style="width: 200px; height: 200px">
+                <div class="col-12 col-sm-6 col-md-4" >
 
-                    <div class="container">
-                        <!-- NORTH - FULL ROW -->
-                        <div class="row">
-                            <div class="col-12 text-center">
-                                <div class="mx-auto">
-                                    <span
-                                        title="{{ players.0.player.full_name }}"
+                    <div class="container table-responsive">
+                        <table style="width: 300px" class="table table-borderless">
+
+                            <!-- NORTH - FULL ROW -->
+
+                            <tr>
+                                <td style="width: 100px; border: none;"></td>
+                                <td class="text-center" style="width: 100px; border: none;">
+                                    <div class="mx-auto mx-0 px-0 bx-0">
+                                        <span
+                                            title="{{ players.0.player.full_name }} paying with {{ players.0.payment_method.payment_method }}. Fee: {{ players.0.fee|cobalt_currency }}. Paid: {{ players.0.amount_paid|cobalt_currency }}"
+                                            data-toggle="tooltip"
+                                        >
+                                            {% if players.0.amount_paid < players.0.fee %}
+                                                <span class="text-primary font-weight-bold">{{ players.0.player.first_name }}</span>
+                                            {% else %}
+                                                {{ players.0.player.first_name }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td style="width: 100px; border: none;"></td>
+                            </tr>
+
+                            <!-- EAST/WEST AND TABLE PICTURE -->
+                            <tr>
+
+                                <!-- WEST -->
+                                <td style="width: 100px; border: none;" class="text-right align-self-center px-0 bx-0 mx-0">
+                                    <div
+                                        class="px-0 bx-0 mx-0"
+                                        title="{{ players.2.player.full_name }} paying with {{ players.2.payment_method.payment_method }}. Fee: {{ players.2.fee|cobalt_currency }}. Paid: {{ players.2.amount_paid|cobalt_currency }}"
+
                                         data-toggle="tooltip"
                                     >
-                                        {{ players.0.player.first_name }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                                        {% if players.2.amount_paid < players.2.fee %}
+                                            <span class="text-primary font-weight-bold">{{ players.2.player.first_name }}</span>
+                                        {% else %}
+                                            {{ players.2.player.first_name }}
+                                        {% endif %}
+                                    </div>
+                                </td>
 
-                        <!-- EAST/WEST AND TABLE PICTURE -->
-                        <div class="row">
+                                {# Get table complete status from dictionary #}
+                                {% cobalt_dict_key_tag table_status table_no as table_complete %}
 
-                            <!-- WEST -->
-                            <div class="col-4 text-right align-self-center px-0 bx-0 mx-0">
-                                <div
-                                    class="px-0 bx-0 mx-0"
-                                    title="{{ players.2.player.full_name }}"
-                                    data-toggle="tooltip"
-                                >
-                                    {{ players.2.player.first_name }}
-                                </div>
-                            </div>
-
-                            <!-- TABLE ICON -->
-                            <div class="col-4">
-                                <span
-                                    class="text-center"
-                                    style="font-size:large; width: 80px; height: 80px; background-color: darkgreen; display:inline-block; color: white"
-                                >
-                                    Table {{ table_no }}
-                                    <span class="material-icons">done</span>
-                                </span>
-                            </div>
-
-                            <!-- EAST -->
-                            <div class="col-4 text-left align-self-center px-0 bx-0 mx-0">
-                                <div
-                                    class="px-0 bx-0 mx-0"
-                                    title="{{ players.3.player.full_name }}"
-                                    data-toggle="tooltip"
-                                >
-                                    {{ players.3.player.first_name }}
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <!-- SOUTH - FULL ROW -->
-                        <div class="row">
-                            <div class="col-12 text-center">
-                                <div class="mx-auto">
+                                <!-- TABLE ICON -->
+                                <td style="width: 100px; border: none;">
                                     <span
-                                        title="{{ players.1.player.full_name }}"
+                                        class="text-center"
+                                        style="font-size:large; width: 80px; height: 80px;
+                                        {% if table_complete %}
+                                            background-color: darkgreen;
+                                        {% else %}
+                                            background-color: orangered;
+                                        {% endif %}
+                                        display:inline-block; color: white"
+                                    >
+                                        Table {{ table_no }}
+
+                                        {% if table_complete %}
+                                            <span class="material-icons">done_all</span>
+                                        {% else %}
+                                            <span class="material-icons">priority_high</span>
+                                        {% endif %}
+                                    </span>
+                                </td>
+
+                                <!-- EAST -->
+                                <td style="width: 100px; border: none;" class="text-left align-self-center px-0 bx-0 mx-0">
+                                    <div
+                                        class="px-0 bx-0 mx-0"
+                                        title="{{ players.3.player.full_name }} paying with {{ players.3.payment_method.payment_method }}. Fee: {{ players.3.fee|cobalt_currency }}. Paid: {{ players.3.amount_paid|cobalt_currency }}"
                                         data-toggle="tooltip"
                                     >
-                                        {{ players.1.player.first_name }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                                        {% if players.3.amount_paid < players.3.fee %}
+                                            <span class="text-primary font-weight-bold">{{ players.3.player.first_name }}</span>
+                                        {% else %}
+                                            {{ players.3.player.first_name }}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+
+
+                            <!-- SOUTH - FULL ROW -->
+                            <tr>
+                                <td style="width: 100px; border: none;"></td>
+                                <td style="width: 100px; border: none;" class="text-center">
+                                    <div class="mx-auto">
+                                        <span
+                                            title="{{ players.1.player.full_name }} paying with {{ players.1.payment_method.payment_method }}. Fee: {{ players.1.fee|cobalt_currency }}. Paid: {{ players.1.amount_paid|cobalt_currency }}"
+                                            data-toggle="tooltip"
+                                        >
+                                            {% if players.1.amount_paid < players.1.fee %}
+                                                <span class="text-primary font-weight-bold">{{ players.1.player.first_name }}</span>
+                                            {% else %}
+                                                {{ players.1.player.first_name }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td style="width: 100px; border: none;">
+                                </td>
+                            </tr>
+
+                        </table>
+
                     </div>
-
-
-
                 </div>
+
             {% endfor %}
         </div>
 

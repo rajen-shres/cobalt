@@ -440,14 +440,12 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
     else:
         payment_summary = {}
 
-    table_list = {}
+    # Handle table view
     if view_type == "table":
-        # put session_entries into a dictionary for the table view
-        for session_entry in session_entries:
-            if session_entry.pair_team_number in table_list:
-                table_list[session_entry.pair_team_number].append(session_entry)
-            else:
-                table_list[session_entry.pair_team_number] = [session_entry]
+        table_list, table_status = _tab_session_htmx_table_view(session_entries)
+    else:
+        table_list = {}
+        table_status = {}
 
     return render(
         request,
@@ -457,6 +455,7 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
             "session": session,
             "session_entries": session_entries,
             "table_list": table_list,
+            "table_status": table_status,
             "payment_methods": payment_methods,
             "payment_summary": payment_summary,
             "message": message,
@@ -504,6 +503,27 @@ def _tab_session_htmx_payment_methods(session_entries, session, payment_methods)
                     session_entry.payment_methods.append(payment_method)
 
     return session_entries
+
+
+def _tab_session_htmx_table_view(session_entries):
+    """handle formatting for the table view"""
+
+    table_list = {}
+    table_status = {}
+    # put session_entries into a dictionary for the table view
+    for session_entry in session_entries:
+
+        # Add to dict if not present
+        if session_entry.pair_team_number not in table_list:
+            table_list[session_entry.pair_team_number] = []
+            table_status[session_entry.pair_team_number] = True
+
+        table_list[session_entry.pair_team_number].append(session_entry)
+        if session_entry.fee > session_entry.amount_paid:
+            # unpaid entry, mark table as incomplete
+            table_status[session_entry.pair_team_number] = False
+
+    return table_list, table_status
 
 
 def _tab_session_htmx_summary_table(session_entries, mixed_dict, membership_type_dict):

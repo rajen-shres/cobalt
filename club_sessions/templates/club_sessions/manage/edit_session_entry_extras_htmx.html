@@ -49,116 +49,114 @@
 
         {% endif %}
 
-        <!-- ONLY SHOW MISC PAYMENTS IF SET UP  -->
+        <!--  MISC PAYMENTS   -->
 
-        {% if misc_payment_types %}
-            <div class="card">
-                <div class="card-header card-header-success">
-                    <h4>Miscellaneous Payments</h4>
-                </div>
-
-
-                <!-- ADD NEW MISC PAYMENT FORM -->
-                <div class="card-body">
-                    {% if session_misc_payments %}
-
-                        <div class="table-responsive">
-                            <table class="table table-condensed table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Item</th>
-                                        <th>Cost</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for session_misc_payment in session_misc_payments %}
-                                        <tr>
-                                            <td>{{ session_misc_payment.optional_description }}</td>
-                                            <td>{{ session_misc_payment.amount }}</td>
-                                            <td>
-                                                {% if session_misc_payment.payment_made %}
-                                                    Paid
-                                                {% else %}
-                                                    Unpaid
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                <button
-                                                    class="btn btn-sm btn-danger"
-                                                    hx-post="{% url "club_sessions:delete_misc_session_payment_htmx" %}"
-                                                    hx-target="#entry_extras"
-                                                    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}, session_misc_payment_id:{{ session_misc_payment.id }}"
-                                                >Delete
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-
-                    {% endif %}
-
-                    <form
-                        hx-post="{% url "club_sessions:session_add_misc_payment_htmx" %}"
-                        hx-target="#entry_extras"
-                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
-                    >
-                        <div class="container">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <div class="form-group">
-                                        <label for="id_misc_payment" class="bmd-label-static">Item</label>
-                                        <select class="selectpicker" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
-                                            <option selected value="-1">---select---</option>
-                                            {% for misc_payment_type in misc_payment_types %}
-                                                <option value="{{ misc_payment_type.id }}">{{ misc_payment_type.description }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <div class="form-group">
-                                        <label for="id_amount" class="bmd-label-floating">Amount</label>
-                                        <input type="number" value="" min="0.00" step="0.01" class="form-control" id="id_amount" name="amount">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col text-center">
-                                    <button class="btn btn-info btn-sm" id="id_misc_button" disabled type="submit">Add</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
+        <div class="card">
+            <div class="card-header card-header-success">
+                <h4>Miscellaneous Payments</h4>
             </div>
-
-            <!-- PAY ON BEHALF -->
-
-            {% if player|get_class == "User" %}
-                <div class="card">
-                    <div class="card-header card-header-info">
-                        <h4>Pay On Behalf Of</h4>
-                    </div>
-                    <div class="body">
-                        <h3>{{ player.full_name  }} pays for</h3>
-                        <h3>{{ player.full_name  }} is paid for by</h3>
-                    </div>
-            {% endif %}
 
 
             <!-- ADD NEW MISC PAYMENT FORM -->
             <div class="card-body">
+                {% if session_misc_payments %}
 
+                    <div class="table-responsive">
+                        <table class="table table-condensed table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Cost</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session_misc_payment in session_misc_payments %}
+                                    <tr>
+                                        <td>{{ session_misc_payment.optional_description }}</td>
+                                        <td>{{ session_misc_payment.amount }}</td>
+                                        <td>
+                                            {% if session_misc_payment.payment_made %}
+                                                Paid
+                                            {% else %}
+                                                Unpaid
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button
+                                                class="btn btn-sm btn-danger"
+                                                hx-post="{% url "club_sessions:delete_misc_session_payment_htmx" %}"
+                                                hx-target="#entry_extras"
+                                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}, session_misc_payment_id:{{ session_misc_payment.id }}"
+                                            >Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
+                {% endif %}
 
-            </div>
+                <form
+                    hx-post="{% url "club_sessions:session_add_misc_payment_htmx" %}"
+                    hx-target="#entry_extras"
+                    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                >
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="id_misc_payment" class="bmd-label-static">Item</label>
+                                    <select class="selectpicker" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
+                                        <option selected value="-1">---select---</option>
+                                        {% for misc_payment_type in misc_payment_types %}
+                                            <option value="{{ misc_payment_type.id }}">{{ misc_payment_type.description }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="id_amount" class="bmd-label-floating">Amount</label>
+                                    <input type="number" value="" min="0.00" step="0.01" class="form-control" id="id_amount" name="amount">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col text-center">
+                                <button class="btn btn-info btn-sm" id="id_misc_button" disabled type="submit">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- PAY ON BEHALF -->
+
+        {% if player|get_class == "User" %}
+            <div class="card">
+                <div class="card-header card-header-info">
+                    <h4>Pay On Behalf Of - NOT COMPLETE</h4>
+                </div>
+                <div class="body">
+                    <h3>{{ player.full_name  }} pays for</h3>
+                    <h3>{{ player.full_name  }} is paid for by</h3>
+                </div>
         {% endif %}
+
+
+        <!-- ADD NEW MISC PAYMENT FORM -->
+        <div class="card-body">
+
+
+
+        </div>
 
     </div>
 </div>
