@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.html import strip_tags
+from django.utils.safestring import mark_safe
 from fcm_django.models import FCMDevice
 from firebase_admin.messaging import (
     Message,
@@ -174,8 +175,14 @@ def send_cobalt_email_with_template(
     if "subject" not in context and "title" in context:
         context["subject"] = context["title"]
 
+    # mark subject as safe or characters get changed
+    if context["subject"]:
+        context["subject"] = mark_safe(context["subject"])
+
     # Check for playpen - don't send emails to users unless on production or similar
     to_address, context = _to_address_checker(to_address, context)
+
+    priority = "now"
 
     headers = {"Reply-to": reply_to} if reply_to else None
     email = po_email.send(

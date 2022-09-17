@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.utils.safestring import mark_safe
 
 from accounts.models import User, UnregisteredUser
 from cobalt.settings import COBALT_HOSTNAME
