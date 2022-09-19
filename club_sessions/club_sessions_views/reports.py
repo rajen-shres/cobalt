@@ -215,8 +215,16 @@ def csv_download(request, session_id):
     if not rbac_user_has_role(request.user, club_role):
         return rbac_forbidden(request, club_role)
 
-    # Get session_entries
-    session_entries = SessionEntry.objects.filter(session=session)
+    # Get dictionaries
+    (
+        session_entries,
+        mixed_dict,
+        session_fees,
+        membership_type_dict,
+    ) = load_session_entry_static(session, club)
+
+    # Get extras
+    extras = SessionMiscPayment.objects.filter(session_entry__session=session)
 
     # Create CSV
     response = HttpResponse(content_type="text/csv")
@@ -230,6 +238,7 @@ def csv_download(request, session_id):
     field_names = [
         "Session",
         "Date",
+        "Name",
         f"{GLOBAL_ORG} Number",
         "Pair Team Number",
         "Seat",
@@ -240,15 +249,52 @@ def csv_download(request, session_id):
     writer.writerow(field_names)
     # Write data rows
     for session_entry in session_entries:
+        if session_entry.payment_method:
+            payment_method = session_entry.payment_method.payment_method
+        else:
+            payment_method = ""
+        if session_entry.system_number == PLAYING_DIRECTOR:
+            name = "Playing Director"
+        elif session_entry.system_number == SITOUT:
+            name = "Sitout"
+        elif session_entry.system_number == VISITOR:
+            name = session_entry.player_name_from_file
+        else:
+            name = mixed_dict.get(session_entry.system_number).get("value")
         values = [
             session.description,
             session.session_date,
+            name,
             session_entry.system_number,
             session_entry.pair_team_number,
             session_entry.seat,
-            session_entry.payment_method,
+            payment_method,
             session_entry.fee,
             session_entry.amount_paid,
+        ]
+        writer.writerow(values)
+
+    # Extras
+    writer.writerow([])
+    # Write a first row with header information
+    field_names = [
+        "Session",
+        "Date",
+        f"{GLOBAL_ORG} Number",
+        "Pair Team Number",
+        "Seat",
+        "Payment Method",
+        "Fee",
+        "Amount Paid",
+    ]
+    writer.writerow(field_names)
+    # Write data rows
+    for extra in extras:
+        values = [
+            extra.session_entry.id,
+            extra.description,
+            extra.payment_method,
+            extra.amount,
         ]
         writer.writerow(values)
 
