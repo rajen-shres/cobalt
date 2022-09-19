@@ -174,8 +174,11 @@ class SessionMiscPayment(models.Model):
     session_entry = models.ForeignKey(SessionEntry, on_delete=models.PROTECT)
     payment_made = models.BooleanField(default=False)
     """ Has this payment been processes, yes or no """
+    payment_method = models.ForeignKey(
+        OrgPaymentMethod, on_delete=models.PROTECT, null=True, blank=True
+    )
 
-    optional_description = models.TextField(max_length=50, blank=True, null=True)
+    description = models.TextField(max_length=50, blank=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):

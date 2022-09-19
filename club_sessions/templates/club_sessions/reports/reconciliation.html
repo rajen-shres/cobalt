@@ -37,7 +37,9 @@
     </table>
 </div>
 
-<div class="table-responsive mt-5">
+<h3>Table Fees</h3>
+
+<div class="table-responsive">
 
     <!-- MAIN TABLE OF MEMBERSHIP TYPE (Y-AXIS) AND PAYMENT METHOD (X-AXIS) -->
     <table class="table table-condensed table-hover border">
@@ -128,6 +130,21 @@
 
     </table>
 </div>
+
+
+<!-- EXTRAS -->
+
+{% if extras %}
+    <h3>Session Extras</h3>
+
+    <div class="table-responsive">
+
+        <!-- TABLE -->
+        <table class="table table-condensed table-hover border">
+
+        </table>
+
+{% endif %}
 
 <script>
     $(document).ready(function() {

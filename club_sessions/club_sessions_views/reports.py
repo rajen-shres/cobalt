@@ -11,7 +11,7 @@ from accounts.models import User
 from club_sessions.club_sessions_views.common import PLAYING_DIRECTOR, SITOUT, VISITOR
 from club_sessions.club_sessions_views.decorators import user_is_club_director
 from club_sessions.club_sessions_views.sessions import load_session_entry_static
-from club_sessions.models import Session, SessionEntry
+from club_sessions.models import Session, SessionEntry, SessionMiscPayment
 from cobalt.settings import GLOBAL_ORG
 from payments.models import MemberTransaction
 from rbac.core import rbac_user_has_role
@@ -174,8 +174,10 @@ def reconciliation_htmx(request, club, session):
         new_table[row] = new_row
     summary_table = new_table
 
-    # See if user wants to see nothing in the report
+    # See if user wants to see blank stuff in the report
     show_blanks = bool(request.POST.get("show_blanks", False))
+
+    extras = _reconciliation_extras(session)
 
     return render(
         request,
@@ -188,8 +190,17 @@ def reconciliation_htmx(request, club, session):
             "row_has_data": row_has_data,
             "column_has_data": column_has_data,
             "show_blanks": show_blanks,
+            "extras": extras,
         },
     )
+
+
+def _reconciliation_extras(session):
+    """get summarised view of extras for a session"""
+
+    extras_qs = SessionMiscPayment.objects.filter(session_entry__session=session)
+
+    print(extras_qs)
 
 
 @login_required()

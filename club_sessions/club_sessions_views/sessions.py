@@ -49,6 +49,22 @@ from ..models import (
 )
 
 
+def bridge_credits_for_club(club):
+    """return the bridge credits payment method for a club"""
+
+    return OrgPaymentMethod.objects.filter(
+        active=True, organisation=club, payment_method="Bridge Credits"
+    ).first()
+
+
+def iou_for_club(club):
+    """return the IOU payment method for a club"""
+
+    return OrgPaymentMethod.objects.filter(
+        active=True, organisation=club, payment_method="IOU"
+    ).first()
+
+
 @login_required()
 def new_session(request, club_id):
     """Set up a new bridge session for a club"""
@@ -135,6 +151,83 @@ def _handle_change_secondary_payment_method(
     return message
 
 
+def _handle_change_additional_session_fee_reason(old_reason, new_reason, session, club):
+    """Handle the settings being changed for additional fees - change the reason"""
+
+    session_entries = SessionEntry.objects.filter(session=session).exclude(
+        system_number__in=[PLAYING_DIRECTOR, SITOUT]
+    )
+
+    for session_entry in session_entries:
+
+        SessionMiscPayment.objects.filter(
+            session_entry=session_entry,
+            description=old_reason,
+        ).update(description=new_reason)
+
+
+def _handle_change_additional_session_fee(old_fee, new_fee, session, club, old_reason):
+    """Handle the settings being changed for additional fees"""
+
+    bridge_credits = bridge_credits_for_club(club)
+    iou = iou_for_club(club)
+
+    message = ""
+
+    session_entries = SessionEntry.objects.filter(session=session).exclude(
+        system_number__in=[PLAYING_DIRECTOR, SITOUT]
+    )
+
+    for session_entry in session_entries:
+
+        if old_fee == 0:
+            # Create new entries from scratch
+            SessionMiscPayment(
+                session_entry=session_entry,
+                description=session.additional_session_fee_reason,
+                payment_method=session_entry.payment_method,
+                amount=new_fee,
+            ).save()
+
+        elif new_fee == 0:
+            # Delete entries without bridge credits or ious
+            SessionMiscPayment.objects.filter(session_entry=session_entry).filter(
+                description=old_reason
+            ).exclude(payment_method__in=[bridge_credits, iou]).delete()
+
+            # Handle bridge credits and IOUs
+            if (
+                SessionMiscPayment.objects.filter(session_entry=session_entry)
+                .filter(description=old_reason)
+                .filter(payment_method__in=[bridge_credits, iou])
+                .exists()
+            ):
+                message = f" Some entries have paid with {BRIDGE_CREDITS} or IOUs. You need to handle these manually."
+            else:
+                message = "Additional fees removed."
+
+        else:
+            # Update entries without bridge credits or ious
+            SessionMiscPayment.objects.filter(session_entry=session_entry).filter(
+                description=old_reason
+            ).exclude(payment_method__in=[bridge_credits, iou]).update(
+                amount=new_fee, payment_made=False
+            )
+
+            # Handle bridge credits and IOUs
+            if (
+                SessionMiscPayment.objects.filter(session_entry=session_entry)
+                .filter(description=old_reason)
+                .filter(payment_method__in=[bridge_credits, iou])
+                .exists()
+            ):
+                message = f" Some entries have paid with {BRIDGE_CREDITS} or IOUs. You need to handle these manually."
+            else:
+                message = "Additional fees changed."
+
+    return message
+
+
 @user_is_club_director()
 def tab_settings_htmx(request, club, session):
     """Edit fields that were set up when the session was started"""
@@ -143,15 +236,35 @@ def tab_settings_htmx(request, club, session):
 
     if "save_settings" in request.POST:
         session_form = SessionForm(request.POST, club=club, instance=session)
+
+        # Save old values in case we need them below
         old_payment_method = session.default_secondary_payment_method
+        old_additional_session_fee = session.additional_session_fee
+        old_additional_session_fee_reason = session.additional_session_fee_reason
+
         if session_form.is_valid():
+            session = session_form.save()
             message = "Session Updated"
 
             if "additional_session_fee" in session_form.changed_data:
-                print("Handle additional session fee changing")
+                message += _handle_change_additional_session_fee(
+                    old_fee=old_additional_session_fee,
+                    new_fee=session_form.cleaned_data["additional_session_fee"],
+                    session=session,
+                    club=club,
+                    old_reason=old_additional_session_fee_reason,
+                )
+
+            if "additional_session_fee_reason" in session_form.changed_data:
+                _handle_change_additional_session_fee_reason(
+                    old_additional_session_fee_reason,
+                    session.additional_session_fee_reason,
+                    session,
+                    club,
+                )
 
             if "default_secondary_payment_method" in session_form.changed_data:
-                message = _handle_change_secondary_payment_method(
+                message += _handle_change_secondary_payment_method(
                     old_method=old_payment_method,
                     new_method=session_form.cleaned_data[
                         "default_secondary_payment_method"
@@ -160,7 +273,6 @@ def tab_settings_htmx(request, club, session):
                     club=club,
                     administrator=request.user,
                 )
-            session = session_form.save()
         else:
             print(session_form.errors)
 
@@ -257,6 +369,138 @@ def _get_session_fees_for_club(club):
     return session_fees
 
 
+def _get_extras_as_total_for_session_entries(
+    session, paid_only=False, unpaid_only=False
+):
+    """get the total amount of extras for each session entry as a dictionary
+
+    paid_only - only included total for extras that have been paid for
+    unpaid_only - only included total for extras that have not been paid for
+
+    """
+    extras_qs = (
+        SessionMiscPayment.objects.filter(session_entry__session=session)
+        .values("session_entry")
+        .annotate(extras=Sum("amount"))
+    )
+
+    if paid_only:
+        extras_qs = extras_qs.filter(payment_made=True)
+
+    if unpaid_only:
+        extras_qs = extras_qs.filter(payment_made=False)
+
+    # convert to dict
+    return {item["session_entry"]: float(item["extras"]) for item in extras_qs}
+
+
+def _get_extras_for_session_entries(session_entries):
+    """get the extras associated with a queryset of SessionEntries"""
+
+    session_entries_list = session_entries.values_list("id", flat=True)
+    extras = SessionMiscPayment.objects.filter(
+        session_entry__in=session_entries_list
+    ).values("session_entry", "amount")
+    extras_dict = {}
+    for extra in extras:
+        if extra["session_entry"] not in extras_dict:
+            extras_dict[extra["session_entry"]] = extra["amount"]
+        else:
+            extras_dict[extra["session_entry"]] += extra["amount"]
+
+    return extras_dict
+
+
+def _augment_session_entries_process_entry(
+    session_entry, mixed_dict, membership_type_dict, extras_dict, valid_payment_methods
+):
+    """sub of _augment_session_entries to handle a single session entry"""
+
+    # table
+    if session_entry.pair_team_number % 2 == 0:
+        session_entry.table_colour = "even"
+    else:
+        session_entry.table_colour = "odd"
+
+    # Add User or UnregisterUser to the entry and note the player_type
+    if session_entry.system_number == SITOUT:
+        # Sit out
+        session_entry.player_type = "NotRegistered"
+        session_entry.icon = "hourglass_empty"
+        session_entry.player = {"full_name": "Sitout", "first_name": "Sitout"}
+        icon_text = "There is nobody at this position"
+    elif session_entry.system_number == PLAYING_DIRECTOR:
+        # Playing Director
+        session_entry.player_type = "NotRegistered"
+        session_entry.icon = "local_police"
+        session_entry.player = {
+            "full_name": "PLAYING DIRECTOR",
+            "first_name": "DIRECTOR",
+        }
+        icon_text = "Playing Director"
+    elif session_entry.system_number == VISITOR:
+        # Visitor with no ABF number
+        session_entry.player_type = "NotRegistered"
+        session_entry.icon = "handshake"
+        session_entry.player = {
+            "full_name": session_entry.player_name_from_file.title(),
+            "first_name": session_entry.player_name_from_file.split(" ")[0].title(),
+        }
+        icon_text = f"Non-{GLOBAL_ORG} Member"
+    elif session_entry.system_number in mixed_dict:
+        session_entry.player = mixed_dict[session_entry.system_number]["value"]
+        session_entry.player_type = mixed_dict[session_entry.system_number]["type"]
+        session_entry.icon = mixed_dict[session_entry.system_number]["icon"]
+        icon_text = f"{session_entry.player.first_name} is "
+
+    else:
+        session_entry.player_type = "NotRegistered"
+        session_entry.icon = "error"
+        session_entry.player = {"full_name": "Unknown"}
+        icon_text = "This person is "
+
+    # membership
+    if session_entry.system_number == SITOUT:
+        # Sit out
+        session_entry.membership = "Guest"
+    elif session_entry.system_number in membership_type_dict:
+        # This person is a member
+        session_entry.membership = membership_type_dict[session_entry.system_number]
+        session_entry.membership_type = "member"
+        session_entry.icon_colour = "primary"
+        if session_entry.system_number not in [SITOUT, PLAYING_DIRECTOR, VISITOR]:
+            icon_text += f"a {session_entry.membership} member."
+    else:
+        # Not a member
+        session_entry.membership = "Guest"
+        if session_entry.system_number not in [SITOUT, PLAYING_DIRECTOR, VISITOR]:
+            icon_text += "a Guest."
+        if session_entry.system_number >= 0 and abf_checksum_is_valid(
+            session_entry.system_number
+        ):
+            session_entry.membership_type = "Valid Number"
+            session_entry.icon_colour = "warning"
+        else:
+            session_entry.membership_type = "Invalid Number"
+            session_entry.icon_colour = "dark"
+
+    # valid payment method. In list of valid is fine, or simple not set is fine too
+    if session_entry.payment_method:
+        session_entry.payment_method_is_valid = (
+            session_entry.payment_method.payment_method in valid_payment_methods
+        )
+    else:
+        session_entry.payment_method_is_valid = True
+
+    # Add icon text
+    session_entry.icon_text = icon_text
+
+    # Add extras
+    session_entry.extras = extras_dict.get(session_entry.id, 0)
+
+    return session_entry
+
+
 def _augment_session_entries(
     session_entries, mixed_dict, membership_type_dict, session_fees, club
 ):
@@ -281,101 +525,18 @@ def _augment_session_entries(
     ).values_list("payment_method", flat=True)
 
     # Get any extra payments as a dictionary
-    session_entries_list = session_entries.values_list("id", flat=True)
-    extras = SessionMiscPayment.objects.filter(
-        session_entry__in=session_entries_list
-    ).values("session_entry", "amount")
-    extras_dict = {}
-    for extra in extras:
-        if extra["session_entry"] not in extras_dict:
-            extras_dict[extra["session_entry"]] = extra["amount"]
-        else:
-            extras_dict[extra["session_entry"]] += extra["amount"]
+    extras_dict = _get_extras_for_session_entries(session_entries)
 
     # Now add the object to the session list, also add colours for alternate tables
     for session_entry in session_entries:
 
-        # table
-        if session_entry.pair_team_number % 2 == 0:
-            session_entry.table_colour = "even"
-        else:
-            session_entry.table_colour = "odd"
-
-        # Add User or UnregisterUser to the entry and note the player_type
-        if session_entry.system_number == SITOUT:
-            # Sit out
-            session_entry.player_type = "NotRegistered"
-            session_entry.icon = "hourglass_empty"
-            session_entry.player = {"full_name": "Sitout", "first_name": "Sitout"}
-            icon_text = "There is nobody at this position"
-        elif session_entry.system_number == PLAYING_DIRECTOR:
-            # Playing Director
-            session_entry.player_type = "NotRegistered"
-            session_entry.icon = "local_police"
-            session_entry.player = {
-                "full_name": "PLAYING DIRECTOR",
-                "first_name": "DIRECTOR",
-            }
-            icon_text = "Playing Director"
-        elif session_entry.system_number == VISITOR:
-            # Visitor with no ABF number
-            session_entry.player_type = "NotRegistered"
-            session_entry.icon = "handshake"
-            session_entry.player = {
-                "full_name": session_entry.player_name_from_file.title(),
-                "first_name": session_entry.player_name_from_file.split(" ")[0].title(),
-            }
-            icon_text = f"Non-{GLOBAL_ORG} Member"
-        elif session_entry.system_number in mixed_dict:
-            session_entry.player = mixed_dict[session_entry.system_number]["value"]
-            session_entry.player_type = mixed_dict[session_entry.system_number]["type"]
-            session_entry.icon = mixed_dict[session_entry.system_number]["icon"]
-            icon_text = f"{session_entry.player.first_name} is "
-
-        else:
-            session_entry.player_type = "NotRegistered"
-            session_entry.icon = "error"
-            session_entry.player = {"full_name": "Unknown"}
-            icon_text = "This person is "
-
-        # membership
-        if session_entry.system_number == SITOUT:
-            # Sit out
-            session_entry.membership = "Guest"
-        elif session_entry.system_number in membership_type_dict:
-            # This person is a member
-            session_entry.membership = membership_type_dict[session_entry.system_number]
-            session_entry.membership_type = "member"
-            session_entry.icon_colour = "primary"
-            if session_entry.system_number not in [SITOUT, PLAYING_DIRECTOR, VISITOR]:
-                icon_text += f"a {session_entry.membership} member."
-        else:
-            # Not a member
-            session_entry.membership = "Guest"
-            if session_entry.system_number not in [SITOUT, PLAYING_DIRECTOR, VISITOR]:
-                icon_text += "a Guest."
-            if session_entry.system_number >= 0 and abf_checksum_is_valid(
-                session_entry.system_number
-            ):
-                session_entry.membership_type = "Valid Number"
-                session_entry.icon_colour = "warning"
-            else:
-                session_entry.membership_type = "Invalid Number"
-                session_entry.icon_colour = "dark"
-
-        # valid payment method. In list of valid is fine, or simple not set is fine too
-        if session_entry.payment_method:
-            session_entry.payment_method_is_valid = (
-                session_entry.payment_method.payment_method in valid_payment_methods
-            )
-        else:
-            session_entry.payment_method_is_valid = True
-
-        # Add icon text
-        session_entry.icon_text = icon_text
-
-        # Add extras
-        session_entry.extras = extras_dict.get(session_entry.id, 0)
+        session_entry = _augment_session_entries_process_entry(
+            session_entry,
+            mixed_dict,
+            membership_type_dict,
+            extras_dict,
+            valid_payment_methods,
+        )
 
     # work out payment method and if user has sufficient funds
     return _calculate_payment_method_and_balance(session_entries, session_fees, club)
@@ -479,14 +640,16 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
 
     if view_type == "summary":
         payment_summary = _tab_session_htmx_summary_table(
-            session_entries, mixed_dict, membership_type_dict
+            session, session_entries, mixed_dict, membership_type_dict
         )
     else:
         payment_summary = {}
 
     # Handle table view
     if view_type == "table":
-        table_list, table_status = _tab_session_htmx_table_view(session_entries)
+        table_list, table_status = _tab_session_htmx_table_view(
+            session, session_entries
+        )
     else:
         table_list = {}
         table_status = {}
@@ -549,8 +712,10 @@ def _tab_session_htmx_payment_methods(session_entries, session, payment_methods)
     return session_entries
 
 
-def _tab_session_htmx_table_view(session_entries):
+def _tab_session_htmx_table_view(session, session_entries):
     """handle formatting for the table view"""
+
+    extras = _get_extras_as_total_for_session_entries(session)
 
     table_list = {}
     table_status = {}
@@ -562,6 +727,10 @@ def _tab_session_htmx_table_view(session_entries):
             table_list[session_entry.pair_team_number] = []
             table_status[session_entry.pair_team_number] = True
 
+        session_entry.extras = Decimal(extras.get(session_entry.id, 0))
+        # Add extras to entry fee for this view, no good reason
+        session_entry.fee += session_entry.extras
+
         table_list[session_entry.pair_team_number].append(session_entry)
         if session_entry.fee > session_entry.amount_paid:
             # unpaid entry, mark table as incomplete
@@ -570,8 +739,14 @@ def _tab_session_htmx_table_view(session_entries):
     return table_list, table_status
 
 
-def _tab_session_htmx_summary_table(session_entries, mixed_dict, membership_type_dict):
+def _tab_session_htmx_summary_table(
+    session, session_entries, mixed_dict, membership_type_dict
+):
     """summarise session_entries for the summary view"""
+
+    extras_paid = _get_extras_as_total_for_session_entries(session, paid_only=True)
+    extras_unpaid = _get_extras_as_total_for_session_entries(session, unpaid_only=True)
+    extras = _get_extras_as_total_for_session_entries(session)
 
     payment_summary = {}
     for session_entry in session_entries:
@@ -595,16 +770,22 @@ def _tab_session_htmx_summary_table(session_entries, mixed_dict, membership_type
             }
 
         # Update dict with this session_entry
-        payment_summary[pay_method]["fee"] += session_entry.fee
+        payment_summary[pay_method]["fee"] += session_entry.fee + Decimal(
+            extras.get(session_entry.id, 0)
+        )
         payment_summary[pay_method]["amount_paid"] += session_entry.amount_paid
         payment_summary[pay_method]["outstanding"] += (
-            session_entry.fee - session_entry.amount_paid
+            session_entry.fee
+            + Decimal(extras_unpaid.get(session_entry.id, 0))
+            - session_entry.amount_paid
         )
         payment_summary[pay_method]["player_count"] += 1
 
         # Add session_entry as well for drop down list
         name = mixed_dict[session_entry.system_number]["value"]
         member_type = membership_type_dict.get(session_entry.system_number, "Guest")
+        session_entry.fee += Decimal(extras.get(session_entry.id, 0))
+        session_entry.amount_paid += Decimal(extras_paid.get(session_entry.id, 0))
         # Handle visitors
         if session_entry.system_number == VISITOR:
             name = session_entry.player_name_from_file.title()
@@ -654,24 +835,21 @@ def _edit_session_entry_handle_post(request, club, session_entry):
     if system_number:
         session_entry.system_number = system_number
 
-    # Handle IOUs
+    # Handle IOUs and bridge_credits
     if "payment_method" in form.changed_data:
-        print("changed payment method")
         _handle_iou_changes(payment_method, club, session_entry, request.user)
 
         # Handle bridge credits being changed to something else
         if is_user:
             status, message = _handle_bridge_credit_changes(
-                payment_method, club, session_entry, request.user
+                payment_method, club, session_entry, request.user, message
             )
-            if not status:
-                # reset form and return
-                form = UserSessionForm(club=club, session_entry=session_entry)
-                return form, message
-            session_entry.amount_paid = 0
 
     session_entry.payment_method = payment_method
     session_entry.save()
+
+    # reset form and return
+    form = UserSessionForm(club=club, session_entry=session_entry)
 
     return form, message
 
@@ -735,7 +913,9 @@ def _handle_iou_changes_off(club, session_entry):
     ).delete()
 
 
-def _handle_bridge_credit_changes(payment_method, club, session_entry, director):
+def _handle_bridge_credit_changes(
+    payment_method, club, session_entry, director, message
+):
     """When the director changes payment method from bridge credit to something else, we need to handle refunds
     if payment already made.
 
@@ -747,31 +927,45 @@ def _handle_bridge_credit_changes(payment_method, club, session_entry, director)
 
     """
 
-    bridge_credit_payment_method = OrgPaymentMethod.objects.filter(
-        organisation=club, payment_method=BRIDGE_CREDITS, active=True
-    ).first()
+    bridge_credit_payment_method = bridge_credits_for_club(club)
 
     if (
         session_entry.payment_method != bridge_credit_payment_method
         and payment_method != bridge_credit_payment_method
     ):
         # No bridge credits involved (not old payment method or new)
-        return True, ""
+        return True, message
 
     if (
         session_entry.payment_method == bridge_credit_payment_method
         and session_entry.amount_paid > 0
     ):
-        return _handle_bridge_credit_changes_refund(club, session_entry, director)
+        return _handle_bridge_credit_changes_refund(
+            club, session_entry, director, message
+        )
 
     if payment_method == bridge_credit_payment_method:
         # New payment method is bridge credits. Force status to be pending bridge credits
         session_entry.session.status = Session.SessionStatus.DATA_LOADED
         session_entry.session.save()
-        return True, ""
+
+        # Mark entry as unpaid - don't drop paid extras though
+        session_entry.amount_paid = 0
+        for misc_payments in SessionMiscPayment.objects.filter(
+            session_entry=session_entry, payment_method=bridge_credit_payment_method
+        ):
+            if misc_payments.payment_made:
+                session_entry.amount_paid += misc_payments.amount
+        session_entry.save()
+        return True, message
+
+    else:
+        # Was bridge credits, but isn't now. Mark as unpaid
+        session_entry.amount_paid = 0
+        session_entry.save()
 
 
-def _handle_bridge_credit_changes_refund(club, session_entry, director):
+def _handle_bridge_credit_changes_refund(club, session_entry, director, message):
     # Refund needed
     if org_balance(club) < session_entry.amount_paid:
         return False, "Club has insufficient funds for this refund"
@@ -1084,9 +1278,7 @@ def session_totals_htmx(request, club, session):
         progress_percent = 100
 
     # Get bridge credits for this org
-    bridge_credits = OrgPaymentMethod.objects.filter(
-        active=True, organisation=club, payment_method="Bridge Credits"
-    ).first()
+    bridge_credits = bridge_credits_for_club(club)
 
     # See if anyone is paying with bridge credits
     paying_with_bridge_credits = any(
@@ -1112,11 +1304,12 @@ def session_totals_htmx(request, club, session):
 def add_misc_payment_htmx(request, club, session, session_entry):
     """Adds a miscellaneous payment for a user in a session"""
 
-    # TODO: Change this to use the optional_description and allow user to type value in
-
     # load data from form
-    misc_payment = get_object_or_404(MiscPayType, pk=request.POST.get("misc_payment"))
+    misc_description = request.POST.get("misc_description")
     amount = float(request.POST.get("amount"))
+    payment_method = get_object_or_404(
+        OrgPaymentMethod, pk=request.POST.get("payment_method")
+    )
 
     # validate
     if amount <= 0:
@@ -1132,15 +1325,42 @@ def add_misc_payment_htmx(request, club, session, session_entry):
         return edit_session_entry_extras_htmx(request, message="Error loading member")
 
     # Add misc payment
-    SessionMiscPayment(
+    session_misc_payment = SessionMiscPayment(
         session_entry=session_entry,
-        optional_description=misc_payment.description,
+        description=misc_description,
+        payment_method=payment_method,
         amount=amount,
-    ).save()
-
-    return edit_session_entry_extras_htmx(
-        request, message=f"{misc_payment.description} added"
     )
+    session_misc_payment.save()
+
+    message = f"{misc_description} added"
+
+    # If payments have been made for this session_entry and it was bridge credits, then try to
+    # process this now
+    bridge_credits = bridge_credits_for_club(club)
+
+    if (
+        session_misc_payment.payment_method == bridge_credits
+        and session_entry.amount_paid > 0
+    ):
+        if payment_api_batch(
+            member=member,
+            description=f"{session} - {session_misc_payment.description}",
+            amount=amount,
+            organisation=club,
+            payment_type="Club Payment",
+            session=session,
+        ):
+            session_misc_payment.payment_made = True
+            session_misc_payment.save()
+            message += " and payment made."
+
+        else:
+            # Failed payment. Cancel it.
+            session_misc_payment.delete()
+            message = "Payment failed. Try another payment method."
+
+    return edit_session_entry_extras_htmx(request, message=message)
 
 
 @user_is_club_director()
@@ -1148,9 +1368,7 @@ def process_bridge_credits_htmx(request, club, session):
     """handle bridge credits for the session - called from a big button"""
 
     # Get bridge credits for this org
-    bridge_credits = OrgPaymentMethod.objects.filter(
-        active=True, organisation=club, payment_method="Bridge Credits"
-    ).first()
+    bridge_credits = bridge_credits_for_club(club)
 
     if not bridge_credits:
         return tab_session_htmx(
@@ -1159,14 +1377,7 @@ def process_bridge_credits_htmx(request, club, session):
         )
 
     # Get any extras
-    extras_qs = (
-        SessionMiscPayment.objects.filter(session_entry__session=session)
-        .values("session_entry")
-        .annotate(extras=Sum("amount"))
-    )
-
-    # convert to dict
-    extras = {item["session_entry"]: float(item["extras"]) for item in extras_qs}
+    extras = _get_extras_as_total_for_session_entries(session)
 
     # For each player go through and work out what they owe
     session_entries = SessionEntry.objects.filter(
@@ -1216,11 +1427,17 @@ def _process_bridge_credits_sub(session_entries, session, club, bridge_credits, 
         fee = float(session_entry.fee) if session_entry.fee else 0
         amount = fee - amount_paid + extras.get(session_entry.id, 0)
 
+        # Add comments to statement if extras are included
+        if extras.get(session_entry.id):
+            description = f"{session} plus extras"
+        else:
+            description = f"{session}"
+
         # Try payment
         member = users_by_system_number[session_entry.system_number]
         if payment_api_batch(
             member=member,
-            description=f"{session}",
+            description=description,
             amount=amount,
             organisation=club,
             payment_type="Club Payment",
@@ -1235,7 +1452,7 @@ def _process_bridge_credits_sub(session_entries, session, club, bridge_credits, 
             SessionMiscPayment.objects.filter(
                 session_entry__session=session,
                 session_entry__system_number=session_entry.system_number,
-            ).update(payment_made=True)
+            ).update(payment_made=True, payment_method=bridge_credits)
 
         else:
             # Payment failed - change payment method
@@ -1317,15 +1534,27 @@ def process_off_system_payments_htmx(request, club, session):
     """mark all off system payments as paid - called from a big button"""
 
     # Get bridge credits for this org
-    bridge_credits = OrgPaymentMethod.objects.filter(
-        active=True, organisation=club, payment_method="Bridge Credits"
-    ).first()
+    bridge_credits = bridge_credits_for_club(club)
+
+    # Get session entries
     session_entries = SessionEntry.objects.filter(session=session).exclude(
         payment_method=bridge_credits
     )
+
+    # Get any extras
+    extras = _get_extras_as_total_for_session_entries(session)
+
     for session_entry in session_entries:
-        session_entry.amount_paid = session_entry.fee
+        session_entry.amount_paid = session_entry.fee + Decimal(
+            extras.get(session_entry.id, 0)
+        )
         session_entry.save()
+
+        # mark misc payments for this session as paid
+        SessionMiscPayment.objects.filter(
+            session_entry__session=session,
+            session_entry__system_number=session_entry.system_number,
+        ).update(payment_made=True, payment_method=session_entry.payment_method)
 
     session.status = Session.SessionStatus.COMPLETE
     session.save()

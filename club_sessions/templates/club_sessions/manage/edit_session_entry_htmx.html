@@ -187,7 +187,7 @@
                     <div class="col-md-6">
                         <div id="entry_extras"
                             hx-post="{% url "club_sessions:edit_session_entry_extras_htmx" %}"
-                            hx-trigger="load"
+                            hx-trigger="loadx"
                             hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
                             hx-target="this"
                         ></div>
@@ -219,11 +219,6 @@
         $("#player_form input, #id_payment_method").change(function(){
             $("#id_save_session").prop("disabled", false);
         });
-
-        // Handle save button being pressed
-        {#$("#id_save_session_entry").click(function(){#}
-        {#    console.log("save clicked");#}
-        {#});#}
 
     });
 

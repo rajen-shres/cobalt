@@ -244,7 +244,7 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
     if session.additional_session_fee > 0:
         SessionMiscPayment(
             session_entry=session_entry,
-            optional_description=session.additional_session_fee_reason,
+            description=session.additional_session_fee_reason,
             amount=session.additional_session_fee,
         ).save()
 
