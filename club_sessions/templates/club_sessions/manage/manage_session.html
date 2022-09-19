@@ -191,7 +191,7 @@
                         <!-- THIS IS THE ACTUAL DIV FOR SESSIONS -->
                         <div id="id_pane_session"
                             hx-post="{% url "club_sessions:tab_session_htmx" %}"
-                            hx-trigger="load, tab_load_event"
+                            hx-trigger="load, tab_load_event, reload_sessions from:body"
                             hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
                             hx-target="#id_pane_session"
                             hx-indicator="#spinner"
@@ -223,6 +223,17 @@
                             hx-target="#id_pane_reports"
                         >
                             Full
+                        </button>
+
+                        <!-- LOW BALANCE REPORT -->
+                        <button
+                            class="btn btn-success"
+                            hx-post="{% url "club_sessions:reports_low_balance_report_htmx" %}"
+                            hx-trigger="click"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, show_blanks:1"
+                            hx-target="#id_pane_reports"
+                        >
+                            Low Balance
                         </button>
 
                         <!-- IMPORT MESSAGES -->
@@ -290,7 +301,6 @@
                     {#}#}
 
                 });
-
 
             })
         });

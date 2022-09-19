@@ -85,4 +85,9 @@ urlpatterns = [
         reports.csv_download,
         name="reports_csv_download",
     ),
+    path(
+        "reports/low-balance",
+        reports.low_balance_report_htmx,
+        name="reports_low_balance_report_htmx",
+    ),
 ]

@@ -3,14 +3,17 @@ import json
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Max
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
-from club_sessions.club_sessions_views.common import PLAYING_DIRECTOR, SITOUT
+from accounts.models import User
+from club_sessions.club_sessions_views.common import PLAYING_DIRECTOR, SITOUT, VISITOR
 from club_sessions.club_sessions_views.decorators import user_is_club_director
 from club_sessions.club_sessions_views.sessions import load_session_entry_static
 from club_sessions.models import Session, SessionEntry
 from cobalt.settings import GLOBAL_ORG
+from payments.models import MemberTransaction
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
 
@@ -251,4 +254,41 @@ def import_messages_htmx(request, club, session):
         request,
         "club_sessions/reports/import_messages_htmx.html",
         {"messages": messages},
+    )
+
+
+@user_is_club_director()
+def low_balance_report_htmx(request, club, session):
+    """Show low balances for people in session"""
+
+    # Get all system numbers
+    player_system_numbers = (
+        SessionEntry.objects.filter(session=session)
+        .exclude(system_number__in=[PLAYING_DIRECTOR, SITOUT, VISITOR])
+        .values_list("system_number", flat=True)
+    )
+
+    # Get last transaction for those players
+    last_trans = (
+        MemberTransaction.objects.filter(
+            member__system_number__in=player_system_numbers
+        )
+        .order_by("member", "-pk")
+        .distinct("member")
+        .select_related("member")
+    )
+
+    # Get players without transactions
+    players_with_transactions = last_trans.values("member_id")
+    players_without_transactions = User.objects.filter(
+        system_number__in=player_system_numbers
+    ).exclude(id__in=players_with_transactions)
+
+    return render(
+        request,
+        "club_sessions/reports/low_balance_htmx.html",
+        {
+            "last_trans": last_trans,
+            "players_without_transactions": players_without_transactions,
+        },
     )

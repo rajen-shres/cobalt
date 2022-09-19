@@ -1,0 +1,66 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Low Balance Report within prepaid report tab                           #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+
+<div class="card">
+
+    <div class="card-header card-header-primary">
+        <h3>Low Balance Report</h3>
+    </div>
+
+    <div class="card-body">
+
+        <!-- SHOW ALL BUTTON -->
+        <button
+            class="btn btn-info"
+            _="on click toggle .d-none on .not-low-balance"
+        >Show All</button>
+
+        <div class="table-responsive">
+
+            <table class="table table-condensed table-hover">
+
+                <thead>
+                    <tr>
+                        <th class="text-left">Player</th>
+                        <th class="text-right">Balance</th>
+                        <th>Auto Top Up</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for last_tran in last_trans %}
+                        <!-- ROW - HIDDEN IF BALANCE > 50 -->
+                        <tr {% if last_tran.balance > 50 or last_tran.member.stripe_auto_confirmed == "On" %}class="d-none not-low-balance"{% endif %}>
+
+                            <td class="text-left">{{ last_tran.member|cobalt_user_link_short }}</td>
+                            <td class="text-right">{{ last_tran.balance|cobalt_currency }}</td>
+                            <td>{{ last_tran.member.stripe_auto_confirmed }}</td>
+
+                        </tr>
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% if players_without_transactions %}
+            <h3>New Players</h3>
+            The following players have never paid using {{ GLOBAL_TITLE }} and therefore have a zero balance.
+            <br>
+            <ul>
+                {% for players_without_transaction in players_without_transactions %}
+                    <li>{{ players_without_transaction|cobalt_user_link_short }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+    </div>
+
+</div>

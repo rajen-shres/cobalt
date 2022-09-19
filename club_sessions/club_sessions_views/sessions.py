@@ -108,6 +108,33 @@ def manage_session(request, session_id):
     )
 
 
+def _handle_change_secondary_payment_method(
+    old_method, new_method, session, club, administrator
+):
+    """make changes when the secondary payment method is updated"""
+
+    session_entries = SessionEntry.objects.filter(
+        session=session, payment_method=old_method
+    ).exclude(system_number__in=[PLAYING_DIRECTOR, SITOUT])
+    for session_entry in session_entries:
+        session_entry.payment_method = new_method
+        session_entry.save()
+
+        # Handle IOUs
+        if new_method.payment_method == "IOU":
+            _handle_iou_changes_on(club, session_entry, administrator)
+
+        if old_method.payment_method == "IOU":
+            _handle_iou_changes_off(club, session_entry)
+
+    if session_entries:
+        message = f"Updated {len(session_entries)} player payment methods."
+    else:
+        message = "Form saved. No player payment methods were changed."
+
+    return message
+
+
 @user_is_club_director()
 def tab_settings_htmx(request, club, session):
     """Edit fields that were set up when the session was started"""
@@ -116,13 +143,24 @@ def tab_settings_htmx(request, club, session):
 
     if "save_settings" in request.POST:
         session_form = SessionForm(request.POST, club=club, instance=session)
+        old_payment_method = session.default_secondary_payment_method
         if session_form.is_valid():
-            session = session_form.save()
             message = "Session Updated"
+
             if "additional_session_fee" in session_form.changed_data:
                 print("Handle additional session fee changing")
+
             if "default_secondary_payment_method" in session_form.changed_data:
-                print("Handle change secondary payment method")
+                message = _handle_change_secondary_payment_method(
+                    old_method=old_payment_method,
+                    new_method=session_form.cleaned_data[
+                        "default_secondary_payment_method"
+                    ],
+                    session=session,
+                    club=club,
+                    administrator=request.user,
+                )
+            session = session_form.save()
         else:
             print(session_form.errors)
 
@@ -130,7 +168,7 @@ def tab_settings_htmx(request, club, session):
 
     director_name = f"{session.director}"
 
-    return render(
+    response = render(
         request,
         "club_sessions/manage/settings_htmx.html",
         {
@@ -141,6 +179,12 @@ def tab_settings_htmx(request, club, session):
             "director_name": director_name,
         },
     )
+
+    # Reload sessions tab if we change anything
+    if "save_settings" in request.POST:
+        response["HX-Trigger"] = "reload_sessions"
+
+    return response
 
 
 def load_session_entry_static(session, club):

@@ -39,9 +39,39 @@
                                             data-toggle="tooltip"
                                         >
                                             {% if players.0.amount_paid < players.0.fee %}
-                                                <span class="text-primary font-weight-bold">{{ players.0.player.first_name }}</span>
+
+                                                <!-- BOLD IF NOT PAID -->
+                                                <span class="text-primary font-weight-bold">
+
+                                                    <!-- LINK TO DETAILS -->
+                                                    <a href="javascript:void(0);"
+                                                        hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
+                                                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ players.0.id }}"
+                                                        hx-target="#id_pane_session"
+                                                        hx-push-url="{{ session.id }}"
+                                                    >
+
+                                                        {{ players.0.player.first_name }}
+
+                                                    </a>
+
+                                                </span>
+
                                             {% else %}
-                                                {{ players.0.player.first_name }}
+
+                                                <!-- NORMAL IF PAID -->
+
+                                                <!-- LINK TO DETAILS -->
+                                                <a href="javascript:void(0);"
+                                                    hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
+                                                    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ players.0.id }}"
+                                                    hx-target="#id_pane_session"
+                                                    hx-push-url="{{ session.id }}"
+                                                >
+
+                                                    {{ players.0.player.first_name }}
+                                                </a>
+
                                             {% endif %}
                                         </span>
                                     </div>
@@ -61,9 +91,31 @@
                                         data-toggle="tooltip"
                                     >
                                         {% if players.2.amount_paid < players.2.fee %}
-                                            <span class="text-primary font-weight-bold">{{ players.2.player.first_name }}</span>
+                                            <!-- BOLD IF NOT PAID -->
+                                            <span class="text-primary font-weight-bold">
+
+                                                <!-- LINK TO DETAILS -->
+                                                <a href="javascript:void(0);"
+                                                    hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
+                                                    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ players.2.id }}"
+                                                    hx-target="#id_pane_session"
+                                                    hx-push-url="{{ session.id }}"
+                                                >
+                                                    {{ players.2.player.first_name }}
+                                                </a>
+                                            </span>
                                         {% else %}
-                                            {{ players.2.player.first_name }}
+
+                                            <!-- LINK TO DETAILS -->
+                                            <a href="javascript:void(0);"
+                                                hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ players.2.id }}"
+                                                hx-target="#id_pane_session"
+                                                hx-push-url="{{ session.id }}"
+                                            >
+                                                {{ players.2.player.first_name }}
+                                            </a>
+
                                         {% endif %}
                                     </div>
                                 </td>
@@ -101,9 +153,30 @@
                                         data-toggle="tooltip"
                                     >
                                         {% if players.3.amount_paid < players.3.fee %}
-                                            <span class="text-primary font-weight-bold">{{ players.3.player.first_name }}</span>
+
+                                            <!-- BOLD IF NOT PAID -->
+                                            <span class="text-primary font-weight-bold">
+
+                                                <!-- LINK TO DETAILS -->
+                                                <a href="javascript:void(0);"
+                                                    hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
+                                                    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ players.3.id }}"
+                                                    hx-target="#id_pane_session"
+                                                    hx-push-url="{{ session.id }}"
+                                                >
+                                                    {{ players.3.player.first_name }}
+                                                </a>
+                                            </span>
                                         {% else %}
-                                            {{ players.3.player.first_name }}
+                                            <!-- LINK TO DETAILS -->
+                                            <a href="javascript:void(0);"
+                                                hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ players.3.id }}"
+                                                hx-target="#id_pane_session"
+                                                hx-push-url="{{ session.id }}"
+                                            >
+                                                {{ players.3.player.first_name }}
+                                            </a>
                                         {% endif %}
                                     </div>
                                 </td>
@@ -120,9 +193,39 @@
                                             data-toggle="tooltip"
                                         >
                                             {% if players.1.amount_paid < players.1.fee %}
-                                                <span class="text-primary font-weight-bold">{{ players.1.player.first_name }}</span>
+
+                                                <!-- BOLD IF NOT PAID -->
+                                                <span class="text-primary font-weight-bold">
+
+                                                    <!-- LINK TO DETAILS -->
+                                                    <a href="javascript:void(0);"
+                                                        hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
+                                                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ players.1.id }}"
+                                                        hx-target="#id_pane_session"
+                                                        hx-push-url="{{ session.id }}"
+                                                    >
+
+                                                        {{ players.1.player.first_name }}
+
+                                                    </a>
+
+                                                </span>
+
                                             {% else %}
-                                                {{ players.1.player.first_name }}
+
+                                                <!-- NORMAL IF PAID -->
+
+                                                <!-- LINK TO DETAILS -->
+                                                <a href="javascript:void(0);"
+                                                    hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
+                                                    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ players.1.id }}"
+                                                    hx-target="#id_pane_session"
+                                                    hx-push-url="{{ session.id }}"
+                                                >
+
+                                                    {{ players.1.player.first_name }}
+                                                </a>
+
                                             {% endif %}
                                         </span>
                                     </div>
@@ -156,7 +259,12 @@
     $(document).ready(function () {
 
         // init tooltips
-        $('[data-toggle="tooltip"]').tooltip();
+        $('[data-toggle="tooltip"]').tooltip({ trigger: "hover" });
+
+        // Hide the tooltip if we click on the link, or it hangs about orphaned
+        $('[data-toggle="tooltip"]').click(function (){
+            $('[data-toggle="tooltip"]').tooltip("hide");
+        });
 
     });
 </script>

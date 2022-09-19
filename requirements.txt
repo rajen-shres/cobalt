@@ -21,6 +21,7 @@ essential-generators==0.9.2
 bleach==5.0.1
 django-ses==3.1.2
 #django-post-office==3.6.1
+# We needed to fork Django post office to add unescape() and an import statement to the subject in models.py
 git+https://github.com/mgu3/django-post_office
 django-model-utils==4.1.1
 django-otp==1.1.1
