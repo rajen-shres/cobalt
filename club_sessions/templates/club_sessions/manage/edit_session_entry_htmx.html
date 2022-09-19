@@ -187,7 +187,7 @@
                     <div class="col-md-6">
                         <div id="entry_extras"
                             hx-post="{% url "club_sessions:edit_session_entry_extras_htmx" %}"
-                            hx-trigger="loadx"
+                            hx-trigger="load"
                             hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
                             hx-target="this"
                         ></div>

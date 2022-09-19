@@ -53,7 +53,7 @@
 
         <div class="card">
             <div class="card-header card-header-success">
-                <h4>Miscellaneous Payments</h4>
+                <h4>Miscellaneous Session Payments</h4>
             </div>
 
 
@@ -65,8 +65,8 @@
                         <table class="table table-condensed table-hover">
                             <thead>
                                 <tr>
-                                    <th>Item</th>
-                                    <th>Cost</th>
+                                    <th class="text-left">Item</th>
+                                    <th class="text-right">Cost</th>
                                     <th>Pay Method</th>
                                     <th>Status</th>
                                     <th>Action</th>
@@ -75,8 +75,8 @@
                             <tbody>
                                 {% for session_misc_payment in session_misc_payments %}
                                     <tr>
-                                        <td>{{ session_misc_payment.description }}</td>
-                                        <td>{{ session_misc_payment.amount }}</td>
+                                        <td class="text-left">{{ session_misc_payment.description }}</td>
+                                        <td class="text-right">{{ session_misc_payment.amount|cobalt_currency }}</td>
                                         <td>{{ session_misc_payment.payment_method.payment_method|default_if_none:"-" }}</td>
                                         <td>
                                             {% if session_misc_payment.payment_made %}
