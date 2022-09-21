@@ -1,5 +1,6 @@
 import codecs
 import csv
+import io
 import json
 import re
 
@@ -135,6 +136,57 @@ def _import_file_upload_htmx_compscore2(request, club, session):
     return messages
 
 
+def _import_file_upload_htmx_compscore3(request, club, session):
+    """Sub to handle simple Compscore3 CSV file format
+
+        File is like:
+
+    PairNumber,	Name,	ABF No,	Initial Seating,	Phone
+    1,	SHIRLEY RUTTER,	936235,	1-NS,
+    1,	YEUNG CHEUNG,	936510,	1-NS,
+    2,	CHRISTINE GRECH,	447633,	2-NS,
+    2,	LEO VILENSKY,	1049471,	2-NS,
+    """
+
+    messages = []
+
+    # Muck about with file format
+    text_file = request.FILES["file"]
+    file = text_file.read().decode("utf-8")
+    reader = csv.reader(io.StringIO(file))
+
+    # Skip header
+    next(reader)
+
+    # count the rows, odds are N or E, evens are S or W
+    for row_no, row in enumerate(reader, start=1):
+        print(row)
+        player_file_name = row[1]
+        system_number = row[2]
+        initial_seating = row[3]
+        table, both_direction = initial_seating.split("-")
+        direction = both_direction[1] if row_no % 2 == 0 else both_direction[0]
+
+        response = _import_file_upload_htmx_process_line(
+            [table, direction, system_number, player_file_name],
+            row_no,
+            session,
+            club,
+            request,
+        )
+        if response:
+            messages.append(response)
+
+    # The session title is part of the file name
+    session.description = text_file.name
+    session.description = session.description.replace(".csv", "")
+    session.description = session.description.replace("Names - ", "")[:50]
+    session.import_messages = json.dumps(messages)
+    session.save()
+
+    return messages
+
+
 @login_required()
 def import_file_upload_htmx(request):
     """Upload player names for a session
@@ -176,6 +228,8 @@ def import_file_upload_htmx(request):
             messages = _import_file_upload_htmx_simple_csv(request, club, session)
         elif "compscore2" in request.POST:
             messages = _import_file_upload_htmx_compscore2(request, club, session)
+        elif "compscore3" in request.POST:
+            messages = _import_file_upload_htmx_compscore3(request, club, session)
 
         _import_file_upload_htmx_fill_in_table_gaps(session)
 

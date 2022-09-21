@@ -97,7 +97,7 @@ class Session(models.Model):
     )
     session_type = models.ForeignKey(SessionType, on_delete=models.CASCADE)
     session_date = models.DateField(default=timezone.now)
-    description = models.CharField(max_length=30)
+    description = models.CharField(max_length=50)
     venue = models.ForeignKey(OrgVenue, blank=True, null=True, on_delete=models.CASCADE)
     time_of_day = models.CharField(
         max_length=2,

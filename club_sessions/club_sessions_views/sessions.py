@@ -1367,6 +1367,8 @@ def add_misc_payment_htmx(request, club, session, session_entry):
 def process_bridge_credits_htmx(request, club, session):
     """handle bridge credits for the session - called from a big button"""
 
+    failures = None
+
     # Get bridge credits for this org
     bridge_credits = bridge_credits_for_club(club)
 

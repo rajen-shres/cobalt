@@ -17,9 +17,25 @@
             </button>
             <div class="dropdown-menu">
 
-                <!-- COMPSCORE -->
+                <!-- COMPSCORE3 -->
                 <a class="btn btn-sm btn-secondary btn-file">
-                    Compscore2
+                    Compscore3 (csv)
+                    <input
+                        type="file" name="file"
+                        id="id_upload_results_file_btn_cs"
+                        hx-encoding='multipart/form-data'
+                        hx-post="{% url "club_sessions:session_import_file_upload_htmx" %}"
+                        hx-vars="club_id:{{ club.id }},compscore3:1"
+                        hx-target="#id_panel_sessions"
+                        hx-trigger="change"
+                        hx-indicator=".htmx-indicator"
+                        {% if session_types %}hx-include="[id='id_session_type']"{% endif %}
+                    />
+                </a>
+
+                <!-- COMPSCORE2 -->
+                <a class="btn btn-sm btn-secondary btn-file">
+                    Compscore2 (txt)
                     <input
                         type="file" name="file"
                         id="id_upload_results_file_btn_cs"
