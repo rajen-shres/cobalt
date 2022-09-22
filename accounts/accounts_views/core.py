@@ -161,7 +161,7 @@ def password_reset_request(request):
         )
 
     email = form.cleaned_data["email"]
-    associated_users = User.objects.filter(email=email)
+    associated_users = User.objects.filter(email__iexact=email)
 
     email_body_base = (
         f"You are receiving this email because you requested a password reset for your account with "

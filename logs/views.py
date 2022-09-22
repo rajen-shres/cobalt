@@ -39,7 +39,7 @@ def log_event(user, severity, source, sub_source, message, request=None):
     if severity == "CRITICAL":
 
         try:
-            mail_subject = "%s - %s" % (severity, source)
+            mail_subject = f"{severity} - {source}"
             message = (
                 "Severity: %s\nSource: %s\nSub-Source: %s\nUser: %s\nMessage: %s"
                 % (
@@ -58,7 +58,7 @@ def log_event(user, severity, source, sub_source, message, request=None):
                 fail_silently=False,
             )
         except Exception as e:
-            print("%s" % e)
+            print(f"{e}")
 
 
 @user_passes_test(lambda u: u.is_superuser)

@@ -25,11 +25,4 @@ class Log(models.Model):
     ip = models.CharField(max_length=15, blank="True", null=True)
 
     def __str__(self):
-        return "%s: %s: %s: %s: %s: %s" % (
-            self.event_date,
-            self.severity,
-            self.source,
-            self.sub_source,
-            self.user,
-            self.message,
-        )
+        return f"{self.event_date}: {self.severity}: {self.source}: {self.sub_source}: {self.user}: {self.message}"
