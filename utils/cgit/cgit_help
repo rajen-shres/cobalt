@@ -16,6 +16,7 @@ Use git checkout [branch] if necessary.
 
 EOF
 
+# Get "about" and names from the cgit files
 for filename in utils/cgit/cgit_*; do
   file="$(basename "$filename")"
   about="$(grep -i about: "$filename" | grep -v cgit_help | cut -d' ' -f3-)"
@@ -23,9 +24,16 @@ for filename in utils/cgit/cgit_*; do
   echo "- $about"
 done
 
+# Get recent branches from github
 echo ""
-echo "Current Status"
-echo "--------------"
+echo "5 Most recently active branches from github"
+echo "-------------------------------------------"
+echo ""
+git branch --sort=committerdate | tail -5
+
+echo ""
+echo "Current Environment Status"
+echo "--------------------------"
 
 # Be careful with AWS env variables
 unset AWS_SECRET_ACCESS_KEY
@@ -53,7 +61,7 @@ get_status() {
   THISBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
 
   # Make sure we have latest copy of branch for reference
-  git fetch origin $THISBRANCH >/dev/null 2>&1
+  git fetch origin $THISBRANCH:$THISBRANCH >/dev/null 2>&1
 
   # See how many files different from reference branch
   FILE_DIFF=$(git diff --name-status $THISBRANCH..$REFBRANCH | wc | awk '{print $1}')
@@ -62,7 +70,7 @@ get_status() {
   TIMESTAMP=$(echo $DESC|cut -d@ -f2 | tr '_' ' ')
 
   # Print summary
-    printf "%-15s" "$THISNAME"
+  printf "%-15s" "$THISNAME"
   printf "is running: ${YELLOW}%-20s${NC}" "${THISBRANCH}"
   printf "Release Date: ${BLUE}${TIMESTAMP}${NC} [$FILE_DIFF files different from $REFBRANCH]\n"
 }
@@ -70,5 +78,3 @@ get_status() {
 get_status "Test" "cobalt-test" "$BRANCH"
 get_status "UAT" "cobalt-uat" "develop"
 get_status "Production" "cobalt-production" "develop"
-
-
