@@ -271,7 +271,7 @@ def change_password(request):
             )
             log_event(
                 request=request,
-                user=request.user.full_name,
+                user=request.user,
                 severity="INFO",
                 source="Accounts",
                 sub_source="change_password",
@@ -281,7 +281,7 @@ def change_password(request):
         else:
             log_event(
                 request=request,
-                user=request.user.full_name,
+                user=request.user,
                 severity="WARN",
                 source="Accounts",
                 sub_source="change_password",

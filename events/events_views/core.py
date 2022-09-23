@@ -311,7 +311,7 @@ def _mark_event_entry_player_as_paid_and_book_payments(event_entry_player, who_p
     ).save()
 
     log_event(
-        user=event_entry_player.paid_by.href,
+        user=event_entry_player.paid_by,
         severity="INFO",
         source="Events",
         sub_source="events_entry",

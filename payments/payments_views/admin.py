@@ -783,7 +783,7 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
 
                 except stripe.error.InvalidRequestError as e:
                     log_event(
-                        user=request.user.full_name,
+                        user=request.user,
                         severity="CRITICAL",
                         source="Payments",
                         sub_source="Admin refund",
@@ -798,7 +798,7 @@ def admin_refund_stripe_transaction(request, stripe_transaction_id):
 
                 if rc["status"] not in ["succeeded", "pending"]:
                     log_event(
-                        user=request.user.full_name,
+                        user=request.user,
                         severity="CRITICAL",
                         source="Payments",
                         sub_source="Admin refund",
@@ -902,7 +902,7 @@ def refund_stripe_transaction_sub(stripe_item, amount, description, counterparty
     act.save()
 
     log_event(
-        user=stripe_item.member.full_name,
+        user=stripe_item.member,
         severity="INFO",
         source="Payments",
         sub_source="Card Refund",

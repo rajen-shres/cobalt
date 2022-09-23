@@ -737,7 +737,7 @@ def create_session(request, event_id):
             session.save()
 
             log_event(
-                user=request.user.href,
+                user=request.user,
                 severity="INFO",
                 source="Events",
                 sub_source="events_admin",
@@ -851,7 +851,7 @@ def manage_congress_download(request, congress_id):
             )
 
             log_event(
-                user=request.user.href,
+                user=request.user,
                 severity="INFO",
                 source="Events",
                 sub_source="events_admin",

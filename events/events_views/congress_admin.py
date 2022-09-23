@@ -307,7 +307,7 @@ def admin_evententryplayer(request, evententryplayer_id):
                 ).save()
 
                 log_event(
-                    user=request.user.href,
+                    user=request.user,
                     severity="INFO",
                     source="Events",
                     sub_source="events_admin",
@@ -1035,7 +1035,7 @@ def admin_event_player_discount(request, event_id):
                 ).save()
 
                 log_event(
-                    user=request.user.href,
+                    user=request.user,
                     severity="INFO",
                     source="Events",
                     sub_source="events_admin",
@@ -1254,7 +1254,7 @@ def _admin_email_common(request, all_recipients, congress, event=None):
                 ).save()
 
                 log_event(
-                    user=request.user.href,
+                    user=request.user,
                     severity="INFO",
                     source="Events",
                     sub_source="events_admin",
@@ -1263,7 +1263,7 @@ def _admin_email_common(request, all_recipients, congress, event=None):
             else:
 
                 log_event(
-                    user=request.user.href,
+                    user=request.user,
                     severity="INFO",
                     source="Events",
                     sub_source="events_admin",
@@ -1309,7 +1309,7 @@ def admin_bulletins(request, congress_id):
             form.save()
 
             log_event(
-                user=request.user.href,
+                user=request.user,
                 severity="INFO",
                 source="Events",
                 sub_source="events_admin",
@@ -1355,7 +1355,7 @@ def admin_latest_news(request, congress_id):
             )
 
             log_event(
-                user=request.user.href,
+                user=request.user,
                 severity="INFO",
                 source="Events",
                 sub_source="events_admin",

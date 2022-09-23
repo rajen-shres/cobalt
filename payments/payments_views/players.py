@@ -244,7 +244,7 @@ def setup_autotopup(request):
             )
         except stripe.error.InvalidRequestError as error:
             log_event(
-                user=request.user.full_name,
+                user=request.user,
                 severity="HIGH",
                 source="Payments",
                 sub_source="setup_autotopup",
@@ -255,7 +255,7 @@ def setup_autotopup(request):
 
         except stripe.error.RateLimitError:
             log_event(
-                user=request.user.full_name,
+                user=request.user,
                 severity="HIGH",
                 source="Payments",
                 sub_source="setup_autotopup",
@@ -264,7 +264,7 @@ def setup_autotopup(request):
 
         except stripe.error.AuthenticationError:
             log_event(
-                user=request.user.full_name,
+                user=request.user,
                 severity="CRITICAL",
                 source="Payments",
                 sub_source="setup_autotopup",
@@ -273,7 +273,7 @@ def setup_autotopup(request):
 
         except stripe.error.APIConnectionError:
             log_event(
-                user=request.user.full_name,
+                user=request.user,
                 severity="HIGH",
                 source="Payments",
                 sub_source="setup_autotopup",
@@ -282,7 +282,7 @@ def setup_autotopup(request):
 
         except stripe.error.StripeError:
             log_event(
-                user=request.user.full_name,
+                user=request.user,
                 severity="CRITICAL",
                 source="Payments",
                 sub_source="setup_autotopup",
@@ -301,7 +301,7 @@ def setup_autotopup(request):
     else:
         stripe_create_customer(request)
         log_event(
-            user=request.user.full_name,
+            user=request.user,
             severity="INFO",
             source="Payments",
             sub_source="Auto top up",
@@ -402,7 +402,7 @@ def update_auto_amount(request):
         request.user.save()
 
         log_event(
-            user=request.user.full_name,
+            user=request.user,
             severity="INFO",
             source="Payments",
             sub_source="Auto top up",
@@ -495,7 +495,7 @@ def cancel_auto_top_up(request):
             )
 
             log_event(
-                user=request.user.full_name,
+                user=request.user,
                 severity="INFO",
                 source="Payments",
                 sub_source="Auto top up",
@@ -670,7 +670,7 @@ def refund_stripe_transaction(request, stripe_transaction_id):
 
         except stripe.error.InvalidRequestError as e:
             log_event(
-                user=request.user.full_name,
+                user=request.user,
                 severity="HIGH",
                 source="Payments",
                 sub_source="User initiated refund",
@@ -685,7 +685,7 @@ def refund_stripe_transaction(request, stripe_transaction_id):
 
         if rc["status"] not in ["succeeded", "pending"]:
             log_event(
-                user=request.user.full_name,
+                user=request.user,
                 severity="CRITICAL",
                 source="Payments",
                 sub_source="Admin refund",

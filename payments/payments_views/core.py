@@ -192,7 +192,7 @@ def stripe_manual_payment_intent(request):
     except KeyError:
         log_event(
             request=request,
-            user=request.user.full_name,
+            user=request.user,
             severity="ERROR",
             source="Payments",
             sub_source="stripe_manual_payment_intent",
@@ -206,7 +206,7 @@ def stripe_manual_payment_intent(request):
     except ObjectDoesNotExist:
         log_event(
             request=request,
-            user=request.user.full_name,
+            user=request.user,
             severity="ERROR",
             source="Payments",
             sub_source="stripe_manual_payment_intent",
@@ -219,7 +219,7 @@ def stripe_manual_payment_intent(request):
     if float(our_trans.amount) * 100.0 != payload_cents:
         log_event(
             request=request,
-            user=request.user.full_name,
+            user=request.user,
             severity="ERROR",
             source="Payments",
             sub_source="stripe_manual_payment_intent",
@@ -249,7 +249,7 @@ def stripe_manual_payment_intent(request):
     )
     log_event(
         request=request,
-        user=request.user.full_name,
+        user=request.user,
         severity="INFO",
         source="Payments",
         sub_source="stripe_manual_payment_intent",
@@ -318,7 +318,7 @@ def stripe_auto_payment_intent(request):
 
         log_event(
             request=request,
-            user=request.user.full_name,
+            user=request.user,
             severity="INFO",
             source="Payments",
             sub_source="stripe_auto_payment_intent",
@@ -519,7 +519,9 @@ def stripe_webhook_autosetup(event):
             message="Error retrieving Stripe customer id from message",
         )
         logger.critical("No customer found on stripe API call")
-        return HttpResponse(status=400)
+
+        # If we reply with 400 for example, Stripe will continue to resend. It won't help.
+        return HttpResponse(status=200)
 
     # find member
     member = User.objects.filter(stripe_customer_id=stripe_customer).last()
@@ -1009,7 +1011,7 @@ def _auto_topup_member_handle_failure(error, member, amount):
     logger.error(err.message)
     # Error code will be authentication_required if authentication is needed
     log_event(
-        user=member.full_name,
+        user=member,
         severity="WARN",
         source="Payments",
         sub_source="test_autotopup",

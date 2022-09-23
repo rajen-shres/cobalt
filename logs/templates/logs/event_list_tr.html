@@ -1,3 +1,5 @@
+{% load cobalt_tags %}
+
 <tr>
     <td class="{{ td_class }}">
         <div class="row m-0 border-0">
@@ -12,7 +14,13 @@
     <td title="{{ thing.event_date|timesince }} ago"
         data-toggle="tooltip">{{ thing.event_date|date:'Y-m-d H:i:s' }}</td>
     <td><a target="_blank" href="https://www.infosniper.net/index.php?ip_address={{ thing.ip }}">{{ thing.ip|default_if_none:"" }}</a></td>
-    <td class="text-left">{{ thing.user|safe }}</td>
+    <td class="text-left">
+        {% if thing.user_object %}
+            {{ thing.user_object|cobalt_user_link_short }}
+        {% else %}
+            {{ thing.user|safe }}
+        {% endif %}
+    </td>
     <td class="text-left">{{ thing.source }}</td>
     <td class="text-left">{{ thing.sub_source }}</td>
     <td class="text-left">{{ thing.message|safe }}</td>

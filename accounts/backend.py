@@ -47,7 +47,7 @@ class CobaltBackend(ModelBackend):
         if user.check_password(password):
             log_event(
                 request=request,
-                user=user.full_name,
+                user=user,
                 severity="INFO",
                 source="Accounts",
                 sub_source="Login",

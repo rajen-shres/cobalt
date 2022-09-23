@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.utils.html import strip_tags
 
+from accounts.models import User
 from cobalt.settings import DEFAULT_FROM_EMAIL, SUPPORT_EMAIL
 from utils.utils import cobalt_paginator
 from .models import Log
@@ -20,21 +21,59 @@ def get_client_ip(request):
 
 
 def log_event(user, severity, source, sub_source, message, request=None):
-    """Old event logging - should be replaced"""
+    """Event Logging. Main function.
 
+    Note: user parameter can be string or a User object
+
+    Args:
+        user(User or str): who was involved
+        severity: how bad
+        source: where did it come from
+        sub_source: next level where did it come from
+        message: text
+        request:
+
+    Logging needs to be very defensive, we don't want logging to cause an outage (happened once already)
+
+    """
+
+    # If we got a real user then use that for the user_object, and use the text name for the user
+    if isinstance(user, User):
+        user_object = user
+        user = user.full_name
+    else:
+        user_object = None
+
+    # User may not be a string or have a __str__ function
+    try:
+        user = user[:200]
+    except TypeError:
+        user = "Unknown"
+
+    # Validate
+    if severity:
+        severity = severity[:8]
+    if source:
+        source = source[:30]
+    if sub_source:
+        sub_source = sub_source[:50]
+
+    # See if we can get the IP address
     try:
         ip = get_client_ip(request)[:15] if request else None
-    except TypeError:
+    except (TypeError, AttributeError):
         ip = None
 
-    log_event = Log()
-    log_event.user = user
-    log_event.ip = ip
-    log_event.severity = severity[:8]
-    log_event.source = source[:30]
-    log_event.sub_source = sub_source[:50]
-    log_event.message = message
-    log_event.save()
+    # Create entry
+    Log(
+        user=user,
+        user_object=user_object,
+        ip=ip,
+        severity=severity,
+        source=source,
+        sub_source=sub_source,
+        message=message,
+    ).save()
 
     if severity == "CRITICAL":
 
