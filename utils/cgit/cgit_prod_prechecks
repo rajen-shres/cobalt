@@ -28,7 +28,7 @@ echo "starting..."
 THIS_BRANCH=$(git branch --show-current)
 PROD_BRANCH=$(cgit_util_branch_for_environment production| tail -1)
 # Check we have the latest prod branch
-git fetch origin "$PROD_BRANCH"
+git fetch origin $PROD_BRANCH:$PROD_BRANCH
 clear
 printf "${RED}###########################################################\n"
 echo "#                                                         #"

@@ -41,7 +41,7 @@ then
    exit 1
   fi
 
-  git fetch origin release/$RELEASE
+  git fetch origin release/$RELEASE:release/$RELEASE
   if [ $? -ne 0 ];then
    exit 1
   fi

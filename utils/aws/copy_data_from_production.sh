@@ -57,7 +57,7 @@ DESC=$(aws elasticbeanstalk describe-application-versions --version-label "$APP"
 THISBRANCH=$(echo $DESC | tr '@' ' ' | awk '{print $1}')
 
 # Make sure we have latest copy of branch
-git fetch origin $THISBRANCH
+git fetch origin $THISBRANCH:$THISBRANCH
 git checkout $THISBRANCH
 
 # Pip stuff

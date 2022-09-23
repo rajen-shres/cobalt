@@ -87,7 +87,7 @@ fi
 echo "$ENV is running $THISBRANCH. This assumes cgit has been used for deployment"
 
 echo "Getting $THISBRANCH..."
-git fetch origin $THISBRANCH
+git fetch origin $THISBRANCH:$THISBRANCH
 
 echo "Found a branch for this environment:"
 # Scripts use this last line
