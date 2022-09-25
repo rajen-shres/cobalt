@@ -42,7 +42,8 @@ def _import_file_upload_htmx_simple_csv(request, club, session):
         if response:
             messages.append(response)
 
-    return messages
+    session.import_messages = json.dumps(messages)
+    session.save()
 
 
 def _import_file_upload_htmx_compscore2(request, club, session):
@@ -133,8 +134,6 @@ def _import_file_upload_htmx_compscore2(request, club, session):
     session.import_messages = json.dumps(messages)
     session.save()
 
-    return messages
-
 
 def _import_file_upload_htmx_compscore3(request, club, session):
     """Sub to handle simple Compscore3 CSV file format
@@ -184,12 +183,12 @@ def _import_file_upload_htmx_compscore3(request, club, session):
     session.import_messages = json.dumps(messages)
     session.save()
 
-    return messages
-
 
 @login_required()
 def import_file_upload_htmx(request):
-    """Upload player names for a session
+    """
+
+    Upload player names for a session
 
     Called from club admin to create a new session and fill it with players from the uploaded file
 
@@ -202,8 +201,6 @@ def import_file_upload_htmx(request):
     club_role = f"club_sessions.sessions.{club.id}.edit"
     if not rbac_user_has_role(request.user, club_role):
         return rbac_forbidden(request, club_role)
-
-    messages = []
 
     form = FileImportForm(request.POST, request.FILES)
     if form.is_valid():
@@ -224,19 +221,22 @@ def import_file_upload_htmx(request):
         )
         session.save()
 
-        if "generic_csv" in request.POST:
-            messages = _import_file_upload_htmx_simple_csv(request, club, session)
-        elif "compscore2" in request.POST:
-            messages = _import_file_upload_htmx_compscore2(request, club, session)
-        elif "compscore3" in request.POST:
-            messages = _import_file_upload_htmx_compscore3(request, club, session)
+        try:
+
+            if "generic_csv" in request.POST:
+                _import_file_upload_htmx_simple_csv(request, club, session)
+            elif "compscore2" in request.POST:
+                _import_file_upload_htmx_compscore2(request, club, session)
+            elif "compscore3" in request.POST:
+                _import_file_upload_htmx_compscore3(request, club, session)
+
+        except (IndexError, ValueError):
+            return tab_sessions_htmx(request, message="Invalid file format")
 
         _import_file_upload_htmx_fill_in_table_gaps(session)
 
     else:
         print(form.errors)
-
-    print(messages)
 
     response = tab_sessions_htmx(request)
     response["HX-Trigger"] = f"""{{"file_upload_finished":{{"id": "{session.id}" }}}}"""
@@ -287,7 +287,6 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         pair_team_number=table,
         seat=direction,
         system_number=system_number,
-        amount_paid=0,
         payment_method=payment_method,
         player_name_from_file=player_file_name,
     )
@@ -325,6 +324,5 @@ def _import_file_upload_htmx_fill_in_table_gaps(session):
                     session=session,
                     pair_team_number=table,
                     seat=compass,
-                    amount_paid=0,
                     system_number=-1,
                 ).save()

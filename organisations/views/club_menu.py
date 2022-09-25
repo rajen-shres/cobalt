@@ -182,7 +182,7 @@ def tab_congress_htmx(request, club):
 
 
 @check_club_menu_access()
-def tab_sessions_htmx(request, club):
+def tab_sessions_htmx(request, club, message=""):
     """build the sessions tab in club menu"""
 
     sessions = Session.objects.filter(session_type__organisation=club).order_by(
@@ -197,7 +197,13 @@ def tab_sessions_htmx(request, club):
     return render(
         request,
         "organisations/club_menu/sessions/sessions_htmx.html",
-        {"club": club, "things": things, "hx_post": hx_post, "hx_vars": hx_vars},
+        {
+            "club": club,
+            "things": things,
+            "hx_post": hx_post,
+            "hx_vars": hx_vars,
+            "message": message,
+        },
     )
 
 

@@ -159,7 +159,7 @@
                                 style="width: 30px;"
 
                                 {# If payment has been made, don't allow bridge credits to be changed to something else #}
-                                {% if session_entry.amount_paid > 0 and session_entry.payment_method.payment_method == BRIDGE_CREDITS %}
+                                {% if session_entry.is_paid and session_entry.payment_method.payment_method == BRIDGE_CREDITS %}
                                     disabled="true"
                                 {% endif %}
                             >
@@ -210,7 +210,7 @@
 
                                     {# MARK AS PAID IF PAID gte DUE #}
 
-                                    {% if session_entry.amount_paid >= session_entry.fee %}
+                                    {% if session_entry.is_paid %}
                                         checked
                                     {% endif %}
 

@@ -160,10 +160,14 @@ def cobalt_number(dollars):
 @register.filter(name="cobalt_currency", is_safe=True)
 def cobalt_currency(dollars):
     """Return number formatted as currency"""
-    dollars = round(float(dollars), 2)
-    return f'{GLOBAL_CURRENCY_SYMBOL}{intcomma(int(dollars))}{("%0.2f" % dollars)[-3:]}'.replace(
-        "$-", "-$"
-    )
+    try:
+        dollars = round(float(dollars), 2)
+        return f'{GLOBAL_CURRENCY_SYMBOL}{intcomma(int(dollars))}{("%0.2f" % dollars)[-3:]}'.replace(
+            "$-", "-$"
+        )
+    except ValueError:
+        # bad value provided, just return it
+        return dollars
 
 
 @register.filter(name="cobalt_currency_colour", is_safe=True)

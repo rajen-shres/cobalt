@@ -10,10 +10,16 @@
 
 <h3 class="text-primary font-weight-bold">{{ message }}</h3>
 
+<!-- FORM -->
 <form method="post">
+
     {% csrf_token %}
+
     <div class="container">
+
         <div class="row align-items-center h-100 my-0">
+
+            <!-- DIRECTOR -->
             <div class="col-md-6">
                 Director
             </div>
@@ -34,6 +40,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- VENUE -->
         {% if session_form.venue %}
             <div class="row align-items-center h-100 mb-2">
                 <div class="col-md-6 mt-4">
@@ -46,6 +54,8 @@
                 </div>
             </div>
         {% endif %}
+
+        <!-- SESSION TYPE -->
         <div class="row align-items-center h-100 my-4">
             <div class="col-md-6 mt-4">
                 Session Type
@@ -56,6 +66,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- SESSION DATE -->
         <div class="row align-items-center h-100 my-0">
             <div class="col-md-6">
                 Session Date
@@ -66,6 +78,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- TIME OF DAY -->
         <div class="row align-items-center h-100 my-0">
             <div class="col-md-6 mt-4">
                 Time of Day
@@ -77,6 +91,7 @@
             </div>
         </div>
 
+        <!-- SECONDARY PAYMENT METHOD -->
         <div class="row align-items-center h-100 my-0 py-3">
             <div class="col-md-6 mt-4">
                 Payment Method (if not Bridge Credits)
@@ -88,29 +103,33 @@
             </div>
         </div>
 
-        <div class="row align-items-center h-100 my-0">
-            <div class="col-md-6 mt-4">
-                Optional Additional Charge Per Player
-            </div>
-            <div class="col-md-6">
-                <div class="form-group py-3">
-                    {% cobalt_bs4_field session_form.additional_session_fee no_label=True %}
+        <!-- OPTIONAL EXTRA CHARGES - NOT ALLOWED IF PAYMENTS MADE -->
+
+        {% if session.status == "LD" %}
+            <div class="row align-items-center h-100 my-0">
+                <div class="col-md-6 mt-4">
+                    Optional Additional Charge Per Player
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group py-3">
+                        {% cobalt_bs4_field session_form.additional_session_fee no_label=True %}
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row align-items-center h-100 my-0">
-            <div class="col-md-6 mt-4">
-                Optional Additional Charge Per Player - Reason
-            </div>
-            <div class="col-md-6">
-                <div class="form-group py-3">
-                    {% cobalt_bs4_field session_form.additional_session_fee_reason no_label=True %}
+            <div class="row align-items-center h-100 my-0">
+                <div class="col-md-6 mt-4">
+                    Optional Additional Charge Per Player - Reason
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group py-3">
+                        {% cobalt_bs4_field session_form.additional_session_fee_reason no_label=True %}
+                    </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
 
-
+        <!-- DESCRIPTION -->
         <div class="row align-items-center h-100 my-4">
             <div class="col-12 my-4">
                 <div class="form-group">

@@ -144,13 +144,13 @@ class SessionEntry(models.Model):
     member_tran = models.ForeignKey(
         MemberTransaction, on_delete=models.PROTECT, null=True, blank=True
     )
-    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     payment_method = models.ForeignKey(
         OrgPaymentMethod, on_delete=models.PROTECT, null=True, blank=True
     )
     fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    is_paid = models.BooleanField(default=False)
     player_name_from_file = models.TextField(max_length=60, default="Unknown")
-    """ Player name as it appears on the file. We usually use the system_number, but for non-ABF members we need this """
+    """Player name as it appears on the file. We usually use the system_number, but for non-ABF members we need this"""
 
     class Meta:
         verbose_name_plural = "Session entries"
@@ -173,7 +173,7 @@ class SessionMiscPayment(models.Model):
 
     session_entry = models.ForeignKey(SessionEntry, on_delete=models.PROTECT)
     payment_made = models.BooleanField(default=False)
-    """ Has this payment been processes, yes or no """
+    """ Has this payment been processed. We use a different name from SessionEntry to help with searching the code """
     payment_method = models.ForeignKey(
         OrgPaymentMethod, on_delete=models.PROTECT, null=True, blank=True
     )

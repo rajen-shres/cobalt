@@ -72,23 +72,25 @@ def _add_data_to_report_data_structure(
             payment_method = session_entry.payment_method.payment_method
 
             # This cell
-            summary_table[membership_type][payment_method][
-                "paid"
-            ] += session_entry.amount_paid
+            if session_entry.is_paid:
+                summary_table[membership_type][payment_method][
+                    "paid"
+                ] += session_entry.fee
             summary_table[membership_type][payment_method]["fee"] += session_entry.fee
 
             # Row totals
-            summary_table[membership_type]["row_total"][
-                "paid"
-            ] += session_entry.amount_paid
+            if session_entry.is_paid:
+                summary_table[membership_type]["row_total"]["paid"] += session_entry.fee
             summary_table[membership_type]["row_total"]["fee"] += session_entry.fee
 
             # Column totals
-            summary_table["Totals"][payment_method]["paid"] += session_entry.amount_paid
+            if session_entry.is_paid:
+                summary_table["Totals"][payment_method]["paid"] += session_entry.fee
             summary_table["Totals"][payment_method]["fee"] += session_entry.fee
 
             # Grand total
-            summary_table["Totals"]["row_total"]["paid"] += session_entry.amount_paid
+            if session_entry.is_paid:
+                summary_table["Totals"]["row_total"]["paid"] += session_entry.fee
             summary_table["Totals"]["row_total"]["fee"] += session_entry.fee
 
     return summary_table
@@ -244,7 +246,7 @@ def csv_download(request, session_id):
         "Seat",
         "Payment Method",
         "Fee",
-        "Amount Paid",
+        "Paid",
     ]
     writer.writerow(field_names)
     # Write data rows
@@ -270,7 +272,7 @@ def csv_download(request, session_id):
             session_entry.seat,
             payment_method,
             session_entry.fee,
-            session_entry.amount_paid,
+            session_entry.is_paid,
         ]
         writer.writerow(values)
 

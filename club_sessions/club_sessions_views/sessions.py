@@ -159,7 +159,6 @@ def _handle_change_additional_session_fee_reason(old_reason, new_reason, session
     )
 
     for session_entry in session_entries:
-
         SessionMiscPayment.objects.filter(
             session_entry=session_entry,
             description=old_reason,
@@ -529,7 +528,6 @@ def _augment_session_entries(
 
     # Now add the object to the session list, also add colours for alternate tables
     for session_entry in session_entries:
-
         session_entry = _augment_session_entries_process_entry(
             session_entry,
             mixed_dict,
@@ -685,7 +683,7 @@ def _tab_session_htmx_payment_methods(session_entries, session, payment_methods)
         if (
             session_entry.payment_method
             and session_entry.payment_method.payment_method == BRIDGE_CREDITS
-            and session_entry.amount_paid > 0
+            and session_entry.is_paid
         ):
             session_entry.payment_methods = [session_entry.payment_method]
         # if we have processed the bridge credits already, then don't allow bridge credits as an option
@@ -732,7 +730,7 @@ def _tab_session_htmx_table_view(session, session_entries):
         session_entry.fee += session_entry.extras
 
         table_list[session_entry.pair_team_number].append(session_entry)
-        if session_entry.fee > session_entry.amount_paid:
+        if not session_entry.is_paid:
             # unpaid entry, mark table as incomplete
             table_status[session_entry.pair_team_number] = False
 
@@ -773,19 +771,28 @@ def _tab_session_htmx_summary_table(
         payment_summary[pay_method]["fee"] += session_entry.fee + Decimal(
             extras.get(session_entry.id, 0)
         )
-        payment_summary[pay_method]["amount_paid"] += session_entry.amount_paid
-        payment_summary[pay_method]["outstanding"] += (
-            session_entry.fee
-            + Decimal(extras_unpaid.get(session_entry.id, 0))
-            - session_entry.amount_paid
-        )
+        if session_entry.is_paid:
+            payment_summary[pay_method]["amount_paid"] += session_entry.fee
+        else:
+            payment_summary[pay_method]["outstanding"] += session_entry.fee + Decimal(
+                extras_unpaid.get(session_entry.id, 0)
+            )
         payment_summary[pay_method]["player_count"] += 1
 
         # Add session_entry as well for drop down list
         name = mixed_dict[session_entry.system_number]["value"]
         member_type = membership_type_dict.get(session_entry.system_number, "Guest")
         session_entry.fee += Decimal(extras.get(session_entry.id, 0))
+
+        # Augment session entry with an amount_paid (fee + extras)
+        if session_entry.is_paid:
+            session_entry.amount_paid = session_entry.fee
+        else:
+            session_entry.amount_paid = Decimal(0)
+
+        # Add in extras
         session_entry.amount_paid += Decimal(extras_paid.get(session_entry.id, 0))
+
         # Handle visitors
         if session_entry.system_number == VISITOR:
             name = session_entry.player_name_from_file.title()
@@ -816,10 +823,7 @@ def _edit_session_entry_handle_post(request, club, session_entry):
 
     # Handle session data
     session_entry.fee = form.cleaned_data["fee"]
-    if form.cleaned_data["is_paid"]:
-        session_entry.amount_paid = session_entry.fee
-    else:
-        session_entry.amount_paid = 0
+    session_entry.is_paid = bool(form.cleaned_data["is_paid"])
     payment_method = OrgPaymentMethod.objects.get(
         pk=form.cleaned_data["payment_method"]
     )
@@ -897,7 +901,7 @@ def _handle_iou_changes_on(club, session_entry, administrator):
         administrator=administrator,
     )
 
-    session_entry.amount_paid = session_entry.fee
+    session_entry.is_paid = True
     session_entry.save()
 
 
@@ -938,7 +942,7 @@ def _handle_bridge_credit_changes(
 
     if (
         session_entry.payment_method == bridge_credit_payment_method
-        and session_entry.amount_paid > 0
+        and session_entry.is_paid
     ):
         return _handle_bridge_credit_changes_refund(
             club, session_entry, director, message
@@ -950,31 +954,31 @@ def _handle_bridge_credit_changes(
         session_entry.session.save()
 
         # Mark entry as unpaid - don't drop paid extras though
-        session_entry.amount_paid = 0
-        for misc_payments in SessionMiscPayment.objects.filter(
-            session_entry=session_entry, payment_method=bridge_credit_payment_method
-        ):
-            if misc_payments.payment_made:
-                session_entry.amount_paid += misc_payments.amount
+        session_entry.is_paid = False
+        # for misc_payments in SessionMiscPayment.objects.filter(
+        #         session_entry=session_entry, payment_method=bridge_credit_payment_method
+        # ):
+        #     if misc_payments.payment_made:
+        #         session_entry.amount_paid += misc_payments.amount
         session_entry.save()
         return True, message
 
     else:
         # Was bridge credits, but isn't now. Mark as unpaid
-        session_entry.amount_paid = 0
+        session_entry.is_paid = False
         session_entry.save()
 
 
 def _handle_bridge_credit_changes_refund(club, session_entry, director, message):
     # Refund needed
-    if org_balance(club) < session_entry.amount_paid:
+    if org_balance(club) < session_entry.fee:
         return False, "Club has insufficient funds for this refund"
 
     player = User.objects.filter(system_number=session_entry.system_number).first()
 
     update_account(
         member=player,
-        amount=session_entry.amount_paid,
+        amount=session_entry.fee,
         description=f"{BRIDGE_CREDITS} returned for {session_entry.session}",
         payment_type="Refund",
         organisation=club,
@@ -982,7 +986,7 @@ def _handle_bridge_credit_changes_refund(club, session_entry, director, message)
 
     update_organisation(
         organisation=club,
-        amount=-session_entry.amount_paid,
+        amount=-session_entry.fee,
         description=f"{BRIDGE_CREDITS} returned for {session_entry.session}",
         payment_type="Refund",
         member=player,
@@ -992,7 +996,7 @@ def _handle_bridge_credit_changes_refund(club, session_entry, director, message)
     ClubLog(
         organisation=club,
         actor=director,
-        action=f"Refunded {player} {GLOBAL_CURRENCY_SYMBOL}{session_entry.amount_paid:.2f} for session",
+        action=f"Refunded {player} {GLOBAL_CURRENCY_SYMBOL}{session_entry.fee:.2f} for session",
     ).save()
 
     return True, "Player refunded"
@@ -1041,6 +1045,7 @@ def edit_session_entry_htmx(request, club, session, session_entry):
     )
 
     # We might have changed the status of the session, so reload totals
+    # TODO: CAUSES LOOP
     # response["HX-Trigger"] = "update_totals"
 
     return response
@@ -1128,8 +1133,8 @@ def change_payment_method_htmx(request, club, session, session_entry):
 def change_paid_amount_status_htmx(request, club, session, session_entry):
     """Change the status of the amount paid for a user. We simply toggle the paid amount from 0 to full amount"""
 
-    if session_entry.amount_paid == session_entry.fee:
-        session_entry.amount_paid = 0
+    if session_entry.is_paid:
+        session_entry.is_paid = False
         session_entry.save()
         if (
             session_entry.payment_method
@@ -1137,7 +1142,7 @@ def change_paid_amount_status_htmx(request, club, session, session_entry):
         ):
             _handle_iou_changes_off(club, session_entry)
     else:
-        session_entry.amount_paid = session_entry.fee or 0
+        session_entry.is_paid = True
         session_entry.save()
         if (
             session_entry.payment_method
@@ -1147,9 +1152,7 @@ def change_paid_amount_status_htmx(request, club, session, session_entry):
 
     # Check status now
     unpaid_count = (
-        SessionEntry.objects.filter(session=session)
-        .exclude(amount_paid=F("fee"))
-        .count()
+        SessionEntry.objects.filter(session=session).filter(is_paid=False).count()
     )
     if unpaid_count > 1:
         return HttpResponse("")
@@ -1228,10 +1231,12 @@ def _session_totals_calculations(
         # Update totals
         if session_entry.payment_method.payment_method == BRIDGE_CREDITS:
             totals["bridge_credits_due"] += this_fee
-            totals["bridge_credits_received"] += session_entry.amount_paid
+            if session_entry.is_paid:
+                totals["bridge_credits_received"] += session_entry.fee
         else:
             totals["other_methods_due"] += this_fee
-            totals["other_methods_received"] += session_entry.amount_paid
+            if session_entry.is_paid:
+                totals["other_methods_received"] += session_entry.fee
 
     totals["tables"] = totals["players"] / 4
 
@@ -1339,10 +1344,7 @@ def add_misc_payment_htmx(request, club, session, session_entry):
     # process this now
     bridge_credits = bridge_credits_for_club(club)
 
-    if (
-        session_misc_payment.payment_method == bridge_credits
-        and session_entry.amount_paid > 0
-    ):
+    if session_misc_payment.payment_method == bridge_credits and session_entry.is_paid:
         if payment_api_batch(
             member=member,
             description=f"{session} - {session_misc_payment.description}",
@@ -1383,7 +1385,7 @@ def process_bridge_credits_htmx(request, club, session):
 
     # For each player go through and work out what they owe
     session_entries = SessionEntry.objects.filter(
-        session=session, amount_paid=0, payment_method=bridge_credits
+        session=session, is_paid=False, payment_method=bridge_credits
     ).exclude(system_number__in=ALL_SYSTEM_ACCOUNTS)
 
     # Go back if no bridge credits being paid
@@ -1423,23 +1425,15 @@ def _process_bridge_credits_sub(session_entries, session, club, bridge_credits, 
     # loop through and try to make payments
     for session_entry in session_entries:
 
-        amount_paid = (
-            float(session_entry.amount_paid) if session_entry.amount_paid else 0
-        )
+        amount_paid = float(session_entry.fee) if session_entry.is_paid else 0
         fee = float(session_entry.fee) if session_entry.fee else 0
         amount = fee - amount_paid + extras.get(session_entry.id, 0)
-
-        # Add comments to statement if extras are included
-        if extras.get(session_entry.id):
-            description = f"{session} plus extras"
-        else:
-            description = f"{session}"
 
         # Try payment
         member = users_by_system_number[session_entry.system_number]
         if payment_api_batch(
             member=member,
-            description=description,
+            description=f"{session}",
             amount=amount,
             organisation=club,
             payment_type="Club Payment",
@@ -1447,7 +1441,7 @@ def _process_bridge_credits_sub(session_entries, session, club, bridge_credits, 
         ):
             # Success
             success += 1
-            session_entry.amount_paid = session_entry.fee
+            session_entry.is_paid = True
             session_entry.save()
 
             # mark any misc payments for this session as paid
@@ -1525,7 +1519,6 @@ def add_table_htmx(request, club, session):
             pair_team_number=last_table,
             system_number=SITOUT,
             seat=direction,
-            amount_paid=0,
         ).save()
 
     return tab_session_htmx(request, message="Table added")
@@ -1533,31 +1526,26 @@ def add_table_htmx(request, club, session):
 
 @user_is_club_director()
 def process_off_system_payments_htmx(request, club, session):
-    """mark all off system payments as paid - called from a big button"""
+    """mark all off system payments as paid - called from a big button. Only possible once bridge credits
+    have been processed."""
 
-    # Get bridge credits for this org
+    # TODO: What about IOUs - should they be processed first too?
+
+    # Get bridge credits and ious for this org
     bridge_credits = bridge_credits_for_club(club)
+    ious = iou_for_club(club)
 
-    # Get session entries
-    session_entries = SessionEntry.objects.filter(session=session).exclude(
-        payment_method=bridge_credits
-    )
+    # Session entries
+    SessionEntry.objects.filter(session=session).exclude(
+        payment_method__in=[bridge_credits, ious]
+    ).update(is_paid=True)
 
-    # Get any extras
-    extras = _get_extras_as_total_for_session_entries(session)
+    # mark misc payments for this session as paid
+    SessionMiscPayment.objects.filter(session_entry__session=session,).exclude(
+        payment_method__in=[bridge_credits, ious]
+    ).update(payment_made=True)
 
-    for session_entry in session_entries:
-        session_entry.amount_paid = session_entry.fee + Decimal(
-            extras.get(session_entry.id, 0)
-        )
-        session_entry.save()
-
-        # mark misc payments for this session as paid
-        SessionMiscPayment.objects.filter(
-            session_entry__session=session,
-            session_entry__system_number=session_entry.system_number,
-        ).update(payment_made=True, payment_method=session_entry.payment_method)
-
+    # Mark session status as complete
     session.status = Session.SessionStatus.COMPLETE
     session.save()
 

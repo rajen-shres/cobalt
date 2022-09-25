@@ -104,7 +104,7 @@ def _transactions_with_sessions(request, club):
     to have a summary of the session
     """
 
-    # First get transactions without sections and create this page
+    # First get transactions without sessions and create this page
     no_session_transactions = OrganisationTransaction.objects.filter(
         organisation=club, club_session_id=None
     ).order_by("-pk")

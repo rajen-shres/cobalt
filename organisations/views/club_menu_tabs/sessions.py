@@ -45,7 +45,7 @@ def delete_session_htmx(request, club):
 
     payments = SessionEntry.objects.filter(
         session=session, payment_method=bridge_credits
-    ).filter(amount_paid__gt=0)
+    ).filter(is_paid=True)
 
     # See if we have any IOUs
     ious = UserPendingPayment.objects.filter(
@@ -95,27 +95,31 @@ def _cancel_and_refund_bridge_credits_and_ious(request, payments, ious, club, se
     refund_count = 0
 
     # First check if club has sufficient funds for this
-    total = sum(payment.amount_paid for payment in payments)
-
+    total = sum(payment.fee for payment in payments if payment.is_paid)
     if total > org_balance(club):
         return "This club has an insufficient balance to make these refunds"
 
     # Now go through and process refunds
     for payment in payments:
+
+        # Double check
+        if not payment.is_paid:
+            continue
+
         member = User.objects.filter(system_number=payment.system_number).first()
         refund_count += 1
 
         update_organisation(
             organisation=club,
             member=member,
-            amount=-payment.amount_paid,
+            amount=-payment.fee,
             description=f"Refund for cancelled session {session.description} by {request.user}",
             payment_type="Refund",
         )
 
         update_account(
             organisation=club,
-            amount=payment.amount_paid,
+            amount=payment.fee,
             description=user_message,
             payment_type="Refund",
             member=member,

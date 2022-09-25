@@ -102,7 +102,9 @@
                                 </td>
                                 <td>{{ player.membership }}</td>
                                 <td class="text-right">{{ player.session_entry.fee }}</td>
-                                <td class="text-right">{{ player.session_entry.amount_paid }}</td>
+                                <td class="text-right">
+                                    {{ player.session_entry.amount_paid }}
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
