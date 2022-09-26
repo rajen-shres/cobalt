@@ -6,9 +6,8 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.html import format_html
 
-from club_sessions.club_sessions_views.admin import (
+from club_sessions.views.admin import (
     add_club_session,
     add_payment_method_session_type_combos,
     turn_off_payment_type,
@@ -54,7 +53,6 @@ from organisations.views.club_menu_tabs.utils import (
 from organisations.views.general import compare_form_with_mpc
 from payments.models import OrgPaymentMethod
 from rbac.core import rbac_user_has_role
-from rbac.views import rbac_forbidden
 from utils.views import masterpoint_query
 
 

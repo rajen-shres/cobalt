@@ -1,6 +1,5 @@
 import copy
 import logging
-import re
 from datetime import timedelta
 
 import pytz
@@ -11,20 +10,19 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.html import format_html, escape
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_http_methods
 
 from accounts.models import User
 from cobalt.settings import (
     COBALT_HOSTNAME,
-    SUMMERNOTE_CONFIG,
     RBAC_HELPDESK_GROUP,
     TIME_ZONE,
     ABF_USER,
     GLOBAL_TITLE,
 )
-from notifications.notifications_views.core import (
+from notifications.views.core import (
     send_cobalt_email_with_template,
     send_cobalt_email_preformatted,
 )

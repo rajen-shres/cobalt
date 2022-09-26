@@ -2,7 +2,7 @@ import time
 
 from accounts.models import User
 from organisations.models import Organisation
-from payments.payments_views.core import get_balance, org_balance
+from payments.views.core import get_balance, org_balance
 from payments.models import MemberTransaction, OrganisationTransaction
 
 from selenium.webdriver.common.by import By

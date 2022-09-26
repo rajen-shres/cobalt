@@ -14,7 +14,7 @@ from django.utils.html import strip_tags
 from cobalt.settings import (
     TIME_ZONE,
 )
-from events.events_views.core import sort_events_by_start_date
+from events.views.core import sort_events_by_start_date
 from logs.views import log_event
 from organisations.models import Organisation
 from rbac.core import (
@@ -38,7 +38,6 @@ from events.models import (
     CongressDownload,
 )
 from utils.models import Slug
-from utils.views import check_slug_is_free, create_new_slug
 
 TZ = pytz.timezone(TIME_ZONE)
 

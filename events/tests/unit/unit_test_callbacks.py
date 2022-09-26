@@ -1,8 +1,7 @@
 import random
 import string
 
-from accounts.models import User
-from events.events_views.core import events_payments_primary_callback
+from events.views.core import events_payments_primary_callback
 from events.models import (
     Congress,
     Event,
@@ -12,9 +11,8 @@ from events.models import (
     BasketItem,
 )
 from notifications.tests.common_functions import check_email_sent
-from payments.payments_views.core import update_account
+from payments.views.core import update_account
 from tests.test_manager import CobaltTestManagerIntegration
-from post_office.models import Email
 
 
 def _event_entry_test_helper(manager, test_name, event, entrants, expected_status):

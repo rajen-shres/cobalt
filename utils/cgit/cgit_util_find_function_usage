@@ -2,7 +2,7 @@
 
 # about: find calls to a function anywhere in the code
 
-# Find where a function is used so you know what to test if you change it
+# Find where a function is used, so you know what to test if you change it
 # The IDE should be able to do this for you, but this gives a command line printout
 import sys
 from pathlib import Path
@@ -12,7 +12,7 @@ if len(sys.argv) != 2:
     print(f"\n\nUsage: {sys.argv[0]} function_name\n")
     sys.exit()
 
-search_function = sys.argv[1] + "("
+search_function = f"{sys.argv[1]}("
 
 # Search all .py files and look for my_func( but exclude def my_func(
 
@@ -27,7 +27,7 @@ for path in Path(".").rglob("*.py"):
                 caller_name = line[loc + 4 :].split("(")[0]  # noqa: E203
 
             # look for calls to this function but exclude def this_function(
-            if line.find(search_function) >= 0 and line.find("def " + search_function):
+            if line.find(search_function) >= 0 and line.find(f"def {search_function}"):
                 print(path, caller_name)
 
 print()

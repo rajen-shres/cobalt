@@ -53,15 +53,16 @@
 
         <!--  MISC PAYMENTS   -->
 
-        <div class="card">
-            <div class="card-header card-header-success">
-                <h4>Miscellaneous Session Payments</h4>
-            </div>
+        {% if session_misc_payments %}
+
+            <div class="card">
+                <div class="card-header card-header-success">
+                    <h4>Miscellaneous Session Payments</h4>
+                </div>
 
 
-            <!-- ADD NEW MISC PAYMENT FORM -->
-            <div class="card-body">
-                {% if session_misc_payments %}
+                <!-- ADD NEW MISC PAYMENT FORM -->
+                <div class="card-body">
 
                     <div class="table-responsive">
                         <table class="table table-condensed table-hover">
@@ -102,172 +103,172 @@
                         </table>
                     </div>
 
-                {% endif %}
 
 
-                <!-- MISC PAYMENTS FORM -->
 
-                <button
-                    _="on click toggle .d-none on #add-payment then remove me"
-                    class="btn btn-sm btn-info"
-                >Add...</button>
+                    <!-- MISC PAYMENTS FORM -->
 
-                <div id="add-payment" class="card d-none">
-                    <div class="card-header card-header-danger">
-                        <h4>Add</h4>
-                    </div>
-                    <div class="card">
+                    <button
+                        _="on click toggle .d-none on #add-payment then remove me"
+                        class="btn btn-sm btn-info"
+                    >Add</button>
 
-                        <form
-                            hx-post="{% url "club_sessions:session_add_misc_payment_htmx" %}"
-                            hx-target="#entry_extras"
-                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
-                        >
+                    <div id="add-payment" class="card d-none">
+                        <div class="card-header card-header-danger">
+                            <h4>Add</h4>
+                        </div>
+                        <div class="card">
 
-                            <div class="container">
+                            <form
+                                hx-post="{% url "club_sessions:session_add_misc_payment_htmx" %}"
+                                hx-target="#entry_extras"
+                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                            >
 
-                                <!-- SHOW DROPDOWN IF WE HAVE SET UP MISC PAYMENT TYPES -->
+                                <div class="container">
 
-                                {% if misc_payment_types %}
+                                    <!-- SHOW DROPDOWN IF WE HAVE SET UP MISC PAYMENT TYPES -->
+
+                                    {% if misc_payment_types %}
+
+                                        <div class="row">
+
+                                            <div class="col-6">
+                                                <div class="form-group">
+                                                    <label for="id_misc_payment" class="bmd-label-static">Item</label>
+                                                    <select class="selectpicker" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
+                                                        <option selected value="-1">---select---</option>
+                                                        {% for misc_payment_type in misc_payment_types %}
+                                                            <option value="{{ misc_payment_type.id }}">{{ misc_payment_type.description }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    {% endif %}
+
+                                    <!-- INPUT FIELDS, EITHER MANUAL OR FROM DROPDOWN OF SET UP TYPES -->
 
                                     <div class="row">
 
+                                        <!-- DESCRIPTION -->
                                         <div class="col-6">
                                             <div class="form-group">
-                                                <label for="id_misc_payment" class="bmd-label-static">Item</label>
-                                                <select class="selectpicker" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
-                                                    <option selected value="-1">---select---</option>
-                                                    {% for misc_payment_type in misc_payment_types %}
-                                                        <option value="{{ misc_payment_type.id }}">{{ misc_payment_type.description }}</option>
+                                                <label for="id_misc_description" class="bmd-label-floating">Description</label>
+                                                <input type="text" value="" maxlength="30" class="form-control" id="id_misc_description" name="misc_description">
+                                            </div>
+                                        </div>
+
+                                        <!-- AMOUNT -->
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label for="id_amount" class="bmd-label-floating">Amount</label>
+                                                <input type="number" value="" min="0.01" step="0.01" class="form-control" id="id_amount" name="amount">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- PAYMENT METHOD -->
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label for="id_payment_method" class="bmd-label-static">Pay By</label>
+                                                <select class="selectpicker" data-style="btn btn-warning btn-round btn-sm" name="payment_method" id="id_payment_method">
+                                                    {% for payment_method in payment_methods %}
+                                                        <option value="{{ payment_method.id }}"
+                                                            {% if payment_method == session_entry.payment_method %}
+                                                                selected
+                                                            {% endif %}
+
+                                                        >{{ payment_method.payment_method }}</option>
                                                     {% endfor %}
                                                 </select>
                                             </div>
                                         </div>
                                     </div>
 
-                                {% endif %}
-
-                                <!-- INPUT FIELDS, EITHER MANUAL OR FROM DROPDOWN OF SET UP TYPES -->
-
-                                <div class="row">
-
-                                    <!-- DESCRIPTION -->
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            <label for="id_misc_description" class="bmd-label-floating">Description</label>
-                                            <input type="text" value="" maxlength="30" class="form-control" id="id_misc_description" name="misc_description">
+                                    <!-- SUBMIT BUTTON -->
+                                    <div class="row">
+                                        <div class="col text-center">
+                                            <button class="btn btn-success btn-sm" id="id_misc_button" disabled type="submit">Add</button>
                                         </div>
                                     </div>
 
-                                    <!-- AMOUNT -->
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            <label for="id_amount" class="bmd-label-floating">Amount</label>
-                                            <input type="number" value="" min="0.01" step="0.01" class="form-control" id="id_amount" name="amount">
-                                        </div>
-                                    </div>
-                                </div>
+                                </form>
 
-                                <!-- PAYMENT METHOD -->
-                                <div class="row">
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            <label for="id_payment_method" class="bmd-label-static">Pay By</label>
-                                            <select class="selectpicker" data-style="btn btn-warning btn-round btn-sm" name="payment_method" id="id_payment_method">
-                                                {% for payment_method in payment_methods %}
-                                                    <option value="{{ payment_method.id }}"
-                                                        {% if payment_method == session_entry.payment_method %}
-                                                            selected
-                                                        {% endif %}
-
-                                                    >{{ payment_method.payment_method }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- SUBMIT BUTTON -->
-                                <div class="row">
-                                    <div class="col text-center">
-                                        <button class="btn btn-success btn-sm" id="id_misc_button" disabled type="submit">Add</button>
-                                    </div>
-                                </div>
-
-                            </form>
-
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- TOP UP MEMBER -->
-        <button
-            _="on click toggle .d-none on #top-up-form then remove me"
-            class="btn btn-sm btn-danger ml-3"
-        >Top Up</button>
+            <!-- TOP UP MEMBER -->
+            <button
+                _="on click toggle .d-none on #top-up-form then remove me"
+                class="btn btn-sm btn-danger ml-3"
+            >Top Up</button>
 
-        <div
-            class="d-none"
-            id="top-up-form"
-            hx-post="{% url "club_sessions:session_top_up_member_htmx" %}"
-            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
-            hx-trigger="load"
-            hx-target="this"
-        ></div>
+            <div
+                class="d-none"
+                id="top-up-form"
+                hx-post="{% url "club_sessions:session_top_up_member_htmx" %}"
+                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                hx-trigger="load"
+                hx-target="this"
+            ></div>
 
-        <!-- PAY ON BEHALF -->
-        <!-- DISABLE FOR NOW -->
+            <!-- PAY ON BEHALF -->
+            <!-- DISABLE FOR NOW -->
 
-        {#        {% if player|get_class == "User" %}#}
-        {#            <div class="card">#}
-        {#                <div class="card-header card-header-info">#}
-        {#                    <h4>Pay On Behalf Of - NOT COMPLETE</h4>#}
-        {#                </div>#}
-        {#                <div class="body">#}
-        {#                    <h3>{{ player.full_name  }} pays for</h3>#}
-        {#                    <h3>{{ player.full_name  }} is paid for by</h3>#}
-        {#                </div>#}
-        {#        {% endif %}#}
+            {#        {% if player|get_class == "User" %}#}
+            {#            <div class="card">#}
+            {#                <div class="card-header card-header-info">#}
+            {#                    <h4>Pay On Behalf Of - NOT COMPLETE</h4>#}
+            {#                </div>#}
+            {#                <div class="body">#}
+            {#                    <h3>{{ player.full_name  }} pays for</h3>#}
+            {#                    <h3>{{ player.full_name  }} is paid for by</h3>#}
+            {#                </div>#}
+            {#        {% endif %}#}
 
-    </div>
-</div>
+            </div>
+            </div>
 
-<script>
-    $(document).ready( function () {
+            <script>
+                $(document).ready( function () {
 
-        // enable selectpicker
-        $(".selectpicker").selectpicker();
+                    // enable selectpicker
+                    $(".selectpicker").selectpicker();
 
-        // Handle changing the misc payment type
-        $("#id_misc_payment").change( function(){
+                    // Handle changing the misc payment type
+                    $("#id_misc_payment").change( function(){
 
-            // description
-            $("#id_misc_description").val($('#id_misc_payment option:selected').text());
+                        // description
+                        $("#id_misc_description").val($('#id_misc_payment option:selected').text());
 
-            // enable button
-            $("#id_misc_button").removeAttr("disabled");
+                        // enable button
+                        $("#id_misc_button").removeAttr("disabled");
 
-            // add default payment amount as a dictionary from Django
-            const default_amount = {
-                {% for misc_payment_type in misc_payment_types %}
-                    "{{ misc_payment_type.id }}": "{{ misc_payment_type.default_amount }}",
-                {% endfor %}
-            };
+                        // add default payment amount as a dictionary from Django
+                        const default_amount = {
+                            {% for misc_payment_type in misc_payment_types %}
+                                "{{ misc_payment_type.id }}": "{{ misc_payment_type.default_amount }}",
+                            {% endfor %}
+                        };
 
-            const new_val = default_amount[$(this).val()];
-            $("#id_amount").val(new_val);
-        });
+                        const new_val = default_amount[$(this).val()];
+                        $("#id_amount").val(new_val);
+                    });
 
-        // handle manually entering misc payment - enable button if both fields have values
-        $("#id_amount, #id_misc_description").keyup(function() {
-            // check if form is valid to submit
-            if ($("#id_amount").val() > 0 && $("#id_misc_description").val().length > 0){
-                $("#id_misc_button").removeAttr("disabled");
-            } else {
-                $("#id_misc_button").attr("disabled", true);
-            }
-        });
-    });
-</script>
+                    // handle manually entering misc payment - enable button if both fields have values
+                    $("#id_amount, #id_misc_description").keyup(function() {
+                        // check if form is valid to submit
+                        if ($("#id_amount").val() > 0 && $("#id_misc_description").val().length > 0){
+                            $("#id_misc_button").removeAttr("disabled");
+                        } else {
+                            $("#id_misc_button").attr("disabled", true);
+                        }
+                    });
+                });
+            </script>

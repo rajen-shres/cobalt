@@ -6,17 +6,16 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
-from django.template.loader import render_to_string
 from django.utils import timezone, dateformat
 
-from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS, COBALT_HOSTNAME
-from notifications.notifications_views.core import contact_member
+from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS
+from notifications.views.core import contact_member
 
 from organisations.models import Organisation
 from organisations.views.general import org_balance
 from payments.forms import MemberTransferOrg
 from payments.models import OrganisationTransaction
-from payments.payments_views.core import update_organisation, update_account, TZ
+from payments.views.core import update_organisation, update_account, TZ
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator

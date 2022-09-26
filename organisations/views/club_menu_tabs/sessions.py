@@ -2,7 +2,7 @@ from django.db.transaction import atomic
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
-from accounts.accounts_views.core import (
+from accounts.views.core import (
     get_users_or_unregistered_users_from_system_number_list,
 )
 from accounts.models import User
@@ -11,7 +11,7 @@ from organisations.decorators import check_club_menu_access
 from organisations.models import ClubLog
 from organisations.views.general import org_balance
 from payments.models import OrgPaymentMethod, UserPendingPayment
-from payments.payments_views.core import update_organisation, update_account
+from payments.views.core import update_organisation, update_account
 
 
 @check_club_menu_access()

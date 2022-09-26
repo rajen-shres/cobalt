@@ -1,12 +1,11 @@
 """ views for dashboard """
-from django.http import HttpResponse, Http404
+from django.http import Http404
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from fcm_django.models import FCMDevice
 
 from masterpoints.views import get_masterpoints
-from payments.payments_views.core import get_balance_detail, get_user_pending_payments
-from events.events_views.core import get_events
+from payments.views.core import get_balance_detail, get_user_pending_payments
+from events.views.core import get_events
 from results.views.core import get_recent_results
 from utils.models import Slug
 

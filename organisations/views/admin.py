@@ -6,7 +6,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 
 from accounts.models import User
-from club_sessions.club_sessions_views.admin import add_club_session_defaults
+from club_sessions.views.admin import add_club_session_defaults
 from cobalt.settings import ABF_USER
 from organisations.forms import OrgForm
 from organisations.models import (
@@ -30,7 +30,6 @@ from rbac.core import (
     rbac_get_users_in_group,
     rbac_delete_group,
     rbac_user_has_admin_tree_access,
-    rbac_user_has_any_model,
     rbac_get_admin_group_by_name,
 )
 from rbac.models import RBACGroupRole, RBACUserGroup, RBACGroup

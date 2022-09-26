@@ -1,5 +1,4 @@
 """ This module has the views that are used by normal players """
-import operator
 from datetime import datetime
 from decimal import Decimal
 import uuid
@@ -7,19 +6,16 @@ import pytz
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseNotFound
 from django.template import loader
-from django.template.loader import render_to_string
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
 from django.db import transaction
 
-from logs.views import log_event
-from payments.payments_views.payments_api import payment_api_interactive
+from payments.views.payments_api import payment_api_interactive
 from utils.templatetags.cobalt_tags import cobalt_credits
-from notifications.notifications_views.core import (
+from notifications.views.core import (
     send_cobalt_email_with_template,
-    contact_member,
 )
 from accounts.models import User, TeamMate
 from rbac.core import (
@@ -27,16 +23,14 @@ from rbac.core import (
     rbac_user_has_role,
 )
 from rbac.views import rbac_forbidden
-from payments.payments_views.core import (
+from payments.views.core import (
     update_account,
     update_organisation,
 )
 from cobalt.settings import (
     BRIDGE_CREDITS,
     TIME_ZONE,
-    COBALT_HOSTNAME,
     TBA_PLAYER,
-    GLOBAL_ORG,
 )
 from events.models import (
     Congress,
@@ -51,13 +45,12 @@ from events.models import (
     EventLog,
     Bulletin,
     PartnershipDesk,
-    PAYMENT_TYPES,
     CongressDownload,
 )
 from events.forms import (
     PartnershipForm,
 )
-from events.events_views.core import (
+from events.views.core import (
     events_payments_primary_callback,
     notify_conveners,
     get_basket_for_user,

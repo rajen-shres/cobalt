@@ -1,7 +1,6 @@
 from notifications.models import NotificationMapping
-from notifications.notifications_views.core import (
+from notifications.views.core import (
     add_in_app_notification,
-    send_cobalt_email_preformatted,
     send_cobalt_email_with_template,
 )
 

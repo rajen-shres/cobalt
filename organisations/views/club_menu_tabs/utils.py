@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from accounts.models import UnregisteredUser, User
-from accounts.accounts_views.admin import invite_to_join
+from accounts.views.admin import invite_to_join
 from cobalt.settings import COBALT_HOSTNAME, GLOBAL_TITLE
 from organisations.decorators import check_club_menu_access
 from organisations.models import MemberMembershipType, Organisation, MemberClubEmail

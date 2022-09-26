@@ -36,7 +36,6 @@ import stripe
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -52,9 +51,9 @@ from cobalt.settings import (
     TIME_ZONE,
     GLOBAL_MPSERVER,
 )
-import events.events_views.core as events_core
+import events.views.core as events_core
 from logs.views import log_event
-from notifications.notifications_views.core import contact_member
+from notifications.views.core import contact_member
 from payments.models import (
     StripeTransaction,
     MemberTransaction,
@@ -62,7 +61,7 @@ from payments.models import (
     StripeLog,
     UserPendingPayment,
 )
-from payments.payments_views.payments_api import notify_member_to_member_transfer
+from payments.views.payments_api import notify_member_to_member_transfer
 
 TZ = pytz.timezone(TIME_ZONE)
 
@@ -737,7 +736,7 @@ def callback_router(
 
     # User Pending Payment
     elif route_code == "UPP":
-        from payments.payments_views.players import user_pending_payment_callback
+        from payments.views.players import user_pending_payment_callback
 
         user_pending_payment_callback(status, route_payload)
 

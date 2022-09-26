@@ -5,14 +5,13 @@ from django.utils import timezone
 
 from accounts.models import User
 from cobalt.settings import TBA_PLAYER
-from events.events_views.core import events_status_summary
+from events.views.core import events_status_summary
 from events.forms import CongressMasterForm
 from events.models import (
     CongressMaster,
     BasketItem,
     EventEntry,
     EventEntryPlayer,
-    Session,
 )
 from masterpoints.views import user_summary
 from rbac.core import (

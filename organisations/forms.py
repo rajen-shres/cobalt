@@ -4,10 +4,8 @@ import bleach
 from crispy_forms.helper import FormHelper
 from django import forms
 from django_summernote.widgets import SummernoteInplaceWidget
-from post_office.models import EmailTemplate
 from PIL import Image
-import accounts.accounts_views.admin
-from accounts.models import User
+import accounts.views.admin
 from cobalt.settings import (
     ABF_STATES,
     BLEACH_ALLOWED_TAGS,
@@ -21,7 +19,6 @@ from results.models import ResultsFile
 from .models import (
     Organisation,
     MembershipType,
-    MemberClubEmail,
     MemberMembershipType,
     ClubTag,
     OrganisationFrontPage,
@@ -288,9 +285,7 @@ class UnregisteredUserAddForm(forms.Form):
     def clean_system_number(self):
         system_number = self.cleaned_data["system_number"]
 
-        is_valid, is_member, _ = accounts.accounts_views.admin.check_system_number(
-            system_number
-        )
+        is_valid, is_member, _ = accounts.views.admin.check_system_number(system_number)
 
         if not is_valid:
             self.add_error("system_number", "Invalid number")

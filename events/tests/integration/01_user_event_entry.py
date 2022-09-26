@@ -6,7 +6,7 @@ from events.tests.integration.common_functions import (
     enter_event_and_check,
     enter_event_then_pay_and_check,
 )
-from payments.payments_views.core import update_account, get_balance
+from payments.views.core import update_account, get_balance
 from tests.test_manager import CobaltTestManagerIntegration
 
 

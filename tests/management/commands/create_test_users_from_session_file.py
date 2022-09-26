@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 from accounts.models import User
 from cobalt.settings import COBALT_HOSTNAME
 from organisations.models import Organisation, MembershipType, MemberMembershipType
-from payments.payments_views.core import update_account
+from payments.views.core import update_account
 
 
 def make_data(system_number, first_name, last_name, club, membership):

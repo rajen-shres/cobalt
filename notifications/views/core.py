@@ -736,7 +736,7 @@ def send_cobalt_email_to_system_number(
 
     """
 
-    from accounts.accounts_views.core import (
+    from accounts.views.core import (
         get_email_address_and_name_from_system_number,
     )
 

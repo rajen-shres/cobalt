@@ -15,11 +15,11 @@ from cobalt.settings import (
     GLOBAL_CURRENCY_SYMBOL,
 )
 from masterpoints.views import abf_checksum_is_valid
-from notifications.notifications_views.core import send_cobalt_email_to_system_number
+from notifications.views.core import send_cobalt_email_to_system_number
 from organisations.models import ClubLog
 from organisations.views.general import get_membership_type_for_players
 from payments.models import OrgPaymentMethod, MemberTransaction, UserPendingPayment
-from payments.payments_views.core import (
+from payments.views.core import (
     org_balance,
     update_account,
     update_organisation,

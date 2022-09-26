@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404, render
 
-from events.events_views.congress_builder import copy_congress_from_another
+from events.views.congress_builder import copy_congress_from_another
 from events.models import CongressMaster, Congress
 from organisations.decorators import check_club_menu_access
 from organisations.views.club_menu import tab_congress_htmx

@@ -17,7 +17,7 @@ from accounts.tokens import account_activation_token
 from cobalt.settings import GLOBAL_TITLE, ALL_SYSTEM_ACCOUNTS
 from logs.views import log_event
 from masterpoints.views import user_summary
-from notifications.notifications_views.core import send_cobalt_email_with_template
+from notifications.views.core import send_cobalt_email_with_template
 from organisations.models import MemberClubEmail, Organisation
 from organisations.views.general import replace_unregistered_user_with_real_user
 

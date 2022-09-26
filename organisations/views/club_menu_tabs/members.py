@@ -1,18 +1,15 @@
 import csv
-import datetime
 import logging
-from copy import copy
 from itertools import chain
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 
 import organisations.views.club_menu_tabs.utils
-from accounts.accounts_views.api import search_for_user_in_cobalt_and_mpc
+from accounts.views.api import search_for_user_in_cobalt_and_mpc
 from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser
 from cobalt.settings import (
@@ -21,10 +18,9 @@ from cobalt.settings import (
     COBALT_HOSTNAME,
     GLOBAL_CURRENCY_SYMBOL,
 )
-from notifications.notifications_views.core import (
+from notifications.views.core import (
     send_cobalt_email_with_template,
     create_rbac_batch_id,
-    send_cobalt_email_to_system_number,
 )
 from organisations.decorators import check_club_menu_access
 from organisations.forms import (
@@ -49,14 +45,14 @@ from organisations.views.general import (
     _active_email_for_un_reg,
     get_rbac_model_for_state,
 )
-from payments.models import MemberTransaction, OrganisationTransaction
-from payments.payments_views.core import (
+from payments.models import MemberTransaction
+from payments.views.core import (
     get_balance,
     org_balance,
     update_account,
     update_organisation,
 )
-from payments.payments_views.payments_api import payment_api_batch
+from payments.views.payments_api import payment_api_batch
 from rbac.core import rbac_user_has_role
 from post_office.models import Email as PostOfficeEmail
 

@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 
-from accounts.accounts_views.core import (
+from accounts.views.core import (
     get_user_or_unregistered_user_from_system_number,
 )
 from accounts.models import User, UnregisteredUser
@@ -22,7 +22,7 @@ from organisations.models import (
 )
 from organisations.views.club_menu_tabs.finance import pay_member_from_organisation
 from payments.models import OrgPaymentMethod, UserPendingPayment
-from payments.payments_views.payments_api import payment_api_batch
+from payments.views.payments_api import payment_api_batch
 
 from rbac.views import rbac_forbidden
 from rbac.core import rbac_user_has_role
@@ -47,8 +47,8 @@ from .core import (
 )
 from .decorators import user_is_club_director
 
-from ..forms import SessionForm, UserSessionForm
-from ..models import (
+from club_sessions.forms import SessionForm, UserSessionForm
+from club_sessions.models import (
     Session,
     SessionEntry,
     SessionTypePaymentMethodMembership,

@@ -25,7 +25,7 @@ from cobalt.settings import (
 )
 from logs.views import log_event
 from masterpoints.views import user_summary
-from notifications.notifications_views.core import contact_member
+from notifications.views.core import contact_member
 from organisations.models import Organisation
 from payments.forms import (
     DateForm,
@@ -43,7 +43,7 @@ from payments.models import (
     PaymentStatic,
     OrganisationSettlementFees,
 )
-from payments.payments_views.core import (
+from payments.views.core import (
     stripe_current_balance,
     get_balance,
     update_organisation,

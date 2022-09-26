@@ -9,7 +9,7 @@ from accounts.models import User, UnregisteredUser
 from cobalt.settings import GLOBAL_TITLE, GLOBAL_ORG
 from logs.views import log_event
 from masterpoints.views import user_summary
-from notifications.notifications_views.core import send_cobalt_email_with_template
+from notifications.views.core import send_cobalt_email_with_template
 from organisations.models import Organisation
 from utils.utils import cobalt_paginator
 

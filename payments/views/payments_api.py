@@ -10,8 +10,8 @@ from cobalt.settings import (
     GLOBAL_CURRENCY_SYMBOL,
 )
 from logs.views import log_event
-from notifications.notifications_views.core import send_cobalt_email_with_template
-import payments.payments_views.core as payments_core
+from notifications.views.core import send_cobalt_email_with_template
+import payments.views.core as payments_core
 from payments.models import StripeTransaction
 
 logger = logging.getLogger("cobalt")

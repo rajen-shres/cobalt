@@ -6,7 +6,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse
 from django.utils import timezone, dateformat
 
 from accounts.models import User, TeamMate
@@ -18,7 +17,7 @@ from cobalt.settings import (
     BRIDGE_CREDITS,
 )
 from logs.views import log_event
-from notifications.notifications_views.core import contact_member
+from notifications.views.core import contact_member
 from payments.forms import MemberTransfer, ManualTopup
 from payments.models import (
     MemberTransaction,
@@ -26,15 +25,15 @@ from payments.models import (
     StripeTransaction,
     UserPendingPayment,
 )
-from payments.payments_views.admin import refund_stripe_transaction_sub
-from payments.payments_views.core import (
+from payments.views.admin import refund_stripe_transaction_sub
+from payments.views.core import (
     get_balance,
     auto_topup_member,
     stripe_current_balance,
     TZ,
     statement_common,
 )
-from payments.payments_views.payments_api import payment_api_interactive
+from payments.views.payments_api import payment_api_interactive
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator

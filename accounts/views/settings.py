@@ -6,7 +6,7 @@ from fcm_django.models import FCMDevice
 
 from accounts.forms import UserSettingsForm
 from accounts.models import APIToken
-from notifications.notifications_views.user import notifications_in_english
+from notifications.views.user import notifications_in_english
 from rbac.core import rbac_user_has_role
 
 

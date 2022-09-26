@@ -16,7 +16,7 @@ from notifications.models import (
     RealtimeNotificationHeader,
     RealtimeNotification,
 )
-from notifications.notifications_views.core import _cloudwatch_reader
+from notifications.views.core import _cloudwatch_reader
 from rbac.core import rbac_user_has_role
 from rbac.decorators import rbac_check_role
 from rbac.views import rbac_forbidden

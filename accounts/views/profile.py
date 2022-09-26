@@ -5,11 +5,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from accounts.forms import UserUpdateForm, BlurbUpdateForm, PhotoUpdateForm
 from accounts.models import UserAdditionalInfo, TeamMate, User
-from accounts.accounts_views.core import _check_duplicate_email
+from accounts.views.core import _check_duplicate_email
 from forums.models import Post, Comment1, Comment2
 from masterpoints.views import user_summary
 from organisations.views.general import get_clubs_for_player
-from payments.payments_views.core import get_user_pending_payments
+from payments.views.core import get_user_pending_payments
 from rbac.core import rbac_user_has_role
 from support.models import Incident
 from utils.utils import cobalt_paginator

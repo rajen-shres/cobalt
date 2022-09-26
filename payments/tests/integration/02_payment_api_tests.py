@@ -1,7 +1,6 @@
 from accounts.models import User
 from organisations.models import Organisation
-from payments.payments_views.core import update_account
-from payments.payments_views.payments_api import (
+from payments.views.payments_api import (
     payment_api_batch,
     payment_api_interactive,
 )

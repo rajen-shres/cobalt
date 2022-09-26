@@ -7,7 +7,7 @@ from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 
-import payments.payments_views.core as payments_core  # circular dependency
+import payments.views.core as payments_core  # circular dependency
 
 from cobalt.settings import (
     BRIDGE_CREDITS,
@@ -17,8 +17,8 @@ from cobalt.settings import (
 
 from logs.views import log_event
 from notifications.models import BlockNotification
-from notifications.notifications_views.core import send_cobalt_email_with_template
-from payments.payments_views.payments_api import (
+from notifications.views.core import send_cobalt_email_with_template
+from payments.views.payments_api import (
     payment_api_batch,
     calculate_auto_topup_amount,
 )

@@ -1,5 +1,3 @@
-from itertools import chain
-
 from django.db.models import Sum, Min
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -8,20 +6,18 @@ from django.urls import reverse
 from accounts.models import User
 from club_sessions.models import Session
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS
-from notifications.notifications_views.core import send_cobalt_email_to_system_number
+from notifications.views.core import send_cobalt_email_to_system_number
 from organisations.decorators import check_club_menu_access
 from organisations.models import ClubLog, MemberMembershipType, Organisation
 from organisations.views.club_menu import tab_finance_htmx
 from payments.models import UserPendingPayment, OrganisationTransaction
-from payments.payments_views.core import (
+from payments.views.core import (
     update_account,
     update_organisation,
     org_balance,
 )
-from payments.payments_views.payments_api import payment_api_batch
+from payments.views.payments_api import payment_api_batch
 from rbac.core import (
-    rbac_get_users_with_role,
-    rbac_user_has_role_exact,
     rbac_get_users_in_group_by_name,
 )
 from utils.utils import cobalt_paginator

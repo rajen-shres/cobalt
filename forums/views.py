@@ -4,7 +4,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.utils import timezone
-from django.template.loader import render_to_string
 from django.urls import reverse
 from django.contrib import messages
 from django.db import transaction
@@ -13,15 +12,13 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rbac.core import (
     rbac_user_blocked_for_model,
     rbac_user_has_role,
-    rbac_get_users_in_group,
     rbac_add_user_to_group,
     rbac_get_users_with_role,
     rbac_get_users_in_group_by_name,
 )
-from cobalt.settings import COBALT_HOSTNAME
-from notifications.notifications_views.core import contact_member
+from notifications.views.core import contact_member
 from rbac.models import RBACGroup, RBACGroupRole, RBACUserGroup
-from notifications.notifications_views.listeners import (
+from notifications.views.listeners import (
     notify_happening,
     add_listener,
     remove_listener,

@@ -4,13 +4,11 @@ import io
 import json
 import re
 
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 
-from accounts.accounts_views.core import add_un_registered_user_with_mpc_data
-from club_sessions.club_sessions_views.core import PLAYING_DIRECTOR, VISITOR, SITOUT
-from club_sessions.club_sessions_views.decorators import user_is_club_director
+from accounts.views.core import add_un_registered_user_with_mpc_data
+from club_sessions.views.core import PLAYING_DIRECTOR, VISITOR, SITOUT
 from club_sessions.forms import FileImportForm
 from club_sessions.models import SessionEntry, SessionMiscPayment, Session, SessionType
 from organisations.models import ClubLog, Organisation

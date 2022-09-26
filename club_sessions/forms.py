@@ -1,12 +1,10 @@
 from django import forms
-from django.db.models import Q
 
 from accounts.models import UnregisteredUser, User
-from club_sessions.club_sessions_views.core import PLAYING_DIRECTOR, SITOUT, VISITOR
+from club_sessions.views.core import PLAYING_DIRECTOR, SITOUT, VISITOR
 from club_sessions.models import Session, SessionType
 from organisations.models import OrgVenue, MemberMembershipType
-from organisations.views.general import get_membership_type_for_players
-from payments.models import OrgPaymentMethod, UserPendingPayment
+from payments.models import OrgPaymentMethod
 
 
 class SessionForm(forms.ModelForm):

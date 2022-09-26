@@ -1,7 +1,7 @@
 from django.urls import path
 
-import events.events_views.global_admin
-from .events_views import congress_admin, congress_builder, views, ajax
+import events.views.global_admin
+from .views import congress_admin, ajax, congress_builder, views
 
 app_name = "events"  # pylint: disable=invalid-name
 
@@ -496,27 +496,27 @@ urlpatterns = [
     #######################################################
     path(
         "system-admin/congress-masters",
-        events.events_views.global_admin.global_admin_congress_masters,
+        events.views.global_admin.global_admin_congress_masters,
         name="global_admin_congress_masters",
     ),
     path(
         "system-admin/congress-master-edit/<int:id>",
-        events.events_views.global_admin.global_admin_edit_congress_master,
+        events.views.global_admin.global_admin_edit_congress_master,
         name="global_admin_edit_congress_master",
     ),
     path(
         "system-admin/congress-master-create",
-        events.events_views.global_admin.global_admin_create_congress_master,
+        events.views.global_admin.global_admin_create_congress_master,
         name="global_admin_create_congress_master",
     ),
     path(
         "system-admin/player-view/<int:member_id>",
-        events.events_views.global_admin.global_admin_view_player_entries,
+        events.views.global_admin.global_admin_view_player_entries,
         name="global_admin_view_player_entries",
     ),
     path(
         "system-admin/global-admin-event-payment-health-report",
-        events.events_views.global_admin.global_admin_event_payment_health_report,
+        events.views.global_admin.global_admin_event_payment_health_report,
         name="global_admin_event_payment_health_report",
     ),
 ]

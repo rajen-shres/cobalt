@@ -6,16 +6,15 @@ from threading import Thread
 
 import bleach
 from django.shortcuts import render, get_object_or_404, redirect
-from django.template.loader import render_to_string
 from django.forms import formset_factory
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone, dateformat
-from django.db.models import Sum, Q
+from django.db.models import Sum
 
-from events.events_views.core import sort_events_by_start_date
+from events.views.core import sort_events_by_start_date
 from notifications.models import BlockNotification
-from notifications.notifications_views.core import (
+from notifications.views.core import (
     contact_member,
     send_cobalt_email_with_template,
     create_rbac_batch_id,
@@ -49,7 +48,7 @@ from events.forms import (
     EventEntryPlayerTBAForm,
 )
 from rbac.views import rbac_user_has_role, rbac_forbidden
-from payments.payments_views.core import (
+from payments.views.core import (
     org_balance,
     update_account,
     update_organisation,
@@ -60,7 +59,6 @@ from cobalt.settings import (
     GLOBAL_ORG,
     BRIDGE_CREDITS,
     TIME_ZONE,
-    COBALT_HOSTNAME,
     TBA_PLAYER,
     BLEACH_ALLOWED_TAGS,
     BLEACH_ALLOWED_ATTRIBUTES,

@@ -7,13 +7,13 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
 from accounts.models import User
-from club_sessions.club_sessions_views.core import (
+from club_sessions.views.core import (
     PLAYING_DIRECTOR,
     SITOUT,
     VISITOR,
     load_session_entry_static,
 )
-from club_sessions.club_sessions_views.decorators import user_is_club_director
+from club_sessions.views.decorators import user_is_club_director
 from club_sessions.models import Session, SessionEntry, SessionMiscPayment
 from cobalt.settings import GLOBAL_ORG
 from payments.models import MemberTransaction

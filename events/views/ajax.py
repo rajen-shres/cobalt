@@ -5,16 +5,15 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET
 
 from accounts.models import User, TeamMate
-from cobalt.settings import TBA_PLAYER, COBALT_HOSTNAME, BRIDGE_CREDITS
-from events.events_views.congress_builder import update_event_start_and_end_times
+from cobalt.settings import TBA_PLAYER, BRIDGE_CREDITS
+from events.views.congress_builder import update_event_start_and_end_times
 from logs.views import log_event
-from notifications.notifications_views.core import contact_member
+from notifications.views.core import contact_member
 from organisations.models import Organisation
-from payments.payments_views.core import (
+from payments.views.core import (
     update_account,
     update_organisation,
     get_balance,
@@ -26,7 +25,7 @@ from rbac.core import (
     rbac_get_users_with_role,
 )
 from rbac.views import rbac_user_has_role, rbac_forbidden
-from events.events_views.core import notify_conveners
+from events.views.core import notify_conveners
 from events.models import (
     Congress,
     CONGRESS_TYPES,

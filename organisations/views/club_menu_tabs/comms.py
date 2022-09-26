@@ -5,13 +5,12 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
-from django.utils.safestring import mark_safe
 
 from accounts.models import User, UnregisteredUser
 from cobalt.settings import COBALT_HOSTNAME
 from notifications.forms import OrgEmailForm
 from notifications.models import Snooper, EmailBatchRBAC, EmailAttachment
-from notifications.notifications_views.core import (
+from notifications.views.core import (
     send_cobalt_email_with_template,
     create_rbac_batch_id,
 )

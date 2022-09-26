@@ -13,13 +13,13 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 
-from accounts.accounts_views.core import (
+from accounts.views.core import (
     get_user_or_unregistered_user_from_system_number,
 )
 from club_sessions.models import Session
 from events.models import Congress, CongressMaster
 from organisations.decorators import check_club_menu_access
-from organisations.forms import ResultsFileForm, ResultsEmailMessageForm
+from organisations.forms import ResultsEmailMessageForm
 from organisations.models import (
     Organisation,
     OrgEmailTemplate,
@@ -35,7 +35,7 @@ from organisations.views.club_menu_tabs.utils import (
     get_members_balance,
 )
 from payments.models import UserPendingPayment
-from payments.payments_views.core import get_balance_and_recent_trans_org, org_balance
+from payments.views.core import org_balance
 from rbac.core import (
     rbac_user_has_role,
 )

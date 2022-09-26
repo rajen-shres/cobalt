@@ -6,7 +6,7 @@ from django.urls import reverse
 from selenium.webdriver.support.select import Select
 
 from notifications.tests.common_functions import check_email_sent
-from payments.payments_views.core import get_balance
+from payments.views.core import get_balance
 from payments.models import MemberTransaction
 from payments import forms
 
