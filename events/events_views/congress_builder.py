@@ -55,6 +55,40 @@ def _increment_date_by_a_year(old_date):
         return old_date + (date(old_date.year + 1, 1, 1) - date(old_date.year, 1, 1))
 
 
+def update_event_start_and_end_times(event: Event):
+    """When a session date changes, recalculate the start and end dates for the event"""
+
+    # Sessions in start order - could be possible for overlapping sessions, but we don't handle that
+    sessions = Session.objects.filter(event=event).order_by(
+        "-session_date", "-session_start"
+    )
+
+    for session in sessions:
+
+        # End date
+        if (
+            not event.denormalised_end_date
+            or session.session_date >= event.denormalised_end_date
+        ):
+            event.denormalised_end_date = session.session_date
+            event.denormalised_end_time = session.session_end
+
+        # start date
+        if (
+            not event.denormalised_start_date
+            or session.session_date <= event.denormalised_start_date
+        ):
+            event.denormalised_start_date = session.session_date
+
+            # start time
+            if (
+                not event.denormalised_start_time
+            ) or session.session_start < event.denormalised_start_time:
+                event.denormalised_start_time = session.session_start
+
+    event.save()
+
+
 def copy_congress_from_another(congress_id: int):
     """Copy a congress from another congress. Also copy events."""
 
@@ -722,7 +756,7 @@ def create_session(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
 
     # check access
-    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    role = f"events.org.{event.congress.congress_master.org.id}.edit"
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
@@ -735,6 +769,8 @@ def create_session(request, event_id):
             session.session_start = form.cleaned_data["session_start"]
             session.session_end = form.cleaned_data["session_end"]
             session.save()
+
+            update_event_start_and_end_times(event)
 
             log_event(
                 user=request.user,
@@ -771,7 +807,7 @@ def edit_session(request, event_id, session_id):
     session = get_object_or_404(Session, pk=session_id)
 
     # check access
-    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    role = f"events.org.{event.congress.congress_master.org.id}.edit"
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
@@ -782,6 +818,8 @@ def edit_session(request, event_id, session_id):
             session.session_start = form.cleaned_data["session_start"]
             session.session_end = form.cleaned_data["session_end"]
             session.save()
+
+            update_event_start_and_end_times(event)
 
             messages.success(
                 request, "Session Updated", extra_tags="cobalt-message-success"

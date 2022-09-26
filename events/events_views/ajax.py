@@ -10,6 +10,7 @@ from django.views.decorators.http import require_GET
 
 from accounts.models import User, TeamMate
 from cobalt.settings import TBA_PLAYER, COBALT_HOSTNAME, BRIDGE_CREDITS
+from events.events_views.congress_builder import update_event_start_and_end_times
 from logs.views import log_event
 from notifications.notifications_views.core import contact_member
 from organisations.models import Organisation
@@ -273,11 +274,13 @@ def delete_session_ajax(request):
     session = get_object_or_404(Session, pk=session_id)
 
     # check access
-    role = "events.org.%s.edit" % session.event.congress.congress_master.org.id
+    role = f"events.org.{session.event.congress.congress_master.org.id}.edit"
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
     session.delete()
+
+    update_event_start_and_end_times(session.event)
 
     log_event(
         user=request.user,
