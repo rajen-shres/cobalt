@@ -26,6 +26,8 @@ from organisations.models import (
     MiscPayType,
     ClubLog,
 )
+from organisations.views.club_menu_tabs.finance import pay_member_from_organisation
+from organisations.views.club_menu_tabs.members import add_misc_payment_pay
 from organisations.views.general import get_membership_type_for_players
 from payments.models import OrgPaymentMethod, MemberTransaction, UserPendingPayment
 from payments.payments_views.core import (
@@ -714,6 +716,7 @@ def _tab_session_htmx_table_view(session, session_entries):
     """handle formatting for the table view"""
 
     extras = _get_extras_as_total_for_session_entries(session)
+    paid_extras = _get_extras_as_total_for_session_entries(session, paid_only=True)
 
     table_list = {}
     table_status = {}
@@ -728,6 +731,14 @@ def _tab_session_htmx_table_view(session, session_entries):
         session_entry.extras = Decimal(extras.get(session_entry.id, 0))
         # Add extras to entry fee for this view, no good reason
         session_entry.fee += session_entry.extras
+
+        # Add amount paid
+        if session_entry.is_paid:
+            session_entry.amount_paid = session_entry.fee
+        else:
+            session_entry.amount_paid = Decimal(0)
+
+        session_entry.amount_paid += Decimal(paid_extras.get(session_entry.id, 0))
 
         table_list[session_entry.pair_team_number].append(session_entry)
         if not session_entry.is_paid:
@@ -944,9 +955,7 @@ def _handle_bridge_credit_changes(
         session_entry.payment_method == bridge_credit_payment_method
         and session_entry.is_paid
     ):
-        return _handle_bridge_credit_changes_refund(
-            club, session_entry, director, message
-        )
+        return _handle_bridge_credit_changes_refund(club, session_entry, director)
 
     if payment_method == bridge_credit_payment_method:
         # New payment method is bridge credits. Force status to be pending bridge credits
@@ -969,7 +978,7 @@ def _handle_bridge_credit_changes(
         session_entry.save()
 
 
-def _handle_bridge_credit_changes_refund(club, session_entry, director, message):
+def _handle_bridge_credit_changes_refund(club, session_entry, director):
     # Refund needed
     if org_balance(club) < session_entry.fee:
         return False, "Club has insufficient funds for this refund"
@@ -1553,3 +1562,56 @@ def process_off_system_payments_htmx(request, club, session):
     response = tab_session_htmx(request, message="Off System payments made")
     response["HX-Trigger"] = "update_totals"
     return response
+
+
+@user_is_club_director(include_session_entry=True)
+def top_up_member_htmx(request, club, session, session_entry):
+    """Called from the detail view to top up a member balance. Member pays Club and club tops up the member balance
+    from their own funds.
+
+    We use a function within organisations-finance to do the payment
+
+    """
+    if "save" not in request.POST:
+
+        # Payment methods are anything except Bridge Credits and IOUs
+        payment_methods = OrgPaymentMethod.objects.filter(
+            active=True, organisation=club
+        ).exclude(payment_method__in=["Bridge Credits", "IOU"])
+
+        return render(
+            request,
+            "club_sessions/manage/top_up_member_balance_htmx.html",
+            {
+                "club": club,
+                "session": session,
+                "session_entry": session_entry,
+                "payment_methods": payment_methods,
+            },
+        )
+
+    # Get data from request
+    amount = float(request.POST.get("amount"))
+    payment_method = get_object_or_404(
+        OrgPaymentMethod, pk=request.POST.get("payment_method")
+    )
+
+    member = get_object_or_404(User, system_number=session_entry.system_number)
+    description = f"Top up of {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f}"
+
+    # Process form
+    status, message = pay_member_from_organisation(
+        request, club, amount, description, member
+    )
+
+    if status:
+        # Successful, so add session extras
+        SessionMiscPayment(
+            session_entry=session_entry,
+            description=description,
+            payment_method=payment_method,
+            amount=amount,
+        ).save()
+
+    # return whole edit page
+    return edit_session_entry_htmx(request)

@@ -9,7 +9,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 from accounts.accounts_views.core import add_un_registered_user_with_mpc_data
-from club_sessions.club_sessions_views.common import PLAYING_DIRECTOR, VISITOR
+from club_sessions.club_sessions_views.common import PLAYING_DIRECTOR, VISITOR, SITOUT
 from club_sessions.club_sessions_views.decorators import user_is_club_director
 from club_sessions.forms import FileImportForm
 from club_sessions.models import SessionEntry, SessionMiscPayment, Session, SessionType
@@ -145,6 +145,9 @@ def _import_file_upload_htmx_compscore3(request, club, session):
     1,	YEUNG CHEUNG,	936510,	1-NS,
     2,	CHRISTINE GRECH,	447633,	2-NS,
     2,	LEO VILENSKY,	1049471,	2-NS,
+
+    For a visitor, sit out or playing director we get no system_number. For a sit out the name is PHANTOM
+
     """
 
     messages = []
@@ -159,12 +162,20 @@ def _import_file_upload_htmx_compscore3(request, club, session):
 
     # count the rows, odds are N or E, evens are S or W
     for row_no, row in enumerate(reader, start=1):
-        print(row)
         player_file_name = row[1]
         system_number = row[2]
         initial_seating = row[3]
         table, both_direction = initial_seating.split("-")
         direction = both_direction[1] if row_no % 2 == 0 else both_direction[0]
+
+        # Handle sit out and playing director
+        if not system_number:
+            if player_file_name.strip() == "PHANTOM":
+                system_number = SITOUT
+            elif player_file_name.find("DIRECTOR") >= 0:
+                system_number = PLAYING_DIRECTOR
+            else:
+                system_number = VISITOR
 
         response = _import_file_upload_htmx_process_line(
             [table, direction, system_number, player_file_name],

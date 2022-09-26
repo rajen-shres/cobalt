@@ -1,0 +1,67 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Payments - allow club to top up a member balance                       #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+<div class="card">
+
+    <div class="card-header card-header-primary">
+        <h4>Top Up</h4>
+        <p class="font-italic">This will transfer money from the club to the player's account.
+            Use the Pay By field to record how the player paid the club.</p>
+    </div>
+
+    <div class="card-body">
+
+        <!-- FORM -->
+
+        <form
+            hx-post="{% url "club_sessions:session_top_up_member_htmx" %}"
+            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+            hx-target="#id_pane_session"
+        >
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_pay_member_amount" class="bmd-label-static">Amount</label>
+                        <input required type="number" step="0.01" min="0.01" id="id_pay_member_amount" name="amount"
+                            class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAYMENT METHODS -->
+            <div class="row">
+                <div class="col-6">
+                    <div class="form-group">
+                        <label for="id_payment_method" class="bmd-label-static">Pay By</label>
+                        <select class="selectpicker" data-style="btn btn-warning btn-round btn-sm" name="payment_method" id="id_payment_method">
+                            {% for payment_method in payment_methods %}
+                                <option value="{{ payment_method.id }}"
+                                >{{ payment_method.payment_method }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row text-center">
+                <button type="submit" name="save" class="btn btn-sm btn-success">Top Up</button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+
+    jQuery(document).ready(function () {
+        // enable selectpicker
+        $(".selectpicker").selectpicker();
+    });
+
+
+</script>

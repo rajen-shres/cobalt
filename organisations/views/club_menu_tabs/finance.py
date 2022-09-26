@@ -164,29 +164,25 @@ def _transactions_with_sessions(request, club):
     return page_things
 
 
-@check_club_menu_access(check_payments=True)
-def pay_member_htmx(request, club):
-    """make a payment to a member"""
+def pay_member_from_organisation(request, club, amount, description, member):
+    """Pay a member from an organisation's account. Calling module is responsible for security.
 
-    if "save" not in request.POST:
-        hx_post = reverse("organisations:pay_member_htmx")
-        return render(
-            request,
-            "organisations/club_menu/finance/pay_member_htmx.html",
-            {"club": club, "hx_post": hx_post},
-        )
+    This works off the request object.
 
-    member = get_object_or_404(User, pk=request.POST.get("member_id"))
-    description = request.POST.get("description")
-    amount = float(request.POST.get("amount"))
+    Request should have member_id, description and amount. Although description can be overridden as a parameter
+
+    Return: status, message
+
+    Status is True/False for success
+    Message contains tet narrative
+
+    """
 
     if amount <= 0:
-        return tab_finance_htmx(request, message="Amount was less than zero")
+        return False, "Amount was less than zero"
 
     if amount > org_balance(club):
-        return tab_finance_htmx(
-            request, message="Club has insufficient funds for this transfer"
-        )
+        return False, "Club has insufficient funds for this transfer"
 
     # Pay user
     update_account(
@@ -213,10 +209,33 @@ def pay_member_htmx(request, club):
         action=f"Paid {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} to {member}",
     ).save()
 
-    return tab_finance_htmx(
-        request,
-        message=f"Payment of {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} made to {member.full_name}",
+    return (
+        True,
+        f"Payment of {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} made to {member.full_name}",
     )
+
+
+@check_club_menu_access(check_payments=True)
+def pay_member_htmx(request, club):
+    """make a payment to a member"""
+
+    if "save" not in request.POST:
+        hx_post = reverse("organisations:pay_member_htmx")
+        return render(
+            request,
+            "organisations/club_menu/finance/pay_member_htmx.html",
+            {"club": club, "hx_post": hx_post},
+        )
+
+    member = get_object_or_404(User, pk=request.POST.get("member_id"))
+    amount = float(request.POST.get("amount"))
+    description = request.POST.get("description")
+
+    _, message = pay_member_from_organisation(
+        request, club, amount, description, member
+    )
+
+    return tab_finance_htmx(request, message=message)
 
 
 @check_club_menu_access(check_payments=True)

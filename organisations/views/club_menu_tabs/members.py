@@ -988,7 +988,7 @@ def add_misc_payment_htmx(request, club):
             request, club, member, amount, misc_description
         )
     else:
-        misc_message = _add_misc_payment_pay(
+        misc_message = add_misc_payment_pay(
             request, club, member, amount, misc_description
         )
 
@@ -1054,7 +1054,7 @@ def get_member_balance_htmx(request, club):
     return HttpResponse(f"${get_balance(member):,.2f}")
 
 
-def _add_misc_payment_pay(request, club, member, amount, misc_description):
+def add_misc_payment_pay(request, club, member, amount, misc_description):
     """Handle club paying a member"""
 
     if org_balance(club) < amount:

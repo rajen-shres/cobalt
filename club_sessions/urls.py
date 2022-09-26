@@ -90,4 +90,9 @@ urlpatterns = [
         reports.low_balance_report_htmx,
         name="reports_low_balance_report_htmx",
     ),
+    path(
+        "member/top-up",
+        sessions.top_up_member_htmx,
+        name="session_top_up_member_htmx",
+    ),
 ]

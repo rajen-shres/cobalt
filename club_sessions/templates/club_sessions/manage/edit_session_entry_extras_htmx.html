@@ -2,6 +2,8 @@
 {#                                                                                 #}
 {# Extra parts of the session edit screen                                          #}
 {#                                                                                 #}
+{# Only used for Registered Users                                                  #}
+{#                                                                                 #}
 {#---------------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 
@@ -105,7 +107,9 @@
 
                 <!-- MISC PAYMENTS FORM -->
 
-                <div class="card">
+                <a href="javascript:void(0)" _="on click toggle .d-none on #add-payment then remove me">Add...</a>
+
+                <div id="add-payment" class="card d-none">
                     <div class="card-header card-header-danger">
                         <h4>Add</h4>
                     </div>
@@ -192,65 +196,79 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- PAY ON BEHALF -->
-
-                {% if player|get_class == "User" %}
-                    <div class="card">
-                        <div class="card-header card-header-info">
-                            <h4>Pay On Behalf Of - NOT COMPLETE</h4>
-                        </div>
-                        <div class="body">
-                            <h3>{{ player.full_name  }} pays for</h3>
-                            <h3>{{ player.full_name  }} is paid for by</h3>
-                        </div>
-                {% endif %}
-
-
-                <!-- ADD NEW MISC PAYMENT FORM -->
-                <div class="card-body">
-
-
-
-                </div>
-
             </div>
         </div>
 
-        <script>
-            $(document).ready( function () {
+        <!-- TOP UP MEMBER -->
+        <a href="javascript:void(0)" _="on click toggle .d-none on #top-up-form then remove me">Top Up...</a>
 
-                // enable selectpicker
-                $(".selectpicker").selectpicker();
+        <div
+            class="d-none"
+            id="top-up-form"
+            hx-post="{% url "club_sessions:session_top_up_member_htmx" %}"
+            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+            hx-trigger="load"
+            hx-target="this"
+        ></div>
 
-                // Handle changing the misc payment type
-                $("#id_misc_payment").change( function(){
+        <!-- PAY ON BEHALF -->
 
-                    // description
-                    $("#id_misc_description").val($('#id_misc_payment option:selected').text());
+        {% if player|get_class == "User" %}
+            <div class="card">
+                <div class="card-header card-header-info">
+                    <h4>Pay On Behalf Of - NOT COMPLETE</h4>
+                </div>
+                <div class="body">
+                    <h3>{{ player.full_name  }} pays for</h3>
+                    <h3>{{ player.full_name  }} is paid for by</h3>
+                </div>
+        {% endif %}
 
-                    // enable button
-                    $("#id_misc_button").removeAttr("disabled");
 
-                    // add default payment amount as a dictionary from Django
-                    const default_amount = {
-                        {% for misc_payment_type in misc_payment_types %}
-                            "{{ misc_payment_type.id }}": "{{ misc_payment_type.default_amount }}",
-                        {% endfor %}
-                    };
+        <!-- ADD NEW MISC PAYMENT FORM -->
+        <div class="card-body">
 
-                    const new_val = default_amount[$(this).val()];
-                    $("#id_amount").val(new_val);
-                });
 
-                // handle manually entering misc payment - enable button if both fields have values
-                $("#id_amount, #id_misc_description").keyup(function() {
-                    // check if form is valid to submit
-                    if ($("#id_amount").val() > 0 && $("#id_misc_description").val().length > 0){
-                        $("#id_misc_button").removeAttr("disabled");
-                    } else {
-                        $("#id_misc_button").attr("disabled", true);
-                    }
-                });
-            });
-        </script>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+    $(document).ready( function () {
+
+        // enable selectpicker
+        $(".selectpicker").selectpicker();
+
+        // Handle changing the misc payment type
+        $("#id_misc_payment").change( function(){
+
+            // description
+            $("#id_misc_description").val($('#id_misc_payment option:selected').text());
+
+            // enable button
+            $("#id_misc_button").removeAttr("disabled");
+
+            // add default payment amount as a dictionary from Django
+            const default_amount = {
+                {% for misc_payment_type in misc_payment_types %}
+                    "{{ misc_payment_type.id }}": "{{ misc_payment_type.default_amount }}",
+                {% endfor %}
+            };
+
+            const new_val = default_amount[$(this).val()];
+            $("#id_amount").val(new_val);
+        });
+
+        // handle manually entering misc payment - enable button if both fields have values
+        $("#id_amount, #id_misc_description").keyup(function() {
+            // check if form is valid to submit
+            if ($("#id_amount").val() > 0 && $("#id_misc_description").val().length > 0){
+                $("#id_misc_button").removeAttr("disabled");
+            } else {
+                $("#id_misc_button").attr("disabled", true);
+            }
+        });
+    });
+</script>
