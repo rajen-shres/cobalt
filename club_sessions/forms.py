@@ -2,6 +2,7 @@ from django import forms
 from django.db.models import Q
 
 from accounts.models import UnregisteredUser, User
+from club_sessions.club_sessions_views.core import PLAYING_DIRECTOR, SITOUT, VISITOR
 from club_sessions.models import Session, SessionType
 from organisations.models import OrgVenue, MemberMembershipType
 from organisations.views.general import get_membership_type_for_players
@@ -91,15 +92,18 @@ class UserSessionForm(forms.Form):
                 system_number=session_entry.system_number
             )
             .filter(membership_type__organisation=club)
+            .exclude(system_number__in=[PLAYING_DIRECTOR, SITOUT, VISITOR])
             .first()
         )
 
         self.is_member = self.membership_type is not None
 
         # Try to load User - Note: Player may end up as a User or an Unregistered User
-        self.player = User.objects.filter(
-            system_number=session_entry.system_number
-        ).first()
+        self.player = (
+            User.objects.filter(system_number=session_entry.system_number)
+            .exclude(system_number__in=[PLAYING_DIRECTOR, SITOUT, VISITOR])
+            .first()
+        )
 
         # Try to load un_reg if not a member
         if self.player:

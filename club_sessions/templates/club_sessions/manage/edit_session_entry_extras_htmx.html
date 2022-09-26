@@ -107,7 +107,10 @@
 
                 <!-- MISC PAYMENTS FORM -->
 
-                <a href="javascript:void(0)" _="on click toggle .d-none on #add-payment then remove me">Add...</a>
+                <button
+                    _="on click toggle .d-none on #add-payment then remove me"
+                    class="btn btn-sm btn-info"
+                >Add...</button>
 
                 <div id="add-payment" class="card d-none">
                     <div class="card-header card-header-danger">
@@ -200,7 +203,10 @@
         </div>
 
         <!-- TOP UP MEMBER -->
-        <a href="javascript:void(0)" _="on click toggle .d-none on #top-up-form then remove me">Top Up...</a>
+        <button
+            _="on click toggle .d-none on #top-up-form then remove me"
+            class="btn btn-sm btn-danger ml-3"
+        >Top Up</button>
 
         <div
             class="d-none"
@@ -212,25 +218,18 @@
         ></div>
 
         <!-- PAY ON BEHALF -->
+        <!-- DISABLE FOR NOW -->
 
-        {% if player|get_class == "User" %}
-            <div class="card">
-                <div class="card-header card-header-info">
-                    <h4>Pay On Behalf Of - NOT COMPLETE</h4>
-                </div>
-                <div class="body">
-                    <h3>{{ player.full_name  }} pays for</h3>
-                    <h3>{{ player.full_name  }} is paid for by</h3>
-                </div>
-        {% endif %}
-
-
-        <!-- ADD NEW MISC PAYMENT FORM -->
-        <div class="card-body">
-
-
-
-        </div>
+        {#        {% if player|get_class == "User" %}#}
+        {#            <div class="card">#}
+        {#                <div class="card-header card-header-info">#}
+        {#                    <h4>Pay On Behalf Of - NOT COMPLETE</h4>#}
+        {#                </div>#}
+        {#                <div class="body">#}
+        {#                    <h3>{{ player.full_name  }} pays for</h3>#}
+        {#                    <h3>{{ player.full_name  }} is paid for by</h3>#}
+        {#                </div>#}
+        {#        {% endif %}#}
 
     </div>
 </div>
