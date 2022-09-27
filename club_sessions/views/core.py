@@ -161,7 +161,7 @@ def get_extras_for_session_entries(session_entries):
 def augment_session_entries_process_entry(
     session_entry, mixed_dict, membership_type_dict, extras_dict, valid_payment_methods
 ):
-    """sub of _augment_session_entries to handle a single session entry"""
+    """sub of augment_session_entries to handle a single session entry"""
 
     # table
     if session_entry.pair_team_number % 2 == 0:
@@ -251,7 +251,7 @@ def augment_session_entries_process_entry(
 def augment_session_entries(
     session_entries, mixed_dict, membership_type_dict, session_fees, club
 ):
-    """Sub of tab_Session_htmx. Adds extra values to the session_entries for display by the template
+    """Sub of tab_session_htmx. Adds extra values to the session_entries for display by the template
 
     Players can be:
         Users
@@ -390,8 +390,6 @@ def handle_iou_changes_on(club, session_entry, administrator):
 
 def handle_iou_changes_off(club, session_entry):
     """Turn off using an IOU"""
-
-    print("Off")
 
     UserPendingPayment.objects.filter(
         organisation=club,
@@ -572,12 +570,11 @@ def handle_change_secondary_payment_method(
         if old_method.payment_method == "IOU":
             handle_iou_changes_off(club, session_entry)
 
-    if session_entries:
-        message = f"Updated {len(session_entries)} player payment methods."
-    else:
-        message = "Form saved. No player payment methods were changed."
-
-    return message
+    return (
+        f"Updated {len(session_entries)} player payment methods."
+        if session_entries
+        else "Form saved. No player payment methods were changed."
+    )
 
 
 def handle_change_additional_session_fee_reason(old_reason, new_reason, session, club):

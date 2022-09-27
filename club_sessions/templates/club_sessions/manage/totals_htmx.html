@@ -13,8 +13,8 @@
     <div class="card-body" style="background-color: #fbfbfb">
 
         <!-- WIZARD STEPS -->
-        <!-- We are automatically finished step 1, or we don't see this screen. We can't control step 2, so the only -->
-        <!-- steps we worry about are 3-5. -->
+        <!-- We are automatically finished step 1, or we don't see this screen. We can't control step ?, so the only -->
+        <!-- steps we worry about are 2-4. -->
 
         <div class="steps-form">
             <div class="steps-row setup-panel">
@@ -25,49 +25,49 @@
                     <p><span class="material-icons inline-icon">done</span>Load Data</p>
                 </div>
 
-                <!-- STEP 2 - ADJUST SETTINGS - NEVER GETS SET - WE DON'T KNOW IF IT HAPPENS, USE HIGHER STATUS TO CHECK -->
+                <!-- STEP ? - ADJUST SETTINGS - NEVER GETS SET - WE DON'T KNOW IF IT HAPPENS, USE HIGHER STATUS TO CHECK -->
                 <div class="steps-step">
                     {% if session.status == "CO" or session.status == "BC" %}
-                        <span class="btn btn-circle btn-success">2</span>
+                        <span class="btn btn-circle btn-success">?</span>
                         <p><span class="material-icons inline-icon">done</span>Adjust settings (optional)</p>
                     {% elif session.status == "LD" %}
-                        <span class="btn btn-circle btn-primary">2</span>
+                        <span class="btn btn-circle btn-primary">?</span>
                         <p>Adjust Settings (optional)</p>
                     {% endif %}
                 </div>
 
-                <!-- STEP 3 - PROCESS BRIDGE CREDITS -->
+                <!-- STEP 2 - PROCESS BRIDGE CREDITS -->
                 <div class="steps-step">
                     {% if session.status == "CO" or session.status == "BC" %}
-                        <span class="btn btn-circle btn-success">3</span>
+                        <span class="btn btn-circle btn-success">2</span>
                         <p><span class="material-icons inline-icon">done</span>Process {{ BRIDGE_CREDITS }}</p>
                     {% elif session.status == "LD" %}
-                        <span class="btn btn-circle btn-primary">3</span>
+                        <span class="btn btn-circle btn-primary">2</span>
                         <p>Process {{ BRIDGE_CREDITS }}</p>
                     {% endif %}
                 </div>
 
-                <!-- STEP 4 - PROCESS OFF SYSTEM PAYMENTS -->
+                <!-- STEP 3 - PROCESS OFF SYSTEM PAYMENTS -->
                 <div class="steps-step">
                     {% if session.status == "CO" %}
-                        <span class="btn btn-circle btn-success">4</span>
+                        <span class="btn btn-circle btn-success">3</span>
                         <p><span class="material-icons inline-icon">done</span>Process Off-System Payments</p>
                     {% elif session.status == "BC" %}
-                        <span class="btn btn-circle btn-primary">4</span>
+                        <span class="btn btn-circle btn-primary">3</span>
                         <p>Process Off-System Payments</p>
                     {% else %}
-                        <span class="btn btn-circle">4</span>
+                        <span class="btn btn-circle">3</span>
                         <p>Process Off-System Payments</p>
                     {% endif %}
                 </div>
 
-                <!-- STEP 5 - COMPLETE -->
+                <!-- STEP 4 - COMPLETE -->
                 <div class="steps-step">
                     {% if session.status == "CO" %}
-                        <span class="btn btn-circle btn-success">5</span>
+                        <span class="btn btn-circle btn-success">4</span>
                         <p><span class="material-icons inline-icon">done</span>Complete</p>
                     {% else %}
-                        <span class="btn btn-circle">5</span>
+                        <span class="btn btn-circle">4</span>
                         <p>Complete</p>
                     {% endif %}
 
@@ -86,11 +86,11 @@
                 <div class="card-body">
 
                     <dl>
-                        <dt>2) Adjust settings for this session, or individuals (OPTIONAL)</dt>
+                        <dt>OPTIONAL - Adjust settings for this session, or individuals</dt>
                         <dd>If you want to do anything unusual you can use the settings tab above to change things for this
                             session, or from the detail view you can change things for individuals such as their payment method.
                             Usually, you can skip this step.</dd>
-                        <dt>3) Process {{ BRIDGE_CREDITS }}</dt>
+                        <dt>2) Process {{ BRIDGE_CREDITS }}</dt>
                         <dd>Click the button below to process the {{ BRIDGE_CREDITS }} for players who are able to pay
                             using this method.</dd>
                         {% if not paying_with_bridge_credits %}
