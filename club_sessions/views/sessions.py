@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from django.db.models import Max
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
@@ -28,8 +26,6 @@ from rbac.views import rbac_forbidden
 from rbac.core import rbac_user_has_role
 from .core import (
     SITOUT,
-    VISITOR,
-    PLAYING_DIRECTOR,
     bridge_credits_for_club,
     iou_for_club,
     load_session_entry_static,
@@ -44,6 +40,11 @@ from .core import (
     handle_change_secondary_payment_method,
     handle_change_additional_session_fee_reason,
     handle_change_additional_session_fee,
+    get_summary_table_data,
+    get_allowed_payment_methods,
+    get_table_view_data,
+    process_bridge_credits,
+    add_table,
 )
 from .decorators import user_is_club_director
 
@@ -225,23 +226,22 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
     template = view_options[view_type]
 
     if view_type == "detail":
-        # Too hard for the template, so set up allowed payment methods for dropdown in the view
-        session_entries = _tab_session_htmx_payment_methods(
+        # Too hard for the template, so set up allowed payment methods for dropdown in python
+        session_entries = get_allowed_payment_methods(
             session_entries, session, payment_methods
         )
 
     if view_type == "summary":
-        payment_summary = _tab_session_htmx_summary_table(
+        # get summary data
+        payment_summary = get_summary_table_data(
             session, session_entries, mixed_dict, membership_type_dict
         )
     else:
         payment_summary = {}
 
-    # Handle table view
     if view_type == "table":
-        table_list, table_status = _tab_session_htmx_table_view(
-            session, session_entries
-        )
+        # Handle table view
+        table_list, table_status = get_table_view_data(session, session_entries)
     else:
         table_list = {}
         table_status = {}
@@ -261,153 +261,6 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
             "bridge_credit_failures": bridge_credit_failures,
         },
     )
-
-
-def _tab_session_htmx_payment_methods(session_entries, session, payment_methods):
-    """logic is too complicated for a template, so build the payment_methods here for each session_entry
-
-    Only allow IOU for properly registered users
-    Don't allow changes to bridge credits if already paid for
-    Don't show bridge credits as an option if we have already processed them
-
-    """
-
-    for session_entry in session_entries:
-        # paid for with credits, no change allowed
-        if (
-            session_entry.payment_method
-            and session_entry.payment_method.payment_method == BRIDGE_CREDITS
-            and session_entry.is_paid
-        ):
-            session_entry.payment_methods = [session_entry.payment_method]
-        # if we have processed the bridge credits already, then don't allow bridge credits as an option
-        elif session.status in [
-            Session.SessionStatus.COMPLETE,
-            Session.SessionStatus.CREDITS_PROCESSED,
-        ]:
-            session_entry.payment_methods = []
-            for payment_method in payment_methods:
-                if payment_method.payment_method != BRIDGE_CREDITS and (
-                    session_entry.player_type == "User"
-                    or payment_method.payment_method != "IOU"
-                ):
-                    session_entry.payment_methods.append(payment_method)
-        else:
-            session_entry.payment_methods = []
-            for payment_method in payment_methods:
-                if (
-                    session_entry.player_type == "User"
-                    or payment_method.payment_method != "IOU"
-                ):
-                    session_entry.payment_methods.append(payment_method)
-
-    return session_entries
-
-
-def _tab_session_htmx_table_view(session, session_entries):
-    """handle formatting for the table view"""
-
-    extras = get_extras_as_total_for_session_entries(session)
-    paid_extras = get_extras_as_total_for_session_entries(session, paid_only=True)
-
-    table_list = {}
-    table_status = {}
-    # put session_entries into a dictionary for the table view
-    for session_entry in session_entries:
-
-        # Add to dict if not present
-        if session_entry.pair_team_number not in table_list:
-            table_list[session_entry.pair_team_number] = []
-            table_status[session_entry.pair_team_number] = True
-
-        session_entry.extras = Decimal(extras.get(session_entry.id, 0))
-        # Add extras to entry fee for this view, no good reason
-        session_entry.fee += session_entry.extras
-
-        # Add amount paid
-        if session_entry.is_paid:
-            session_entry.amount_paid = session_entry.fee
-        else:
-            session_entry.amount_paid = Decimal(0)
-
-        session_entry.amount_paid += Decimal(paid_extras.get(session_entry.id, 0))
-
-        table_list[session_entry.pair_team_number].append(session_entry)
-        if not session_entry.is_paid:
-            # unpaid entry, mark table as incomplete
-            table_status[session_entry.pair_team_number] = False
-
-    return table_list, table_status
-
-
-def _tab_session_htmx_summary_table(
-    session, session_entries, mixed_dict, membership_type_dict
-):
-    """summarise session_entries for the summary view"""
-
-    extras_paid = get_extras_as_total_for_session_entries(session, paid_only=True)
-    extras_unpaid = get_extras_as_total_for_session_entries(session, unpaid_only=True)
-    extras = get_extras_as_total_for_session_entries(session)
-
-    payment_summary = {}
-    for session_entry in session_entries:
-        # Skip sitout and director
-        if session_entry.system_number in [SITOUT, PLAYING_DIRECTOR]:
-            continue
-
-        if session_entry.payment_method:
-            pay_method = session_entry.payment_method.payment_method
-        else:
-            pay_method = "Unknown"
-
-        # Add to dict if not present
-        if session_entry.payment_method.payment_method not in payment_summary:
-            payment_summary[pay_method] = {
-                "fee": Decimal(0),
-                "amount_paid": Decimal(0),
-                "outstanding": Decimal(0),
-                "player_count": 0,
-                "players": [],
-            }
-
-        # Update dict with this session_entry
-        payment_summary[pay_method]["fee"] += session_entry.fee + Decimal(
-            extras.get(session_entry.id, 0)
-        )
-        if session_entry.is_paid:
-            payment_summary[pay_method]["amount_paid"] += session_entry.fee
-        else:
-            payment_summary[pay_method]["outstanding"] += session_entry.fee + Decimal(
-                extras_unpaid.get(session_entry.id, 0)
-            )
-        payment_summary[pay_method]["player_count"] += 1
-
-        # Add session_entry as well for drop down list
-        name = mixed_dict[session_entry.system_number]["value"]
-        member_type = membership_type_dict.get(session_entry.system_number, "Guest")
-        session_entry.fee += Decimal(extras.get(session_entry.id, 0))
-
-        # Augment session entry with an amount_paid (fee + extras)
-        if session_entry.is_paid:
-            session_entry.amount_paid = session_entry.fee
-        else:
-            session_entry.amount_paid = Decimal(0)
-
-        # Add in extras
-        session_entry.amount_paid += Decimal(extras_paid.get(session_entry.id, 0))
-
-        # Handle visitors
-        if session_entry.system_number == VISITOR:
-            name = session_entry.player_name_from_file.title()
-
-        item = {
-            "player": name,
-            "session_entry": session_entry,
-            "membership": member_type,
-        }
-        payment_summary[pay_method]["players"].append(item)
-
-    return payment_summary
 
 
 def _edit_session_entry_handle_post(request, club, session_entry):
@@ -590,7 +443,7 @@ def change_payment_method_htmx(request, club, session, session_entry):
 
 @user_is_club_director(include_session_entry=True)
 def change_paid_amount_status_htmx(request, club, session, session_entry):
-    """Change the status of the amount paid for a user. We simply toggle the paid amount from 0 to full amount"""
+    """Change the status of the amount paid for a user."""
 
     if session_entry.is_paid:
         session_entry.is_paid = False
@@ -626,7 +479,7 @@ def change_paid_amount_status_htmx(request, club, session, session_entry):
         session.status = Session.SessionStatus.CREDITS_PROCESSED
         session.save()
 
-    # Include HX-Trigger in response so we know to update the totals too
+    # Include HX-Trigger in response, so we know to update the totals too
     response = HttpResponse("")
     response["HX-Trigger"] = "update_totals"
     return response
@@ -784,7 +637,7 @@ def process_bridge_credits_htmx(request, club, session):
         message = f"No {BRIDGE_CREDITS} to process. Moving to Off-System Payments."
 
     else:
-        success, failures = _process_bridge_credits_sub(
+        success, failures = process_bridge_credits(
             session_entries, session, club, bridge_credits, extras
         )
         message = (
@@ -797,67 +650,6 @@ def process_bridge_credits_htmx(request, club, session):
     )
     response["HX-Trigger"] = "update_totals"
     return response
-
-
-def _process_bridge_credits_sub(session_entries, session, club, bridge_credits, extras):
-    """sub of process_bridge_credits_htmx to handle looping through and making payments"""
-
-    # counters
-    success = 0
-    failures = []
-
-    # users
-    system_numbers = session_entries.values_list("system_number", flat=True)
-    users_qs = User.objects.filter(system_number__in=system_numbers)
-    users_by_system_number = {user.system_number: user for user in users_qs}
-
-    # loop through and try to make payments
-    for session_entry in session_entries:
-
-        amount_paid = float(session_entry.fee) if session_entry.is_paid else 0
-        fee = float(session_entry.fee) if session_entry.fee else 0
-        amount = fee - amount_paid + extras.get(session_entry.id, 0)
-
-        # Try payment
-        member = users_by_system_number[session_entry.system_number]
-        if payment_api_batch(
-            member=member,
-            description=f"{session}",
-            amount=amount,
-            organisation=club,
-            payment_type="Club Payment",
-            session=session,
-        ):
-            # Success
-            success += 1
-            session_entry.is_paid = True
-            session_entry.save()
-
-            # mark any misc payments for this session as paid
-            SessionMiscPayment.objects.filter(
-                session_entry__session=session,
-                session_entry__system_number=session_entry.system_number,
-            ).update(payment_made=True, payment_method=bridge_credits)
-
-        else:
-            # Payment failed - change payment method
-            failures.append(member)
-            session_entry.payment_method = session.default_secondary_payment_method
-            session_entry.save()
-
-    # Update status of session - see if there are any payments left
-    if (
-        SessionEntry.objects.filter(session=session)
-        .exclude(payment_method=bridge_credits)
-        .exists()
-    ):
-        session.status = Session.SessionStatus.CREDITS_PROCESSED
-    else:
-        # No further payments, move to next step
-        session.status = Session.SessionStatus.COMPLETE
-    session.save()
-
-    return success, failures
 
 
 @user_is_club_director(include_session_entry=True)
@@ -892,23 +684,7 @@ def delete_misc_session_payment_htmx(request, club, session, session_entry):
 def add_table_htmx(request, club, session):
     """Add a table to a session"""
 
-    try:
-        last_table = (
-            SessionEntry.objects.filter(session=session).aggregate(
-                Max("pair_team_number")
-            )["pair_team_number__max"]
-            + 1
-        )
-    except TypeError:
-        last_table = 1
-
-    for direction in ["N", "S", "E", "W"]:
-        SessionEntry(
-            session=session,
-            pair_team_number=last_table,
-            system_number=SITOUT,
-            seat=direction,
-        ).save()
+    add_table(session)
 
     return tab_session_htmx(request, message="Table added")
 

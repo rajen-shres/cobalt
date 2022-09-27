@@ -157,6 +157,16 @@ def cobalt_number(dollars):
     return f'{intcomma(int(dollars))}{("%0.2f" % dollars)[-3:]}'
 
 
+@register.filter(name="cobalt_number_short", is_safe=True)
+def cobalt_number_short(dollars):
+    """Return number formatted with commas but only shows decimal places if needed. 1.23 -> 1.23, 34.00 -> 34"""
+    dollars = round(float(dollars), 2)
+    if dollars.is_integer():
+        return f"{intcomma(int(dollars))}"
+    else:
+        return f'{intcomma(int(dollars))}{("%0.2f" % dollars)[-3:]}'
+
+
 @register.filter(name="cobalt_currency", is_safe=True)
 def cobalt_currency(dollars):
     """Return number formatted as currency"""
