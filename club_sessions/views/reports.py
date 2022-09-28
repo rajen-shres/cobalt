@@ -3,6 +3,7 @@ import json
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
@@ -182,7 +183,11 @@ def reconciliation_htmx(request, club, session):
     # See if user wants to see blank stuff in the report
     show_blanks = bool(request.POST.get("show_blanks", False))
 
-    extras = _reconciliation_extras(session)
+    (
+        extras_summary_table,
+        extras_row_has_data,
+        extras_column_has_data,
+    ) = _reconciliation_extras(session, column_headings)
 
     return render(
         request,
@@ -190,22 +195,117 @@ def reconciliation_htmx(request, club, session):
         {
             "club": club,
             "session": session,
-            "summary_table": summary_table,
             "column_headings": column_headings,
+            "summary_table": summary_table,
             "row_has_data": row_has_data,
             "column_has_data": column_has_data,
+            "extras_summary_table": extras_summary_table,
+            "extras_row_has_data": extras_row_has_data,
+            "extras_column_has_data": extras_column_has_data,
             "show_blanks": show_blanks,
-            "extras": extras,
         },
     )
 
 
-def _reconciliation_extras(session):
-    """get summarised view of extras for a session"""
+def _reconciliation_extras(session, column_headings):
+    """Get summarised view of extras for a session
 
-    extras_qs = SessionMiscPayment.objects.filter(session_entry__session=session)
+    We use the same column headings as the session fees table - payment types
 
-    print(extras_qs)
+    For the rows we use the description
+
+    """
+
+    extras_summary_table = {}
+
+    # Get data
+    extras = (
+        SessionMiscPayment.objects.filter(session_entry__session=session)
+        .order_by("description", "payment_method__payment_method")
+        .select_related("payment_method")
+    )
+
+    # Build table structure first
+    for extra in extras:
+        if extra.description not in extras_summary_table:
+            extras_summary_table[extra.description] = {}
+            for column_heading in column_headings:
+                extras_summary_table[extra.description][column_heading] = {
+                    "fee": Decimal(0),
+                    "paid": Decimal(0),
+                }
+
+            # Also create a total for the row, e.g. total for Coffee for all payment types
+            extras_summary_table[extra.description]["row_total"] = {
+                "fee": Decimal(0),
+                "paid": Decimal(0),
+            }
+
+    # Add totals at the bottom
+    extras_summary_table["Totals"] = {}
+    for column_heading in column_headings:
+        extras_summary_table["Totals"][column_heading] = {
+            "fee": Decimal(0),
+            "paid": Decimal(0),
+        }
+
+    # Grand totals
+    extras_summary_table["Totals"]["row_total"] = {
+        "fee": Decimal(0),
+        "paid": Decimal(0),
+    }
+
+    # Now fill in data
+    for extra in extras:
+        extras_summary_table[extra.description][extra.payment_method.payment_method][
+            "fee"
+        ] += extra.amount
+        if extra.payment_made:
+            extras_summary_table[extra.description][
+                extra.payment_method.payment_method
+            ]["paid"] += extra.amount
+
+        # Row totals
+        if extra.payment_made:
+            extras_summary_table[extra.description]["row_total"]["paid"] += extra.amount
+        extras_summary_table[extra.description]["row_total"]["fee"] += extra.amount
+
+        # Column totals
+        if extra.payment_made:
+            extras_summary_table["Totals"][extra.payment_method.payment_method][
+                "paid"
+            ] += extra.amount
+        extras_summary_table["Totals"][extra.payment_method.payment_method][
+            "fee"
+        ] += extra.amount
+
+        # Grand total
+        if extra.payment_made:
+            extras_summary_table["Totals"]["row_total"]["paid"] += extra.amount
+        extras_summary_table["Totals"]["row_total"]["fee"] += extra.amount
+
+    # Go through and mark which rows/columns have data
+    extras_row_has_data = _mark_rows_with_data_in_report_data_structure(
+        extras_summary_table
+    )
+    extras_column_has_data = _mark_columns_with_data_in_report_data_structure(
+        extras_summary_table
+    )
+
+    return extras_summary_table, extras_row_has_data, extras_column_has_data
+
+
+def _get_name_for_csv(session_entry, mixed_dict):
+    """helper to get the name to use in the csv"""
+
+    if session_entry.system_number == PLAYING_DIRECTOR:
+        return "Playing Director"
+    elif session_entry.system_number == SITOUT:
+        return "Sitout"
+    elif session_entry.system_number == VISITOR:
+        return session_entry.player_name_from_file
+    else:
+        return mixed_dict.get(session_entry.system_number).get("value")
 
 
 @login_required()
@@ -229,7 +329,9 @@ def csv_download(request, session_id):
     ) = load_session_entry_static(session, club)
 
     # Get extras
-    extras = SessionMiscPayment.objects.filter(session_entry__session=session)
+    extras = SessionMiscPayment.objects.filter(
+        session_entry__session=session
+    ).select_related("session_entry")
 
     # Create CSV
     response = HttpResponse(content_type="text/csv")
@@ -258,18 +360,11 @@ def csv_download(request, session_id):
             payment_method = session_entry.payment_method.payment_method
         else:
             payment_method = ""
-        if session_entry.system_number == PLAYING_DIRECTOR:
-            name = "Playing Director"
-        elif session_entry.system_number == SITOUT:
-            name = "Sitout"
-        elif session_entry.system_number == VISITOR:
-            name = session_entry.player_name_from_file
-        else:
-            name = mixed_dict.get(session_entry.system_number).get("value")
+
         values = [
             session.description,
             session.session_date,
-            name,
+            _get_name_for_csv(session_entry, mixed_dict),
             session_entry.system_number,
             session_entry.pair_team_number,
             session_entry.seat,
@@ -280,28 +375,34 @@ def csv_download(request, session_id):
         writer.writerow(values)
 
     # Extras
-    writer.writerow([])
-    # Write a first row with header information
-    field_names = [
-        "Session",
-        "Date",
-        f"{GLOBAL_ORG} Number",
-        "Pair Team Number",
-        "Seat",
-        "Payment Method",
-        "Fee",
-        "Amount Paid",
-    ]
-    writer.writerow(field_names)
-    # Write data rows
-    for extra in extras:
-        values = [
-            extra.session_entry.id,
-            extra.description,
-            extra.payment_method,
-            extra.amount,
+    if extras:
+        writer.writerow([])
+        writer.writerow(["Extras"])
+        writer.writerow([])
+        # Write a first row with header information
+        field_names = [
+            "Session",
+            "Name",
+            f"{GLOBAL_ORG} Number",
+            "Description",
+            "Payment Method",
+            "Fee",
+            "Paid",
         ]
-        writer.writerow(values)
+        writer.writerow(field_names)
+
+        # Write data rows
+        for extra in extras:
+            values = [
+                extra.session_entry.session,
+                _get_name_for_csv(extra.session_entry, mixed_dict),
+                extra.session_entry.system_number,
+                extra.description,
+                extra.payment_method.payment_method,
+                extra.amount,
+                extra.payment_made,
+            ]
+            writer.writerow(values)
 
     return response
 

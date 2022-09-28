@@ -19,7 +19,10 @@ from cobalt.settings import (
 from masterpoints.views import abf_checksum_is_valid
 from notifications.views.core import send_cobalt_email_to_system_number
 from organisations.models import ClubLog, Organisation
-from organisations.views.general import get_membership_type_for_players
+from organisations.views.general import (
+    get_membership_type_for_players,
+    get_membership_for_player,
+)
 from payments.models import OrgPaymentMethod, MemberTransaction, UserPendingPayment
 from payments.views.core import (
     org_balance,
@@ -117,6 +120,23 @@ def get_session_fees_for_club(club):
         ] = fee.fee
 
     return session_fees
+
+
+def get_session_fee_for_player(session_entry: SessionEntry, club: Organisation):
+    """return correct fee for a player"""
+
+    # Get membership. None for Guests
+    membership = get_membership_for_player(session_entry.system_number, club)
+
+    session_type_payment_method_membership = (
+        SessionTypePaymentMethodMembership.objects.filter(
+            session_type_payment_method__session_type=session_entry.session.session_type
+        )
+        .filter(membership=membership)
+        .first()
+    )
+
+    return session_type_payment_method_membership.fee
 
 
 def get_extras_as_total_for_session_entries(
@@ -234,7 +254,7 @@ def augment_session_entries_process_entry(
             session_entry.membership_type = "Invalid Number"
             session_entry.icon_colour = "dark"
 
-    # valid payment method. In list of valid is fine, or simple not set is fine too
+    # valid payment method. In list of valid is fine, or simply not set is fine too
     if session_entry.payment_method:
         session_entry.payment_method_is_valid = (
             session_entry.payment_method.payment_method in valid_payment_methods
@@ -476,6 +496,8 @@ def refund_bridge_credit_for_extra(
     player: User,
     director: User,
 ):
+    """ " Handle an extra with paid bridge credits being changed"""
+
     update_account(
         member=player,
         amount=session_misc_payment.amount,
@@ -501,7 +523,8 @@ def refund_bridge_credit_for_extra(
 
 
 def handle_bridge_credit_changes_refund(club, session_entry, director):
-    """Handle situation where a refund is required"""
+    """Handle situation where a refund is required for s session entry"""
+
     if org_balance(club) < session_entry.fee:
         return False, "Club has insufficient funds for this refund"
 
@@ -945,22 +968,14 @@ def process_bridge_credits(session_entries, session, club, bridge_credits, extra
             ).update(payment_made=True, payment_method=bridge_credits)
 
         else:
-            # Payment failed - change payment method
+            # Payment failed - change payment method and fees
             failures.append(member)
             session_entry.payment_method = session.default_secondary_payment_method
+            session_entry.fee = get_session_fee_for_player(session_entry, club)
             session_entry.save()
 
     # Update status of session - see if there are any payments left
-    if (
-        SessionEntry.objects.filter(session=session)
-        .exclude(payment_method=bridge_credits)
-        .exists()
-    ):
-        session.status = Session.SessionStatus.CREDITS_PROCESSED
-    else:
-        # No further payments, move to next step
-        session.status = Session.SessionStatus.COMPLETE
-    session.save()
+    recalculate_session_status(session)
 
     return success, failures
 

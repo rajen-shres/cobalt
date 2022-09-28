@@ -1,0 +1,98 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Sub of reconciliation to show table                                    #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+
+<div class="table-responsive">
+
+    <!-- MAIN TABLE OF MEMBERSHIP TYPE (Y-AXIS) AND PAYMENT METHOD (X-AXIS) -->
+    <table class="table table-condensed table-hover border">
+
+        <!-- HEADER -->
+        <thead class="text-primary">
+            <tr>
+                <!-- MEMBERSHIP TYPE COLUMN -->
+                <th class="font-weight-bold text-left">{{ title }}</th>
+
+                <!-- PAYMENT METHOD COLUMN HEADINGS -->
+                {% for payment_method in column_headings %}
+
+                    <!-- SEE IF THIS COLUMN HAS DATA -->
+                    {% cobalt_dict_key_tag column_has_data payment_method as this_col_has_data %}
+                    {% if this_col_has_data or show_blanks %}
+                        <th class="text-right">{{ payment_method }}</th>
+                    {% endif %}
+
+                {% endfor %}
+
+                <!-- ADD FINAL TOTAL COLUMN -->
+                <th class="font-weight-bold text-right">Total</th>
+
+            </tr>
+
+        </thead>
+
+        <!-- TABLE BODY -->
+        <tbody>
+
+            <!-- GO THROUGH SUMMARY DATA - GET MEMBERSHIP TYPE AND COLUMN DATA BY PAYMENT TYPE -->
+            {% for membership_type, data in summary_table.items %}
+
+                <!-- SEE IF THIS ROW HAS DATA -->
+                {% cobalt_dict_key_tag row_has_data membership_type as this_row_has_data %}
+
+                {% if this_row_has_data or show_blanks %}
+
+                    <tr>
+                        <!-- MEMBERSHIP TYPE IN FIRST COLUMN IN BOLD -->
+                        <td class="text-primary font-weight-bold text-left"
+                            {% if membership_type == "Totals" %}
+                                style="font-size: larger"
+                            {% endif %}
+                        >{{ membership_type }}</td>
+
+                        <!-- COLUMN DATA -->
+                        {% for payment_method, row_data in data.items %}
+
+                            <!-- SEE IF THIS COLUMN HAS DATA -->
+                            {% cobalt_dict_key_tag column_has_data payment_method as this_col_has_data %}
+                            {% if this_col_has_data or show_blanks %}
+                                <td class="text-right">
+                                    <!-- IF PAID == DUE THEN ALL GOOD, OTHERWISE HIGHLIGHT ERROR -->
+                                    {% if row_data.paid == row_data.fee %}
+
+                                        <!-- DON"T SHOW ZEROS -->
+                                        {% if row_data.paid == 0 %}
+                                            -
+                                        {% else %}
+                                            {{ row_data.paid }}
+                                        {% endif %}
+
+                                    {% else %}
+                                        <!-- DISCREPANCY -->
+                                        <span
+                                            class="text-danger font-weight-bold"
+                                            title="Received: {{ row_data.paid }}. Expected: {{ row_data.fee }}"
+                                            data-toggle="tooltip"
+                                        >
+                                            {{ row_data.paid }}
+                                            <span class="material-icons inline-icon">error</span>
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- END THIS_COL_HAS_DATA -->
+                            {% endif %}
+
+                        {% endfor %}
+                    </tr>
+
+                {% endif %}
+
+            {% endfor %}
+        </tbody>
+
+    </table>
+</div>

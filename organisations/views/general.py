@@ -245,6 +245,21 @@ def get_membership_type_for_players(system_number_list, club):
     }
 
 
+def get_membership_for_player(system_number, club):
+    """returns the MembershipType object for a system_number."""
+
+    member_membership_type = (
+        MemberMembershipType.objects.select_related("membership_type")
+        .filter(system_number=system_number)
+        .filter(membership_type__organisation=club)
+    ).first()
+
+    if member_membership_type:
+        return member_membership_type.membership_type
+
+    return None
+
+
 @login_required()
 def generic_org_search_htmx(request):
     """basic search for organisation by name

@@ -1,4 +1,5 @@
 import logging
+import pprint
 import random
 
 from django import template
@@ -325,3 +326,18 @@ def cobalt_suit_replace(string):
     string = string.replace("--HOLDER--", "PASS")
 
     return string
+
+
+@register.filter(name="cobalt_dev_list", is_safe=True)
+def cobalt_dev_list(item):
+    """Lists all of the attributes of a variable"""
+
+    output = pprint.pformat(item.__dict__)
+
+    return mark_safe(
+        f"""
+    <pre>
+    {output}
+    </pre>
+    """
+    )
