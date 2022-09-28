@@ -283,7 +283,6 @@ def _edit_session_entry_handle_post(request, club, session_entry):
 
     # Handle session data
     session_entry.fee = form.cleaned_data["fee"]
-    session_entry.is_paid = bool(form.cleaned_data["is_paid"])
     payment_method = OrgPaymentMethod.objects.get(
         pk=form.cleaned_data["payment_method"]
     )
@@ -309,6 +308,9 @@ def _edit_session_entry_handle_post(request, club, session_entry):
                 payment_method, club, session_entry, request.user, message
             )
 
+    # TODO: Handle just paying with bridge credits or IOU, doesn't need to have changed type
+
+    session_entry.is_paid = bool(form.cleaned_data["is_paid"])
     session_entry.payment_method = payment_method
     session_entry.save()
 
