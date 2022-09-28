@@ -7,35 +7,35 @@
 
 <!--HEADINGS -->
 
-<div class="table-responsive col-md-6">
-    <table class="table">
-        <thead>
-            <tr>
-                <th colspan="2" class="text-center font-weight-bold">Details</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Session:</td>
-                <td>{{ session.description }}</td>
-            </tr>
-            <tr>
-                <td>Date:</td>
-                <td>{{ session.session_date }}</td>
-            </tr>
-            <tr>
-                <td>Director:</td>
-                <td>{{ session.director|cobalt_user_link_short }}</td>
-            </tr>
-            {% if session.venue %}
-                <tr>
-                    <td>Venue:</td>
-                    <td>{{ session.venue }}</td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
-</div>
+{#<div class="table-responsive col-md-6">#}
+{#    <table class="table">#}
+{#        <thead>#}
+{#            <tr>#}
+{#                <th colspan="2" class="text-center font-weight-bold">Details</th>#}
+{#            </tr>#}
+{#        </thead>#}
+{#        <tbody>#}
+{#            <tr>#}
+{#                <td>Session:</td>#}
+{#                <td>{{ session.description }}</td>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <td>Date:</td>#}
+{#                <td>{{ session.session_date }}</td>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <td>Director:</td>#}
+{#                <td>{{ session.director|cobalt_user_link_short }}</td>#}
+{#            </tr>#}
+{#            {% if session.venue %}#}
+{#                <tr>#}
+{#                    <td>Venue:</td>#}
+{#                    <td>{{ session.venue }}</td>#}
+{#                </tr>#}
+{#            {% endif %}#}
+{#        </tbody>#}
+{#    </table>#}
+{#</div>#}
 
 <h3>Table Fees</h3>
 

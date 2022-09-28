@@ -719,27 +719,55 @@ def get_summary_table_data(session, session_entries, mixed_dict, membership_type
         'Cash': ...
 
     Note: Users may pay for extras using a different payment method
+
+    We use the fact that SessionEntry and SessionMiscPayment are quite similar.
     """
 
-    extras_paid = get_extras_as_total_for_session_entries(session, paid_only=True)
-    extras_unpaid = get_extras_as_total_for_session_entries(session, unpaid_only=True)
-    extras = get_extras_as_total_for_session_entries(session)
-
-    payment_summary = {}
+    # We want the session entry pk to use for both session entries and extras
     for session_entry in session_entries:
+        session_entry.session_entry_pk = session_entry.pk
+        session_entry.summary_extras = Decimal(0)
+
+    payment_summary = get_summary_table_data_sub(
+        {}, session_entries, mixed_dict, membership_type_dict
+    )
+
+    extras = SessionMiscPayment.objects.filter(
+        session_entry__session=session
+    ).select_related("session_entry")
+
+    # extras are really similar to session_entries, make them the same, so we can use the same logic
+    for extra in extras:
+        extra.is_paid = extra.payment_made
+        extra.fee = extra.amount
+        extra.system_number = extra.session_entry.system_number
+        extra.session_entry_pk = extra.session_entry.pk
+        extra.summary_extras = Decimal(0)
+
+    payment_summary = get_summary_table_data_sub(
+        payment_summary, extras, mixed_dict, membership_type_dict, extra_flag=True
+    )
+
+    return payment_summary
+
+
+def get_summary_table_data_sub(
+    payment_summary, items, mixed_dict, membership_type_dict, extra_flag=False
+):
+    """sub for get_summary_table_data"""
+
+    for item in items:
         # Skip sitout and director
-        if session_entry.system_number in [SITOUT, PLAYING_DIRECTOR]:
+        if item.system_number in [SITOUT, PLAYING_DIRECTOR]:
             continue
 
-        if session_entry.payment_method:
-            pay_method = session_entry.payment_method.payment_method
-        else:
-            pay_method = "Unknown"
+        pay_method = item.payment_method.payment_method
 
         # Add to dict if not present
-        if session_entry.payment_method.payment_method not in payment_summary:
+        if pay_method not in payment_summary:
             payment_summary[pay_method] = {
                 "fee": Decimal(0),
+                "extras": Decimal(0),
                 "amount_paid": Decimal(0),
                 "outstanding": Decimal(0),
                 "player_count": 0,
@@ -747,41 +775,54 @@ def get_summary_table_data(session, session_entries, mixed_dict, membership_type
             }
 
         # Update dict with this session_entry
-        payment_summary[pay_method]["fee"] += session_entry.fee + Decimal(
-            extras.get(session_entry.id, 0)
-        )
-        if session_entry.is_paid:
-            payment_summary[pay_method]["amount_paid"] += session_entry.fee
+        if extra_flag:
+            payment_summary[pay_method]["extras"] += item.fee
+
+        payment_summary[pay_method]["fee"] += item.fee
+
+        if item.is_paid:
+            payment_summary[pay_method]["amount_paid"] += item.fee
         else:
-            payment_summary[pay_method]["outstanding"] += session_entry.fee + Decimal(
-                extras_unpaid.get(session_entry.id, 0)
-            )
+            payment_summary[pay_method]["outstanding"] += item.fee
+
         payment_summary[pay_method]["player_count"] += 1
 
         # Add session_entry as well for drop down list
-        name = mixed_dict[session_entry.system_number]["value"]
-        member_type = membership_type_dict.get(session_entry.system_number, "Guest")
-        session_entry.fee += Decimal(extras.get(session_entry.id, 0))
+        name = mixed_dict[item.system_number]["value"]
+        member_type = membership_type_dict.get(item.system_number, "Guest")
 
-        # Augment session entry with an amount_paid (fee + extras)
-        if session_entry.is_paid:
-            session_entry.amount_paid = session_entry.fee
-        else:
-            session_entry.amount_paid = Decimal(0)
+        # Augment session entry with amount_paid
+        item.amount_paid = item.fee if item.is_paid else Decimal(0)
 
-        # Add in extras
-        session_entry.amount_paid += Decimal(extras_paid.get(session_entry.id, 0))
+        # Augment session entry with extras - extras is already on the real session entry, but we need our own
+        if extra_flag:
+            item.summary_extras = item.fee
+            item.fee = Decimal(0)
 
         # Handle visitors
-        if session_entry.system_number == VISITOR:
-            name = session_entry.player_name_from_file.title()
+        if item.system_number == VISITOR:
+            name = item.player_name_from_file.title()
 
-        item = {
+        new_item = {
             "player": name,
-            "session_entry": session_entry,
+            "session_entry": item,
             "membership": member_type,
         }
-        payment_summary[pay_method]["players"].append(item)
+
+        # For extras, we may already have an entry, we want to add to it, not create a new one
+        if extra_flag:
+            match_flag = False
+            for row in payment_summary[pay_method]["players"]:
+                if row["player"] == name:
+                    match_flag = True
+                    row["session_entry"].summary_extras += item.summary_extras
+                    if item.is_paid:
+                        row["session_entry"].amount_paid += item.amount_paid
+                    break
+            if not match_flag:
+                payment_summary[pay_method]["players"].append(new_item)
+        else:
+            payment_summary[pay_method]["players"].append(new_item)
 
     return payment_summary
 

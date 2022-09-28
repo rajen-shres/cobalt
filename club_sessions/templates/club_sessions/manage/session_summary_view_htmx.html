@@ -92,7 +92,8 @@
                         <tr>
                             <th class="text-left">Player</th>
                             <th>Membership Type</th>
-                            <th class="text-right">Fee + Extras</th>
+                            <th class="text-right">Fee</th>
+                            <th class="text-right">Extras</th>
                             <th class="text-right">Paid</th>
                         </tr>
                     </thead>
@@ -102,7 +103,10 @@
                                 <td class="text-left">
                                     <a href="javascript:void(0);"
                                         hx-post="{% url "club_sessions:edit_session_entry_htmx" %}"
-                                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ player.session_entry.id }}"
+
+                                        {# we use session_entry_pk which is on both session_entry and extras #}
+
+                                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ player.session_entry.session_entry_pk }}"
                                         hx-target="#id_pane_session"
                                         hx-push-url="{{ session.id }}"
                                     >
@@ -111,6 +115,13 @@
                                 </td>
                                 <td>{{ player.membership }}</td>
                                 <td class="text-right">{{ player.session_entry.fee }}</td>
+                                <td class="text-right">
+                                    {% if player.session_entry.summary_extras %}
+                                        {{ player.session_entry.summary_extras }}
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </td>
                                 <td class="text-right">
                                     {{ player.session_entry.amount_paid }}
                                 </td>
