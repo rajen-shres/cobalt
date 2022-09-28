@@ -87,7 +87,25 @@
                                                 Unpaid
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        <td class="text-right">
+                                            <button
+                                                class="btn btn-sm
+                                                {% if session_misc_payment.payment_made %}
+                                                    btn-danger
+                                                {% else %}
+                                                    btn-info
+                                                {% endif %}
+                                                "
+                                                hx-post="{% url "club_sessions:toggle_paid_misc_session_payment_htmx" %}"
+                                                hx-target="#entry_extras"
+                                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}, session_misc_payment_id:{{ session_misc_payment.id }}"
+                                            >
+                                                {% if session_misc_payment.payment_made %}
+                                                    Unpay
+                                                {% else %}
+                                                    Pay
+                                                {% endif %}
+                                            </button>
                                             <button
                                                 class="btn btn-sm btn-danger"
                                                 hx-post="{% url "club_sessions:delete_misc_session_payment_htmx" %}"

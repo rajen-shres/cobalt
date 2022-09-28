@@ -18,7 +18,7 @@ from cobalt.settings import (
 )
 from masterpoints.views import abf_checksum_is_valid
 from notifications.views.core import send_cobalt_email_to_system_number
-from organisations.models import ClubLog
+from organisations.models import ClubLog, Organisation
 from organisations.views.general import get_membership_type_for_players
 from payments.models import OrgPaymentMethod, MemberTransaction, UserPendingPayment
 from payments.views.core import (
@@ -437,11 +437,6 @@ def handle_bridge_credit_changes(
 
         # Mark entry as unpaid - don't drop paid extras though
         session_entry.is_paid = False
-        # for misc_payments in SessionMiscPayment.objects.filter(
-        #         session_entry=session_entry, payment_method=bridge_credit_payment_method
-        # ):
-        #     if misc_payments.payment_made:
-        #         session_entry.amount_paid += misc_payments.amount
         session_entry.save()
         return True, message
 
@@ -449,6 +444,60 @@ def handle_bridge_credit_changes(
         # Was bridge credits, but isn't now. Mark as unpaid
         session_entry.is_paid = False
         session_entry.save()
+
+
+def pay_bridge_credit_for_extra(
+    session_misc_payment: SessionMiscPayment,
+    session: Session,
+    club: Organisation,
+    member: User,
+):
+
+    """Handle a director paying for an extra from the edit panel using bridge credits
+
+    Returns:
+        boolean: Success or Failure
+
+    """
+
+    return payment_api_batch(
+        member=member,
+        description=f"{session}",
+        amount=session_misc_payment.amount,
+        organisation=club,
+        payment_type="Club Payment",
+        session=session,
+    )
+
+
+def refund_bridge_credit_for_extra(
+    session_misc_payment: SessionMiscPayment,
+    club: Organisation,
+    player: User,
+    director: User,
+):
+    update_account(
+        member=player,
+        amount=session_misc_payment.amount,
+        description=f"{BRIDGE_CREDITS} returned for {session_misc_payment.description}",
+        payment_type="Refund",
+        organisation=club,
+    )
+
+    update_organisation(
+        organisation=club,
+        amount=-session_misc_payment.amount,
+        description=f"{BRIDGE_CREDITS} returned for {session_misc_payment.description}",
+        payment_type="Refund",
+        member=player,
+    )
+
+    # log it
+    ClubLog(
+        organisation=club,
+        actor=director,
+        action=f"Refunded {player} {GLOBAL_CURRENCY_SYMBOL}{session_misc_payment.amount:.2f} for {session_misc_payment.description}",
+    ).save()
 
 
 def handle_bridge_credit_changes_refund(club, session_entry, director):
@@ -895,3 +944,36 @@ def add_table(session):
             system_number=SITOUT,
             seat=direction,
         ).save()
+
+
+def recalculate_session_status(session: Session):
+    """recalculate what state a session is in based upon the payment status of its session entries"""
+
+    # Are there still outstanding payments?
+    if (
+        not SessionEntry.objects.filter(session=session, is_paid=False).exists()
+        and not SessionMiscPayment.objects.filter(
+            session_entry__session=session, payment_made=False
+        ).exists()
+    ):
+        session.status = Session.SessionStatus.COMPLETE
+
+    # Are there outstanding bridge credits?
+    elif (
+        not SessionEntry.objects.filter(
+            session=session,
+            is_paid=False,
+            payment_method__payment_method="Bridge Credits",
+        ).exists()
+        and not SessionMiscPayment.objects.filter(
+            session_entry__session=session,
+            payment_made=False,
+            payment_method__payment_method="Bridge Credits",
+        ).exists()
+    ):
+        session.status = Session.SessionStatus.CREDITS_PROCESSED
+
+    else:
+        session.status = Session.SessionStatus.DATA_LOADED
+
+    session.save()

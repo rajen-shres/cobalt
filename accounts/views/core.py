@@ -387,7 +387,11 @@ def get_user_or_unregistered_user_from_system_number(system_number):
     """return a User or UnregisteredUser object for a given system number"""
 
     # User takes precedence if somehow both exist (shouldn't happen)
-    user = User.objects.filter(system_number=system_number).first()
+    user = (
+        User.objects.filter(system_number=system_number)
+        .exclude(pk__in=ALL_SYSTEM_ACCOUNTS)
+        .first()
+    )
 
     if user:
         return user

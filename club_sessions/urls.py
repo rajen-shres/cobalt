@@ -66,6 +66,11 @@ urlpatterns = [
         name="delete_misc_session_payment_htmx",
     ),
     path(
+        "session/toggle-paid-misc-session-payment",
+        sessions.toggle_paid_misc_session_payment_htmx,
+        name="toggle_paid_misc_session_payment_htmx",
+    ),
+    path(
         "session/add-table",
         sessions.add_table_htmx,
         name="add_table_htmx",

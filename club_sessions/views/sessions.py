@@ -45,6 +45,10 @@ from .core import (
     get_table_view_data,
     process_bridge_credits,
     add_table,
+    refund_bridge_credit_for_extra,
+    pay_bridge_credit_for_extra,
+    recalculate_session_status,
+    handle_bridge_credit_changes_refund,
 )
 from .decorators import user_is_club_director
 
@@ -355,10 +359,12 @@ def edit_session_entry_htmx(request, club, session, session_entry):
             "payment_method_is_valid": payment_method_is_valid,
         },
     )
+    # See what the status is after this change
+    recalculate_session_status(session)
 
     # We might have changed the status of the session, so reload totals
     # TODO: CAUSES LOOP
-    # response["HX-Trigger"] = "update_totals"
+    response["HX-Trigger"] = "update_totals"
 
     return response
 
@@ -371,8 +377,15 @@ def edit_session_entry_extras_htmx(request, club, session, session_entry, messag
     misc_payment_types = MiscPayType.objects.filter(organisation=club)
     payment_methods = OrgPaymentMethod.objects.filter(active=True, organisation=club)
 
-    # get misc payments for this user through the extended info table
-    #    misc_payments_for_user =
+    player = get_user_or_unregistered_user_from_system_number(
+        session_entry.system_number
+    )
+
+    # remove IOU and bridge credits unless a registered user
+    if type(player) != User:
+        payment_methods = payment_methods.exclude(
+            payment_method__in=["IOU", "Bridge Credits"]
+        )
 
     # Check for IOUs from any club
     user_pending_payments = UserPendingPayment.objects.filter(
@@ -382,10 +395,6 @@ def edit_session_entry_extras_htmx(request, club, session, session_entry, messag
     # Get any existing misc payments for this session
     session_misc_payments = SessionMiscPayment.objects.filter(
         session_entry=session_entry
-    )
-
-    player = get_user_or_unregistered_user_from_system_number(
-        session_entry.system_number
     )
 
     return render(
@@ -604,7 +613,12 @@ def add_misc_payment_htmx(request, club, session, session_entry):
             session_misc_payment.delete()
             message = "Payment failed. Try another payment method."
 
-    return edit_session_entry_extras_htmx(request, message=message)
+    # See if status has changed
+    recalculate_session_status(session)
+
+    response = edit_session_entry_extras_htmx(request, message=message)
+    response["HX-Trigger"] = "update_totals"
+    return response
 
 
 @user_is_club_director()
@@ -653,6 +667,91 @@ def process_bridge_credits_htmx(request, club, session):
 
 
 @user_is_club_director(include_session_entry=True)
+def toggle_paid_misc_session_payment_htmx(request, club, session, session_entry):
+    """mark a misc session payment as paid or unpaid"""
+
+    # Get data
+    session_misc_payment = get_object_or_404(
+        SessionMiscPayment, pk=request.POST.get("session_misc_payment_id")
+    )
+
+    # validate
+    if session_misc_payment.session_entry != session_entry:
+        return edit_session_entry_extras_htmx(
+            request, message="Misc payment not for this session"
+        )
+
+    bridge_credits = bridge_credits_for_club(club)
+    iou = iou_for_club(club)
+    user = get_user_or_unregistered_user_from_system_number(
+        session_misc_payment.session_entry.system_number
+    )
+
+    # Check user type and action - shouldn't ever happen
+    if type(user) != User and session_misc_payment.payment_method in [
+        bridge_credits,
+        iou,
+    ]:
+        return edit_session_entry_extras_htmx(
+            request,
+            message=f"Not a registered user. Cannot pay with {session_misc_payment.payment_method}.",
+        )
+
+    if session_misc_payment.payment_made:
+        # Was paid, now its not
+
+        # handle bridge credits
+        if session_misc_payment.payment_method == bridge_credits:
+            refund_bridge_credit_for_extra(
+                session_misc_payment, club, user, request.user
+            )
+            message = f"{user} refunded {GLOBAL_CURRENCY_SYMBOL}{session_misc_payment.amount:.2f}"
+
+        # handle IOUs
+        elif session_misc_payment.payment_method == iou:
+            handle_iou_changes_off(club, session_entry)
+            message = "IOU deleted"
+
+        # Simple - just toggle paid status
+        else:
+            message = "Miscellaneous payment marked as unpaid"
+
+        session_misc_payment.payment_made = False
+        session_misc_payment.save()
+
+    else:
+        # Wasn't paid, now it is (probably - bridge credit payment or IOU could fail)
+        # handle bridge credits
+        if session_misc_payment.payment_method == bridge_credits:
+            if pay_bridge_credit_for_extra(session_misc_payment, session, club, user):
+                session_misc_payment.payment_made = True
+                session_misc_payment.save()
+                message = "Payment successful"
+            else:
+                message = f"{BRIDGE_CREDITS} payment failed for {user.full_name}"
+
+        # handle IOUs
+        elif session_misc_payment.payment_method == iou:
+            handle_iou_changes_on(club, session_entry, request.user)
+            session_misc_payment.payment_made = True
+            session_misc_payment.save()
+            message = "IOU set up and player notified"
+
+        # Simple - just toggle paid status
+        else:
+            session_misc_payment.payment_made = True
+            session_misc_payment.save()
+            message = "Miscellaneous payment marked as paid"
+
+    # See what the status is after this change
+    recalculate_session_status(session)
+
+    response = edit_session_entry_extras_htmx(request, message=message)
+    response["HX-Trigger"] = "update_totals"
+    return response
+
+
+@user_is_club_director(include_session_entry=True)
 def delete_misc_session_payment_htmx(request, club, session, session_entry):
     """Delete a misc session payment"""
 
@@ -669,8 +768,13 @@ def delete_misc_session_payment_htmx(request, club, session, session_entry):
 
     # handle already paid
     if session_misc_payment.payment_made:
+        player = get_user_or_unregistered_user_from_system_number(
+            session_entry.system_number
+        )
+        refund_bridge_credit_for_extra(session_misc_payment, club, player, request.user)
+        session_misc_payment.delete()
         return edit_session_entry_extras_htmx(
-            request, message="Payment already made. Handle later"
+            request, message="Refund issued and payment deleted"
         )
 
     # delete
