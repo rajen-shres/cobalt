@@ -88,17 +88,30 @@
                                             {% endif %}
                                         </td>
                                         <td class="text-right">
+
+                                            <!-- UNPAY/PAY BUTTON -->
                                             <button
                                                 class="btn btn-sm
+
                                                 {% if session_misc_payment.payment_made %}
-                                                    btn-danger
+
+                                                    btn-danger misc-pay-unpay
+
+                                                    {% if session_misc_payment.payment_method.payment_method == "Bridge Credits" %}
+                                                        bridge_credits_paid_for
+                                                    {% endif %}
+
                                                 {% else %}
-                                                    btn-info
+
+                                                    btn-info misc-pay-pay
+
+                                                    {% if session_misc_payment.payment_method.payment_method == "Bridge Credits" %}
+                                                        bridge_credits_will_be_paid_for
+                                                    {% endif %}
+
                                                 {% endif %}
                                                 "
-                                                hx-post="{% url "club_sessions:toggle_paid_misc_session_payment_htmx" %}"
-                                                hx-target="#entry_extras"
-                                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}, session_misc_payment_id:{{ session_misc_payment.id }}"
+                                                id="id_misc_pay_pay_{{ session_misc_payment.id }}"
                                             >
                                                 {% if session_misc_payment.payment_made %}
                                                     Unpay
@@ -106,13 +119,20 @@
                                                     Pay
                                                 {% endif %}
                                             </button>
+
+                                            <!-- DELETE MISC PAYMENT BUTTON -->
                                             <button
-                                                class="btn btn-sm btn-danger"
-                                                hx-post="{% url "club_sessions:delete_misc_session_payment_htmx" %}"
-                                                hx-target="#entry_extras"
-                                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}, session_misc_payment_id:{{ session_misc_payment.id }}"
+                                                class="btn btn-sm btn-danger misc_pay_del
+
+                                                {% if session_misc_payment.payment_made and session_misc_payment.payment_method.payment_method == "Bridge Credits" %}
+                                                    bridge_credits_paid_for
+                                                {% endif %}
+
+                                                "
+                                                id="id_misc_pay_del_{{ session_misc_payment.id }}"
                                             >Delete
                                             </button>
+
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -286,5 +306,96 @@
                 $("#id_misc_button").attr("disabled", true);
             }
         });
+
+        // handle deleting misc payment button
+        $(".misc_pay_del").on("click", function(evt){
+
+            let warning_msg = "Delete payment";
+
+            // check if this is going to also reverse a bridge credit transaction
+            if ($(this).hasClass('bridge_credits_paid_for')){
+                warning_msg = "Delete this. Payment has been made and will be refunded. This will appear on {{ player.first_name|default_if_none:"player" }}'s statement."
+            }
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: warning_msg,
+                icon: 'warning',
+                showCancelButton: true,
+            }).then((result) => {
+                if (result.value) {
+                    const id = this.id.split("_")[4];
+                    const postData = {
+                        'club_id': {{ club.id }},
+                        'session_id': {{ session.id }},
+                        'session_entry_id': {{ session_entry.id }},
+                        'session_misc_payment_id': id,
+                    };
+                    const url = '{% url "club_sessions:delete_misc_session_payment_htmx" %}';
+                    htmx.ajax('POST', url, {'target': '#entry_extras', 'values': postData});
+                }
+            });
+        });
+
+        // handle unpay misc payment button
+        $(".misc-pay-unpay").on("click", function(evt){
+
+            let warning_msg = "Unpay this extra";
+
+            // check if this is going to also reverse a bridge credit transaction
+            if ($(this).hasClass('bridge_credits_paid_for')){
+                warning_msg = "Unpay this. Payment has been made and will be refunded. This will appear on {{ player.first_name|default_if_none:"player" }}'s statement."
+            }
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: warning_msg,
+                icon: 'warning',
+                showCancelButton: true,
+            }).then((result) => {
+                if (result.value) {
+                    const id = this.id.split("_")[4];
+                    const postData = {
+                        'club_id': {{ club.id }},
+                        'session_id': {{ session.id }},
+                        'session_entry_id': {{ session_entry.id }},
+                        'session_misc_payment_id': id,
+                    };
+                    const url = "{% url "club_sessions:toggle_paid_misc_session_payment_htmx" %}";
+                    htmx.ajax('POST', url, {'target': '#entry_extras', 'values': postData});
+                }
+            });
+        });
+
+        // handle pay misc payment button
+        $(".misc-pay-pay").on("click", function(evt){
+
+            let warning_msg = "Pay this extra";
+
+            // check if this is going to also reverse a bridge credit transaction
+            if ($(this).hasClass('bridge_credits_will_be_paid_for')){
+                warning_msg = "Pay this. {{ BRIDGE_CREDITS }} will be charged. This will appear on {{ player.first_name|default_if_none:"player" }}'s statement."
+            }
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: warning_msg,
+                icon: 'warning',
+                showCancelButton: true,
+            }).then((result) => {
+                if (result.value) {
+                    const id = this.id.split("_")[4];
+                    const postData = {
+                        'club_id': {{ club.id }},
+                        'session_id': {{ session.id }},
+                        'session_entry_id': {{ session_entry.id }},
+                        'session_misc_payment_id': id,
+                    };
+                    const url = "{% url "club_sessions:toggle_paid_misc_session_payment_htmx" %}";
+                    htmx.ajax('POST', url, {'target': '#entry_extras', 'values': postData});
+                }
+            });
+        });
+
     });
 </script>

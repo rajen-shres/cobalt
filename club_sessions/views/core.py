@@ -946,6 +946,8 @@ def process_bridge_credits(session_entries, session, club, bridge_credits, extra
         fee = float(session_entry.fee) if session_entry.fee else 0
         amount = fee - amount_paid + extras.get(session_entry.id, 0)
 
+        print(session_entry, amount)
+
         # Try payment
         member = users_by_system_number[session_entry.system_number]
         if payment_api_batch(
