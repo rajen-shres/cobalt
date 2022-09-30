@@ -1,15 +1,33 @@
 from django.urls import path
 
 import club_sessions.views.imports
-from club_sessions.views import sessions, reports
+import club_sessions.views.manage_session
+import club_sessions.views.new_session
+from club_sessions.views import reports
 
 app_name = "club_sessions"  # pylint: disable=invalid-name
 
 urlpatterns = [
-    path("new-session/<int:club_id>", sessions.new_session, name="new_session"),
-    path("session/<int:session_id>", sessions.manage_session, name="manage_session"),
-    path("session", sessions.manage_session, name="manage_session_no_id"),
-    path("session/settings", sessions.tab_settings_htmx, name="tab_settings_htmx"),
+    path(
+        "new-session/<int:club_id>",
+        club_sessions.views.new_session.new_session,
+        name="new_session",
+    ),
+    path(
+        "session/<int:session_id>",
+        club_sessions.views.manage_session.manage_session,
+        name="manage_session",
+    ),
+    path(
+        "session",
+        club_sessions.views.manage_session.manage_session,
+        name="manage_session_no_id",
+    ),
+    path(
+        "session/settings",
+        club_sessions.views.manage_session.tab_settings_htmx,
+        name="tab_settings_htmx",
+    ),
     path(
         "session/uploads-file",
         club_sessions.views.imports.import_file_upload_htmx,
@@ -17,62 +35,62 @@ urlpatterns = [
     ),
     path(
         "session/details",
-        sessions.tab_session_htmx,
+        club_sessions.views.manage_session.tab_session_htmx,
         name="tab_session_htmx",
     ),
     path(
         "session/edit-session-entry",
-        sessions.edit_session_entry_htmx,
+        club_sessions.views.manage_session.edit_session_entry_htmx,
         name="edit_session_entry_htmx",
     ),
     path(
         "session/edit-session-entry-extras",
-        sessions.edit_session_entry_extras_htmx,
+        club_sessions.views.manage_session.edit_session_entry_extras_htmx,
         name="edit_session_entry_extras_htmx",
     ),
     path(
         "session/edit-session-entry-change-payment-method",
-        sessions.change_payment_method_htmx,
+        club_sessions.views.manage_session.change_payment_method_htmx,
         name="session_entry_change_payment_method_htmx",
     ),
     path(
         "session/edit-session-entry-change-paid-amount",
-        sessions.change_paid_amount_status_htmx,
+        club_sessions.views.manage_session.change_paid_amount_status_htmx,
         name="session_entry_change_paid_amount_htmx",
     ),
     path(
         "session/edit-session-totals",
-        sessions.session_totals_htmx,
+        club_sessions.views.manage_session.session_totals_htmx,
         name="session_entry_session_totals_htmx",
     ),
     path(
         "session/add-misc-payment",
-        sessions.add_misc_payment_htmx,
+        club_sessions.views.manage_session.add_misc_payment_htmx,
         name="session_add_misc_payment_htmx",
     ),
     path(
         "session/process-bridge-credits",
-        sessions.process_bridge_credits_htmx,
+        club_sessions.views.manage_session.process_bridge_credits_htmx,
         name="process_bridge_credits_htmx",
     ),
     path(
         "session/process-off-system-payments",
-        sessions.process_off_system_payments_htmx,
+        club_sessions.views.manage_session.process_off_system_payments_htmx,
         name="process_off_system_payments_htmx",
     ),
     path(
         "session/delete-misc-session-payment",
-        sessions.delete_misc_session_payment_htmx,
+        club_sessions.views.manage_session.delete_misc_session_payment_htmx,
         name="delete_misc_session_payment_htmx",
     ),
     path(
         "session/toggle-paid-misc-session-payment",
-        sessions.toggle_paid_misc_session_payment_htmx,
+        club_sessions.views.manage_session.toggle_paid_misc_session_payment_htmx,
         name="toggle_paid_misc_session_payment_htmx",
     ),
     path(
         "session/add-table",
-        sessions.add_table_htmx,
+        club_sessions.views.manage_session.add_table_htmx,
         name="add_table_htmx",
     ),
     path(
@@ -97,7 +115,7 @@ urlpatterns = [
     ),
     path(
         "member/top-up",
-        sessions.top_up_member_htmx,
+        club_sessions.views.manage_session.top_up_member_htmx,
         name="session_top_up_member_htmx",
     ),
 ]

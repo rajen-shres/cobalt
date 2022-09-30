@@ -109,11 +109,6 @@ def add_club_session(
 def turn_off_payment_type(club):
     """Handle a payment type being disabled for a club. We need to remove this payment from the session tables"""
 
-    print(
-        SessionTypePaymentMethod.objects.filter(
-            payment_method__organisation=club
-        ).filter(payment_method__active=False)
-    )
     SessionTypePaymentMethod.objects.filter(payment_method__organisation=club).filter(
         payment_method__active=False
     ).delete()

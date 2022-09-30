@@ -105,7 +105,7 @@
 
         <!-- OPTIONAL EXTRA CHARGES - NOT ALLOWED IF PAYMENTS MADE -->
 
-        {% if session.status == "LD" %}
+        {% if not session or session.status == "LD" %}
             <div class="row align-items-center h-100 my-0">
                 <div class="col-md-6 mt-4">
                     Optional Additional Charge Per Player
