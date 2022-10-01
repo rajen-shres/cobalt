@@ -23,11 +23,17 @@
     <h1 class="text-center pt-4"><span id="t_club_name">{{ club }}</span> - {{ club.state }}</h1>
 
     <h2 class="text-center border-bottom-0"><span class="text-primary" style="font-size: 50px;">&hearts;</span>
-        {{ session.description}} <span class="text-danger" style="font-size: 50px;">&hearts;</span>
+        <span id="id_description">
+            {{ session.description}}
+        </span>
+        <span class="text-danger" style="font-size: 50px;">&hearts;</span>
     </h2>
 
     <h3 class="text-center mx-0"><span class="text-dark" style="font-size: 40px;">&spades;</span>
-        {{ session.session_date }} <span class="text-dark" style="font-size: 40px;">&spades;</span>
+        <span id="id_date">
+            {{ session.session_date }}
+        </span>
+        <span class="text-dark" style="font-size: 40px;">&spades;</span>
     </h3>
 
     <!-- MAIN CARD BODY WITH NAVIGATION ICONS ON TOP -->
@@ -56,7 +62,7 @@
                             {% if has_session_entries %}
                                 active
                             {% endif %}
-                            auto-refresh" href="#session" role="tab" data-toggle="tab">
+                            auto-refresh" href="#id_session_main_panel" role="tab" data-toggle="tab">
                             <i class="material-icons">groups</i>
                             Session
                         </a>
@@ -107,7 +113,7 @@
                             active
                         {% endif %}
 
-                        " id="session">
+                        " id="id_session_main_panel">
 
                         <!-- TOTALS - RUN ON LOAD OR TRIGGER FROM OTHER UPDATES -->
 
@@ -115,7 +121,7 @@
 
                             <div id="id_totals"
                                 hx-post="{% url "club_sessions:session_entry_session_totals_htmx" %}"
-                                hx-trigger="load, update_totals"
+                                hx-trigger="load, update_totals from:body"
                                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
                             >
                             </div>
@@ -213,29 +219,26 @@
 
         $(document).ready(function () {
 
-            // When totals does something it updates the bottom part, also send message to update totals
-            document.body.addEventListener("update_totals", function (evt) {
-                htmx.trigger(htmx.find('#id_totals'), "update_totals");
+            // Changing this form triggers this, so we can update the title of the page
+            document.body.addEventListener("new_title", function (evt) {
+                $("#id_description").text(evt.detail.value);
             });
 
+            // Changing this form triggers this, so we can update the date
+            document.body.addEventListener("new_date", function (evt) {
+                document.title = "{{ GLOBAL_TITLE }} - " + evt.detail.value;
+                $("#id_date").text(evt.detail.value);
+            });
 
-            $(document).ready(function () {
+            // When a tab is clicked we reload the data
 
-                // When a tab is clicked we reload the data
+            $('#id_menu a').on('click', function (e) {
 
-                $('#id_menu a').on('click', function (e) {
+                const id = this.id.split("_")[2];
 
-                    const id = this.id.split("_")[2];
-
-                    if (id === "report"){
-                        htmx.trigger(htmx.find("#id_pane_reports"), "tab_load_event");
-                    }
-                    {#if (id === "session"){#}
-                    {#    htmx.trigger(htmx.find("#id_pane_session"), "tab_load_event");#}
-                    {#htmx.trigger(htmx.find("#id_totals"), "update_totals");#}
-                    {#}#}
-
-                });
+                if (id === "report"){
+                    htmx.trigger(htmx.find("#id_pane_reports"), "tab_load_event");
+                }
 
             })
         });

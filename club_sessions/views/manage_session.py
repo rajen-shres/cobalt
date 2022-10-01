@@ -120,7 +120,7 @@ def tab_settings_htmx(request, club, session):
 
     response = render(
         request,
-        "club_sessions//shared/settings_htmx.html",
+        "club_sessions/shared/settings_htmx.html",
         {
             "session_form": session_form,
             "club": club,
@@ -130,9 +130,11 @@ def tab_settings_htmx(request, club, session):
         },
     )
 
-    # Reload sessions tab if we change anything
+    # Reload sessions tab if we change anything, also send the description and date in case they have changed
     if "save_settings" in request.POST:
-        response["HX-Trigger"] = "reload_sessions"
+        response[
+            "HX-Trigger"
+        ] = f"""{{"reload_sessions": "true", "new_title": "{session.description}", "new_date": "{session.session_date:%-d %b %Y}" }}"""
 
     return response
 
