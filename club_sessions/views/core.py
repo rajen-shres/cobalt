@@ -1035,3 +1035,17 @@ def recalculate_session_status(session: Session):
         session.status = Session.SessionStatus.DATA_LOADED
 
     session.save()
+
+
+def change_user_on_session_entry(
+    source,
+    system_number,
+    sitout,
+    playing_director,
+    non_abf_visitor,
+    member_last_name_search,
+    member_first_name_search,
+):
+    """Handle changing the player on a session entry"""
+
+    return "Coming soon"

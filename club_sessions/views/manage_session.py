@@ -34,6 +34,7 @@ from club_sessions.views.core import (
     refund_bridge_credit_for_extra,
     pay_bridge_credit_for_extra,
     add_table,
+    change_user_on_session_entry,
 )
 from club_sessions.views.decorators import user_is_club_director
 from cobalt.settings import ALL_SYSTEM_ACCOUNTS, BRIDGE_CREDITS, GLOBAL_CURRENCY_SYMBOL
@@ -828,7 +829,14 @@ def top_up_member_htmx(request, club, session, session_entry):
 
 @user_is_club_director(include_session_entry=True)
 def change_player_htmx(request, club, session, session_entry):
-    """Change a player to another"""
+    """Change a player to another. We could get any of the following:
+
+    source and system number for a User or UnregisteredUser
+    sitout - change to a sitout
+    playing_director - change to a playing director
+    non_abf_visitor - someone who isn't registered with the ABF, also get the first and last name
+
+    """
 
     source = request.POST.get("source")
     system_number = request.POST.get("system_number")
@@ -838,13 +846,15 @@ def change_player_htmx(request, club, session, session_entry):
     member_last_name_search = request.POST.get("member_last_name_search")
     member_first_name_search = request.POST.get("member_first_name_search")
 
-    print(sitout)
-    print(playing_director)
-    print(non_abf_visitor)
-    print(member_last_name_search)
-    print(member_first_name_search)
+    message = change_user_on_session_entry(
+        source,
+        system_number,
+        sitout,
+        playing_director,
+        non_abf_visitor,
+        member_last_name_search,
+        member_first_name_search,
+    )
 
     # return whole edit page
-    return edit_session_entry_htmx(
-        request, message=f"Okey dokey - {source}, {system_number}"
-    )
+    return edit_session_entry_htmx(request, message=message)
