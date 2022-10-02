@@ -118,4 +118,9 @@ urlpatterns = [
         club_sessions.views.manage_session.top_up_member_htmx,
         name="session_top_up_member_htmx",
     ),
+    path(
+        "edit/change-player",
+        club_sessions.views.manage_session.change_player_htmx,
+        name="session_change_player_htmx",
+    ),
 ]

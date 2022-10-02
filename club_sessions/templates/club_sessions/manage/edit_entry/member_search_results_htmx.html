@@ -1,0 +1,72 @@
+{% load static %}
+
+{% if user_list %}
+
+    <h3>Results</h3>
+
+    <div class="table-responsive">
+
+        {% if is_more %}
+            <div>
+                <p class="font-italic">Showing top matches. Refine your search to reduce size of list.</p>
+            </div>
+        {% endif %}
+
+        <table class="table table-condensed table-hover">
+            <thead>
+                <tr class="text-primary">
+                    <th class="text-left">Member</th>
+                    <th class="text-left">Home Club</th>
+                    <th class="text-left">Source</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in user_list %}
+                    <tr>
+                        <td class="text-left">
+                            {{ user.first_name }} {{ user.last_name }} ({{ user.system_number }})
+                        </td>
+
+                        <td class="text-left">
+                            {{ user.home_club|default_if_none:"-" }}
+                        </td>
+
+                        <td class="text-left">
+                            {% if user.source == "registered" %}
+                                Registered
+                            {% endif %}
+                            {% if user.source == "unregistered" %}
+                                Unregistered
+                            {% endif %}
+                            {% if user.source == "mpc" %}
+                                MPC
+                            {% endif %}
+                            {% if user.source == "member" %}
+                                Member
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <button
+                                class="btn btn-sm btn-primary"
+                                hx-post="{% url "club_sessions:session_change_player_htmx" %}"
+                                hx-target="#id_pane_session"
+                                hx-vars="club_id:{{ club_id }}, session_id:{{ session_id }}, session_entry_id:{{ session_entry_id }}, source: '{{ user.source }}', system_number: {{ user.system_number }}"
+                            >
+                                Change
+                            </button>
+
+                        </td>
+                    </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% else %}
+    <h3>
+        No matches found
+    </h3>
+{% endif %}

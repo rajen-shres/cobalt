@@ -649,11 +649,21 @@ def add_any_member_htmx(request, club):
 
 @login_required()
 def add_member_search_htmx(request):
-    """Search function for adding a member (registered, unregistered or from MPC)"""
+    """Search function for adding a member (registered, unregistered or from MPC)
+
+    This is also borrowed by the edit_session_entry screen in club_sessions to change
+    the user. They set a flag, so we can use their template instead of ours.
+
+    """
 
     first_name_search = request.POST.get("member_first_name_search")
     last_name_search = request.POST.get("member_last_name_search")
     club_id = request.POST.get("club_id")
+
+    # Things from our friends at club_sessions
+    edit_session_entry = request.POST.get("edit_session_entry")
+    session_id = request.POST.get("session_id")
+    session_entry_id = request.POST.get("session_entry_id")
 
     # if there is nothing to search for, don't search
     if not first_name_search and not last_name_search:
@@ -678,10 +688,22 @@ def add_member_search_htmx(request):
         if user["system_number"] in member_list:
             user["source"] = "member"
 
+    if edit_session_entry:
+        template = "club_sessions/manage/edit_entry/member_search_results_htmx.html"
+    else:
+        template = "organisations/club_menu/members/member_search_results_htmx.html"
+
     return render(
         request,
-        "organisations/club_menu/members/member_search_results_htmx.html",
-        {"user_list": user_list, "is_more": is_more},
+        template,
+        {
+            "user_list": user_list,
+            "is_more": is_more,
+            "edit_session_entry": edit_session_entry,
+            "club_id": club_id,
+            "session_id": session_id,
+            "session_entry_id": session_entry_id,
+        },
     )
 
 

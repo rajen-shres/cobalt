@@ -269,7 +269,7 @@ def _edit_session_entry_handle_post(request, club, session_entry):
 
 
 @user_is_club_director(include_session_entry=True)
-def edit_session_entry_htmx(request, club, session, session_entry):
+def edit_session_entry_htmx(request, club, session, session_entry, message=""):
     """Edit a single session_entry on the session page
 
     We hide a lot of extra things in the form for this view
@@ -284,7 +284,6 @@ def edit_session_entry_htmx(request, club, session, session_entry):
         form, message = _edit_session_entry_handle_post(request, club, session_entry)
     else:
         form = UserSessionForm(club=club, session_entry=session_entry)
-        message = ""
 
     # Check if payment method used is still valid
     valid_payment_methods = [item[1] for item in form.fields["payment_method"].choices]
@@ -825,3 +824,27 @@ def top_up_member_htmx(request, club, session, session_entry):
 
     # return whole edit page
     return edit_session_entry_htmx(request)
+
+
+@user_is_club_director(include_session_entry=True)
+def change_player_htmx(request, club, session, session_entry):
+    """Change a player to another"""
+
+    source = request.POST.get("source")
+    system_number = request.POST.get("system_number")
+    sitout = request.POST.get("sitout")
+    playing_director = request.POST.get("playing_director")
+    non_abf_visitor = request.POST.get("non_abf_visitor")
+    member_last_name_search = request.POST.get("member_last_name_search")
+    member_first_name_search = request.POST.get("member_first_name_search")
+
+    print(sitout)
+    print(playing_director)
+    print(non_abf_visitor)
+    print(member_last_name_search)
+    print(member_first_name_search)
+
+    # return whole edit page
+    return edit_session_entry_htmx(
+        request, message=f"Okey dokey - {source}, {system_number}"
+    )

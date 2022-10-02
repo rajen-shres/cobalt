@@ -101,6 +101,103 @@
             <!-- MESSAGE -->
             <h3 class="text-primary font-weight-bold" _="on load wait 5s then transition opacity to 0 then remove me">{{ message }}</h3>
 
+
+
+            <!-- CHANGE USER -->
+
+            <button class="btn btn-info" _="on click toggle .d-none on #change-user-box then remove me"><span class="material-icons">person</span> Change User</button>
+
+
+            <div class="card d-none col-md-8 mx-auto" id="change-user-box">
+                <div class="card-header card-header-danger">
+                    <h3>Change User</h3>
+                </div>
+                <div class="card" id="search-card">
+                    <p class="font-italic">Type to search, or enter full name for non-{{ GLOBAL_ORG }} visitor.
+                        Use the Sit Out or Playing Director buttons if appropriate.</p>
+
+
+                    <div class="container">
+
+                        <!-- LAST NAME SEARCH -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <input type="text"
+                                        id="id_member_last_name_search"
+                                        name="member_last_name_search"
+                                        placeholder="Last Name"
+                                        class="form-control name-search"
+                                        hx-post="{% url "organisations:club_menu_tab_members_add_member_search_htmx" %}"
+                                        hx-trigger="keyup changed delay:100ms"
+                                        hx-target="#add-member-search-results"
+                                        hx-include="[id='id_member_first_name_search']"
+                                        hx-vars="club_id: {{ club.id }}, edit_session_entry: 1, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FIRST NAME SEARCH -->
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <input type="text"
+                                        id="id_member_first_name_search"
+                                        name="member_first_name_search"
+                                        placeholder="First Name"
+                                        class="form-control name-search"
+                                        hx-post="{% url "organisations:club_menu_tab_members_add_member_search_htmx" %}"
+                                        hx-trigger="keyup changed delay:100ms"
+                                        hx-target="#add-member-search-results"
+                                        hx-include="[id='id_member_last_name_search']"
+                                        hx-vars="club_id: {{ club.id }}, edit_session_entry: 1, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BUTTONS FOR EDGE CASES -->
+
+                        <!-- CHANGE TO A NON-ABF VISITOR -->
+                        <button
+                            class="btn btn-sm btn-primary"
+                            hx-post="{% url "club_sessions:session_change_player_htmx" %}"
+                            hx-target="#id_pane_session"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}, non_abf_visitor:1"
+                            hx-include="[id='search-card']"
+                            {#                                                 hx-include="['#id_member_last_name_search, #id_member_first_name_search']"#}
+                        >
+                            Add Non-{{ GLOBAL_ORG }} Member
+                        </button>
+
+                        <button
+                            class="btn btn-sm btn-warning"
+                            hx-post="{% url "club_sessions:session_change_player_htmx" %}"
+                            hx-target="#id_pane_session"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}, sitout: 1"
+                        >
+                            Sit Out
+                        </button>
+
+                        <button
+                            class="btn btn-sm btn-warning"
+                            hx-post="{% url "club_sessions:session_change_player_htmx" %}"
+                            hx-target="#id_pane_session"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}, playing_director:1"
+                        >
+                            Playing Director
+                        </button>
+
+                        <!-- LOCATION FOR SEARCH RESULTS -->
+                        <div id="add-member-search-results"></div>
+
+                    </div>
+                </div>
+            </div>
+
+
             <!-- CARD FOR BASIC INFO -->
             <div class="container">
                 <div class="row">
@@ -136,14 +233,15 @@
                                         </div>
                                     </div>
 
-                                    <!-- SEARCH BUTTONS DEPENDING UPON USER TYPE -->
-                                    {% if form.is_user %}
-                                        <button id="user_change_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal9"><span class="material-icons">person</span> Change User</button>
-                                    {% endif %}
 
-                                    {% if form.is_un_reg %}
-                                        <button id="user_change_button" type="button" class="btn btn-info" data-toggle="modal" data-target="#userSearchModal99"><span class="material-icons">person</span> Change User</button>
-                                    {% endif %}
+
+
+
+
+                                    <!-- SEARCH BUTTONS DEPENDING UPON USER TYPE -->
+
+
+
 
                                     <!-- PLAYER NO - HIDDEN -->
                                     <input type="hidden" value="{{ form.player_no.value }}" name="player_no" id="id_player_no">
@@ -171,7 +269,7 @@
                                         <div class="col">
                                             <div class="form-group">
 
-                                                <!-- HANDLE PAYMENT METHOD NOT BEING VALID ANY MORE -->
+                                                <!-- HANDLE PAYMENT METHOD NOT BEING VALID ANYMORE -->
                                                 {% if not payment_method_is_valid %}
 
                                                     <h4>Payment method {{ session_entry.payment_method.payment_method }} is no longer accepted. Changing this entry in any way will change the payment method to a currently valid one</h4>
@@ -221,11 +319,23 @@
     </div>
 </div>
 
-
-{% include "accounts/search/user_search_include_htmx.html" with search_id=9 include_me=True callback="ChangeUser" %}
-{% include "accounts/search/user_search_include_htmx.html" with unregistered=True search_id=99 include_me=True callback="ChangeUser" %}
-
 <script>
+    function user_type_help(title, html){
+        html += "<br><br>There are three possible types of user listed here:<br><br>" +
+        "<span style=\"text-align: left;\">" +
+        "<ul>" +
+        "<li><b>Registered</b> - User has signed up for {{ GLOBAL_TITLE }}.</li>" +
+        "<li><b>Unregistered</b> - User has not signed up for {{ GLOBAL_TITLE }}, " +
+        "but a club administrator has added them to the system. " + "" +
+        "Unregistered users cannot use {{ GLOBAL_TITLE }} but can be set up as club members for administrative purposes.</li>" +
+        "<li><b>MPC</b> - User is a valid {{ GLOBAL_ORG }} member but has not been set " + "" +
+        "up in {{ GLOBAL_TITLE }} yet. You can add them and they will become an unregistered user.</li>" +
+        "</ul><span>"
+        swal.fire({ title:title, html: html, icon: "info"})
+        return false;
+    }
+
+
     function ChangeUser(search_id, user_id, user_name) {
         // update player number and name and display name
         $("#id_player_no").val(user_id);
