@@ -477,6 +477,10 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
         self.document_title = "Integration Testing Report"
         self.icon = "auto_stories"
 
+        # browser = "safari"
+        # If you want to try this again:
+        # https://stackoverflow.com/questions/63927063/selenium-not-connecting-to-safari-web-driver
+
         if not browser:
             browser = "chrome"
 
@@ -493,11 +497,14 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
                 options.headless = True
             self.driver = webdriver.Chrome(options=options)
 
-        if browser == "firefox":
+        elif browser == "firefox":
             options = FirefoxOptions()
             if headless:
                 options.headless = True
             self.driver = webdriver.Firefox(options=options)
+
+        elif browser == "safari":
+            self.driver = webdriver.Safari()
 
         # Default system-wide pwd
         self.test_code = "F1shcake"
