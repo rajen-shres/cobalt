@@ -35,6 +35,7 @@ from club_sessions.views.core import (
     pay_bridge_credit_for_extra,
     add_table,
     change_user_on_session_entry,
+    delete_table,
 )
 from club_sessions.views.decorators import user_is_club_director
 from cobalt.settings import ALL_SYSTEM_ACCOUNTS, BRIDGE_CREDITS, GLOBAL_CURRENCY_SYMBOL
@@ -194,10 +195,13 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
 
     if view_type == "table":
         # Handle table view
-        table_list, table_status = get_table_view_data(session, session_entries)
+        table_list, table_status, delete_table_available = get_table_view_data(
+            session, session_entries
+        )
     else:
         table_list = {}
         table_status = {}
+        delete_table_available = {}
 
     return render(
         request,
@@ -208,6 +212,7 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
             "session_entries": session_entries,
             "table_list": table_list,
             "table_status": table_status,
+            "delete_table_available": delete_table_available,
             "payment_methods": payment_methods,
             "payment_summary": payment_summary,
             "message": message,
@@ -744,6 +749,20 @@ def add_table_htmx(request, club, session):
 
 
 @user_is_club_director()
+def delete_table_htmx(request, club, session):
+    """Add a table to a session"""
+
+    table_number = request.POST.get("table_number")
+
+    if delete_table(session, table_number):
+        message = "Table deleted"
+    else:
+        message = "Unable to delete table"
+
+    return tab_session_htmx(request, message=message)
+
+
+@user_is_club_director()
 def process_off_system_payments_htmx(request, club, session):
     """mark all off system payments as paid - called from a big button. Only possible once bridge credits
     have been processed."""
@@ -847,6 +866,8 @@ def change_player_htmx(request, club, session, session_entry):
     member_first_name_search = request.POST.get("member_first_name_search")
 
     message = change_user_on_session_entry(
+        club,
+        session_entry,
         source,
         system_number,
         sitout,
@@ -854,6 +875,7 @@ def change_player_htmx(request, club, session, session_entry):
         non_abf_visitor,
         member_last_name_search,
         member_first_name_search,
+        request.user,
     )
 
     # return whole edit page

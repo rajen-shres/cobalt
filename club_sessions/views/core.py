@@ -16,6 +16,7 @@ from cobalt.settings import (
     BRIDGE_CREDITS,
     GLOBAL_CURRENCY_SYMBOL,
 )
+from masterpoints.factories import masterpoint_factory_creator
 from masterpoints.views import abf_checksum_is_valid
 from notifications.views.core import send_cobalt_email_to_system_number
 from organisations.models import ClubLog, Organisation
@@ -124,6 +125,9 @@ def get_session_fees_for_club(club):
 
 def get_session_fee_for_player(session_entry: SessionEntry, club: Organisation):
     """return correct fee for a player"""
+
+    if session_entry.system_number in [PLAYING_DIRECTOR, SITOUT]:
+        return Decimal(0)
 
     # Get membership. None for Guests
     membership = get_membership_for_player(session_entry.system_number, club)
@@ -899,6 +903,12 @@ def get_table_view_data(session, session_entries):
 
     table_list = {}
     table_status = {}
+    delete_table_available = {}
+
+    # Give up if no entries
+    if not session_entries:
+        return table_list, table_status, delete_table_available
+
     # put session_entries into a dictionary for the table view
     for session_entry in session_entries:
 
@@ -924,7 +934,21 @@ def get_table_view_data(session, session_entries):
             # unpaid entry, mark table as incomplete
             table_status[session_entry.pair_team_number] = False
 
-    return table_list, table_status
+    # Add delete option to last table if appropriate
+
+    last_table_session_entries = session_entries.filter(
+        pair_team_number=session_entry.pair_team_number
+    )
+    last_table_paid_entries = last_table_session_entries.filter(is_paid=True).exists()
+    last_table_extras = SessionMiscPayment.objects.filter(
+        session_entry__in=last_table_session_entries
+    ).exists()
+
+    # If there are no paid entries and no paid extras, then the table can be deleted
+    if not last_table_paid_entries and not last_table_extras:
+        delete_table_available = {session_entry.pair_team_number: True}
+
+    return table_list, table_status, delete_table_available
 
 
 def process_bridge_credits(session_entries, session, club, bridge_credits, extras):
@@ -1004,6 +1028,25 @@ def add_table(session):
         ).save()
 
 
+def delete_table(session, table_number):
+    """delete a table"""
+
+    last_table_session_entries = SessionEntry.objects.filter(
+        session=session, pair_team_number=table_number
+    )
+    last_table_paid_entries = last_table_session_entries.filter(is_paid=True).exists()
+    last_table_extras = SessionMiscPayment.objects.filter(
+        session_entry__in=last_table_session_entries
+    ).exists()
+
+    # If there are no paid entries and no paid extras, then the table can be deleted
+    if not last_table_paid_entries and not last_table_extras:
+        last_table_session_entries.delete()
+        return True
+
+    return False
+
+
 def recalculate_session_status(session: Session):
     """recalculate what state a session is in based upon the payment status of its session entries"""
 
@@ -1037,7 +1080,23 @@ def recalculate_session_status(session: Session):
     session.save()
 
 
+def reset_values_on_session_entry(session_entry: SessionEntry, club: Organisation):
+    """Reset common fields when a user is changed"""
+
+    # return values to defaults
+    session_entry.is_paid = False
+    session_entry.fee = get_session_fee_for_player(session_entry, club)
+
+    # TODO: Decide if we should do this or not
+    # Mark extras as unpaid - we can't get here with paid extras for Bridge Credits or IOUs
+    # SessionMiscPayment.objects.filter(session_entry=session_entry).update(payment_made=False)
+
+    return session_entry
+
+
 def change_user_on_session_entry(
+    club: Organisation,
+    session_entry: SessionEntry,
     source,
     system_number,
     sitout,
@@ -1045,7 +1104,106 @@ def change_user_on_session_entry(
     non_abf_visitor,
     member_last_name_search,
     member_first_name_search,
+    director,
 ):
-    """Handle changing the player on a session entry"""
+    """Handle changing the player on a session entry
 
-    return "Coming soon"
+    We could get:
+
+    source and system number for a User or UnregisteredUser
+    sitout - change to a sitout
+    playing_director - change to a playing director
+    non_abf_visitor - someone who isn't registered with the ABF, also get the first and last name
+
+    If Bridge Credits or IOUs are in place, we reject the change
+
+    """
+
+    if session_entry.payment_method:
+
+        # Check for bridge credits already paid
+        if (
+            session_entry.payment_method.payment_method == "Bridge Credits"
+            and session_entry.is_paid
+        ):
+            return f"{BRIDGE_CREDITS} have been paid for this entry. You need to refund them before you can change the player."
+
+        # Check for IOUs already paid
+        if (
+            session_entry.payment_method.payment_method == "IOU"
+            and session_entry.is_paid
+        ):
+            return "IOUs have been paid for this entry. You need to reverse them before you can change the player."
+
+    # Check for paid extras
+    bad_extras = (
+        SessionMiscPayment.objects.filter(session_entry=session_entry)
+        .filter(payment_made=True)
+        .filter(payment_method__payment_method__in=["Bridge Credits", "IOU"])
+        .exists()
+    )
+    if bad_extras:
+        return "Extras have been paid for this entry which need to be reversed before changing the player."
+
+    # Non-paying people
+    if sitout:
+        return change_user_on_session_entry_non_player(
+            SITOUT, session_entry, club, "Player changed to Sit Out"
+        )
+
+    if playing_director:
+        return change_user_on_session_entry_non_player(
+            PLAYING_DIRECTOR, session_entry, club, "Player changed to Playing Director"
+        )
+
+    # Non-ABF visitor
+    if non_abf_visitor:
+        session_entry.system_number = VISITOR
+        session_entry = reset_values_on_session_entry(session_entry, club)
+        session_entry.player_name_from_file = (
+            f"{member_first_name_search} {member_last_name_search}"
+        )
+        session_entry.save()
+        return f"Player changed to a visitor with no {GLOBAL_ORG} number"
+
+    # Registered or Unregistered User
+    if system_number:
+
+        if source == "mpc":
+            # We don't know about this user, so add them. We don't add an email address though
+
+            # lookup name from system_number
+            mp_source = masterpoint_factory_creator()
+            status, return_value = mp_source.system_number_lookup_api(system_number)
+
+            if not status:
+                return f"Error looking up {GLOBAL_ORG} Number: {system_number}"
+
+            UnregisteredUser(
+                system_number=system_number,
+                last_updated_by=director,
+                last_name=return_value[1],
+                first_name=return_value[0],
+                origin="Manual",
+                added_by_club=club,
+            ).save()
+            ClubLog(
+                organisation=club,
+                actor=director,
+                action=f"Added un-registered user {return_value[0]} {return_value[1]}",
+            ).save()
+
+        return change_user_on_session_entry_non_player(
+            system_number, session_entry, club, "Player changed"
+        )
+
+    return "Error Occurred. Should not reach here."
+
+
+def change_user_on_session_entry_non_player(player_type, session_entry, club, message):
+    """sub of change_user_on_session_entry"""
+
+    session_entry.system_number = player_type
+    session_entry = reset_values_on_session_entry(session_entry, club)
+    session_entry.save()
+    return message

@@ -122,6 +122,9 @@
                                 {# Get table complete status from dictionary #}
                                 {% cobalt_dict_key_tag table_status table_no as table_complete %}
 
+                                {# Get table complete status from dictionary #}
+                                {% cobalt_dict_key_tag delete_table_available table_no as table_deletable %}
+
                                 <!-- TABLE ICON -->
                                 <td style="width: 100px; border: none;">
                                     <span
@@ -141,6 +144,20 @@
                                         {% else %}
                                             <span class="material-icons">priority_high</span>
                                         {% endif %}
+
+                                        {% if table_deletable %}
+                                            <div class="w-100"></div>
+
+                                            <div class="material-icons text-dark"
+                                                title="Delete this table"
+                                                data-toggle="tooltip"
+                                                hx-post="{% url "club_sessions:delete_table_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, table_number:{{ table_no }}"
+                                                hx-target="#id_pane_session"
+
+                                            >delete_forever</div>
+                                        {% endif %}
+
                                     </span>
                                 </td>
 

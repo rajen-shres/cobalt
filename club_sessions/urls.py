@@ -94,6 +94,11 @@ urlpatterns = [
         name="add_table_htmx",
     ),
     path(
+        "session/delete-table",
+        club_sessions.views.manage_session.delete_table_htmx,
+        name="delete_table_htmx",
+    ),
+    path(
         "reports/reconciliation",
         reports.reconciliation_htmx,
         name="reports_reconciliation_htmx",

@@ -45,7 +45,6 @@
 
     </div>
 
-
     <h1>Contact Us</h1>
     {% if not is_human %}
         <h2>Form not submitted. Google thinks you are a robot</h2>
@@ -58,20 +57,33 @@
                     {{ form.as_table }}
                 </table>
                 <button class="g-recaptcha"
+                    id="id_submit_button"
                     data-sitekey="{{ site_key }}"
                     data-callback='onSubmit'
                     data-action='submit'>Send</button>
+                <button id="id_sending_button" disabled style="display: none">
+                    Sending...
+                </button>
                 <a href="/" >Cancel</a>
             </form>
         </div>
     </div>
 
-
 {% endblock %}
+
 {% block footer %}
     <script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
     <script src="https://www.google.com/recaptcha/api.js"></script>
     <script>
+        $(document).ready( function () {
+
+            // prevent double clickers
+            $("#id_submit_button").click(function(evt){
+                $("#id_submit_button").hide();
+                $("#id_sending_button").show();
+            })
+        });
+
         function onSubmit(token) {
             document.getElementById("contactform").submit();
         }
