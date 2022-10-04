@@ -102,7 +102,7 @@
 
     <div id="id_panel_sessions"
         hx-post="{% url "organisations:club_menu_tab_sessions_htmx" %}"
-        hx-trigger="load, tab_load_event"
+        hx-trigger="load, tab_load_event from:body"
         hx-vars="club_id:{{ club.id }}"
     ></div>
 </div>
@@ -111,15 +111,14 @@
 
 <script>
 
-    if (typeof already_called2 == 'undefined') {
-        console.log("2 it was undefined");
-        var already_called2 = 10;
+    // This gets loaded multiple times, so we need to only register the callback once or multiple windows get opened
+    // Use a variable to count how many times we have been loaded.
+    if (typeof already_called_global == 'undefined') {
+        var already_called_global = 0;
     }
 
     // function to open window after upload
     function open_new_window(evt){
-
-        console.log("received file_upload_finished");
 
         let win;
 
@@ -150,38 +149,15 @@
         }
     }
 
-
-
     $(document).ready( function () {
-
 
         // activate selectpicker
         $('.selectpicker').selectpicker();
 
-        if (typeof already_called == 'undefined') {
-            console.log("it was undefined");
-            var already_called = 1;
-        }
+        if (already_called_global === 0){
 
-        console.log(typeof already_called);
-        console.log(typeof already_called2);
-
-
-
-        console.log(already_called);
-        console.log(already_called2);
-        already_called += 1;
-        already_called2 += 1;
-        console.log(already_called);
-        console.log(already_called2);
-
-        if (already_called2 < 12){
-
-
-            {#console.log(jQuery._data( document.body, "events" ));#}
-
-            {#// prevent duplicate listeners#}
-            {#document.body.removeEventListener("file_upload_finished", open_new_window);#}
+            // register listener and stop it happening again
+            already_called_global += 1;
 
             // We listen to be notified that the file upload has happened, and open a new tab
             document.body.addEventListener("file_upload_finished", open_new_window);
