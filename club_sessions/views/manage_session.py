@@ -20,8 +20,8 @@ from club_sessions.views.core import (
     get_allowed_payment_methods,
     get_summary_table_data,
     get_table_view_data,
-    handle_iou_changes,
-    handle_bridge_credit_changes,
+    edit_session_entry_handle_ious,
+    edit_session_entry_handle_bridge_credits,
     recalculate_session_status,
     handle_iou_changes_off,
     handle_iou_changes_on,
@@ -36,6 +36,7 @@ from club_sessions.views.core import (
     add_table,
     change_user_on_session_entry,
     delete_table,
+    edit_session_entry_handle_other,
 )
 from club_sessions.views.decorators import user_is_club_director
 from cobalt.settings import ALL_SYSTEM_ACCOUNTS, BRIDGE_CREDITS, GLOBAL_CURRENCY_SYMBOL
@@ -232,33 +233,76 @@ def _edit_session_entry_handle_post(request, club, session_entry):
         return form, "There were errors on the form"
 
     # The "after" data is on the form, the "before" data is on the session_entry
-    # new_payment_method = form.cleaned_data["payment_method"]
-    # old_payment_method = session_entry.payment_method
+    # It makes the code easier to follow if we are explicit about which is which
+
+    old_payment_method = session_entry.payment_method
+    if "payment_method" in form.changed_data:
+        new_payment_method = OrgPaymentMethod.objects.get(
+            pk=form.cleaned_data["payment_method"]
+        )
+    else:
+        new_payment_method = old_payment_method
+
+    old_fee = session_entry.fee
+    new_fee = form.cleaned_data["fee"]
+    old_is_paid = session_entry.is_paid
+    new_is_paid = form.cleaned_data["is_paid"]
 
     # get user type
     is_user = request.POST.get("is_user")
 
-    # Handle session data
-    session_entry.fee = form.cleaned_data["fee"]
-    payment_method = OrgPaymentMethod.objects.get(
-        pk=form.cleaned_data["payment_method"]
-    )
+    # The payment method dictates most of the logic
+    handled_flag = False
 
-    # Handle IOUs and bridge_credits
-    if "payment_method" in form.changed_data:
-        handle_iou_changes(payment_method, club, session_entry, request.user)
+    # Handle bridge credits being impacted
+    if "Bridge Credits" in [
+        new_payment_method.payment_method,
+        old_payment_method.payment_method,
+    ]:
+        message, session_entry = edit_session_entry_handle_bridge_credits(
+            club,
+            session_entry,
+            request.user,
+            is_user,
+            old_payment_method,
+            new_payment_method,
+            old_fee,
+            new_fee,
+            old_is_paid,
+            new_is_paid,
+        )
+        handled_flag = True
 
-        # Handle bridge credits being changed to something else
-        if is_user:
-            status, message = handle_bridge_credit_changes(
-                payment_method, club, session_entry, request.user, message
-            )
+    # Handle IOUs (Could be bridge credits and IOUs involved)
+    if "IOU" in [new_payment_method.payment_method, old_payment_method.payment_method]:
+        message, session_entry = edit_session_entry_handle_ious(
+            club,
+            session_entry,
+            request.user,
+            is_user,
+            old_payment_method,
+            new_payment_method,
+            old_fee,
+            new_fee,
+            old_is_paid,
+            new_is_paid,
+        )
+        handled_flag = True
 
-    # TODO: Handle just paying with bridge credits or IOU, doesn't need to have changed type
-
-    session_entry.is_paid = bool(form.cleaned_data["is_paid"])
-    session_entry.payment_method = payment_method
-    session_entry.save()
+    # Handle any other cases
+    if not handled_flag:
+        message, session_entry = edit_session_entry_handle_other(
+            club,
+            session_entry,
+            request.user,
+            is_user,
+            old_payment_method,
+            new_payment_method,
+            old_fee,
+            new_fee,
+            old_is_paid,
+            new_is_paid,
+        )
 
     # reset form and return
     form = UserSessionForm(club=club, session_entry=session_entry)
@@ -793,7 +837,6 @@ def top_up_member_htmx(request, club, session, session_entry):
 
     """
     if "save" not in request.POST:
-
         # Payment methods are anything except Bridge Credits and IOUs
         payment_methods = OrgPaymentMethod.objects.filter(
             active=True, organisation=club

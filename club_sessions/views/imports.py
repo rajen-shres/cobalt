@@ -249,7 +249,6 @@ def import_file_upload_htmx(request):
 
     response = tab_sessions_htmx(request)
     response["HX-Trigger"] = f"""{{"file_upload_finished":{{"id": "{session.id}" }}}}"""
-    print("Sending file_upload_finished")
     return response
 
 
@@ -282,7 +281,7 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         )
 
     # set payment method based upon user type
-    if user_type == "user" and system_number not in [VISITOR, PLAYING_DIRECTOR]:
+    if user_type == "user" and system_number not in [VISITOR, PLAYING_DIRECTOR, SITOUT]:
         payment_method = OrgPaymentMethod.objects.filter(
             organisation=club, active=True, payment_method="Bridge Credits"
         ).first()

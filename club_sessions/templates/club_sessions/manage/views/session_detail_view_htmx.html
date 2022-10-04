@@ -126,17 +126,43 @@
 
                     <!-- ENTRY FEE -->
 
-                    <td id="id_session_entry_fee_{{ session_entry.id }}">
-                        {{ session_entry.fee|default_if_none:'-' }}
-                    </td>
+                    {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
+                        <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
+
+                        <td></td>
+
+                    {% else %}
+
+                        <td id="id_session_entry_fee_{{ session_entry.id }}">
+                            {{ session_entry.fee|default_if_none:'-' }}
+                        </td>
+
+                    {% endif %}
 
                     <!-- EXTRAS -->
 
-                    <td>{{ session_entry.extras }}</td>
+                    {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
+                        <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
+
+                        <td></td>
+
+                    {% else %}
+
+                        <td>{{ session_entry.extras }}</td>
+
+                    {% endif %}
 
                     <!-- PLAYER TOTAL -->
 
-                    <td>{{ session_entry.total }}</td>
+                    {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
+                        <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
+                        <td></td>
+
+                    {% else %}
+
+                        <td>{{ session_entry.total }}</td>
+
+                    {% endif %}
 
                     <!-- PAYMENT METHOD -->
 

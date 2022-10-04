@@ -134,7 +134,7 @@ def get_session_fee_for_player(session_entry: SessionEntry, club: Organisation):
 
     session_type_payment_method_membership = (
         SessionTypePaymentMethodMembership.objects.filter(
-            session_type_payment_method__session_type=session_entry.session.session_type
+            session_type_payment_method__payment_method=session_entry.payment_method
         )
         .filter(membership=membership)
         .first()
@@ -334,9 +334,7 @@ def calculate_payment_method_and_balance(session_entries, session_fees, club):
         )
     }
 
-    bridge_credit_payment_method = OrgPaymentMethod.objects.filter(
-        organisation=club, payment_method=BRIDGE_CREDITS, active=True
-    ).first()
+    bridge_credit_payment_method = bridge_credits_for_club(club)
 
     # Go through and add balance to session entries
     for session_entry in session_entries:
@@ -352,7 +350,7 @@ def calculate_payment_method_and_balance(session_entries, session_fees, club):
         if (
             session_entry.payment_method
             and not session_entry.fee
-            and not session_entry.system_number == PLAYING_DIRECTOR
+            and session_entry.system_number not in [PLAYING_DIRECTOR, SITOUT]
         ):
             session_entry.fee = session_fees[session_entry.membership][
                 session_entry.payment_method.payment_method
@@ -368,16 +366,66 @@ def calculate_payment_method_and_balance(session_entries, session_fees, club):
     return session_entries
 
 
-def handle_iou_changes(payment_method, club, session_entry, administrator):
-    """handle the payment type toggling between IOU and something else"""
+def edit_session_entry_handle_ious(
+    club,
+    session_entry,
+    administrator,
+    is_user,
+    old_payment_method,
+    new_payment_method,
+    old_fee,
+    new_fee,
+    old_is_paid,
+    new_is_paid,
+):
+    """handle the director changing anything on a session entry that relates to IOUs"""
 
-    # Check for turning on
-    if payment_method.payment_method == "IOU":
+    iou = iou_for_club(club)
+    bridge_credits = bridge_credits_for_club(club)
+
+    # Check for changing amount on already paid IOU
+    if (
+        new_payment_method == iou
+        and old_payment_method == iou
+        and old_is_paid
+        and old_fee != new_fee
+    ):
+        return (
+            "Cannot change amount of a paid IOU. You may need to do this in two steps.",
+            session_entry,
+        )
+
+    # Check for turning on - can happen by changing payment method with paid flag on, or by just changing the flag
+    if (new_payment_method == iou and old_payment_method != iou and new_is_paid) or (
+        new_payment_method == iou
+        and old_payment_method == iou
+        and new_is_paid
+        and not old_is_paid
+    ):
+        session_entry.payment_method = new_payment_method
+        session_entry.fee = new_fee
+        session_entry.is_paid = True
+        session_entry.save()
         handle_iou_changes_on(club, session_entry, administrator)
+        return "Data saved. IOU set up.", session_entry
 
-    # Check for turning off
-    if session_entry.payment_method.payment_method == "IOU":
+    # Check for turning off - can be change of type or change of flag
+    if (new_payment_method != iou and old_payment_method == iou and old_is_paid) or (
+        new_payment_method == iou
+        and old_payment_method == iou
+        and old_is_paid
+        and not new_is_paid
+    ):
+        session_entry.payment_method = new_payment_method
+        session_entry.fee = new_fee
+
+        # Watch out for bridge credits - don't accidentally mark as paid
+        if new_payment_method != bridge_credits:
+            session_entry.is_paid = new_is_paid
+
+        session_entry.save()
         handle_iou_changes_off(club, session_entry)
+        return "Data saved. IOU deleted.", session_entry
 
 
 def handle_iou_changes_on(club, session_entry, administrator):
@@ -418,6 +466,8 @@ def handle_iou_changes_on(club, session_entry, administrator):
 def handle_iou_changes_off(club, session_entry):
     """Turn off using an IOU"""
 
+    # TODO: What about IOU extras?
+
     UserPendingPayment.objects.filter(
         organisation=club,
         system_number=session_entry.system_number,
@@ -425,49 +475,109 @@ def handle_iou_changes_off(club, session_entry):
     ).delete()
 
 
-def handle_bridge_credit_changes(
-    payment_method, club, session_entry, director, message
+def edit_session_entry_handle_bridge_credits(
+    club,
+    session_entry,
+    director,
+    is_user,
+    old_payment_method,
+    new_payment_method,
+    old_fee,
+    new_fee,
+    old_is_paid,
+    new_is_paid,
 ):
-    """When the director changes payment method from bridge credit to something else, we need to handle refunds
-    if payment already made.
-
-    If they change from something else to Bridge Credits then we need to change the status of the session.
+    """Handle a director making any changes to an entry that involve bridge credits.
 
     Returns:
-        status(boolean): is it okay to continue, True/False
         message(str): message to return to user, can be empty
+        session_entry(SessionEntry)
 
     """
 
+    if not is_user:
+        return "Player is not a registered user.", session_entry
+
+    # Get Bridge Credits
     bridge_credit_payment_method = bridge_credits_for_club(club)
 
-    if (
-        session_entry.payment_method != bridge_credit_payment_method
-        and payment_method != bridge_credit_payment_method
-    ):
-        # No bridge credits involved (not old payment method or new)
-        return True, message
+    # If this isn't paid, and we change it then no problem
+    if not old_is_paid and not new_is_paid:
+        session_entry.payment_method = new_payment_method
+        session_entry.fee = new_fee
+        session_entry.save()
+        return "Data saved", session_entry
 
+    # if it was paid using bridge credits, and we change the fee, block the change
     if (
-        session_entry.payment_method == bridge_credit_payment_method
-        and session_entry.is_paid
+        old_payment_method == bridge_credit_payment_method
+        and old_is_paid
+        and old_fee != new_fee
     ):
-        return handle_bridge_credit_changes_refund(club, session_entry, director)
+        return (
+            "Cannot change the amount of an entry paid with Bridge Credits. You may need to do this in two steps, "
+            "or use Extras.",
+            session_entry,
+        )
 
-    if payment_method == bridge_credit_payment_method:
-        # New payment method is bridge credits. Force status to be pending bridge credits
+    # if it has gone from unpaid to paid, and new_payment_method is bridge credits, then change it but
+    # also mark session as pending payment of bridge credits, and mark this as unpaid
+    if (
+        new_payment_method == bridge_credit_payment_method
+        and old_payment_method != bridge_credit_payment_method
+    ):
+        session_entry.fee = new_fee
+        session_entry.is_paid = False
+        session_entry.payment_method = new_payment_method
+        session_entry.save()
+
         session_entry.session.status = Session.SessionStatus.DATA_LOADED
         session_entry.session.save()
 
-        # Mark entry as unpaid - don't drop paid extras though
-        session_entry.is_paid = False
-        session_entry.save()
-        return True, message
+        return "Data saved", session_entry
 
-    else:
-        # Was bridge credits, but isn't now. Mark as unpaid
-        session_entry.is_paid = False
-        session_entry.save()
+    # If we have changed from bridge credits, then process refund
+    if (
+        new_payment_method != bridge_credit_payment_method
+        and old_payment_method == bridge_credit_payment_method
+    ):
+
+        return handle_bridge_credit_changes_refund(
+            club,
+            session_entry,
+            director,
+            old_fee,
+            new_fee,
+            new_payment_method,
+            new_is_paid,
+        )
+
+
+def edit_session_entry_handle_other(
+    club,
+    session_entry,
+    director,
+    is_user,
+    old_payment_method,
+    new_payment_method,
+    old_fee,
+    new_fee,
+    old_is_paid,
+    new_is_paid,
+):
+    """Handle a director making any changes to an entry that don't involve bridge credits or IOUs.
+
+    Returns:
+        message(str): message to return to user, can be empty
+        session_entry(SessionEntry)
+    """
+
+    session_entry.is_paid = new_is_paid
+    session_entry.fee = new_fee
+    session_entry.payment_method = new_payment_method
+    session_entry.save()
+
+    return "Data saved", session_entry
 
 
 def pay_bridge_credit_for_extra(
@@ -476,7 +586,6 @@ def pay_bridge_credit_for_extra(
     club: Organisation,
     member: User,
 ):
-
     """Handle a director paying for an extra from the edit panel using bridge credits
 
     Returns:
@@ -526,17 +635,19 @@ def refund_bridge_credit_for_extra(
     ).save()
 
 
-def handle_bridge_credit_changes_refund(club, session_entry, director):
+def handle_bridge_credit_changes_refund(
+    club, session_entry, director, old_fee, new_fee, new_payment_method, new_is_paid
+):
     """Handle situation where a refund is required for a session entry"""
 
-    if org_balance(club) < session_entry.fee:
-        return False, "Club has insufficient funds for this refund"
+    if org_balance(club) < old_fee:
+        return "Club has insufficient funds for this refund", session_entry
 
     player = User.objects.filter(system_number=session_entry.system_number).first()
 
     update_account(
         member=player,
-        amount=session_entry.fee,
+        amount=old_fee,
         description=f"{BRIDGE_CREDITS} returned for {session_entry.session}",
         payment_type="Refund",
         organisation=club,
@@ -544,7 +655,7 @@ def handle_bridge_credit_changes_refund(club, session_entry, director):
 
     update_organisation(
         organisation=club,
-        amount=-session_entry.fee,
+        amount=-old_fee,
         description=f"{BRIDGE_CREDITS} returned for {session_entry.session}",
         payment_type="Refund",
         member=player,
@@ -554,10 +665,17 @@ def handle_bridge_credit_changes_refund(club, session_entry, director):
     ClubLog(
         organisation=club,
         actor=director,
-        action=f"Refunded {player} {GLOBAL_CURRENCY_SYMBOL}{session_entry.fee:.2f} for session",
+        action=f"Refunded {player} {GLOBAL_CURRENCY_SYMBOL}{old_fee:.2f} for session",
     ).save()
 
-    return True, "Player refunded"
+    # If new payment method is IOU then leave that for the IOU handler to deal with
+    if new_payment_method.payment_method != "IOU":
+        session_entry.is_paid = new_is_paid
+        session_entry.fee = new_fee
+        session_entry.payment_method = new_payment_method
+        session_entry.save()
+
+    return f"{BRIDGE_CREDITS} refunded to player", session_entry
 
 
 def session_totals_calculations(
@@ -969,8 +1087,6 @@ def process_bridge_credits(session_entries, session, club, bridge_credits, extra
         amount_paid = float(session_entry.fee) if session_entry.is_paid else 0
         fee = float(session_entry.fee) if session_entry.fee else 0
         amount = fee - amount_paid + extras.get(session_entry.id, 0)
-
-        print(session_entry, amount)
 
         # Try payment
         member = users_by_system_number[session_entry.system_number]
