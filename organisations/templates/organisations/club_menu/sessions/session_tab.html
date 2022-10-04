@@ -110,43 +110,85 @@
 
 
 <script>
+
+    if (typeof already_called2 == 'undefined') {
+        console.log("2 it was undefined");
+        var already_called2 = 10;
+    }
+
+    // function to open window after upload
+    function open_new_window(evt){
+
+        console.log("received file_upload_finished");
+
+        let win;
+
+        const session_id = evt.detail.id;
+
+        // Try to open window
+        win = window.open("{% url "club_sessions:manage_session_no_id" %}/" + session_id, '_blank');
+
+        // The second time through win is set to null. Not ideal but seems to work
+        if (win) {
+            //Browser has allowed it to be opened
+            if (win) {
+                win.focus();
+            }
+            // Now reload this page as the dropdown freezes
+            htmx.ajax('POST', '{% url "organisations:refresh_sessions_tab" %}', {'target': '#sessions', 'values': {'club_id': {{ club.id }},}});
+
+        } else {
+            //Browser has blocked it
+            swal.fire({
+                title: "Popups may be blocked",
+                html: "Session created but your browser is telling us that it is blocking popups from this site (some browsers lie) so we can't open the session automatically. You can click edit below to go to the session page. To avoid this message in future, allow popups for this site.",
+                icon: "info"
+            }).then((result) => {
+                // Now reload this page as the dropdown freezes
+                htmx.ajax('POST', '{% url "organisations:refresh_sessions_tab" %}', {'target': '#sessions', 'values': {'club_id': {{ club.id }},}});
+            });
+        }
+    }
+
+
+
     $(document).ready( function () {
+
 
         // activate selectpicker
         $('.selectpicker').selectpicker();
 
-        let win;
+        if (typeof already_called == 'undefined') {
+            console.log("it was undefined");
+            var already_called = 1;
+        }
 
-        // We listen to be notified that the file upload has happened, and open a new tab
-        document.body.addEventListener("file_upload_finished", function(evt){
+        console.log(typeof already_called);
+        console.log(typeof already_called2);
 
-            const session_id = evt.detail.id;
 
-            // Try to open window
-            win = window.open("{% url "club_sessions:manage_session_no_id" %}/" + session_id, '_blank');
 
-            // The second time through win is set to null. Not ideal but seems to work
-            if (win) {
-                //Browser has allowed it to be opened
-                if (win) {
-                    win.focus();
-                }
-                // Now reload this page as the dropdown freezes
-                htmx.ajax('POST', '{% url "organisations:refresh_sessions_tab" %}', {'target': '#sessions', 'values': {'club_id': {{ club.id }},}});
+        console.log(already_called);
+        console.log(already_called2);
+        already_called += 1;
+        already_called2 += 1;
+        console.log(already_called);
+        console.log(already_called2);
 
-            } else {
-                //Browser has blocked it
-                swal.fire({
-                    title: "Popups may be blocked",
-                    html: "Session created but your browser is telling us that it is blocking popups from this site (some browsers lie) so we can't open the session automatically. You can click edit below to go to the session page. To avoid this message in future, allow popups for this site.",
-                    icon: "info"
-                }).then((result) => {
-                    // Now reload this page as the dropdown freezes
-                    htmx.ajax('POST', '{% url "organisations:refresh_sessions_tab" %}', {'target': '#sessions', 'values': {'club_id': {{ club.id }},}});
-                });
-            }
+        if (already_called2 < 12){
 
-        })
+
+            {#console.log(jQuery._data( document.body, "events" ));#}
+
+            {#// prevent duplicate listeners#}
+            {#document.body.removeEventListener("file_upload_finished", open_new_window);#}
+
+            // We listen to be notified that the file upload has happened, and open a new tab
+            document.body.addEventListener("file_upload_finished", open_new_window);
+
+        }
+
     });
+
 </script>
 

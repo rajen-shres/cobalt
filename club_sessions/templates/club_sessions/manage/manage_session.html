@@ -129,13 +129,78 @@
                         {% endif %}
 
                         <!-- THIS IS THE ACTUAL DIV FOR SESSIONS -->
-                        <div id="id_pane_session"
-                            hx-post="{% url "club_sessions:tab_session_htmx" %}"
-                            hx-trigger="load, tab_load_event, reload_sessions from:body"
-                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
-                            hx-target="#id_pane_session"
-                            hx-indicator="#spinner"
-                        ></div>
+                        <div id="id_pane_session_main">
+
+                            <!-- SPINNER -->
+                            <div class='justify-content-center text-center'>
+                                <span class="htmx-indicator" id="low_spinner">
+                                    <img style="width: 40px" src="{% static "assets/img/spinners/bars.svg" %}"/>
+                                </span>
+                            </div>
+
+                            <!-- TOP VIEW CHOICES - SUMMARY, DETAIL, TABLE VIEWS -->
+
+                            <div class="text-center">
+                                <div id="radio-view-options" class="btn-group btn-group-toggle" data-toggle="buttons">
+                                    <form class="view-type-radio"></form>
+
+                                    <!-- SUMMARY VIEW (DEFAULT) -->
+                                    <label class="btn btn-success active"
+                                        class="btn btn-success"
+                                        hx-post="{% url "club_sessions:tab_session_htmx" %}"
+                                        hx-trigger="load, click"
+                                        hx-target="#id_pane_session"
+                                        hx-indicator="#low_spinner"
+                                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, view_type: 'summary'"
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="summary"
+                                            id="option-summary"
+                                            autocomplete="off"
+                                            checked
+                                        > Summary
+                                    </label>
+
+                                    <!-- DETAIL VIEW -->
+                                    <label
+                                        class="btn btn-success {% if option == "detail" %}active{% endif %}"
+                                        hx-post="{% url "club_sessions:tab_session_htmx" %}"
+                                        hx-target="#id_pane_session"
+                                        hx-indicator="#low_spinner"
+                                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, view_type: 'detail'"
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="detail"
+                                            id="option-summary"
+                                            autocomplete="off"
+                                        > Detail
+                                    </label>
+
+                                    <!-- TABLE VIEW -->
+                                    <label
+                                        class="btn btn-success {% if option == "table" %}active{% endif %}"
+                                        hx-post="{% url "club_sessions:tab_session_htmx" %}"
+                                        hx-target="#id_pane_session"
+                                        hx-indicator="#low_spinner"
+                                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, view_type: 'table'"
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="table"
+                                            id="option-summary"
+                                            autocomplete="off"
+                                        > Table View
+                                    </label>
+
+                                </div>
+                            </div>
+
+                            <!-- MAIN PART OF SESSION TAB THAT HOLDS THE DIFFERENT VIEWS -->
+                            <div id="id_pane_session" style="min-height: 600px"></div>
+
+                        </div>
                     </div>
 
                     <!-- REPORTS -->

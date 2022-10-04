@@ -8,6 +8,9 @@
 
     <div class="card-header card-header-primary">
         <h4>Top Up</h4>
+        {% if player.stripe_auto_confirmed == "On" %}
+            <h3>NOTE: {{ player.first_name }} has auto top up enabled</h3>
+        {% endif %}
         <p class="font-italic">This will transfer money from the club to the player's account.
             Use the Pay By field to record how the player paid the club.</p>
     </div>

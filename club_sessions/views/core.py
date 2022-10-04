@@ -527,7 +527,7 @@ def refund_bridge_credit_for_extra(
 
 
 def handle_bridge_credit_changes_refund(club, session_entry, director):
-    """Handle situation where a refund is required for s session entry"""
+    """Handle situation where a refund is required for a session entry"""
 
     if org_balance(club) < session_entry.fee:
         return False, "Club has insufficient funds for this refund"

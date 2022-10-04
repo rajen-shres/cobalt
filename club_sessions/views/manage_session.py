@@ -231,26 +231,18 @@ def _edit_session_entry_handle_post(request, club, session_entry):
         print(form.errors)
         return form, "There were errors on the form"
 
+    # The "after" data is on the form, the "before" data is on the session_entry
+    # new_payment_method = form.cleaned_data["payment_method"]
+    # old_payment_method = session_entry.payment_method
+
     # get user type
     is_user = request.POST.get("is_user")
-    is_un_reg = request.POST.get("is_un_reg")
 
     # Handle session data
     session_entry.fee = form.cleaned_data["fee"]
     payment_method = OrgPaymentMethod.objects.get(
         pk=form.cleaned_data["payment_method"]
     )
-
-    # Handle player being changed
-    new_user_id = form.cleaned_data["player_no"]
-    system_number = None
-    if new_user_id:
-        if is_user:
-            system_number = User.objects.get(pk=new_user_id).system_number
-        elif is_un_reg:
-            system_number = UnregisteredUser.objects.get(pk=new_user_id).system_number
-    if system_number:
-        session_entry.system_number = system_number
 
     # Handle IOUs and bridge_credits
     if "payment_method" in form.changed_data:
@@ -318,7 +310,6 @@ def edit_session_entry_htmx(request, club, session, session_entry, message=""):
     recalculate_session_status(session)
 
     # We might have changed the status of the session, so reload totals
-    # TODO: CAUSES LOOP
     response["HX-Trigger"] = "update_totals"
 
     return response
@@ -808,6 +799,8 @@ def top_up_member_htmx(request, club, session, session_entry):
             active=True, organisation=club
         ).exclude(payment_method__in=["Bridge Credits", "IOU"])
 
+        player = get_object_or_404(User, system_number=session_entry.system_number)
+
         return render(
             request,
             "club_sessions/manage/edit_entry/top_up_member_balance_htmx.html",
@@ -816,6 +809,7 @@ def top_up_member_htmx(request, club, session, session_entry):
                 "session": session,
                 "session_entry": session_entry,
                 "payment_methods": payment_methods,
+                "player": player,
             },
         )
 

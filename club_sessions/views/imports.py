@@ -249,6 +249,7 @@ def import_file_upload_htmx(request):
 
     response = tab_sessions_htmx(request)
     response["HX-Trigger"] = f"""{{"file_upload_finished":{{"id": "{session.id}" }}}}"""
+    print("Sending file_upload_finished")
     return response
 
 

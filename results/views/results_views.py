@@ -310,6 +310,18 @@ def usebio_mp_pairs_details_view(request, results_file_id, pair_id):
     last_opponent = 0
     bg_colour = False
 
+    if "BOARD" not in usebio:
+        return render(
+            request,
+            "results/usebio/usebio_no_boards_warning.html",
+            {
+                "usebio": usebio,
+                "results_file": results_file,
+                "pair_id": pair_id,
+                "pair_name": player_dict["names"][pair_id],
+            },
+        )
+
     for board in usebio["BOARD"]:
         board_number = int(board.get("BOARD_NUMBER"))
         for traveller_line in board.get("TRAVELLER_LINE"):
