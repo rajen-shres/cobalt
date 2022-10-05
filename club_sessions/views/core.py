@@ -552,6 +552,8 @@ def edit_session_entry_handle_bridge_credits(
             new_is_paid,
         )
 
+    return "Oops", session_entry
+
 
 def edit_session_entry_handle_other(
     club,
