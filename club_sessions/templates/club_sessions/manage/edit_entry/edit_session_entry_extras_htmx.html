@@ -7,7 +7,27 @@
 {#---------------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 
-<div class="card" id="extras">
+<!-- HIDE EXTRAS IF NOTHING TO SHOW -->
+{% if not user_pending_payments and not session_misc_payments %}
+
+    <div class="text-center">
+        <a href="javascript: void(0);"
+            _="on click show #extras then hide me"
+            class="btn btn-sm btn-primary"
+        >
+            extras
+        </a>
+    </div>
+
+{% endif %}
+
+<div class="card" id="extras"
+
+    {% if not user_pending_payments and not session_misc_payments %}
+        style="display: none;"
+    {% endif %}
+
+>
     <div class="card-header-warning">
         <h3>Extras</h3>
     </div>
@@ -145,11 +165,11 @@
                 <!-- NEW MISC PAYMENTS FORM -->
 
                 <button
-                    _="on click toggle .d-none on #add-payment then remove me"
+                    _="on click show #add-payment then remove me"
                     class="btn btn-sm btn-info"
                 >Add</button>
 
-                <div id="add-payment" class="card d-none">
+                <div id="add-payment" class="card" style="display: none;">
                     <div class="card-header card-header-danger">
                         <h4>Add</h4>
                     </div>
@@ -241,13 +261,13 @@
 
         <!-- TOP UP MEMBER -->
         <button
-            _="on click toggle .d-none on #top-up-form then remove me"
+            _="on click show #top-up-form then remove me"
             class="btn btn-sm btn-danger ml-3"
         >Top Up</button>
 
         <div
-            class="d-none"
             id="top-up-form"
+            style="display: none;"
             hx-post="{% url "club_sessions:session_top_up_member_htmx" %}"
             hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
             hx-trigger="load"

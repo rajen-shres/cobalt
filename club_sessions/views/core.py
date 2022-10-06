@@ -208,8 +208,8 @@ def augment_session_entries_process_entry(
         session_entry.player_type = "NotRegistered"
         session_entry.icon = "local_police"
         session_entry.player = {
-            "full_name": "PLAYING DIRECTOR",
-            "first_name": "DIRECTOR",
+            "full_name": "Playing Director",
+            "first_name": "Director",
         }
         icon_text = "Playing Director"
     elif session_entry.system_number == VISITOR:

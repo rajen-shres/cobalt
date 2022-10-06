@@ -9,7 +9,14 @@
 
 <!-- PAYMENTS -->
 
-<div class="card" id="id_misc_pay_box">
+<a href="javascript: void(0);"
+    _="on click show #id_misc_pay_box then hide me"
+    class="btn btn-sm btn-primary"
+>
+    transactions
+</a>
+
+<div class="card" id="id_misc_pay_box" style="display: none;">
     <div class="card-header card-header-primary">
         <h2>Transactions</h2>
 
@@ -186,7 +193,6 @@
 
 </div>
 
-
 <script>
     $(document).ready( function () {
 
@@ -232,23 +238,6 @@
                 $("#id_misc_button2").attr("disabled", true);
             }
         });
-
-        {#// handle top up form being submitted. Without this it disappears even if invalid#}
-        {#$('#id_button_top_up_save').click(function (e) {#}
-        {##}
-        {#    // stop submit#}
-        {#    e.preventDefault();#}
-        {##}
-        {#    // validate#}
-        {#    if ($('#id_amt').val() > 0 && $('#id_desc').val().length > 0) {#}
-        {##}
-        {#        // hide modal and submit if valid#}
-        {#        $('.modal').modal('hide');#}
-        {#        htmx.trigger('#id_top_up_form', 'submit_me')#}
-        {#    }#}
-        {#    return false;#}
-        {##}
-        {#});#}
 
     });
 </script>
