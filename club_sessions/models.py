@@ -124,6 +124,8 @@ class Session(models.Model):
     )
     import_messages = models.TextField(blank=True, null=True)
     """ A place to store the messages generated when we imported the file (if we did) """
+    director_notes = models.TextField(blank=True, null=True)
+    """ Comments on the session """
 
     def __str__(self):
         return f"{self.description} - {self.session_date}"

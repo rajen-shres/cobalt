@@ -13,7 +13,7 @@
         <table class="table table-hover table-condensed">
             <thead>
                 <tr class="text-primary">
-                    <th>Session</th>
+                    <th class="text-left">Session</th>
                     <th>Date</th>
                     <th>Director</th>
                     <th>Status</th>
@@ -23,7 +23,20 @@
             <tbody>
                 {% for thing in things %}
                     <tr>
-                        <td>{{ thing.description }}</td>
+                        <td class="text-left">
+
+                            {% if thing.director_notes %}
+                                <span
+                                    data-toggle="tooltip"
+                                    title="{{ thing.director_notes|striptags|truncatewords:20 }}"
+                                    class="inline-icon material-icons text-warning">
+                                    info
+                                </span>
+                            {% endif %}
+
+                            {{ thing.description }}
+
+                        </td>
                         <td>{{ thing.session_date }}</td>
                         <td>{{ thing.director.full_name }}</td>
                         <td>{{ thing.get_status_display }}</td>
@@ -77,6 +90,10 @@
 
     $(document).ready( function () {
         setInterval(checkDocumentVisible, 1000);
+
+        // initialise tooltips
+        $('[data-toggle="tooltip"]').tooltip()
+
     });
 
 </script>

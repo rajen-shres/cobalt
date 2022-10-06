@@ -770,9 +770,9 @@ def handle_change_secondary_payment_method(
             handle_iou_changes_off(club, session_entry)
 
     return (
-        f"Updated {len(session_entries)} player payment methods."
+        f". Updated {len(session_entries)} player payment methods."
         if session_entries
-        else "Form saved. No player payment methods were changed."
+        else ". No player payment methods were changed."
     )
 
 

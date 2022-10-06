@@ -9,8 +9,12 @@
 <h3>Table Fees</h3>
 {% include "club_sessions/reports/reconciliation_table.html" with title="Membership Type" %}
 
-<h3>Extras</h3>
-{% include "club_sessions/reports/reconciliation_table.html" with title="Description" summary_table=extras_summary_table row_has_data=extras_row_has_data column_has_data=extras_column_has_data %}
+{% if extras_any_data %}
+
+    <h3>Extras</h3>
+    {% include "club_sessions/reports/reconciliation_table.html" with title="Description" summary_table=extras_summary_table row_has_data=extras_row_has_data column_has_data=extras_column_has_data %}
+
+{% endif %}
 
 <script>
     $(document).ready(function() {

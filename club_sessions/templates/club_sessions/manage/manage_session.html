@@ -18,6 +18,10 @@
 
 {% block content %}
 
+    <!-- LOAD SUMMERNOTE -->
+
+    {% include "utils/summernote_heading.html" %}
+
     <!-- BASIC HEADING -->
 
     <h1 class="text-center pt-4"><span id="t_club_name">{{ club }}</span> - {{ club.state }}</h1>
@@ -257,7 +261,7 @@
                             class="btn btn-success"
                             href="{% url "club_sessions:reports_csv_download" session_id=session.id %}"
                         >
-                            CSV
+                            CSV Download
                         </a>
 
 

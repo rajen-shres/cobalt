@@ -103,6 +103,9 @@ def _add_data_to_report_data_structure(
 def _mark_rows_with_data_in_report_data_structure(summary_table):
     """We want to show if a row has data or not to remove clutter (blank rows)"""
 
+    # Does this table have any data?
+    any_data = False
+
     row_has_data = {}
 
     for membership_type in summary_table:
@@ -114,8 +117,9 @@ def _mark_rows_with_data_in_report_data_structure(summary_table):
                 or summary_table[membership_type][payment_method]["paid"] != 0
             ):
                 row_has_data[membership_type] = True
+                any_data = True
 
-    return row_has_data
+    return any_data, row_has_data
 
 
 def _mark_columns_with_data_in_report_data_structure(summary_table):
@@ -170,7 +174,7 @@ def reconciliation_htmx(request, club, session):
     )
 
     # Go through and mark which rows/columns have data
-    row_has_data = _mark_rows_with_data_in_report_data_structure(summary_table)
+    _, row_has_data = _mark_rows_with_data_in_report_data_structure(summary_table)
     column_has_data = _mark_columns_with_data_in_report_data_structure(summary_table)
 
     # We need to sort the entries in the summary table by payment method, the same as the headers
@@ -185,6 +189,7 @@ def reconciliation_htmx(request, club, session):
 
     (
         extras_summary_table,
+        extras_any_data,
         extras_row_has_data,
         extras_column_has_data,
     ) = _reconciliation_extras(session, column_headings)
@@ -202,6 +207,7 @@ def reconciliation_htmx(request, club, session):
             "extras_summary_table": extras_summary_table,
             "extras_row_has_data": extras_row_has_data,
             "extras_column_has_data": extras_column_has_data,
+            "extras_any_data": extras_any_data,
             "show_blanks": show_blanks,
         },
     )
@@ -285,14 +291,14 @@ def _reconciliation_extras(session, column_headings):
         extras_summary_table["Totals"]["row_total"]["fee"] += extra.amount
 
     # Go through and mark which rows/columns have data
-    extras_row_has_data = _mark_rows_with_data_in_report_data_structure(
+    any_data, extras_row_has_data = _mark_rows_with_data_in_report_data_structure(
         extras_summary_table
     )
     extras_column_has_data = _mark_columns_with_data_in_report_data_structure(
         extras_summary_table
     )
 
-    return extras_summary_table, extras_row_has_data, extras_column_has_data
+    return extras_summary_table, any_data, extras_row_has_data, extras_column_has_data
 
 
 def _get_name_for_csv(session_entry, mixed_dict):

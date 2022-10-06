@@ -1,4 +1,5 @@
 from django import forms
+from django_summernote.widgets import SummernoteInplaceWidget
 
 from accounts.models import UnregisteredUser, User
 from club_sessions.views.core import PLAYING_DIRECTOR, SITOUT, VISITOR
@@ -22,7 +23,20 @@ class SessionForm(forms.ModelForm):
             "additional_session_fee",
             "additional_session_fee_reason",
             "default_secondary_payment_method",
+            "director_notes",
         ]
+
+    director_notes = forms.CharField(
+        required=False,
+        widget=SummernoteInplaceWidget(
+            attrs={
+                "summernote": {
+                    "height": "250",
+                    "placeholder": "<br><br>(Optional) Placeholder for notes about the session",
+                }
+            }
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         # Get club parameter so we can build correct choice lists

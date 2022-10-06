@@ -127,6 +127,13 @@
                     </div>
                 </div>
             </div>
+
+        {% else %}
+
+            <!-- INCLUDE FIELDS FOR FORM ANYWAY -->
+            <input type="hidden" name="additional_session_fee" value="{{ session_form.additional_session_fee.value }}">
+            <input type="hidden" name="additional_session_fee_reason" value="{{ session_form.additional_session_fee_reason.value }}">
+
         {% endif %}
 
         <!-- DESCRIPTION -->
@@ -138,5 +145,26 @@
             </div>
         </div>
 
+        <!-- DIRECTOR NOTES -->
+        {% if not session_form.director_notes.value %}
+            <a href="javascript:void(0)" _="on click show #director_notes_div then hide me" class="btn btn-sm btn-info">
+                Add Notes
+            </a>
+        {% endif %}
+
+        <div id="director_notes_div" class="row align-items-center h-100 my-4"
+            {% if not session_form.director_notes.value %}
+                style="display: none;"
+            {% endif %}
+        >
+            <div class="col-12 my-4">
+                <div class="form-group">
+                    <label class="bmd-label-floating" for="id_director_notes">
+                        Director Notes
+                    </label>
+                    {% cobalt_bs4_field session_form.director_notes %}
+                </div>
+            </div>
+        </div>
 
     </div>
