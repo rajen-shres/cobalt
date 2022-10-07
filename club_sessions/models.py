@@ -128,7 +128,7 @@ class Session(models.Model):
     """ Comments on the session """
 
     def __str__(self):
-        return f"{self.description} - {self.session_date}"
+        return f"{self.description} - {self.session_date:%Y-%m-%d}"
 
 
 class SessionEntry(models.Model):

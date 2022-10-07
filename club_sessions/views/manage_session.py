@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 
@@ -204,6 +205,11 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
         table_status = {}
         delete_table_available = {}
 
+    # See if we have any extras
+    has_extras = SessionMiscPayment.objects.filter(
+        session_entry__session=session
+    ).exists()
+
     return render(
         request,
         template,
@@ -218,11 +224,12 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
             "payment_summary": payment_summary,
             "message": message,
             "bridge_credit_failures": bridge_credit_failures,
+            "has_extras": has_extras,
         },
     )
 
 
-def _edit_session_entry_handle_post(request, club, session_entry):
+def _edit_session_entry_handle_post(request, club, session, session_entry):
     """Sub for edit_session_entry_htmx to handle the form being posted"""
 
     message = "Data saved"
@@ -261,6 +268,7 @@ def _edit_session_entry_handle_post(request, club, session_entry):
     ]:
         message, session_entry = edit_session_entry_handle_bridge_credits(
             club,
+            session,
             session_entry,
             request.user,
             is_user,
@@ -323,7 +331,9 @@ def edit_session_entry_htmx(request, club, session, session_entry, message=""):
 
     # See if POSTed form or not
     if "save_session" in request.POST:
-        form, message = _edit_session_entry_handle_post(request, club, session_entry)
+        form, message = _edit_session_entry_handle_post(
+            request, club, session, session_entry
+        )
     else:
         form = UserSessionForm(club=club, session_entry=session_entry)
 
@@ -437,7 +447,24 @@ def change_payment_method_htmx(request, club, session, session_entry):
     session_entry.fee = fee.fee
     session_entry.save()
 
-    return HttpResponse(fee.fee)
+    extras = (
+        SessionMiscPayment.objects.filter(session_entry=session_entry)
+        .values("session_entry")
+        .annotate(extras=Sum("amount"))
+    )
+
+    total = fee.fee
+
+    if extras:
+        total += extras[0]["extras"]
+
+    # Use htmx Out of Band option to also update the total
+
+    return HttpResponse(
+        f"""<div>{fee.fee}</div>
+                            <div id="id_session_entry_total_{session_entry.id }" hx-swap-oob="true"> {total:.2f} </div>
+                            """
+    )
 
 
 @user_is_club_director(include_session_entry=True)

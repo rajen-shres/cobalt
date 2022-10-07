@@ -1,4 +1,4 @@
-from copy import copy
+from copy import copy, deepcopy
 from decimal import Decimal
 
 from club_sessions.models import Session, SessionType, SessionEntry
@@ -10,7 +10,7 @@ from club_sessions.views.core import (
     edit_session_entry_handle_other,
 )
 from organisations.models import Organisation
-from payments.models import OrgPaymentMethod
+from payments.models import OrgPaymentMethod, MemberTransaction
 from tests.test_manager import CobaltTestManagerIntegration
 
 
@@ -61,40 +61,81 @@ class SessionEntryChangesTests:
         self.session_entry.save()
 
         # Not a registered user
-        message, session_entry, original_session_entry = _call_helper(
+        message, self.session_entry, original_session_entry = _call_helper(
             self, "bridge credits", is_user=False
         )
 
         self.manager.save_results(
-            status=session_entry == original_session_entry,
+            status=self.session_entry == original_session_entry,
             test_name="Not a registered user",
             test_description="Pass a flag showing user isn't registered, should not do anything",
-            output=_output_helper(message, session_entry, original_session_entry),
+            output=_output_helper(message, self.session_entry, original_session_entry),
         )
 
         # Pay cash
-        message, session_entry, original_session_entry = _call_helper(
+        message, self.session_entry, original_session_entry = _call_helper(
             self, "other", new_is_paid=True
         )
 
         self.manager.save_results(
-            status=session_entry.is_paid,
+            status=self.session_entry.is_paid,
             test_name="Pay cash successful",
             test_description="Mark as paid using cash",
-            output=_output_helper(message, session_entry, original_session_entry),
+            output=_output_helper(message, self.session_entry, original_session_entry),
         )
 
         # Pay bridge credits
+        self.session_entry.is_paid = False
         self.session_entry.payment_method = self.bridge_credits
-        message, session_entry, original_session_entry = _call_helper(
-            self, "bridge_credits", new_is_paid=True
+        message, self.session_entry, original_session_entry = _call_helper(
+            self,
+            "bridge_credits",
+            new_payment_method=self.bridge_credits,
+            new_is_paid=True,
+            old_is_paid=False,
+        )
+
+        alan_last_tran = (
+            MemberTransaction.objects.filter(member=self.manager.alan)
+            .order_by("pk")
+            .last()
+        )
+        message = f"{message}<br>Alan Trans: {alan_last_tran.description} {alan_last_tran.amount}"
+
+        status = (
+            alan_last_tran.amount == -self.session_entry.fee
+            and self.session_entry.is_paid
         )
 
         self.manager.save_results(
-            status=session_entry.is_paid,
+            status=status,
             test_name="Pay bridge credits successful",
             test_description="Mark as paid using bridge credits, Alan can afford to pay",
-            output=_output_helper(message, session_entry, original_session_entry),
+            output=_output_helper(message, self.session_entry, original_session_entry),
+        )
+
+        # Cancel bridge credits
+        message, self.session_entry, original_session_entry = _call_helper(
+            self, "bridge_credits", new_is_paid=False
+        )
+
+        alan_last_tran = (
+            MemberTransaction.objects.filter(member=self.manager.alan)
+            .order_by("pk")
+            .last()
+        )
+        message = f"Message: {message}<br>User Last Tran: {alan_last_tran.description}<br>User last amount: {alan_last_tran.amount}"
+
+        status = (
+            alan_last_tran.amount == self.session_entry.fee
+            and not self.session_entry.is_paid
+        )
+
+        self.manager.save_results(
+            status=status,
+            test_name="Refund bridge credits successful",
+            test_description="Refund bridge credits for Alan",
+            output=_output_helper(message, self.session_entry, original_session_entry),
         )
 
 
@@ -106,8 +147,8 @@ def _call_helper(
     new_payment_method=None,
     old_fee=None,
     new_fee=None,
-    old_is_paid=None,
-    new_is_paid=None,
+    old_is_paid="NotSet",
+    new_is_paid="NotSet",
 ):
     """helper function for calling edit_session_entry_handle_bridge_credits"""
 
@@ -120,17 +161,18 @@ def _call_helper(
         old_fee = main_class.session_entry.fee
     if not new_fee:
         new_fee = main_class.session_entry.fee
-    if not old_is_paid:
+    if old_is_paid == "NotSet":
         old_is_paid = main_class.session_entry.is_paid
-    if not new_is_paid:
+    if new_is_paid == "NotSet":
         new_is_paid = main_class.session_entry.is_paid
 
-    original_session = copy(main_class.session_entry)
+    original_session = deepcopy(main_class.session_entry)
 
     if tran_type == "bridge_credits":
 
         message, session_entry = edit_session_entry_handle_bridge_credits(
             main_class.club,
+            main_class.session,
             main_class.session_entry,
             main_class.manager.alan,
             is_user=is_user,

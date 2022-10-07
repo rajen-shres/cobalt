@@ -17,11 +17,7 @@
 
 {% else %}
 
-    <div id="loading_message">
-        <h3>Loading...</h3>
-    </div>
-
-    <div class="table-responsive d-none" id="main_session_table">
+    <div class="table-responsive" id="main_session_table">
 
         <!-- MAIN TABLE -->
 
@@ -35,8 +31,15 @@
                     <th class="text-left">Player</th>
                     <th class="text-left">Membership</th>
                     <th>Fee</th>
-                    <th>Extras</th>
-                    <th>Total</th>
+
+                    <!-- ONLY SHOW EXTRAS AND TOTAL IF THERE ARE ANY EXTRAS -->
+                    {% if has_extras %}
+
+                        <th>Extras</th>
+                        <th>Total</th>
+
+                    {% endif %}
+
                     <th>Payment Method</th>
                     <th>Paid</th>
                     <th>Actions</th>
@@ -87,7 +90,7 @@
                                 </span>
                             </span>
 
-                            {% if session_entry.balance < 20 %}
+                            {% if session_entry.balance < 20 and session_entry.player.stripe_auto_confirmed != "On" %}
                                 <span class="myHover text-dark"
                                     data-toggle="tooltip"
                                     title="Low balance {{ session_entry.balance }}"
@@ -139,29 +142,35 @@
 
                     {% endif %}
 
-                    <!-- EXTRAS -->
+                    <!-- ONLY SHOW EXTRAS AND TOTAL IF THERE ARE ANY EXTRAS -->
+                    {% if has_extras %}
 
-                    {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
-                        <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
+                        <!-- EXTRAS -->
 
-                        <td></td>
+                        {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
+                            <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
 
-                    {% else %}
+                            <td></td>
 
-                        <td>{{ session_entry.extras }}</td>
+                        {% else %}
 
-                    {% endif %}
+                            <td>{{ session_entry.extras }}</td>
 
-                    <!-- PLAYER TOTAL -->
+                        {% endif %}
 
-                    {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
-                        <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
-                        <td></td>
+                        <!-- PLAYER TOTAL -->
 
-                    {% else %}
+                        {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
+                            <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
+                            <td></td>
 
-                        <td>{{ session_entry.total }}</td>
+                        {% else %}
+                            <td>
+                                <div id="id_session_entry_total_{{ session_entry.id }}">{{ session_entry.total }}</div>
+                            </td>
+                        {% endif %}
 
+                        <!-- ENDIF FOR IF HAS_EXTRAS -->
                     {% endif %}
 
                     <!-- PAYMENT METHOD -->
@@ -320,24 +329,6 @@
 
         });
 
-        // watch for any update field changing and reload totals
-        {#$('.selectpicker, .paid_flag').change(function(evt) {#}
-        {#    htmx.trigger("#id_totals", "other_update");#}
-        {#});#}
-
-
-        // sleep time expects milliseconds
-        function sleep (time) {
-            return new Promise((resolve) => setTimeout(resolve, time));
-        }
-
-        // Usage!
-        sleep(500).then(() => {
-            // Do something after the sleep!
-            $("#loading_message").addClass('d-none');
-            $("#main_session_table").removeClass('d-none');
-
-        });
     });
 </script>
 

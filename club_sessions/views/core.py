@@ -380,6 +380,9 @@ def edit_session_entry_handle_ious(
 ):
     """handle the director changing anything on a session entry that relates to IOUs"""
 
+    if not is_user:
+        return "Player is not a registered user.", session_entry
+
     iou = iou_for_club(club)
     bridge_credits = bridge_credits_for_club(club)
 
@@ -477,6 +480,7 @@ def handle_iou_changes_off(club, session_entry):
 
 def edit_session_entry_handle_bridge_credits(
     club,
+    session,
     session_entry,
     director,
     is_user,
@@ -498,15 +502,15 @@ def edit_session_entry_handle_bridge_credits(
     if not is_user:
         return "Player is not a registered user.", session_entry
 
-    # Get Bridge Credits
-    bridge_credit_payment_method = bridge_credits_for_club(club)
-
     # If this isn't paid, and we change it then no problem
     if not old_is_paid and not new_is_paid:
         session_entry.payment_method = new_payment_method
         session_entry.fee = new_fee
         session_entry.save()
         return "Data saved", session_entry
+
+    # Get Bridge Credits
+    bridge_credit_payment_method = bridge_credits_for_club(club)
 
     # if it was paid using bridge credits, and we change the fee, block the change
     if (
@@ -520,26 +524,74 @@ def edit_session_entry_handle_bridge_credits(
             session_entry,
         )
 
-    # if it has gone from unpaid to paid, and new_payment_method is bridge credits, then change it but
-    # also mark session as pending payment of bridge credits, and mark this as unpaid
+    # if it has gone from unpaid to paid, and new_payment_method is bridge credits, then pay it and any extras
     if (
         new_payment_method == bridge_credit_payment_method
-        and old_payment_method != bridge_credit_payment_method
+        and new_is_paid
+        and not old_is_paid
     ):
         session_entry.fee = new_fee
-        session_entry.is_paid = False
         session_entry.payment_method = new_payment_method
-        session_entry.save()
 
-        session_entry.session.status = Session.SessionStatus.DATA_LOADED
-        session_entry.session.save()
+        member = User.objects.filter(system_number=session_entry.system_number).first()
 
-        return "Data saved", session_entry
+        if not member:
+            return "Error retrieving user", session_entry
 
-    # If we have changed from bridge credits, then process refund
+        # Get all of the unpaid bridge credit extras
+        extras = SessionMiscPayment.objects.filter(
+            session_entry=session_entry,
+            payment_made=False,
+            payment_method=bridge_credit_payment_method,
+        )
+
+        # Get total amount of the extras
+        extras_total = extras.values("session_entry").annotate(extras=Sum("amount"))
+
+        amount = session_entry.fee
+
+        if extras_total:
+            amount += extras_total[0]["extras"]
+
+        status = payment_api_batch(
+            member=member,
+            description=f"{session}",
+            amount=amount,
+            organisation=club,
+            payment_type="Club Payment",
+            session=session,
+        )
+
+        if status:
+
+            # Worked so mark this as paid
+            session_entry.is_paid = True
+            session_entry.save()
+
+            # mark the extras as paid
+            extras.update(payment_made=True)
+
+            return "Payment made", session_entry
+
+        else:
+
+            # failed. Now we have an unpaid bridge credit so change status of session as well
+            session_entry.is_paid = False
+            session_entry.save()
+            session_entry.session.status = Session.SessionStatus.DATA_LOADED
+            session_entry.session.save()
+
+            return "Payment failed", session_entry
+
+    # If we have changed from bridge credits and it was paid, or from paid to unpaid, then process refund
     if (
         new_payment_method != bridge_credit_payment_method
         and old_payment_method == bridge_credit_payment_method
+        and old_is_paid
+    ) or (
+        old_payment_method == bridge_credit_payment_method
+        and old_is_paid
+        and not new_is_paid
     ):
 
         return handle_bridge_credit_changes_refund(
