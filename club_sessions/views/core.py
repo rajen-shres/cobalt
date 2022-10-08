@@ -370,7 +370,6 @@ def edit_session_entry_handle_ious(
     club,
     session_entry,
     administrator,
-    is_user,
     old_payment_method,
     new_payment_method,
     old_fee,
@@ -379,9 +378,6 @@ def edit_session_entry_handle_ious(
     new_is_paid,
 ):
     """handle the director changing anything on a session entry that relates to IOUs"""
-
-    if not is_user:
-        return "Player is not a registered user.", session_entry
 
     iou = iou_for_club(club)
     bridge_credits = bridge_credits_for_club(club)

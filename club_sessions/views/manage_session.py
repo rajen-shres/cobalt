@@ -287,7 +287,6 @@ def _edit_session_entry_handle_post(request, club, session, session_entry):
             club,
             session_entry,
             request.user,
-            is_user,
             old_payment_method,
             new_payment_method,
             old_fee,
