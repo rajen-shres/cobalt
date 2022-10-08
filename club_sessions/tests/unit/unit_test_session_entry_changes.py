@@ -2,6 +2,7 @@ from copy import copy, deepcopy
 from decimal import Decimal
 from typing import Union
 
+from accounts.models import UnregisteredUser
 from club_sessions.models import Session, SessionType, SessionEntry
 from club_sessions.views.core import (
     bridge_credits_for_club,
@@ -229,16 +230,8 @@ class SessionEntryChangesTests:
             output=_output_helper(message, self.session_entry, original_session_entry),
         )
 
-    def _do_i_run(self):
-        self.manager.save_results(
-            status=True,
-            test_name="Pay iou successful 2222",
-            test_description="Mark as paid using iou and generate an IOU",
-            output="ok",
-        )
-
-    def iou_user_tests(self):
-        """Tests for changes to ious for registered users"""
+    def _iou_tests_common(self, player, test_type):
+        """tests used for both Users and Unregistered users"""
 
         # initial state
         self.session_entry.is_paid = False
@@ -256,16 +249,21 @@ class SessionEntryChangesTests:
             old_is_paid=False,
         )
 
-        message, alan_last_iou = _iou_helper(message, self.manager.alan)
+        message, last_iou = _iou_helper(message, player)
+
+        print(player)
+        print(last_iou)
+
+        print(last_iou.amount)
+        print(self.session_entry.fee)
 
         status = (
-            alan_last_iou.amount == self.session_entry.fee
-            and self.session_entry.is_paid
+            last_iou.amount == self.session_entry.fee and self.session_entry.is_paid
         )
 
         self.manager.save_results(
             status=status,
-            test_name="Pay iou successful",
+            test_name=f"{test_type} Pay iou successful",
             test_description="Mark as paid using iou and generate an IOU",
             output=_output_helper(message, self.session_entry, original_session_entry),
         )
@@ -280,13 +278,13 @@ class SessionEntryChangesTests:
             old_is_paid=True,
         )
 
-        message, alan_last_iou = _iou_helper(message, self.manager.alan)
+        message, last_iou = _iou_helper(message, player)
 
-        status = not alan_last_iou and not self.session_entry.is_paid
+        status = not last_iou and not self.session_entry.is_paid
 
         self.manager.save_results(
             status=status,
-            test_name="Un-pay iou successful",
+            test_name=f"{test_type} Un-pay iou successful",
             test_description="Mark as unpaid using iou and cancel an IOU",
             output=_output_helper(message, self.session_entry, original_session_entry),
         )
@@ -304,17 +302,17 @@ class SessionEntryChangesTests:
             new_fee=Decimal(11),
         )
 
-        message, alan_last_iou = _iou_helper(message, self.manager.alan)
+        message, last_iou = _iou_helper(message, player)
 
         status = (
-            alan_last_iou.amount == self.session_entry.fee
+            last_iou.amount == self.session_entry.fee
             and self.session_entry.is_paid
             and self.session_entry.fee == Decimal(11)
         )
 
         self.manager.save_results(
             status=status,
-            test_name="Pay iou and change fee successful",
+            test_name=f"{test_type} Pay iou and change fee successful",
             test_description="Mark as paid using iou and change fee and generate an IOU",
             output=_output_helper(message, self.session_entry, original_session_entry),
         )
@@ -337,7 +335,7 @@ class SessionEntryChangesTests:
             new_payment_method=self.iou,
         )
 
-        message, alan_last_iou = _iou_helper(message, self.manager.alan)
+        message, alan_last_iou = _iou_helper(message, player)
 
         status = (
             alan_last_iou.amount == self.session_entry.fee
@@ -347,7 +345,7 @@ class SessionEntryChangesTests:
 
         self.manager.save_results(
             status=status,
-            test_name="Pay iou and change payment type successful",
+            test_name=f"{test_type} Pay iou and change payment type successful",
             test_description="Mark as paid using iou and change payment type and generate an IOU",
             output=_output_helper(message, self.session_entry, original_session_entry),
         )
@@ -371,7 +369,7 @@ class SessionEntryChangesTests:
             new_payment_method=self.iou,
         )
 
-        message, alan_last_iou = _iou_helper(message, self.manager.alan)
+        message, alan_last_iou = _iou_helper(message, player)
 
         status = (
             alan_last_iou.amount == self.session_entry.fee
@@ -381,7 +379,7 @@ class SessionEntryChangesTests:
 
         self.manager.save_results(
             status=status,
-            test_name="Pay iou and change fee and change payment type successful",
+            test_name=f"{test_type} Pay iou and change fee and change payment type successful",
             test_description="Mark as paid using iou and change fee and change payment type and generate an IOU",
             output=_output_helper(message, self.session_entry, original_session_entry),
         )
@@ -401,16 +399,39 @@ class SessionEntryChangesTests:
             new_fee=Decimal(17),
         )
 
-        message, alan_last_iou = _iou_helper(message, self.manager.alan)
+        message, alan_last_iou = _iou_helper(message, player)
 
         status = self.session_entry == original_session_entry
 
         self.manager.save_results(
             status=status,
-            test_name="Change fee on a paid iou blocked",
+            test_name=f"{test_type} Change fee on a paid iou blocked",
             test_description="Try to change a fee on a paid IOU. Should be rejected.",
             output=_output_helper(message, self.session_entry, original_session_entry),
         )
+
+    def iou_user_tests(self):
+        """Tests for changes to ious for registered users"""
+
+        self.session_entry.system_number = self.manager.alan.system_number
+        self.session_entry.save()
+
+        self._iou_tests_common(player=self.manager.alan, test_type="Registered")
+
+    def iou_un_reg_user_tests(self):
+        """Tests for changes to ious for unregistered users"""
+
+        system_number = 987654321
+        barry = UnregisteredUser(
+            first_name="Barry",
+            last_name="McGuigan",
+            system_number=system_number,
+            last_updated_by=self.manager.alan,
+        )
+        barry.save()
+        self.session_entry.system_number = system_number
+        self.session_entry.save()
+        self._iou_tests_common(player=barry, test_type="Unregistered")
 
 
 def _call_helper(
@@ -539,21 +560,24 @@ def _last_tran_helper(message, alan):
     return _simple_table(dictionary), alan_last_tran
 
 
-def _iou_helper(message, alan):
+def _iou_helper(message, player):
     """used for ious where a payment is made. Shows Alan's ious"""
 
-    alan_last_iou = (
-        UserPendingPayment.objects.filter(system_number=alan.system_number)
+    print(player)
+    print(player.system_number)
+
+    last_iou = (
+        UserPendingPayment.objects.filter(system_number=player.system_number)
         .order_by("pk")
         .last()
     )
 
-    if alan_last_iou:
+    if last_iou:
 
         dictionary = {
             "Message": message,
-            "User IOU": alan_last_iou.description,
-            "User IOU amount": alan_last_iou.amount,
+            "User IOU": last_iou.description,
+            "User IOU amount": last_iou.amount,
         }
     else:
 
@@ -562,4 +586,4 @@ def _iou_helper(message, alan):
             "User IOU": "No IOU found",
         }
 
-    return _simple_table(dictionary), alan_last_iou
+    return _simple_table(dictionary), last_iou

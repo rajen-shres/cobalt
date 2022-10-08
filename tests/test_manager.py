@@ -60,9 +60,15 @@ LIST_OF_INTEGRATION_TESTS = {
 
 def run_methods(class_instance):
     """copied from stackoverflow - call all methods on class"""
+
     attrs = (getattr(class_instance, name) for name in dir(class_instance))
     methods = filter(inspect.ismethod, attrs)
     for method in methods:
+
+        # Skip any method called _something, but not __something
+        if method.__func__.__name__[0] == "_" and method.__func__.__name__[1] != "_":
+            continue
+
         try:
             method()
         except TypeError as error:
