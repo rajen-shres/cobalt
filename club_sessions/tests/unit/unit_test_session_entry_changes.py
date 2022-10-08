@@ -229,8 +229,16 @@ class SessionEntryChangesTests:
             output=_output_helper(message, self.session_entry, original_session_entry),
         )
 
-    def iou_tests(self):
-        """Tests for changes to ious"""
+    def _do_i_run(self):
+        self.manager.save_results(
+            status=True,
+            test_name="Pay iou successful 2222",
+            test_description="Mark as paid using iou and generate an IOU",
+            output="ok",
+        )
+
+    def iou_user_tests(self):
+        """Tests for changes to ious for registered users"""
 
         # initial state
         self.session_entry.is_paid = False
