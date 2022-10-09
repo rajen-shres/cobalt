@@ -230,7 +230,7 @@ class SessionEntryChangesTests:
             output=_output_helper(message, self.session_entry, original_session_entry),
         )
 
-    def _iou_tests_common(self, player, test_type):
+    def _iou_tests(self, player, test_type):
         """tests used for both Users and Unregistered users"""
 
         # initial state
@@ -250,12 +250,6 @@ class SessionEntryChangesTests:
         )
 
         message, last_iou = _iou_helper(message, player)
-
-        print(player)
-        print(last_iou)
-
-        print(last_iou.amount)
-        print(self.session_entry.fee)
 
         status = (
             last_iou.amount == self.session_entry.fee and self.session_entry.is_paid
@@ -416,7 +410,7 @@ class SessionEntryChangesTests:
         self.session_entry.system_number = self.manager.alan.system_number
         self.session_entry.save()
 
-        self._iou_tests_common(player=self.manager.alan, test_type="Registered")
+        self._iou_tests(player=self.manager.alan, test_type="Registered")
 
     def iou_un_reg_user_tests(self):
         """Tests for changes to ious for unregistered users"""
@@ -431,7 +425,7 @@ class SessionEntryChangesTests:
         barry.save()
         self.session_entry.system_number = system_number
         self.session_entry.save()
-        self._iou_tests_common(player=barry, test_type="Unregistered")
+        self._iou_tests(player=barry, test_type="Unregistered")
 
 
 def _call_helper(

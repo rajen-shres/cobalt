@@ -1,6 +1,7 @@
 import csv
 import datetime
 import os
+import random
 import subprocess
 from random import randint
 from time import sleep
@@ -411,3 +412,14 @@ def recent_errors(request):
             errors.append({"timestamp": timestamp, "message": message})
 
     return render(request, "utils/recent_errors.html", {"errors": errors})
+
+
+@login_required()
+def get_facts_text(request):
+    """Return a nice little fact for the top of the page"""
+
+    with open("utils/data/facts.txt") as f:
+        lines = f.readlines()
+        text = random.choice(lines)
+
+    return HttpResponse(f"- {text}")

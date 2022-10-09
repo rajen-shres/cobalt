@@ -75,9 +75,16 @@ Environment: {{ COBALT_HOSTNAME }}
     <body>
         {# login_as sets this variable to we how if this is a session controlled by an admin - show message if true #}
         {% if is_impersonated_session %}
-            <div class="card-body bg-danger text-white">
-                <h1 class="text-center">!!!--Admin Override--!!!</h1>
-                <p class="text-center font-italic">This session for {{ request.user }} is being controlled by an administrator</p>
+            <div class="main-panel">
+                <div class="container-fluid">
+                    <div class="row justify-content-center">
+                        <div class="btn btn-round text-white col-md-10" style="background-color: #B12820">
+                            <div class="material-icons py-2 my-1" style="font-size: 100px">support_agent</div>
+                            <h1>Admin Override</h1>
+                            <p class="text-center font-italic">This session for {{ request.user }} is being controlled by an administrator</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         {% endif %}
 
@@ -214,6 +221,15 @@ Environment: {{ COBALT_HOSTNAME }}
                                 {% else %}
                                     {{ request.user.username }}
                                 {% endif %}
+
+                                {% if request.user.id == 4 %}
+                                    <span
+                                        hx-post="{% url "utils:get_facts_text" %}"
+                                        hx-trigger="click, load"
+                                    >
+                                    </span>
+                                {% endif %}
+
                             </span>
                         </div>
 
