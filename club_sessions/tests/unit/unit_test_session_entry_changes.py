@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Union
 
 from accounts.models import UnregisteredUser
-from club_sessions.models import Session, SessionType, SessionEntry
+from club_sessions.models import Session, SessionType, SessionEntry, SessionMiscPayment
 from club_sessions.views.core import (
     bridge_credits_for_club,
     iou_for_club,
@@ -427,6 +427,158 @@ class SessionEntryChangesTests:
         self.session_entry.save()
         self._iou_tests(player=barry, test_type="Unregistered")
 
+    def bridge_credit_with_extras_tests(self):
+        """Tests for changes to bridge credits when there are extras"""
+
+        # initial state
+        self.session_entry.is_paid = False
+        self.session_entry.payment_method = self.cash
+        self.session_entry.save()
+
+        SessionMiscPayment(
+            session_entry=self.session_entry,
+            payment_method=self.bridge_credits,
+            description="bridge credit extra 1",
+            amount=Decimal(2.30),
+        ).save()
+        SessionMiscPayment(
+            session_entry=self.session_entry,
+            payment_method=self.bridge_credits,
+            description="bridge credit extra 2",
+            amount=Decimal(1.40),
+        ).save()
+        SessionMiscPayment(
+            session_entry=self.session_entry,
+            payment_method=self.cash,
+            description="cash extra 3",
+            amount=Decimal(0.90),
+        ).save()
+
+        #############################
+        # Pay bridge credits with extras
+        #############################
+        message, self.session_entry, original_session_entry = _call_helper(
+            self,
+            "bridge_credits",
+            new_payment_method=self.bridge_credits,
+            new_is_paid=True,
+            old_is_paid=False,
+        )
+
+        # reload extras
+        extras = SessionMiscPayment.objects.filter(
+            session_entry=self.session_entry
+        ).order_by("pk")
+
+        message, alan_last_tran = _last_tran_helper(message, self.manager.alan)
+
+        status = (
+            alan_last_tran.amount
+            == -self.session_entry.fee - extras[0].amount - extras[1].amount
+            and self.session_entry.is_paid
+            and extras[0].payment_made
+            and extras[1].payment_made
+            and not extras[2].payment_made
+        )
+
+        self.manager.save_results(
+            status=status,
+            test_name="Pay bridge credits and extras successful",
+            test_description="Mark as paid using bridge credits, Alan can afford to pay. There are two extras as well.",
+            output=_output_helper_extras(
+                message, self.session_entry, original_session_entry
+            ),
+        )
+
+        #############################
+        # Cancel bridge credits but not extras
+        #############################
+        message, self.session_entry, original_session_entry = _call_helper(
+            self, "bridge_credits", new_is_paid=False
+        )
+
+        # reload extras
+        extras = SessionMiscPayment.objects.filter(
+            session_entry=self.session_entry
+        ).order_by("pk")
+
+        message, alan_last_tran = _last_tran_helper(message, self.manager.alan)
+
+        status = (
+            alan_last_tran.amount == self.session_entry.fee
+            and not self.session_entry.is_paid
+            and extras[0].payment_made
+            and extras[1].payment_made
+            and not extras[2].payment_made
+        )
+
+        self.manager.save_results(
+            status=status,
+            test_name="Refund bridge credits but not extras successful",
+            test_description="Refund bridge credits for Alan",
+            output=_output_helper_extras(
+                message, self.session_entry, original_session_entry
+            ),
+        )
+
+    def compound_tests(self):
+        """Tests for combinations"""
+
+        # initial state
+        self.session_entry.is_paid = False
+        self.session_entry.payment_method = self.cash
+        self.session_entry.save()
+
+        #############################
+        # Pay bridge credits to get started
+        #############################
+        message, self.session_entry, original_session_entry = _call_helper(
+            self,
+            "bridge_credits",
+            new_payment_method=self.bridge_credits,
+            new_is_paid=True,
+            old_is_paid=False,
+        )
+
+        # We already tested this, no need to report it
+
+        #############################
+        # Pay iou - Now do the actual test
+        #############################
+        message, self.session_entry, original_session_entry = _call_helper(
+            self,
+            "iou",
+            old_payment_method=self.bridge_credits,
+            new_payment_method=self.iou,
+            new_is_paid=True,
+            old_is_paid=False,
+        )
+
+        message, last_iou = _iou_helper(message, self.manager.alan)
+        message, alan_last_tran = _last_tran_helper(message, self.manager.alan)
+
+        status = (
+            alan_last_tran.amount == -self.session_entry.fee
+            and self.session_entry.is_paid
+            and last_iou.amount == self.session_entry.fee
+            and self.session_entry.is_paid
+        )
+
+        print("----------------------------------")
+        print(alan_last_tran.amount)
+        print(self.session_entry.fee)
+        print(self.session_entry.is_paid)
+        print(last_iou.amount)
+        print(self.session_entry.fee)
+        print(self.session_entry.is_paid)
+
+        self.manager.save_results(
+            status=status,
+            test_name="Cancel Bridge Credit and Pay iou successful",
+            test_description="Cancel the bridge credits and mark as paid using iou and generate an IOU",
+            output=_output_helper(message, self.session_entry, original_session_entry),
+        )
+
 
 def _call_helper(
     main_class: SessionEntryChangesTests,
@@ -502,6 +654,23 @@ def _call_helper(
         )
 
     return message, session_entry, original_session
+
+
+def _output_helper_extras(
+    message, session_entry: SessionEntry, original_session_entry: SessionEntry
+):
+    """format the output with extras"""
+    message = _output_helper(message, session_entry, original_session_entry)
+
+    for extra in SessionMiscPayment.objects.filter(session_entry=session_entry):
+        message = f"""{message}<h4>{extra.description}</h4>
+            <table class='table table-info'>
+            <tr><th>Pay by<th>Amount<th>Paid</tr>
+            <tr><td>{extra.payment_method.payment_method}<td>{extra.amount:.2f}<td>{extra.payment_made}</tr>
+            </table>
+            """
+
+    return message
 
 
 def _output_helper(

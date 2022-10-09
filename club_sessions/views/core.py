@@ -376,6 +376,7 @@ def edit_session_entry_handle_ious(
     new_fee,
     old_is_paid,
     new_is_paid,
+    message="",
 ):
     """handle the director changing anything on a session entry that relates to IOUs"""
 
@@ -390,7 +391,7 @@ def edit_session_entry_handle_ious(
         and old_fee != new_fee
     ):
         return (
-            "Cannot change amount of a paid IOU. You may need to do this in two steps.",
+            f"{message}Cannot change amount of a paid IOU. You may need to do this in two steps.",
             session_entry,
         )
 
@@ -406,7 +407,7 @@ def edit_session_entry_handle_ious(
         session_entry.is_paid = True
         session_entry.save()
         handle_iou_changes_on(club, session_entry, administrator)
-        return "Data saved. IOU set up.", session_entry
+        return f"{message} IOU set up.", session_entry
 
     # Check for turning off - can be change of type or change of flag
     if (new_payment_method != iou and old_payment_method == iou and old_is_paid) or (
@@ -424,7 +425,10 @@ def edit_session_entry_handle_ious(
 
         session_entry.save()
         handle_iou_changes_off(club, session_entry)
-        return "Data saved. IOU deleted.", session_entry
+        return f"{message}IOU deleted.", session_entry
+
+    # Shouldn't get here
+    return f"{message}An error occurred", session_entry
 
 
 def handle_iou_changes_on(club, session_entry, administrator):

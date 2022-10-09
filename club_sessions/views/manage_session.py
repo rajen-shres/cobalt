@@ -232,7 +232,7 @@ def tab_session_htmx(request, club, session, message="", bridge_credit_failures=
 def _edit_session_entry_handle_post(request, club, session, session_entry):
     """Sub for edit_session_entry_htmx to handle the form being posted"""
 
-    message = "Data saved"
+    message = "Data saved. "
 
     form = UserSessionForm(request.POST, club=club, session_entry=session_entry)
     if not form.is_valid():
@@ -293,6 +293,7 @@ def _edit_session_entry_handle_post(request, club, session, session_entry):
             new_fee,
             old_is_paid,
             new_is_paid,
+            message,
         )
         handled_flag = True
 
