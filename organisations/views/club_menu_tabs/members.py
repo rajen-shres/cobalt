@@ -45,7 +45,7 @@ from organisations.views.general import (
     _active_email_for_un_reg,
     get_rbac_model_for_state,
 )
-from payments.models import MemberTransaction
+from payments.models import MemberTransaction, UserPendingPayment
 from payments.views.core import (
     get_balance,
     org_balance,
@@ -748,6 +748,22 @@ def edit_member_htmx(request, club, message=""):
     # Get payment stuff
     recent_payments, misc_payment_types = _get_misc_payment_vars(member, club)
 
+    # Get any outstanding debts
+    user_pending_payments = UserPendingPayment.objects.filter(
+        system_number=member.system_number
+    )
+
+    # augment data
+    for user_pending_payment in user_pending_payments:
+
+        if user_pending_payment.organisation == club:
+
+            user_pending_payment.can_delete = True
+            user_pending_payment.hx_delete = reverse(
+                "organisations:club_menu_tab_finance_cancel_user_pending_debt_htmx"
+            )
+            user_pending_payment.hx_vars = f"club_id:{club.id}, user_pending_payment_id:{user_pending_payment.id}, member:{member.id}, return_member_tab:1"
+
     # Get users balance
     user_balance = get_balance(member)
     club_balance = org_balance(club)
@@ -779,6 +795,7 @@ def edit_member_htmx(request, club, message=""):
             "available_tags": available_tags,
             "emails": emails,
             "recent_payments": recent_payments,
+            "user_pending_payments": user_pending_payments,
             "misc_payment_types": misc_payment_types,
             "user_balance": user_balance,
             "club_balance": club_balance,

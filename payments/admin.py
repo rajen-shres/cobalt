@@ -72,6 +72,7 @@ class UserPendingPaymentAdmin(admin.ModelAdmin):
     autocomplete_fields = [
         "organisation",
         "session_entry",
+        "session_misc_payment",
     ]
 
 

@@ -409,7 +409,7 @@ class UserPendingPayment(models.Model):
     """This is basically an IOU for when a player cannot pay for something at a club
     but the club is okay for them to pay later."""
 
-    from club_sessions.models import SessionEntry
+    from club_sessions.models import SessionEntry, SessionMiscPayment
 
     system_number = models.IntegerField(f"{GLOBAL_ORG} Number")
     """ We use system_number to cover both Users and UnregisteredUsers """
@@ -421,6 +421,10 @@ class UserPendingPayment(models.Model):
         SessionEntry, on_delete=models.CASCADE, blank=True, null=True
     )
     """ Optional but likely that this IOU is for a session that they played in"""
+    session_misc_payment = models.ForeignKey(
+        SessionMiscPayment, on_delete=models.CASCADE, blank=True, null=True
+    )
+    """ Optional For a miscellaneous payment we want the id of the payment, not just the session id"""
 
     def __str__(self):
         return f"{self.system_number} - {GLOBAL_CURRENCY_SYMBOL}{self.amount:,.2f} - {self.description}"

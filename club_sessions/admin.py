@@ -79,6 +79,8 @@ class MemberOrganisationLinkAdmin(admin.ModelAdmin):
 class SessionMiscPaymentAdmin(admin.ModelAdmin):
     """Admin class for model SessionMiscPayment"""
 
+    search_fields = ["system_number"]
+
     autocomplete_fields = [
         "session_entry",
     ]

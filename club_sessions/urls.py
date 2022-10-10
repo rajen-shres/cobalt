@@ -128,4 +128,9 @@ urlpatterns = [
         club_sessions.views.manage_session.change_player_htmx,
         name="session_change_player_htmx",
     ),
+    path(
+        "edit/get-fee-for-payment-method",
+        club_sessions.views.manage_session.get_fee_for_payment_method_htmx,
+        name="get_fee_for_payment_method_htmx",
+    ),
 ]

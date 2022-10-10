@@ -317,6 +317,22 @@
             $("#id_save_session").prop("disabled", false);
         });
 
+        // update fee if payment method changes
+        $("#id_payment_method").change(function(){
+            const payment_method_id = $("#id_payment_method").val();
+            const postData = {
+                'club_id': {{ club.id }},
+                'session_id':{{ session.id }},
+                'session_entry_id':{{ session_entry.id }},
+                'payment_method_id': payment_method_id,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            };
+            const url = '{% url "club_sessions:get_fee_for_payment_method_htmx" %}';
+            $.post(url, postData, function(result){
+                $("#id_fee").val(result);
+            })
+        });
+
     });
 
 </script>

@@ -18,6 +18,69 @@
 <div class="container">
     <div class="row">
 
+        <!-- SHOW ANY PLAYER DEBTS -->
+
+        {% if user_pending_payments %}
+            <div class="card mb-5" id="id_outstanding_debt">
+                <div class="card-header card-header-danger">
+
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3>Outstanding Debts</h3>
+                        </div>
+                        <div>
+                            <span class="align-left text-white"
+                                _="on click toggle .d-none on #id_outstanding_debt"
+                                style="cursor: pointer"
+                            ><i class="material-icons">close</i></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+
+                    <div class="table-responsive align-content-center">
+                        <table class="table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th class="text-primary text-left">Club</th>
+                                    <th class="text-primary text-left">Description</th>
+                                    <th class="text-primary text-left">Date</th>
+                                    <th class="text-primary text-right">Amount</th>
+                                    <th class="text-primary">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user_pending_payment in user_pending_payments %}
+                                    <tr>
+
+                                        <td class="text-left">{{ user_pending_payment.organisation }}</td>
+                                        <td class="text-left">{{ user_pending_payment.description }}</td>
+                                        <td class="text-left">{{ user_pending_payment.created_at|cobalt_nice_datetime_short }}</td>
+                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ user_pending_payment.amount|floatformat:2 }}</td>
+                                        <td class="text-primary">
+
+                                            {% if user_pending_payment.can_delete %}
+
+                                                {% include "utils/htmx_confirm_modal.html" with id=user_pending_payment.id delete_message="Cancel this debt" delete_button="Cancel Debt" hx_target="#id_panel_members" hx_post=user_pending_payment.hx_delete hx_vars=user_pending_payment.hx_vars %}
+                                                <button id="{{ user_pending_payment.id }}" type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ user_pending_payment.id }}">Cancel Debt</button>
+
+                                            {% endif %}
+
+                                        </td>
+
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        {% endif %}
+
+
+
         <!-- MAIN EDIT MEMBER CARD -->
 
         {#        <div id="id_main_member_card" class="card col-lg-9 mx-auto">#}

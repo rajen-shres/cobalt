@@ -172,15 +172,21 @@ def get_extras_for_session_entries(session_entries):
     """get the extras associated with a queryset of SessionEntries"""
 
     session_entries_list = session_entries.values_list("id", flat=True)
-    extras = SessionMiscPayment.objects.filter(
-        session_entry__in=session_entries_list
-    ).values("session_entry", "amount")
+    extras = SessionMiscPayment.objects.filter(session_entry__in=session_entries_list)
+
     extras_dict = {}
     for extra in extras:
-        if extra["session_entry"] not in extras_dict:
-            extras_dict[extra["session_entry"]] = extra["amount"]
+        if extra.session_entry not in extras_dict:
+            extras_dict[extra.session_entry] = {
+                "amount": extra.amount,
+                "payment_made": True,
+            }
         else:
-            extras_dict[extra["session_entry"]] += extra["amount"]
+            extras_dict[extra.session_entry]["amount"] += extra.amount
+
+        # if any aren't paid, mark as unpaid overall
+        if not extra.payment_made:
+            extras_dict[extra.session_entry]["payment_made"] = False
 
     return extras_dict
 
@@ -270,7 +276,8 @@ def augment_session_entries_process_entry(
     session_entry.icon_text = icon_text
 
     # Add extras
-    session_entry.extras = extras_dict.get(session_entry.id, 0)
+    session_entry.extras = extras_dict.get(session_entry, {}).get("amount", 0)
+    session_entry.extras_paid = extras_dict.get(session_entry, {}).get("payment_made")
 
     return session_entry
 
@@ -469,12 +476,60 @@ def handle_iou_changes_on(club, session_entry, administrator):
 def handle_iou_changes_off(club, session_entry):
     """Turn off using an IOU"""
 
-    # TODO: What about IOU extras?
+    UserPendingPayment.objects.filter(
+        organisation=club,
+        system_number=session_entry.system_number,
+        session_entry=session_entry,
+        session_misc_payment=None,
+    ).delete()
+
+
+def handle_iou_changes_for_misc_on(
+    club, session_entry, session_misc_payment, administrator
+):
+    """Handle turning on an IOU for a misc payment"""
+
+    # For safety ensure we don't duplicate
+    user_pending_payment, _ = UserPendingPayment.objects.get_or_create(
+        organisation=club,
+        system_number=session_entry.system_number,
+        session_entry=session_entry,
+        session_misc_payment=session_misc_payment,
+        amount=session_misc_payment.amount,
+        description=session_misc_payment.description,
+    )
+    user_pending_payment.save()
+
+    subject = f"Pending Payment to {club}"
+    message = f"""
+    {administrator.full_name} has recorded you as requiring "{session_misc_payment.description}" in {session_entry.session} but not paying.
+    That is fine, you can pay later.
+    <br><br>
+    The amount owing is {GLOBAL_CURRENCY_SYMBOL}{session_misc_payment.amount}.
+    <br><br>
+    If you believe this to be incorrect please contact {club} directly in the first instance.
+    """
+
+    send_cobalt_email_to_system_number(
+        session_entry.system_number,
+        subject,
+        message,
+        club=club,
+        administrator=administrator,
+    )
+
+    session_misc_payment.payment_made = True
+    session_misc_payment.save()
+
+
+def handle_iou_changes_for_misc_off(club, session_entry, session_misc_payment):
+    """Turn off using an IOU for a misc payment"""
 
     UserPendingPayment.objects.filter(
         organisation=club,
         system_number=session_entry.system_number,
         session_entry=session_entry,
+        session_misc_payment=session_misc_payment,
     ).delete()
 
 
@@ -1036,14 +1091,13 @@ def get_allowed_payment_methods(session_entries, session, payment_methods):
     """
 
     for session_entry in session_entries:
-        # paid for with credits, no change allowed
+        # paid for with credits or IOU, no change allowed. Force user into the edit screen to make changes
         if (
             session_entry.payment_method
-            and session_entry.payment_method.payment_method == BRIDGE_CREDITS
+            and session_entry.payment_method.payment_method in [BRIDGE_CREDITS, "IOU"]
             and session_entry.is_paid
         ):
             session_entry.payment_methods = [session_entry.payment_method]
-        # if we have processed the bridge credits already, then don't allow bridge credits as an option
         elif session.status in [
             Session.SessionStatus.COMPLETE,
             Session.SessionStatus.CREDITS_PROCESSED,

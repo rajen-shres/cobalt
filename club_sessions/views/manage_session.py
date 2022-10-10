@@ -38,6 +38,9 @@ from club_sessions.views.core import (
     change_user_on_session_entry,
     delete_table,
     edit_session_entry_handle_other,
+    get_session_fee_for_player,
+    handle_iou_changes_for_misc_off,
+    handle_iou_changes_for_misc_on,
 )
 from club_sessions.views.decorators import user_is_club_director
 from cobalt.settings import ALL_SYSTEM_ACCOUNTS, BRIDGE_CREDITS, GLOBAL_CURRENCY_SYMBOL
@@ -422,9 +425,6 @@ def change_payment_method_htmx(request, club, session, session_entry):
         OrgPaymentMethod, pk=request.POST.get("payment_method")
     )
 
-    # Handle IOUs
-    # TODO: HANDLE IOUs
-
     # Get the membership_type for this user and club, None means they are a guest
     member_membership_type = (
         MemberMembershipType.objects.filter(system_number=session_entry.system_number)
@@ -463,6 +463,7 @@ def change_payment_method_htmx(request, club, session, session_entry):
     return HttpResponse(
         f"""<div>{fee.fee}</div>
                             <div id="id_session_entry_total_{session_entry.id }" hx-swap-oob="true"> {total:.2f} </div>
+                            <div id="detail_message" hx-swap-oob="true">Session Updated</div>
                             """
     )
 
@@ -726,7 +727,7 @@ def toggle_paid_misc_session_payment_htmx(request, club, session, session_entry)
 
         # handle IOUs
         elif session_misc_payment.payment_method == iou:
-            handle_iou_changes_off(club, session_entry)
+            handle_iou_changes_for_misc_off(club, session_entry, session_misc_payment)
             message = "IOU deleted"
 
         # Simple - just toggle paid status
@@ -749,7 +750,9 @@ def toggle_paid_misc_session_payment_htmx(request, club, session, session_entry)
 
         # handle IOUs
         elif session_misc_payment.payment_method == iou:
-            handle_iou_changes_on(club, session_entry, request.user)
+            handle_iou_changes_for_misc_on(
+                club, session_entry, session_misc_payment, request.user
+            )
             session_misc_payment.payment_made = True
             session_misc_payment.save()
             message = "IOU set up and player notified"
@@ -829,8 +832,6 @@ def process_off_system_payments_htmx(request, club, session):
     """mark all off system payments as paid - called from a big button. Only possible once bridge credits
     have been processed."""
 
-    # TODO: What about IOUs - should they be processed first too?
-
     # Get bridge credits and ious for this org
     bridge_credits = bridge_credits_for_club(club)
     ious = iou_for_club(club)
@@ -845,9 +846,24 @@ def process_off_system_payments_htmx(request, club, session):
         payment_method__in=[bridge_credits, ious]
     ).update(payment_made=True)
 
+    # Handle IOUs
+    session_entry_ious = SessionEntry.objects.filter(
+        session=session, payment_method=ious, is_paid=False
+    )
+    for session_entry_iou in session_entry_ious:
+        handle_iou_changes_on(club, session_entry_iou, request.user)
+
+    # handle IOUs for extras
+    extras_ious = SessionMiscPayment.objects.filter(
+        session_entry__session=session, payment_method=ious, payment_made=False
+    )
+    for extra_iou in extras_ious:
+        handle_iou_changes_for_misc_on(
+            club, extra_iou.session_entry, extra_iou, request.user
+        )
+
     # Mark session status as complete
-    session.status = Session.SessionStatus.COMPLETE
-    session.save()
+    recalculate_session_status(session)
 
     # Include HX-Trigger in response so we know to update the totals too
     response = tab_session_htmx(request, message="Off System payments made")
@@ -944,3 +960,15 @@ def change_player_htmx(request, club, session, session_entry):
 
     # return whole edit page
     return edit_session_entry_htmx(request, message=message)
+
+
+@user_is_club_director(include_session_entry=True)
+def get_fee_for_payment_method_htmx(request, club, session, session_entry):
+    """Called by the edit panel to get what the fee should be when we change the payment method"""
+
+    payment_method = get_object_or_404(
+        OrgPaymentMethod, pk=request.POST.get("payment_method_id")
+    )
+    session_entry.payment_method = payment_method
+
+    return HttpResponse(get_session_fee_for_player(session_entry, club))

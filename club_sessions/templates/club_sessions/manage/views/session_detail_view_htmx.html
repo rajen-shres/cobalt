@@ -9,7 +9,7 @@
 {% load static %}
 
 <!-- MESSAGE -->
-<h3 class="text-primary font-weight-bold">{{ message }}</h3>
+<h3 class="text-primary font-weight-bold"><div id="detail_message">{{ message }}</div></h3>
 
 {% if not session_entries %}
 
@@ -41,7 +41,13 @@
                     {% endif %}
 
                     <th>Payment Method</th>
-                    <th>Paid</th>
+                    <!-- SHOW EXTRA PAID STATUS IF WE HAVE EXTRAS -->
+                    {% if has_extras %}
+                        <th>Fee Paid</th>
+                        <th>Extras Paid</th>
+                    {% else %}
+                        <th>Paid</th>
+                    {% endif %}
                     <th>Actions</th>
                 </tr>
 
@@ -198,9 +204,11 @@
                                 hx-target="#id_session_entry_fee_{{ session_entry.id }}"
                                 style="width: 30px;"
 
-                                {# If payment has been made, don't allow bridge credits to be changed to something else #}
-                                {% if session_entry.is_paid and session_entry.payment_method.payment_method == BRIDGE_CREDITS %}
-                                    disabled="true"
+                                {# If payment has been made, don't allow bridge credits or IOU to be changed to something else #}
+                                {% if session_entry.is_paid %}
+                                    {% if session_entry.payment_method.payment_method == BRIDGE_CREDITS or session_entry.payment_method.payment_method == "IOU" %}
+                                        disabled="true"
+                                    {% endif %}
                                 {% endif %}
                             >
 
@@ -225,11 +233,11 @@
                     </td>
 
 
-                    <!-- AMOUNT PAID -->
+                    <!-- IS_PAID -->
 
                     <td>
-                        <!--  DO NOTHING IF PLAYING DIRECTOR (TBA) -->
-                        {% if session_entry.player.id == TBA_PLAYER %}
+                        {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
+                            <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
 
                             &nbsp;
 
@@ -248,15 +256,15 @@
                                     id="id_session_entry_paid_flag_{{ session_entry.id }}"
                                     type="checkbox"
 
-                                    {# MARK AS PAID IF PAID gte DUE #}
+                                    {# MARK AS PAID IF PAID #}
 
                                     {% if session_entry.is_paid %}
                                         checked
                                     {% endif %}
 
-                                    {# DON'T ALLOW BRIDGE CREDITS TO BE EDITED HERE #}
+                                    {# DON'T ALLOW BRIDGE CREDITS OR IOUS TO BE EDITED HERE #}
 
-                                    {% if session_entry.payment_method.payment_method == BRIDGE_CREDITS %}
+                                    {% if session_entry.payment_method.payment_method == BRIDGE_CREDITS or session_entry.payment_method.payment_method == "IOU" %}
                                         disabled
                                     {% endif %}
 
@@ -272,6 +280,18 @@
                         {% endif %}
 
                     </td>
+                    <!-- SHOW EXTRA PAID STATUS IF WE HAVE EXTRAS -->
+                    {% if has_extras %}
+                        <td>
+                            {% if session_entry.system_number != -1 and session_entry.system_number != 1 %}
+                                <input type="checkbox" disabled
+                                    {% if session_entry.extras_paid %}
+                                        checked
+                                    {% endif %}
+                                >
+                            {% endif %}
+                        </td>
+                    {% endif %}
 
                     <!-- ACTIONS -->
                     <td>
@@ -315,13 +335,13 @@
         $('.selectpicker').selectpicker('refresh');
 
         // watch for selectpicker (only one is payment_type) changing
-        // disable ticking paid box if this is bridge credits
+        // disable ticking paid box if this is bridge credits or IOU
         $('.selectpicker').change(function(evt) {
 
             // get id for this row from the id of this element
             const row_id = $(this).attr("id").split("_")[3];
 
-            if ($(this).find(":selected").text() === "{{ BRIDGE_CREDITS }}"){
+            if ($(this).find(":selected").text() === "{{ BRIDGE_CREDITS }}" || $(this).find(":selected").text() === "IOU"){
                 $("#id_session_entry_paid_flag_" + row_id).attr("disabled", true);
             } else {
                 $("#id_session_entry_paid_flag_" + row_id).removeAttr("disabled");
