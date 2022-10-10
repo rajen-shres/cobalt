@@ -54,7 +54,8 @@
                                 btn-success
                             {% endif %}
                             "
-                            _="on click toggle .d-none on #id_row_{{ payment_type.split|join:"-" }}"
+                            _="on click js cobalt_toggle_visible('#id_row_{{ payment_type.split|join:"-" }}'); end"
+
                         >
 
                             <!-- TABLE FOR FORMATTING - STYLE SHEET IN mange_sessions.html -->
@@ -82,7 +83,7 @@
         </div>
 
         <!-- ROW FOR THE LIST OF PEOPLE IN THIS PAYMENT METHOD -->
-        <div class="row d-none" id="id_row_{{ payment_type.split|join:"-" }}">
+        <div class="row" id="id_row_{{ payment_type.split|join:"-" }}" style="display: none">
             <div class=col-lg-8 col-xl-6">
                 <table class="table table-condensed table-striped">
                     <thead class="text-primary">
@@ -133,4 +134,31 @@
 {% endif %}
 
 
+<script>
+    function cobalt_toggle_visible(item_id){
 
+
+
+        console.log("---");
+
+
+
+        const item = $(item_id);
+        console.log(item.is(':visible'));
+        if (item.is(':visible')){
+            item.hide();
+        } else {
+            item.show();
+        }
+
+    }
+
+    function stateChange(newState) {
+        setTimeout(function () {
+            if (newState == -1) {
+                alert('VIDEO HAS STOPPED');
+            }
+        }, 5000);
+    }
+
+</script>
