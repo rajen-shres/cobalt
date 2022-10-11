@@ -2,6 +2,7 @@
 
 # about: rebuild test data on Test or UAT
 # This used to be easier but now you need to switch database as there will be locks on it
+# This also used to run on the server but runs out of memory loading the test data
 
 unset AWS_SECRET_ACCESS_KEY
 unset AWS_ACCESS_KEY_ID
@@ -25,6 +26,26 @@ then
   exit 1
 fi
 
+# Check we have a database for this environment
+if [[ "$ENV" == "cobalt-test-black" ]];then
+    RDS_HOSTNAME="cobalt-test.c97jawiow7ed.ap-southeast-2.rds.amazonaws.com"
+elif [[ "$ENV" == "cobalt-uat-yellow" ]];then
+    RDS_HOSTNAME="cobalt-uat.c97jawiow7ed.ap-southeast-2.rds.amazonaws.com"
+else
+  echo "Unknown environment. Update script with database details"
+  exit 1
+fi
+
+# Update the firewall rule so we can connect if local IP had changed
+IP=$(curl -s https://ident.me)
+
+echo "Your IP is $IP"
+
+aws ec2 modify-security-group-rules \
+    --group-id sg-e6b3fd98 \
+    --security-group-rules SecurityGroupRuleId=sgr-0c304f0cc65379e9c,SecurityGroupRule="{Description='Dynamic',IpProtocol=-1,CidrIpv4=$IP/32}"
+
+
 # Get current database
 echo "Getting current settings..."
 DBNAME=$(eb printenv $ENV | grep RDS_DB_NAME | awk '{print $3}')
@@ -43,6 +64,18 @@ else
 fi
 
 echo "Current RDS_DB_NAME is $DBNAME, new RDS_DB_NAME will be $NEW_DBNAME"
+
+# get password from EB
+echo "Getting password for database..."
+export RDS_PASSWORD=$(eb printenv $ENV | grep RDS_PASSWORD | awk '{print $3}')
+
+echo "Running commands to load data..."
+export RDS_DB_NAME=NEW_DBNAME
+export RDS_HOSTNAME
+export RDS_PORT=5432
+utils/aws/rebuild_test_database_subcommands.sh
+
+exit
 
 # Create new database
 echo "Creating new database..."
