@@ -43,12 +43,12 @@ echo "Your IP is $IP"
 
 aws ec2 modify-security-group-rules \
     --group-id sg-e6b3fd98 \
-    --security-group-rules SecurityGroupRuleId=sgr-0c304f0cc65379e9c,SecurityGroupRule="{Description='Dynamic',IpProtocol=-1,CidrIpv4=$IP/32}"
+    --security-group-rules SecurityGroupRuleId=sgr-0c304f0cc65379e9c,SecurityGroupRule="{Description='Dynamic',IpProtocol=-1,CidrIpv4=$IP/32}" >/dev/null
 
 
 # Get current database
 echo "Getting current settings..."
-DBNAME=$(eb printenv $ENV | grep RDS_DB_NAME | awk '{print $3}')
+DBNAME=$(eb printenv "$ENV" | grep RDS_DB_NAME | awk '{print $3}')
 
 # We use blue/green or yellow/orange. Default to green if not found
 if [ "$DBNAME" == "green" ]; then
@@ -65,18 +65,6 @@ fi
 
 echo "Current RDS_DB_NAME is $DBNAME, new RDS_DB_NAME will be $NEW_DBNAME"
 
-# get password from EB
-echo "Getting password for database..."
-export RDS_PASSWORD=$(eb printenv $ENV | grep RDS_PASSWORD | awk '{print $3}')
-
-echo "Running commands to load data..."
-export RDS_DB_NAME=NEW_DBNAME
-export RDS_HOSTNAME
-export RDS_PORT=5432
-utils/aws/rebuild_test_database_subcommands.sh
-
-exit
-
 # Create new database
 echo "Creating new database..."
 eb ssh $ENV --command "-f sudo /var/app/current/utils/cgit/tools/eb_create_test_db.sh $NEW_DBNAME"
@@ -91,5 +79,21 @@ echo "Dropping database $DBNAME..."
 eb ssh $ENV --command "-f sudo /var/app/current/utils/cgit/tools/eb_drop_test_db.sh $DBNAME"
 
 # Build test data
-echo "Adding test data..."
-eb ssh $ENV --command "-f sudo /var/app/current/utils/cgit/tools/eb_rebuild_test_data.sh"
+
+# get user from EB
+echo "Getting user for database..."
+RDS_USERNAME=$(eb printenv "$ENV" | grep RDS_USERNAME | awk '{print $3}')
+echo "User is $RDS_USERNAME"
+export RDS_USERNAME
+
+# get password from EB
+echo "Getting password for database..."
+RDS_PASSWORD=$(eb printenv "$ENV" | grep RDS_PASSWORD | awk '{print $3}')
+echo "Password is $RDS_PASSWORD"
+export RDS_PASSWORD
+
+echo "Running commands to load data..."
+export RDS_DB_NAME=$NEW_DBNAME
+export RDS_HOSTNAME
+export RDS_PORT=5432
+utils/aws/rebuild_test_database_subcommands.sh
