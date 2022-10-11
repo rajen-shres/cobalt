@@ -9,14 +9,24 @@
 
 <!-- PAYMENTS -->
 
-<a href="javascript: void(0);"
-    _="on click show #id_misc_pay_box then hide me"
-    class="btn btn-sm btn-primary"
->
-    transactions
-</a>
+<!-- AUTOMATICALLY SHOW IF WE HAVE A MESSAGE FOR THE USER -->
 
-<div class="card" id="id_misc_pay_box" style="display: none;">
+{% if not misc_message %}
+
+    <a href="javascript: void(0);"
+        _="on click show #id_misc_pay_box then hide me"
+        class="btn btn-sm btn-primary"
+    >
+        transactions
+    </a>
+
+{% endif %}
+
+<div class="card" id="id_misc_pay_box"
+    {% if not misc_message %}
+        style="display: none;"
+    {% endif %}
+>
     <div class="card-header card-header-primary">
         <h2>Transactions</h2>
 
@@ -142,6 +152,10 @@
                 <h4>Club Balance: {{ club_balance|cobalt_currency_colour }}</h4>
             </div>
             <div class="card-body">
+
+                <!-- REPEAT MESSAGE -->
+
+                <h5 class="text-primary font-weight-bold">{{ misc_message }}</h5>
 
                 <!-- MISC PAYMENTS FORM -->
                 <form

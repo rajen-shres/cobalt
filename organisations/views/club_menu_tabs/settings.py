@@ -205,7 +205,7 @@ def membership_htmx(request, club):
 
     # Add in number of members
     for membership_type in membership_types:
-        membership_type.member_count = MemberMembershipType.objects.filter(
+        membership_type.get_member_count = MemberMembershipType.objects.filter(
             membership_type=membership_type
         ).count()
 

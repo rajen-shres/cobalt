@@ -90,7 +90,7 @@ def _menu_rbac_advanced_is_admin(club, user):
     return _user_is_uber_admin(club, user)
 
 
-def _member_count(club, reference_date=None):
+def get_member_count(club, reference_date=None):
     """Get member count for club with optional ref date"""
 
     if not reference_date:
@@ -176,10 +176,10 @@ def invite_user_to_join_htmx(request, club):
             request, f"No email address found for {un_reg.full_name}. Invite not sent."
         )
 
-    # Check for non-prod environments
-    if COBALT_HOSTNAME not in ["myabf.com.au", "www.myabf.com.au"]:
-        print(f"NOT sending to {email}. Substituted for dev email address")
-        email = "m@rkguthrie.com"
+    # # Check for non-prod environments
+    # if COBALT_HOSTNAME not in ["myabf.com.au", "www.myabf.com.au"]:
+    #     print(f"NOT sending to {email}. Substituted for dev email address")
+    #     email = "m@rkguthrie.com"
 
     invite_to_join(
         un_reg=un_reg,

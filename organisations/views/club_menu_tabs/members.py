@@ -3,12 +3,14 @@ import logging
 from itertools import chain
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 
 import organisations.views.club_menu_tabs.utils
+from accounts.views.admin import invite_to_join
 from accounts.views.api import search_for_user_in_cobalt_and_mpc
 from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser
@@ -113,12 +115,20 @@ def add_htmx(request, club):
             "<h4>Your club has no membership types defined. You cannot add a member until you fix this.</h4>"
         )
 
-    total_members = organisations.views.club_menu_tabs.utils._member_count(club)
+    total_members = organisations.views.club_menu_tabs.utils.get_member_count(club)
 
     # Check level of access
     member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
 
     has_errors = _check_member_errors(club)
+
+    # Check for unregistered
+    members = MemberMembershipType.objects.filter(
+        membership_type__organisation=club
+    ).values("system_number")
+    has_unregistered = UnregisteredUser.objects.filter(
+        system_number__in=members
+    ).exists()
 
     return render(
         request,
@@ -128,6 +138,7 @@ def add_htmx(request, club):
             "total_members": total_members,
             "member_admin": member_admin,
             "has_errors": has_errors,
+            "has_unregistered": has_unregistered,
         },
     )
 
@@ -296,6 +307,11 @@ def _cancel_membership(request, club, system_number):
     # Delete any tags
     MemberClubTag.objects.filter(club_tag__organisation=club).filter(
         system_number=system_number
+    ).delete()
+
+    # Remove any email addresses for this club and user
+    MemberClubEmail.objects.filter(
+        organisation=club, system_number=system_number
     ).delete()
 
 
@@ -937,11 +953,11 @@ def add_un_reg_htmx(request, club):
     # Add email
     club_email = form.cleaned_data["club_email"]
     if club_email and club_email != "":
-        club_email_entry, _ = MemberClubEmail.objects.get_or_create(
-            organisation=club, system_number=form.cleaned_data["system_number"]
-        )
-        club_email_entry.email = club_email
-        club_email_entry.save()
+        MemberClubEmail(
+            organisation=club,
+            system_number=form.cleaned_data["system_number"],
+            email=club_email,
+        ).save()
         ClubLog(
             organisation=club,
             actor=request.user,
@@ -1173,4 +1189,38 @@ def member_search_tab_name_htmx(request, club):
         request,
         "organisations/club_menu/members/member_search_tab_name_htmx.html",
         {"user_list": user_list, "club": club},
+    )
+
+
+@check_club_menu_access(check_members=True)
+def bulk_invite_to_join_htmx(request, club):
+    """Invite multiple people to join MyABF"""
+
+    members = MemberMembershipType.objects.filter(
+        membership_type__organisation=club
+    ).values("system_number")
+    unregistered = UnregisteredUser.objects.filter(system_number__in=members)
+
+    two_weeks = timezone.now() - timezone.timedelta(weeks=2)
+
+    can_invite = unregistered.filter(
+        Q(last_registration_invite_sent__lte=two_weeks)
+        | Q(last_registration_invite_sent=None)
+    )
+    cannot_invite = unregistered.filter(last_registration_invite_sent__gt=two_weeks)
+
+    if "send_invites" in request.POST:
+
+        for member in can_invite:
+            club_email = MemberClubEmail.objects.filter(
+                system_number=member.system_number, organisation=club
+            ).first()
+            email_address = club_email.email if club_email else member.email
+            invite_to_join(member, email_address, request.user, club)
+        return HttpResponse("<h3>Invites sent</h3>")
+
+    return render(
+        request,
+        "organisations/club_menu/members/bulk_invite_to_join_htmx.html",
+        {"can_invite": can_invite, "cannot_invite": cannot_invite},
     )

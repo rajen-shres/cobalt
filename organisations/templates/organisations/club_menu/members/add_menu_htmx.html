@@ -50,6 +50,23 @@
                             Upload your membership list in various formats
                         </td>
                     </tr>
+
+                    {% if has_unregistered %}
+
+                        <tr>
+                            <td>
+                                <button class="btn btn-warning btn-block"
+                                    hx-post="{% url "organisations:club_menu_tab_members_bulk_invite_to_join_htmx" %}"
+                                    hx-target="#id_member_add_tab"
+                                >Bulk Invite</button>
+                            </td>
+                            <td class="text-left pl-5">
+                                Invite members to sign up for {{ GLOBAL_TITLE }}
+                            </td>
+                        </tr>
+
+                    {% endif %}
+
                 </tbody>
             </table>
         </div>

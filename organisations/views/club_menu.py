@@ -31,7 +31,7 @@ from organisations.views.club_menu_tabs.access import access_basic, access_advan
 from organisations.views.club_menu_tabs.utils import (
     _menu_rbac_has_access,
     _user_is_uber_admin,
-    _member_count,
+    get_member_count,
     get_members_balance,
 )
 from payments.models import UserPendingPayment
@@ -133,11 +133,11 @@ def tab_dashboard_htmx(request, club):
     """build the dashboard tab in club menu"""
 
     # Get members active now
-    member_count = _member_count(club)
+    member_count = get_member_count(club)
 
     # Gets members active 28 days ago
     past = timezone.now() - datetime.timedelta(days=28)
-    member_count_before = _member_count(club, past)
+    member_count_before = get_member_count(club, past)
 
     diff = member_count - member_count_before
     diff_28_days = "No change" if diff == 0 else f"{diff:+,}"

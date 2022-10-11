@@ -42,11 +42,15 @@ def register_user(request):
 
     if request.method == "POST":
         # See if this user registered before and didn't activate
-        user = (
-            User.objects.filter(system_number=request.POST.get("username"))
-            .filter(is_active=False)
-            .first()
-        )
+        try:
+            user = (
+                User.objects.filter(system_number=request.POST.get("username"))
+                .filter(is_active=False)
+                .first()
+            )
+        except ValueError:  # user managed to get nonsense into the system number field
+            user = None
+
         if user:
             # reload form with this user as base
             form = UserRegisterForm(request.POST, instance=user)

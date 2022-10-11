@@ -669,4 +669,9 @@ urlpatterns = [
         organisations.views.admin.convert_manual_club_to_automatic,
         name="admin_convert_manual_club_to_automatic",
     ),
+    path(
+        "member/bulk-invite-to-join",
+        organisations.views.club_menu_tabs.members.bulk_invite_to_join_htmx,
+        name="club_menu_tab_members_bulk_invite_to_join_htmx",
+    ),
 ]

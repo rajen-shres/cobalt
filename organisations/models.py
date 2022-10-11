@@ -325,8 +325,8 @@ class MemberMembershipType(models.Model):
         now = timezone.now()
         if self.start_date > now:
             return False
-        if self.end_date < now:
-            return False
+        # if self.end_date < now:
+        #     return False
         return True
 
     def __str__(self):
