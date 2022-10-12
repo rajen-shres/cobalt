@@ -106,6 +106,7 @@ def invite_to_join(
         "link_text": "Sign Up",
         "link": link,
         "email_body": email_body,
+        "unregistered_identifier": un_reg.identifier,
     }
 
     send_cobalt_email_with_template(to_address=email, context=context)

@@ -164,6 +164,8 @@ class UnregisteredUser(models.Model):
     email = models.EmailField(
         "Email Address (accessible by all clubs)", blank=True, null=True
     )
+    # no_spam = models.BooleanField(default=False)
+    # """ flag to  """
     email_hard_bounce = models.BooleanField(default=False)
     """ Set this flag if we get a hard bounce from sending an email """
     email_hard_bounce_reason = models.TextField(null=True, blank=True)

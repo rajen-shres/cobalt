@@ -751,12 +751,21 @@ def send_cobalt_email_to_system_number(
         )
         return
 
+    un_registered_user = UnregisteredUser.objects.filter(
+        system_number=system_number
+    ).first()
+    if un_registered_user:
+        unregistered_identifier = un_registered_user.identifier
+    else:
+        unregistered_identifier = None
+
     context = {
         "box_colour": "#00bcd4",
         "name": first_name,
         "title": subject,
         "email_body": message,
         "img_src": "/static/notifications/img/myabf-email.png",
+        "unregistered_identifier": unregistered_identifier,
     }
 
     if club:
