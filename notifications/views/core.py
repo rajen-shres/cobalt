@@ -157,6 +157,8 @@ def send_cobalt_email_with_template(
     link_colour: default, primary, warning, danger, success, info
     box_colour: default, primary, warning, danger, success, info
 
+    unregistered_identifier: will use alternative footer and show link to unregistered user preferences
+
     """
 
     # Check if on bounce list

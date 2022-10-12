@@ -101,7 +101,7 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
     # Get unregistered
     un_regs = UnregisteredUser.objects.filter(
         system_number__in=tag_system_numbers
-    ).values("email", "first_name", "system_number")
+    ).values("email", "first_name", "system_number", "identifier")
 
     # get club level email overrides
     overrides = MemberClubEmail.objects.filter(
@@ -125,6 +125,12 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
 
         if email:
 
+            # Add on hash for unregistered users
+            try:
+                unregistered_identifier = recipient["identifier"]
+            except AttributeError:
+                unregistered_identifier = None
+
             _send_email_sub(
                 first_name=recipient["first_name"],
                 email=email,
@@ -132,6 +138,7 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
                 batch_id=batch_id,
                 club_template=club_template,
                 attachments=attachments,
+                unregistered_identifier=unregistered_identifier,
             )
 
             recipient_count += 1
@@ -140,7 +147,13 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
 
 
 def _send_email_sub(
-    first_name, email, email_form, batch_id=None, club_template=None, attachments=None
+    first_name,
+    email,
+    email_form,
+    batch_id=None,
+    club_template=None,
+    attachments=None,
+    unregistered_identifier=None,
 ):
     """Send an email subtask
 
@@ -160,6 +173,7 @@ def _send_email_sub(
         "subject": email_form.cleaned_data["subject"],
         "title": email_form.cleaned_data["subject"],
         "email_body": email_form.cleaned_data["org_email_body"],
+        "unregistered_identifier": unregistered_identifier,
     }
 
     # Get the extra fields that could have been overridden by the user

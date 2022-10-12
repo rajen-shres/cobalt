@@ -195,6 +195,14 @@ class UnregisteredUser(models.Model):
         null=True,
         related_name="added_by_club",
     )
+    identifier = models.CharField(
+        max_length=10,
+        default="".join(
+            random.SystemRandom().choice(string.ascii_letters + string.digits)
+            for _ in range(10)
+        ),
+    )
+    """ random string identifier to use in emails to handle preferences. Can't use the pk obviously """
 
     def __str__(self):
         return "%s (%s: %s)" % (self.full_name, GLOBAL_ORG, self.system_number)

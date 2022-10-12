@@ -1,11 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.sessions.models import Session
+from django.http import HttpResponse
 from django.shortcuts import render
 from fcm_django.models import FCMDevice
 
 from accounts.forms import UserSettingsForm
-from accounts.models import APIToken
+from accounts.models import APIToken, UnregisteredUser
 from notifications.views.user import notifications_in_english
 from rbac.core import rbac_user_has_role
 
@@ -94,4 +95,22 @@ def developer_settings_delete_token_htmx(request):
 
     return render(
         request, "accounts/developer/settings.html", {"api_tokens": api_tokens}
+    )
+
+
+def unregistered_user_settings(request, identifier):
+    """allow an unregistered user to control their email preferences"""
+
+    unregistered = UnregisteredUser.objects.filter(identifier=identifier).first()
+
+    if not unregistered:
+        return HttpResponse("Invalid identifier")
+
+    if request.POST:
+        return HttpResponse("form submitted")
+
+    return render(
+        request,
+        "accounts/settings/unregistered_user_settings.html",
+        {"unregistered": unregistered},
     )

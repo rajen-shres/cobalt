@@ -15,7 +15,17 @@
                     {#                Works March 2022 - who knows about later#}
                     Sent using <a href="http://{{ host }}" target="_blank"><img src="http://{{ host }}{% static "assets/img/myabf_text.jpg" %}" width="50" alt="MyABF" align="center"></a>
                 </span>
-                <br><a href="http://{{ host }}{% url "accounts:user_profile" %}" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">Manage your preferences</a>.
+                <br>
+
+                {% if unregistered_identifier %}
+
+                    <a href="http://{{ host }}{% url "accounts:unregistered_settings" identifier=unregistered_identifier %}" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">Manage your preferences</a>.
+
+                {% else %}
+
+                    <a href="http://{{ host }}{% url "accounts:user_settings" %}" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">Manage your preferences</a>.
+
+                {% endif %}
 
             </td>
         </tr>

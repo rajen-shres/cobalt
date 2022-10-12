@@ -162,4 +162,9 @@ urlpatterns = [
         accounts.views.api.delete_session_ajax,
         name="delete_session_token_ajax",
     ),
+    path(
+        "unregistered-preferences/<str:identifier>",
+        accounts.views.settings.unregistered_user_settings,
+        name="unregistered_settings",
+    ),
 ]
