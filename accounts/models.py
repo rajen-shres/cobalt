@@ -164,8 +164,6 @@ class UnregisteredUser(models.Model):
     email = models.EmailField(
         "Email Address (accessible by all clubs)", blank=True, null=True
     )
-    # no_spam = models.BooleanField(default=False)
-    # """ flag to  """
     email_hard_bounce = models.BooleanField(default=False)
     """ Set this flag if we get a hard bounce from sending an email """
     email_hard_bounce_reason = models.TextField(null=True, blank=True)
@@ -199,20 +197,26 @@ class UnregisteredUser(models.Model):
     )
     identifier = models.CharField(
         max_length=10,
-        default="".join(
-            random.SystemRandom().choice(string.ascii_letters + string.digits)
-            for _ in range(10)
-        ),
+        default="NOTSET",
     )
     """ random string identifier to use in emails to handle preferences. Can't use the pk obviously """
 
+    def save(self, *args, **kwargs):
+        """create identifier on first save"""
+        if not self.pk:
+            self.identifier = "".join(
+                random.SystemRandom().choice(string.ascii_letters + string.digits)
+                for _ in range(10)
+            )
+        super(UnregisteredUser, self).save(*args, **kwargs)
+
     def __str__(self):
-        return "%s (%s: %s)" % (self.full_name, GLOBAL_ORG, self.system_number)
+        return f"{self.full_name} ({GLOBAL_ORG}: {self.system_number})"
 
     @property
     def full_name(self):
         """Returns the person's full name."""
-        return "%s %s" % (self.first_name, self.last_name)
+        return f"{self.first_name} {self.last_name}"
 
 
 class TeamMate(models.Model):

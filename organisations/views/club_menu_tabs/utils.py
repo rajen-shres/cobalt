@@ -173,7 +173,8 @@ def invite_user_to_join_htmx(request, club):
         email = un_reg.email
     else:
         return list_htmx(
-            request, f"No email address found for {un_reg.full_name}. Invite not sent."
+            request,
+            message=f"No email address found for {un_reg.full_name}. Invite not sent.",
         )
 
     # # Check for non-prod environments

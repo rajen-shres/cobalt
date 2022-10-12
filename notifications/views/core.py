@@ -46,6 +46,7 @@ from notifications.models import (
     RealtimeNotificationHeader,
     RealtimeNotification,
     InAppNotification,
+    UnregisteredBlockedEmail,
 )
 from organisations.models import Organisation
 from rbac.core import rbac_user_has_role
@@ -105,6 +106,7 @@ def _to_address_checker(to_address, context):
 def _email_address_on_bounce_list(to_address):
     """Check if we are not sending to this address"""
 
+    # First check if it bounced
     user_additional_info = UserAdditionalInfo.objects.filter(
         user__email=to_address
     ).first()
@@ -115,6 +117,11 @@ def _email_address_on_bounce_list(to_address):
         un_reg and un_reg.email_hard_bounce
     ):
         logger.info(f"Not sending email to suppressed address - {to_address}")
+        return True
+
+    # Now check for unregistered users blocking sending
+    if UnregisteredBlockedEmail.objects.filter(email=to_address).exists():
+        logger.info(f"Not sending email to unregistered user at address - {to_address}")
         return True
 
     return False

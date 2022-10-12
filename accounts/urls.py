@@ -14,6 +14,11 @@ app_name = "accounts"  # pylint: disable=invalid-name
 urlpatterns = [
     path("register", accounts.views.core.register_user, name="register"),
     path(
+        "register/<int:system_number>/<str:email>",
+        accounts.views.core.register_user,
+        name="register",
+    ),
+    path(
         "password-reset-request",
         accounts.views.core.password_reset_request,
         name="password_reset_request",

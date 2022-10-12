@@ -16,13 +16,14 @@ from accounts.models import User, UnregisteredUser
 from accounts.tokens import account_activation_token
 from cobalt.settings import GLOBAL_TITLE, ALL_SYSTEM_ACCOUNTS
 from logs.views import log_event
+from masterpoints.factories import masterpoint_factory_creator
 from masterpoints.views import user_summary
 from notifications.views.core import send_cobalt_email_with_template
 from organisations.models import MemberClubEmail, Organisation
 from organisations.views.general import replace_unregistered_user_with_real_user
 
 
-def register_user(request):
+def register_user(request, system_number=None, email=None):
     """User registration form
 
     This form allows a user to register for the system. The form includes
@@ -57,6 +58,19 @@ def register_user(request):
 
         if form.is_valid():
             return _register_handle_valid_form(form, request)
+
+    # Try to pre-fill the form if we got data - happens from the invite to join link
+    if system_number:
+        form.fields["username"].initial = system_number
+        mp_source = masterpoint_factory_creator()
+        ret = mp_source.system_number_lookup(system_number)
+        try:
+            form.fields["first_name"].initial = ret.split(" ")[0]
+            form.fields["last_name"].initial = ret.split(" ")[1]
+        except IndexError:
+            pass
+    if email:
+        form.fields["email"].initial = email
 
     return render(request, "accounts/core/register.html", {"user_form": form})
 
@@ -351,7 +365,7 @@ def _check_unregistered_user_match(user):
     # Organisations
     replace_unregistered_user_with_real_user(user)
 
-    # Now delete the unregistered user, we don't need it any more
+    # Now delete the unregistered user, we don't need it anymore. This will also delete any UnregisteredBlockedEmail
     unregistered_user.delete()
 
 

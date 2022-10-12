@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.conf import settings
 from post_office.models import Email as PostOfficeEmail
 
-from accounts.models import User
+from accounts.models import User, UnregisteredUser
 from organisations.models import Organisation
 
 
@@ -333,3 +333,14 @@ class EmailAttachment(models.Model):
 
     def filename(self):
         return os.path.basename(self.attachment.name)
+
+
+class UnregisteredBlockedEmail(models.Model):
+    """This is for privacy. We allow unregistered users to control whether we send to them or not.
+
+    Any entry here will block sending to this email address.
+
+    """
+
+    un_registered_user = models.ForeignKey(UnregisteredUser, on_delete=models.CASCADE)
+    email = models.EmailField()

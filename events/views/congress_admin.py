@@ -1932,7 +1932,7 @@ def convener_settings(request, congress_id):
     congress = get_object_or_404(Congress, pk=congress_id)
 
     # check access
-    role = "events.org.%s.edit" % congress.congress_master.org.id
+    role = f"events.org.{congress.congress_master.org.id}.edit"
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
@@ -1948,14 +1948,12 @@ def convener_settings(request, congress_id):
                 identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
                 model_id=None,
             ).save()
-            print("Turn all_off true")
 
         if request.GET.get("all_off") == "False":
             # Turn on all
             BlockNotification.objects.filter(
                 member=request.user,
             ).delete()
-            print("Turn all_off false")
 
         # This org
         if request.GET.get("this_org_off") == "True":
@@ -1969,7 +1967,6 @@ def convener_settings(request, congress_id):
                 identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
                 model_id=congress.congress_master.org.id,
             ).save()
-            print("Turn this_org_off true")
 
         if request.GET.get("this_org_off") == "False":
             # Turn on org
@@ -1978,7 +1975,6 @@ def convener_settings(request, congress_id):
                 identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_ORG,
                 model_id=congress.congress_master.org.id,
             ).delete()
-            print("Turn this_org_off false")
 
         if request.GET.get("this_congress_off") == "True":
             # Turn off congress and delete anything else
@@ -1988,7 +1984,6 @@ def convener_settings(request, congress_id):
                 identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
                 model_id=congress.id,
             ).save()
-            print("Turn this_congress_off true")
 
         if request.GET.get("this_congress_off") == "False":
             # Turn on congress
@@ -1997,7 +1992,6 @@ def convener_settings(request, congress_id):
                 identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
                 model_id=congress.id,
             ).delete()
-            print("Turn this_congress_off false")
 
     # Build current state for view
     this_congress_off = BlockNotification.objects.filter(

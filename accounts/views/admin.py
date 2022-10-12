@@ -72,7 +72,7 @@ def invite_to_join(
     requested_by_user: User,
     requested_by_org: Organisation,
 ):
-    """Invite an unregistered user to sign up"
+    """Invite an unregistered user to sign up
 
     Args:
         un_reg: An unregistered user object
@@ -98,7 +98,10 @@ def invite_to_join(
                     Click the link below to sign up now. It's Free!
                     <br><br>
     """
-    link = reverse("accounts:register")
+    link = reverse(
+        "accounts:register",
+        kwargs={"system_number": un_reg.system_number, "email": email},
+    )
 
     context = {
         "name": un_reg.first_name,

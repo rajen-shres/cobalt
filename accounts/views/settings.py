@@ -7,7 +7,9 @@ from fcm_django.models import FCMDevice
 
 from accounts.forms import UserSettingsForm
 from accounts.models import APIToken, UnregisteredUser
+from notifications.models import UnregisteredBlockedEmail
 from notifications.views.user import notifications_in_english
+from organisations.models import MemberClubEmail
 from rbac.core import rbac_user_has_role
 
 
@@ -106,11 +108,50 @@ def unregistered_user_settings(request, identifier):
     if not unregistered:
         return HttpResponse("Invalid identifier")
 
+    # get any other emails related to this user
+    additional_emails = MemberClubEmail.objects.filter(
+        system_number=unregistered.system_number
+    )
+
+    # don't show if already blocked
+    blocked_emails = UnregisteredBlockedEmail.objects.filter(
+        un_registered_user=unregistered
+    ).values_list("email", flat=True)
+
+    if unregistered.email in blocked_emails:
+        unregistered.email = None
+
+    for additional_email in additional_emails:
+        if additional_email.email in blocked_emails:
+            additional_email.email = None
+
+    # Don't show empty section if there are no email addresses left
+    has_data = False
+    if unregistered.email:
+        has_data = True
+    for additional_email in additional_emails:
+        if additional_email.email:
+            has_data = True
+
     if request.POST:
-        return HttpResponse("form submitted")
+        email = request.POST.get("block_email")
+
+        if not email:
+            return HttpResponse("An error occurred")
+
+        block, _ = UnregisteredBlockedEmail.objects.get_or_create(
+            un_registered_user=unregistered, email=email
+        )
+        block.save()
+
+        return HttpResponse("Email removed. You will receive no further notifications.")
 
     return render(
         request,
         "accounts/settings/unregistered_user_settings.html",
-        {"unregistered": unregistered},
+        {
+            "unregistered": unregistered,
+            "additional_emails": additional_emails,
+            "has_data": has_data,
+        },
     )
