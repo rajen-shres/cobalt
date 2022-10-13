@@ -674,4 +674,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.members.bulk_invite_to_join_htmx,
         name="club_menu_tab_members_bulk_invite_to_join_htmx",
     ),
+    path(
+        "member/unblock-unreg-email-address",
+        organisations.views.club_menu_tabs.members.unblock_unreg_email_address_htmx,
+        name="club_menu_tab_members_unblock_unreg_email_address_htmx",
+    ),
 ]

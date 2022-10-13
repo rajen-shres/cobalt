@@ -15,6 +15,7 @@ from .models import (
     RealtimeNotificationHeader,
     RealtimeNotification,
     EmailAttachment,
+    UnregisteredBlockedEmail,
 )
 
 
@@ -107,6 +108,14 @@ class EmailAttachmentAdmin(admin.ModelAdmin):
     ]
 
 
+class UnregisteredBlockedEmailAdmin(admin.ModelAdmin):
+    """Admin class for model UnregisteredBlockedEmail"""
+
+    autocomplete_fields = [
+        "un_registered_user",
+    ]
+
+
 admin.site.register(InAppNotification, InAppNotificationAdmin)
 admin.site.register(NotificationMapping, NotificationMappingAdmin)
 admin.site.register(AbstractEmail, AbstractEmailAdmin)
@@ -120,3 +129,4 @@ admin.site.register(BlockNotification, BlockNotificationAdmin)
 admin.site.register(RealtimeNotificationHeader, RealtimeNotificationHeaderAdmin)
 admin.site.register(RealtimeNotification, RealtimeNotificationAdmin)
 admin.site.register(EmailAttachment, EmailAttachmentAdmin)
+admin.site.register(UnregisteredBlockedEmail, UnregisteredBlockedEmailAdmin)

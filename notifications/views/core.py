@@ -150,7 +150,7 @@ def send_cobalt_email_with_template(
         attachments (dict): optional dictionary of attachments
 
     Returns:
-        Nothing
+        boolean: True if the message was sent, False otherwise
 
     Context for the default template can have:
 
@@ -171,7 +171,7 @@ def send_cobalt_email_with_template(
     # Check if on bounce list
     if _email_address_on_bounce_list(to_address):
         logger.info(f"Ignoring email on bounce list {to_address}")
-        return
+        return False
 
     # Augment context
     context["host"] = COBALT_HOSTNAME
@@ -204,6 +204,8 @@ def send_cobalt_email_with_template(
     )
 
     Snooper(post_office_email=email, batch_id=batch_id).save()
+
+    return True
 
 
 def send_cobalt_email_preformatted(

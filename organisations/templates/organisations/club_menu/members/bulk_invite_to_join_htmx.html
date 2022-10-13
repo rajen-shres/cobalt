@@ -3,18 +3,11 @@
         <h3>Bulk Invite to Join {{ GLOBAL_TITLE }}</h3>
     </div>
     <div class="card-body">
-        <p>Invite the following to join up:</p>
 
+        {% if not can_invite %}
+            <p>There is nobody who can be invited at this point.</p>
 
-        <ul>
-            {% for member in can_invite %}
-                <li>{{ member }}</li>
-            {% endfor %}
-        </ul>
-
-        {% if cannot_invite %}
-            <p>The following people were invited within the last two weeks and cannot be bulk invited again.
-                You can invite them manually through the member edit page.</p>
+            <p>The following people were invited within the last two week. You can invite them manually from the members area:</p>
 
             <ul>
                 {% for member in cannot_invite %}
@@ -22,14 +15,38 @@
                 {% endfor %}
             </ul>
 
+        {% else %}
+
+            <p>Invite the following to join up:</p>
+
+
+            <ul>
+                {% for member in can_invite %}
+                    <li>{{ member }}</li>
+                {% endfor %}
+            </ul>
+
+            {% if cannot_invite %}
+                <p>The following people were invited within the last two weeks and cannot be bulk invited again.
+                    You can invite them manually through the member edit page.</p>
+
+                <ul>
+                    {% for member in cannot_invite %}
+                        <li>{{ member }}</li>
+                    {% endfor %}
+                </ul>
+
+            {% endif %}
+
+            <div class="col text-center">
+                <button class="btn btn-warning"
+                    hx-post="{% url "organisations:club_menu_tab_members_bulk_invite_to_join_htmx" %}"
+                    hx-target="#id_member_add_tab"
+                    hx-vars="'send_invites': 1"
+                >Bulk Invite</button>
+            </div>
+
         {% endif %}
 
-        <div class="col text-center">
-            <button class="btn btn-warning"
-                hx-post="{% url "organisations:club_menu_tab_members_bulk_invite_to_join_htmx" %}"
-                hx-target="#id_member_add_tab"
-                hx-vars="'send_invites': 1"
-            >Bulk Invite</button>
-        </div>
     </div>
 </div>

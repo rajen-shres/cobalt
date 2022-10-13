@@ -344,3 +344,6 @@ class UnregisteredBlockedEmail(models.Model):
 
     un_registered_user = models.ForeignKey(UnregisteredUser, on_delete=models.CASCADE)
     email = models.EmailField()
+
+    def __str__(self):
+        return f"{self.un_registered_user} - {self.email}"

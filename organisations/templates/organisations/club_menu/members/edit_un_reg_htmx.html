@@ -46,6 +46,31 @@
                         {% cobalt_bs4_field user_form.first_name %}
                         {% cobalt_bs4_field user_form.last_name %}
                         {% cobalt_bs4_field user_form.email %}
+
+                        {% if public_email_blocked %}
+                            <a class="btn btn-sm btn-info" href="javascript:void(0)" _="on click show #public_blocked then remove me">Email Blocked</a>
+
+                            <div id="public_blocked_div">
+                                <div class="card col-md-6" id="public_blocked" style="display: none">
+                                    <div class="card-header card-header-danger">
+                                        <h3>This Email is blocked</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>This email had been blocked by the user. {{ un_reg.first_name }} has clicked on the link at
+                                            the bottom of an email and asked not to receive further emails from us. Don't unblocking it without express permission from {{ un_reg.first_name }}.</p>
+                                        <div class="text-center">
+                                            <a class="btn btn-sm btn-danger"
+                                                href="javascript:void(0)"
+                                                hx-post="{% url "organisations:club_menu_tab_members_unblock_unreg_email_address_htmx" %}"
+                                                hx-target="#public_blocked_div"
+                                                hx-vars="club_id:{{ club.id }}, email:'{{ un_reg.email }}'"
+                                            >Unblock</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
                     {% else %}
                         <h3>View Only - User Belongs to {{ un_reg.added_by_club }}</h3>
                         {{ un_reg.first_name }} {{ un_reg.last_name }} ({{ GLOBAL_ORG }} Number: {{ un_reg.system_number }}) - {{ un_reg.email|default_if_none:"No Email Address Found" }}
@@ -56,6 +81,30 @@
                     {% endif %}
 
                     {{ club_email_form | crispy }}
+
+                    {% if private_email_blocked %}
+                        <a class="btn btn-sm btn-info" href="javascript:void(0)" _="on click show #private_blocked then remove me">Email Blocked</a>
+
+                        <div id="private_blocked_div">
+                            <div class="card col-md-6" id="private_blocked" style="display: none">
+                                <div class="card-header card-header-danger">
+                                    <h3>This Email is blocked</h3>
+                                </div>
+                                <div class="card-body">
+                                    <p>This email had been blocked by the user. {{ un_reg.first_name }} has clicked on the link at
+                                        the bottom of an email and asked not to receive further emails from us. Don't unblocking it without express permission from {{ un_reg.first_name }}.</p>
+                                    <div class="text-center">
+                                        <a class="btn btn-sm btn-danger"
+                                            href="javascript:void(0)"
+                                            hx-post="{% url "organisations:club_menu_tab_members_unblock_unreg_email_address_htmx" %}"
+                                            hx-target="#private_blocked_div"
+                                            hx-vars="club_id:{{ club.id }}, email:'{{ club_email_form.email.value }}'"
+                                        >Unblock</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
 
                     <div class="row">
                         <div class="col-6">Membership type</div>

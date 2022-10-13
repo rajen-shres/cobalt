@@ -182,14 +182,18 @@ def invite_user_to_join_htmx(request, club):
     #     print(f"NOT sending to {email}. Substituted for dev email address")
     #     email = "m@rkguthrie.com"
 
-    invite_to_join(
+    if invite_to_join(
         un_reg=un_reg,
         email=email,
         requested_by_user=request.user,
         requested_by_org=club,
-    )
+    ):
 
-    return list_htmx(request, message=f"Invite sent to {un_reg.full_name}")
+        return list_htmx(request, message=f"Invite sent to {un_reg.full_name}")
+    else:
+        return list_htmx(
+            request, message=f"Unable to send invite to {un_reg.full_name}"
+        )
 
 
 def get_members_for_club(club, sort_option="first_desc"):

@@ -20,6 +20,7 @@ from cobalt.settings import (
     COBALT_HOSTNAME,
     GLOBAL_CURRENCY_SYMBOL,
 )
+from notifications.models import UnregisteredBlockedEmail
 from notifications.views.core import (
     send_cobalt_email_with_template,
     create_rbac_batch_id,
@@ -387,9 +388,14 @@ def _un_reg_edit_htmx_process_form(
 
         else:
 
-            club_email_entry, _ = MemberClubEmail.objects.get_or_create(
-                organisation=club, system_number=un_reg.system_number, email=club_email
-            )
+            # See if we have an email for this user and club
+            club_email_entry = MemberClubEmail.objects.filter(
+                organisation=club, system_number=un_reg.system_number
+            ).first()
+            if not club_email_entry:
+                club_email_entry = MemberClubEmail.objects.filter(
+                    organisation=club, system_number=un_reg.system_number
+                )
 
             club_email_entry.email = club_email
             club_email_entry.save()
@@ -425,6 +431,7 @@ def _un_reg_edit_htmx_common(
     club_email_form,
     club_membership_form,
     member_details,
+    club_email_entry,
 ):
     """Common part of editing un registered user, used whether form was filled in or not"""
 
@@ -450,6 +457,17 @@ def _un_reg_edit_htmx_common(
     else:
         emails = None
 
+    # See if there are blocks on either email address - we don't just look for this user
+    public_email_blocked = UnregisteredBlockedEmail.objects.filter(
+        email=un_reg.email
+    ).exists()
+    if club_email_entry:
+        private_email_blocked = UnregisteredBlockedEmail.objects.filter(
+            email=club_email_entry.email
+        ).exists()
+    else:
+        private_email_blocked = False
+
     return render(
         request,
         "organisations/club_menu/members/edit_un_reg_htmx.html",
@@ -468,6 +486,8 @@ def _un_reg_edit_htmx_common(
             "hx_args": f"club_id:{club.id},un_reg_id:{un_reg.id}",
             "message": message,
             "emails": emails,
+            "public_email_blocked": public_email_blocked,
+            "private_email_blocked": private_email_blocked,
         },
     )
 
@@ -485,6 +505,7 @@ def un_reg_edit_htmx(request, club):
     ).first()
 
     message = ""
+    club_email_entry = None
 
     if "save" in request.POST:
         # We got form data - process it
@@ -536,6 +557,7 @@ def un_reg_edit_htmx(request, club):
         club_email_form,
         club_membership_form,
         membership,
+        club_email_entry,
     )
 
 
@@ -1211,16 +1233,38 @@ def bulk_invite_to_join_htmx(request, club):
 
     if "send_invites" in request.POST:
 
+        success = 0
+        failure = 0
+
         for member in can_invite:
             club_email = MemberClubEmail.objects.filter(
                 system_number=member.system_number, organisation=club
             ).first()
             email_address = club_email.email if club_email else member.email
-            invite_to_join(member, email_address, request.user, club)
-        return HttpResponse("<h3>Invites sent</h3>")
+            if invite_to_join(member, email_address, request.user, club):
+                success += 1
+            else:
+                failure += 1
+        if failure > 0:
+            return HttpResponse(f"<h3>{success} Invites sent. {failure} Failures.</h3>")
+        else:
+            return HttpResponse(f"<h3>{success} Invites sent</h3>")
 
     return render(
         request,
         "organisations/club_menu/members/bulk_invite_to_join_htmx.html",
         {"can_invite": can_invite, "cannot_invite": cannot_invite},
     )
+
+
+@check_club_menu_access(check_members=True)
+def unblock_unreg_email_address_htmx(request, club):
+    """remove the block on an unregistered user email address"""
+
+    email = request.POST.get("email")
+    blocked = UnregisteredBlockedEmail.objects.filter(email=email).first()
+    if blocked:
+        blocked.delete()
+        return HttpResponse("<h3 class='text-primary'>Block removed</h3>")
+    else:
+        return HttpResponse("<h3 class='text-primary'>Email address not found</h3>")
