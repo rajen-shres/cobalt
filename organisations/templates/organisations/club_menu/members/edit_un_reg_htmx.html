@@ -123,7 +123,7 @@
 
                     <button
                         hx-post="{% url "organisations:club_menu_tab_members_invite_user_to_join_htmx" %}"
-                        hx-target="#id_member_list_tab"
+                        hx-target="#members"
                         hx-vars="club_id:{{ club.id }}, un_reg_id:{{ un_reg.id }}"
                         class="btn btn-info"
                         onclick="GrowlNotification.notify({
