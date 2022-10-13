@@ -1209,10 +1209,12 @@ def member_to_member_transfer_callback(stripe_transaction=None):
         return HttpResponse()
 
     # We use the same function in payments API that is used for sufficient funds
+    # Note - this could be a partial payment so use the negative of the other_member_transaction,
+    # not the stripe_transaction
     notify_member_to_member_transfer(
         stripe_transaction.member,
         other_member_transaction.other_member,
-        stripe_transaction.amount,
+        -other_member_transaction.amount,
         stripe_transaction.description,
     )
     return HttpResponse()
