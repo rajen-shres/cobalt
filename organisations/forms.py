@@ -263,9 +263,6 @@ class UnregisteredUserAddForm(forms.Form):
     system_number = forms.IntegerField()
     first_name = forms.CharField(max_length=150)
     last_name = forms.CharField(max_length=150)
-    mpc_email = forms.EmailField(
-        label="Email Address (accessible by all clubs)", required=False
-    )
     club_email = forms.EmailField(
         label="Email Address (accessible by this club only)", required=False
     )

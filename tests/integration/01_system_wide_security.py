@@ -36,6 +36,7 @@ NON_AUTH_URLS = [
     "/api/cobalt/system-number-lookup/v1.0",
     "/api/docs/",
     "/api/openapi.json",
+    "/accounts/unregistered-preferences/dummy",
 ]
 
 # URLs that we do not test

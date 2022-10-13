@@ -221,7 +221,6 @@ def upload_csv_htmx(request, club):
         origin=file_type,
         default_membership=default_membership,
         home_club=home_club,
-        club_specific_email=True,
     )
 
     # Build results table
@@ -295,7 +294,6 @@ def import_mpc_htmx(request, club):
         user=request.user,
         origin="MPC",
         default_membership=default_membership,
-        club_specific_email=False,
         home_club=True,
     )
 
@@ -319,7 +317,6 @@ def import_mpc_htmx(request, club):
         user=request.user,
         origin="MPC",
         default_membership=default_membership,
-        club_specific_email=False,
         home_club=False,
     )
 
@@ -414,13 +411,11 @@ def process_member_import(
     origin: str,
     default_membership: MembershipType,
     home_club: bool = False,
-    club_specific_email: bool = False,
 ):
     """Common function to process a list of members
 
     Args:
         default_membership: Which membership to add this user to. Can be overridden at the row level
-        club_specific_email: Is this email specific to this club? True for 'club' sources like Pianola, False for MPC
         home_club: Is this the home club for this user
         origin: Where did we get this data from?
         user: Logged in user who is making this change
@@ -456,14 +451,10 @@ def process_member_import(
             if not un_reg:
                 # Create a new unregistered user
 
-                # Check if this email should be added to user or just this club
-                email = None if club_specific_email else club_member["email"]
-
                 UnregisteredUser(
                     system_number=club_member["system_number"],
                     first_name=club_member["first_name"],
                     last_name=club_member["last_name"],
-                    email=email,
                     origin=origin,
                     last_updated_by=user,
                     added_by_club=club,
@@ -471,8 +462,7 @@ def process_member_import(
 
             # add to club email list if required - don't override if already present
             if (
-                club_specific_email
-                and club_member["email"]
+                club_member["email"]
                 and not MemberClubEmail.objects.filter(
                     organisation=club,
                     system_number=club_member["system_number"],

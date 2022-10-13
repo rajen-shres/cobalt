@@ -420,7 +420,7 @@ def get_user_or_unregistered_user_from_system_number(system_number):
 def get_email_address_and_name_from_system_number(system_number, club=None):
     """returns email address for a user or unregistered user
 
-    If we get a club passed in, then we check for club level overrides on the email address
+    If we get a club passed in, then we check for club level email addresses. Required to get unregistered users
 
     """
 
@@ -434,28 +434,29 @@ def get_email_address_and_name_from_system_number(system_number, club=None):
     if user:
         return user.email, user.first_name
 
+    # No good finding name but not email address
+    if not club:
+        return None, None
+
     # try Unregistered user
     un_reg = UnregisteredUser.objects.filter(system_number=system_number).first()
 
     if not un_reg:
         return None, None
 
-    # Check for club level overrides
-    if club:
-        override = MemberClubEmail.objects.filter(
-            system_number=system_number, organisation=club
-        )
-    else:
-        override = None
+    # Check for email address
+    club_email = MemberClubEmail.objects.filter(
+        system_number=system_number, organisation=club
+    ).first()
 
-    if override:
-        return override.email, un_reg.first_name
+    if not club_email:
+        return None, None
 
-    return un_reg.email, un_reg.first_name
+    return club_email.email, un_reg.first_name
 
 
 def get_users_or_unregistered_users_from_system_number_list(system_number_list):
-    """takes a list of system numbers and returns a dictionary or User or UnregisteredUser objects
+    """takes a list of system numbers and returns a dictionary of User or UnregisteredUser objects
     indexed by system_number
     """
 
@@ -480,5 +481,48 @@ def get_users_or_unregistered_users_from_system_number_list(system_number_list):
             "type": "UnregisteredUser",
             "value": un_reg,
         }
+
+    return mixed_dict
+
+
+def get_users_or_unregistered_users_from_email_list(email_list):
+    """takes a list of email addresses and returns a dictionary of User or UnregisteredUser objects
+    indexed by system_number
+
+    Args:
+        email_list(list): list of str - email addresses
+
+    Returns:
+        dict of Users or Unregistered Users keyed by the supplied email addresses. If an email address is
+        not found then there is no entry in the dictionary. User and Unregistered user objects have the
+        additional attribute is_user, is_un_reg set to denote type of object
+
+    """
+
+    # Get Users
+    users = User.objects.filter(email__in=email_list)
+
+    # Get Unregistered Users
+    un_reg_emails = MemberClubEmail.objects.filter(email__in=email_list)
+    un_regs = UnregisteredUser.objects.filter(
+        system_number__in=un_reg_emails.values("system_number")
+    ).distinct()
+    un_reg_dict = {un_reg.system_number: un_reg for un_reg in un_regs}
+
+    # Convert to a dictionary
+    mixed_dict = {}
+
+    # Add users to dictionary
+    for user in users:
+        user.is_user = True
+        user.is_un_reg = False
+        mixed_dict[user.email] = user
+
+    # Add unregistered to dictionary
+    for un_reg_email in un_reg_emails:
+        un_reg = un_reg_dict[un_reg_email.system_number]
+        un_reg.is_un_reg = True
+        un_reg.is_user = False
+        mixed_dict[un_reg_email.email] = un_reg
 
     return mixed_dict

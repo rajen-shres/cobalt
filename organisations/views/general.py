@@ -198,14 +198,17 @@ def replace_unregistered_user_with_real_user(real_user: User):
         )
 
 
-def _active_email_for_un_reg(un_reg, club):
-    """returns either this email or an overridden one for the club"""
-    club_email = MemberClubEmail.objects.filter(
+def active_email_for_un_reg(un_reg, club):
+    """returns email for user"""
+
+    member_club_email = MemberClubEmail.objects.filter(
         system_number=un_reg.system_number
     ).first()
-    if club_email:
-        return club_email.email
-    return un_reg.email
+
+    if member_club_email:
+        return member_club_email.email
+    else:
+        return None
 
 
 def org_profile(request, org_id):

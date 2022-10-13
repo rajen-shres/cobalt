@@ -25,15 +25,11 @@
                     {% for snooper in snoopers %}
                         <tr>
                             <td class="text-left">
-                                {# We may get a list of names or an email address #}
-                                {% if snooper.user %}
-                                    {#  Actual User #}
-                                    {% for this_user in snooper.user %}
-                                        {{ this_user }}{% if not forloop.last %}, {% endif %}
-                                    {% endfor %}
+                                {% if snooper.member.is_user %}
+                                    {{ snooper.member }}
                                 {% else %}
                                     {# Un reg user #}
-                                    {{ snooper.post_office_email.to.0 }}
+                                    {{ snooper.member }} - {{ snooper.post_office_email.to.0 }}
                                 {% endif %}
                             </td>
                             <td>

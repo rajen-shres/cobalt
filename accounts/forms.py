@@ -24,7 +24,6 @@ class UserRegisterForm(UserCreationForm):
             "username",
             "first_name",
             "last_name",
-            "email",
             "system_number",
             "mobile",
             "password1",
@@ -199,7 +198,6 @@ class UnregisteredUserForm(forms.ModelForm):
         fields = [
             "first_name",
             "last_name",
-            "email",
         ]
 
     def clean_system_number(self):

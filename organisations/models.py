@@ -356,9 +356,9 @@ class MemberClubEmail(models.Model):
     with clubs often refusing to share their email lists with others (including State bodies and the ABF)
     for fear that their rivals will get hold of their member's contact details and lure them away.
 
-    For this reason and partly just for privacy, we consider any email address that we got from the
-    Masterpoints Centre to be 'official' but don't show it to the club admins, but allow a club to
-    override the email address (or enter it if missing) for any member that they have.
+    We initially had a public email on the UnregisteredUser object but this was removed. You may
+    find old references to this in the code. Now we only have an email address stored in here and
+    it is only available to the club that set it up.
 
     Once a user signs up for Cobalt this is no longer required and the user themselves can manage
     their own contact details."""
@@ -366,23 +366,17 @@ class MemberClubEmail(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     system_number = models.IntegerField("%s Number" % GLOBAL_ORG)
     email = models.EmailField("Email for your club only", unique=False)
+    email_hard_bounce = models.BooleanField(default=False)
+    """ Set this flag if we get a hard bounce from sending an email """
+    email_hard_bounce_reason = models.TextField(null=True, blank=True)
+    """ Reason for the bounce """
+    email_hard_bounce_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ("organisation", "system_number")
 
     def __str__(self):
-        return f"{self.organisation} - {self.system_number} - {self.email}"
-
-    def clean(self):
-        """Validate email is not empty string"""
-        if self.email == "":
-            raise ValidationError("Email field of MemberClubEmail should not be empty")
-
-    def save(self, *args, **kwargs):
-        """We want to ensure empty strings don't get into the database for the email field"""
-
-        self.full_clean()
-        super().save(*args, **kwargs)
+        return f"{self.organisation} - {self.system_number}"
 
 
 class ClubTag(models.Model):

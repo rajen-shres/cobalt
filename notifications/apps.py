@@ -51,7 +51,8 @@ class NotificationsConfig(AppConfig):
         from post_office.models import Email as PostOfficeEmail
         from logs.views import log_event
         from django.utils.inspect import func_accepts_kwargs
-        from accounts.models import UserAdditionalInfo, User, UnregisteredUser
+        from accounts.models import UserAdditionalInfo, User
+        from organisations.models import MemberClubEmail
 
         def _get_message_id(mail_obj):
             """Utility to get the message_id from the message"""
@@ -82,7 +83,7 @@ class NotificationsConfig(AppConfig):
                 user_additional_info.email_hard_bounce_date = timezone.now()
                 user_additional_info.save()
 
-            un_regs = UnregisteredUser.objects.filter(email=email_address)
+            un_regs = MemberClubEmail.objects.filter(email=email_address)
 
             for un_reg in un_regs:
                 un_reg.email_hard_bounce = True

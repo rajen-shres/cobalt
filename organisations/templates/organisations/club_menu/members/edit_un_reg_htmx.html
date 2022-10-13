@@ -26,13 +26,6 @@
             </div>
             <div class="card-body pt-0">
 
-                <p class="mt-3">There are two emails option that can be changed. The main email address is the
-                    centrally registered one for this (unregistered) user. You can edit this if your club
-                    added this user. This is visible and usable by all other clubs. If you wish to keep
-                    the email private or to override it, then you can use a club-specific email address.</p>
-                <p>To make things even easier, invite this user to sign up for {{ GLOBAL_TITLE }} so
-                    they can manage their own contact details as well as the other benefits of membership.</p>
-
                 <h3 class="text-info font-weight-bold settings_message" id="user_edit_message">{{ message }}</h3>
 
                 <form
@@ -41,44 +34,9 @@
                     hx-vars="club_id:{{ club.id }}, un_reg_id:{{ un_reg.id }}"
                 >
 
-                    {% if club == un_reg.added_by_club %}
-                        <h4>{{ GLOBAL_ORG }} Number: {{ un_reg.system_number }}</h4>
-                        {% cobalt_bs4_field user_form.first_name %}
-                        {% cobalt_bs4_field user_form.last_name %}
-                        {% cobalt_bs4_field user_form.email %}
-
-                        {% if public_email_blocked %}
-                            <a class="btn btn-sm btn-info" href="javascript:void(0)" _="on click show #public_blocked then remove me">Email Blocked</a>
-
-                            <div id="public_blocked_div">
-                                <div class="card col-md-6" id="public_blocked" style="display: none">
-                                    <div class="card-header card-header-danger">
-                                        <h3>This Email is blocked</h3>
-                                    </div>
-                                    <div class="card-body">
-                                        <p>This email had been blocked by the user. {{ un_reg.first_name }} has clicked on the link at
-                                            the bottom of an email and asked not to receive further emails from us. Don't unblocking it without express permission from {{ un_reg.first_name }}.</p>
-                                        <div class="text-center">
-                                            <a class="btn btn-sm btn-danger"
-                                                href="javascript:void(0)"
-                                                hx-post="{% url "organisations:club_menu_tab_members_unblock_unreg_email_address_htmx" %}"
-                                                hx-target="#public_blocked_div"
-                                                hx-vars="club_id:{{ club.id }}, email:'{{ un_reg.email }}'"
-                                            >Unblock</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-
-                    {% else %}
-                        <h3>View Only - User Belongs to {{ un_reg.added_by_club }}</h3>
-                        {{ un_reg.first_name }} {{ un_reg.last_name }} ({{ GLOBAL_ORG }} Number: {{ un_reg.system_number }}) - {{ un_reg.email|default_if_none:"No Email Address Found" }}
-                        {#  We still need the fields from the user_form even if we can't edit them #}
-                        <input type="hidden" name="first_name" value="{{ user_form.first_name.value }}">
-                        <input type="hidden" name="last_name" value="{{ user_form.last_name.value }}">
-                        <input type="hidden" name="email" value="{{ user_form.email.value }}">
-                    {% endif %}
+                    <h4>{{ GLOBAL_ORG }} Number: {{ un_reg.system_number }}</h4>
+                    {% cobalt_bs4_field user_form.first_name %}
+                    {% cobalt_bs4_field user_form.last_name %}
 
                     {{ club_email_form | crispy }}
 

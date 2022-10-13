@@ -48,7 +48,7 @@ from notifications.models import (
     InAppNotification,
     UnregisteredBlockedEmail,
 )
-from organisations.models import Organisation
+from organisations.models import Organisation, MemberClubEmail
 from rbac.core import rbac_user_has_role
 
 logger = logging.getLogger("cobalt")
@@ -111,7 +111,7 @@ def _email_address_on_bounce_list(to_address):
         user__email=to_address
     ).first()
 
-    un_reg = UnregisteredUser.objects.filter(email=to_address).first()
+    un_reg = MemberClubEmail.objects.filter(email=to_address).first()
 
     if (user_additional_info and user_additional_info.email_hard_bounce) or (
         un_reg and un_reg.email_hard_bounce

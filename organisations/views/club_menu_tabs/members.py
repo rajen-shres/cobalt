@@ -45,7 +45,7 @@ from organisations.models import (
     MiscPayType,
 )
 from organisations.views.general import (
-    _active_email_for_un_reg,
+    active_email_for_un_reg,
     get_rbac_model_for_state,
 )
 from payments.models import MemberTransaction, UserPendingPayment
@@ -262,11 +262,11 @@ def report_all_csv(request, club_id):
 
     for un_reg in un_regs:
 
-        email = un_reg.email
-        email_source = "Unregistered user"
+        email = "-"
+        email_source = "-"
         if un_reg.system_number in club_emails_dict:
             email = club_emails_dict[un_reg.system_number]
-            email_source = "Club specific email"
+            email_source = "Unregistered User"
 
         user_tags = tags_dict.get(un_reg.system_number, "")
         writer.writerow(
@@ -407,11 +407,11 @@ def _un_reg_edit_htmx_process_form(
             ).save()
 
             # See if we have a bounce on this user and clear it
-            if un_reg.email_hard_bounce:
-                un_reg.email_hard_bounce = False
-                un_reg.email_hard_bounce_reason = None
-                un_reg.email_hard_bounce_date = None
-                un_reg.save()
+            if club_email_entry.email_hard_bounce:
+                club_email_entry.email_hard_bounce = False
+                club_email_entry.email_hard_bounce_reason = None
+                club_email_entry.email_hard_bounce_date = None
+                club_email_entry.save()
 
                 ClubLog(
                     organisation=club,
@@ -447,20 +447,17 @@ def _un_reg_edit_htmx_common(
     if rbac_user_has_role(
         request.user, f"notifications.orgcomms.{club.id}.edit"
     ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
-        email_address = _active_email_for_un_reg(un_reg, club)
+        email_address = active_email_for_un_reg(un_reg, club)
         if email_address:
-            emails = PostOfficeEmail.objects.filter(
-                to=[_active_email_for_un_reg(un_reg, club)]
-            ).order_by("-pk")[:20]
+            emails = PostOfficeEmail.objects.filter(to=[email_address]).order_by("-pk")[
+                :20
+            ]
         else:
             emails = None
     else:
         emails = None
 
     # See if there are blocks on either email address - we don't just look for this user
-    public_email_blocked = UnregisteredBlockedEmail.objects.filter(
-        email=un_reg.email
-    ).exists()
     if club_email_entry:
         private_email_blocked = UnregisteredBlockedEmail.objects.filter(
             email=club_email_entry.email
@@ -486,7 +483,6 @@ def _un_reg_edit_htmx_common(
             "hx_args": f"club_id:{club.id},un_reg_id:{un_reg.id}",
             "message": message,
             "emails": emails,
-            "public_email_blocked": public_email_blocked,
             "private_email_blocked": private_email_blocked,
         },
     )
@@ -946,7 +942,6 @@ def add_un_reg_htmx(request, club):
             last_updated_by=request.user,
             last_name=form.cleaned_data["last_name"],
             first_name=form.cleaned_data["first_name"],
-            email=form.cleaned_data["mpc_email"],
             origin="Manual",
             added_by_club=club,
         ).save()
@@ -990,7 +985,7 @@ def add_un_reg_htmx(request, club):
 
     if form.cleaned_data.get("send_welcome_email"):
 
-        email_address = club_email or form.cleaned_data["mpc_email"]
+        email_address = form.cleaned_data["mpc_email"]
         if email_address:
             resp = _send_welcome_pack(
                 club,
@@ -1015,14 +1010,16 @@ def _check_member_errors(club):
     ).values_list("system_number")
 
     # Check for bounced status. For registered users this is stored on a separate table,
-    # for unregistered it is on same table
-    # additional_users = UserAdditionalInfo.objects.filter(system_number__in=members_system_numbers).filter(email_hard_bounce=True)
+    # for unregistered it is on the club email table
     users = User.objects.filter(system_number__in=members_system_numbers).filter(
         useradditionalinfo__email_hard_bounce=True
     )
-    un_regs = UnregisteredUser.objects.filter(
-        system_number__in=members_system_numbers
-    ).filter(email_hard_bounce=True)
+    un_regs_bounces = (
+        MemberClubEmail.objects.filter(organisation=club)
+        .filter(email_hard_bounce=True)
+        .values("system_number")
+    )
+    un_regs = UnregisteredUser.objects.filter(system_number__in=un_regs_bounces)
 
     return list(chain(users, un_regs))
 
@@ -1240,8 +1237,9 @@ def bulk_invite_to_join_htmx(request, club):
             club_email = MemberClubEmail.objects.filter(
                 system_number=member.system_number, organisation=club
             ).first()
-            email_address = club_email.email if club_email else member.email
-            if invite_to_join(member, email_address, request.user, club):
+            if club_email and invite_to_join(
+                member, club_email.email, request.user, club
+            ):
                 success += 1
             else:
                 failure += 1

@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
 from accounts.models import User, UnregisteredUser
+from accounts.views.core import get_users_or_unregistered_users_from_email_list
 from cobalt.settings import COBALT_HOSTNAME
 from notifications.forms import OrgEmailForm
 from notifications.models import Snooper, EmailBatchRBAC, EmailAttachment
@@ -90,55 +91,60 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
             MemberClubTag.objects.filter(club_tag__in=tags)
             .distinct("system_number")
             .values("system_number")
-            # go through list of tags and create list of recipients, members could be in multiple tags
         )
 
     logger.debug(f"tag_system_numbers: {tag_system_numbers}")
+
     # Get real members
-    members = User.objects.filter(system_number__in=tag_system_numbers).values(
-        "email", "first_name", "system_number"
-    )
+    members = User.objects.filter(system_number__in=tag_system_numbers)
+
     # Get unregistered
-    un_regs = UnregisteredUser.objects.filter(
-        system_number__in=tag_system_numbers
-    ).values("email", "first_name", "system_number", "identifier")
+    un_regs = UnregisteredUser.objects.filter(system_number__in=tag_system_numbers)
 
-    # get club level email overrides
-    overrides = MemberClubEmail.objects.filter(
+    # get club level email
+    club_email_addresses = MemberClubEmail.objects.filter(
         system_number__in=tag_system_numbers, organisation=club
-    ).values("email", "system_number")
+    )
 
-    combined_list = list(chain(members, un_regs))
+    # convert to dict
+    club_email_addresses_dict = {
+        item.system_number: item.email for item in club_email_addresses
+    }
+    print(club_email_addresses_dict)
 
-    if not combined_list:
+    if not members and not un_regs:
         return "There are no recipients for this email"
 
     recipient_count = 0
 
-    for recipient in combined_list:
-        override = overrides.filter(system_number=recipient["system_number"]).first()
-        if override:
-            email = override["email"]
-            logger.info(f"overriding email address for {recipient['system_number']}")
-        else:
-            email = recipient["email"]
+    # Handle members
+    for member in members:
 
+        _send_email_sub(
+            first_name=member.first_name,
+            email=member.email,
+            email_form=email_form,
+            batch_id=batch_id,
+            club_template=club_template,
+            attachments=attachments,
+        )
+
+        recipient_count += 1
+
+    # Handle un_registered
+
+    for un_reg in un_regs:
+        email = club_email_addresses_dict.get(un_reg.system_number)
         if email:
 
-            # Add on hash for unregistered users
-            try:
-                unregistered_identifier = recipient["identifier"]
-            except AttributeError:
-                unregistered_identifier = None
-
             _send_email_sub(
-                first_name=recipient["first_name"],
+                first_name=un_reg.first_name,
                 email=email,
                 email_form=email_form,
                 batch_id=batch_id,
                 club_template=club_template,
                 attachments=attachments,
-                unregistered_identifier=unregistered_identifier,
+                unregistered_identifier=un_reg.identifier,
             )
 
             recipient_count += 1
@@ -697,53 +703,12 @@ def email_recipients_list_htmx(request, club):
     # Get email addresses that received this
     email_list = [snooper.post_office_email.to[0] for snooper in snoopers]
 
-    # Get users for those email addresses
-    users = User.objects.filter(email__in=email_list)
-
-    # Get un_registered users for those email addresses
-    un_regs = UnregisteredUser.objects.filter(email__in=email_list)
-
-    # Get any local email addresses and turn into a dictionary
-    overrides = MemberClubEmail.objects.filter(email__in=email_list).values(
-        "email", "system_number"
-    )
-
-    club_emails = {}
-    for override in overrides:
-        print(override)
-        if override["email"] not in club_emails:
-            club_emails[override["email"]] = []
-        # Get name for this override - through unregistered user with same system_number
-        match_un_reg = UnregisteredUser.objects.filter(
-            system_number=override["system_number"]
-        ).first()
-        if match_un_reg:
-            club_emails[override["email"]].append(match_un_reg.full_name)
-
-    # Create dict of email_address to username
-    email_dict = {}
-    for user in users:
-        if user.email not in email_dict:
-            email_dict[user.email] = []
-        email_dict[user.email].append(user.full_name)
-
-    # Add in un_reg
-    for un_reg in un_regs:
-        if un_reg.email not in email_dict:
-            email_dict[un_reg.email] = []
-        email_dict[un_reg.email].append(un_reg.full_name)
-
-    # Add in overrides as well, just add on top, don't replace
-    for email_item in email_list:
-        if email_item in club_emails:
-            if email_item not in email_dict:
-                email_dict[email_item] = []
-            email_dict[email_item] = email_dict[email_item] + club_emails[email_item]
+    user_dict = get_users_or_unregistered_users_from_email_list(email_list)
 
     # augment snoopers
     for snooper in snoopers:
-        if snooper.post_office_email.to[0] in email_dict:
-            snooper.user = email_dict[snooper.post_office_email.to[0]]
+        if snooper.post_office_email.to[0] in user_dict:
+            snooper.member = user_dict[snooper.post_office_email.to[0]]
 
     return render(
         request,
