@@ -24,7 +24,7 @@
                         {% if form.is_user %}
                             <h3 class="text-center">Balance:
                                 <span
-                                    hx-trigger="load"
+                                    hx-trigger="load, refresh_balance from:body"
                                     hx-post="{% url "organisations:get_member_balance_htmx" %}"
                                     hx-vars="club_id: {{ club.id }}, session_id:{{ session.id }}, member: {{ form.player.id }}"
                                     hx-target="this"
@@ -314,6 +314,11 @@
 
         // Enable save button if changes are made
         $("#player_form input, #id_payment_method").change(function(){
+            $("#id_save_session").prop("disabled", false);
+        });
+
+        // also if key pressed in fee field
+        $("#id_fee").keyup(function(){
             $("#id_save_session").prop("disabled", false);
         });
 

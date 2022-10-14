@@ -14,39 +14,46 @@
     Return to List
 </button>
 
-<h2>Delete {{ session }}?</h2>
+{% if has_extras %}
+    <h2>Unable to Delete Session - {{ session }}</h2>
+    <h3>This session has extras set up. We can't currently handle this, sorry. You need to edit the session to refund these manually before you can delete this session.</h3>
 
-<h3>Are you sure?</h3>
+{% else %}
+    <h2>Delete {{ session }}?</h2>
 
-{% if payments %}
-    <p>Payments have been made for this session and will be refunded if you delete it.</p>
-    {% include "utils/cobalt_simple_table.html" with things=payments headers="Player Amount" fields="full_name amount_paid" align="left right" heading_colour="danger" %}
+    <h3>Are you sure?</h3>
+
+    {% if payments %}
+        <p>Payments have been made for this session and will be refunded if you delete it.</p>
+        {% include "utils/cobalt_simple_table.html" with things=payments headers="Player Amount" fields="full_name fee" align="left right" heading_colour="danger" %}
+    {% endif %}
+
+    {% if ious_names %}
+        <p>IOUs have been recorded for this session and will be cancelled if you delete it.</p>
+        <ul>
+            {% for ious_name in ious_names %}
+                <li>{{ ious_name.full_name }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+
+    <button
+        class="btn btn-sm btn-danger"
+        hx-post="{% url "organisations:delete_session_htmx" %}"
+        hx-target="#sessions"
+        hx-trigger="click"
+        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, really_delete:1"
+    >Delete</button>
+
+    <button
+        hx-post="{% url "organisations:club_menu_tab_sessions_htmx" %}"
+        hx-trigger="click"
+        hx-vars="club_id:{{ club.id }}"
+        hx-target="#id_panel_sessions"
+        class="btn btn-sm btn-info"
+    >
+        Cancel
+    </button>
+
 {% endif %}
-
-{% if ious_names %}
-    <p>IOUs have been recorded for this session and will be cancelled if you delete it.</p>
-    <ul>
-        {% for ious_name in ious_names %}
-            <li>{{ ious_name.full_name }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-
-
-<button
-    class="btn btn-sm btn-danger"
-    hx-post="{% url "organisations:delete_session_htmx" %}"
-    hx-target="#sessions"
-    hx-trigger="click"
-    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, really_delete:1"
->Delete</button>
-
-<button
-    hx-post="{% url "organisations:club_menu_tab_sessions_htmx" %}"
-    hx-trigger="click"
-    hx-vars="club_id:{{ club.id }}"
-    hx-target="#id_panel_sessions"
-    class="btn btn-sm btn-info"
->
-    Cancel
-</button>

@@ -47,6 +47,7 @@ from cobalt.settings import ALL_SYSTEM_ACCOUNTS, BRIDGE_CREDITS, GLOBAL_CURRENCY
 from organisations.models import Organisation, MiscPayType, MemberMembershipType
 from organisations.views.club_menu_tabs.finance import pay_member_from_organisation
 from payments.models import OrgPaymentMethod, UserPendingPayment
+from payments.views.core import get_balance
 from payments.views.payments_api import payment_api_batch
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
@@ -351,6 +352,9 @@ def edit_session_entry_htmx(request, club, session, session_entry, message=""):
     else:
         payment_method_is_valid = True
 
+    # See what the status is after this change
+    recalculate_session_status(session)
+
     response = render(
         request,
         "club_sessions/manage/edit_entry/edit_session_entry_htmx.html",
@@ -363,8 +367,6 @@ def edit_session_entry_htmx(request, club, session, session_entry, message=""):
             "payment_method_is_valid": payment_method_is_valid,
         },
     )
-    # See what the status is after this change
-    recalculate_session_status(session)
 
     # We might have changed the status of the session, so reload totals
     response["HX-Trigger"] = "update_totals"
@@ -383,6 +385,10 @@ def edit_session_entry_extras_htmx(request, club, session, session_entry, messag
     player = get_user_or_unregistered_user_from_system_number(
         session_entry.system_number
     )
+
+    # let template know if this is a registered user
+    if type(player) == User:
+        player.is_user = True
 
     # remove IOU and bridge credits unless a registered user
     if type(player) != User:
@@ -635,7 +641,7 @@ def add_misc_payment_htmx(request, club, session, session_entry):
     recalculate_session_status(session)
 
     response = edit_session_entry_extras_htmx(request, message=message)
-    response["HX-Trigger"] = "update_totals"
+    response["HX-Trigger"] = '{"update_totals": 1, "refresh_balance": 1}'
     return response
 
 
@@ -655,26 +661,28 @@ def process_bridge_credits_htmx(request, club, session):
         )
 
     # Get any extras
-    extras = get_extras_as_total_for_session_entries(session)
+    extras = get_extras_as_total_for_session_entries(
+        session, payment_method_string=BRIDGE_CREDITS, unpaid_only=True
+    )
 
     # For each player go through and work out what they owe
     session_entries = SessionEntry.objects.filter(
         session=session, is_paid=False, payment_method=bridge_credits
     ).exclude(system_number__in=ALL_SYSTEM_ACCOUNTS)
 
-    # Go back if no bridge credits being paid
-    if not session_entries:
-        session.status = Session.SessionStatus.CREDITS_PROCESSED
-        session.save()
-        message = f"No {BRIDGE_CREDITS} to process. Moving to Off-System Payments."
-
-    else:
+    # Process payments if we have any to make
+    if session_entries or extras:
         success, failures = process_bridge_credits(
             session_entries, session, club, bridge_credits, extras
         )
         message = (
             f"{BRIDGE_CREDITS} processed. Success: {success}. Failure {len(failures)}."
         )
+
+    else:
+        session.status = Session.SessionStatus.CREDITS_PROCESSED
+        session.save()
+        message = f"No {BRIDGE_CREDITS} to process. Moving to Off-System Payments."
 
     # Include HX-Trigger in response so we know to update the totals too
     response = tab_session_htmx(
@@ -767,7 +775,8 @@ def toggle_paid_misc_session_payment_htmx(request, club, session, session_entry)
     recalculate_session_status(session)
 
     response = edit_session_entry_extras_htmx(request, message=message)
-    response["HX-Trigger"] = "update_totals"
+    response["HX-Trigger"] = '{"update_totals": 1, "refresh_balance": 1}'
+
     return response
 
 
@@ -799,9 +808,12 @@ def delete_misc_session_payment_htmx(request, club, session, session_entry):
 
     # delete
     session_misc_payment.delete()
-    return edit_session_entry_extras_htmx(
+    response = edit_session_entry_extras_htmx(
         request, message="Miscellaneous payment deleted"
     )
+
+    response["HX-Trigger"] = '{"update_totals": 1, "refresh_balance": 1}'
+    return response
 
 
 @user_is_club_director()
@@ -947,6 +959,7 @@ def change_player_htmx(request, club, session, session_entry):
 
     message = change_user_on_session_entry(
         club,
+        session,
         session_entry,
         source,
         system_number,
@@ -959,7 +972,7 @@ def change_player_htmx(request, club, session, session_entry):
     )
 
     # return whole edit page
-    return edit_session_entry_htmx(request, message=message)
+    return tab_session_htmx(request, message=message)
 
 
 @user_is_club_director(include_session_entry=True)
@@ -972,3 +985,50 @@ def get_fee_for_payment_method_htmx(request, club, session, session_entry):
     session_entry.payment_method = payment_method
 
     return HttpResponse(get_session_fee_for_player(session_entry, club))
+
+
+@user_is_club_director()
+def predict_bridge_credits_failures_htmx(request, club, session):
+    """Used in the totals part if we are about to pay for bridge credits to show expected failures"""
+
+    # Get unpaid extras as a dictionary keyed on session_entry.pk
+    extras = get_extras_as_total_for_session_entries(
+        session, unpaid_only=True, payment_method_string=BRIDGE_CREDITS
+    )
+
+    # Get session entries with unpaid bridge credits
+    bridge_credit_payments = SessionEntry.objects.filter(
+        session=session, payment_method__payment_method=BRIDGE_CREDITS, is_paid=False
+    )
+
+    # Get users who don't have auto top up
+    bridge_credit_system_number_list = bridge_credit_payments.values("system_number")
+    users = User.objects.filter(
+        system_number__in=bridge_credit_system_number_list
+    ).exclude(stripe_auto_confirmed="Yes")
+
+    # Turn into a dict and also get balance
+    users_dict = {}
+    for user in users:
+        user.balance = get_balance(user)
+        users_dict[user.system_number] = user
+
+    # Go through and build a list of warnings
+    warnings = []
+    for bridge_credit_payment in bridge_credit_payments:
+        due = float(bridge_credit_payment.fee) + extras.get(bridge_credit_payment.id, 0)
+        balance = users_dict[bridge_credit_payment.system_number].balance
+        if due > balance:
+            warnings.append(
+                {
+                    "user": users_dict[bridge_credit_payment.system_number],
+                    "due": due,
+                    "balance": balance,
+                }
+            )
+
+    return render(
+        request,
+        "club_sessions/manage/predict_bridge_credits_failures_htmx.html",
+        {"warnings": warnings, "session": session},
+    )

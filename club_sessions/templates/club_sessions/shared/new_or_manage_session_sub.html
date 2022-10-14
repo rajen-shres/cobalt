@@ -105,36 +105,38 @@
 
         <!-- OPTIONAL EXTRA CHARGES - NOT ALLOWED IF PAYMENTS MADE -->
 
-        {% if not session or session.status == "LD" %}
-            <div class="row align-items-center h-100 my-0">
-                <div class="col-md-6 mt-4">
-                    Optional Additional Charge Per Player
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group py-3">
-                        {% cobalt_bs4_field session_form.additional_session_fee no_label=True %}
-                    </div>
-                </div>
-            </div>
+        <!-- DROPPED FOR NOW -->
 
-            <div class="row align-items-center h-100 my-0">
-                <div class="col-md-6 mt-4">
-                    Optional Additional Charge Per Player - Reason
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group py-3">
-                        {% cobalt_bs4_field session_form.additional_session_fee_reason no_label=True %}
-                    </div>
-                </div>
-            </div>
+        {#        {% if not session or session.status == "LD" %}#}
+        {#            <div class="row align-items-center h-100 my-0">#}
+        {#                <div class="col-md-6 mt-4">#}
+        {#                    Optional Additional Charge Per Player#}
+        {#                </div>#}
+        {#                <div class="col-md-6">#}
+        {#                    <div class="form-group py-3">#}
+        {#                        {% cobalt_bs4_field session_form.additional_session_fee no_label=True %}#}
+        {#                    </div>#}
+        {#                </div>#}
+        {#            </div>#}
+        {##}
+        {#            <div class="row align-items-center h-100 my-0">#}
+        {#                <div class="col-md-6 mt-4">#}
+        {#                    Optional Additional Charge Per Player - Reason#}
+        {#                </div>#}
+        {#                <div class="col-md-6">#}
+        {#                    <div class="form-group py-3">#}
+        {#                        {% cobalt_bs4_field session_form.additional_session_fee_reason no_label=True %}#}
+        {#                    </div>#}
+        {#                </div>#}
+        {#            </div>#}
+        {##}
+        {#        {% else %}#}
 
-        {% else %}
+        <!-- INCLUDE FIELDS FOR FORM ANYWAY -->
+        <input type="hidden" name="additional_session_fee" value="{{ session_form.additional_session_fee.value }}">
+        <input type="hidden" name="additional_session_fee_reason" value="{{ session_form.additional_session_fee_reason.value }}">
 
-            <!-- INCLUDE FIELDS FOR FORM ANYWAY -->
-            <input type="hidden" name="additional_session_fee" value="{{ session_form.additional_session_fee.value }}">
-            <input type="hidden" name="additional_session_fee_reason" value="{{ session_form.additional_session_fee_reason.value }}">
-
-        {% endif %}
+        {#        {% endif %}#}
 
         <!-- DESCRIPTION -->
         <div class="row align-items-center h-100 my-4">

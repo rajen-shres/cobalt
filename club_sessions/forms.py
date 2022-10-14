@@ -84,7 +84,7 @@ class UserSessionForm(forms.Form):
     """
 
     fee = forms.DecimalField(min_value=0)
-    is_paid = forms.BooleanField(required=False)
+    is_paid = forms.BooleanField(label="Is Processed", required=False)
     payment_method = forms.ChoiceField()
 
     def __init__(self, *args, **kwargs):
@@ -131,7 +131,7 @@ class UserSessionForm(forms.Form):
                 self.is_un_reg = True
                 self.is_valid_number = True
                 self.player_type = "Unregistered User"
-                self.fields["player_no"].initial = self.player.id
+                # self.fields["player_no"].initial = self.player.id
             # else:
             #     # TODO: Add later
             #     invalid_number = True

@@ -144,12 +144,13 @@ def get_session_fee_for_player(session_entry: SessionEntry, club: Organisation):
 
 
 def get_extras_as_total_for_session_entries(
-    session, paid_only=False, unpaid_only=False
+    session, paid_only=False, unpaid_only=False, payment_method_string=None
 ):
     """get the total amount of extras for each session entry as a dictionary
 
     paid_only - only included total for extras that have been paid for
     unpaid_only - only included total for extras that have not been paid for
+    payment_method_string - filter to include only matching payment methods e.g. "Cash"
 
     """
     extras_qs = (
@@ -157,6 +158,11 @@ def get_extras_as_total_for_session_entries(
         .values("session_entry")
         .annotate(extras=Sum("amount"))
     )
+
+    if payment_method_string:
+        extras_qs = extras_qs.filter(
+            payment_method__payment_method=payment_method_string
+        )
 
     if paid_only:
         extras_qs = extras_qs.filter(payment_made=True)
@@ -648,7 +654,6 @@ def edit_session_entry_handle_bridge_credits(
         and old_is_paid
         and not new_is_paid
     ):
-
         return handle_bridge_credit_changes_refund(
             club,
             session_entry,
@@ -1215,7 +1220,8 @@ def process_bridge_credits(session_entries, session, club, bridge_credits, extra
             SessionMiscPayment.objects.filter(
                 session_entry__session=session,
                 session_entry__system_number=session_entry.system_number,
-            ).update(payment_made=True, payment_method=bridge_credits)
+                payment_method=bridge_credits,
+            ).update(payment_made=True)
 
         else:
             # Payment failed - change payment method and fees
@@ -1223,6 +1229,41 @@ def process_bridge_credits(session_entries, session, club, bridge_credits, extra
             session_entry.payment_method = session.default_secondary_payment_method
             session_entry.fee = get_session_fee_for_player(session_entry, club)
             session_entry.save()
+
+        # Remove extras so we know they are paid
+        extras.pop(session_entry.id, None)
+
+    # If we have anything left in extras, pay it. User had nothing to pay on the session entry using bridge credits
+    for extra in extras:
+        # extra is the session_entry.pk
+        # Should be very rare so don't worry about the code being efficient
+        this_session_entry = SessionEntry.objects.filter(pk=extra).first()
+        member = User.objects.filter(
+            system_number=this_session_entry.system_number
+        ).first()
+        this_extras = SessionMiscPayment.objects.filter(
+            payment_made=False,
+            payment_method__payment_method=BRIDGE_CREDITS,
+            session_entry=this_session_entry,
+        )
+        for this_extra in this_extras:
+
+            # Try payment
+            if payment_api_batch(
+                member=member,
+                description=f"{session}",
+                amount=this_extra.amount,
+                organisation=club,
+                payment_type="Club Payment",
+                session=session,
+            ):
+                # Success
+                success += 1
+                this_extra.payment_made = True
+                this_extra.save()
+
+            else:
+                failures += 1
 
     # Update status of session - see if there are any payments left
     recalculate_session_status(session)
@@ -1320,6 +1361,7 @@ def reset_values_on_session_entry(session_entry: SessionEntry, club: Organisatio
 
 def change_user_on_session_entry(
     club: Organisation,
+    session: Session,
     session_entry: SessionEntry,
     source,
     system_number,
@@ -1416,6 +1458,9 @@ def change_user_on_session_entry(
                 actor=director,
                 action=f"Added un-registered user {return_value[0]} {return_value[1]}",
             ).save()
+
+        # Set payment method to secondary
+        session_entry.payment_method = session.default_secondary_payment_method
 
         return change_user_on_session_entry_non_player(
             system_number, session_entry, club, "Player changed"

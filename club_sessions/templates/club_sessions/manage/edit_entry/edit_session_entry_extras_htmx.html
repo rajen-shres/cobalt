@@ -102,9 +102,9 @@
                                         <td>{{ session_misc_payment.payment_method.payment_method|default_if_none:"-" }}</td>
                                         <td>
                                             {% if session_misc_payment.payment_made %}
-                                                Paid
+                                                Is Processed
                                             {% else %}
-                                                Unpaid
+                                                Unprocessed
                                             {% endif %}
                                         </td>
                                         <td class="text-right">
@@ -260,19 +260,23 @@
         </div>
 
         <!-- TOP UP MEMBER -->
-        <button
-            _="on click show #top-up-form then remove me"
-            class="btn btn-sm btn-danger ml-3"
-        >Top Up</button>
+        {% if player.is_user %}
 
-        <div
-            id="top-up-form"
-            style="display: none;"
-            hx-post="{% url "club_sessions:session_top_up_member_htmx" %}"
-            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
-            hx-trigger="load"
-            hx-target="this"
-        ></div>
+            <button
+                _="on click show #top-up-form then remove me"
+                class="btn btn-sm btn-danger ml-3"
+            >Top Up</button>
+
+            <div
+                id="top-up-form"
+                style="display: none;"
+                hx-post="{% url "club_sessions:session_top_up_member_htmx" %}"
+                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+                hx-trigger="load"
+                hx-target="this"
+            ></div>
+
+        {% endif %}
 
         <!-- PAY ON BEHALF -->
         <!-- DISABLE FOR NOW -->

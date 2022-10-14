@@ -31,7 +31,12 @@
                     <th class="text-left">Player</th>
                     <th class="text-left">Membership</th>
                     <th>Fee</th>
+                    {% if has_extras %}
 
+                        <th>Fee Payment Method</th>
+                    {% else %}
+                        <th>Payment Method</th>
+                    {% endif %}
                     <!-- ONLY SHOW EXTRAS AND TOTAL IF THERE ARE ANY EXTRAS -->
                     {% if has_extras %}
 
@@ -40,13 +45,12 @@
 
                     {% endif %}
 
-                    <th>Payment Method</th>
                     <!-- SHOW EXTRA PAID STATUS IF WE HAVE EXTRAS -->
                     {% if has_extras %}
-                        <th>Fee Paid</th>
-                        <th>Extras Paid</th>
+                        <th>Fee Processed</th>
+                        <th>Extras Processed</th>
                     {% else %}
-                        <th>Paid</th>
+                        <th>Processed</th>
                     {% endif %}
                     <th>Actions</th>
                 </tr>
@@ -148,37 +152,6 @@
 
                     {% endif %}
 
-                    <!-- ONLY SHOW EXTRAS AND TOTAL IF THERE ARE ANY EXTRAS -->
-                    {% if has_extras %}
-
-                        <!-- EXTRAS -->
-
-                        {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
-                            <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
-
-                            <td></td>
-
-                        {% else %}
-
-                            <td>{{ session_entry.extras }}</td>
-
-                        {% endif %}
-
-                        <!-- PLAYER TOTAL -->
-
-                        {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
-                            <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
-                            <td></td>
-
-                        {% else %}
-                            <td>
-                                <div id="id_session_entry_total_{{ session_entry.id }}">{{ session_entry.total }}</div>
-                            </td>
-                        {% endif %}
-
-                        <!-- ENDIF FOR IF HAS_EXTRAS -->
-                    {% endif %}
-
                     <!-- PAYMENT METHOD -->
 
                     <td>
@@ -231,6 +204,37 @@
                         {% endif %}
 
                     </td>
+
+                    <!-- ONLY SHOW EXTRAS AND TOTAL IF THERE ARE ANY EXTRAS -->
+                    {% if has_extras %}
+
+                        <!-- EXTRAS -->
+
+                        {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
+                            <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
+
+                            <td></td>
+
+                        {% else %}
+
+                            <td>{{ session_entry.extras }}</td>
+
+                        {% endif %}
+
+                        <!-- PLAYER TOTAL -->
+
+                        {% if session_entry.system_number == 1 or session_entry.system_number == -1 %}
+                            <!-- THIS IS A PLAYING DIRECTOR OR SIT OUT -->
+                            <td></td>
+
+                        {% else %}
+                            <td>
+                                <div id="id_session_entry_total_{{ session_entry.id }}">{{ session_entry.total }}</div>
+                            </td>
+                        {% endif %}
+
+                        <!-- ENDIF FOR IF HAS_EXTRAS -->
+                    {% endif %}
 
 
                     <!-- IS_PAID -->

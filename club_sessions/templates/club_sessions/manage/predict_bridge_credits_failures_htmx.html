@@ -1,0 +1,37 @@
+{#--------------------------------------------------------------------------------------------------#}
+{#                                                                                                  #}
+{# Called from totals to show any warnings for people who won't be able to pay their bridge credits #}
+{#                                                                                                  #}
+{#--------------------------------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+
+{% if warnings %}
+
+    <h3>Warnings</h3>
+    <p>The following users are set to pay by {{ BRIDGE_CREDITS }}, but they have insufficient balances for their payments, and are not set up for Auto Top Up:</p>
+
+    <div class="table-responsive">
+        <table class="table table-condensed table-hover">
+            <thead>
+                <tr>
+                    <th class="text-left">User</th>
+                    <th class="text-right">Balance</th>
+                    <th class="text-right">Due</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for warning in warnings %}
+                    <tr>
+                        <td class="text-left">{{ warning.user }}</td>
+                        <td class="text-right">{{ warning.balance|cobalt_currency_colour }}</td>
+                        <td class="text-right">{{ warning.due|cobalt_currency_colour }}</td>
+
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p>You can still process {{ BRIDGE_CREDITS }}, but these will fail and will be changed to pay with {{ session.default_secondary_payment_method.payment_method }}.</p>
+
+{% endif %}

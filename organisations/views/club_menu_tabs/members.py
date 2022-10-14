@@ -192,8 +192,6 @@ def report_all_csv(request, club_id):
         )
     ).values("system_number", "membership_type__name")
 
-    print(club_members)
-
     # create dict of system number to membership type
     membership_type_dict = {}
     club_members_list = []
@@ -252,7 +250,9 @@ def report_all_csv(request, club_id):
                 user.first_name,
                 user.last_name,
                 membership_type_dict.get(user.system_number, ""),
-                user.email,
+                # Don't include email addresses for registered users
+                "-",
+                # user.email,
                 "User",
                 "Registered",
                 "Self-registered",

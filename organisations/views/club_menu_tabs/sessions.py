@@ -6,7 +6,8 @@ from accounts.views.core import (
     get_users_or_unregistered_users_from_system_number_list,
 )
 from accounts.models import User
-from club_sessions.models import Session, SessionEntry, SessionType
+from club_sessions.models import Session, SessionEntry, SessionType, SessionMiscPayment
+from cobalt.settings import BRIDGE_CREDITS
 from organisations.decorators import check_club_menu_access
 from organisations.models import ClubLog
 from organisations.views.general import org_balance
@@ -47,6 +48,9 @@ def delete_session_htmx(request, club):
         session=session, payment_method=bridge_credits
     ).filter(is_paid=True)
 
+    # TODO: Handle refunding extras as well
+    has_extras = SessionMiscPayment.objects.filter(session_entry__session=session)
+
     # See if we have any IOUs
     ious = UserPendingPayment.objects.filter(
         organisation=club,
@@ -82,6 +86,7 @@ def delete_session_htmx(request, club):
             "session": session,
             "payments": payments,
             "ious_names": ious_names,
+            "has_extras": has_extras,
         },
     )
 

@@ -34,8 +34,8 @@
                 <tbody>
 
                     {% for last_tran in last_trans %}
-                        <!-- ROW - HIDDEN IF BALANCE > 50 -->
-                        <tr {% if last_tran.balance > 50 or last_tran.member.stripe_auto_confirmed == "On" %}class="d-none not-low-balance"{% endif %}>
+                        <!-- ROW - HIDDEN IF BALANCE > 20 -->
+                        <tr {% if last_tran.balance > 20 or last_tran.member.stripe_auto_confirmed == "On" %}class="d-none not-low-balance"{% endif %}>
 
                             <td class="text-left">{{ last_tran.member|cobalt_user_link_short }}</td>
                             <td class="text-right">{{ last_tran.balance|cobalt_currency }}</td>

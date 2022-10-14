@@ -98,6 +98,14 @@
                                 to proceed to the next step once you have made any changes you need.</dd>
                         {% endif %}
                     </dl>
+
+                    <!-- DIV FOR EXPECTED BRIDGE CREDIT FAILURES -->
+                    <div
+                        hx-post="{% url "club_sessions:predict_bridge_credits_failures_htmx" %}"
+                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                        hx-trigger="load"
+                    ></div>
+
                     <div class="col text-center">
                         <button
                             class="btn btn-info mx-auto"

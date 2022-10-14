@@ -133,4 +133,9 @@ urlpatterns = [
         club_sessions.views.manage_session.get_fee_for_payment_method_htmx,
         name="get_fee_for_payment_method_htmx",
     ),
+    path(
+        "totals/predict-bridge-credits-failures",
+        club_sessions.views.manage_session.predict_bridge_credits_failures_htmx,
+        name="predict_bridge_credits_failures_htmx",
+    ),
 ]

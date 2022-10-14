@@ -150,7 +150,7 @@ class SessionEntry(models.Model):
         OrgPaymentMethod, on_delete=models.PROTECT, null=True, blank=True
     )
     fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    is_paid = models.BooleanField(default=False)
+    is_paid = models.BooleanField("Is Processed", default=False)
     player_name_from_file = models.TextField(max_length=60, default="Unknown")
     """Player name as it appears on the file. We usually use the system_number, but for non-ABF members we need this"""
 
@@ -174,7 +174,7 @@ class SessionMiscPayment(models.Model):
     for this session are all processed."""
 
     session_entry = models.ForeignKey(SessionEntry, on_delete=models.PROTECT)
-    payment_made = models.BooleanField(default=False)
+    payment_made = models.BooleanField("Is Processed", default=False)
     """ Has this payment been processed. We use a different name from SessionEntry to help with searching the code """
     payment_method = models.ForeignKey(
         OrgPaymentMethod, on_delete=models.PROTECT, null=True, blank=True

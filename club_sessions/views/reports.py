@@ -347,6 +347,11 @@ def csv_download(request, session_id):
     writer = csv.writer(response)
     writer.writerow([club.name, f"Downloaded by {request.user.full_name}"])
 
+    # notes if we have any
+    if session.director_notes:
+        writer.writerow(["Director Notes", session.director_notes])
+        writer.writerow([])
+
     # Write a first row with header information
     field_names = [
         "Session",
@@ -393,7 +398,7 @@ def csv_download(request, session_id):
             "Description",
             "Payment Method",
             "Fee",
-            "Paid",
+            "Processed",
         ]
         writer.writerow(field_names)
 
