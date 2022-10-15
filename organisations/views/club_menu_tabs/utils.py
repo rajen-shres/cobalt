@@ -169,8 +169,6 @@ def invite_user_to_join_htmx(request, club):
     ).first()
     if club_email:
         email = club_email.email
-    elif un_reg.email:
-        email = un_reg.email
     else:
         return list_htmx(
             request,

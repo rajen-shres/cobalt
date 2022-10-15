@@ -10,7 +10,7 @@
             <div class="card-header card-header-rose">
                 <h2 class="text-center">{{ un_reg }}</h2>
 
-                {% if un_reg.email_hard_bounce %}
+                {% if email_address.email_hard_bounce %}
                     <h3>Email received hard bounce. Not sending emails to this user.</h3>
                     <p>When we last tried to send an email to {{ un_reg.first_name }}, it bounced. Check the email
                         address is correct and save this form to remove the block on sending to this user.</p>

@@ -393,7 +393,7 @@ def _un_reg_edit_htmx_process_form(
                 organisation=club, system_number=un_reg.system_number
             ).first()
             if not club_email_entry:
-                club_email_entry = MemberClubEmail.objects.filter(
+                club_email_entry = MemberClubEmail(
                     organisation=club, system_number=un_reg.system_number
                 )
 
@@ -443,11 +443,12 @@ def _un_reg_edit_htmx_common(
         tag_name__in=used_tags
     )
 
+    email_address = active_email_for_un_reg(un_reg, club)
+
     # Get recent emails if allowed
     if rbac_user_has_role(
         request.user, f"notifications.orgcomms.{club.id}.edit"
     ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
-        email_address = active_email_for_un_reg(un_reg, club)
         if email_address:
             emails = PostOfficeEmail.objects.filter(to=[email_address]).order_by("-pk")[
                 :20
@@ -482,6 +483,7 @@ def _un_reg_edit_htmx_common(
             ),
             "hx_args": f"club_id:{club.id},un_reg_id:{un_reg.id}",
             "message": message,
+            "email_address": email_address,
             "emails": emails,
             "private_email_blocked": private_email_blocked,
         },
