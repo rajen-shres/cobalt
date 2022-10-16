@@ -94,6 +94,10 @@ def next_version_data_htmx(request):
 
     """
 
+    # default values for ref dates
+    ref_date_start = None
+    ref_date_end = None
+
     # Get any parameters from the form
     state = request.POST.get("state")
     congress_type = request.POST.get("congress_type")
@@ -104,6 +108,11 @@ def next_version_data_htmx(request):
 
     # Optional - what was the last date we showed the user
     last_date = request.POST.get("last_date")
+    previous_date = request.POST.get("previous_date")
+
+    # previous date overrides last_date - user wanted to go forwards again
+    if previous_date:
+        last_date = previous_date
 
     # Get today
     date_now = datetime.date.today()
@@ -122,9 +131,14 @@ def next_version_data_htmx(request):
             ref_date_start = datetime.date(year, month, 1)
 
         else:
+            # first page of the reverse view, start from today
             ref_date_start = date_now
             month = int(ref_date_start.strftime("%m"))
             year = int(ref_date_start.strftime("%Y"))
+
+        # save date to come back here if needed
+        if previous_date:
+            previous_date = ref_date_start.strftime("%Y-%m")
 
         # Get the previous 6 months
         month -= 6
@@ -132,6 +146,7 @@ def next_version_data_htmx(request):
             year -= 1
             month += 12
 
+        # set the end of the period we are looking at and last_date, so we get this returned to us if user wants more
         ref_date_end = datetime.date(year, month, calendar.monthrange(year, month)[1])
         last_date = ref_date_end.strftime("%Y-%m")
 
@@ -167,7 +182,7 @@ def next_version_data_htmx(request):
             | Q(congress_master__org__name__icontains=congress_search_string)
         )
 
-    # We want to order the congresses into months
+    # We want to order the congresses into months to put in boxes
     month_list = {}
     for congress in congresses:
         month = congress.start_date.strftime("%B %Y")
@@ -181,6 +196,9 @@ def next_version_data_htmx(request):
         {
             "month_list": month_list,
             "last_date": last_date,
+            "previous_date": previous_date,
+            "ref_date_start": ref_date_start,
+            "ref_date_end": ref_date_end,
             "reverse_list": reverse_list,
         },
     )

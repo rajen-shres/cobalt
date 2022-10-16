@@ -86,7 +86,7 @@
 
             <!-- REVERSE ORDER -->
             {% if reverse_list %}
-                <a href="{% url "events:next_version" %}" class="text-white" style="text-decoration: underline">View future congresses</a>
+                <a href="{% url "events:next_version" %}" class="text-white" style="text-decoration: underline">View upcoming congresses</a>
             {% else %}
                 <a href="{% url "events:next_version" reverse_list="reverse" %}" class="text-white" style="text-decoration: underline">View old congresses</a>
             {% endif %}
@@ -140,7 +140,11 @@
                                 class="form-control"
                                 name="congress_search_string"
                                 id="id_congress_search_string"
-                                placeholder="Search Congresses..."
+                                {% if reverse_list %}
+                                    placeholder="Search Old..."
+                                {% else %}
+                                    placeholder="Search Upcoming..."
+                                {% endif %}
                             >
                         </div>
 

@@ -5,36 +5,64 @@
 {#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 
+<!-- HANDLE NO DATA -->
+
 {% if not month_list %}
 
-    {% if last_date %}
-        <p>You are at the end of the data.</p>
+    <!-- Different message for forwards and backwards -->
+    {% if reverse_list %}
+        <h3>You are at the end of the data.</h3>
     {% else %}
         <h3>No data found. Change your filters or search.</h3>
     {% endif %}
 
-    {% if last_date and month_list %}
-        <button
-            class="btn btn-info"
+{% else %}
+
+    <!-- WE HAVE DATA -->
+
+    <!-- ICON TO GO BACKWARDS IN TIME FOR REVERSE VIEW -->
+    {% if last_date %}
+        <a
+            href="javascript: void(0)"
+            class="btn btn-success"
             hx-post="{% url "events:next_version_data_htmx" %}"
             hx-include="[id='events_form']"
             hx-target="#events_list"
             hx-trigger="click"
-            hx-vars="last_date:'{{ last_date }}',
+            hx-vars="last_date:'{{ last_date }}',reverse_list: 'reverse'
 
-            {% if reverse_list %}
-                reverse_list: 'reverse'
+            {% if previous_date %}
+                ,previous_date:'{{ previous_date }}'
+            {% else %}
+                ,previous_date:'{{ last_date }}'
             {% endif %}
 
             "
-            _="on click go to the top of the body smoothly"
         >
-            Previous 6 Months
-        </button>
+            <span class="material-icons" style="font-size: xx-large">fast_rewind</span>
+        </a>
+    {% endif %}
+
+    <!-- ICON TO GO FORWARDS IN TIME FOR REVERSE VIEW -->
+
+    {% if previous_date %}
+        <a
+            href="javascript: void(0)"
+            class="btn btn-success"
+            hx-post="{% url "events:next_version_data_htmx" %}"
+            hx-include="[id='events_form']"
+            hx-target="#events_list"
+            hx-trigger="click"
+            hx-vars="previous_date:'{{ previous_date }}',reverse_list: 'reverse'"
+        >
+            <span class="material-icons" style="font-size: xx-large">fast_forward</span>
+        </a>
 
     {% endif %}
 
-{% else %}
+    {% if reverse_list %}
+        <h3>{{ ref_date_end }} to {{ ref_date_start }}</h3>
+    {% endif %}
 
     {% for month,congresses in month_list.items %}
 
