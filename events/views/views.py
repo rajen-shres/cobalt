@@ -1,5 +1,6 @@
 """ This module has the views that are used by normal players """
-from datetime import datetime
+import calendar
+import datetime
 from decimal import Decimal
 import uuid
 import pytz
@@ -9,7 +10,7 @@ from django.template import loader
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.db import transaction
 
 from payments.views.payments_api import payment_api_interactive
@@ -31,6 +32,7 @@ from cobalt.settings import (
     BRIDGE_CREDITS,
     TIME_ZONE,
     TBA_PLAYER,
+    ABF_STATES,
 )
 from events.models import (
     Congress,
@@ -46,6 +48,7 @@ from events.models import (
     Bulletin,
     PartnershipDesk,
     CongressDownload,
+    CONGRESS_TYPES,
 )
 from events.forms import (
     PartnershipForm,
@@ -55,8 +58,109 @@ from events.views.core import (
     notify_conveners,
     get_basket_for_user,
 )
+from utils.utils import cobalt_paginator
 
 TZ = pytz.timezone(TIME_ZONE)
+
+
+def next_version(request, reverse_list=False):
+    """Show list of events
+
+    reverse_list is used to show historic data
+
+    """
+
+    # get states from settings
+    states = [state_list[1] for state_list in ABF_STATES.values()]
+    states.sort()
+
+    return render(
+        request,
+        "events/players/next_version.html",
+        {
+            "states": states,
+            "congress_types": CONGRESS_TYPES,
+            "reverse_list": reverse_list,
+        },
+    )
+
+
+def next_version_data_htmx(request):
+    """Returns the data for the events listing page.
+
+    There is a limited number of future events, so we just return them all.
+
+    For historic events, we will get a much larger list, so we paginate it but loading 6 months at a time.
+
+    """
+
+    # Get any parameters from the form
+    state = request.POST.get("state")
+    congress_type = request.POST.get("congress_type")
+    congress_search_string = request.POST.get("congress_search_string")
+
+    # Reverse list means we want the historic date (closed events, going backwards)
+    reverse_list = request.POST.get("reverse_list")
+
+    # Optional - what was the last date we showed the user
+    last_date = request.POST.get("last_date")
+    print(last_date)
+
+    # Get today
+    date_now = datetime.date.today()
+
+    if reverse_list:
+        # We are going backwards
+
+        year = int(date_now.strftime("%Y"))
+        year = 2024
+        month = int(date_now.strftime("%m"))
+        date_one_month = datetime.date(year, month, calendar.monthrange(year, month)[1])
+        print(date_one_month)
+
+        congresses = (
+            Congress.objects.filter(start_date__lt=date_now)
+            .filter(status="Published")
+            .select_related("congress_master__org")
+            .order_by("-start_date")
+        )
+    else:
+        # Going forwards, show everything
+        congresses = (
+            Congress.objects.filter(
+                Q(start_date__gte=date_now) | (Q(end_date__gte=date_now))
+            )
+            .filter(status="Published")
+            .select_related("congress_master__org")
+            .order_by("start_date")
+        )
+
+    # Now add modifiers for the queryset
+    if state != "All":
+        congresses = congresses.filter(congress_master__org__state=state)
+
+    if congress_type != "All":
+        congresses = congresses.filter(congress_type=congress_type)
+
+    if congress_search_string:
+        congresses = congresses.filter(
+            Q(name__icontains=congress_search_string)
+            | Q(congress_master__org__name__icontains=congress_search_string)
+        )
+
+    # We want to order the congresses into months
+    month_list = {}
+    for congress in congresses:
+        month = congress.start_date.strftime("%B %Y")
+        if month not in month_list:
+            month_list[month] = []
+        month_list[month].append(congress)
+
+    return render(
+        request,
+        "events/players/next_version_data_htmx.html",
+        {"month_list": month_list},
+    )
 
 
 def home_new(request):

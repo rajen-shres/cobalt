@@ -10,6 +10,11 @@ urlpatterns = [
     # Screens for normal players    #
     #################################
     path("", views.home_new, name="events"),
+    path("next-version", views.next_version, name="next_version"),
+    path("next-version/<str:reverse_list>", views.next_version, name="next_version"),
+    path(
+        "next-version-data", views.next_version_data_htmx, name="next_version_data_htmx"
+    ),
     path("congress/view/<int:congress_id>", views.view_congress, name="view_congress"),
     path(
         "congress/view/<int:congress_id>/<int:fullscreen>",

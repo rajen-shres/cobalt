@@ -222,13 +222,13 @@ Environment: {{ COBALT_HOSTNAME }}
                                     {{ request.user.username }}
                                 {% endif %}
 
-                                {% if request.user.id == 4 %}
-                                    <span
-                                        hx-post="{% url "utils:get_facts_text" %}"
-                                        hx-trigger="click, load"
-                                    >
-                                    </span>
-                                {% endif %}
+                                {#                                {% if request.user.id == 4 %}#}
+                                {#                                    <span#}
+                                {#                                        hx-post="{% url "utils:get_facts_text" %}"#}
+                                {#                                        hx-trigger="click, load"#}
+                                {#                                    >#}
+                                {#                                    </span>#}
+                                {#                                {% endif %}#}
 
                             </span>
                         </div>

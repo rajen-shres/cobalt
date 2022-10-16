@@ -94,8 +94,8 @@ CONGRESS_TYPES = [
     ("state_championship", "State championship"),
     ("state_congress", "State congress"),
     ("state_event", "State event"),
-    ("club", "Club event"),
     ("club_congress", "Club congress"),
+    ("club", "Club event"),
     ("lesson", "Lesson"),
     ("other", "Other"),
 ]

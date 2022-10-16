@@ -1,0 +1,197 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Basic page to show list of events and allow filtering and searching    #}
+{#                                                                        #}
+{# Updates are done using HTMX                                            #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% extends 'base.html' %}
+{% load static %}
+{% load cobalt_tags %}
+
+{% block title %} - Congresses{% endblock %}
+
+{% block header %}
+    <style>
+        /* show the clickable row in the listing as clickable */
+        tr.congress-link-row {
+            cursor: pointer;
+        }
+
+        /* Make all of the tables the same widths but only for larger screens. No need on smaller and messes up view*/
+
+        th {
+            font-size: larger;
+            color: black;
+            font-weight: bold;
+        }
+
+        @media screen and (min-width: 800px) {
+
+            table.fixed-congress {
+                table-layout: fixed;
+                width: 100%;
+            }
+
+            /* start date */
+            table.fixed-congress td:nth-of-type(1), th:nth-of-type(1) {
+                width: 10%;
+            }
+
+            /* Name */
+            table.fixed-congress td:nth-of-type(2), th:nth-of-type(2) {
+                width: 40%;
+            }
+
+            /* State */
+            table.fixed-congress td:nth-of-type(3), th:nth-of-type(3) {
+                width: 10%;
+            }
+
+            /* congress type */
+            table.fixed-congress td:nth-of-type(4), th:nth-of-type(4) {
+                width: 20%;
+            }
+
+            /* club/organiser */
+            table.fixed-congress td:nth-of-type(5), td:nth-of-type(5) {
+                width: 20%;
+            }
+
+        }
+
+    </style>
+{% endblock header %}
+
+{% block content %}
+
+    <!-- DON'T ALERT ON LEAVING SCREEN IF SEARCH FORM HAS CHANGED -->
+    <div id="ignore_cobalt_save"></div>
+
+    <!-- MAIN CARD ON PAGE -->
+
+    <div class="card">
+
+        <!-- CARD HEADER -->
+        <div class="card-header card-header-primary">
+            <h1>
+                <div class="d-flex justify-content-between">
+                    <div>
+                        Congresses
+                    </div>
+                    <div>
+                        <i class="material-icons" style="font-size:50px">book_online</i>
+                    </div>
+                </div>
+            </h1>
+
+            <!-- REVERSE ORDER -->
+            {% if reverse_list %}
+                <a href="{% url "events:next_version" %}" class="text-white" style="text-decoration: underline">View future congresses</a>
+            {% else %}
+                <a href="{% url "events:next_version" reverse_list="reverse" %}" class="text-white" style="text-decoration: underline">View old congresses</a>
+            {% endif %}
+
+        </div>
+
+        <!-- CARD BODY -->
+        <div class="card-body">
+
+            <form id="events_form">
+
+                <!-- NAVIGATION, FILTER AND SEARCH -->
+                <div class="d-flex justify-content-between">
+
+                    <div>
+                        <!-- STATE -->
+                        <label for="id_state">State</label>
+                        <select
+                            class="selectpicker"
+                            data-style="btn btn-danger"
+                            id="id_state"
+                            name="state"
+                        >
+                            <option value="All">All</option>
+                            {% for state in states %}
+                                <option value="{{ state }}">{{ state }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <!-- EVENT TYPE -->
+                        <label for="id_congress_type">Congress Type</label>
+                        <select
+                            class="selectpicker"
+                            data-style="btn btn-info"
+                            id="id_congress_type"
+                            name="congress_type">
+                            <option value="All">All</option>
+                            {% for congress_type in congress_types %}
+                                <option value="{{ congress_type.0 }}">{{ congress_type.1|title }}</option>
+                            {% endfor %}
+                        </select>
+
+                    </div>
+                    <!-- SEARCH -->
+                    <div>
+
+                        <div class="input-group no-border">
+                            <input
+                                type="text"
+                                value=""
+                                class="form-control"
+                                name="congress_search_string"
+                                id="id_congress_search_string"
+                                placeholder="Search Congresses..."
+                            >
+                        </div>
+
+                    </div>
+                </div>
+            </form>
+
+            <div id="events_list"
+                hx-post="{% url "events:next_version_data_htmx" %}"
+                hx-include="[id='events_form']"
+                hx-trigger="load, refresh_events"
+
+                {% if reverse_list %}
+                    hx-vars="reverse_list:'reverse'"
+                {% endif %}
+
+            >
+
+            </div>
+
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block footer %}
+    <script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
+    <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
+    <script>
+        $(document).ready(function () {
+
+            // Activate select pickers
+            $('.selectpicker').selectpicker();
+
+            // we don't want the form to be submitted if user hits enter
+            $('#events_form').submit(function (evt) {
+                evt.preventDefault();
+            });
+
+            // if dropdowns change, reload
+            $("#id_state, #id_congress_type").on("changed.bs.select", function() {
+                htmx.trigger("#events_list", "refresh_events");
+            });
+
+            // if search change, reload
+            $("#id_congress_search_string").on("keyup", function() {
+                console.log("here");
+                htmx.trigger("#events_list", "refresh_events");
+            });
+        });
+    </script>
+
+{% endblock %}

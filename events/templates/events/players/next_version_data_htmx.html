@@ -1,0 +1,60 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Returns the formatted table data for the congress listing              #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+
+{% if not month_list %}
+    <h3>No data found</h3>
+
+{% else %}
+
+    {% for month,congresses in month_list.items %}
+
+        <div class="card">
+            <div class="card-header card-header-{% cobalt_random_colour %}">
+                <h3 class="text-center by-0 my-0 py-0">{{ month }}</h3>
+            </div>
+            <div class="card-body">
+
+                <div class="table-responsive">
+                    <table class="table table-striped fixed-congress">
+                        <thead>
+                            <tr>
+                                <th>Start Date</th>
+                                <th>Congress</th>
+                                <th>State</th>
+                                <th>Congress Type</th>
+                                <th>Organiser</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for congress in congresses %}
+                                <tr class="congress-link-row" data-href="{% url "events:view_congress" congress_id=congress.id %}">
+                                    <td>{{ congress.start_date }}</td>
+                                    <td>{{ congress.name }}</td>
+                                    <td>{{ congress.congress_master.org.state }}</td>
+                                    <td>{{ congress.get_congress_type_display|title }}</td>
+                                    <td>{{ congress.congress_master.org }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    {% endfor %}
+
+    <script>
+        $(document).ready(function () {
+
+            // make the whole row clickable for the table
+            $(".congress-link-row").click(function () {
+                window.location = $(this).data("href");
+            });
+        });
+    </script>
+
+{%endif %}
