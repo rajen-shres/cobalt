@@ -104,7 +104,6 @@ def next_version_data_htmx(request):
 
     # Optional - what was the last date we showed the user
     last_date = request.POST.get("last_date")
-    print(last_date)
 
     # Get today
     date_now = datetime.date.today()
@@ -112,14 +111,34 @@ def next_version_data_htmx(request):
     if reverse_list:
         # We are going backwards
 
-        year = int(date_now.strftime("%Y"))
-        year = 2024
-        month = int(date_now.strftime("%m"))
-        date_one_month = datetime.date(year, month, calendar.monthrange(year, month)[1])
-        print(date_one_month)
+        if last_date:
+            # Not on page 1 - get data after this date
+            year = int(last_date.split("-")[0])
+            month = int(last_date.split("-")[1]) - 1
+            if month == 0:
+                year -= 1
+                month = 12
+
+            ref_date_start = datetime.date(year, month, 1)
+
+        else:
+            ref_date_start = date_now
+            month = int(ref_date_start.strftime("%m"))
+            year = int(ref_date_start.strftime("%Y"))
+
+        # Get the previous 6 months
+        month -= 6
+        if month < 1:
+            year -= 1
+            month += 12
+
+        ref_date_end = datetime.date(year, month, calendar.monthrange(year, month)[1])
+        last_date = ref_date_end.strftime("%Y-%m")
 
         congresses = (
-            Congress.objects.filter(start_date__lt=date_now)
+            Congress.objects.filter(
+                start_date__lt=ref_date_start, start_date__gte=ref_date_end
+            )
             .filter(status="Published")
             .select_related("congress_master__org")
             .order_by("-start_date")
@@ -159,7 +178,11 @@ def next_version_data_htmx(request):
     return render(
         request,
         "events/players/next_version_data_htmx.html",
-        {"month_list": month_list},
+        {
+            "month_list": month_list,
+            "last_date": last_date,
+            "reverse_list": reverse_list,
+        },
     )
 
 

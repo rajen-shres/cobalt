@@ -6,7 +6,33 @@
 {% load cobalt_tags %}
 
 {% if not month_list %}
-    <h3>No data found</h3>
+
+    {% if last_date %}
+        <p>You are at the end of the data.</p>
+    {% else %}
+        <h3>No data found. Change your filters or search.</h3>
+    {% endif %}
+
+    {% if last_date and month_list %}
+        <button
+            class="btn btn-info"
+            hx-post="{% url "events:next_version_data_htmx" %}"
+            hx-include="[id='events_form']"
+            hx-target="#events_list"
+            hx-trigger="click"
+            hx-vars="last_date:'{{ last_date }}',
+
+            {% if reverse_list %}
+                reverse_list: 'reverse'
+            {% endif %}
+
+            "
+            _="on click go to the top of the body smoothly"
+        >
+            Previous 6 Months
+        </button>
+
+    {% endif %}
 
 {% else %}
 
@@ -21,7 +47,7 @@
                 <div class="table-responsive">
                     <table class="table table-striped fixed-congress">
                         <thead>
-                            <tr>
+                            <tr class="text-primary">
                                 <th>Start Date</th>
                                 <th>Congress</th>
                                 <th>State</th>
@@ -46,6 +72,26 @@
         </div>
 
     {% endfor %}
+
+    {% if last_date %}
+        <button
+            class="btn btn-info"
+            hx-post="{% url "events:next_version_data_htmx" %}"
+            hx-include="[id='events_form']"
+            hx-target="#events_list"
+            hx-trigger="click"
+            hx-vars="last_date:'{{ last_date }}',
+
+            {% if reverse_list %}
+                reverse_list: 'reverse'
+            {% endif %}
+
+            "
+            _="on click go to the top of the body smoothly"
+        >
+            Previous 6 Months
+        </button>
+    {% endif %}
 
     <script>
         $(document).ready(function () {
