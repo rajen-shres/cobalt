@@ -75,7 +75,7 @@
             <h1>
                 <div class="d-flex justify-content-between">
                     <div>
-                        {% if reverse_list %}Historic{% endif %} Congresses
+                        {% if reverse_list %}Completed{% endif %} Congresses
                     </div>
                     <div>
                         <i class="material-icons" style="font-size:50px">book_online</i>
@@ -85,9 +85,9 @@
 
             <!-- REVERSE ORDER -->
             {% if reverse_list %}
-                <a href="{% url "events:next_version" %}" class="text-white" style="text-decoration: underline">View upcoming congresses</a>
+                <a href="{% url "events:next_version" %}" class="text-white" style="text-decoration: underline">View running and upcoming congresses</a>
             {% else %}
-                <a href="{% url "events:next_version" reverse_list="reverse" %}" class="text-white" style="text-decoration: underline">View old congresses</a>
+                <a href="{% url "events:next_version" reverse_list="reverse" %}" class="text-white" style="text-decoration: underline">View completed congresses</a>
             {% endif %}
 
         </div>

@@ -1,0 +1,45 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Show navigation buttons for the reverse view on congresses             #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+
+<!-- ICON TO GO BACKWARDS IN TIME FOR REVERSE VIEW -->
+
+{% if show_back_arrow %}
+    <a
+        href="javascript: void(0)"
+        class="btn btn-success btn-sm mt-3"
+        data-toggle="tooltip"
+        {#        title="Rewind 6 months"#}
+        _="on click go to the top of the body smoothly"
+        hx-post="{% url "events:next_version_data_htmx" %}"
+        hx-include="[id='events_form']"
+        hx-target="#events_list"
+        hx-trigger="click"
+        hx-vars="last_data_date:'{{ last_data_date }}', reverse_list: 'reverse', where_to_go: 'back'"
+    >
+        <span class="material-icons" style="font-size: x-large">fast_rewind</span>
+    </a>
+{% endif %}
+
+<!-- ICON TO GO FORWARDS IN TIME FOR REVERSE VIEW -->
+
+{% if show_forward_arrow %}
+    <a
+        href="javascript: void(0)"
+        class="btn btn-success btn-sm mt-3"
+        data-toggle="tooltip"
+        {#        title="Fast Forward 6 months"#}
+        _="on click go to the top of the body smoothly"
+        hx-post="{% url "events:next_version_data_htmx" %}"
+        hx-include="[id='events_form']"
+        hx-target="#events_list"
+        hx-trigger="click"
+        hx-vars="last_data_date:'{{ last_data_date }}', reverse_list: 'reverse', where_to_go: 'forward'"
+    >
+        <span class="material-icons" style="font-size: x-large">fast_forward</span>
+    </a>
+
+{% endif %}

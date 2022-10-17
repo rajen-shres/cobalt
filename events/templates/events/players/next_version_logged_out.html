@@ -10,6 +10,21 @@
 
 {% block header %}
     <style>
+
+
+        /* underlines for links */
+        a.link, a.visited {
+            text-decoration: underline;
+            color: blue;
+        }
+
+        /* show underline on hover */
+        a:hover {
+            text-decoration: underline;
+            text-decoration-color: red;
+            -webkit-text-decoration-color: red;
+        }
+
         /* Make all of the tables the same widths but only for larger screens. No need on smaller and messes up view*/
 
         th {
@@ -66,8 +81,8 @@
 
     <div style="text-align: center; font-size: large; color: red; padding-top: 40px">
         For the full experience,
-        <a href="{% url "dashboard:dashboard" %}">login</a> or
-        <a href="{% url "accounts:register" %}">sign up</a>
+        <a href="{% url "dashboard:dashboard" %}" style="text-decoration: underline; color: blue;">login</a> or
+        <a href="{% url "accounts:register" %}" style="text-decoration: underline; color: blue;">sign up</a>
     </div>
 
     <h1>Upcoming Congresses</h1>
@@ -91,7 +106,7 @@
                 {% for congress in congresses %}
                     <tr>
                         <td><a href="{% url "events:view_congress" congress_id=congress.id %}">{{ congress.start_date }}</a></td>
-                        <td><a href="{% url "events:view_congress" congress_id=congress.id %}">{{ congress.name }}</a></td>
+                        <td><a href="{% url "events:view_congress" congress_id=congress.id %}" style="text-decoration: underline; color: blue;">{{ congress.name }}</a></td>
                         <td><a href="{% url "events:view_congress" congress_id=congress.id %}">{{ congress.congress_master.org.state }}</a></td>
                         <td><a href="{% url "events:view_congress" congress_id=congress.id %}">{{ congress.get_congress_type_display|title }}</a></td>
                         <td><a href="{% url "events:view_congress" congress_id=congress.id %}">{{ congress.congress_master.org }}</a></td>

@@ -1,6 +1,6 @@
 """ This module has the views that are used by normal players """
 import calendar
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from decimal import Decimal
 import uuid
 import pytz
@@ -127,9 +127,10 @@ def next_version_data_htmx(request):
 
     """
 
-    # default values for ref dates
-    ref_date_start = None
-    ref_date_end = None
+    # default values - only used going backwards
+    date_string = None
+    show_back_arrow = None
+    show_forward_arrow = None
 
     # Get any parameters from the form
     state = request.POST.get("state")
@@ -140,60 +141,24 @@ def next_version_data_htmx(request):
     reverse_list = request.POST.get("reverse_list")
 
     # Optional - what was the last date we showed the user
-    last_date = request.POST.get("last_date")
-    previous_date = request.POST.get("previous_date")
+    last_data_date = request.POST.get("last_data_date")
 
-    print("input last date:", last_date)
-    print("input previous date:", previous_date)
-
-    # previous date overrides last_date - user wanted to go forwards again
-    if previous_date:
-        last_date = previous_date
+    # Optional and exclusive, does user want to go further back or come forward
+    where_to_go = request.POST.get("where_to_go")
 
     # Get today
     date_now = date.today()
 
     if reverse_list:
         # We are going backwards
+        (
+            congresses,
+            date_string,
+            show_back_arrow,
+            show_forward_arrow,
+            last_data_date,
+        ) = next_version_data_backwards(last_data_date, where_to_go, date_now)
 
-        if last_date:
-            # Not on page 1 - get data after this date
-            year = int(last_date.split("-")[0])
-            month = int(last_date.split("-")[1]) - 1
-            if month == 0:
-                year -= 1
-                month = 12
-
-            ref_date_start = date(year, month, 1)
-
-        else:
-            # first page of the reverse view, start from today
-            ref_date_start = date_now
-            month = int(ref_date_start.strftime("%m"))
-            year = int(ref_date_start.strftime("%Y"))
-
-        # save date to come back here if needed
-        if previous_date:
-            previous_date = ref_date_start.strftime("%Y-%m")
-
-        # Get the previous 6 months
-        month -= 6
-        if month < 1:
-            year -= 1
-            month += 12
-
-        # set the end of the period we are looking at and last_date, so we get this returned to us if user wants more
-        ref_date_end = date(year, month, calendar.monthrange(year, month)[1])
-        last_date = ref_date_end.strftime("%Y-%m")
-
-        congresses = (
-            Congress.objects.filter(
-                start_date__lt=ref_date_start, start_date__gte=ref_date_end
-            )
-            .filter(status="Published")
-            .select_related("congress_master__org")
-            .order_by("-start_date")
-        )
     else:
         # Going forwards, show everything
         congresses = (
@@ -226,21 +191,106 @@ def next_version_data_htmx(request):
             month_list[month] = []
         month_list[month].append(congress)
 
-    print("output last date:", last_date)
-    print("output previous date:", previous_date)
-
     return render(
         request,
         "events/players/next_version_data_htmx.html",
         {
             "month_list": month_list,
-            "last_date": last_date,
-            "previous_date": previous_date,
-            "ref_date_start": ref_date_start,
-            "ref_date_end": ref_date_end,
+            "last_data_date": last_data_date,
+            "show_back_arrow": show_back_arrow,
+            "show_forward_arrow": show_forward_arrow,
+            "date_string": date_string,
             "reverse_list": reverse_list,
         },
     )
+
+
+def next_version_data_backwards(last_data_date, where_to_go, date_now):
+    """sub to handle going backwards
+
+    Args:
+        last_data_date(str): date used for last display, can be None
+        where_to_go(str): "back", "forward" or None
+        date_now(date): date today
+
+    Returns:
+        congresses(queryset): Queryset of Congress objects to show
+        date_string(str): string to display to user representing this date range
+        show_back_arrow(bool): show the back arrow
+        show_forward_arrow(bool): show forward arrow
+        last_data_date(str): UPDATED date string for this data set - returned to us later
+
+    """
+
+    # default arrows
+    show_forward_arrow = False
+
+    if last_data_date:
+        # Not on page 1
+        show_forward_arrow = True
+
+        if where_to_go == "back":
+            # Get end date - one month earlier
+            year = int(last_data_date.split("-")[0])
+            month = int(last_data_date.split("-")[1]) - 1
+            if month == 0:
+                year -= 1
+                month = 12
+            ref_date_end = date(year, month, calendar.monthrange(year, month)[1])
+
+        else:
+            # Get end date - 12 months earlier
+            year = int(last_data_date.split("-")[0]) + 1
+            month = int(last_data_date.split("-")[1]) + 1
+            if month == 13:
+                year -= 1
+                month = 12
+
+            # If we are back at the start, handle that
+            if date_now.month == month and date_now.year == year:
+                ref_date_end = date_now
+                show_forward_arrow = False
+            else:
+                ref_date_end = date(year, month, calendar.monthrange(year, month)[1])
+
+    else:
+        # first page of the reverse view, end on today
+        ref_date_end = date_now
+        month = int(ref_date_end.strftime("%m"))
+        year = int(ref_date_end.strftime("%Y"))
+
+        # Get the previous 6 months
+    month -= 6
+    if month < 1:
+        year -= 1
+        month += 12
+
+    # set the start of the period we are looking at and last_data_date, so we get this returned to us if user wants more
+    ref_date_start = date(year, month, 1)
+    last_data_date = ref_date_start.strftime("%Y-%m")
+
+    congresses = (
+        Congress.objects.filter(
+            start_date__lt=ref_date_end, start_date__gte=ref_date_start
+        )
+        .filter(status="Published")
+        .select_related("congress_master__org")
+        .order_by("-start_date")
+    )
+
+    ref_date_day_before = ref_date_start - timedelta(days=1)
+    show_back_arrow = bool(
+        Congress.objects.filter(start_date__lt=ref_date_day_before)
+        .filter(status="Published")
+        .exists()
+    )
+
+    if ref_date_end == date_now:
+        date_string = f"Yesterday back to {ref_date_start:%B %Y}"
+    else:
+        date_string = f"{ref_date_end:%B %Y} back to {ref_date_start:%B %Y}"
+
+    return congresses, date_string, show_back_arrow, show_forward_arrow, last_data_date
 
 
 def home_new(request):

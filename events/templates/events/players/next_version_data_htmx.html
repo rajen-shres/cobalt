@@ -20,50 +20,13 @@
 
     <!-- WE HAVE DATA -->
 
-    <!-- ICON TO GO BACKWARDS IN TIME FOR REVERSE VIEW -->
-    {% if last_date %}
-        <a
-            href="javascript: void(0)"
-            class="btn btn-success btn-sm mt-3"
-            data-toggle="tooltip"
-            title="Rewind 6 months"
-            hx-post="{% url "events:next_version_data_htmx" %}"
-            hx-include="[id='events_form']"
-            hx-target="#events_list"
-            hx-trigger="click"
-            hx-vars="last_date:'{{ last_date }}',reverse_list: 'reverse'
-
-            {% if previous_date %}
-                ,previous_date:'{{ previous_date }}'
-            {% else %}
-                ,previous_date:'{{ last_date }}'
-            {% endif %}
-
-            "
-        >
-            <span class="material-icons" style="font-size: x-large">fast_rewind</span>
-        </a>
-    {% endif %}
-
-    <!-- ICON TO GO FORWARDS IN TIME FOR REVERSE VIEW -->
-
-    {% if previous_date %}
-        <a
-            href="javascript: void(0)"
-            class="btn btn-success btn-sm mt-3"
-            hx-post="{% url "events:next_version_data_htmx" %}"
-            hx-include="[id='events_form']"
-            hx-target="#events_list"
-            hx-trigger="click"
-            hx-vars="previous_date:'{{ previous_date }}',reverse_list: 'reverse'"
-        >
-            <span class="material-icons" style="font-size: x-large">fast_forward</span>
-        </a>
-
-    {% endif %}
-
     {% if reverse_list %}
-        <h2>{{ ref_date_start }} back to {{ ref_date_end }}</h2>
+
+        <!-- NAVIGATION ICONS -->
+        {% include "events/players/next_version_data_htmx_buttons.html" %}
+
+        <h2>{{ date_string }}</h2>
+
     {% endif %}
 
     {% for month,congresses in month_list.items %}
@@ -111,24 +74,11 @@
 
     {% endfor %}
 
-    {% if last_date %}
-        <button
-            class="btn btn-info"
-            hx-post="{% url "events:next_version_data_htmx" %}"
-            hx-include="[id='events_form']"
-            hx-target="#events_list"
-            hx-trigger="click"
-            hx-vars="last_date:'{{ last_date }}',
+    {% if reverse_list %}
 
-            {% if reverse_list %}
-                reverse_list: 'reverse'
-            {% endif %}
+        <!-- NAVIGATION ICONS -->
+        {% include "events/players/next_version_data_htmx_buttons.html" %}
 
-            "
-            _="on click go to the top of the body smoothly"
-        >
-            Previous 6 Months
-        </button>
     {% endif %}
 
     <script>
