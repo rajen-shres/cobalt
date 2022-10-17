@@ -118,20 +118,9 @@ def unregistered_user_settings(request, identifier):
         un_registered_user=unregistered
     ).values_list("email", flat=True)
 
-    if unregistered.email in blocked_emails:
-        unregistered.email = None
-
     for additional_email in additional_emails:
         if additional_email.email in blocked_emails:
             additional_email.email = None
-
-    # Don't show empty section if there are no email addresses left
-    has_data = False
-    if unregistered.email:
-        has_data = True
-    for additional_email in additional_emails:
-        if additional_email.email:
-            has_data = True
 
     if request.POST:
         email = request.POST.get("block_email")
@@ -152,6 +141,5 @@ def unregistered_user_settings(request, identifier):
         {
             "unregistered": unregistered,
             "additional_emails": additional_emails,
-            "has_data": has_data,
         },
     )

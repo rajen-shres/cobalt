@@ -27,13 +27,12 @@
             <br>
             <br>
 
-            <a href="{% url "accounts:register" system_number=unregistered.system_number email=unregistered.email %}">
+            <a href="{% url "accounts:register" system_number=unregistered.system_number email=additional_emails.0.email %}">
                 <button>Click to Register for MyABF</button>
             </a>
 
 
-            {% if has_data %}
-
+            {% if additional_emails %}
 
                 <h2>Manage Communications</h2>
 
@@ -48,22 +47,6 @@
                             </tr>
                         </thead>
                         <tbody>
-
-                            {% if unregistered.email %}
-                                <tr>
-                                    <td>{{ unregistered.email }}</td>
-                                    <td>
-                                        <div style="height: 20px; background-color: red"
-                                            hx-post="{% url "accounts:unregistered_settings" identifier=unregistered.identifier %}"
-                                            hx-vars="'block_email': '{{ unregistered.email }}'"
-                                            hx-trigger="click"
-                                            hx-target="#message"
-                                            _="on click remove me"
-                                        >
-                                            Block</div>
-                                    </td>
-                                </tr>
-                            {% endif %}
 
                             {% for additional_email in additional_emails %}
                                 {% if additional_email.email %}
