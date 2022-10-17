@@ -10,5 +10,4 @@ urlpatterns = [
     path("status", views.status, name="status"),
     path("database", views.database_view, name="database_view"),
     path("recent-errors", views.recent_errors, name="recent_errors"),
-    path("get-facts-text", views.get_facts_text, name="get_facts_text"),
 ]
