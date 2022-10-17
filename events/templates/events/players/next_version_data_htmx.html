@@ -24,7 +24,9 @@
     {% if last_date %}
         <a
             href="javascript: void(0)"
-            class="btn btn-success btn-sm"
+            class="btn btn-success btn-sm mt-3"
+            data-toggle="tooltip"
+            title="Rewind 6 months"
             hx-post="{% url "events:next_version_data_htmx" %}"
             hx-include="[id='events_form']"
             hx-target="#events_list"
@@ -48,7 +50,7 @@
     {% if previous_date %}
         <a
             href="javascript: void(0)"
-            class="btn btn-success btn-sm"
+            class="btn btn-success btn-sm mt-3"
             hx-post="{% url "events:next_version_data_htmx" %}"
             hx-include="[id='events_form']"
             hx-target="#events_list"
@@ -61,7 +63,7 @@
     {% endif %}
 
     {% if reverse_list %}
-        <h3>{{ ref_date_start }} back to {{ ref_date_end }}</h3>
+        <h2>{{ ref_date_start }} back to {{ ref_date_end }}</h2>
     {% endif %}
 
     {% for month,congresses in month_list.items %}
@@ -75,12 +77,12 @@
                 <div class="table-responsive">
                     <table class="table table-striped fixed-congress">
                         <thead>
-                            <tr class="text-primary">
-                                <th>Start Date</th>
-                                <th>Congress</th>
-                                <th>State</th>
-                                <th>Congress Type</th>
-                                <th>Organiser</th>
+                            <tr class="text-info">
+                                <th style="font-weight: bold;">Start Date</th>
+                                <th style="font-weight: bold">Congress</th>
+                                <th style="font-weight: bold">State</th>
+                                <th style="font-weight: bold">Congress Type</th>
+                                <th style="font-weight: bold">Organiser</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -89,7 +91,15 @@
                                     <td>{{ congress.start_date }}</td>
                                     <td>{{ congress.name }}</td>
                                     <td>{{ congress.congress_master.org.state }}</td>
-                                    <td>{{ congress.get_congress_type_display|title }}</td>
+                                    <td>
+                                        {% if congress.congress_type == "national_gold" %}
+                                            <span class="material-icons d-none d-xl-inline" style="color: orange; vertical-align: bottom;font-size: 25px !important;">hotel_class</span>
+                                        {% endif %}
+                                        {% if congress.congress_type == "state_championship" %}
+                                            <span class="material-icons d-none d-xl-inline" style="color: red; vertical-align: bottom;font-size: 25px !important;">star</span>
+                                        {% endif %}
+                                        {{ congress.get_congress_type_display|title }}
+                                    </td>
                                     <td>{{ congress.congress_master.org }}</td>
                                 </tr>
                             {% endfor %}
@@ -123,6 +133,9 @@
 
     <script>
         $(document).ready(function () {
+
+            // initialise tooltips
+            $('[data-toggle="tooltip"]').tooltip()
 
             // make the whole row clickable for the table
             $(".congress-link-row").click(function () {

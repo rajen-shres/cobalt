@@ -1,0 +1,109 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Basic page to show list of events and allow filtering and searching    #}
+{#                                                                        #}
+{# Updates are done using HTMX                                            #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% extends 'base_logged_out.html' %}
+{% load static %}
+
+{% block header %}
+    <style>
+        /* Make all of the tables the same widths but only for larger screens. No need on smaller and messes up view*/
+
+        th {
+            font-size: larger;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        td {
+            text-align: left;
+        }
+
+        @media screen and (min-width: 800px) {
+
+            table.fixed-congress {
+                table-layout: fixed;
+                width: 100%;
+                border: 1px lightskyblue;
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            /* start date */
+            table.fixed-congress td:nth-of-type(1), th:nth-of-type(1) {
+                width: 10%;
+            }
+
+            /* Name */
+            table.fixed-congress td:nth-of-type(2), th:nth-of-type(2) {
+                width: 40%;
+            }
+
+            /* State */
+            table.fixed-congress td:nth-of-type(3), th:nth-of-type(3) {
+                width: 10%;
+            }
+
+            /* congress type */
+            table.fixed-congress td:nth-of-type(4), th:nth-of-type(4) {
+                width: 20%;
+            }
+
+            /* club/organiser */
+            table.fixed-congress td:nth-of-type(5), td:nth-of-type(5) {
+                width: 20%;
+            }
+
+        }
+
+    </style>
+{% endblock header %}
+
+{% block content %}
+
+    <div style="text-align: center; font-size: large; color: red; padding-top: 40px">
+        For the full experience,
+        <a href="{% url "dashboard:dashboard" %}">login</a> or
+        <a href="{% url "accounts:register" %}">sign up</a>
+    </div>
+
+    <h1>Upcoming Congresses</h1>
+
+    {% for month,congresses in month_list.items %}
+
+        <h2 style="font-size: xx-large; padding-top: 80px">{{ month }}</h2>
+
+        <table class="fixed-congress">
+            <thead>
+                <tr class="text-primary">
+                    <th>Start Date</th>
+                    <th>Congress</th>
+                    <th>State</th>
+                    <th>Congress Type</th>
+                    <th>Organiser</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for congress in congresses %}
+                    <tr>
+                        <td><a href="{% url "events:view_congress" congress_id=congress.id %}">{{ congress.start_date }}</a></td>
+                        <td><a href="{% url "events:view_congress" congress_id=congress.id %}">{{ congress.name }}</a></td>
+                        <td><a href="{% url "events:view_congress" congress_id=congress.id %}">{{ congress.congress_master.org.state }}</a></td>
+                        <td><a href="{% url "events:view_congress" congress_id=congress.id %}">{{ congress.get_congress_type_display|title }}</a></td>
+                        <td><a href="{% url "events:view_congress" congress_id=congress.id %}">{{ congress.congress_master.org }}</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% endfor %}
+
+    <div style="padding-bottom: 50px"></div>
+
+
+{% endblock content %}
+

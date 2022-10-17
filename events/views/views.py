@@ -74,6 +74,10 @@ def next_version(request, reverse_list=False):
     states = [state_list[1] for state_list in ABF_STATES.values()]
     states.sort()
 
+    # If not logged in, show different view
+    if not request.user.is_authenticated:
+        return next_version_logged_out(request)
+
     return render(
         request,
         "events/players/next_version.html",
@@ -82,6 +86,35 @@ def next_version(request, reverse_list=False):
             "congress_types": CONGRESS_TYPES,
             "reverse_list": reverse_list,
         },
+    )
+
+
+def next_version_logged_out(request):
+    """Congress view when logged out"""
+
+    # Get today
+    date_now = date.today()
+
+    congresses = (
+        Congress.objects.filter(
+            Q(start_date__gte=date_now) | (Q(end_date__gte=date_now))
+        )
+        .filter(status="Published")
+        .select_related("congress_master__org")
+        .order_by("start_date")
+    )
+
+    month_list = {}
+    for congress in congresses:
+        month = congress.start_date.strftime("%B %Y")
+        if month not in month_list:
+            month_list[month] = []
+        month_list[month].append(congress)
+
+    return render(
+        request,
+        "events/players/next_version_logged_out.html",
+        {"month_list": month_list},
     )
 
 
@@ -582,7 +615,6 @@ def _checkout_perform_action(request):
     if amount["entry_fee__sum"]:  # something for Payments to do
 
         for event_entry_player in event_entry_players:
-
             event_entry_player.batch_id = unique_id
             event_entry_player.save()
 

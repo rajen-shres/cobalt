@@ -18,18 +18,17 @@
             cursor: pointer;
         }
 
-        /* Make all of the tables the same widths but only for larger screens. No need on smaller and messes up view*/
-
-        th {
-            font-size: larger;
-            font-weight: bold;
-        }
+        /* Make all of the tables the same widths but only for larger screens. No need on smaller and messes up view */
 
         @media screen and (min-width: 800px) {
 
             table.fixed-congress {
                 table-layout: fixed;
                 width: 100%;
+            }
+
+            table.fixed-congress td {
+                font-size: larger;
             }
 
             /* start date */
