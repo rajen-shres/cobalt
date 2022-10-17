@@ -1,6 +1,6 @@
 """ This module has the views that are used by normal players """
 import calendar
-import datetime
+from datetime import datetime, date
 from decimal import Decimal
 import uuid
 import pytz
@@ -118,7 +118,7 @@ def next_version_data_htmx(request):
         last_date = previous_date
 
     # Get today
-    date_now = datetime.date.today()
+    date_now = date.today()
 
     if reverse_list:
         # We are going backwards
@@ -131,7 +131,7 @@ def next_version_data_htmx(request):
                 year -= 1
                 month = 12
 
-            ref_date_start = datetime.date(year, month, 1)
+            ref_date_start = date(year, month, 1)
 
         else:
             # first page of the reverse view, start from today
@@ -150,7 +150,7 @@ def next_version_data_htmx(request):
             month += 12
 
         # set the end of the period we are looking at and last_date, so we get this returned to us if user wants more
-        ref_date_end = datetime.date(year, month, calendar.monthrange(year, month)[1])
+        ref_date_end = date(year, month, calendar.monthrange(year, month)[1])
         last_date = ref_date_end.strftime("%Y-%m")
 
         congresses = (

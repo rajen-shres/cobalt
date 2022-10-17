@@ -27,7 +27,7 @@ class StripeTransactionAdmin(admin.ModelAdmin):
 class MemberTransactionAdmin(admin.ModelAdmin):
     """Admin class for model MemberTransaction"""
 
-    search_fields = ["reference_no", "type"]
+    search_fields = ["reference_no", "type", "member__system_number"]
     autocomplete_fields = [
         "member",
         "stripe_transaction",
