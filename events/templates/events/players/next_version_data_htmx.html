@@ -24,7 +24,7 @@
     {% if last_date %}
         <a
             href="javascript: void(0)"
-            class="btn btn-success"
+            class="btn btn-success btn-sm"
             hx-post="{% url "events:next_version_data_htmx" %}"
             hx-include="[id='events_form']"
             hx-target="#events_list"
@@ -39,7 +39,7 @@
 
             "
         >
-            <span class="material-icons" style="font-size: xx-large">fast_rewind</span>
+            <span class="material-icons" style="font-size: x-large">fast_rewind</span>
         </a>
     {% endif %}
 
@@ -48,20 +48,20 @@
     {% if previous_date %}
         <a
             href="javascript: void(0)"
-            class="btn btn-success"
+            class="btn btn-success btn-sm"
             hx-post="{% url "events:next_version_data_htmx" %}"
             hx-include="[id='events_form']"
             hx-target="#events_list"
             hx-trigger="click"
             hx-vars="previous_date:'{{ previous_date }}',reverse_list: 'reverse'"
         >
-            <span class="material-icons" style="font-size: xx-large">fast_forward</span>
+            <span class="material-icons" style="font-size: x-large">fast_forward</span>
         </a>
 
     {% endif %}
 
     {% if reverse_list %}
-        <h3>{{ ref_date_end }} to {{ ref_date_start }}</h3>
+        <h3>{{ ref_date_start }} back to {{ ref_date_end }}</h3>
     {% endif %}
 
     {% for month,congresses in month_list.items %}

@@ -110,6 +110,9 @@ def next_version_data_htmx(request):
     last_date = request.POST.get("last_date")
     previous_date = request.POST.get("previous_date")
 
+    print("input last date:", last_date)
+    print("input previous date:", previous_date)
+
     # previous date overrides last_date - user wanted to go forwards again
     if previous_date:
         last_date = previous_date
@@ -189,6 +192,9 @@ def next_version_data_htmx(request):
         if month not in month_list:
             month_list[month] = []
         month_list[month].append(congress)
+
+    print("output last date:", last_date)
+    print("output previous date:", previous_date)
 
     return render(
         request,
