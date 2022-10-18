@@ -127,7 +127,7 @@ def next_version_data_htmx(request):
 
     """
 
-    # default values - only used going backwards
+    # default values - only used going backwards, but needed for template call
     date_string = None
     show_back_arrow = None
     show_forward_arrow = None
@@ -143,7 +143,7 @@ def next_version_data_htmx(request):
     # Optional - what was the last date we showed the user
     last_data_date = request.POST.get("last_data_date")
 
-    # Optional and exclusive, does user want to go further back or come forward
+    # Optional - does user want to go further back or come forward
     where_to_go = request.POST.get("where_to_go")
 
     # Get today
@@ -278,6 +278,7 @@ def next_version_data_backwards(last_data_date, where_to_go, date_now):
         .order_by("-start_date")
     )
 
+    # Check if we have more data
     ref_date_day_before = ref_date_start - timedelta(days=1)
     show_back_arrow = bool(
         Congress.objects.filter(start_date__lt=ref_date_day_before)
