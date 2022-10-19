@@ -8,6 +8,7 @@ from django.shortcuts import render
 
 from accounts.models import User, UnregisteredUser
 from cobalt.settings import AWS_REGION_NAME
+from notifications.views.core import remove_email_from_blocked_list
 from organisations.models import MemberClubEmail
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
@@ -21,6 +22,10 @@ def admin_aws_suppression(request):
     This relies on the AWS CLI being installed which is done by .platform/hooks/rebuild/02_yum.sh
 
     In a development environment, you need to install this manually.
+
+    To test any of this you need an environment with the notification playpen turned off so you can generate the
+    entry on the suppression list in the first place. Note that if you use a different environment to do this then
+    the reset will not occur there and you will not be able to generate further blocks.
 
     BE CAREFUL: We do not have separate AWS email environments. Test changes will impact production data.
 
@@ -48,10 +53,16 @@ def admin_aws_suppression(request):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        stdout = f"{result.stdout}"
-        stderr = f"{result.stderr}"
+        stdout = result.stdout.decode("utf-8")
+        stderr = result.stderr.decode("utf-8")
+
         if stderr == "":
+            print("stderr is empty")
             message = f"Email block removed. {stdout} {stderr}"
+
+            # Also remove from our internal list
+            remove_email_from_blocked_list(email_address_to_remove)
+
         else:
             message = f"Error removing block. {stdout} {stderr}"
 
@@ -98,6 +109,7 @@ def admin_aws_suppression(request):
 
     # add to the main dictionary
     for un_reg in un_reg_qs:
+        un_reg.is_un_reg = True
         email_to_user_dict[system_number_to_email_dict[un_reg.system_number]] = un_reg
 
     suppression_list = [

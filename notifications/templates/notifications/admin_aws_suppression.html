@@ -21,40 +21,53 @@
         </div>
         <div class="card-body">
 
-            <h3 class="text-primary font-weight-bold">{{ message }}</h3>
+            {% if suppression_list %}
 
-            <div class="table-responsive">
-                <table id="suppression_table" class="table table hover table condensed">
-                    <thead>
-                        <tr>
-                            <th>Email Address</th>
-                            <th>User</th>
-                            <th>Reason</th>
-                            <th>Last Update</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for suppression_item in suppression_list %}
+                <h3>There are {{ suppression_list|length }} entries</h3>
+
+                <h3 class="text-primary font-weight-bold">{{ message }}</h3>
+
+                <div class="table-responsive">
+                    <table id="suppression_table" class="table table hover table condensed">
+                        <thead>
                             <tr>
-                                <td>{{ suppression_item.email }}</td>
-                                <td>{{ suppression_item.user|default_if_none:"-" }}</td>
-                                <td>{{ suppression_item.reason|title }}</td>
-                                <td>{{ suppression_item.last_update_time|date:"Y-m-d H:i" }}</td>
-                                <td>
-                                    <form method="post">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="email_address_to_remove" value="{{ suppression_item.email }}">
-                                        <button type="submit" class="btn btn-sm btn-danger">Remove Block</button>
-                                    </form>
-
-                                </td>
-
+                                <th>Email Address</th>
+                                <th>User</th>
+                                <th>Reason</th>
+                                <th>Last Update</th>
+                                <th>Action</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            {% for suppression_item in suppression_list %}
+                                <tr>
+                                    <td>{{ suppression_item.email }}</td>
+                                    <td>
+                                        {{ suppression_item.user|default_if_none:"-" }}
+                                        {% if suppression_item.user.is_un_reg %}
+                                            <br><b><i>Unregistered</i></b>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ suppression_item.reason|title }}</td>
+                                    <td>{{ suppression_item.last_update_time|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="email_address_to_remove" value="{{ suppression_item.email }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">Remove Block</button>
+                                        </form>
+
+                                    </td>
+
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+                <h3>No data found</h3>
+            {% endif %}
         </div>
     </div>
 

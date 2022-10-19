@@ -793,3 +793,24 @@ def send_cobalt_email_to_system_number(
         batch_id=batch_id,
         template="system - club",
     )
+
+
+def remove_email_from_blocked_list(email_address):
+    """Remove an email address from our internal list of blocked addresses"""
+
+    users = User.objects.filter(email=email_address)
+
+    for user in users:
+        user_additional_info, _ = UserAdditionalInfo.objects.get_or_create(user=user)
+        user_additional_info.email_hard_bounce = False
+        user_additional_info.email_hard_bounce_reason = None
+        user_additional_info.email_hard_bounce_date = None
+        user_additional_info.save()
+
+    un_regs = MemberClubEmail.objects.filter(email=email_address)
+
+    for un_reg in un_regs:
+        un_reg.email_hard_bounce = False
+        un_reg.email_hard_bounce_reason = None
+        un_reg.email_hard_bounce_date = None
+        un_reg.save()
