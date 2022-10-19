@@ -529,6 +529,14 @@
                                                     View status and content of sent emails
                                                 </td>
                                             </tr>
+                                            <tr>
+                                                <td>
+                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "notifications:admin_aws_suppression" %} ">Email Suppression</a>
+                                                </td>
+                                                <td class="text-left pl-5">
+                                                    Manage emails blocked by AWS Suppression Lists
+                                                </td>
+                                            </tr>
                                         {% endif %}
                                         {% if realtime_sender %}
                                             <tr>

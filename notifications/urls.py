@@ -2,6 +2,7 @@
 from django.urls import path
 
 import notifications.views.admin
+import notifications.views.aws
 import notifications.views.core
 import notifications.views.user
 from django_ses.views import SESEventWebhookView
@@ -101,5 +102,10 @@ urlpatterns = [
         "click/<str:message_id>/<str:redirect_path>",
         notifications.views.redirect.email_click_handler,
         name="email_click_handler",
+    ),
+    path(
+        "admin-aws-suppression",
+        notifications.views.aws.admin_aws_suppression,
+        name="admin_aws_suppression",
     ),
 ]

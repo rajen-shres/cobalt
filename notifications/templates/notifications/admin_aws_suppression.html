@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} - AWS Suppression List{% endblock %}
+{% block header %}
+    {% include "utils/data_tables_heading.html" %}
+{% endblock header %}
+{% block content %}
+
+    <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-danger">
+            <h1>Amazon AWS Suppression List</h1>
+            <h3>Suppression lists are universal, they are not set by environment. Changes made in a test environment will impact production.</h3>
+        </div>
+        <div class="card-body">
+
+            <h3 class="text-primary font-weight-bold">{{ message }}</h3>
+
+            <div class="table-responsive">
+                <table id="suppression_table" class="table table hover table condensed">
+                    <thead>
+                        <tr>
+                            <th>Email Address</th>
+                            <th>User</th>
+                            <th>Reason</th>
+                            <th>Last Update</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for suppression_item in suppression_list %}
+                            <tr>
+                                <td>{{ suppression_item.email }}</td>
+                                <td>{{ suppression_item.user|default_if_none:"-" }}</td>
+                                <td>{{ suppression_item.reason|title }}</td>
+                                <td>{{ suppression_item.last_update_time|date:"Y-m-d H:i" }}</td>
+                                <td>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="email_address_to_remove" value="suppression_item.email">
+                                        <button type="submit" class="btn btn-sm btn-danger">Remove Block</button>
+                                    </form>
+
+                                </td>
+
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}
+
+{% block footer %}
+    <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
+    <script>
+        $(document).ready(function () {
+
+            // Initialise datatable - only show pagination if more than one page, sort in reverse date order, column 0
+            $('#suppression_table').DataTable({
+                "order": [[3, "desc"]],
+                drawCallback: function (settings) {
+                    const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+                    pagination.toggle(this.api().page.info().pages > 1);
+                },
+            });
+
+        })
+    </script>
+{% endblock footer %}
