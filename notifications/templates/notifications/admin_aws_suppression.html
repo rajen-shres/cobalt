@@ -9,7 +9,15 @@
     <div class="card col-md-8 mx-auto">
         <div class="card-header card-header-danger">
             <h1>Amazon AWS Suppression List</h1>
-            <h3>Suppression lists are universal, they are not set by environment. Changes made in a test environment will impact production.</h3>
+            <h4>When we send an email to a user it may either not be delivered (usually a bounce because the address is invalid),
+                or the user may complain about it. In either case, AWS will no longer send emails from us to this email address.</h4>
+            <h4>Here, you can remove those blocks. Be careful, if the reason is <b>complaint</b>, you should get the users
+                approval to remove the block.</h4>
+
+            {% if COBALT_HOSTNAME != "myabf.com.au" %}
+                <h3>Suppression lists are universal, they are not set by environment. Changes made in a test environment will impact production.</h3>
+            {% endif %}
+
         </div>
         <div class="card-body">
 
@@ -36,7 +44,7 @@
                                 <td>
                                     <form method="post">
                                         {% csrf_token %}
-                                        <input type="hidden" name="email_address_to_remove" value="suppression_item.email">
+                                        <input type="hidden" name="email_address_to_remove" value="{{ suppression_item.email }}">
                                         <button type="submit" class="btn btn-sm btn-danger">Remove Block</button>
                                     </form>
 

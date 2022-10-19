@@ -8,6 +8,7 @@ from django.shortcuts import render
 
 from accounts.models import User, UnregisteredUser
 from cobalt.settings import AWS_REGION_NAME
+from organisations.models import MemberClubEmail
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
 
@@ -45,9 +46,14 @@ def admin_aws_suppression(request):
                 AWS_REGION_NAME,
             ],
             stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
-        print(f"--{result.stdout}--")
-        message = f"Command run. Output: {result.stdout}"
+        stdout = f"{result.stdout}"
+        stderr = f"{result.stderr}"
+        if stderr == "":
+            message = f"Email block removed. {stdout} {stderr}"
+        else:
+            message = f"Error removing block. {stdout} {stderr}"
 
     result = subprocess.run(
         [
@@ -67,9 +73,32 @@ def admin_aws_suppression(request):
 
     # Try to augment data
     email_list = [item["EmailAddress"] for item in data]
+
+    # Users
     user_qs = User.objects.filter(email__in=email_list)
     email_to_user_dict = {user.email: user for user in user_qs}
-    # TODO: Include Unregistered Users
+
+    # UnregisteredUsers
+
+    # Get the club email entries with email and system_number
+    un_reg_emails = MemberClubEmail.objects.filter(email__in=email_list)
+
+    # Create a dictionary of system_number to email address
+    system_number_to_email_dict = {
+        user.system_number: user.email for user in un_reg_emails
+    }
+
+    # Get a list of the system_numbers we want
+    un_reg_emails_system_number_list = un_reg_emails.values("system_number")
+
+    # Get the matching unregistered users
+    un_reg_qs = UnregisteredUser.objects.filter(
+        system_number__in=un_reg_emails_system_number_list
+    )
+
+    # add to the main dictionary
+    for un_reg in un_reg_qs:
+        email_to_user_dict[system_number_to_email_dict[un_reg.system_number]] = un_reg
 
     suppression_list = [
         {
