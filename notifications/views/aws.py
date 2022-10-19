@@ -15,7 +15,15 @@ from rbac.views import rbac_forbidden
 @login_required()
 def admin_aws_suppression(request):
     """Manage AWS Email Suppression Lists. An email address gets put on a suppression list by AWS but we can remove
-    it"""
+    it.
+
+    This relies on the AWS CLI being installed which is done by .platform/hooks/rebuild/02_yum.sh
+
+    In a development environment, you need to install this manually.
+
+    BE CAREFUL: We do not have separate AWS email environments. Test changes will impact production data.
+
+    """
 
     # check access
     role = "notifications.admin.view"
