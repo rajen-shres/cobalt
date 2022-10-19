@@ -26,6 +26,7 @@ from utils.utils import cobalt_paginator
 from .models import Batch, Lock, Slug
 
 # from importlib import import_module
+# This line sometimes get removed by something that thinks we don't need it, but we do
 from importlib import import_module
 
 
