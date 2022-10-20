@@ -1,11 +1,13 @@
 import csv
 import datetime
+import json
 import os
 import random
 import subprocess
 from random import randint
 from time import sleep
 
+import boto3
 import pytz
 import requests
 from django.apps import apps
@@ -17,10 +19,15 @@ from django.utils import timezone
 from geopy.geocoders import Nominatim
 
 from accounts.models import User
-from cobalt.settings import TIME_ZONE
+from cobalt.settings import (
+    TIME_ZONE,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY,
+    AWS_REGION_NAME,
+)
 from events.views.core import events_status_summary
 from forums.views import forums_status_summary
-from notifications.views.user import notifications_status_summary
+from notifications.views.admin import notifications_status_summary
 from payments.views.core import payments_status_summary
 from utils.utils import cobalt_paginator
 from .models import Batch, Lock, Slug
@@ -402,7 +409,6 @@ def recent_errors(request):
 
     for line in lines:
         if all(match not in line for match in matches):
-
             parts = line.split(" ")
             timestamp = f"{parts[0]} {parts[1]} {parts[2]}"
             # We get some rubbish in the logs some times, find last occurence of web:
@@ -413,3 +419,111 @@ def recent_errors(request):
             errors.append({"timestamp": timestamp, "message": message})
 
     return render(request, "utils/recent_errors.html", {"errors": errors})
+
+
+@login_required()
+def admin_show_aws_infrastructure_info(request):
+    """Show some AWS info to check on health of system"""
+
+    # TODO: Security - RBAC Role
+
+    # Create AWS client
+    eb_client = boto3.client(
+        "elasticbeanstalk",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION_NAME,
+    )
+
+    # Get environments
+    environments = eb_client.describe_environments(
+        ApplicationName="cobalt",
+    )["Environments"]
+
+    # Go through environments and get the EC2 instances
+    for environment in environments:
+        instance_health = eb_client.describe_instances_health(
+            EnvironmentName=environment["EnvironmentName"], AttributeNames=["All"]
+        )["InstanceHealthList"]
+
+        environment["instance_health"] = instance_health
+
+    return render(
+        request,
+        "utils/admin_show_aws_infrastructure_info.html",
+        {"environments": environments},
+    )
+
+
+@login_required()
+def admin_show_aws_app_version_htmx(request):
+    """Show the Elastic Beanstalk App details for a version"""
+
+    app_id = request.POST.get("app_id")
+
+    # Create AWS client
+    eb_client = boto3.client(
+        "elasticbeanstalk",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION_NAME,
+    )
+
+    response = eb_client.describe_application_versions(
+        ApplicationName="cobalt",
+        VersionLabels=[
+            app_id,
+        ],
+    )
+
+    # We will get only one thing in the list
+    return HttpResponse(response["ApplicationVersions"][0]["Description"])
+
+
+@login_required()
+def admin_show_database_details_htmx(request):
+    """Show the database info for an environment"""
+
+    # Environment will be something like cobalt-production-green, DB name will be cobalt-production
+    # environment_name = request.POST.get("environment")
+
+    # db_name = "-".join(environment_name.split("-")[:-1])
+
+    # boto clients
+    rds_client = boto3.client(
+        "rds",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION_NAME,
+    )
+
+    cloudwatch_client = boto3.client(
+        "cloudwatch",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION_NAME,
+    )
+
+    for db in rds_client.describe_db_instances()["DBInstances"]:
+        print(db)
+        db_instance = db["DBInstanceIdentifier"]
+        print(db_instance)
+
+        expression = f"""SELECT AVG(DBLoadCPU) FROM SCHEMA("AWS/RDS", DBInstanceIdentifier) WHERE DBInstanceIdentifier = '{db_instance}'"""
+        expression = f"""SELECT AVG(FreeStorageSpace) FROM SCHEMA("AWS/RDS", DBInstanceIdentifier) WHERE DBInstanceIdentifier = '{db_instance}'"""
+        expression = f"""SELECT AVG(DBLoad) FROM SCHEMA("AWS/RDS", DBInstanceIdentifier) WHERE DBInstanceIdentifier = '{db_instance}'"""
+        expression = f"""SELECT AVG(ReadLatency) FROM SCHEMA("AWS/RDS", DBInstanceIdentifier) WHERE DBInstanceIdentifier = '{db_instance}'"""
+
+        response = cloudwatch_client.get_metric_data(
+            MetricDataQueries=[
+                {
+                    "Id": "av_cpu",
+                    "Expression": expression,
+                    "Period": 300,
+                },
+            ],
+            StartTime=timezone.now() - datetime.timedelta(minutes=5),
+            EndTime=timezone.now(),
+        )
+
+        print(response)

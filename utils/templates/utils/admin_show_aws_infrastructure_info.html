@@ -1,0 +1,200 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Show basic stats from AWS about the environments                       #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% extends 'base.html' %}
+{% load cobalt_tags %}
+{% block title %} - AWS Infrastructure{% endblock %}
+
+{% block content %}
+
+    <!-- MAIN CARD FOR PAGE -->
+
+    <div class="card">
+
+        <!-- CARD HEADER -->
+
+        <div class="card-header card-header-info">
+            <h1 class="text-center">{{ GLOBAL_TITLE }} AWS Environments</h1>
+        </div>
+
+        <!-- CARD BODY -->
+
+        <div class="card-body">
+
+            <!-- CARDS FDR EACH ENVIRONMENT - E.G. PRODUCTION, UAT, TEST -->
+
+            {% for environment in environments %}
+
+                <!-- CARD. EnvironmentName WILL BE LIKE COBALT-PRODUCTION-GREEN -->
+
+                <div class="card col-md-8 mx-auto">
+
+                    <!-- CARD HEADER. MAKE COLOUR MATCH CURRENT ENV NAMES COLOURS -->
+
+                    <div
+                        {% if "production" in environment.EnvironmentName %}
+                            class="card-header card-header-success"
+                        {% elif "uat" in environment.EnvironmentName %}
+                            class="card-header" style="background-color: yellow; color: #0b2e13"
+                        {% else %}
+                            class="card-header" style="background-color: #0b2e13; color: #f1f8e9"
+                        {% endif %}
+                    >
+
+                        <h2 class="text-center">{{ environment.EnvironmentName }}</h2>
+
+                        <!-- ICON FOR HEALTH -->
+
+                        <div class="text-center">
+                            <div class="material-icons" style="font-size: 60px">
+
+                                {% if environment.HealthStatus == "Ok" %}
+                                    check_circle
+                                {% else %}
+                                    error
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- CARD BODY FOR ENVIRONMENT -->
+
+                    <div class="card-body">
+
+                        <!-- TABLE OF BASIC ENVIRONMENT DETAILS -->
+
+                        <div class="table-responsive">
+                            <table class="table table-condensed table-hover">
+                                <tbody  style="font-size: larger">
+                                    <tr>
+                                        <td class="text-left font-weight-bold">Health</td>
+                                        <td class="text-left">{{ environment.Health }} - {{ environment.HealthStatus }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left font-weight-bold">Status</td>
+                                        <td class="text-left">{{ environment.Status }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left font-weight-bold">Last Updated</td>
+                                        <td class="text-left">{{ environment.DateUpdated|timesince }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- LOOP THROUGH EC2 INSTANCES. USUALLY ONLY ONE -->
+
+                        <h3 class="text-center">EC2 Instances</h3>
+
+                        {% for instance in environment.instance_health %}
+
+                            <div class="table-responsive col-md-8 mx-auto">
+
+                                <!-- CPU HEADLINE -->
+
+                                <h4 class="text-center">Busy: {{ instance.System.CPUUtilization.Idle|add:"-100"|cut:"-" }}%</h4>
+
+                                <table class="table table-condensed table-bordered">
+
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th colspan="2">{{ instance.InstanceId }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="font-weight-bold">Uptime</td>
+                                            <td>{{ instance.LaunchedAt|timesince }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Type</td>
+                                            <td>{{ instance.InstanceType }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Deployment - Status</td>
+                                            <td>{{ instance.Deployment.Status }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Deployment - Time</td>
+                                            <td>{{ instance.Deployment.DeploymentTime|cobalt_nice_datetime }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Deployment - Ago</td>
+                                            <td>{{ instance.Deployment.DeploymentTime|timesince }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Deployment - Version</td>
+                                            <td
+                                                hx-post="{% url "utils:admin_show_aws_app_version_htmx" %}"
+                                                hx-trigger="load"
+                                                hx-vars="app_id: '{{ instance.Deployment.VersionLabel }}'"
+                                            >
+                                            </td>
+                                        </tr>
+
+                                        <!-- UTILISATION -->
+
+                                        <tr>
+                                            <td class="font-weight-bold">CPU</td>
+                                            <td>
+
+                                                <button
+                                                    class="btn btn-info btn-sm"
+                                                    _="on click show #id_{{ instance.InstanceId }} then hide me"
+                                                >Idle: {{ instance.System.CPUUtilization.Idle }}
+                                                </button>
+
+                                                <div id="id_{{ instance.InstanceId }}" style="display: none;">
+                                                    <table class="table table-condensed table-secondary">
+                                                        {% for key,data in instance.System.CPUUtilization.items %}
+                                                            <tr>
+                                                                <td>{{ key }}</td><td>{{ data }}</td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </table>
+                                                </div>
+                                            </td>
+
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Load Average 1 min</td>
+                                            <td>
+                                                {{ instance.System.LoadAverage.0 }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Load Average 5 mins</td>
+                                            <td>
+                                                {{ instance.System.LoadAverage.1 }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Load Average 15 mins</td>
+                                            <td>
+                                                {{ instance.System.LoadAverage.2 }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+
+                                </table>
+
+                        {% endfor %}
+
+
+
+                        {#                    <pre>{{ environment.instance_health|pprint }}</pre>#}
+
+                    </div>
+                </div>
+                </div>
+
+            {% endfor %}
+
+        </div>
+    </div>
+
+{% endblock content %}
+

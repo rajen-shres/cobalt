@@ -1,5 +1,7 @@
 import json
+from datetime import datetime, timedelta
 
+import boto3
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -8,13 +10,20 @@ from post_office import mail as po_email
 from post_office.models import Email as PostOfficeEmail
 
 from accounts.models import User
-from cobalt.settings import DEFAULT_FROM_EMAIL, GLOBAL_TITLE
+from cobalt.settings import (
+    DEFAULT_FROM_EMAIL,
+    GLOBAL_TITLE,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY,
+    AWS_REGION_NAME,
+)
 from masterpoints.views import user_summary
 from notifications.models import (
     EmailBatchRBAC,
     Snooper,
     RealtimeNotificationHeader,
     RealtimeNotification,
+    Email,
 )
 from notifications.views.core import _cloudwatch_reader
 from rbac.core import rbac_user_has_role
@@ -284,3 +293,26 @@ def global_admin_view_emails(request, member_id):
             "emails": email_list,
         },
     )
+
+
+def notifications_status_summary():
+    """Used by utils status to get a status of notifications"""
+
+    latest = Email.objects.all().order_by("-id").first()
+    pending = Email.objects.filter(status="Queued").count()
+
+    last_hour_date_time = datetime.now() - timedelta(hours=1)
+
+    last_hour = Email.objects.filter(created_date__gt=last_hour_date_time).count()
+
+    # Create AWS API client
+    client = boto3.client(
+        "sesv2",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION_NAME,
+    )
+
+    print(json.dumps(client.get_account(), indent=4))
+
+    return {"latest": latest, "pending": pending, "last_hour": last_hour}

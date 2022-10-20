@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta
-
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -7,7 +5,6 @@ from django.urls import reverse
 from forums.models import Forum, Post
 from notifications.models import (
     InAppNotification,
-    Email,
     NotificationMapping,
     Snooper,
     BatchID,
@@ -134,16 +131,3 @@ def notifications_in_english(member):
                 notification.type = "Comments"
 
     return notifications
-
-
-def notifications_status_summary():
-    """Used by utils status to get a status of notifications"""
-
-    latest = Email.objects.all().order_by("-id").first()
-    pending = Email.objects.filter(status="Queued").count()
-
-    last_hour_date_time = datetime.now() - timedelta(hours=1)
-
-    last_hour = Email.objects.filter(created_date__gt=last_hour_date_time).count()
-
-    return {"latest": latest, "pending": pending, "last_hour": last_hour}
