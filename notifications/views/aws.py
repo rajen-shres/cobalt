@@ -1,13 +1,9 @@
-import datetime
-import json
-import subprocess
-
+import boto3
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
 from django.shortcuts import render
 
 from accounts.models import User, UnregisteredUser
-from cobalt.settings import AWS_REGION_NAME
+from cobalt.settings import AWS_REGION_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 from notifications.views.core import remove_email_from_blocked_list
 from organisations.models import MemberClubEmail
 from rbac.core import rbac_user_has_role
@@ -38,49 +34,30 @@ def admin_aws_suppression(request):
 
     message = ""
 
+    # Create AWS API client
+    client = boto3.client(
+        "sesv2",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION_NAME,
+    )
+
     if request.POST:
         email_address_to_remove = request.POST.get("email_address_to_remove")
-        result = subprocess.run(
-            [
-                "/usr/local/bin/aws",
-                "sesv2",
-                "delete-suppressed-destination",
-                "--email-address",
-                email_address_to_remove,
-                "--region",
-                AWS_REGION_NAME,
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        stdout = result.stdout.decode("utf-8")
-        stderr = result.stderr.decode("utf-8")
 
-        if stderr == "":
-            print("stderr is empty")
-            message = f"Email block removed. {stdout} {stderr}"
+        try:
+            client.delete_suppressed_destination(EmailAddress=email_address_to_remove)
+            message = f"Email block removed for {email_address_to_remove}"
 
             # Also remove from our internal list
             remove_email_from_blocked_list(email_address_to_remove)
 
-        else:
-            message = f"Error removing block. {stdout} {stderr}"
+        except Exception as exc:
+            message = exc.__str__()
 
-    result = subprocess.run(
-        [
-            "/usr/local/bin/aws",
-            "sesv2",
-            "list-suppressed-destinations",
-            "--region",
-            AWS_REGION_NAME,
-        ],
-        stdout=subprocess.PIPE,
-    )
-
-    try:
-        data = json.loads(result.stdout)["SuppressedDestinationSummaries"]
-    except KeyError:
-        return HttpResponse("No data found")
+    # Get all entries on suppression list
+    result = client.list_suppressed_destinations()
+    data = result["SuppressedDestinationSummaries"]
 
     # Try to augment data
     email_list = [item["EmailAddress"] for item in data]
@@ -117,7 +94,7 @@ def admin_aws_suppression(request):
             "user": email_to_user_dict.get(item["EmailAddress"]),
             "email": item["EmailAddress"],
             "reason": item["Reason"],
-            "last_update_time": datetime.datetime.fromisoformat(item["LastUpdateTime"]),
+            "last_update_time": item["LastUpdateTime"],
         }
         for item in data
     ]
