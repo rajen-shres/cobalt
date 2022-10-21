@@ -18,14 +18,13 @@
     <tbody>
         {% for item in last_activity %}
 
-            <!-- SKIP NONEs IF IN A TEST ENVIRONMENT. WON'T HAPPEN IN PRODUCTION --.
-            {% if item.last_activity %}
-                <tr>
-                    <td class="text-left">{{ item.last_activity|naturaltime }}</td>
-                    <td class="text-left">{{ item }}</td>
-                </tr>
-            {% endif %}
+            <tr>
+                <td class="text-left">{{ item.last_activity|naturaltime }}</td>
+                <td class="text-left">{{ item }}</td>
+            </tr>
+
         {% endfor %}
+
     </tbody>
 </table>
 
