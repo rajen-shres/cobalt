@@ -3,7 +3,9 @@ import datetime
 import json
 import os
 import random
+import re
 import subprocess
+from pprint import pprint
 from random import randint
 from time import sleep
 
@@ -469,12 +471,17 @@ def admin_show_aws_app_version_htmx(request):
         region_name=AWS_REGION_NAME,
     )
 
-    response = eb_client.describe_application_versions(
-        ApplicationName="cobalt",
-        VersionLabels=[
-            app_id,
-        ],
-    )
+    try:
+
+        response = eb_client.describe_application_versions(
+            ApplicationName="cobalt",
+            VersionLabels=[
+                app_id,
+            ],
+        )
+
+    except Exception as exp:
+        return HttpResponse(exp.__str__())
 
     # We will get only one thing in the list
     return HttpResponse(response["ApplicationVersions"][0]["Description"])
@@ -485,9 +492,9 @@ def admin_show_database_details_htmx(request):
     """Show the database info for an environment"""
 
     # Environment will be something like cobalt-production-green, DB name will be cobalt-production
-    # environment_name = request.POST.get("environment")
+    environment_name = request.POST.get("environment")
 
-    # db_name = "-".join(environment_name.split("-")[:-1])
+    db_name = "-".join(environment_name.split("-")[:-1])
 
     # boto clients
     rds_client = boto3.client(
@@ -504,26 +511,66 @@ def admin_show_database_details_htmx(request):
         region_name=AWS_REGION_NAME,
     )
 
-    for db in rds_client.describe_db_instances()["DBInstances"]:
-        print(db)
-        db_instance = db["DBInstanceIdentifier"]
-        print(db_instance)
+    # Get details about the database
+    db_details = rds_client.describe_db_instances(DBInstanceIdentifier=db_name)[
+        "DBInstances"
+    ][0]
 
-        expression = f"""SELECT AVG(DBLoadCPU) FROM SCHEMA("AWS/RDS", DBInstanceIdentifier) WHERE DBInstanceIdentifier = '{db_instance}'"""
-        expression = f"""SELECT AVG(FreeStorageSpace) FROM SCHEMA("AWS/RDS", DBInstanceIdentifier) WHERE DBInstanceIdentifier = '{db_instance}'"""
-        expression = f"""SELECT AVG(DBLoad) FROM SCHEMA("AWS/RDS", DBInstanceIdentifier) WHERE DBInstanceIdentifier = '{db_instance}'"""
-        expression = f"""SELECT AVG(ReadLatency) FROM SCHEMA("AWS/RDS", DBInstanceIdentifier) WHERE DBInstanceIdentifier = '{db_instance}'"""
+    # Get CPU from Cloudwatch
+    expression = f"""SELECT AVG(DBLoadCPU)
+                        FROM SCHEMA("AWS/RDS", DBInstanceIdentifier)
+                        WHERE DBInstanceIdentifier = '{db_name}'"""
 
-        response = cloudwatch_client.get_metric_data(
-            MetricDataQueries=[
-                {
-                    "Id": "av_cpu",
-                    "Expression": expression,
-                    "Period": 300,
-                },
-            ],
-            StartTime=timezone.now() - datetime.timedelta(minutes=5),
-            EndTime=timezone.now(),
-        )
+    response = cloudwatch_client.get_metric_data(
+        MetricDataQueries=[
+            {
+                "Id": "av_cpu",
+                "Expression": expression,
+                "Period": 300,
+            },
+        ],
+        StartTime=timezone.now() - datetime.timedelta(minutes=5),
+        EndTime=timezone.now(),
+    )
 
-        print(response)
+    try:
+        cpu = 100 * response["MetricDataResults"][0]["Values"][0]
+    except TypeError:
+        cpu = "Unavailable"
+
+    return render(
+        request,
+        "utils/admin_show_database_details_htmx.html",
+        {"db_details": db_details, "cpu": cpu},
+    )
+
+
+@login_required()
+def admin_system_activity(request):
+    """Show basic info about user activity"""
+
+    # Regex for nginx access.log taken from Stack Overflow.
+    conf = '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"'
+    regex = "".join(
+        "(?P<" + g + ">.*?)" if g else re.escape(c)
+        for g, c in re.findall(r"\$(\w+)|(.)", conf)
+    )
+
+    proc = subprocess.Popen(["utils/local/tail_nginx_log.sh"], stdout=subprocess.PIPE)
+    lines = proc.stdout.readlines()
+    lines.reverse()
+
+    log_data = []
+
+    for line in lines:
+
+        line = line.decode("utf-8").strip()
+        data = re.match(regex, line)
+        if data:
+            ngix_values = data.groupdict()
+            date_string = ngix_values["time_local"]
+            event_date = datetime.datetime.strptime(date_string, "%d/%b/%Y:%H:%M:%S %z")
+            ngix_values["time_local"] = event_date
+            log_data.append(ngix_values)
+
+    return render(request, "utils/admin_system_activity.html", {"log_data": log_data})

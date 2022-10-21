@@ -20,4 +20,14 @@ urlpatterns = [
         views.admin_show_aws_app_version_htmx,
         name="admin_show_aws_app_version_htmx",
     ),
+    path(
+        "admin-show-database-details",
+        views.admin_show_database_details_htmx,
+        name="admin_show_database_details_htmx",
+    ),
+    path(
+        "admin-system-activity",
+        views.admin_system_activity,
+        name="admin_system_activity",
+    ),
 ]

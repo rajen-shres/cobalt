@@ -1,0 +1,54 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Show basic activity info to check system is working                    #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% extends 'base.html' %}
+{% load cobalt_tags %}
+{% block title %} - System Activity{% endblock %}
+
+{% block content %}
+
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h1>NGINX Access Log on this Host</h1>
+        </div>
+        <div class="card-body">
+
+
+
+
+
+            <div class="table-responsive">
+
+                <table class="table table-condensed table-hover">
+                    <thead>
+
+                        <tr>
+                            <th>Time Ago</th>
+                            <th class="text-left">Status</th>
+                            <th class="text-left">Request</th>
+                            <th class="text-left">Referer</th>
+                            {#            <th class="text-left">Referer Agent</th>#}
+                        </tr>
+
+                    </thead>
+                    <tbody>
+                        {% for item in log_data %}
+                            <tr>
+                                <td>{{ item.time_local|timesince }}</td>
+                                <td class="text-left">{{ item.status }}</td>
+                                <td class="text-left">{{ item.request|truncatechars:50 }}</td>
+                                <td class="text-left">{{ item.http_referer }}</td>
+                                {#        <td class="text-left">{{ item.http_user_agent }}</td>#}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+

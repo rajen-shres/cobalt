@@ -85,110 +85,147 @@
                             </table>
                         </div>
 
+                        <!-- EC2 INSTANCES BUTTON -->
+
+                        <button
+                            class="btn btn-info btn-sm"
+                            _="on click show #id_ec2_{{ environment.EnvironmentName }} then hide me"
+                        >EC2 Instances ({{ environment.instance_health|length }})
+                        </button>
+
+                        <!-- DATABASE BUTTON -->
+
+                        <button
+                            class="btn btn-info btn-sm"
+                            _="on click show #id_db_{{ environment.EnvironmentName }}
+                            then go to the top of #id_db_{{ environment.EnvironmentName }}
+                            then hide me"
+                        >Database
+                        </button>
+
+
                         <!-- LOOP THROUGH EC2 INSTANCES. USUALLY ONLY ONE -->
 
-                        <h3 class="text-center">EC2 Instances</h3>
+                        <div id="id_ec2_{{ environment.EnvironmentName }}" style="display: none;">
 
-                        {% for instance in environment.instance_health %}
+                            <h3 class="text-center">EC2 Instances</h3>
 
-                            <div class="table-responsive col-md-8 mx-auto">
+                            {% for instance in environment.instance_health %}
 
-                                <!-- CPU HEADLINE -->
+                                <div class="table-responsive col-md-8 mx-auto">
 
-                                <h4 class="text-center">Busy: {{ instance.System.CPUUtilization.Idle|add:"-100"|cut:"-" }}%</h4>
+                                    <!-- CPU HEADLINE -->
 
-                                <table class="table table-condensed table-bordered">
+                                    <h4 class="text-center">Busy: {{ instance.System.CPUUtilization.Idle|add:"-100"|cut:"-" }}%</h4>
 
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th colspan="2">{{ instance.InstanceId }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td class="font-weight-bold">Uptime</td>
-                                            <td>{{ instance.LaunchedAt|timesince }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="font-weight-bold">Type</td>
-                                            <td>{{ instance.InstanceType }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="font-weight-bold">Deployment - Status</td>
-                                            <td>{{ instance.Deployment.Status }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="font-weight-bold">Deployment - Time</td>
-                                            <td>{{ instance.Deployment.DeploymentTime|cobalt_nice_datetime }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="font-weight-bold">Deployment - Ago</td>
-                                            <td>{{ instance.Deployment.DeploymentTime|timesince }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="font-weight-bold">Deployment - Version</td>
-                                            <td
-                                                hx-post="{% url "utils:admin_show_aws_app_version_htmx" %}"
-                                                hx-trigger="load"
-                                                hx-vars="app_id: '{{ instance.Deployment.VersionLabel }}'"
-                                            >
-                                            </td>
-                                        </tr>
+                                    <table class="table table-condensed table-bordered">
 
-                                        <!-- UTILISATION -->
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th colspan="2">{{ instance.InstanceId }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="font-weight-bold">Uptime</td>
+                                                <td>{{ instance.LaunchedAt|timesince }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold">Type</td>
+                                                <td>{{ instance.InstanceType }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold">Deployment - Status</td>
+                                                <td>{{ instance.Deployment.Status }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold">Deployment - Time</td>
+                                                <td>{{ instance.Deployment.DeploymentTime|cobalt_nice_datetime }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold">Deployment - Ago</td>
+                                                <td>{{ instance.Deployment.DeploymentTime|timesince }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold">Deployment - Version</td>
+                                                <td
+                                                    hx-post="{% url "utils:admin_show_aws_app_version_htmx" %}"
+                                                    hx-trigger="load"
+                                                    hx-vars="app_id: '{{ instance.Deployment.VersionLabel }}'"
+                                                >
+                                                </td>
+                                            </tr>
 
-                                        <tr>
-                                            <td class="font-weight-bold">CPU</td>
-                                            <td>
+                                            <!-- UTILISATION -->
 
-                                                <button
-                                                    class="btn btn-info btn-sm"
-                                                    _="on click show #id_{{ instance.InstanceId }} then hide me"
-                                                >Idle: {{ instance.System.CPUUtilization.Idle }}
-                                                </button>
+                                            <tr>
+                                                <td class="font-weight-bold">CPU</td>
+                                                <td>
 
-                                                <div id="id_{{ instance.InstanceId }}" style="display: none;">
-                                                    <table class="table table-condensed table-secondary">
-                                                        {% for key,data in instance.System.CPUUtilization.items %}
-                                                            <tr>
-                                                                <td>{{ key }}</td><td>{{ data }}</td>
-                                                            </tr>
-                                                        {% endfor %}
-                                                    </table>
-                                                </div>
-                                            </td>
+                                                    <button
+                                                        class="btn btn-info btn-sm"
+                                                        _="on click show #id_{{ instance.InstanceId }} then hide me"
+                                                    >Idle: {{ instance.System.CPUUtilization.Idle }}
+                                                    </button>
 
-                                        </tr>
-                                        <tr>
-                                            <td class="font-weight-bold">Load Average 1 min</td>
-                                            <td>
-                                                {{ instance.System.LoadAverage.0 }}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="font-weight-bold">Load Average 5 mins</td>
-                                            <td>
-                                                {{ instance.System.LoadAverage.1 }}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="font-weight-bold">Load Average 15 mins</td>
-                                            <td>
-                                                {{ instance.System.LoadAverage.2 }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
+                                                    <div id="id_{{ instance.InstanceId }}" style="display: none;">
+                                                        <table class="table table-condensed table-secondary">
+                                                            {% for key,data in instance.System.CPUUtilization.items %}
+                                                                <tr>
+                                                                    <td>{{ key }}</td><td>{{ data }}</td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        </table>
+                                                    </div>
+                                                </td>
 
-                                </table>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold">Load Average 1 min</td>
+                                                <td>
+                                                    {{ instance.System.LoadAverage.0 }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold">Load Average 5 mins</td>
+                                                <td>
+                                                    {{ instance.System.LoadAverage.1 }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold">Load Average 15 mins</td>
+                                                <td>
+                                                    {{ instance.System.LoadAverage.2 }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
 
-                        {% endfor %}
+                                    </table>
+
+                                </div>
+
+                            {% endfor %}
 
 
+                        </div>
 
-                        {#                    <pre>{{ environment.instance_health|pprint }}</pre>#}
+                        <!-- DATABASE INFO -->
+
+                        <div id="id_db_{{ environment.EnvironmentName }}" style="display: none;">
+
+                            <h3 class="text-center">Database</h3>
+
+                            <div
+                                hx-post="{% url "utils:admin_show_database_details_htmx" %}"
+                                hx-trigger="load"
+                                hx-vars="environment: '{{ environment.EnvironmentName }}'"
+                            >
+
+                            </div>
+
+                        </div>
 
                     </div>
-                </div>
                 </div>
 
             {% endfor %}

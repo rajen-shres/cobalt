@@ -1,0 +1,37 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Show basic stats from AWS about the database                           #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+
+<div class="table-responsive col-md-8 mx-auto">
+
+    <table class="table table-condensed table-bordered">
+
+        <thead class="thead-light">
+            <tr>
+                <th colspan="2">{{ db_details.DBInstanceIdentifier }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="font-weight-bold">Status</td>
+                <td>{{ db_details.DBInstanceStatus }}</td>
+            </tr>
+            <tr>
+                <td class="font-weight-bold">Version</td>
+                <td>{{ db_details.Engine }} {{ db_details.EngineVersion }}</td>
+            </tr>
+            <tr>
+                <td class="font-weight-bold">Latest Restorable Time</td>
+                <td>{{ db_details.LatestRestorableTime }}
+                </td>
+            </tr>
+            <tr>
+                <td class="font-weight-bold">CPU Percentage</td>
+                <td>{{ cpu }}%</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
