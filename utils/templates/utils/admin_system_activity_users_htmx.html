@@ -10,16 +10,18 @@
     <thead class="text-primary">
 
         <tr>
-            <th>Time Ago</th>
+            <th class="text-left">Time Ago</th>
             <th class="text-left">User</th>
         </tr>
 
     </thead>
     <tbody>
         {% for item in last_activity %}
+
+            <!-- SKIP NONEs IF IN A TEST ENVIRONMENT. WON'T HAPPEN IN PRODUCTION --.
             {% if item.last_activity %}
                 <tr>
-                    <td>{{ item.last_activity|naturaltime }}</td>
+                    <td class="text-left">{{ item.last_activity|naturaltime }}</td>
                     <td class="text-left">{{ item }}</td>
                 </tr>
             {% endif %}

@@ -10,7 +10,7 @@
     <thead class="text-warning">
 
         <tr>
-            <th>Time Ago</th>
+            <th class="text-left">Time Ago</th>
             <th class="text-left">Status</th>
             <th class="text-left">Type</th>
             <th class="text-left">Request</th>
@@ -22,7 +22,7 @@
     <tbody>
         {% for item in log_data %}
             <tr>
-                <td>{{ item.time_local|naturaltime }}</td>
+                <td class="text-left">{{ item.time_local|naturaltime }}</td>
                 <td class="text-left">
                     {% if item.status_icon %}
                         <span class="material-icons" title="Status Code: {{ item.status }}">{{ item.status_icon }}</span>
