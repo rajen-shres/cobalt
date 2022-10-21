@@ -8,4 +8,4 @@ log_file="/var/log/nginx/access.log"
 if [ ! -f $log_file ]; then
   log_file="/Users/upstud/access.log"
 fi
-tail -100 $log_file|grep -v ELB-HealthChecker/2.0 | tail -30
+tail -200 $log_file|grep -Ev "ELB-HealthChecker/2.0|utils" | tail -30

@@ -611,7 +611,7 @@ def admin_system_activity_nginx_htmx(request):
 def admin_system_activity_users_htmx(request):
     """Provide latest data from user activity"""
 
-    last_activity = User.objects.all().order_by("last_activity")[:30]
+    last_activity = User.objects.all().order_by("-last_activity")[:30]
 
     return render(
         request,
