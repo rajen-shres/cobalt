@@ -18,6 +18,7 @@ from django.db import transaction, connection, ProgrammingError
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from geopy.geocoders import Nominatim
 
 from accounts.models import User
@@ -549,28 +550,71 @@ def admin_show_database_details_htmx(request):
 def admin_system_activity(request):
     """Show basic info about user activity"""
 
+    return render(request, "utils/admin_system_activity.html")
+
+
+@login_required()
+def admin_system_activity_nginx_htmx(request):
+    """Provide latest data from the nginx access.log"""
+
     # Regex for nginx access.log taken from Stack Overflow.
-    conf = '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"'
+    conf = '$remote_addr - $remote_user [$time_local] "$type $request" $status $body_bytes_sent "$http_referer" "$http_user_agent"'
     regex = "".join(
         "(?P<" + g + ">.*?)" if g else re.escape(c)
         for g, c in re.findall(r"\$(\w+)|(.)", conf)
     )
 
+    # Use a script to tail the log for us
     proc = subprocess.Popen(["utils/local/tail_nginx_log.sh"], stdout=subprocess.PIPE)
     lines = proc.stdout.readlines()
     lines.reverse()
 
     log_data = []
 
+    # Go through and see if we can better format the data
     for line in lines:
 
         line = line.decode("utf-8").strip()
         data = re.match(regex, line)
         if data:
             ngix_values = data.groupdict()
+
+            # date
             date_string = ngix_values["time_local"]
             event_date = datetime.datetime.strptime(date_string, "%d/%b/%Y:%H:%M:%S %z")
             ngix_values["time_local"] = event_date
+
+            # Status code
+            status_code = int(ngix_values["status"])
+            if 200 <= status_code < 300:
+                ngix_values["status_icon"] = mark_safe(
+                    "<span class='text-success'>check_circle</span>"
+                )
+            elif 300 <= status_code < 400:
+                ngix_values["status_icon"] = "done"
+            elif 400 <= status_code < 500:
+                ngix_values["status_icon"] = "help"
+            elif 500 <= status_code < 600:
+                ngix_values["status_icon"] = "error"
+
+            # request - remove HTTP part
+            ngix_values["request"] = ngix_values["request"].replace("HTTP/1.1", "")
+
             log_data.append(ngix_values)
 
-    return render(request, "utils/admin_system_activity.html", {"log_data": log_data})
+    return render(
+        request, "utils/admin_system_activity_nginx_htmx.html", {"log_data": log_data}
+    )
+
+
+@login_required()
+def admin_system_activity_users_htmx(request):
+    """Provide latest data from user activity"""
+
+    last_activity = User.objects.all().order_by("last_activity")[:30]
+
+    return render(
+        request,
+        "utils/admin_system_activity_users_htmx.html",
+        {"last_activity": last_activity},
+    )

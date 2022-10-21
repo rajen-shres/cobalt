@@ -30,4 +30,14 @@ urlpatterns = [
         views.admin_system_activity,
         name="admin_system_activity",
     ),
+    path(
+        "admin-system-activity-nginx",
+        views.admin_system_activity_nginx_htmx,
+        name="admin_system_activity_nginx_htmx",
+    ),
+    path(
+        "admin-system-activity-users",
+        views.admin_system_activity_users_htmx,
+        name="admin_system_activity_users_htmx",
+    ),
 ]

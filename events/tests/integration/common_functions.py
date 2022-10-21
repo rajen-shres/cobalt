@@ -1,3 +1,5 @@
+from time import sleep
+
 from post_office.models import Email
 from selenium.webdriver.support.select import Select
 
@@ -239,4 +241,5 @@ def enter_event_then_pay_and_check(
     stripe_manual_payment_screen(test_instance.manager)
 
     # Check if it worked as expected
+    sleep(5)
     check_entry(test_instance, event, test_name, test_description, player_list)

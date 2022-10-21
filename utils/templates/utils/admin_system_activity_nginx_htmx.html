@@ -1,0 +1,44 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Show the data from the nginx access log                                #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+{% load humanize %}
+
+<table class="table table-condensed table-hover">
+    <thead class="text-warning">
+
+        <tr>
+            <th>Time Ago</th>
+            <th class="text-left">Status</th>
+            <th class="text-left">Type</th>
+            <th class="text-left">Request</th>
+            {#                        <th class="text-left">Referer</th>#}
+            {#            <th class="text-left">Referer Agent</th>#}
+        </tr>
+
+    </thead>
+    <tbody>
+        {% for item in log_data %}
+            <tr>
+                <td>{{ item.time_local|naturaltime }}</td>
+                <td class="text-left">
+                    {% if item.status_icon %}
+                        <span class="material-icons" title="Status Code: {{ item.status }}">{{ item.status_icon }}</span>
+                    {% else %}
+                        {{ item.status }}
+                    {% endif %}
+                </td>
+                <td class="text-left">{{ item.type }}</td>
+                <td class="text-left">{{ item.request|truncatechars:50 }}</td>
+                {#                            <td class="text-left">{{ item.http_referer }}</td>#}
+                {#        <td class="text-left">{{ item.http_user_agent }}</td>#}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+
+

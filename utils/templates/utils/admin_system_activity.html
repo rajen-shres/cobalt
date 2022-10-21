@@ -8,47 +8,80 @@
 {% block title %} - System Activity{% endblock %}
 
 {% block content %}
-
     <div class="card">
-        <div class="card-header card-header-primary">
-            <h1>NGINX Access Log on this Host</h1>
+        <div class="card-header card-header-rose">
+            <h2>System Activity</h2>
         </div>
         <div class="card-body">
 
+            <div class="container-fluid">
+                <div class="row">
 
+                    <!-- NGINX LOG -->
+                    <div class="col-md-6 pr-2">
+                        <div class="card">
+                            <div class="card-header card-header-primary">
+                                <h3 class="text-center">NGINX Access Log</h3>
+                            </div>
+                            <div class="card-body">
 
+                                <div class="table-responsive" style="  height:300px; overflow-y: scroll;">
 
+                                    <div id="id_nginx">
+                                        <div
+                                            hx-get="{% url "utils:admin_system_activity_nginx_htmx" %}"
+                                            hx-trigger="load, click, every 10s"
+                                        ></div>
+                                    </div>
 
-            <div class="table-responsive">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                <table class="table table-condensed table-hover">
-                    <thead>
+                    <!-- USER ACTIVITY LOG -->
+                    <div class="col-md-6 pl-2">
+                        <div class="card">
+                            <div class="card-header card-header-success">
+                                <h3 class="text-center">User Activity</h3>
+                            </div>
+                            <div class="card-body">
 
-                        <tr>
-                            <th>Time Ago</th>
-                            <th class="text-left">Status</th>
-                            <th class="text-left">Request</th>
-                            <th class="text-left">Referer</th>
-                            {#            <th class="text-left">Referer Agent</th>#}
-                        </tr>
+                                <div class="table-responsive" style="  height:300px; overflow-y: scroll;">
 
-                    </thead>
-                    <tbody>
-                        {% for item in log_data %}
-                            <tr>
-                                <td>{{ item.time_local|timesince }}</td>
-                                <td class="text-left">{{ item.status }}</td>
-                                <td class="text-left">{{ item.request|truncatechars:50 }}</td>
-                                <td class="text-left">{{ item.http_referer }}</td>
-                                {#        <td class="text-left">{{ item.http_user_agent }}</td>#}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                    <div id="id_user_activity">
+                                        <div
+                                            hx-get="{% url "utils:admin_system_activity_users_htmx" %}"
+                                            hx-trigger="load, click, every 10s"
+                                        ></div>
+                                    </div>
 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
 
 {% endblock content %}
+
+{% block footer %}
+    <script>
+        $(document).ready( function () {
+
+            // Stop auto update after an interval (10 mins)
+            setTimeout(function (){
+
+                const msg = "<h3 class='text-center'>Auto refresh timed out. Reload page to restart</h3><div class='text-center'><button class='btn btn-info btn-sm' onClick='window.location.reload();'>Reload Page</button></div>"
+
+                $("#id_nginx").html(msg)
+                $("#id_user_activity").html(msg)
+            }, 600000);
+
+        });
+    </script>
+{% endblock footer %}
 
