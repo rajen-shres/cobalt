@@ -612,9 +612,11 @@ def admin_system_activity_users_htmx(request):
     """Provide latest data from user activity"""
 
     last_activity = (
-        User.objects.all().exclude(last_activity=None).order_by("-last_activity")[:30]
+        User.objects.all()
+        .exclude(last_activity=None)
+        .exclude(pk=request.user.pk)
+        .order_by("-last_activity")[:30]
     )
-    print(last_activity)
 
     return render(
         request,
