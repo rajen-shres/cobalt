@@ -113,7 +113,7 @@ def user_activity(request):
         User.objects.order_by("-last_activity")
         .exclude(last_activity=None)
         .exclude(id=request.user.id)
-    )[:100]
+    )
 
     five_min_ago = timezone.now() - datetime.timedelta(minutes=5)
     last_5m = User.objects.filter(last_activity__gte=five_min_ago).count()
@@ -130,11 +130,13 @@ def user_activity(request):
     one_month_ago = timezone.now() - datetime.timedelta(days=30)
     last_month = User.objects.filter(last_activity__gte=one_month_ago).count()
 
+    things = cobalt_paginator(request, users)
+
     return render(
         request,
         "utils/user_activity.html",
         {
-            "users": users,
+            "things": things,
             "last_5m": last_5m,
             "last_1hr": last_1hr,
             "last_day": last_day,

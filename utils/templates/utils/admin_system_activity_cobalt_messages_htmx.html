@@ -6,10 +6,8 @@
 {% load cobalt_tags %}
 {% load humanize %}
 
-
-
 <table class="table table-condensed table-hover">
-    <thead class="text-warning">
+    <thead class="text-info">
 
         <tr>
             <th class="text-left">Time Ago</th>
@@ -21,6 +19,7 @@
         </tr>
 
     </thead>
+
     <tbody>
         {% for item in log_data %}
             <tr>
@@ -39,6 +38,7 @@
             </tr>
         {% endfor %}
     </tbody>
+
 </table>
 
 

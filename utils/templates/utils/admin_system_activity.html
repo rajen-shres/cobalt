@@ -98,14 +98,15 @@
     <script>
         $(document).ready( function () {
 
-            // Stop auto update after an interval (10 mins)
+            // Stop auto update after an interval (10 minutes)
             setTimeout(function (){
 
                 const msg = "<h3 class='text-center'>Auto refresh timed out. Reload page to restart.</h3><div class='text-center'><button class='btn btn-info btn-sm' onClick='window.location.reload();'>Reload Page</button></div>"
 
-                $("#id_nginx").html(msg)
-                $("#id_user_activity").html(msg)
-                $("#id_cobalt_messages").html(msg)
+                $("#id_nginx").html(msg);
+                $("#id_user_activity").html(msg);
+                $("#id_cobalt_messages").html(msg);
+
             }, 600000);
 
         });
