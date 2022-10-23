@@ -16,8 +16,8 @@
             <th class="text-left">Severity</th>
             <th class="text-left">File</th>
             <th class="text-left">Function</th>
-            <th class="text-left">Line</th>
-            <th class="text-left">Message</th>
+            <th class="text-right">Line</th>
+            <th class="text-left pl-5">Message</th>
         </tr>
 
     </thead>
@@ -34,8 +34,8 @@
                 </td>
                 <td class="text-left">{{ item.file }}</td>
                 <td class="text-left">{{ item.func }}</td>
-                <td class="text-left">{{ item.line }}</td>
-                <td class="text-left">{{ item.message }}</td>
+                <td class="text-right">{{ item.line }}</td>
+                <td class="text-left pl-5">{{ item.message }}</td>
             </tr>
         {% endfor %}
     </tbody>
