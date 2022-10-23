@@ -36,8 +36,18 @@ urlpatterns = [
         name="admin_system_activity_nginx_htmx",
     ),
     path(
+        "admin-system-activity-cobalt-messages",
+        views.admin_system_activity_cobalt_messages_htmx,
+        name="admin_system_activity_cobalt_messages_htmx",
+    ),
+    path(
         "admin-system-activity-users",
         views.admin_system_activity_users_htmx,
         name="admin_system_activity_users_htmx",
+    ),
+    path(
+        "admin-system-settings",
+        views.admin_system_settings,
+        name="admin_system_settings",
     ),
 ]

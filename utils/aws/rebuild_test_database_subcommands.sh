@@ -3,6 +3,7 @@
 ./manage.py migrate
 ./manage.py createsu
 ./manage.py create_abf
+./manage.py add_rbac_static_global
 ./manage.py add_rbac_static_forums
 ./manage.py add_rbac_static_payments
 ./manage.py add_rbac_static_orgs

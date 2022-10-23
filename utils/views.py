@@ -1,17 +1,15 @@
 import csv
 import datetime
-import json
 import os
-import random
 import re
 import subprocess
-from pprint import pprint
 from random import randint
 from time import sleep
 
 import boto3
 import pytz
 import requests
+from dateutil.tz import tz
 from django.apps import apps
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import transaction, connection, ProgrammingError
@@ -20,6 +18,7 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from geopy.geocoders import Nominatim
+from html5lib.treewalkers import pprint
 
 from accounts.models import User
 from cobalt.settings import (
@@ -27,17 +26,83 @@ from cobalt.settings import (
     AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY,
     AWS_REGION_NAME,
+    COBALT_HOSTNAME,
 )
 from events.views.core import events_status_summary
 from forums.views import forums_status_summary
 from notifications.views.admin import notifications_status_summary
 from payments.views.core import payments_status_summary
+from rbac.core import rbac_user_has_role
+from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
 from .models import Batch, Lock, Slug
 
 # from importlib import import_module
 # This line sometimes get removed by something that thinks we don't need it, but we do
 from importlib import import_module
+
+
+def _get_aws_environment():
+    """Get the environment object if we can. There is no way to have AWS credentials with access only
+    to specific environments (e.g. cobalt-test-black), you either have the access to change things or
+    you don't. We do some hard coding to get around this.
+
+    Returns:
+        status: True or False - whether we succeeded or not
+        aws_environment_name - string with environment name or failure message
+        settings - dict of settings
+
+    """
+
+    # Dictionary of hostname to environment prefix
+    environment_map = {
+        "myabf.com.au": "cobalt-production",
+        "uat.myabf.com.au": "cobalt-uat",
+        "test.myabf.com.au": "cobalt-test",
+        "127.0.0.1:8000": "cobalt-test",
+    }
+
+    environment_prefix = environment_map.get(COBALT_HOSTNAME)
+    if not environment_prefix:
+        return False, "Error - environment not found"
+
+    # Create AWS client
+    eb_client = boto3.client(
+        "elasticbeanstalk",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION_NAME,
+    )
+
+    # Get environments
+    environments = eb_client.describe_environments(
+        ApplicationName="cobalt",
+    )["Environments"]
+
+    # find the AWS name for this environment, check for duplicates, and get the variables
+    aws_environment_name = None
+    for environment in environments:
+        if environment["EnvironmentName"].find(environment_prefix) >= 0:
+            if aws_environment_name:
+                return False, "Error - duplicate environments found", {}
+            aws_environment_name = environment["EnvironmentName"]
+
+    if not aws_environment_name:
+        return False, "No environment found", {}
+
+    # Now get the sessions for the environment
+    settings = eb_client.describe_configuration_settings(
+        ApplicationName="cobalt", EnvironmentName=aws_environment_name
+    )
+
+    # Just get the environment variables, ignore the rest
+    settings_dict = {}
+
+    for setting in settings["ConfigurationSettings"][0]["OptionSettings"]:
+        if setting["Namespace"] == "aws:elasticbeanstalk:application:environment":
+            settings_dict[setting["OptionName"]] = setting["Value"]
+
+    return True, aws_environment_name, settings_dict
 
 
 @login_required
@@ -608,6 +673,53 @@ def admin_system_activity_nginx_htmx(request):
 
 
 @login_required()
+def admin_system_activity_cobalt_messages_htmx(request):
+    """Provide latest data from the cobalt messages log"""
+
+    # Regex for log adapted from Stack Overflow.
+    conf = "[$severity] $log_date $log_time [$file $func $line] $message"
+    regex = "".join(
+        f"(?P<{g}>.*?)" if g else re.escape(c)
+        for g, c in re.findall(r"\$(\w+)|(.)", conf)
+    )
+
+    # Use a script to tail the log for us
+    proc = subprocess.Popen(
+        ["utils/local/tail_cobalt_messages_log.sh"], stdout=subprocess.PIPE
+    )
+    lines = proc.stdout.readlines()
+    lines.reverse()
+
+    log_data = []
+
+    # Go through and see if we can better format the data
+    for line in lines:
+
+        line = line.decode("utf-8").strip()
+        data = re.match(regex, line)
+        if data:
+            log_values = data.groupdict()
+
+            # message doesn't come through properly
+            message = line.split("]")[2]
+            log_values["message"] = message
+
+            # fix date (already in local time)
+            date_string = f"{log_values['log_date']} {log_values['log_time']}"
+            log_values["time_local"] = datetime.datetime.strptime(
+                date_string, "%Y-%m-%d %H:%M:%S"
+            )
+
+            log_data.append(log_values)
+
+    return render(
+        request,
+        "utils/admin_system_activity_cobalt_messages_htmx.html",
+        {"log_data": log_data},
+    )
+
+
+@login_required()
 def admin_system_activity_users_htmx(request):
     """Provide latest data from user activity"""
 
@@ -622,4 +734,61 @@ def admin_system_activity_users_htmx(request):
         request,
         "utils/admin_system_activity_users_htmx.html",
         {"last_activity": last_activity},
+    )
+
+
+@login_required()
+def admin_system_settings(request):
+    """Manage system-wide settings"""
+
+    role = "system.admin.edit"
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    # Get aws name of this system
+    call_status, aws_environment_name, settings = _get_aws_environment()
+
+    # Quit if we got an error
+    if not call_status:
+        return render(
+            request,
+            "utils/admin_system_settings.html",
+            {"message": aws_environment_name},
+        )
+
+    # Get the setting we are interested in
+    # fish_setting = settings.get("FISH_SETTING") == "ON"
+    # disable_playpen = settings.get("DISABLE_PLAYPEN") == "ON"
+    # maintenance_mode = settings.get("MAINTENANCE_MODE") == "ON"
+
+    # Create AWS client
+    eb_client = boto3.client(
+        "elasticbeanstalk",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION_NAME,
+    )
+
+    response = eb_client.update_environment(
+        ApplicationName="cobalt",
+        EnvironmentName="cobalt-test-black",
+        OptionSettings=[
+            {
+                "Namespace": "aws:elasticbeanstalk:application:environment",
+                "OptionName": "FISH_SETTING",
+                "Value": "updated",
+            }
+        ],
+    )
+
+    print(response)
+
+    return render(
+        request,
+        "utils/admin_system_settings.html",
+        {
+            "aws_environment_name": aws_environment_name,
+            "settings": settings,
+            "response": response,
+        },
     )

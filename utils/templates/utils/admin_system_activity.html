@@ -62,6 +62,32 @@
                     </div>
 
                 </div>
+
+                <div class="row">
+
+                    <!-- COBALT MESSAGES LOG -->
+                    <div class="pr-2 col-12">
+                        <div class="card">
+                            <div class="card-header card-header-danger">
+                                <h3 class="text-center">Cobalt Messages</h3>
+                            </div>
+                            <div class="card-body">
+
+                                <div class="table-responsive" style="  height:300px; overflow-y: scroll;">
+
+                                    <div id="id_nginx">
+                                        <div
+                                            hx-get="{% url "utils:admin_system_activity_cobalt_messages_htmx" %}"
+                                            hx-trigger="load, click, every 10s"
+                                        ></div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>

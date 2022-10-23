@@ -1,0 +1,33 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Show basic activity info to check system is working                    #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% extends 'base.html' %}
+{% load cobalt_tags %}
+{% block title %} - System Settings{% endblock %}
+
+{% block content %}
+
+    <div class="card">
+        <div class="card-header card-header-rose">
+            <h2>System Settings</h2>
+        </div>
+        <div class="card-body">
+
+            <!-- MESSAGE -->
+            <h3 class="text-primary font-weight-bold">{{ message }}</h3>
+
+            <h1>Response</h1>
+            <pre>
+            {{ response|pprint }}
+                </pre>
+
+            <h1>Settings</h1>
+            <pre>
+            {{ settings|pprint }}
+                </pre>
+        </div>
+    </div>
+
+{% endblock content %}

@@ -1,0 +1,46 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Show the data from the cobalt messages log                             #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+{% load humanize %}
+
+
+
+<table class="table table-condensed table-hover">
+    <thead class="text-warning">
+
+        <tr>
+            <th class="text-left">Time Ago</th>
+            <th class="text-left">Severity</th>
+            <th class="text-left">File</th>
+            <th class="text-left">Function</th>
+            <th class="text-left">Line</th>
+            <th class="text-left">Message</th>
+        </tr>
+
+    </thead>
+    <tbody>
+        {% for item in log_data %}
+            <tr>
+                <td class="text-left">{{ item.time_local|timesince }}</td>
+                <td class="text-left">
+                    {% if item.status_icon %}
+                        <span class="material-icons" title="Status Code: {{ item.status }}">{{ item.status_icon }}</span>
+                    {% else %}
+                        {{ item.severity }}
+                    {% endif %}
+                </td>
+                <td class="text-left">{{ item.file }}</td>
+                <td class="text-left">{{ item.func }}</td>
+                <td class="text-left">{{ item.line }}</td>
+                <td class="text-left">{{ item.message }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+
+
