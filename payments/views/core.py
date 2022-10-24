@@ -1077,29 +1077,27 @@ def payments_status_summary():
         dict: various indicators in a dictionary
     """
 
-    try:
-        stripe_latest = StripeTransaction.objects.filter(status="Success").latest(
-            "created_date"
-        )
-        stripe_manual_pending = StripeTransaction.objects.filter(status="Pending")
-        stripe_auto_pending = User.objects.filter(stripe_auto_confirmed="Pending")
+    stripe_latest = StripeTransaction.objects.filter(status="Succeeded").latest(
+        "created_date"
+    )
+    member_latest = MemberTransaction.objects.latest("created_date")
+    org_latest = OrganisationTransaction.objects.latest("created_date")
+    stripe_manual_pending = StripeTransaction.objects.filter(status="Pending")
+    stripe_auto_pending = User.objects.filter(stripe_auto_confirmed="Pending")
 
-        if stripe_manual_pending or stripe_auto_pending:  # errors
-            status = "Bad"
-        else:
-            status = "Good"
+    if stripe_manual_pending or stripe_auto_pending:  # errors
+        status = "Bad"
+    else:
+        status = "Good"
 
-        payments_indicators = {
-            "latest": stripe_latest,
-            "manual_pending": stripe_manual_pending,
-            "auto_pending": stripe_auto_pending,
-            "status": status,
-        }
-
-    except StripeTransaction.DoesNotExist:
-        payments_indicators = {"status": "Unknown"}
-
-    return payments_indicators
+    return {
+        "stripe_latest": stripe_latest,
+        "member_latest": member_latest,
+        "org_latest": org_latest,
+        "manual_pending": stripe_manual_pending,
+        "auto_pending": stripe_auto_pending,
+        "status": status,
+    }
 
 
 def statement_common(user):

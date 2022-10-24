@@ -6,7 +6,7 @@ from django.urls import include, path
 from django_otp.admin import OTPAdminSite
 from loginas.views import user_login as user_login_as
 
-from utils.views import download_csv
+from utils.views.general import download_csv
 
 admin.site.site_header = f"{settings.GLOBAL_TITLE} Administration"
 admin.site.site_title = f"{settings.GLOBAL_TITLE} Administration"

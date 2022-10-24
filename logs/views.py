@@ -112,7 +112,9 @@ def home(request):
 
     ref_date = timezone.now() - timedelta(days=days)
 
-    events_list = Log.objects.filter(event_date__gte=ref_date)
+    events_list = Log.objects.filter(event_date__gte=ref_date).select_related(
+        "user_object"
+    )
 
     # only show sub sources if sources has been selected
     sub_sources = None

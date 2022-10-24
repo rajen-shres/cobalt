@@ -20,7 +20,7 @@ from payments.models import OrganisationTransaction
 from rbac.core import rbac_user_has_role
 from rbac.models import RBACGroupRole
 from rbac.views import rbac_forbidden
-from utils.views import masterpoint_query
+from utils.views.general import masterpoint_query
 
 
 def org_balance(org, text=None):

@@ -15,7 +15,7 @@ class Command(BaseCommand):
         we can't use that in a distributed environment so we do our own locking.
 
         """
-        from utils.views import CobaltLock
+        from utils.views.cobalt_lock import CobaltLock
 
         logger.info("Post Office cron looking for work")
 

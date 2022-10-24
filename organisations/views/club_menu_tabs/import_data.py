@@ -21,7 +21,7 @@ from organisations.models import (
     MemberClubEmail,
 )
 from organisations.views.club_menu_tabs.members import list_htmx
-from utils.views import masterpoint_query
+from utils.views.general import masterpoint_query
 
 
 def _csv_pianola(club_member):

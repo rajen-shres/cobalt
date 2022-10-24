@@ -1,5 +1,6 @@
 import csv
 import datetime
+import logging
 
 import stripe
 from django.contrib import messages
@@ -56,6 +57,8 @@ from rbac.core import rbac_user_has_role
 from rbac.decorators import rbac_check_role
 from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
+
+logger = logging.getLogger("cobalt")
 
 
 @rbac_check_role("payments.global.view")
@@ -177,7 +180,7 @@ def statement_admin_summary(request):
     )
 
 
-@login_required()
+@rbac_check_role("payments.global.view")
 def stripe_pending(request):
     """Shows any pending stripe transactions.
 
@@ -192,28 +195,109 @@ def stripe_pending(request):
     Returns:
         HTTPResponse
     """
-    if not rbac_user_has_role(request.user, "payments.global.view"):
-        return rbac_forbidden(request, "payments.global.view")
 
-    try:
-        stripe_latest = StripeTransaction.objects.filter(status="Succeeded").latest(
-            "created_date"
-        )
-        stripe_manual_pending = StripeTransaction.objects.filter(status="Pending")
-        stripe_manual_intent = StripeTransaction.objects.filter(
-            status="Intent"
-        ).order_by("-created_date")[:20]
-        stripe_auto_pending = User.objects.filter(stripe_auto_confirmed="Pending")
-    except StripeTransaction.DoesNotExist:
-        return HttpResponse("No Stripe data found")
+    # default message
+    stripe_manual_pending_message = ""
+    stripe_auto_pending_message = ""
+
+    # Load data - latest stripe transaction
+    stripe_latest = StripeTransaction.objects.filter(status="Succeeded").latest(
+        "created_date"
+    )
+
+    # Anything with status of pending, will be a manual payment
+    stripe_manual_pending = StripeTransaction.objects.filter(status="Pending")
+
+    # First 20 with status Intent - could be an abandoned checkout, not an error
+    stripe_manual_intent = StripeTransaction.objects.filter(status="Intent").order_by(
+        "-created_date"
+    )[:20]
+
+    # Users in pending status for auto top up. Can happen from time to time. Usually only lasts a split second
+    stripe_auto_pending = User.objects.filter(stripe_auto_confirmed="Pending")
+
+    # Check if stripe manual pending events are real. There is an occasional issue where
+    # the stripe transaction stays as pending even though the payment has been made. In this case
+    # the member transaction will exist and we can ignore the problem.
+    # Its a bit naughty for a report to change the data it is showing, but anyway...
+    # TODO: Needs more debugging in the webhook call back
+    for stripe_manual in stripe_manual_pending:
+        if MemberTransaction.objects.filter(
+            stripe_transaction=stripe_manual.id
+        ).exists():
+            message = f"Fixed stripe transaction with incorrect status. Changed from Pending to Succeeded. Stripe_trans: {stripe_manual.id}"
+
+            log_event(
+                user="Stripe API",
+                severity="WARN",
+                source="Payments",
+                sub_source="pending_report",
+                message=message,
+            )
+
+            logger.info(message)
+
+            stripe_manual_pending_message = "Fixed some incorrect transactions"
+
+            stripe_manual.status = "Succeeded"
+            stripe_manual.save()
+
+    # Check auto pending
+    if stripe_auto_pending:
+        # For auto payments, can can check with stripe about the status, we don't keep the time this happened on our side
+        # It is possible to run this report just as the user is setting it up
+        stripe.api_key = STRIPE_SECRET_KEY
+        now = datetime.datetime.utcnow()
+
+        for customer in stripe_auto_pending:
+            try:
+                # Get the last set up intent for this customer
+                rc = stripe.SetupIntent.list(customer=customer.stripe_customer_id)
+                created = rc["data"][0]["created"]
+                last_attempt = datetime.datetime.utcfromtimestamp(created)
+                ten_min = datetime.timedelta(minutes=10)
+
+                if last_attempt + ten_min < now:
+                    message = f"Stripe - auto top up set up failed, removing. {customer} - {customer.stripe_customer_id}"
+                    log_event(
+                        user="Stripe API",
+                        severity="WARN",
+                        source="Payments",
+                        sub_source="pending_report",
+                        message=message,
+                    )
+                    logger.warning(message)
+                    customer.stripe_customer_id = None
+                    customer.stripe_auto_confirmed = "Off"
+                    customer.save()
+
+                    stripe_auto_pending_message = "Users with expired data updated"
+
+            except stripe.error.InvalidRequestError:
+                message = f"Stripe - no such customer. Removing from system. {customer} - {customer.stripe_customer_id}"
+                log_event(
+                    user="Stripe API",
+                    severity="WARN",
+                    source="Payments",
+                    sub_source="pending_report",
+                    message=message,
+                )
+                logger.warning(message)
+                customer.stripe_customer_id = None
+                customer.stripe_auto_confirmed = "Off"
+                customer.save()
+
+                stripe_auto_pending_message = "Users with expired data updated"
 
     return render(
         request,
         "payments/admin/stripe_pending.html",
         {
+            "stripe_manual_pending_message": stripe_manual_pending_message,
             "stripe_manual_pending": stripe_manual_pending,
             "stripe_manual_intent": stripe_manual_intent,
             "stripe_latest": stripe_latest,
+            "stripe_auto_pending_message": stripe_auto_pending_message,
             "stripe_auto_pending": stripe_auto_pending,
         },
     )

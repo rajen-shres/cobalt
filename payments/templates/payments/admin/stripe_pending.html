@@ -12,7 +12,9 @@
                 </div>
                 <div class="card-body table-responsive">
                     <div class="container">
-                        Latest Successful Transaction: {{ stripe_latest.created_date }} ({{ stripe_latest.created_date|timesince }} ago)
+                        <h3 class="text-center">
+                            Latest Successful Transaction: {{ stripe_latest.created_date }} ({{ stripe_latest.created_date|timesince }} ago)
+                        </h3>
                         <div class="card bg-light text-dark">
                             <div class="card-header card-header-danger">
 
@@ -22,8 +24,10 @@
                                     sent us formal confirmation. This should not happen and needs to be investigated.</p>
                             </div>
                             <div class="card-body table-responsive">
+                                <h3 class="text-primary font-weight-bold">{{ stripe_manual_pending_message }}</h3>
                                 <div class="container">
                                     {% if stripe_manual_pending %}
+
                                         <table border>
                                             <tr>
                                                 <th class="px-2">Member</th>
@@ -45,17 +49,58 @@
                                             {% endfor %}
                                         </table>
                                     {% else %}
-                                        <br>
+
                                         <h4>No current errors</h4>
+
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                         <br>
+
+                        <br>
+                        <div class="card bg-light text-dark">
+                            <div class="card-header card-header-info">
+
+                                <h2>Auto Checkout Pending</h2>
+                                <p>A status of pending for auto top up means that a user has set up
+                                    auto top up which has been confirmed back to them by Stripe, but Stripe has not
+                                    sent us formal confirmation. This should not happen and needs to be investigated.</p>
+                            </div>
+                            <div class="card-body table-responsive">
+                                <h3 class="text-primary font-weight-bold">{{ stripe_auto_pending_message }}</h3>
+                                <div class="container">
+                                    {% if stripe_auto_pending %}
+
+                                        <table border>
+                                            <tr>
+                                                <th class="px-2">Member</th>
+                                                <th class="px-2">Status</th>
+                                            </tr>
+                                            {% for member in stripe_auto_pending %}
+                                                <tr>
+                                                    <td class="px-2"><a href="{% url "accounts:public_profile" pk=member.id %}">{{ member }}</a></td>
+                                                    <td class="px-2">{{ member.stripe_auto_confirmed }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </table>
+
+
+
+                                    {% else %}
+
+                                        <h4>No current errors</h4>
+
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <br>
                         <div class="card bg-light text-dark">
                             <div class="card-header card-header-warning">
 
-                                <h2>Manual Checkout Intent</h2>
+                                <h2>Manual Checkout Intent - Not Errors</h2>
                                 <p>A status of intent for manual checkouts means that a user has gone to the
                                     checkout screen but not completed the payment. This is normal behaviour.</p>
                             </div>
@@ -84,39 +129,6 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
-                        <br>
-                        <div class="card bg-light text-dark">
-                            <div class="card-header card-header-info">
-
-                                <h2>Auto Checkout Pending</h2>
-                                <p>A status of pending for auto top up means that a user has set up
-                                    auto top up which has been confirmed back to them by Stripe, but Stripe has not
-                                    sent us formal confirmation. This should not happen and needs to be investigated.</p>
-                            </div>
-                            {% if stripe_auto_pending %}
-                                <div class="card-body table-responsive">
-                                    <div class="container">
-                                        <table border>
-                                            <tr>
-                                                <th class="px-2">Member</th>
-                                                <th class="px-2">Status</th>
-                                            </tr>
-                                            {% for member in stripe_auto_pending %}
-                                                <tr>
-                                                    <td class="px-2"><a href="{% url "accounts:public_profile" pk=member.id %}">{{ member }}</a></td>
-                                                    <td class="px-2">{{ member.stripe_auto_confirmed }}</td>
-                                                </tr>
-                                            {% endfor %}
-                                        </table>
-                                    </div>
-                                </div>
-                            {% else %}
-                                <div class="container">
-                                    <br>
-                                    <h4>No current errors</h4>
-                                </div>
-                            {% endif %}
                         </div>
 
                     </div>

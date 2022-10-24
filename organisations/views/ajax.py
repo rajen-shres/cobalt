@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 from accounts.models import User
 from cobalt.settings import GLOBAL_MPSERVER, GLOBAL_TITLE
 from rbac.core import rbac_user_has_role
-from utils.views import masterpoint_query
+from utils.views.general import masterpoint_query
 from organisations.forms import OrgForm
 from organisations.models import Organisation
 from organisations.views.general import (

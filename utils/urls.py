@@ -1,53 +1,60 @@
 from django.urls import path
-from . import views
+
+import utils.views.cobalt_batch
+import utils.views.general
+import utils.views.monitoring
 
 app_name = "utils"  # pylint: disable=invalid-name
 
 urlpatterns = [
-    path("geo-location/<str:location>", views.geo_location, name="geo_location"),
-    path("batch", views.batch, name="batch"),
-    path("user-activity", views.user_activity, name="user_activity"),
-    path("status", views.status, name="status"),
-    path("database", views.database_view, name="database_view"),
-    path("recent-errors", views.recent_errors, name="recent_errors"),
+    path(
+        "geo-location/<str:location>",
+        utils.views.general.geo_location,
+        name="geo_location",
+    ),
+    path("batch", utils.views.cobalt_batch.batch, name="batch"),
+    path("user-activity", utils.views.monitoring.user_activity, name="user_activity"),
+    path("status", utils.views.monitoring.system_status, name="status"),
+    path("database", utils.views.monitoring.database_view, name="database_view"),
+    path("recent-errors", utils.views.monitoring.recent_errors, name="recent_errors"),
     path(
         "admin-show-aws-infrastructure-info",
-        views.admin_show_aws_infrastructure_info,
+        utils.views.monitoring.admin_show_aws_infrastructure_info,
         name="admin_show_aws_infrastructure_info",
     ),
     path(
         "admin-show-aws-infrastructure-app-version",
-        views.admin_show_aws_app_version_htmx,
+        utils.views.monitoring.admin_show_aws_app_version_htmx,
         name="admin_show_aws_app_version_htmx",
     ),
     path(
         "admin-show-database-details",
-        views.admin_show_database_details_htmx,
+        utils.views.monitoring.admin_show_database_details_htmx,
         name="admin_show_database_details_htmx",
     ),
     path(
         "admin-system-activity",
-        views.admin_system_activity,
+        utils.views.monitoring.admin_system_activity,
         name="admin_system_activity",
     ),
     path(
         "admin-system-activity-nginx",
-        views.admin_system_activity_nginx_htmx,
+        utils.views.monitoring.admin_system_activity_nginx_htmx,
         name="admin_system_activity_nginx_htmx",
     ),
     path(
         "admin-system-activity-cobalt-messages",
-        views.admin_system_activity_cobalt_messages_htmx,
+        utils.views.monitoring.admin_system_activity_cobalt_messages_htmx,
         name="admin_system_activity_cobalt_messages_htmx",
     ),
     path(
         "admin-system-activity-users",
-        views.admin_system_activity_users_htmx,
+        utils.views.monitoring.admin_system_activity_users_htmx,
         name="admin_system_activity_users_htmx",
     ),
     path(
         "admin-system-settings",
-        views.admin_system_settings,
+        utils.views.monitoring.admin_system_settings,
         name="admin_system_settings",
     ),
 ]

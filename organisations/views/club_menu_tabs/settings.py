@@ -53,7 +53,7 @@ from organisations.views.club_menu_tabs.utils import (
 from organisations.views.general import compare_form_with_mpc
 from payments.models import OrgPaymentMethod
 from rbac.core import rbac_user_has_role
-from utils.views import masterpoint_query
+from utils.views.general import masterpoint_query
 
 
 @check_club_menu_access()

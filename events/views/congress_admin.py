@@ -22,7 +22,7 @@ from notifications.views.core import (
 from logs.views import log_event
 from django.db import transaction, connection
 
-from utils.views import download_csv
+from utils.views.general import download_csv
 from events.models import (
     Congress,
     Category,
