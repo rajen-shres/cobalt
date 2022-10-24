@@ -6,6 +6,15 @@
 {% load cobalt_tags %}
 {% load humanize %}
 
+<!-- REFRESH COUNTER -->
+<div class="countdown">
+    <div id="countdown-number-nginx" class="countdown-number"></div>
+    <svg>
+        <circle r="18" cx="20" cy="20"></circle>
+    </svg>
+</div>
+
+<!-- TABLE -->
 <table class="table table-condensed table-hover">
     <thead class="text-warning">
 
@@ -39,6 +48,20 @@
     </tbody>
 </table>
 
+<script>
+    $(document).ready( function () {
 
+        // Internet borrowed countdown script
+        const countdownNumberEl = document.getElementById('countdown-number-nginx');
+        let countdown = 10;
+        countdownNumberEl.textContent = countdown;
+
+        setInterval(function() {
+            countdown = --countdown <= 0 ? 10 : countdown;
+            countdownNumberEl.textContent = countdown;
+        }, 1000);
+
+    });
+</script>
 
 
