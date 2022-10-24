@@ -4,6 +4,16 @@
 
 {% block content %}
 
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "utils:status" %}">System Status</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Payments Status</li>
+        </ol>
+    </nav>
+
     <div class="col-md-4 mx-auto my-auto">
         <div class="card">
             <div class="card-header card-header-warning text-center">

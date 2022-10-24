@@ -18,6 +18,15 @@
 {% endblock %}
 {% block content %}
 
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">Admin</a></li>
+            <li class="breadcrumb-item active" aria-current="page">System Status</li>
+        </ol>
+    </nav>
+
     <div class="col-md-9 mx-auto">
 
         <!-- MAIN CARD FOR PAGE -->

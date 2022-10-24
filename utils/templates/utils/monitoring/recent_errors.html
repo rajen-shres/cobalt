@@ -3,6 +3,15 @@
 
 {% block content %}
 
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#it">Admin</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Recent Errors</li>
+        </ol>
+    </nav>
+
     <div class="card">
         <div class="card-header card-header-info">
             <h2>Recent Errors</h2>

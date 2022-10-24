@@ -28,6 +28,7 @@ Key Points:
 """
 import json
 import logging
+from decimal import Decimal
 from json import JSONDecodeError
 
 import pytz
@@ -61,6 +62,7 @@ from payments.models import (
     OrganisationTransaction,
     StripeLog,
     UserPendingPayment,
+    PaymentStatic,
 )
 from payments.views.payments_api import notify_member_to_member_transfer
 
@@ -1222,6 +1224,9 @@ def member_to_member_transfer_callback(stripe_transaction=None):
 def get_payments_statistics():
     """Get statistics about payments. Called by utils statistics"""
 
+    # Static
+    payment_static = PaymentStatic.objects.filter(active=True).last()
+
     members_who_have_made_payments = MemberTransaction.objects.distinct(
         "member"
     ).count()
@@ -1256,15 +1261,28 @@ def get_payments_statistics():
 
     # ABF cut of things
     abf_fees = (
+        # Now we include exact fee on transaction
         OrganisationTransaction.objects.filter(type="Settlement")
+        .filter(bank_settlement_amount__gt=0)
         .annotate(abf_fee=-F("amount") - F("bank_settlement_amount"))
         .aggregate(sum=Sum("abf_fee"))["sum"]
+        # Previously we didn't but it was 2% of value
+    ) - OrganisationTransaction.objects.filter(type="Settlement").exclude(
+        bank_settlement_amount__gt=0
+    ).aggregate(
+        sum=Sum("amount")
+    )[
+        "sum"
+    ] * Decimal(
+        0.02
     )
 
-    # stripe cut of things - hard code Stripe charges 1.35% and 30c per transaction
+    # stripe cut of things - won't cope with rate changes but could be modified
     estimated_stripe_fees = (
-        float(total_stripe_payment_amount_less_refunds) * 0.0135
-    ) + (0.3 * total_stripe_transactions)
+        float(total_stripe_payment_amount_less_refunds)
+        * float(payment_static.stripe_percentage_charge)
+        / 100
+    ) + (float(payment_static.stripe_cost_per_transaction) * total_stripe_transactions)
 
     return {
         "members_who_have_made_payments": members_who_have_made_payments,
