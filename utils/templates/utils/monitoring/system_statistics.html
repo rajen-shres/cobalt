@@ -1,0 +1,218 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Sub-systems stats within Cobalt                                        #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% extends 'base.html' %}
+{% load cobalt_tags %}
+{% load humanize %}
+{% block title %} - Statistics{% endblock %}
+
+{% block header %}
+    <style>
+        td, th {
+            font-size: larger;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <div class="col-md-9 mx-auto">
+
+        <!-- MAIN CARD FOR PAGE -->
+        <div class="card">
+
+            <!-- CARD HEADER -->
+            <div class="card-header card-header-primary text-center">
+                <h2>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            System Statistics
+                        </div>
+                        <div>
+                            <i class="material-icons" style="font-size:45px">summarize</i>
+                        </div>
+                    </h2>
+                </div>
+
+                <!-- MAIN CARD BODY -->
+                <div class="card-body">
+
+                    <!-- USERS -->
+                    <div class="card col-md-9 mx-auto">
+                        <div class="card-header card-header-warning">
+                            <h3>Users</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
+                                    <tr>
+                                        <td class="text-left">Total Users</td>
+                                        <td class="text-right">{{ user_statistics.total_users|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Un-registered Users</td>
+                                        <td class="text-right">{{ user_statistics.un_registered_users|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Users with Auto Top Up</td>
+                                        <td class="text-right">{{ user_statistics.users_with_auto_top_up|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Users who have played in a Congress</td>
+                                        <td class="text-right">{{ event_statistics.users_have_played_in_congress|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Users who have made a Payment</td>
+                                        <td class="text-right">{{ payments_statistics.members_who_have_made_payments|intcomma }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PAYMENTS -->
+                    <div class="card col-md-9 mx-auto">
+                        <div class="card-header card-header-danger">
+                            <h3>Payments</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
+                                    <tr>
+                                        <td class="text-left">Total Turnover</td>
+                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ payments_statistics.total_turnover|floatformat:2|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Stripe Payments</td>
+                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ payments_statistics.total_stripe_payment_amount_less_refunds|floatformat:2|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Stripe Payments (before refunds)</td>
+                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ payments_statistics.total_stripe_payment_amount|floatformat:2|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Stripe Refunds</td>
+                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ payments_statistics.total_stripe_payment_amount_refunds|floatformat:2|intcomma }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- EMAILS -->
+                    <div class="card col-md-9 mx-auto">
+                        <div class="card-header card-header-info">
+                            <h3>Notifications</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
+                                    <tr>
+                                        <td class="text-left">Total Emails (since April 2022)</td>
+                                        <td class="text-right">{{ notifications_statistics.total_emails|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Real Time Notifications</td>
+                                        <td class="text-right">{{ notifications_statistics.total_real_time_notifications|intcomma }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- EVENTS -->
+                    <div class="card col-md-9 mx-auto">
+                        <div class="card-header card-header-rose">
+                            <h3>Events</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
+                                    <tr>
+                                        <td class="text-left">Total Congresses</td>
+                                        <td class="text-right">{{ event_statistics.total_congresses|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Events</td>
+                                        <td class="text-right">{{ event_statistics.total_events|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Sessions</td>
+                                        <td class="text-right">{{ event_statistics.total_sessions|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Player Entries</td>
+                                        <td class="text-right">{{ event_statistics.total_player_entries|intcomma }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- FORUMS -->
+                    <div class="card col-md-9 mx-auto">
+                        <div class="card-header card-header-danger">
+                            <h3>Forums</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
+                                    <tr>
+                                        <td class="text-left">Total Chats</td>
+                                        <td class="text-right">{{ forum_statistics.total_chats|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Posts</td>
+                                        <td class="text-right">{{ forum_statistics.total_posts|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Replies</td>
+                                        <td class="text-right">{{ forum_statistics.total_c1|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Replies to Replies</td>
+                                        <td class="text-right">{{ forum_statistics.total_c2|intcomma }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- ORGANISATIONS -->
+                    <div class="card col-md-9 mx-auto">
+                        <div class="card-header card-header-success">
+                            <h3>Organisations</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
+                                    <tr>
+                                        <td class="text-left">Total Organisations</td>
+                                        <td class="text-right">{{ org_statistics.total_orgs|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Clubs</td>
+                                        <td class="text-right">{{ org_statistics.total_clubs|intcomma }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+            </div>
+        </div>
+
+
+
+
+{% endblock %}

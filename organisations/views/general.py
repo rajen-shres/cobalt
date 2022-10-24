@@ -306,3 +306,15 @@ def generic_org_search_htmx(request):
             "hx_target": hx_target,
         },
     )
+
+
+def get_org_statistics():
+    """return stats on organisations. called by utils statistics"""
+
+    total_clubs = Organisation.objects.filter(type="Club").count()
+    total_orgs = Organisation.objects.count()
+
+    return {
+        "total_clubs": total_clubs,
+        "total_orgs": total_orgs,
+    }

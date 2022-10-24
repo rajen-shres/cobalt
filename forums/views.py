@@ -950,3 +950,19 @@ def forums_status_summary():
     latest_c2 = Comment2.objects.all().order_by("-created_date").first()
 
     return {"latest_post": latest_post, "latest_c1": latest_c1, "latest_c2": latest_c2}
+
+
+def get_forum_statistics():
+    """return stats on forums. Called by utils statistics"""
+
+    total_posts = Post.objects.all().count()
+    total_c1 = Comment1.objects.all().count()
+    total_c2 = Comment2.objects.all().count()
+    total_chats = total_posts + total_c1 + total_c2
+
+    return {
+        "total_posts": total_posts,
+        "total_c1": total_c1,
+        "total_c2": total_c2,
+        "total_chats": total_chats,
+    }

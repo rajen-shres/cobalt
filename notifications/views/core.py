@@ -51,6 +51,8 @@ from notifications.models import (
 from organisations.models import Organisation, MemberClubEmail
 from rbac.core import rbac_user_has_role
 
+from post_office.models import Email as PostOfficeEmail
+
 logger = logging.getLogger("cobalt")
 
 # Max no of emails to send in a batch
@@ -814,3 +816,15 @@ def remove_email_from_blocked_list(email_address):
         un_reg.email_hard_bounce_reason = None
         un_reg.email_hard_bounce_date = None
         un_reg.save()
+
+
+def get_notifications_statistics():
+    """get stats about notifications. Called by util statistics"""
+
+    total_emails = PostOfficeEmail.objects.count()
+    total_real_time_notifications = RealtimeNotification.objects.count()
+
+    return {
+        "total_emails": total_emails,
+        "total_real_time_notifications": total_real_time_notifications,
+    }

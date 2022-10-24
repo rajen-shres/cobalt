@@ -15,6 +15,7 @@ urlpatterns = [
     path("batch", utils.views.cobalt_batch.batch, name="batch"),
     path("user-activity", utils.views.monitoring.user_activity, name="user_activity"),
     path("status", utils.views.monitoring.system_status, name="status"),
+    path("statistics", utils.views.monitoring.system_statistics, name="statistics"),
     path("database", utils.views.monitoring.database_view, name="database_view"),
     path("recent-errors", utils.views.monitoring.recent_errors, name="recent_errors"),
     path(

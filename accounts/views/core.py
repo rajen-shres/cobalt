@@ -526,3 +526,19 @@ def get_users_or_unregistered_users_from_email_list(email_list):
         mixed_dict[un_reg_email.email] = un_reg
 
     return mixed_dict
+
+
+def get_user_statistics():
+    """get statistics about users, called by utils statistics view"""
+
+    total_users = User.objects.count()
+
+    users_with_auto_top_up = User.objects.filter(stripe_auto_confirmed="On").count()
+
+    un_registered_users = UnregisteredUser.objects.count()
+
+    return {
+        "total_users": total_users,
+        "users_with_auto_top_up": users_with_auto_top_up,
+        "un_registered_users": un_registered_users,
+    }

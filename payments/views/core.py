@@ -35,6 +35,7 @@ import requests
 import stripe
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Sum
 from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from django.utils import timezone
@@ -1216,3 +1217,31 @@ def member_to_member_transfer_callback(stripe_transaction=None):
         stripe_transaction.description,
     )
     return HttpResponse()
+
+
+def get_payments_statistics():
+    """Get statistics about payments. Called by utils statistics"""
+
+    members_who_have_made_payments = MemberTransaction.objects.distinct(
+        "member"
+    ).count()
+    total_stripe_payment_amount = StripeTransaction.objects.aggregate(Sum("amount"))[
+        "amount__sum"
+    ]
+    total_stripe_payment_amount_refunds = StripeTransaction.objects.filter().aggregate(
+        Sum("refund_amount")
+    )["refund_amount__sum"]
+    total_stripe_payment_amount_less_refunds = (
+        total_stripe_payment_amount - total_stripe_payment_amount_refunds
+    )
+    total_turnover = MemberTransaction.objects.filter(amount__gt=0).aggregate(
+        Sum("amount")
+    )["amount__sum"]
+
+    return {
+        "members_who_have_made_payments": members_who_have_made_payments,
+        "total_stripe_payment_amount": total_stripe_payment_amount,
+        "total_stripe_payment_amount_refunds": total_stripe_payment_amount_refunds,
+        "total_stripe_payment_amount_less_refunds": total_stripe_payment_amount_less_refunds,
+        "total_turnover": total_turnover,
+    }

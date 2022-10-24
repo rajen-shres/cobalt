@@ -30,6 +30,8 @@ from events.models import (
     PlayerBatchId,
     EventLog,
     Congress,
+    Event,
+    Session,
 )
 
 TZ = pytz.timezone(TIME_ZONE)
@@ -783,4 +785,22 @@ def sort_events_by_start_date(events):
     return {
         key: value
         for key, value in sorted(events_list.items(), key=lambda item: item[1])
+    }
+
+
+def get_event_statistics():
+    """get stats about events, called by utils statistics"""
+
+    users_have_played_in_congress = EventEntryPlayer.objects.distinct("player").count()
+    total_congresses = Congress.objects.filter(status="Published").count()
+    total_events = Event.objects.filter(congress__status="Published").count()
+    total_sessions = Session.objects.count()
+    total_player_entries = EventEntryPlayer.objects.count()
+
+    return {
+        "users_have_played_in_congress": users_have_played_in_congress,
+        "total_congresses": total_congresses,
+        "total_events": total_events,
+        "total_sessions": total_sessions,
+        "total_player_entries": total_player_entries,
     }

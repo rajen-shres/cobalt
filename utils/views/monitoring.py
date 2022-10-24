@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.safestring import mark_safe
 
 from accounts.models import User
+from accounts.views.core import get_user_statistics
 from cobalt.settings import (
     COBALT_HOSTNAME,
     AWS_ACCESS_KEY_ID,
@@ -21,10 +22,12 @@ from cobalt.settings import (
     AWS_REGION_NAME,
     TIME_ZONE,
 )
-from events.views.core import events_status_summary
-from forums.views import forums_status_summary
+from events.views.core import events_status_summary, get_event_statistics
+from forums.views import forums_status_summary, get_forum_statistics
 from notifications.views.admin import notifications_status_summary
-from payments.views.core import payments_status_summary
+from notifications.views.core import get_notifications_statistics
+from organisations.views.general import get_org_statistics
+from payments.views.core import payments_status_summary, get_payments_statistics
 from rbac.core import rbac_user_has_role
 from rbac.decorators import rbac_check_role
 from rbac.views import rbac_forbidden
@@ -499,6 +502,31 @@ def admin_system_settings(request):
 
 
 @login_required()
+def system_statistics(request):
+    """Basic statistics"""
+
+    user_statistics = get_user_statistics()
+    event_statistics = get_event_statistics()
+    payments_statistics = get_payments_statistics()
+    notifications_statistics = get_notifications_statistics()
+    forum_statistics = get_forum_statistics()
+    org_statistics = get_org_statistics()
+
+    return render(
+        request,
+        "utils/monitoring/system_statistics.html",
+        {
+            "user_statistics": user_statistics,
+            "event_statistics": event_statistics,
+            "payments_statistics": payments_statistics,
+            "notifications_statistics": notifications_statistics,
+            "forum_statistics": forum_statistics,
+            "org_statistics": org_statistics,
+        },
+    )
+
+
+@login_required()
 def system_status(request):
     """Basic system health"""
 
@@ -533,7 +561,6 @@ def system_status(request):
 
     stat_time = os.stat("__init__.py").st_mtime
     utc_build_date = datetime.datetime.fromtimestamp(stat_time)
-    # build_date = timezone.localtime(utc_build_date, TZ)
     build_date = TZ.localize(utc_build_date)
 
     return render(
