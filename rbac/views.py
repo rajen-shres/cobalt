@@ -796,3 +796,21 @@ def rbac_tests(request):
             "last_query": last_query,
         },
     )
+
+
+def get_rbac_statistics():
+    """get basic stats on RBAC, called by utils statistics"""
+
+    rbac_groups = RBACGroup.objects.count()
+    rbac_roles = RBACGroupRole.objects.count()
+    rbac_users = RBACUserGroup.objects.count()
+    rbac_users_distinct = RBACUserGroup.objects.distinct("member").count()
+    rbac_admin_users_distinct = RBACAdminUserGroup.objects.distinct("member").count()
+
+    return {
+        "rbac_users_distinct": rbac_users_distinct,
+        "rbac_users": rbac_users,
+        "rbac_admin_users_distinct": rbac_admin_users_distinct,
+        "rbac_roles": rbac_roles,
+        "rbac_groups": rbac_groups,
+    }

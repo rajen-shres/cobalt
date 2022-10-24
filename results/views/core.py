@@ -381,3 +381,15 @@ def is_making_contract(dds_table, contract, declarer):
         return True
 
     return False
+
+
+def get_results_statistics():
+    """return basic stats on results. Called by utils statistics"""
+
+    total_results = ResultsFile.objects.count()
+    total_player_games = PlayerSummaryResult.objects.count()
+
+    return {
+        "total_results": total_results,
+        "total_player_games": total_player_games,
+    }

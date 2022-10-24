@@ -35,7 +35,7 @@ import requests
 import stripe
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Sum
+from django.db.models import Sum, F
 from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from django.utils import timezone
@@ -1225,6 +1225,7 @@ def get_payments_statistics():
     members_who_have_made_payments = MemberTransaction.objects.distinct(
         "member"
     ).count()
+    total_stripe_transactions = StripeTransaction.objects.count()
     total_stripe_payment_amount = StripeTransaction.objects.aggregate(Sum("amount"))[
         "amount__sum"
     ]
@@ -1234,14 +1235,45 @@ def get_payments_statistics():
     total_stripe_payment_amount_less_refunds = (
         total_stripe_payment_amount - total_stripe_payment_amount_refunds
     )
-    total_turnover = MemberTransaction.objects.filter(amount__gt=0).aggregate(
-        Sum("amount")
-    )["amount__sum"]
+
+    # Anything positive that moves counts as turnover
+    total_turnover = (
+        MemberTransaction.objects.filter(amount__gt=0).aggregate(sum=Sum("amount"))[
+            "sum"
+        ]
+        + OrganisationTransaction.objects.filter(amount__gt=0).aggregate(
+            sum=Sum("amount")
+        )["sum"]
+        + StripeTransaction.objects.filter(amount__gt=0).aggregate(sum=Sum("amount"))[
+            "sum"
+        ]
+    )
+
+    # Average Stripe transaction
+    average_stripe_transaction = (
+        float(total_stripe_payment_amount) / total_stripe_transactions
+    )
+
+    # ABF cut of things
+    abf_fees = (
+        OrganisationTransaction.objects.filter(type="Settlement")
+        .annotate(abf_fee=-F("amount") - F("bank_settlement_amount"))
+        .aggregate(sum=Sum("abf_fee"))["sum"]
+    )
+
+    # stripe cut of things - hard code Stripe charges 1.35% and 30c per transaction
+    estimated_stripe_fees = (
+        float(total_stripe_payment_amount_less_refunds) * 0.0135
+    ) + (0.3 * total_stripe_transactions)
 
     return {
         "members_who_have_made_payments": members_who_have_made_payments,
         "total_stripe_payment_amount": total_stripe_payment_amount,
+        "total_stripe_transactions": total_stripe_transactions,
         "total_stripe_payment_amount_refunds": total_stripe_payment_amount_refunds,
         "total_stripe_payment_amount_less_refunds": total_stripe_payment_amount_less_refunds,
         "total_turnover": total_turnover,
+        "abf_fees": abf_fees,
+        "estimated_stripe_fees": estimated_stripe_fees,
+        "average_stripe_transaction": average_stripe_transaction,
     }

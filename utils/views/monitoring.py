@@ -24,13 +24,16 @@ from cobalt.settings import (
 )
 from events.views.core import events_status_summary, get_event_statistics
 from forums.views import forums_status_summary, get_forum_statistics
+from logs.views import get_logs_statistics
 from notifications.views.admin import notifications_status_summary
 from notifications.views.core import get_notifications_statistics
 from organisations.views.general import get_org_statistics
 from payments.views.core import payments_status_summary, get_payments_statistics
 from rbac.core import rbac_user_has_role
 from rbac.decorators import rbac_check_role
-from rbac.views import rbac_forbidden
+from rbac.views import rbac_forbidden, get_rbac_statistics
+from results.views.core import get_results_statistics
+from support.helpdesk import get_support_statistics
 from utils.utils import cobalt_paginator
 
 
@@ -511,6 +514,10 @@ def system_statistics(request):
     notifications_statistics = get_notifications_statistics()
     forum_statistics = get_forum_statistics()
     org_statistics = get_org_statistics()
+    rbac_statistics = get_rbac_statistics()
+    support_statistics = get_support_statistics()
+    logs_statistics = get_logs_statistics()
+    results_statistics = get_results_statistics()
 
     return render(
         request,
@@ -522,6 +529,10 @@ def system_statistics(request):
             "notifications_statistics": notifications_statistics,
             "forum_statistics": forum_statistics,
             "org_statistics": org_statistics,
+            "rbac_statistics": rbac_statistics,
+            "support_statistics": support_statistics,
+            "logs_statistics": logs_statistics,
+            "results_statistics": results_statistics,
         },
     )
 

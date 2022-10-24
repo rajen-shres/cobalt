@@ -1023,3 +1023,15 @@ def close_old_tickets():
         ).save()
         inactive_ticket.status = "Closed"
         inactive_ticket.save()
+
+
+def get_support_statistics():
+    """return basic stats about support. Called by utils statistics"""
+
+    total_tickets = Incident.objects.count()
+    open_tickets = Incident.objects.exclude(status="Closed").count()
+
+    return {
+        "total_tickets": total_tickets,
+        "open_tickets": open_tickets,
+    }

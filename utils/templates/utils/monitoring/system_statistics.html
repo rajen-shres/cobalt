@@ -13,7 +13,6 @@
         td, th {
             font-size: larger;
         }
-
     </style>
 {% endblock %}
 
@@ -49,8 +48,8 @@
                             <div class="table-responsive">
                                 <table class="table table-condensed table-hover">
                                     <tr>
-                                        <td class="text-left">Total Users</td>
-                                        <td class="text-right">{{ user_statistics.total_users|intcomma }}</td>
+                                        <td class="text-left font-weight-bold">Total Users</td>
+                                        <td class="text-right font-weight-bold">{{ user_statistics.total_users|intcomma }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-left">Un-registered Users</td>
@@ -82,12 +81,16 @@
                             <div class="table-responsive">
                                 <table class="table table-condensed table-hover">
                                     <tr>
-                                        <td class="text-left">Total Turnover</td>
-                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ payments_statistics.total_turnover|floatformat:2|intcomma }}</td>
+                                        <td class="text-left font-weight-bold">Total Stripe Payments</td>
+                                        <td class="text-right font-weight-bold">{{ GLOBAL_CURRENCY_SYMBOL }}{{ payments_statistics.total_stripe_payment_amount_less_refunds|floatformat:2|intcomma }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="text-left">Total Stripe Payments</td>
-                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ payments_statistics.total_stripe_payment_amount_less_refunds|floatformat:2|intcomma }}</td>
+                                        <td class="text-left">Total Number of Stripe Transactions</td>
+                                        <td class="text-right">{{ payments_statistics.total_stripe_transactions|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Average size of Stripe Transactions</td>
+                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ payments_statistics.average_stripe_transaction|floatformat:2|intcomma }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-left">Total Stripe Payments (before refunds)</td>
@@ -96,6 +99,18 @@
                                     <tr>
                                         <td class="text-left">Total Stripe Refunds</td>
                                         <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ payments_statistics.total_stripe_payment_amount_refunds|floatformat:2|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Cash Movement</td>
+                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ payments_statistics.total_turnover|floatformat:2|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Estimated Stripe Fees</td>
+                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ payments_statistics.estimated_stripe_fees|floatformat:2|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">ABF Charges</td>
+                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ payments_statistics.abf_fees|floatformat:2|intcomma }}</td>
                                     </tr>
                                 </table>
                             </div>
@@ -112,8 +127,8 @@
                             <div class="table-responsive">
                                 <table class="table table-condensed table-hover">
                                     <tr>
-                                        <td class="text-left">Total Emails (since April 2022)</td>
-                                        <td class="text-right">{{ notifications_statistics.total_emails|intcomma }}</td>
+                                        <td class="text-left font-weight-bold">Total Emails (since April 2022)</td>
+                                        <td class="text-right font-weight-bold">{{ notifications_statistics.total_emails|intcomma }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-left">Total Real Time Notifications</td>
@@ -134,6 +149,10 @@
                             <div class="table-responsive">
                                 <table class="table table-condensed table-hover">
                                     <tr>
+                                        <td class="text-left font-weight-bold">Total Player Entries</td>
+                                        <td class="text-right font-weight-bold">{{ event_statistics.total_player_entries|intcomma }}</td>
+                                    </tr>
+                                    <tr>
                                         <td class="text-left">Total Congresses</td>
                                         <td class="text-right">{{ event_statistics.total_congresses|intcomma }}</td>
                                     </tr>
@@ -144,10 +163,6 @@
                                     <tr>
                                         <td class="text-left">Total Sessions</td>
                                         <td class="text-right">{{ event_statistics.total_sessions|intcomma }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-left">Total Player Entries</td>
-                                        <td class="text-right">{{ event_statistics.total_player_entries|intcomma }}</td>
                                     </tr>
                                 </table>
                             </div>
@@ -164,8 +179,8 @@
                             <div class="table-responsive">
                                 <table class="table table-condensed table-hover">
                                     <tr>
-                                        <td class="text-left">Total Chats</td>
-                                        <td class="text-right">{{ forum_statistics.total_chats|intcomma }}</td>
+                                        <td class="text-left font-weight-bold">Total Chats</td>
+                                        <td class="text-right font-weight-bold">{{ forum_statistics.total_chats|intcomma }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-left">Total Posts</td>
@@ -194,13 +209,125 @@
                             <div class="table-responsive">
                                 <table class="table table-condensed table-hover">
                                     <tr>
+                                        <td class="text-left font-weight-bold">Total Clubs</td>
+                                        <td class="text-right font-weight-bold">{{ org_statistics.total_clubs|intcomma }}</td>
+                                    </tr>
+
+                                    <tr>
                                         <td class="text-left">Total Organisations</td>
                                         <td class="text-right">{{ org_statistics.total_orgs|intcomma }}</td>
                                     </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RESULTS -->
+                    <div class="card col-md-9 mx-auto">
+                        <div class="card-header card-header-primary">
+                            <h3>Results</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
                                     <tr>
-                                        <td class="text-left">Total Clubs</td>
-                                        <td class="text-right">{{ org_statistics.total_clubs|intcomma }}</td>
+                                        <td class="text-left font-weight-bold">Total Player Games</td>
+                                        <td class="text-right font-weight-bold">{{ results_statistics.total_player_games|intcomma }}</td>
                                     </tr>
+
+                                    <tr>
+                                        <td class="text-left">Total Results</td>
+                                        <td class="text-right">{{ results_statistics.total_results|intcomma }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RBAC -->
+                    <div class="card col-md-9 mx-auto">
+                        <div class="card-header card-header-warning">
+                            <h3>Role Based Access Control</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
+
+                                    <tr>
+                                        <td class="text-left font-weight-bold">Groups</td>
+                                        <td class="text-right font-weight-bold">{{ rbac_statistics.rbac_groups|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Roles</td>
+                                        <td class="text-right">{{ rbac_statistics.rbac_roles|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Users in Groups</td>
+                                        <td class="text-right">{{ rbac_statistics.rbac_users|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Users under Management (distinct)</td>
+                                        <td class="text-right">{{ rbac_statistics.rbac_users_distinct|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Administrators</td>
+                                        <td class="text-right">{{ rbac_statistics.rbac_admin_users_distinct|intcomma }}</td>
+                                    </tr>
+
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUPPORT -->
+                    <div class="card col-md-9 mx-auto">
+                        <div class="card-header card-header-danger">
+                            <h3>Support</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
+
+                                    <tr>
+                                        <td class="text-left font-weight-bold">Total Tickets</td>
+                                        <td class="text-right font-weight-bold">{{ support_statistics.total_tickets|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Open Tickets</td>
+                                        <td class="text-right">{{ support_statistics.open_tickets|intcomma }}</td>
+                                    </tr>
+
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LOGS -->
+                    <div class="card col-md-9 mx-auto">
+                        <div class="card-header card-header-info">
+                            <h3>Logs</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
+
+                                    <tr>
+                                        <td class="text-left font-weight-bold">Total Logged Events</td>
+                                        <td class="text-right font-weight-bold">{{ logs_statistics.total_logs|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Critical Events</td>
+                                        <td class="text-right">{{ logs_statistics.total_critical_logs|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Congress Logs</td>
+                                        <td class="text-right">{{ logs_statistics.event_logs|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Club Logs</td>
+                                        <td class="text-right">{{ logs_statistics.club_logs|intcomma }}</td>
+                                    </tr>
+
                                 </table>
                             </div>
                         </div>

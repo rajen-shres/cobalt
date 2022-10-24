@@ -8,6 +8,8 @@ from django.utils.html import strip_tags
 
 from accounts.models import User
 from cobalt.settings import DEFAULT_FROM_EMAIL, SUPPORT_EMAIL
+from events.models import EventLog
+from organisations.models import ClubLog
 from utils.utils import cobalt_paginator
 from .models import Log
 
@@ -161,3 +163,21 @@ def home(request):
             "users": unique_users,
         },
     )
+
+
+def get_logs_statistics():
+    """return basic stats on logs. Called by utils statistics"""
+
+    total_logs = Log.objects.count()
+    total_critical_logs = Log.objects.filter(
+        severity=Log.SeverityCodes.CRITICAL
+    ).count()
+    event_logs = EventLog.objects.count()
+    club_logs = ClubLog.objects.count()
+
+    return {
+        "total_logs": total_logs,
+        "total_critical_logs": total_critical_logs,
+        "event_logs": event_logs,
+        "club_logs": club_logs,
+    }
