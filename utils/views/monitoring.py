@@ -470,9 +470,16 @@ def admin_system_settings(request):
         )
 
     # Get the setting we are interested in
-    # fish_setting = settings.get("FISH_SETTING") == "ON"
-    # disable_playpen = settings.get("DISABLE_PLAYPEN") == "ON"
-    # maintenance_mode = settings.get("MAINTENANCE_MODE") == "ON"
+    fish_setting = settings.get("FISH_SETTING") == "ON"
+    disable_playpen = settings.get("DISABLE_PLAYPEN") == "ON"
+    maintenance_mode = settings.get("MAINTENANCE_MODE") == "ON"
+
+    print(AWS_ACCESS_KEY_ID)
+    print(AWS_SECRET_ACCESS_KEY)
+    print(AWS_REGION_NAME)
+    print(fish_setting)
+    print(disable_playpen)
+    print(maintenance_mode)
 
     # Create AWS client
     eb_client = boto3.client(
@@ -489,7 +496,7 @@ def admin_system_settings(request):
             {
                 "Namespace": "aws:elasticbeanstalk:application:environment",
                 "OptionName": "FISH_SETTING",
-                "Value": "updated",
+                "Value": "updatedbydjango",
             }
         ],
     )
