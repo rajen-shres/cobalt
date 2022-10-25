@@ -185,8 +185,10 @@ def tab_congress_htmx(request, club):
 def tab_sessions_htmx(request, club, message=""):
     """build the sessions tab in club menu"""
 
-    sessions = Session.objects.filter(session_type__organisation=club).order_by(
-        "-session_date", "-pk"
+    sessions = (
+        Session.objects.filter(session_type__organisation=club)
+        .order_by("-session_date", "-pk")
+        .select_related("session_type")
     )
 
     things = cobalt_paginator(request, sessions)

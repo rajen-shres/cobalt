@@ -5,6 +5,17 @@
 {% block title %} - Statement Admin Summary{% endblock %}
 
 {% block content %}
+
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#payments">Finance</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ GLOBAL_ORG }} {{ BRIDGE_CREDITS }}</li>
+        </ol>
+    </nav>
+
     <div id="ignore_cobalt_save"></div>
     <div class="">
         <div class="card">

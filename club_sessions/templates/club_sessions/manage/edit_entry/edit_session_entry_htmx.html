@@ -149,6 +149,8 @@
                         <!-- CHANGE TO A NON-ABF VISITOR -->
                         <button
                             class="btn btn-sm btn-primary"
+                            id="non-abf-button"
+                            disabled
                             hx-post="{% url "club_sessions:session_change_player_htmx" %}"
                             hx-target="#id_pane_session"
                             hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}, non_abf_visitor:1"
@@ -191,7 +193,7 @@
                     <div class="row">
                         <div class="card col-md-4">
                             <div class="card-header-danger">
-                                <h3>Session Details</h3>
+                                <h3>Table Fees</h3>
                             </div>
                             <div class="card-body">
 
@@ -311,6 +313,11 @@
     };
 
     $(document).ready( function () {
+
+        // Enable save button if changes are made to player form - stop empty visitor names
+        $("#id_member_first_name_search, #id_member_last_name_search").keyup(function(){
+            $("#non-abf-button").prop("disabled", false);
+        });
 
         // Enable save button if changes are made
         $("#player_form input, #id_payment_method").change(function(){

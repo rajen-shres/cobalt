@@ -347,6 +347,21 @@ def csv_download(request, session_id):
     writer = csv.writer(response)
     writer.writerow([club.name, f"Downloaded by {request.user.full_name}"])
 
+    # basic session details
+    writer.writerow([])
+    if session.status == Session.SessionStatus.COMPLETE:
+        writer.writerow(["Status", "Complete"])
+    else:
+        writer.writerow(["Status", "Incomplete"])
+    writer.writerow(["Director", session.director])
+    writer.writerow(["Description", session.description])
+    writer.writerow(["Session Date", session.session_date])
+    writer.writerow(["Session Type", session.session_type])
+    writer.writerow(["Time of Day", session.time_of_day])
+    if session.venue:
+        writer.writerow(["Venue", session.venue])
+    writer.writerow([])
+
     # notes if we have any
     if session.director_notes:
         writer.writerow(["Director Notes", session.director_notes])
@@ -362,7 +377,7 @@ def csv_download(request, session_id):
         "Seat",
         "Payment Method",
         "Fee",
-        "Paid",
+        "Processed",
     ]
     writer.writerow(field_names)
     # Write data rows
@@ -393,9 +408,11 @@ def csv_download(request, session_id):
         # Write a first row with header information
         field_names = [
             "Session",
+            "Date",
             "Name",
             f"{GLOBAL_ORG} Number",
             "Description",
+            "",
             "Payment Method",
             "Fee",
             "Processed",
@@ -405,10 +422,12 @@ def csv_download(request, session_id):
         # Write data rows
         for extra in extras:
             values = [
-                extra.session_entry.session,
+                extra.session_entry.session.description,
+                session.session_date,
                 _get_name_for_csv(extra.session_entry, mixed_dict),
                 extra.session_entry.system_number,
                 extra.description,
+                "",
                 extra.payment_method.payment_method,
                 extra.amount,
                 extra.payment_made,

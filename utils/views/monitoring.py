@@ -35,7 +35,8 @@ from results.views.core import get_results_statistics
 from support.helpdesk import get_support_statistics
 from utils.utils import cobalt_paginator
 
-# from importlib import import_module
+from importlib import import_module
+
 # from importlib import import_module
 
 
@@ -147,8 +148,6 @@ def user_activity(request):
 def database_view(request):
     """Show basic stats about the database"""
 
-    from importlib import import_module
-
     db_sizes = []
 
     with connection.cursor() as cursor:
@@ -200,7 +199,7 @@ def database_view(request):
 
     return render(
         request,
-        "utils/database_view.html",
+        "utils/monitoring/database_view.html",
         {"db_sizes": db_sizes, "total_size": total_size, "total_rows": total_rows},
     )
 

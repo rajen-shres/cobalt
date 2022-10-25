@@ -134,9 +134,9 @@
                                                 id="id_misc_pay_pay_{{ session_misc_payment.id }}"
                                             >
                                                 {% if session_misc_payment.payment_made %}
-                                                    Unpay
+                                                    Undo
                                                 {% else %}
-                                                    Pay
+                                                    Process
                                                 {% endif %}
                                             </button>
 
@@ -364,11 +364,11 @@
         // handle unpay misc payment button
         $(".misc-pay-unpay").on("click", function(evt){
 
-            let warning_msg = "Unpay this extra";
+            let warning_msg = "Undo this extra";
 
             // check if this is going to also reverse a bridge credit transaction
             if ($(this).hasClass('bridge_credits_paid_for')){
-                warning_msg = "Unpay this. Payment has been made and will be refunded. This will appear on {{ player.first_name|default_if_none:"player" }}'s statement."
+                warning_msg = "Undo this. Payment has been made and will be refunded. This will appear on {{ player.first_name|default_if_none:"player" }}'s statement."
             }
 
             Swal.fire({
@@ -398,7 +398,7 @@
 
             // check if this is going to also reverse a bridge credit transaction
             if ($(this).hasClass('bridge_credits_will_be_paid_for')){
-                warning_msg = "Pay this. {{ BRIDGE_CREDITS }} will be charged. This will appear on {{ player.first_name|default_if_none:"player" }}'s statement."
+                warning_msg = "Process this. {{ BRIDGE_CREDITS }} will be charged. This will appear on {{ player.first_name|default_if_none:"player" }}'s statement."
             }
 
             Swal.fire({

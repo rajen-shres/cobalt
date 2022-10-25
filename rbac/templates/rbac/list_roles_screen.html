@@ -3,10 +3,14 @@
 {% block title %} - RBAC Tree View (List){% endblock %}
 {% block content %}
 
+
+    <!-- BREADCRUMBS -->
+
     <nav aria-label="breadcrumb" role="navigation">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#rbac">Admin</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Tree List</li>
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#rbac">RBAC</a></li>
+            <li class="breadcrumb-item active" aria-current="page">List View (by Role)</li>
         </ol>
     </nav>
 

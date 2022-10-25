@@ -16,6 +16,7 @@
                     <th class="text-left">Session</th>
                     <th>Date</th>
                     <th>Director</th>
+                    <th>Type</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -39,6 +40,7 @@
                         </td>
                         <td>{{ thing.session_date }}</td>
                         <td>{{ thing.director.full_name }}</td>
+                        <td>{{ thing.session_type.name }}</td>
                         <td>{{ thing.get_status_display }}</td>
                         <td>
                             <!-- EDIT - OPEN NEW WINDOW -->

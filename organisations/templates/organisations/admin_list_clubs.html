@@ -12,7 +12,8 @@
 
     <nav aria-label="breadcrumb" role="navigation">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#orgs">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#orgs">Organisations</a></li>
             <li class="breadcrumb-item active" aria-current="page">List Clubs</li>
         </ol>
     </nav>
@@ -25,7 +26,7 @@
 
             <div class="card-body">
                 {% for state, clubs in grouped_by_state.items %}
-                    <div class="card col-md-8 mb-5">
+                    <div class="card col-md-10 mb-5">
                         <div class="card-header card-header-{% cobalt_random_colour %}">
                             <h2>{{ state }}</h2>
                         </div>

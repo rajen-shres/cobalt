@@ -2,6 +2,17 @@
 {% block title %} - Stripe Pending{% endblock %}
 
 {% block content %}
+
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#payments">Finance</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Stripe Pending Report</li>
+        </ol>
+    </nav>
+
     <br>
     <div class="container">
 
