@@ -1260,22 +1260,25 @@ def get_payments_statistics():
     )
 
     # ABF cut of things
-    abf_fees = (
-        # Now we include exact fee on transaction
-        OrganisationTransaction.objects.filter(type="Settlement")
-        .filter(bank_settlement_amount__gt=0)
-        .annotate(abf_fee=-F("amount") - F("bank_settlement_amount"))
-        .aggregate(sum=Sum("abf_fee"))["sum"]
-        # Previously we didn't but it was 2% of value
-    ) - OrganisationTransaction.objects.filter(type="Settlement").exclude(
-        bank_settlement_amount__gt=0
-    ).aggregate(
-        sum=Sum("amount")
-    )[
-        "sum"
-    ] * Decimal(
-        0.02
-    )
+    try:
+        abf_fees = (
+            # Now we include exact fee on transaction
+            OrganisationTransaction.objects.filter(type="Settlement")
+            .filter(bank_settlement_amount__gt=0)
+            .annotate(abf_fee=-F("amount") - F("bank_settlement_amount"))
+            .aggregate(sum=Sum("abf_fee"))["sum"]
+            # Previously we didn't but it was 2% of value
+        ) - OrganisationTransaction.objects.filter(type="Settlement").exclude(
+            bank_settlement_amount__gt=0
+        ).aggregate(
+            sum=Sum("amount")
+        )[
+            "sum"
+        ] * Decimal(
+            0.02
+        )
+    except TypeError:
+        abf_fees = 0
 
     # stripe cut of things - won't cope with rate changes but could be modified
     estimated_stripe_fees = (

@@ -178,7 +178,7 @@ Environment: {{ COBALT_HOSTNAME }}
                         {% endif %}
 
                         {% if show_admin_on_template %}
-                            <li class="nav-item">
+                            <li class="nav-item {% if "/admin" in request.path or "/utils" in request.path or "/rbac" in request.path %}active{% endif %}">
                                 <a class="nav-link" href="{% url "rbac:admin_menu" %}">
                                     <i class="material-icons">recent_actors</i>
                                     <p>Admin</p>

@@ -12,6 +12,16 @@
 {% block title %} - Congress Health Report{% endblock %}
 {% block content %}
 
+
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#events">Admin</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Congress Payment Health</li>
+        </ol>
+    </nav>
+
     <!-- MAIN CARD -->
     <div class="col-xl-9 mx-auto">
         <div class="card mx-0 px-0 w-80">

@@ -29,12 +29,14 @@ from notifications.views.admin import notifications_status_summary
 from notifications.views.core import get_notifications_statistics
 from organisations.views.general import get_org_statistics
 from payments.views.core import payments_status_summary, get_payments_statistics
-from rbac.core import rbac_user_has_role
 from rbac.decorators import rbac_check_role
-from rbac.views import rbac_forbidden, get_rbac_statistics
+from rbac.views import get_rbac_statistics
 from results.views.core import get_results_statistics
 from support.helpdesk import get_support_statistics
 from utils.utils import cobalt_paginator
+
+# from importlib import import_module
+# from importlib import import_module
 
 
 def _get_aws_environment():
@@ -144,6 +146,8 @@ def user_activity(request):
 @login_required()
 def database_view(request):
     """Show basic stats about the database"""
+
+    from importlib import import_module
 
     db_sizes = []
 

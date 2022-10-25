@@ -1,6 +1,16 @@
 {% extends 'base.html' %}
 {% block title %} - Non-Production Email Changer{% endblock %}
 {% block content %}
+
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#dev">Admin</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Email Changer</li>
+        </ol>
+    </nav>
+
     <form method="post">
 
         {% csrf_token %}

@@ -4,6 +4,16 @@
 {% block title %} - Real Time Notifications{% endblock %}
 
 {% block content %}
+
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#email">Admin</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Real Time Notifications</li>
+        </ol>
+    </nav>
+
     <div class="card">
         <div class="card-header card-header-primary">
             <h1>Real Time Notifications</h1>

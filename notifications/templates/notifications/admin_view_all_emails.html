@@ -3,6 +3,16 @@
 {% block title %} - Notifications Emails{% endblock %}
 {% block content %}
 
+
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#email">Admin</a></li>
+            <li class="breadcrumb-item active" aria-current="page">View All Emails</li>
+        </ol>
+    </nav>
+
     <div class="jumbotron">
         <div class="card col-lg-10 mx-auto">
             <div class="card-header card-header-warning">

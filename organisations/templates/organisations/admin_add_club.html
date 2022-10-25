@@ -10,6 +10,16 @@
 
     {% include "accounts/search/user_search_include_htmx.html" with search_id=1 callback='cobaltMemberSearchOk' include_me=1 %}
 
+
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#orgs">Admin</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Add Club</li>
+        </ol>
+    </nav>
+
     <div class="">
         <div class="card col-md-12 align-content-center">
             <div class="card-header card-header-primary">

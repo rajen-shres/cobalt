@@ -22,7 +22,7 @@
                     <div>
                         <!-- Show on large screens, not small -->
                         <span class="d-none d-md-block d-lg-block">
-                            Administration
+                            Administration Menu
                         </span>
                         <!-- Show on small screens, not large -->
                         <span class="d-md-none d-lg-none d-xl-none d-xs-block d-sm-block">
@@ -217,14 +217,7 @@
                                             {#                                                    Settings for this system#}
                                             {#                                                </td>#}
                                             {#                                            </tr>#}
-                                            <tr>
-                                                <td>
-                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "utils:user_activity" %}">User Activity</a>
-                                                </td>
-                                                <td class="text-left pl-5">
-                                                    Recent activity by users
-                                                </td>
-                                            </tr>
+
                                             <tr>
                                                 <td>
                                                     <a class="btn btn-sm btn-success btn-block" href="{% url "accounts:user_signed_up_list" %}">User Sign Ups</a>

@@ -113,7 +113,7 @@ urlpatterns = [
         name="toggle_team_mate_ajax",
     ),
     path(
-        "user-signed-up-list",
+        "admin/user-signed-up-list",
         accounts.views.admin.user_signed_up_list,
         name="user_signed_up_list",
     ),
