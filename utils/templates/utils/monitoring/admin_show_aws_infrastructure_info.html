@@ -9,6 +9,17 @@
 
 {% block content %}
 
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">General</a></li>
+            <li class="breadcrumb-item"><a href="{% url "utils:status" %}">System Status</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Infrastructure</li>
+        </ol>
+    </nav>
+
     <!-- MAIN CARD FOR PAGE -->
 
     <div class="card">
