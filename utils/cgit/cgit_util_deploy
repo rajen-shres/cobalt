@@ -20,7 +20,11 @@ then
 
     # Get number of EC2 instances running. We want at least 2
 
+    echo "Scaling environment to prevent an outage if required. Could take a few minutes..."
+
   ec2_instances=$(utils/cgit/tools/eb_count_ec2_nodes_in_environment.py $UATENV)
+
+  echo "Original instance number was $ec2_instances"
 
    DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
    echo "Running eb deploy -m '$BRANCH@$DATE' $1"
@@ -28,6 +32,8 @@ then
 
    if [ "$ec2_instances" = "1" ]
     then
+
+  echo "Restoring instance number to $ec2_instances. Could take a few minutes..."
 
    eb scale "$ec2_instances" "$UATENV"
 
