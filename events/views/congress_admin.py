@@ -1880,7 +1880,8 @@ def admin_event_payment_methods_csv(request, event_id):
 
     event_entry_players = EventEntryPlayer.objects.filter(event_entry__event=event)
 
-    return download_csv(request, event_entry_players)
+    # This function is used with the Django Admin and requires self as a parameter, although it doesn't get used
+    return download_csv(None, request, event_entry_players)
 
 
 @login_required()

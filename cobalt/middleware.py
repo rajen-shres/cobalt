@@ -33,8 +33,11 @@ class MaintenanceModeMiddleware:
 
         response = self.get_response(request)
 
-        # Allow superusers plus access to the login page
-        if request.user.is_superuser or request.META["PATH_INFO"] == "/accounts/login/":
+        # Allow superusers plus access to the login page and ses webhook (or it sends a million error emails)
+        if request.user.is_superuser or request.META["PATH_INFO"] in [
+            "/accounts/login/",
+            "/notifications/ses/event-webhook/",
+        ]:
             return response
         else:
             return render(request, "errors/503.html", status=503)
