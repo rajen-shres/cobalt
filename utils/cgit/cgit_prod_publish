@@ -38,9 +38,35 @@ then
   echo "Deploying to PRODUCTION server..."
   echo ""
 
-  PRODENV=`eb list | grep cobalt-production` 
-  DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
-  eb deploy -m "$BRANCH@$DATE" $PRODENV
+PRODENV=`eb list | grep cobalt-uat`
+PRODNUM=`eb list | grep cobalt-uat | wc | awk '{print $1}'`
+
+if [ "$PRODNUM" = "1" ]
+then
+    # Get number of EC2 instances running. We want at least 2
+    utils/cgit/_cgit_scale_environment_for_deployment $PRODENV
+    ec2_instances=$?
+
+  echo "Original instance number was $ec2_instances"
+
+   echo "Deploying code to $PRODENV..."
+   DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
+   eb deploy -m "release/$RELEASE@$DATE" $PRODENV
+
+   if [ "$ec2_instances" = "1" ]
+    then
+
+      echo "Restoring instance number to $ec2_instances. Could take a few minutes..."
+
+      eb scale "$ec2_instances" "$PRODENV"
+
+   fi
+
+else
+   echo "Cannot deploy to Production, found more than one Production environment."
+   echo $PRODENV
+fi
+
 
   echo ""
   echo ""

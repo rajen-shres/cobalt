@@ -88,10 +88,11 @@ UATNUM=`eb list | grep cobalt-uat | wc | awk '{print $1}'`
 
 if [ "$UATNUM" = "1" ]
 then
+    # Get number of EC2 instances running. We want at least 2
+    utils/cgit/_cgit_scale_environment_for_deployment $UATENV
+    ec2_instances=$?
 
-  # Get number of EC2 instances running. We want at least 2
-
-  ec2_instances=$(utils/cgit/tools/eb_count_ec2_nodes_in_environment.py $UATENV)
+  echo "Original instance number was $ec2_instances"
 
    echo "Deploying code to $UATENV..."
    DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
@@ -100,7 +101,9 @@ then
    if [ "$ec2_instances" = "1" ]
     then
 
-   eb scale "$ec2_instances" "$UATENV"
+      echo "Restoring instance number to $ec2_instances. Could take a few minutes..."
+
+      eb scale "$ec2_instances" "$UATENV"
 
    fi
 
