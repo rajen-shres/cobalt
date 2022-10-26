@@ -22,7 +22,7 @@ then
 
     echo "Scaling environment to prevent an outage if required. Could take a few minutes..."
 
-    utils/cgit/tools/eb_count_ec2_nodes_in_environment.py $1
+    utils/cgit/_cgit_scale_environment_for_deployment $1
     ec2_instances=$?
 
   echo "Original instance number was $ec2_instances"
