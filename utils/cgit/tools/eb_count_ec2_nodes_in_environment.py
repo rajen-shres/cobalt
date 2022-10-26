@@ -23,6 +23,13 @@ eb_client = boto3.client(
     region_name="ap-southeast-2",
 )
 
+#
+# print(
+#     eb_client.describe_environment_resources(EnvironmentName=environment)[
+#         "EnvironmentResources"
+#     ]["Instances"]
+# )
+
 instances = len(
     eb_client.describe_environment_resources(EnvironmentName=environment)[
         "EnvironmentResources"

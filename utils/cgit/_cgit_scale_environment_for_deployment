@@ -14,6 +14,7 @@ echo "Found $ec2_instances running instances on $1"
 
 # If only one instance then add to it
 if [ "$ec2_instances" = "1" ];then
+    echo "Increasing number of instances..."
     # eb scale 2 $1 >/dev/null 2>&1
     eb scale 2 $1
 fi

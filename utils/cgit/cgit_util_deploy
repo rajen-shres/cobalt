@@ -19,9 +19,6 @@ if [[ -z $(git status -s) ]]
 then
 
     # Get number of EC2 instances running. We want at least 2
-
-    echo "Scaling environment to prevent an outage if required. Could take a few minutes..."
-
     utils/cgit/_cgit_scale_environment_for_deployment $1
     ec2_instances=$?
 
