@@ -185,14 +185,19 @@
                                 <div class="table-responsive">
                                     <table class="table table-condensed">
                                         <tbody>
-                                            <tr>
-                                                <td>
-                                                    <a class="btn btn-sm btn-success btn-block" href="/admin_1234567">Django Admin</a>
-                                                </td>
-                                                <td class="text-left pl-5">
-                                                    Django built in admin functions
-                                                </td>
-                                            </tr>
+
+                                            {% if request.user.is_superuser %}
+
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-success btn-block" href="/admin_1234567">Django Admin</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Django built in admin functions
+                                                    </td>
+                                                </tr>
+
+                                            {% endif %}
                                             <tr>
                                                 <td>
                                                     <a class="btn btn-sm btn-success btn-block" href="{% url "utils:status" %}">System Status</a>
@@ -201,31 +206,36 @@
                                                     Overall health of the system
                                                 </td>
                                             </tr>
-                                            <tr>
-                                                <td>
-                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "utils:statistics" %}">System Statistics</a>
-                                                </td>
-                                                <td class="text-left pl-5">
-                                                    Statistics for the system
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "utils:admin_system_settings" %}">System Settings</a>
-                                                </td>
-                                                <td class="text-left pl-5">
-                                                    Settings for this system
-                                                </td>
-                                            </tr>
 
-                                            <tr>
-                                                <td>
-                                                    <a class="btn btn-sm btn-success btn-block" href="{% url "accounts:user_signed_up_list" %}">User Sign Ups</a>
-                                                </td>
-                                                <td class="text-left pl-5">
-                                                    Users who have signed up for {{ GLOBAL_TITLE }}
-                                                </td>
-                                            </tr>
+                                            {% if request.user.is_superuser %}
+
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-success btn-block" href="{% url "utils:statistics" %}">System Statistics</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Statistics for the system
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-success btn-block" href="{% url "utils:admin_system_settings" %}">System Settings</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Settings for this system
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-success btn-block" href="{% url "accounts:user_signed_up_list" %}">User Sign Ups</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        Users who have signed up for {{ GLOBAL_TITLE }}
+                                                    </td>
+                                                </tr>
+
+                                            {% endif %}
                                         </tbody>
                                     </table>
                                 </div>

@@ -7,6 +7,45 @@
 {% load cobalt_tags %}
 {% block title %} - System Settings{% endblock %}
 
+{% block header %}
+    <style>
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #FFF;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            position: relative;
+            animation: pulse 1s linear infinite;
+        }
+        .loader:after {
+            content: '';
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            border: 5px solid #447e9b;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            animation: scaleUp 1s linear infinite;
+        }
+
+        @keyframes scaleUp {
+            0% { transform: translate(-50%, -50%) scale(0) }
+            60% , 100% { transform: translate(-50%, -50%)  scale(1)}
+        }
+        @keyframes pulse {
+            0% , 60% , 100%{ transform:  scale(1) }
+            80% { transform:  scale(1.2)}
+        }
+
+    </style>
+{% endblock header %}
+
 {% block content %}
 
     <!-- BREADCRUMBS -->
@@ -22,9 +61,21 @@
     <div class="card">
         <div class="card-header card-header-rose">
             <h2>System Settings for {{ environment_type }}</h2>
+            <h4><b>Maintenance Mode</b> will prevent anyone but a super-user from logging in.</h4>
+
+            {% if environment_type != "cobalt-production" %}
+                <h4><b>Disable Playpen</b> will turn off the protections against sending emails to real people.
+                    You may want to do this for some testing, but it is there to protect us from accidents so it should
+                    usually not be ticked.</h4>
+            {% endif %}
         </div>
         <div class="card-body">
-            <h3 class="text-primary">{{ message }}</h3>
+            <!-- MESSAGE -->
+            <h3 class="text-primary font-weight-bold">
+                <span
+                    _="on load wait 15s then transition opacity to 0 then remove me"
+                >{{ message }}</span>
+            </h3>
 
             <!-- SHOW REFRESHING STATUS IF WE UPDATED THE VALUES -->
 
@@ -42,25 +93,21 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="form-group">
-                            {% cobalt_bs4_field form.fish_setting %}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-12">
-                        <div class="form-group">
-                            {% cobalt_bs4_field form.disable_playpen %}
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <div class="form-group">
                             {% cobalt_bs4_field form.maintenance_mode %}
                         </div>
                     </div>
                 </div>
+
+                <!-- DONT ALLOW DISABLE PLAYPEN ON PRODUCTION -->
+                {% if environment_type != "cobalt-production" %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                {% cobalt_bs4_field form.disable_playpen %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
 
                 <button type="submit" class="btn btn-success cobalt-save">Update</button>
 

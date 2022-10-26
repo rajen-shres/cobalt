@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import connection, ProgrammingError
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
@@ -241,7 +242,8 @@ def admin_show_aws_infrastructure_info(request):
 
 @login_required()
 def get_aws_environment_status_htmx(request):
-    """Shows the status of the environment. Called by admin_system_settings after we make a change"""
+    """Shows the status of the environment. Called by admin_system_settings after we make a change. Quite specific to
+    the function it serves."""
 
     environment = request.POST.get("environment")
 
@@ -257,7 +259,21 @@ def get_aws_environment_status_htmx(request):
         EnvironmentNames=[environment],
     )["Environments"][0]["Status"]
 
-    return HttpResponse(f"<h2>System Status: {status}</h2>")
+    if status == "Ready":
+        # Return special HTTP Response Code to tell HTMX to stop polling
+        return HttpResponse("<div><h2>System Ready!</h2></div>", status=286)
+
+    # Show status and spinner
+    return HttpResponse(
+        f"""<div class="row pb-5">
+                                <div class="col-4">
+                                    <span class="loader"></span>
+                                </div>
+                                <div class="col-8">
+                                    <h1>{status}...</h1>
+                                </div>
+                            </div> """
+    )
 
 
 @login_required()
@@ -496,11 +512,6 @@ def admin_system_settings(request):
         option_settings = [
             {
                 "Namespace": "aws:elasticbeanstalk:application:environment",
-                "OptionName": "FISH_SETTING",
-                "Value": request.POST.get("fish_setting", "OFF").upper(),
-            },
-            {
-                "Namespace": "aws:elasticbeanstalk:application:environment",
                 "OptionName": "DISABLE_PLAYPEN",
                 "Value": request.POST.get("disable_playpen", "OFF").upper(),
             },
@@ -532,7 +543,7 @@ def admin_system_settings(request):
                 {"message": exc.__str__()},
             )
 
-        message = "Changes saved. This will take several minutes to be applied."
+        message = "Changes saved. This may take several minutes to be applied."
 
         update_made = True
 
