@@ -22,7 +22,7 @@ then
 
     echo "Scaling environment to prevent an outage if required. Could take a few minutes..."
 
-  ec2_instances=$(utils/cgit/tools/eb_count_ec2_nodes_in_environment.py $UATENV)
+  ec2_instances=$(utils/cgit/tools/eb_count_ec2_nodes_in_environment.py $1)
 
   echo "Original instance number was $ec2_instances"
 
@@ -35,7 +35,7 @@ then
 
   echo "Restoring instance number to $ec2_instances. Could take a few minutes..."
 
-   eb scale "$ec2_instances" "$UATENV"
+   eb scale "$ec2_instances" "$1"
 
    fi
 
