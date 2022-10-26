@@ -6,6 +6,8 @@
 # If the original number is less the 2, then we also increase the scale to 2
 # A later script return the size to what it was
 
+echo "Checking instances on $1..."
+
 ec2_instances=`utils/cgit/tools/eb_count_ec2_nodes_in_environment.py $1`
 
 echo "Found $ec2_instances running instances on $1"
