@@ -33,6 +33,7 @@ from rbac.decorators import rbac_check_role
 from rbac.views import get_rbac_statistics
 from results.views.core import get_results_statistics
 from support.helpdesk import get_support_statistics
+from utils.forms import SystemSettingsForm
 from utils.utils import cobalt_paginator
 
 from importlib import import_module
@@ -62,7 +63,7 @@ def _get_aws_environment():
 
     environment_prefix = environment_map.get(COBALT_HOSTNAME)
     if not environment_prefix:
-        return False, "Error - environment not found"
+        return False, "Error - environment not found", "", {}
 
     # Create AWS client
     eb_client = boto3.client(
@@ -86,7 +87,7 @@ def _get_aws_environment():
             aws_environment_name = environment["EnvironmentName"]
 
     if not aws_environment_name:
-        return False, "No environment found", {}
+        return False, "No environment found", "", {}
 
     # Now get the sessions for the environment
     settings = eb_client.describe_configuration_settings(
@@ -100,7 +101,7 @@ def _get_aws_environment():
         if setting["Namespace"] == "aws:elasticbeanstalk:application:environment":
             settings_dict[setting["OptionName"]] = setting["Value"]
 
-    return True, aws_environment_name, settings_dict
+    return True, aws_environment_name, environment_prefix, settings_dict
 
 
 @login_required
@@ -236,6 +237,27 @@ def admin_show_aws_infrastructure_info(request):
         "utils/monitoring/admin_show_aws_infrastructure_info.html",
         {"environments": environments},
     )
+
+
+@login_required()
+def get_aws_environment_status_htmx(request):
+    """Shows the status of the environment. Called by admin_system_settings after we make a change"""
+
+    environment = request.POST.get("environment")
+
+    eb_client = boto3.client(
+        "elasticbeanstalk",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION_NAME,
+    )
+
+    status = eb_client.describe_environments(
+        ApplicationName="cobalt",
+        EnvironmentNames=[environment],
+    )["Environments"][0]["Status"]
+
+    return HttpResponse(f"<h2>System Status: {status}</h2>")
 
 
 @login_required()
@@ -458,8 +480,69 @@ def admin_system_activity_users_htmx(request):
 def admin_system_settings(request):
     """Manage system-wide settings"""
 
-    # Get aws name of this system
-    call_status, aws_environment_name, settings = _get_aws_environment()
+    message = ""
+    update_made = False
+
+    if request.POST:
+
+        # Get aws name of this system and its settings
+        (
+            call_status,
+            aws_environment_name,
+            environment_type,
+            settings,
+        ) = _get_aws_environment()
+
+        option_settings = [
+            {
+                "Namespace": "aws:elasticbeanstalk:application:environment",
+                "OptionName": "FISH_SETTING",
+                "Value": request.POST.get("fish_setting", "OFF").upper(),
+            },
+            {
+                "Namespace": "aws:elasticbeanstalk:application:environment",
+                "OptionName": "DISABLE_PLAYPEN",
+                "Value": request.POST.get("disable_playpen", "OFF").upper(),
+            },
+            {
+                "Namespace": "aws:elasticbeanstalk:application:environment",
+                "OptionName": "MAINTENANCE_MODE",
+                "Value": request.POST.get("maintenance_mode", "OFF").upper(),
+            },
+        ]
+
+        # Create AWS client
+        eb_client = boto3.client(
+            "elasticbeanstalk",
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            region_name=AWS_REGION_NAME,
+        )
+
+        try:
+            eb_client.update_environment(
+                ApplicationName="cobalt",
+                EnvironmentName=aws_environment_name,
+                OptionSettings=option_settings,
+            )
+        except Exception as exc:
+            return render(
+                request,
+                "utils/monitoring/admin_system_settings.html",
+                {"message": exc.__str__()},
+            )
+
+        message = "Changes saved. This will take several minutes to be applied."
+
+        update_made = True
+
+    # Get aws name of this system and its settings
+    (
+        call_status,
+        aws_environment_name,
+        environment_type,
+        settings,
+    ) = _get_aws_environment()
 
     # Quit if we got an error
     if not call_status:
@@ -474,42 +557,26 @@ def admin_system_settings(request):
     disable_playpen = settings.get("DISABLE_PLAYPEN") == "ON"
     maintenance_mode = settings.get("MAINTENANCE_MODE") == "ON"
 
-    print(AWS_ACCESS_KEY_ID)
-    print(AWS_SECRET_ACCESS_KEY)
-    print(AWS_REGION_NAME)
-    print(fish_setting)
-    print(disable_playpen)
-    print(maintenance_mode)
+    initial = {
+        "fish_setting": fish_setting,
+        "disable_playpen": disable_playpen,
+        "maintenance_mode": maintenance_mode,
+    }
 
-    # Create AWS client
-    eb_client = boto3.client(
-        "elasticbeanstalk",
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-        region_name=AWS_REGION_NAME,
-    )
-
-    response = eb_client.update_environment(
-        ApplicationName="cobalt",
-        EnvironmentName="cobalt-test-black",
-        OptionSettings=[
-            {
-                "Namespace": "aws:elasticbeanstalk:application:environment",
-                "OptionName": "FISH_SETTING",
-                "Value": "updatedbydjango",
-            }
-        ],
-    )
-
-    print(response)
+    form = SystemSettingsForm(initial=initial)
 
     return render(
         request,
         "utils/monitoring/admin_system_settings.html",
         {
+            "message": message,
             "aws_environment_name": aws_environment_name,
-            "settings": settings,
-            "response": response,
+            "environment_type": environment_type,
+            "fish_setting": fish_setting,
+            "disable_playpen": disable_playpen,
+            "maintenance_mode": maintenance_mode,
+            "form": form,
+            "update_made": update_made,
         },
     )
 

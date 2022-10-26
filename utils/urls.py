@@ -58,4 +58,9 @@ urlpatterns = [
         utils.views.monitoring.admin_system_settings,
         name="admin_system_settings",
     ),
+    path(
+        "get-aws-environment-status",
+        utils.views.monitoring.get_aws_environment_status_htmx,
+        name="get_aws_environment_status_htmx",
+    ),
 ]

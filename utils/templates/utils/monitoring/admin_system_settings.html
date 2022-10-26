@@ -21,22 +21,51 @@
 
     <div class="card">
         <div class="card-header card-header-rose">
-            <h2>System Settings</h2>
+            <h2>System Settings for {{ environment_type }}</h2>
         </div>
         <div class="card-body">
+            <h3 class="text-primary">{{ message }}</h3>
 
-            <!-- MESSAGE -->
-            <h3 class="text-primary font-weight-bold">{{ message }}</h3>
+            <!-- SHOW REFRESHING STATUS IF WE UPDATED THE VALUES -->
 
-            <h1>Response</h1>
-            <pre>
-            {{ response|pprint }}
-                </pre>
+            {% if update_made %}
+                <div
+                    hx-post="{% url "utils:get_aws_environment_status_htmx" %}"
+                    hx-vars="environment: '{{ aws_environment_name }}'"
+                    hx-trigger="load, every 5s"
+                ></div>
+            {% endif %}
 
-            <h1>Settings</h1>
-            <pre>
-            {{ settings|pprint }}
-                </pre>
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group">
+                            {% cobalt_bs4_field form.fish_setting %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group">
+                            {% cobalt_bs4_field form.disable_playpen %}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group">
+                            {% cobalt_bs4_field form.maintenance_mode %}
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success cobalt-save">Update</button>
+
+            </form>
+
         </div>
     </div>
 
