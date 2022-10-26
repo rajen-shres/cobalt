@@ -17,9 +17,22 @@ BRANCH=`git branch --show-current`
 
 if [[ -z $(git status -s) ]]
 then
+
+    # Get number of EC2 instances running. We want at least 2
+
+  ec2_instances=$(utils/cgit/tools/eb_count_ec2_nodes_in_environment.py $UATENV)
+
    DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
    echo "Running eb deploy -m '$BRANCH@$DATE' $1"
    eb deploy -m "$BRANCH@$DATE" $1
+
+   if [ "$ec2_instances" = "1" ]
+    then
+
+   eb scale "$ec2_instances" "$UATENV"
+
+   fi
+
 else
   echo ""
   echo ""

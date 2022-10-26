@@ -201,7 +201,7 @@ class NotificationsConfig(AppConfig):
             if bounce_obj["bounceType"] == "Permanent":
                 log_event(
                     user=None,
-                    severity="CRITICAL",
+                    severity="HIGH",
                     source="Notifications",
                     sub_source="Email-Bounce",
                     message=message,
@@ -230,7 +230,7 @@ class NotificationsConfig(AppConfig):
                 logger.error(f"ID: {post_office_email.id}")
                 log_event(
                     user=None,
-                    severity="CRITICAL",
+                    severity="HIGH",
                     source="Notifications",
                     sub_source="Email-Complaint",
                     message=f"{complaint_obj}",
