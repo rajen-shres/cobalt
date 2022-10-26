@@ -9,9 +9,10 @@
 ec2_instances=`utils/cgit/tools/eb_count_ec2_nodes_in_environment.py $1`
 
 # If only one instance then add to it
-if [ $ec2_instances -eq 1 ];then
-    eb scale 2 $1 >/dev/null 2>&1
+if [ "$ec2_instances" = "1" ];then
+    # eb scale 2 $1 >/dev/null 2>&1
+    eb scale 2 $1
 fi
 
 # Return original number of instances
-echo $ec2_instances
+exit $ec2_instances
