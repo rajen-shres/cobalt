@@ -154,6 +154,14 @@
 
             <!-- END FORM -->
 
+            <!-- RECENT SESSIONS -->
+            <div
+                hx-post="{% url "organisations:club_menu_tab_members_recent_sessions_for_member_htmx" %}"
+                hx-vars="club_id:{{ club.id }}, member_id:{{ member.id }}"
+                hx-trigger="load"
+                id="recent_sessions"
+            ></div>
+
             <!--  PAYMENTS -->
 
             {% if user_has_payments_view %}

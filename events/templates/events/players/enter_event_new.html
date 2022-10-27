@@ -2,7 +2,6 @@
 {#                                                                        #}
 {# Entry screen for events                                                #}
 {#                                                                        #}
-{# Needs a re-write to use HTMX                                           #}
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 
@@ -128,8 +127,7 @@
                                                     <!-- PLAYER NAME - ALLOW IT TO BE CHANGED -->
                                                     <td class="col">
                                                         <div id="div_id_player0">
-                                                            <select class="selectpicker cobalt-playerN"
-                                                                data-style="btn btn-info"
+                                                            <select class="form-control cobalt-playerN"
                                                                 title="Select"
                                                                 id="id_player0"
                                                                 name="player0">
@@ -153,8 +151,8 @@
                                                         <div>
                                                             <select id="id_player0_payment"
                                                                 name="player0_payment"
-                                                                data-style="btn btn-warning"
-                                                                class="selectpicker payment-method">
+                                                                style="width: 160px"
+                                                                class="form-control payment-method">
                                                                 {% for val,item in player0.payment_choices %}
                                                                     <option value="{{ val }}">{{ item }}</option>
                                                                 {% endfor %}
@@ -172,6 +170,8 @@
                                                                 data-placement="bottom">
                                                                 <i class="fas fa-tag"></i>
                                                             </span>
+                                                        {% else %}
+                                                            &nbsp;
                                                         {% endif %}
                                                     </td>
 
@@ -237,15 +237,12 @@
                                 </div>
                                 <hr>
 
-                                <!-- OPTIONAL TEAM NAMES -->
                                 {% if event.allow_team_names %}
                                     <div class="row">
                                         <label class="col-md-5 col-form-label">Team Name</label>
                                         <div class="col-md-5">
                                             <div class="form-group has-success">
-                                                <input type="text" maxlength="15" class="form-control" id="id_team_name"
-                                                    autocomplete="off" name="team_name"
-                                                    value="{{ request.user.last_name }}" style="cursor: auto;">
+                                                <input type="text"maxlength="15" class="form-control" id="id_team_name" autocomplete="off" name="team_name" value="{{ request.user.last_name }}" style="cursor: auto;">
                                             </div>
                                         </div>
                                     </div>
@@ -257,9 +254,7 @@
                                         <label class="col-sm-5 col-form-label">{{ event.free_format_question }}</label>
                                         <div class="col-sm-7">
                                             <div class="form-group has-success">
-                                                <input type="text" maxlength="60" class="form-control"
-                                                    id="id_free_format_answer" name="free_format_answer"
-                                                    autocomplete="off" style="cursor: auto;">
+                                                <input type="text" maxlength="60" class="form-control" id="id_free_format_answer" name="free_format_answer" autocomplete="off" style="cursor: auto;">
                                             </div>
                                         </div>
                                     </div>
@@ -270,8 +265,7 @@
                                     <label class="col-sm-5 col-form-label">Comments</label>
                                     <div class="col-sm-7">
                                         <div class="form-group has-success">
-                                            <input type="text" class="form-control" id="id_comment" autocomplete="off"
-                                                name="comment" style="cursor: auto;">
+                                            <input type="text" class="form-control" id="id_comment" autocomplete="off" name="comment" style="cursor: auto;">
                                         </div>
                                     </div>
                                 </div>
@@ -308,7 +302,7 @@
     <script src="{% static "assets/js/plugins/jquery.cookie.1.4.1.min.js" %}"></script>
     <script>
 
-        // include all the generic searches for each player entry
+        // include all of the generic searches for each player entry
 
         {% include 'utils/generic_user_search_footer.html' with search_id=0 %}
         {% for our_form_row in our_form %}
@@ -319,10 +313,10 @@
         function cobaltMemberSearchOk(search_id) {
 
             // check if this member is already on this page
-            const search_member_id = member_id[search_id];
-            let already = false;
-            $('.cobalt-playerN').each(function (i, obj) {
-                if ($(this).val() == search_member_id) {
+            var search_member_id = member_id[search_id];
+            var already = false;
+            $('.cobalt-playerN').each(function(i, obj) {
+                if ($(this).val() == search_member_id){
                     already = true;
                 }
             });
@@ -341,14 +335,14 @@
                     .done(response => {
 
                     // already entered
-                    if (response['message'] == "Already Entered") {
+                    if (response['message'] == "Already Entered"){
                         swal.fire({
                             title: "Error",
                             html: member_name[search_id] + " is already entered in this event",
                             icon: "error"
                         })
                         //    $("#id_player" + search_id).val('').selectpicker('refresh');
-                        if (previous[search_id]) {  // if we have a previous then reset it
+                        if (previous[search_id]){  // if we have a previous then reset it
                             $("#id_player" + search_id).val(previous[search_id]);
                         } else {
                             $("#id_player" + search_id).prop('selectedIndex', 0);
@@ -360,11 +354,11 @@
                     } else {
 
                         // add option if not already there
-                        if ($('#id_player' + search_id + ' option[value=' + member_id[search_id] + ']').length == 0) {
+                        if ($('#id_player' + search_id + ' option[value=' + member_id[search_id] + ']').length===0) {
                             // not found so add
                             // if we get Alan Admin (100) change to Alan Admin
                             var name = member_name[search_id].split("(")[0]
-                            $("#id_player" + search_id).append('<option value="' + member_id[search_id] + '" selected="">' + name + '</option>');
+                            $("#id_player" + search_id).append('<option value="'+member_id[search_id]+'" selected="">'+name+'</option>');
                         } else {
                             // already present - set as selected
                             //  $("#id_player" + search_id).val(member_id[search_id]).selectpicker('refresh');
@@ -374,7 +368,7 @@
                         // check on fees and payment methods
 
                         // for teams don't charge for players 5 and 6 (4 and 5 in computer counting)
-                        if (search_id < 4) {
+                        if (search_id<4){
                             user_entry_fee(member_id[search_id], search_id);
                         }
                         is_form_complete();
@@ -387,7 +381,7 @@
         // if generic search is cancelled reset the player field and disable the
         // payment method
         function cobaltMemberSearchCancel(search_id) {
-            if (previous[search_id]) {  // if we have a previous then reset it
+            if (previous[search_id]){  // if we have a previous then reset it
                 $("#id_player" + search_id).val(previous[search_id]);
             } else {
                 $("#id_player" + search_id).prop('selectedIndex', 0);
@@ -397,21 +391,21 @@
         }
 
         // re-do totals
-        function totals() {
+        function totals(){
 
             // total_now
-            let total_now = 0;
-            $('.pay_now').each(function () {
-                let val = parseFloat($(this).val());
+            var total_now = 0;
+            $('.pay_now').each(function(){
+                var val = parseFloat($(this).val());
                 val = val || 0  // zero if NaN
                 total_now += val;
             });
 
-            if (total_now == 0) {
+            if (total_now == 0){
                 $("#total_now").val("");
             } else {
                 // check if anything after decimal
-                if (total_now % 1 == 0) {
+                if (total_now % 1 === 0){
                     $("#total_now").val(total_now + " credits");
                 } else {
                     $("#total_now").val(total_now + " credits");
@@ -419,18 +413,18 @@
             }
 
             // total_later
-            let total_later = 0;
-            $('.pay_later').each(function () {
+            var total_later = 0;
+            $('.pay_later').each(function(){
                 var val = parseFloat($(this).val());
                 val = val || 0  // zero if NaN
                 total_later += val;
             });
 
-            if (total_later == 0) {
+            if (total_later == 0){
                 $("#total_later").val("");
             } else {
                 // check if anything after decimal
-                if (total_later % 1 == 0) {
+                if (total_later % 1 === 0){
                     $("#total_later").val(total_later + " credits");
                 } else {
                     $("#total_later").val(total_later.toFixed(2) + " credits");
@@ -439,13 +433,13 @@
         }
 
         // get entry fee for user
-        function user_entry_fee(user_id, search_id) {
+        function user_entry_fee(user_id, search_id){
             $.get("{% url "events:fee_for_user_ajax" %}?event_id={{ event.id }}&user_id=" + user_id)
                 .done(response => {
-                const msg = response['data']['message'];
+                msg = response['data']['message'];
 
                 if (msg == 'Success') {
-                    if (response['data']['discount'] > 0) {
+                    if (response['data']['discount']>0) {
                         $("#player" + search_id + "_discount_alert").html('<span class="myHover" data-toggle="tooltip" title="'
                             + response['data']['description']
                             + '" data-delay="100" data-placement="bottom"><i class="fas fa-tag"></i></span>');
@@ -453,9 +447,9 @@
                         $(".myHover").tooltip();
                     }
                     // format nicely with credits on the end
-                    const entry_fee = parseFloat(response['data']['entry_fee']);
-                    let entry_fee_string;
-                    if (entry_fee % 1 == 0) {
+                    var entry_fee = parseFloat(response['data']['entry_fee']);
+                    var entry_fee_string;
+                    if (entry_fee % 1 === 0){
                         entry_fee_string = entry_fee + " credits";
                     } else {
                         entry_fee_string = entry_fee.toFixed(2) + " credits";
@@ -466,7 +460,7 @@
 
                     // enable payment type - must refresh selectpickers
                     $("#id_player" + search_id + "_payment").prop("disabled", false);
-                    $('.selectpicker').selectpicker('refresh');
+                    //    $('.selectpicker').selectpicker('refresh');
 
                     // set up event handler
                     //    $("#id_player" + search_id + "_payment").on('change', payment_has_changed);
@@ -478,8 +472,10 @@
             });
         }
 
+
+
         // update payment method if team mates
-        function user_payment_method(user_id, search_id) {
+        function user_payment_method(user_id, search_id){
             $.get("{% url "events:payment_options_for_user_ajax" %}?event_id={{ event.id }}&entering_user_id={{ request.user.id }}&other_user_id=" + user_id)
                 .done(response => {
                 var msg = response['data']['message'];
@@ -489,14 +485,14 @@
                 var pay_amt = now_payment.val() || later_payment.val();
 
                 // if search_id=0 then they have changed themselves. Need to add ask them to pay to options
-                if (search_id == 0) {
+                if (search_id==0){
                     $("#id_player" + search_id + "_payment option[value='other-system-dollars']").remove();
                     $("#id_player" + search_id + "_payment").append('<option value="other-system-dollars" selected="">Ask them to pay</option>');
                     $("#id_player" + search_id + "_payment").val('my-system-dollars');
                 }
 
                 if (msg == 'Allowed') {
-                    if ($("#id_player" + search_id + "_payment option[value='their-system-dollars']").length == 0) {
+                    if ($("#id_player" + search_id + "_payment option[value='their-system-dollars']").length == 0){
                         $("#id_player" + search_id + "_payment").append('<option value="their-system-dollars" selected="">Their {{ BRIDGE_CREDITS }}</option>');
                     }
                     $("#id_player" + search_id + "_payment").prop("disabled", false);
@@ -516,7 +512,7 @@
                 }
 
                 // refresh the fussy selectpickers
-                $('.selectpicker').selectpicker('refresh');
+                //    $('.selectpicker').selectpicker('refresh');
 
                 // update totals
                 totals();
@@ -524,16 +520,16 @@
             });
         }
 
-        function is_form_complete() {
+        function is_form_complete(){
             // see if form is now complete
-            let complete = 0;
-            $(".cobalt-playerN").each(function (i, obj) {
-                if ($(this).val() > 0) {
-                    complete += 1;
+            var complete = 0;
+            $(".cobalt-playerN").each(function(i, obj){
+                if ($(this).val()>0) {
+                    complete+=1;
                 }
             });
 
-            if (complete == {{ min_entries }}) {
+            if (complete=={{ min_entries }}){
                 $("#id_checkout").prop("disabled", false);
                 $("#id_cart").prop("disabled", false);
                 $("#plus_4").show();
@@ -556,30 +552,25 @@
             event.preventDefault();
             event.stopPropagation();
             //  get values
-            const user_id = event.target.value;
-            const this_id = event.target.id;
-            const search_id = this_id.slice(-1);  // index of this element
-
-            console.log("player has changed");
-            console.log(event);
-            console.log(user_id);
+            var user_id = event.target.value;
+            var this_id = event.target.id;
+            var search_id = this_id.slice(-1);  // index of this element
 
             // check for search id=0
-            if (user_id == 0) {
-                console.log("inside");
+            if (user_id == 0){
                 $('#cobalt_general_member_search' + search_id).modal('show');
 
             } else {
 
                 // get entry fee and payment methods - user_entry_fee will call user_payment_method once it finishes
-                if (search_id < 4) {
+                if (search_id<4){
                     user_entry_fee(user_id, search_id);
                 }
                 // remove from other lists
-                if (user_id !== {{ TBA_PLAYER }}) {
-                    $(".cobalt-playerN option[value='" + user_id + "']").each(function () {
+                if (user_id != {{ TBA_PLAYER }}) {
+                    $(".cobalt-playerN option[value='" + user_id + "']").each(function() {
                         var parent_no = this.parentNode.id.slice(-1);
-                        if (parent_no !== search_id) {
+                        if (parent_no != search_id) {
                             this.remove();
                         }
                     });
@@ -595,141 +586,143 @@
             if (previous[search_id]) {
 
                 // loop through all player fields
-                $(".cobalt-playerN").each(function () {
+                $(".cobalt-playerN").each(function(){
 
                     // ignore this one
-                    if ($(this).attr("id") !== this_id) {
-                        var realthis = $(this)[0];
-                        if (realthis.tagName == "SELECT"){
+                    if ($(this).attr("id") != this_id) {
+                        // var realthis = $(this)[0];
+                        // if (realthis.tagName == "SELECT"){
+                        // $(this).append('<option value="' + previous[search_id] + '">' + previous_name[search_id] + '</option>');
+                        var my_id = $(this).attr("id");
+                        if ($("#" + my_id + " option[value='" + previous[search_id] + "']").length == 0){
                             $(this).append('<option value="' + previous[search_id] + '">' + previous_name[search_id] + '</option>');
-                            const my_id = $(this).attr("id");
-                            if ($("#" + my_id + " option[value='" + previous[search_id] + "']").length == 0) {
-                                $(this).append('<option value="' + previous[search_id] + '">' + previous_name[search_id] + '</option>');
-                            }
                         }
-
-                    });
-                }
-                ;
-
-                // refresh select pickers after changes
-                $('.selectpicker').selectpicker('refresh');
-
-                // save current values as previous for next time unless this was a search
-                if (user_id !== 0) {
-                    previous[search_id] = event.target.value;
-                    previous_name[search_id] = $('#id_player' + search_id).find('option:selected').text();
-                }
-                // check if form is complete and enable buttons
-                is_form_complete();
-            }
-
-            // player has changed
-            function payment_has_changed(event) {
-
-                var me = event.target.id;
-                var parts = me.split("_");
-                var player_no = parts[1].slice(-1);  // last char of word 2
-
-                event.preventDefault();
-                event.stopPropagation();
-
-                var now_payment = $("#fee_" + player_no + "_now");
-                var later_payment = $("#fee_" + player_no + "_later");
-
-                // one or other payment field will have a value
-                var pay_amt = now_payment.val() || later_payment.val();
-
-                var selection = $(this).val();
-                if (selection == 'my-system-dollars') {
-                    now_payment.val(pay_amt);
-                    later_payment.val("");
-                } else {
-                    now_payment.val("");
-                    later_payment.val(pay_amt);
-                }
-                totals();
-
-                // firefox only seems to fire this once, so need to re-register the event
-                $(this).on('change', player_has_changed_wrapper);
-            }
-
-            // Doc Ready
-            $(document).ready(function () {
-
-                // poke the selectpicker
-                $('.selectpicker').selectpicker('refresh');
-
-                // calculate totals
-                totals();
-
-                // show early discount etc msg but only once per congress
-                {% if alert_msg %}
-
-                    var alert0 = "{{ alert_msg.0 }}";
-                    var alert0_cookie = alert0.replace(/ /g, "-");
-
-                    if (typeof $.cookie(alert0_cookie + '-{{ congress.id }}') == 'undefined') {
-                        $.cookie(alert0_cookie + '-{{ congress.id }}', 'set', {
-                            expires: 10000,
-                            domain: '',
-                            path: ''
-                        });
-
-                        swal.fire({
-                            title: "{{ alert_msg.0 }}",
-                            html: "{{ alert_msg.1 }}",
-                            icon: "success"
-                        })
                     }
 
-                {% endif %}
-
-                // init tooltips
-                $(".myHover").tooltip();
-
-                // Handle member select
-                const previous = {};
-                const previous_name = {};
-
-                $('.cobalt-playerN').on('change', player_has_changed_wrapper);
-
-
-                // when player payment method changes update totals
-                // id of trigger event is id_player(N)_payment
-                // we need to change
-                $('.payment-method').on('change', payment_has_changed);
-
-                // for teams add row when plus sign clicked
-                $('#plus_sign_4').click(function (event) {
-                    event.preventDefault();
-                    $('#div_id_player4').show();
-                    $('#fee_4_now').show();
-                    $('#fee_4_later').show();
-                    $('#id_player4_paydiv').show();
-                    $('#plus_5').show();
-                    $('#plus_4').hide();
-                    $('#plus_sign_4').hide();
-                    return false;
                 });
+            };
 
-                $('#plus_sign_5').click(function (event) {
-                    event.preventDefault();
-                    $('#div_id_player5').show();
-                    $('#fee_5_now').show();
-                    $('#fee_5_later').show();
-                    $('#id_player5_paydiv').show();
-                    $('#plus_5').hide();
-                    return false;
-                });
+            // refresh select pickers after changes
+            //      $('.selectpicker').selectpicker('refresh');
 
-                // for an individual enable the buttons
-                {% if event.player_format == "Individual" %}
-                    $("#id_checkout").prop("disabled", false);
-                    $("#id_cart").prop("disabled", false);
-                {% endif %}
+            // save current values as previous for next time unless this was a search
+            if (user_id != 0){
+                previous[search_id] = event.target.value;
+                previous_name[search_id] = $('#id_player' + search_id).find('option:selected').text();
+            }
+            // check if form is complete and enable buttons
+            is_form_complete();
+        }
 
+        // player has changed
+        function payment_has_changed(event) {
+
+            var me = event.target.id;
+            var parts = me.split("_");
+            var player_no = parts[1].slice(-1);  // last char of word 2
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            var now_payment = $("#fee_" + player_no + "_now");
+            var later_payment = $("#fee_" + player_no + "_later");
+
+            // one or other payment field will have a value
+            var pay_amt = now_payment.val() || later_payment.val();
+
+            var selection = $(this).val();
+            if (selection == 'my-system-dollars') {
+                now_payment.val(pay_amt);
+                later_payment.val("");
+            } else {
+                now_payment.val("");
+                later_payment.val(pay_amt);
+            }
+            totals();
+
+            // firefox only seems to fire this once, so need to re-register the event
+            $(this).on('change', player_has_changed_wrapper);
+        }
+
+        // Doc Ready
+        $(document).ready(function(){
+
+            // calculate totals
+            totals();
+
+            // show early discount etc msg but only once per congress
+            {% if alert_msg %}
+
+                var alert0 = "{{ alert_msg.0 }}";
+                var alert0_cookie = alert0.replace(/ /g, "-");
+
+                if (typeof $.cookie(alert0_cookie + '-{{ congress.id }}') === 'undefined') {
+                    $.cookie(alert0_cookie+ '-{{ congress.id }}', 'set', {
+                        expires: 10000,
+                        domain: '',
+                        path: ''
+                    });
+
+                    swal.fire({
+                        title: "{{ alert_msg.0 }}",
+                        html: "{{ alert_msg.1 }}",
+                        icon: "success"
+                    })
+                }
+
+            {% endif %}
+
+            // init tooltips
+            $(".myHover").tooltip();
+
+            // Handle member select
+            previous={};
+            previous_name={};
+
+            // when player N identity changes get their entry fee and update table
+            // $('.cobalt-playerN').change(function(event) {
+            //   player_has_changed($(this));
+            // });
+
+            $('.cobalt-playerN').on('change', player_has_changed_wrapper);
+
+
+            // when player payment method changes update totals
+            // id of trigger event is id_player(N)_payment
+            // we need to change
+            $('.payment-method').on('change', payment_has_changed);
+
+            // for teams add row when plus sign clicked
+            $('#plus_sign_4').click(function(event){
+                event.preventDefault();
+                $('#div_id_player4').show();
+                $('#fee_4_now').show();
+                $('#fee_4_later').show();
+                $('#id_player4_paydiv').show();
+                $('#plus_5').show();
+                $('#plus_4').hide();
+                $('#plus_sign_4').hide();
+                return false;
             });
-            </script>
+
+            $('#plus_sign_5').click(function(event){
+                event.preventDefault();
+                $('#div_id_player5').show();
+                $('#fee_5_now').show();
+                $('#fee_5_later').show();
+                $('#id_player5_paydiv').show();
+                $('#plus_5').hide();
+                return false;
+            });
+
+            // for an individual enable the buttons
+            {% if event.player_format == "Individual" %}
+                $("#id_checkout").prop("disabled", false);
+                $("#id_cart").prop("disabled", false);
+            {% endif %}
+
+
+        });
+    </script>
 
 {% endblock %}

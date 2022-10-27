@@ -14,6 +14,7 @@ from accounts.views.admin import invite_to_join
 from accounts.views.api import search_for_user_in_cobalt_and_mpc
 from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser
+from club_sessions.models import SessionEntry
 from cobalt.settings import (
     GLOBAL_ORG,
     GLOBAL_TITLE,
@@ -1268,3 +1269,37 @@ def unblock_unreg_email_address_htmx(request, club):
         return HttpResponse("<h3 class='text-primary'>Block removed</h3>")
     else:
         return HttpResponse("<h3 class='text-primary'>Email address not found</h3>")
+
+
+@check_club_menu_access(check_members=True)
+def recent_sessions_for_member_htmx(request, club):
+    """Show recent sessions for a member"""
+
+    member = get_object_or_404(User, pk=request.POST.get("member_id"))
+    sessions = (
+        SessionEntry.objects.filter(system_number=member.system_number)
+        .order_by("-session__session_date")
+        .select_related("session")
+    )
+
+    things = cobalt_paginator(request, sessions, 2)
+
+    # Add hx_post for paginator controls
+    hx_post = reverse(
+        "organisations:club_menu_tab_members_recent_sessions_for_member_htmx"
+    )
+    hx_vars = f"club_id:{club.id}, member_id:{member.id}"
+    hx_target = "#recent_sessions"
+
+    return render(
+        request,
+        "organisations/club_menu/members/recent_sessions_for_member_htmx.html",
+        {
+            "club": club,
+            "member": member,
+            "things": things,
+            "hx_post": hx_post,
+            "hx_vars": hx_vars,
+            "hx_target": hx_target,
+        },
+    )

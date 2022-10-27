@@ -679,4 +679,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.members.unblock_unreg_email_address_htmx,
         name="club_menu_tab_members_unblock_unreg_email_address_htmx",
     ),
+    path(
+        "member/recent-sessions-for-member",
+        organisations.views.club_menu_tabs.members.recent_sessions_for_member_htmx,
+        name="club_menu_tab_members_recent_sessions_for_member_htmx",
+    ),
 ]

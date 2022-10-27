@@ -47,15 +47,14 @@
                 <div class="row">
                     <div class="col-lg-8 col-xl-6">
                         <button
-                            class="btn btn-block px-0
+                            class="btn btn-block px-0 summary-click
                             {% if data.outstanding > 0 %}
                                 btn-danger
                             {% else %}
                                 btn-success
                             {% endif %}
                             "
-                            _="on click js cobalt_toggle_visible('#id_row_{{ payment_type.split|join:"-" }}'); end"
-
+                            id="id_button_{{ payment_type.split|join:"-" }}"
                         >
 
                             <!-- TABLE FOR FORMATTING - STYLE SHEET IN mange_sessions.html -->
@@ -135,6 +134,21 @@
 
 
 <script>
+    $(document).ready( function () {
+
+        // toggle showing users when payment type is clicked
+        // Need to do it through jquery or the event doubles up with the back button
+        $(".summary-click").each(function(){
+            $(this).click(function(){
+                const id=this.id.replace("id_button_", "");
+                $("#id_row_" + id).toggle();
+
+            })
+        });
+
+    });
+
+
     function cobalt_toggle_visible(item_id){
 
 
@@ -153,12 +167,5 @@
 
     }
 
-    function stateChange(newState) {
-        setTimeout(function () {
-            if (newState == -1) {
-                alert('VIDEO HAS STOPPED');
-            }
-        }, 5000);
-    }
 
 </script>

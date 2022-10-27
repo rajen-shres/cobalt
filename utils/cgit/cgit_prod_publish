@@ -51,7 +51,7 @@ then
 
    echo "Deploying code to $PRODENV..."
    DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
-   eb deploy -m "release/$RELEASE@$DATE" $PRODENV
+   eb deploy -m "$BRANCH@$DATE" $PRODENV
 
    if [ "$ec2_instances" = "1" ]
     then
