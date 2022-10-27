@@ -320,7 +320,7 @@ urlpatterns = [
         name="club_menu_tab_member_delete_member_htmx",
     ),
     path(
-        "public-profile/<int:org_id>",
+        "general/public-profile/<int:org_id>",
         organisations.views.general.org_profile,
         name="general_org_profile",
     ),
