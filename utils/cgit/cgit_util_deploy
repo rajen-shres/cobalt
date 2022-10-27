@@ -17,26 +17,9 @@ BRANCH=`git branch --show-current`
 
 if [[ -z $(git status -s) ]]
 then
-
-    # Get number of EC2 instances running. We want at least 2
-    utils/cgit/_cgit_scale_environment_for_deployment $1
-    ec2_instances=$?
-
-  echo "Original instance number was $ec2_instances"
-
    DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
    echo "Running eb deploy -m '$BRANCH@$DATE' $1"
    eb deploy -m "$BRANCH@$DATE" $1
-
-   if [ "$ec2_instances" = "1" ]
-    then
-
-  echo "Restoring instance number to $ec2_instances. Could take a few minutes..."
-
-   eb scale "$ec2_instances" "$1"
-
-   fi
-
 else
   echo ""
   echo ""
