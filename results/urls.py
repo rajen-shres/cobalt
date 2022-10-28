@@ -39,4 +39,9 @@ urlpatterns = [
         results.views.results_views.usebio_mp_pairs_board_view,
         name="usebio_mp_pairs_board_view",
     ),
+    path(
+        "show-results-for-club",
+        results.views.results_views.show_results_for_club_htmx,
+        name="show_results_for_club_htmx",
+    ),
 ]

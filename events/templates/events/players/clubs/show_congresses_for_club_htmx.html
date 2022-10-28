@@ -1,0 +1,20 @@
+{#---------------------------------------------------------------------------#}
+{#                                                                           #}
+{# Show upcoming congresses for club. Can be added to the club profile page. #}
+{#                                                                           #}
+{#---------------------------------------------------------------------------#}
+
+{% if things %}
+
+    <div class="card col-md-8 mx-auto">
+        <div class="card-header card-header-success">
+            <h2>Upcoming Congresses</h2>
+        </div>
+        <div class="card-body">
+
+            {% include "utils/cobalt_simple_table.html" with headers="Date Congress" fields="start_date name" align="left left" heading_colour="primary" %}
+            {% include "utils/pagination_footer_htmx.html" %}
+        </div>
+    </div>
+
+{% endif %}

@@ -214,6 +214,11 @@ urlpatterns = [
         congress_admin.edit_tba_player_details_htmx,
         name="admin_edit_tba_player_details_htmx",
     ),
+    path(
+        "show-congresses-for-club",
+        views.show_congresses_for_club_htmx,
+        name="show_congresses_for_club_htmx",
+    ),
     ########################################################################
     # Congress Builder screens for conveners to create and edit congresses #
     ########################################################################

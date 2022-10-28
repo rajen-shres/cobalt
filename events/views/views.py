@@ -13,6 +13,7 @@ from django.contrib import messages
 from django.db.models import Sum, Q
 from django.db import transaction
 
+from organisations.models import Organisation
 from payments.views.payments_api import payment_api_interactive
 from utils.templatetags.cobalt_tags import cobalt_credits
 from notifications.views.core import (
@@ -2164,4 +2165,32 @@ def partnership_desk_signup(request, congress_id, event_id):
         request,
         "events/players/partnership_desk_signup.html",
         {"form": form, "event": event},
+    )
+
+
+@login_required()
+def show_congresses_for_club_htmx(request):
+    """Show upcoming congresses for a club. Called from the club org_profile."""
+
+    club = get_object_or_404(Organisation, pk=request.POST.get("club_id"))
+
+    congresses = Congress.objects.filter(
+        congress_master__org=club, status="Published"
+    ).order_by("start_date")
+
+    things = cobalt_paginator(request, congresses)
+
+    hx_post = reverse("events:show_congresses_for_club_htmx")
+    hx_vars = f"club_id:{club.id}"
+    hx_target = "#club-congresses"
+
+    return render(
+        request,
+        "events/players/clubs/show_congresses_for_club_htmx.html",
+        {
+            "things": things,
+            "hx_post": hx_post,
+            "hx_vars": hx_vars,
+            "hx_target": hx_target,
+        },
     )

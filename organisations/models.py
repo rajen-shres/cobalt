@@ -421,6 +421,75 @@ class OrganisationFrontPage(models.Model):
     def __str__(self):
         return f"Front Page for {self.organisation}"
 
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            # First time, set default
+            self.summary = """
+                        <h1 style="text-align: center; ">
+                        <font color="#9c00ff">{{ BRIDGE_CLUB }}</font>
+                        </h1>
+                        <br>
+                        <p>
+                        <span style="font-size: 18px;">This page hasn't been set up yet
+                        If you are an administrator for this club you can change this through
+                        the Communications section of Club Admin.
+                        </span>
+                        </p>
+                        {{ website }}
+                        <h3 class="">Registered Address</h3>
+                        <p style="font-size: 18px; line-height: 0.5;"><b>{{ Address1 }}</b></p>
+                        <p style="font-size: 18px; line-height: 0.5;"><b>{{ Address2 }}</b></p>
+                        <p style="font-size: 18px; line-height: 0.5;"><b>{{ Suburb }}</b></p>
+                        <p style="font-size: 18px; line-height: 0.5;"><b>{{ State }} {{ Postcode }}</b></p>
+                        <p style="line-height: 0.5;"><br></p>
+                        <p>{{ RESULTS }}</p>
+                        <p>{{ CONGRESSES }}</p>
+            """
+
+            self.summary = self.summary.replace(
+                "{{ BRIDGE_CLUB }}", self.organisation.name
+            )
+
+            replace_with = self.organisation.address1 or ""
+            self.summary = self.summary.replace("{{ Address1 }}", replace_with)
+
+            replace_with = self.organisation.address2 or ""
+            self.summary = self.summary.replace("{{ Address2 }}", replace_with)
+
+            replace_with = self.organisation.suburb or ""
+            self.summary = self.summary.replace("{{ Suburb }}", replace_with)
+
+            self.summary = self.summary.replace("{{ State }}", self.organisation.state)
+
+            replace_with = self.organisation.postcode or ""
+            self.summary = self.summary.replace("{{ Postcode }}", replace_with)
+
+            if self.organisation.club_website:
+                # Add http to start of not present
+                if self.organisation.club_website.find("http") == -1:
+                    self.organisation.club_website = (
+                        f"http://{self.organisation.club_website}"
+                    )
+
+                replace_with = f"""<p><span style="font-size: 18px;">
+                                    This club has a website at <a href="{self.organisation.club_website}"
+                                    target="_blank">{self.organisation.club_website}</a></span></p>"""
+            else:
+                replace_with = ""
+            self.summary = self.summary.replace("{{ website }}", replace_with)
+
+        # See if we have changed and run through bleach
+        elif getattr(self, "_text_changed", True):
+            self.summary = bleach.clean(
+                self.summary,
+                strip=True,
+                tags=BLEACH_ALLOWED_TAGS,
+                attributes=BLEACH_ALLOWED_ATTRIBUTES,
+                styles=BLEACH_ALLOWED_STYLES,
+            )
+
+        super(OrganisationFrontPage, self).save(*args, **kwargs)
+
 
 class MiscPayType(models.Model):
     """Labels for different kinds of miscellaneous payments for clubs. eg. Parking, books"""

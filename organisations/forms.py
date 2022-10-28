@@ -528,20 +528,20 @@ class FrontPageForm(forms.ModelForm):
             "organisation",
         )
 
-    def clean_summary(self):
-        summary = self.cleaned_data["summary"]
-
-        summary = bleach.clean(
-            summary,
-            strip=True,
-            tags=BLEACH_ALLOWED_TAGS,
-            attributes=BLEACH_ALLOWED_ATTRIBUTES,
-            styles=BLEACH_ALLOWED_STYLES,
-        )
-
-        summary = summary.replace("<", "\n<")
-
-        return summary
+    # def clean_summary(self):
+    #     summary = self.cleaned_data["summary"]
+    #
+    #     summary = bleach.clean(
+    #         summary,
+    #         strip=True,
+    #         tags=BLEACH_ALLOWED_TAGS,
+    #         attributes=BLEACH_ALLOWED_ATTRIBUTES,
+    #         styles=BLEACH_ALLOWED_STYLES,
+    #     )
+    #
+    #     summary = summary.replace("<", "\n<")
+    #
+    #     return summary
 
 
 class VenueForm(forms.Form):

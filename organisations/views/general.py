@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import User
@@ -205,16 +206,27 @@ def active_email_for_un_reg(un_reg, club):
         system_number=un_reg.system_number
     ).first()
 
-    if member_club_email:
-        return member_club_email.email
-    else:
-        return None
+    return member_club_email.email if member_club_email else None
 
 
 def org_profile(request, org_id):
     """Show public profile for organisation"""
     org = get_object_or_404(Organisation, pk=org_id)
+
+    # create or get the front page
     front_page, _ = OrganisationFrontPage.objects.get_or_create(organisation=org)
+
+    # Replace tokens with code
+    url = reverse("results:show_results_for_club_htmx")
+    results = f""" <div hx-post="{url}" hx-vars="club_id:{org.id}" hx-trigger="load" id="club-results"></div> """
+
+    front_page.summary = front_page.summary.replace("{{ RESULTS }}", results)
+
+    url = reverse("events:show_congresses_for_club_htmx")
+    congresses = f""" <div hx-post="{url}" hx-vars="club_id:{org.id}" hx-trigger="load" id="club-congresses"></div> """
+
+    front_page.summary = front_page.summary.replace("{{ CONGRESSES }}", congresses)
+
     return render(
         request,
         "organisations/org_profile.html",

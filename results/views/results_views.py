@@ -1,7 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 
+from organisations.models import Organisation
 from results.models import ResultsFile
 from results.views.core import (
     double_dummy_from_usebio,
@@ -9,6 +11,7 @@ from results.views.core import (
 )
 from results.views.par_contract import par_score_and_contract
 from results.views.usebio import parse_usebio_file
+from utils.utils import cobalt_paginator
 
 
 def _get_player_names_by_id(usebio):
@@ -652,3 +655,34 @@ def calculate_hcp_and_ltc(hand):
                     ltc[compass] += 3
 
     return hcp, ltc
+
+
+@login_required()
+def show_results_for_club_htmx(request):
+    """Show recent results for a club. Called from the club org_profile."""
+
+    club = get_object_or_404(Organisation, pk=request.POST.get("club_id"))
+
+    results = ResultsFile.objects.filter(
+        organisation=club, status=ResultsFile.ResultsStatus.PUBLISHED
+    ).order_by("-created_at")
+
+    things = cobalt_paginator(request, results)
+    for thing in things:
+        thing.day = thing.created_at.strftime("%A")
+        thing.date = thing.created_at.strftime("%d %b %Y")
+
+    hx_post = reverse("results:show_results_for_club_htmx")
+    hx_vars = f"club_id:{club.id}"
+    hx_target = "#club-results"
+
+    return render(
+        request,
+        "results/club/show_results_for_club_htmx.html",
+        {
+            "things": things,
+            "hx_post": hx_post,
+            "hx_vars": hx_vars,
+            "hx_target": hx_target,
+        },
+    )

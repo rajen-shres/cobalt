@@ -14,6 +14,7 @@ from organisations.models import (
     ORGS_RBAC_GROUPS_AND_ROLES,
     MembershipType,
     ClubLog,
+    OrganisationFrontPage,
 )
 from organisations.views import general
 from rbac.core import (
@@ -127,7 +128,12 @@ def admin_add_club(request):
             org.last_updated = timezone.localtime()
             org.type = "Club"
             org.save()
+
+            # Add profile page
+            OrganisationFrontPage(organisation=org).save()
+
             add_club_defaults(org)
+
             messages.success(
                 request,
                 f"{org.name} created with standard defaults.",

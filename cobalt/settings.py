@@ -347,7 +347,7 @@ SUMMERNOTE_CONFIG = {
     "iframe": False,
     "summernote": {
         "fontSizes": ["8", "9", "10", "11", "12", "14", "16", "18", "24", "36"],
-        "lineHeights": ["0", "0.5", "1.0"],
+        "lineHeights": ["1", "0.5", "0"],
         "airMode": False,
         "width": "100%",
         "height": "600",
@@ -455,7 +455,8 @@ BLEACH_ALLOWED_ATTRIBUTES = [
 BLEACH_ALLOWED_STYLES = [
     "text-decoration",
     "text-align",
-    "line-height" "font-size",
+    "line-height",
+    "font-size",
     "font-family",
     "background-color",
     "width",
