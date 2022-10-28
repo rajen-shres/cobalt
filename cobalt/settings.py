@@ -347,6 +347,7 @@ SUMMERNOTE_CONFIG = {
     "iframe": False,
     "summernote": {
         "fontSizes": ["8", "9", "10", "11", "12", "14", "16", "18", "24", "36"],
+        "lineHeights": ["0", "0.5", "1.0"],
         "airMode": False,
         "width": "100%",
         "height": "600",
@@ -357,6 +358,7 @@ SUMMERNOTE_CONFIG = {
             ["fontsize", ["fontsize"]],
             ["font", ["bold", "italic", "underline"]],
             ["fontname", ["fontname"]],
+            ["height", ["height"]],
             ["color", ["color"]],
             ["para", ["ul", "ol", "paragraph"]],
             ["table", ["table"]],
@@ -453,7 +455,7 @@ BLEACH_ALLOWED_ATTRIBUTES = [
 BLEACH_ALLOWED_STYLES = [
     "text-decoration",
     "text-align",
-    "font-size",
+    "line-height" "font-size",
     "font-family",
     "background-color",
     "width",
