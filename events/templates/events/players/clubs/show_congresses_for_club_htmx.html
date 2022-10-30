@@ -3,16 +3,35 @@
 {# Show upcoming congresses for club. Can be added to the club profile page. #}
 {#                                                                           #}
 {#---------------------------------------------------------------------------#}
+{% load cobalt_tags %}
 
 {% if things %}
 
     <div class="card col-md-8 mx-auto">
-        <div class="card-header card-header-success">
+        <div class="card-header card-header-success py-1">
             <h2>Upcoming Congresses</h2>
         </div>
         <div class="card-body">
-
-            {% include "utils/cobalt_simple_table.html" with headers="Date Congress" fields="start_date name" align="left left" heading_colour="primary" %}
+            <div class="table-responsive">
+                <table class="table table condensed table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Congress</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for thing in things %}
+                            <tr>
+                                <td>{{ thing.start_date|cobalt_nice_date }}</td>
+                                <td><a href="{% url "events:view_congress" congress_id=thing.id %}">{{ thing.name }}</a></td>
+                                <td class="text-center"><a class="btn btn-sm btn-info" href="{% url "events:view_congress" congress_id=thing.id %}">View</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% include "utils/pagination_footer_htmx.html" %}
         </div>
     </div>

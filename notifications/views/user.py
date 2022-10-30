@@ -1,13 +1,22 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 
+from accounts.models import User
 from forums.models import Forum, Post
+from notifications.forms import MemberToMemberEmailForm
 from notifications.models import (
     InAppNotification,
     NotificationMapping,
     Snooper,
     BatchID,
+    EmailBatchRBAC,
+)
+from notifications.views.core import (
+    send_cobalt_email_with_template,
+    create_rbac_batch_id,
 )
 from utils.utils import cobalt_paginator
 
@@ -131,3 +140,111 @@ def notifications_in_english(member):
                 notification.type = "Comments"
 
     return notifications
+
+
+def _send_member_to_member_email(request, member):
+    """send a member to member email or a reply"""
+
+    subject = request.POST["subject"]
+    message = request.POST["message"].replace("\n", "<br>")
+    msg = f"""
+               Email from: {request.user}<br><br>
+               <b>{subject}</b>
+               <br><br>
+               {message}
+     """
+
+    # Create a batch id, to obscure sender on edit link. User is sender.
+    batch_id = create_rbac_batch_id(
+        "notifications.member_comms.view", user=request.user
+    )
+
+    link = reverse(
+        "notifications:member_to_member_email_reply", kwargs={"batch_id": batch_id}
+    )
+
+    context = {
+        "link": link,
+        "link_text": "reply",
+        "name": member.first_name,
+        "title": f"Email from: {request.user.full_name}",
+        "subject": subject,
+        "email_body": mark_safe(msg),
+    }
+
+    send_cobalt_email_with_template(
+        to_address=member.email,
+        batch_id=batch_id,
+        context=context,
+    )
+
+    messages.success(
+        request,
+        "Email queued successfully",
+        extra_tags="cobalt-message-success",
+    )
+
+    redirect_to = request.POST.get("redirect_to", "dashboard:dashboard")
+    return redirect(redirect_to)
+
+
+@login_required()
+def member_to_member_email(request, member_id):
+    """Allow one member to email another"""
+
+    # TODO: Add in app notification
+
+    member = get_object_or_404(User, pk=member_id)
+
+    form = MemberToMemberEmailForm(request.POST or None)
+
+    if request.method == "POST":
+        return _send_member_to_member_email(request, member)
+
+    return render(
+        request,
+        "notifications/member_to_member_email.html",
+        {
+            "form": form,
+            "member": member,
+        },
+    )
+
+
+@login_required()
+def member_to_member_email_reply(request, batch_id):
+    """Allow one member to reply via email to another"""
+
+    # TODO: Add in app notification
+
+    # Get the batch from the batch id
+    batch_thing = BatchID.objects.filter(batch_id=batch_id).latest("pk")
+    batch = EmailBatchRBAC.objects.filter(batch_id=batch_thing).latest("pk")
+    post_office_email = (
+        Snooper.objects.filter(batch_id=batch.batch_id).first().post_office_email
+    )
+
+    # get the sender from the batch
+    member = batch.meta_sender
+
+    form = MemberToMemberEmailForm(request.POST or None)
+
+    if request.method == "POST":
+        return _send_member_to_member_email(request, member)
+
+    form.initial["message"] = f"<br><hr> {post_office_email.context['email_body']}"
+
+    subject = post_office_email.context["subject"]
+    if subject.find("RE: ") != 0:
+        subject = f"RE: {subject}"
+
+    form.initial["subject"] = subject
+
+    return render(
+        request,
+        "notifications/member_to_member_email_reply.html",
+        {
+            "form": form,
+            "member": member,
+        },
+    )

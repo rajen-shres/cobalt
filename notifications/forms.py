@@ -18,6 +18,26 @@ class EmailContactForm(forms.Form):
     redirect_to = forms.CharField(label="Redirect_To")
 
 
+class MemberToMemberEmailForm(forms.Form):
+    """Contact a member"""
+
+    subject = forms.CharField(max_length=80)
+    message = forms.CharField(
+        # THESE ARE OVERRIDDEN IN THE TEMPLATE
+        widget=SummernoteInplaceWidget(
+            attrs={
+                "summernote": {
+                    "height": "400",
+                    "codemirror": {"theme": "monokai"},
+                    "placeholder": "<br><br>Enter your message.",
+                }
+            }
+        )
+    )
+
+    redirect_to = forms.CharField(label="Redirect_To")
+
+
 class OrgEmailForm(forms.Form):
     """Form to send an email using a template. This form doesn't include who to send it to,
     that is specific to the use of the form and needs to be handled separately"""

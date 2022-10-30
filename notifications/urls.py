@@ -108,4 +108,14 @@ urlpatterns = [
         notifications.views.aws.admin_aws_suppression,
         name="admin_aws_suppression",
     ),
+    path(
+        "member-to-member-email/<int:member_id>",
+        notifications.views.user.member_to_member_email,
+        name="member_to_member_email",
+    ),
+    path(
+        "member-to-member-reply-to-email/<str:batch_id>",
+        notifications.views.user.member_to_member_email_reply,
+        name="member_to_member_email_reply",
+    ),
 ]

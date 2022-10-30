@@ -24,6 +24,15 @@
         {% endif %}
 
         <a href="{% url "organisations:general_org_profile" org_id=club.id %}" target="_blank" class="btn btn-rose btn-sm">show public profile</a>
+
+        <p class="pt-5">You can use the following codes in your page:</p>
+        <dl>
+            <dt>{% verbatim %}{{ RESULTS }}{% endverbatim %}</dt>
+            <dd>This will include a table with your recent results in it. It will show nothing if you don't have results.</dd>
+            <dt>{% verbatim %}{{ CONGRESSES }}{% endverbatim %}</dt>
+            <dd>This will include a table with your upcoming congresses. It will show nothing if you don't have congresses.</dd>
+        </dl>
+
         <h3 class="text-info font-weight-bold settings_message">{{ message }}</h3>
         <form
             hx-post="{% url "organisations:club_menu_tab_comms_public_info_htmx" %}"

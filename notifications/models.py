@@ -169,7 +169,7 @@ class Snooper(models.Model):
 class EmailBatchRBAC(models.Model):
     """Control who can access a batch of emails.
 
-    By default only the global admin group can see an email, this allows specific
+    By default, only the global admin group can see an email, this allows specific
     RBAC roles to be granted access.
 
     """
@@ -182,7 +182,7 @@ class EmailBatchRBAC(models.Model):
     meta_sender = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, blank=True
     )
-    """User who sent this"""
+    """User who sent this. Also used for member to member emails to be the user who it was sent to. Sorry."""
     meta_organisation = models.ForeignKey(
         Organisation, on_delete=models.CASCADE, null=True, blank=True
     )

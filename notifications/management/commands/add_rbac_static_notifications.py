@@ -2,20 +2,8 @@ from django.core.management.base import BaseCommand
 from rbac.management.commands.rbac_core import (
     create_RBAC_action,
     create_RBAC_default,
-    create_RBAC_admin_group,
-    create_RBAC_admin_tree,
-    super_user_list,
     create_rbac_together,
 )
-from rbac.core import (
-    rbac_add_user_to_admin_group,
-    rbac_add_role_to_admin_group,
-    rbac_create_group,
-    rbac_add_user_to_group,
-    rbac_add_role_to_group,
-)
-
-from accounts.models import User
 
 
 class Command(BaseCommand):
@@ -63,6 +51,16 @@ class Command(BaseCommand):
             "orgcomms",
             "edit",
             "Allows a user to communicate on behalf of an org",
+        )
+
+        # member to member roles - these are dummy roles so we can use batch_ids to obscure a user's id
+        create_RBAC_default(self, "notifications", "member_comms", "Block")
+        create_RBAC_action(
+            self,
+            "notifications",
+            "member_comms",
+            "view",
+            "Dummy role for member to member comms. Allows use of batch_ids to obscure member id",
         )
 
         # We don't create an ABF role for this as there isn't a scenario where an Admin would need to send email on

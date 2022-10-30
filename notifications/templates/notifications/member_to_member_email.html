@@ -1,0 +1,116 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Allow any member to email any other                                    #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% extends 'base.html' %}
+{% load cobalt_tags %}
+{% block title %} - Member Message{% endblock %}
+{% block content %}
+
+    {% include "utils/summernote_heading.html" %}
+
+    <div class="card">
+        <div class="card-header card-header-danger">
+            <h1>Send Message to {{ member.full_name }}</h1>
+            <h4>Your email address will not be shared with {{ member.first_name }}, but they can reply through {{ GLOBAL_TITLE }} and we will forward it to you.</h4>
+        </div>
+        <div class="card-body">
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            {% cobalt_bs4_field form.subject %}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            {% cobalt_bs4_field form.message %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GO BACK TO PREVIOUS PAGE AFTER SENDING, IF WE HAVE ONE -->
+                <input type="hidden" name="redirect_to" value={{ request.META.HTTP_REFERER }} />
+
+                <div class="row">
+                    <button id="id_submit" disabled class="btn btn-success mx-auto cobalt-save">Send</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block footer %}
+    <script>
+        // check if button deserves to be on
+        function check_button_deserves_it(){
+
+            // get just the text (not tags) from summernote field to see if anything has been typed
+            const summernote_field = $('#id_message').summernote('code');
+
+            const stripped = $(summernote_field).text();
+
+            // remove disabled from button if both fields have values
+            if ($("#id_subject").val() && stripped) {
+                $("#id_submit").prop('disabled', false);
+            } else {
+                $("#id_submit").prop('disabled', true);
+            }
+        }
+
+        $(document).ready( function () {
+
+            // check if we should enable the button because the subject changes
+            $("#id_subject").keyup(function (){
+                check_button_deserves_it();
+            });
+
+            // This is not ideal. Feel free to do it better.
+
+            // I can't find a way to add the callback to the summernote settings, so instead we hard code
+            // the rest of the summernote stuff here.
+
+            $('#id_message').summernote({
+                fontSizes: ["8", "9", "10", "11", "12", "14", "16", "18", "24", "36"],
+                lineHeights: ["1", "0.5", "0"],
+                toolbar: [
+                    ["style", ["style"]],
+                    ["fontsize", ["fontsize"]],
+                    ["font", ["bold", "italic", "underline"]],
+                    ["fontname", ["fontname"]],
+                    ["height", ["height"]],
+                    ["color", ["color"]],
+                    ["para", ["ul", "ol", "paragraph"]],
+                    ["table", ["table"]],
+                    ["insert", ["link", "picture", "hr"]],
+                    ["view", ["fullscreen", "codeview"]],
+                    ["help", ["help"]],
+                ],
+
+                // check if we should enable the button because the message changes, needs a sleep from Stackoverflow
+                // Django summernote doesn't support callbacks so we need the whole summernote definition here
+                callbacks: {
+                    onKeyup: function(e) {
+                        setTimeout(function(){
+                            check_button_deserves_it();
+                        },200);
+                    }
+                },
+                height: 400,
+                placeholder: '<br>Enter your message here.',
+            });
+
+            // put focus on subject field
+            $("#id_subject").focus();
+
+        });
+    </script>
+{% endblock footer %}

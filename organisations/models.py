@@ -2,6 +2,8 @@ import bleach
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.conf import settings
+from django.urls import reverse
+
 from accounts.models import User
 from django.utils import timezone
 from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator
@@ -425,17 +427,20 @@ class OrganisationFrontPage(models.Model):
         if self._state.adding:
             # First time, set default
             self.summary = """
+                        <h2 class="text-center" style="color: black;"><span style="font-size: 90px;">♣</span>
+                        </h2>
                         <h1 style="text-align: center; ">
                         <font color="#9c00ff">{{ BRIDGE_CLUB }}</font>
                         </h1>
                         <br>
                         <p>
-                        <span style="font-size: 18px;">This page hasn't been set up yet
+                        <span style="font-size: 18px;">This page hasn't been set up yet.
                         If you are an administrator for this club you can change this through
                         the Communications section of Club Admin.
                         </span>
                         </p>
                         {{ website }}
+                        <p style="font-size: 18px">{{ secretary }}</p>
                         <h3 class="">Registered Address</h3>
                         <p style="font-size: 18px; line-height: 0.5;"><b>{{ Address1 }}</b></p>
                         <p style="font-size: 18px; line-height: 0.5;"><b>{{ Address2 }}</b></p>
@@ -463,6 +468,12 @@ class OrganisationFrontPage(models.Model):
 
             replace_with = self.organisation.postcode or ""
             self.summary = self.summary.replace("{{ Postcode }}", replace_with)
+
+            url = reverse(
+                "accounts:public_profile", kwargs={"pk": self.organisation.secretary.id}
+            )
+            replace_with = f"Club Secretary is: <a href='{url}'>{self.organisation.secretary.full_name}</a>"
+            self.summary = self.summary.replace("{{ secretary }}", replace_with)
 
             if self.organisation.club_website:
                 # Add http to start of not present
