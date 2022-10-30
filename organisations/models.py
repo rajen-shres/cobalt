@@ -472,7 +472,12 @@ class OrganisationFrontPage(models.Model):
             url = reverse(
                 "accounts:public_profile", kwargs={"pk": self.organisation.secretary.id}
             )
-            replace_with = f"Club Secretary is: <a href='{url}'>{self.organisation.secretary.full_name}</a>"
+            email_url = reverse(
+                "notifications:member_to_member_email",
+                kwargs={"member_id": self.organisation.secretary.id},
+            )
+            replace_with = f"""Club Secretary is: <a href='{url}'>{self.organisation.secretary.full_name}</a>.
+                            <br><br><a href='{email_url}'>Click here to contact {self.organisation.secretary.first_name}</a>."""
             self.summary = self.summary.replace("{{ secretary }}", replace_with)
 
             if self.organisation.club_website:
