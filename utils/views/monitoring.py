@@ -509,9 +509,6 @@ def admin_system_settings(request):
             settings,
         ) = _get_aws_environment()
 
-        print("Post")
-        print(request.POST.get("debug_flag", "OFF"))
-
         option_settings = [
             {
                 "Namespace": "aws:elasticbeanstalk:application:environment",
@@ -575,8 +572,6 @@ def admin_system_settings(request):
     debug_flag = settings.get("DEBUG") == "ON"
     disable_playpen = settings.get("DISABLE_PLAYPEN") == "ON"
     maintenance_mode = settings.get("MAINTENANCE_MODE") == "ON"
-
-    print("debug is ", debug_flag)
 
     initial = {
         "debug_flag": debug_flag,
