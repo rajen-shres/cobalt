@@ -39,7 +39,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ###########################################
 # basics
 SECRET_KEY = set_value("SECRET_KEY")
-DEBUG = set_value("DEBUG", False)
+# DEBUG = set_value("DEBUG", False)
+DEBUG = os.environ.get("DEBUG") == "ON"
 API_KEY_PREFIX = set_value("API_KEY_PREFIX", "API_")
 
 # Set up ADMINS list from string

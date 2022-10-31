@@ -509,6 +509,9 @@ def admin_system_settings(request):
             settings,
         ) = _get_aws_environment()
 
+        print("Post")
+        print(request.POST.get("debug_flag", "OFF"))
+
         option_settings = [
             {
                 "Namespace": "aws:elasticbeanstalk:application:environment",
@@ -519,6 +522,11 @@ def admin_system_settings(request):
                 "Namespace": "aws:elasticbeanstalk:application:environment",
                 "OptionName": "MAINTENANCE_MODE",
                 "Value": request.POST.get("maintenance_mode", "OFF").upper(),
+            },
+            {
+                "Namespace": "aws:elasticbeanstalk:application:environment",
+                "OptionName": "DEBUG",
+                "Value": request.POST.get("debug_flag", "OFF").upper(),
             },
         ]
 
@@ -564,12 +572,14 @@ def admin_system_settings(request):
         )
 
     # Get the setting we are interested in
-    fish_setting = settings.get("FISH_SETTING") == "ON"
+    debug_flag = settings.get("DEBUG") == "ON"
     disable_playpen = settings.get("DISABLE_PLAYPEN") == "ON"
     maintenance_mode = settings.get("MAINTENANCE_MODE") == "ON"
 
+    print("debug is ", debug_flag)
+
     initial = {
-        "fish_setting": fish_setting,
+        "debug_flag": debug_flag,
         "disable_playpen": disable_playpen,
         "maintenance_mode": maintenance_mode,
     }
@@ -583,7 +593,7 @@ def admin_system_settings(request):
             "message": message,
             "aws_environment_name": aws_environment_name,
             "environment_type": environment_type,
-            "fish_setting": fish_setting,
+            "debug_flag": debug_flag,
             "disable_playpen": disable_playpen,
             "maintenance_mode": maintenance_mode,
             "form": form,
