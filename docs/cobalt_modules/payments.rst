@@ -7,8 +7,8 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   payments.payments_views
    payments.tests
+   payments.views
 
 Submodules
 ----------

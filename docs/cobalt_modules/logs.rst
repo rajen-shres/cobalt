@@ -28,14 +28,6 @@ logs.models module
    :undoc-members:
    :show-inheritance:
 
-logs.tests module
------------------
-
-.. automodule:: logs.tests
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 logs.urls module
 ----------------
 

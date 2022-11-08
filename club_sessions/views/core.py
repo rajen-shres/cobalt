@@ -969,12 +969,12 @@ def get_summary_table_data(session, session_entries, mixed_dict, membership_type
 
     Returns a dictionary like:
         'Bridge Credits':
-                            'fee': 150
-                            'amount_paid': 90
-                            'outstanding': 60
-                            'player_count': 5
-                            'players': []
-                                        User, session_entry, membership
+            'fee': 150
+            'amount_paid': 90
+            'outstanding': 60
+            'player_count': 5
+            'players': [User, session_entry, membership]
+
         'Cash': ...
 
     Note: Users may pay for extras using a different payment method

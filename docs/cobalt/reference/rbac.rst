@@ -11,7 +11,7 @@
 :doc:`../how_to/using_references`
 
 #######################
-RBAC Application (edit)
+RBAC Application
 #######################
 
 .. note::

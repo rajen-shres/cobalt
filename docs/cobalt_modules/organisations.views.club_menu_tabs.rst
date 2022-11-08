@@ -68,6 +68,14 @@ organisations.views.club\_menu\_tabs.results module
    :undoc-members:
    :show-inheritance:
 
+organisations.views.club\_menu\_tabs.sessions module
+----------------------------------------------------
+
+.. automodule:: organisations.views.club_menu_tabs.sessions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 organisations.views.club\_menu\_tabs.settings module
 ----------------------------------------------------
 

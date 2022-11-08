@@ -11,7 +11,7 @@
 :doc:`../how_to/using_references`
 
 ############################
-Utilities Application (edit)
+Utilities Application
 ############################
 
 .. note::

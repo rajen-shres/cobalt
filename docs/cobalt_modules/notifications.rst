@@ -7,8 +7,8 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   notifications.notifications_views
    notifications.tests
+   notifications.views
 
 Submodules
 ----------

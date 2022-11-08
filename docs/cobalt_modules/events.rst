@@ -7,7 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   events.events_views
+   events.views
 
 Submodules
 ----------

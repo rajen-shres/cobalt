@@ -192,10 +192,13 @@ def admin_list_clubs(request):
 
     # Check for old style clubs
     for club in clubs:
-        if club.user_can_edit:
-            basic, advanced = rbac_get_basic_and_advanced(club)
-            if not (basic or advanced):
-                club.manually_added = True
+        try:
+            if club.user_can_edit:
+                basic, advanced = rbac_get_basic_and_advanced(club)
+                if not (basic or advanced):
+                    club.manually_added = True
+        except AttributeError:
+            pass
 
             # Group by State
     grouped_by_state = {}

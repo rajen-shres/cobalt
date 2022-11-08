@@ -4,6 +4,14 @@ tests.management.commands package
 Submodules
 ----------
 
+tests.management.commands.add\_additional\_test\_data\_for\_clubs module
+------------------------------------------------------------------------
+
+.. automodule:: tests.management.commands.add_additional_test_data_for_clubs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tests.management.commands.add\_test\_data module
 ------------------------------------------------
 

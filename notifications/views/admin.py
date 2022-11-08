@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils.safestring import SafeString
+from fcm_django.models import FCMDevice
 from post_office import mail as po_email
 
 from accounts.models import User
@@ -19,7 +20,7 @@ from notifications.models import (
     RealtimeNotificationHeader,
     RealtimeNotification,
 )
-from notifications.views.core import _cloudwatch_reader
+from notifications.views.core import _cloudwatch_reader, send_fcm_message
 from rbac.core import rbac_user_has_role
 from rbac.decorators import rbac_check_role
 from rbac.views import rbac_forbidden
@@ -301,3 +302,25 @@ def notifications_status_summary():
     last_hour = PostOfficeEmail.objects.filter(created__gt=last_hour_date_time).count()
 
     return {"latest": latest, "pending": pending, "last_hour": last_hour}
+
+
+@rbac_check_role("system.admin.edit")
+def admin_send_test_fcm_message(request):
+    """Send a test message to anyone"""
+
+    message = ""
+
+    if request.method == "POST":
+        user = User.objects.filter(system_number=request.POST.get("abf")).first()
+        msg = request.POST.get("msg")
+
+        try:
+            fcm_device = FCMDevice.objects.filter(user=user).latest("pk")
+            send_fcm_message(fcm_device, msg, admin=request.user)
+            message = f"Message sent to {user} on {fcm_device}"
+        except Exception as exc:
+            message = exc.__str__()
+
+    return render(
+        request, "notifications/admin_send_test_fcm_message.html", {"message": message}
+    )

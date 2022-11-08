@@ -10,6 +10,7 @@ Subpackages
    utils.cgit
    utils.management
    utils.templatetags
+   utils.views
 
 Submodules
 ----------
@@ -34,6 +35,14 @@ utils.can\_login\_as module
 ---------------------------
 
 .. automodule:: utils.can_login_as
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+utils.forms module
+------------------
+
+.. automodule:: utils.forms
    :members:
    :undoc-members:
    :show-inheritance:
@@ -74,14 +83,6 @@ utils.utils module
 ------------------
 
 .. automodule:: utils.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-utils.views module
-------------------
-
-.. automodule:: utils.views
    :members:
    :undoc-members:
    :show-inheritance:

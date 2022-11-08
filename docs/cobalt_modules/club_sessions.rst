@@ -7,7 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   club_sessions.club_sessions_views
+   club_sessions.views
 
 Submodules
 ----------
@@ -40,14 +40,6 @@ club\_sessions.models module
 ----------------------------
 
 .. automodule:: club_sessions.models
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-club\_sessions.tests module
----------------------------
-
-.. automodule:: club_sessions.tests
    :members:
    :undoc-members:
    :show-inheritance:

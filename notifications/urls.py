@@ -118,4 +118,9 @@ urlpatterns = [
         notifications.views.user.member_to_member_email_reply,
         name="member_to_member_email_reply",
     ),
+    path(
+        "admin-send-test-fcm-message",
+        notifications.views.admin.admin_send_test_fcm_message,
+        name="admin_send_test_fcm_message",
+    ),
 ]

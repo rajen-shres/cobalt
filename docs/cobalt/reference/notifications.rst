@@ -95,7 +95,7 @@ Creating Immediate Notifications
 ================================
 
 You can create a notification for a user directly by calling
-:func:`notifications.views.contact_member`. You need to provide the member,
+:func:`notifications.views.core.contact_member`. You need to provide the member,
 message and type (SMS or Email) as a minimum.
 
 This is the recommended way of communicating
@@ -105,8 +105,9 @@ an internal notification message.
 If you don't want the internal notification then you can call the sending
 functions directly.
 
-* :func:`notifications.views.send_cobalt_email` - sends an email.
-* :func:`notifications.views.send_cobalt_sms` - sends an sms.
+* :func:`notifications.views.core.send_cobalt_email_with_template` - sends an email, using a template (Recommended).
+* :func:`notifications.views.core.send_cobalt_email_preformatted` - sends an email that is already formatted (old).
+* :func:`notifications.views.core.send_cobalt_sms` - sends an sms.
 
 It is recommended that you do this rather than sending messages directly
 so we can have a single point to maintain.
@@ -118,11 +119,11 @@ Sometimes you don't want to immediately notify a user but you do want to
 set them up for later notifications. For example, if a user posts an
 article in a Forum, they may want to be notified when someone comments on it.
 
-In this case you should call :func:`notifications.views.create_user_notification`.
+In this case you should call :func:`notifications.views.listeners.create_user_notification`.
 
 This will set up a rule to listen for the events that you request. If you no
 longer want this (for example, if the post is deleted), then you should call
-:func:`notifications.views.delete_user_notification`.
+:func:`notifications.views.listeners.remove_listener`.
 
 Event Types
 -----------
@@ -148,7 +149,7 @@ over communicate than to under communicate, but always expect to also have
 to update the code within notifications as it isn't magic.
 
 To announce an event has occurred call
-:func:`notifications.views.notify_happening`.
+:func:`notifications.views.listeners.notify_happening`.
 
 This is the point at which if a member has registered to find out about
 an event, then they will be notified.
@@ -216,7 +217,7 @@ APIs
 
 Email
 ----------------
-:func:`~notifications.notifications_views.core.create_rbac_batch_id`
+:func:`~notifications.views.core.create_rbac_batch_id`
     This is optional, but if you want anyone other than admins to be able to see the emails that you send then
     you need to provide an RBAC batch id with the email request. This function will create one for you.
 
@@ -224,7 +225,7 @@ Email
 
 .. code-block::
 
-    from notifications.notifications_views.core import create_rbac_batch_id
+    from notifications.views.core import create_rbac_batch_id
 
     >>> batch_id = create_rbac_batch_id(
                  rbac_role=f"notifications.orgcomms.{club.id}.edit",
@@ -234,13 +235,13 @@ Email
     >>> batch_id
     <BatchID: ZdPG-iMHT-mI5q>
 
-:func:`~notifications.notifications_views.core.send_cobalt_email_with_template`
+:func:`~notifications.views.core.send_cobalt_email_with_template`
     Send an email using a template. Perhaps a bit of a misleading name as it will use the default template if none
     is supplied.
 
 .. code-block::
 
-    from notifications.notifications_views.core import send_cobalt_email_with_template
+    from notifications.views.core import send_cobalt_email_with_template
 
     context = {
         "name": member.first_name,
@@ -253,7 +254,7 @@ Email
         to_address=member.email, context=context, priority="now", batch_id=batch_id
     )
 
-:func:`~notifications.notifications_views.core.send_cobalt_bulk_email`
+:func:`~notifications.views.core.send_cobalt_bulk_email`
 
 .. admonition:: Deprecated
 
@@ -261,32 +262,32 @@ Email
 
 Send a message to multiple people, with no customisation.
 
-:func:`~notifications.notifications_views.core.send_cobalt_email_preformatted`
+:func:`~notifications.views.core.send_cobalt_email_preformatted`
     Sends an email that has already been formatted. Doesn't use a template.
-:func:`~notifications.notifications_views.core.send_cobalt_email_to_system_number`
+:func:`~notifications.views.core.send_cobalt_email_to_system_number`
     Send a simple message to a user or UnregisteredUser.
 
 
 Messaging
 ---------
 
-:func:`~notifications.notifications_views.core.send_cobalt_sms`
+:func:`~notifications.views.core.send_cobalt_sms`
     Send an SMS to a user.
-:func:`~notifications.notifications_views.core.send_fcm_message`
+:func:`~notifications.views.core.send_fcm_message`
     Send a Google FCM message to a user.
-:func:`~notifications.notifications_views.core.send_cobalt_bulk_sms`
+:func:`~notifications.views.core.send_cobalt_bulk_sms`
     Send SMS to multiple recipients.
 
 General
 -------
-:func:`~notifications.notifications_views.core.add_in_app_notification`
+:func:`~notifications.views.core.add_in_app_notification`
     Adds an in-app notification for a user.
-:func:`~notifications.notifications_views.core.contact_member`
+:func:`~notifications.views.core.contact_member`
     Contact a member over SMS or email (deprecated).
-:func:`~notifications.notifications_views.listeners.add_listener`
+:func:`~notifications.views.listeners.add_listener`
     Add a listener for an event.
 
 Forms
 -----
-:func:`~notifications.notifications_views.core.email_contact`
+:func:`~notifications.views.core.email_contact`
     Form to contact an individual
