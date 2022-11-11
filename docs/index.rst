@@ -77,8 +77,10 @@ Content
         - :doc:`cobalt/discussion/cobalt_for_porkchops`
         - :doc:`cobalt/discussion/django_for_porkchops`
         - :doc:`cobalt/discussion/python_for_porkchops`
+        - :doc:`cobalt/discussion/email_overview`
         - :doc:`cobalt/discussion/monitoring_overview`
         - :doc:`cobalt/discussion/testing`
+        - :doc:`cobalt/discussion/backups_overview`
 
 
     .. container:: reference

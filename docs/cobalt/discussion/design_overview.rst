@@ -83,25 +83,37 @@ Technology                          Version                             Purpose
 =======================             =============================       ========================================================
 Python                              3.7 (dictated by AWS)               Core development language
 Postgres                            12 (dictated by AWS)                Main database
-django                              3.2.5                               Web framework
-pytz                                2019.3                              Timezone utilities
-requests                            2.20.1                              URL access (used by other packages as well)
-stripe                              2.43.0                              Stripe API
-Pillow                              8.2.0                               Image manipulation
-psycopg2-binary                     2.8                                 Access to postgres
-django-summernote                   0.8.11.6                            Wrapper for Summernote WYSIWYG
-django-crispy-forms                 1.9.0                               Form generation (*Deprecated*)
-django-widget-tweaks                1.4.8                               Form manipulation (*Deprecated*)
-django-extensions                   2.2.9                               Standard utilities
-boto3                               1.12.39                             AWS API
-botocore                            1.15.39                             AWS API
-geopy                               2.0.0                               Lat and Lon finder
-essential-generators                0.9.2                               Generating test data
-django-otp                          1.1.1                               2FA for Django Admin pages
-qrcode                              7.3.1                               QR Codes for Django OTP
-django-loginas                      0.3.10                              Allow admins to login as a user
-django-ninja                        0.16.1                              API development
+django                              see requirements.txt                Web framework
+pytz                                see requirements.txt                Timezone utilities
+requests                            see requirements.txt                URL access (used by other packages as well)
+stripe                              see requirements.txt                Stripe API
+Pillow                              see requirements.txt                Image manipulation
+psycopg2-binary                     see requirements.txt                Access to postgres
+django-summernote                   see requirements.txt                Wrapper for Summernote WYSIWYG
+django-crispy-forms                 see requirements.txt                Form generation (*Deprecated*)
+django-widget-tweaks                see requirements.txt                Form manipulation (*Deprecated*)
+django-extensions                   see requirements.txt                Standard utilities
+boto3                               see requirements.txt                AWS API
+botocore                            see requirements.txt                AWS API
+geopy                               see requirements.txt                Lat and Lon finder
+essential-generators                see requirements.txt                Generating test data
+django-otp                          see requirements.txt                2FA for Django Admin pages
+qrcode                              see requirements.txt                QR Codes for Django OTP
+django-loginas                      see requirements.txt                Allow admins to login as a user
+django-ninja                        see requirements.txt                API development
 =======================             =============================       ========================================================
+
+
+.. admonition:: Version Updates
+
+    Updating `requirements.txt` to the latest version of packages may seem like a good idea (and
+    generally good practice), but beware, many issues have been caused by doing this. It is
+    recommended only to do this if:
+
+    - a package is identified with a vulnerability
+    - you need a newer feature
+    - another package needs a specific version
+    - you are at the start of a major piece of work and will be doing extensive testing
 
 Current Server-side Banned Technology Stack
 ===========================================
@@ -301,8 +313,9 @@ Accounts.models.UnregisteredUser
     reason is that clubs have real, paid-up members who they want to be able to manage through the
     system, but who may not see any value in registering for Cobalt.
 
-Accounts.models.Visitor
+Visitor
     These are people who are not members of the nation body but wish to play at a registered club.
+    We store these as UnregisteredUsers.
 
 TBAs
     This is purely a practical choice. Some players do not register for Cobalt but have their
@@ -310,5 +323,29 @@ TBAs
     don't and the convener (being the accommodating people that they are) want to 'bridge' the
     gap between the recalcitrant player and the poor suffering scorer. We allow the addition of
     name and system number to an EventEntryPlayer record so that we can cope with this.
+
+Specific Users
+==============
+
+There are some users with specific functions:
+
+RBAC_EVERYONE (pk=1)
+    This is a User object that is used by RBAC to denote that everyone can (or cannot) access
+    a group.
+
+TBA_PLAYER (pk=2)
+    This is a User object used to represent an unknown player for an event entry.
+
+ABF_USER (pk=3)
+    This is a User who represents the ABF and can post in Forums without it needing to come from
+    an individual.
+
+If you want to exclude these system accounts from queries you can use `ALL_SYSTEM_ACCOUNTS`
+which is defined in `cobalt/settings.py`.
+
+With hindsight it would have been a good idea to reserve some other low numbers for future use.
+If you need to do this later, you can create the account in production and add its ID to the
+settings file though an environment variable. This will allow you to use lower numbers in
+test environments.
 
 
