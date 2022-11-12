@@ -7,6 +7,7 @@
     <div class="card">
         <div class="card-header card-header-warning">
             <h2>Send Test FCM Message</h2>
+            <p>This will send a message to the most recently registered device if multiple are present.</p>
         </div>
 
         <div class="card-body">
@@ -24,14 +25,14 @@
                     <div class="row">
                         <div class="col-md-3 form-group">
                             <label for="abf" class="bmd-label-static">Recipient ABF Number</label>
-                            <input class="form-control" type="number" name="abf">
+                            <input class="form-control" type="number" required name="abf">
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 form-group">
                             <label for="msg" class="bmd-label-static">Message</label>
-                            <textarea class="form-control" name="msg" cols="30" rows="10"></textarea>
+                            <textarea class="form-control" name="msg" required cols="30" rows="10"></textarea>
                         </div>
                     </div>
 
