@@ -95,7 +95,7 @@ Environment: {{ COBALT_HOSTNAME }}
             <div class="sidebar" data-color="orange" data-background-color="white" data-image="{% static "assets/img/slider.jpg" %}">
 
                 {# logo #}
-                <div class="logo text-center">
+                <div class="logo text-center d-none d-md-inline">
                     <a href="/" class="simple-text logo-normal">
 
                         <img src="{% static "assets/img/abftechlogo.png" %}" style="width:250px">
@@ -235,7 +235,7 @@ Environment: {{ COBALT_HOSTNAME }}
 
                         {# search #}
                         <div class="collapse navbar-collapse justify-content-end">
-                            <form class="navbar-form" method="get" action="{% url "support:search" %}">
+                            <form class="navbar-form" method="post" action="{% url "support:search" %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="include_people" value="checked">
                                 <input type="hidden" name="include_forums" value="checked">

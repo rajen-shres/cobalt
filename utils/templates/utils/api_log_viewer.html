@@ -1,0 +1,104 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Shows a list of API calls                                              #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% extends 'base.html' %}
+{% block title %}- API Logs{% endblock %}
+{% load cobalt_tags %}
+{% block content %}
+
+    {% load tz %}
+
+
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#it">IT</a></li>
+            <li class="breadcrumb-item active" aria-current="page">API Logs</li>
+        </ol>
+    </nav>
+
+    <!-- TABLE FOR RECENT LOG ENTRIES WITH PAGINATION -->
+    <div class="card col-md-9 mx-auto">
+        <div class="card-header card-header-info">
+            <h1>API Full Logs</h1>
+        </div>
+        <div class="card-body">
+
+            {% if things %}
+                <div class="table-responsive">
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr class="text-danger">
+                                <th class="text-left">API</th>
+                                <th class="text-right">Version</th>
+                                <th class="text-right">Requestor</th>
+                                <th class="text-right">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            {% for item in things %}
+                                <tr>
+                                    <td class="text-left">{{ item.api }}</td>
+                                    <td class="text-right">{{ item.version }}</td>
+                                    <td class="text-right">{{ item.admin }}</td>
+                                    <td class="text-right">{{ item.created_date|localtime|cobalt_nice_datetime }}</td>
+                                </tr>
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+
+                {% include "utils/pagination_footer.html" %}
+            {% else %}
+                <h3>No API calls have been logged</h3>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- TABLE FOR SUMMARY DATA -->
+    <div class="card col-md-9 mx-auto pt-5">
+        <div class="card-header card-header-warning">
+            <h1>API Summary - Last 3 Months</h1>
+        </div>
+        <div class="card-body">
+
+            {% if summary %}
+                <div class="table-responsive">
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr class="text-primary">
+                                <th class="text-left">API</th>
+                                <th class="text-right">Version</th>
+                                <th class="text-right">Total Calls</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            {% for item in summary %}
+                                <tr>
+                                    <td class="text-left">{{ item.api }}</td>
+                                    <td class="text-right">{{ item.version }}</td>
+                                    <td class="text-right">{{ item.total }}</td>
+                                </tr>
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+
+                <h3>No Summary data found</h3>
+
+            {% endif %}
+
+        </div>
+    </div>
+
+{% endblock %}

@@ -63,4 +63,9 @@ urlpatterns = [
         utils.views.monitoring.get_aws_environment_status_htmx,
         name="get_aws_environment_status_htmx",
     ),
+    path(
+        "api-log-viewer",
+        utils.views.general.api_log_viewer,
+        name="api_log_viewer",
+    ),
 ]

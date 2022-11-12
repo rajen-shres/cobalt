@@ -1,9 +1,18 @@
 import csv
 
+import dateutil.utils
 import requests
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render
+from django.utils import timezone
 from geopy import Nominatim
+
+from api.models import ApiLog
+from rbac.decorators import rbac_check_role
+from utils.utils import cobalt_paginator
 
 
 @login_required()
@@ -67,3 +76,26 @@ def masterpoint_query(query):
         response = []
 
     return response
+
+
+@rbac_check_role("system.admin.edit")
+def api_log_viewer(request):
+    """Allow admins to see calls to the API"""
+
+    # Get all records
+    api_logs = ApiLog.objects.order_by("-pk")
+    things = cobalt_paginator(request, api_logs)
+
+    # Get summary
+    three_months_ago = timezone.now() - relativedelta(months=3)
+    summary = (
+        ApiLog.objects.filter(created_date__gte=three_months_ago)
+        .values("api", "version")
+        .annotate(total=Count("api"))
+        .order_by("-total")
+    )
+    print(summary)
+
+    return render(
+        request, "utils/api_log_viewer.html", {"things": things, "summary": summary}
+    )

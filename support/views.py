@@ -181,28 +181,39 @@ def browser_errors(request):
 
 @login_required
 def search(request):
+    """This handles the search bar that appears on every page. Also gets called from the search panel that
+    we show if a search is performed, to allow the user to reduce the range of the search"""
 
-    query = request.GET.get("search_string")
-    include_people = request.GET.get("include_people")
-    include_forums = request.GET.get("include_forums")
-    include_posts = request.GET.get("include_posts")
-    include_events = request.GET.get("include_events")
-    include_payments = request.GET.get("include_payments")
-    include_orgs = request.GET.get("include_orgs")
+    query = request.POST.get("search_string")
+    include_people = request.POST.get("include_people")
+    include_forums = request.POST.get("include_forums")
+    include_posts = request.POST.get("include_posts")
+    include_events = request.POST.get("include_events")
+    include_payments = request.POST.get("include_payments")
+    include_orgs = request.POST.get("include_orgs")
 
     searchparams = ""
 
     if query:  # don't search if no search string
 
-        searchparams = f"search_string={query}&"
+        searchparams = f"search_string={query.replace(' ', '%20')}&"
 
         # Users
         if include_people:
-            people = User.objects.filter(
-                Q(first_name__icontains=query)
-                | Q(last_name__icontains=query)
-                | Q(system_number__icontains=query)
-            )
+
+            if query.find(" ") >= 0:
+                first_name = query.split(" ")[0]
+                last_name = " ".join(query.split(" ")[1:])
+                people = User.objects.filter(
+                    Q(first_name__icontains=first_name)
+                    & Q(last_name__icontains=last_name)
+                )
+            else:
+                people = User.objects.filter(
+                    Q(first_name__icontains=query)
+                    | Q(last_name__icontains=query)
+                    | Q(system_number__icontains=query)
+                )
             searchparams += "include_people=1&"
         else:
             people = []

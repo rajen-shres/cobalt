@@ -15,7 +15,7 @@
                 <h1>Search</h1>
             </div>
             <div class="card-body">
-                <form method="get">
+                <form method="post">
                     {% csrf_token %}
                     <div>
                         <div class="input-group">
@@ -24,7 +24,7 @@
                                     <i class="material-icons">search</i>
                                 </span>
                             </div>
-                            <input type="text" class="form-control" placeholder="Search Words" name="search_string" value={{ search_string|default_if_none:"" }}>
+                            <input type="text" class="form-control" placeholder="Search Words" name="search_string" value="{{ search_string|default_if_none:"" }}">
                         </div>
                         <div class="form-check form-check-inline mt-4">
                             <label class="form-check-label">
