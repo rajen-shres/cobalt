@@ -1,8 +1,24 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Shows basic user activity on the system                                #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% extends 'base.html' %}
 {% load cobalt_tags %}
 {% load humanize %}
 {% block title %} - User Activity{% endblock %}
 {% block content %}
+
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">General</a></li>
+            <li class="breadcrumb-item"><a href="{% url "utils:status" %}">System Status</a></li>
+            <li class="breadcrumb-item active" aria-current="page">User Activity</li>
+        </ol>
+    </nav>
 
     <div class="card">
         <div class="card-header card-header-warning">
@@ -14,7 +30,7 @@
                     <h2>Summary</h2>
                 </div>
                 <div class="card-body text-center">
-                    <table class="table table-sm">
+                    <table class="table table-sm table-condensed">
                         <thead class="text-danger">
                             <tr>
                                 <th class="text-left">Timescale</th>
@@ -40,7 +56,7 @@
                                             </div>
                                             <div class="card-body text-center">
                                                 <div class="table-responsive">
-                                                    <table class="table table-sm">
+                                                    <table class="table table-sm table-condensed">
                                                         <thead class="text-primary">
                                                             <tr>
                                                                 <th>Name</th>

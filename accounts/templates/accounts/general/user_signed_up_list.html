@@ -14,27 +14,27 @@
         </ol>
     </nav>
 
-    <div class="jumbotron">
+    <div >
         <div class="card">
             <div class="card-header card-header-primary">
                 <h2>User Sign Ups (Total: {{ total_users }})</h2>
             </div>
             <div class="card-body table-responsive">
-                <table class="table">
+                <table class="table table-condensed table-hover">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>{{ GLOBAL_ORG }} Number</th>
-                            <th>Account Creation Date</th>
+                            <th class="text-left">Name</th>
+                            <th class="text-left">{{ GLOBAL_ORG }} Number</th>
+                            <th class="text-left">Account Creation Date</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for thing in things %}
 
                             <tr>
-                                <td>{{ thing|cobalt_user_link_short }}
-                                    <td>{{ thing.system_number }}
-                                        <td>{{ thing.date_joined|cobalt_nice_datetime }}
+                                <td class="text-left">{{ thing|cobalt_user_link_short }}
+                                    <td class="text-left">{{ thing.system_number }}
+                                        <td class="text-left">{{ thing.date_joined|cobalt_nice_datetime }}
                                         </tr>
                         {% endfor %}
                     </tbody>
