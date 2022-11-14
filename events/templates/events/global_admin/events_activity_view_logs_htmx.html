@@ -1,0 +1,44 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Shows activity on the events logs. Part of the event activity page.    #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+{% load humanize %}
+
+<div class="card">
+    <div class="card-header card-header-primary">
+        <h3>Events Logs</h3>
+    </div>
+    <div class="card-body">
+        <div class="table_responsive">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr class="text-danger">
+                        <th class="text-left" style="cursor: default">Time Ago</th>
+                        <th class="text-left" style="cursor: default">Club</th>
+                        {#                    <th class="text-left">Congress</th>#}
+                        <th class="text-left" style="cursor: default">Event</th>
+                        <th class="text-left" style="cursor: default">Who</th>
+                        <th class="text-left" style="cursor: default">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event_log in things %}
+                        <tr>
+                            <td class="text-left" style="cursor: default">{{ event_log.action_date|timesince }}</td>
+                            <td class="text-left" style="cursor: default">{{ event_log.event.congress.congress_master.org }}</td>
+                            {#                <td class="text-left">{{ event_log.event.congress }}</td>#}
+                            <td class="text-left" style="cursor: default">{{ event_log.event.event_name }}</td>
+                            <td class="text-left" style="cursor: default">{{ event_log.actor.full_name }}</td>
+                            <td class="text-left" style="cursor: default">{{ event_log.action|safe }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% include "utils/pagination_footer_htmx.html" %}
+
+    </div>
+</div>

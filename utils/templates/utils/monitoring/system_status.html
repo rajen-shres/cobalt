@@ -168,7 +168,7 @@
                                     </table>
 
                                 </td>
-                                <td class="text-center"><a style="width: 120px" href="javascript: void(0)" class="btn btn-sm px-1
+                                <td class="text-center"><a style="width: 120px" href="{% url "events:events_activity_view" %}" class="btn btn-sm px-1
                                     {% if events.entries_last_hour > 0 %}
                                         btn-primary">No Errors
                                     {% else %}

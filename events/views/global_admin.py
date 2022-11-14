@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import User
@@ -12,6 +13,7 @@ from events.models import (
     BasketItem,
     EventEntry,
     EventEntryPlayer,
+    EventLog,
 )
 from masterpoints.views import user_summary
 from rbac.core import (
@@ -21,6 +23,7 @@ from rbac.core import (
 )
 from rbac.decorators import rbac_check_role
 from rbac.views import rbac_forbidden
+from utils.utils import cobalt_paginator
 
 
 @login_required()
@@ -218,4 +221,29 @@ def global_admin_event_payment_health_report(request):
             "very_old_bridge_credit_entries": very_old_bridge_credit_entries,
             "dangerous_entries": dangerous_entries,
         },
+    )
+
+
+@rbac_check_role("events.global.edit")
+def events_activity_view(request):
+    """Show activity on the events module"""
+
+    return render(request, "events/global_admin/events_activity_view.html")
+
+
+@rbac_check_role("events.global.edit")
+def events_activity_view_logs_htmx(request):
+    """Show activity on the events module - EventLogs"""
+
+    events_logs_qs = EventLog.objects.order_by("-pk").select_related(
+        "event", "event__congress", "event__congress__congress_master__org", "actor"
+    )
+    events_logs = cobalt_paginator(request, events_logs_qs, 15)
+    hx_post = reverse("events:events_activity_view_logs_htmx")
+    hx_target = "#event_log"
+
+    return render(
+        request,
+        "events/global_admin/events_activity_view_logs_htmx.html",
+        {"things": events_logs, "hx_post": hx_post, "hx_target": hx_target},
     )

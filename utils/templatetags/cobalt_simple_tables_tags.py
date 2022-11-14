@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from django import template
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 
 from accounts.models import User
@@ -35,7 +36,7 @@ def cobalt_simple_table_header_tag(headers, align, heading_colour=None):
 
         # Handle colours
         colour = f" text-{heading_colour}" if heading_colour else ""
-        ret += f"<th class='text-{align[ind]}{colour}'>{header}</th>"
+        ret += f"<th style='cursor: default' class='text-{align[ind]}{colour}'>{header}</th>"
 
     ret += "</tr>"
 
@@ -50,7 +51,7 @@ def cobalt_simple_table_row_tag(row, fields, align):
 
     """
 
-    # Fields is a list from the template, but we want a list
+    # Fields is a string from the template, but we want a list
     fields = fields.split()
     align = align.split()
 
@@ -72,7 +73,7 @@ def cobalt_simple_table_row_tag(row, fields, align):
             val = val.full_name
             extra_class = " cobalt-no-wrap"
 
-        ret += f"<td class='text-{align[ind]} {extra_class}'>{val}</td>"
+        ret += f"<td style='cursor: default' class='text-{align[ind]} {extra_class}'>{val}</td>"
 
     ret += "</tr>"
 

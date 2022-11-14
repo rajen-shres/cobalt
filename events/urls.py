@@ -534,4 +534,14 @@ urlpatterns = [
         events.views.global_admin.global_admin_event_payment_health_report,
         name="global_admin_event_payment_health_report",
     ),
+    path(
+        "system-admin/events-activity-view",
+        events.views.global_admin.events_activity_view,
+        name="events_activity_view",
+    ),
+    path(
+        "system-admin/events-activity-view-logs",
+        events.views.global_admin.events_activity_view_logs_htmx,
+        name="events_activity_view_logs_htmx",
+    ),
 ]

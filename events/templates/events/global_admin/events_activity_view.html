@@ -1,0 +1,28 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Shows activity on the events module                                    #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% extends 'base.html' %}
+{% block title %} - Events Activity{% endblock %}
+
+{% block content %}
+
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">General</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Events Activity</li>
+        </ol>
+    </nav>
+
+    <!-- EVENT LOG VIEWER -->
+    <div
+        id="event_log"
+        hx-post="{% url "events:events_activity_view_logs_htmx" %}"
+        hx-trigger="load"
+    ></div>
+
+{% endblock content %}
