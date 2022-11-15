@@ -7,3 +7,4 @@
 * * * * * /var/app/current/utils/cron/wrapper.sh post_office_email_sender_cron
 * * * * * sleep 30; /var/app/current/utils/cron/wrapper.sh post_office_email_sender_cron
 0 21 * * * /var/app/current/utils/cron/wrapper.sh close_old_helpdesk_tickets
+0 22 * * * /var/app/current/utils/cron/wrapper.sh delete_old_in_app_notifications
