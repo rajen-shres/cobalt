@@ -180,7 +180,7 @@ def browser_errors(request):
 
 
 @login_required
-def search(request):
+def global_search(request):
     """This handles the search bar that appears on every page. Also gets called from the search panel that
     we show if a search is performed, to allow the user to reduce the range of the search"""
 
@@ -237,7 +237,9 @@ def search(request):
             events = []
 
         if include_payments:
-            payments = MemberTransaction.objects.filter(description__icontains=query)
+            payments = MemberTransaction.objects.filter(
+                description__icontains=query, member=request.user
+            )
             searchparams += "include_payments=1&"
         else:
             payments = []
