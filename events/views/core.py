@@ -742,9 +742,10 @@ def notify_conveners(congress, event, subject, email_msg):
 def events_status_summary():
     """Used by utils status to get the status of events"""
 
-    now = datetime.now().date()
-    last_day_date_time = datetime.now() - timedelta(hours=24)
-    last_hour_date_time = datetime.now() - timedelta(hours=1)
+    #    now = datetime.now().date()
+    now = timezone.now().date()
+    last_day_date_time = timezone.now() - timedelta(hours=24)
+    last_hour_date_time = timezone.now() - timedelta(hours=1)
 
     active_congresses = (
         Congress.objects.filter(status="Published")

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
 from django.utils.safestring import SafeString
 from fcm_django.models import FCMDevice
 from post_office import mail as po_email
@@ -297,7 +298,7 @@ def notifications_status_summary():
     latest = PostOfficeEmail.objects.all().order_by("-id").first()
     pending = PostOfficeEmail.objects.filter(status=2).count()
 
-    last_hour_date_time = datetime.now() - timedelta(hours=1)
+    last_hour_date_time = timezone.now() - timedelta(hours=1)
 
     last_hour = PostOfficeEmail.objects.filter(created__gt=last_hour_date_time).count()
 

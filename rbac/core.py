@@ -771,16 +771,19 @@ def rbac_access_in_english_sub(user, this_name):
     """returns what access a user has in plain English
 
     Args:
+        this_name(str): Will be Everyone or the user's first name
         user(User): a standard User object
 
     Returns:
-        list: list of strings with user access explained
+        list: list of tuples - role, strings with user access explained
     """
 
     groups = RBACUserGroup.objects.filter(member=user).values_list("group")
-    roles = RBACGroupRole.objects.filter(group__in=groups)
+    roles = RBACGroupRole.objects.filter(group__in=groups).order_by("app", "model")
     english = []
     for role in roles:
+
+        # Generic messages first
 
         if role.rule_type == "Allow":
             verb = "can"
@@ -800,14 +803,48 @@ def rbac_access_in_english_sub(user, this_name):
         # some specific hard coding
         if role.app == "payments":
             if role.model == "global":
-                desc = f"{this_name} {verb} {action_word} in {role.model} {role.app}."
+                if role.action in ["all", "edit"]:
+                    desc = f"{this_name} is a global admin for the Payments module."
+                elif role.action == "view":
+                    desc = (
+                        f"{this_name} has global view access for the Payments module."
+                    )
+
+            if role.model == "manage":
+                # normal users have model_ids
+                if role.model_id:
+                    org = Organisation.objects.get(pk=role.model_id)
+                    if role.action in ["all", "edit"]:
+                        desc = f"{this_name} {verb} manage payments for {org}"
+                    elif role.action == "view":
+                        desc = f"{this_name} {verb} view payments for {org}"
+
+                elif role.action in ["all", "edit"]:
+                    desc = f"{this_name} {verb} manage payments for any organisation"
+                elif role.action == "view":
+                    desc = f"{this_name} {verb} view payments for any organisation"
+
+        if (
+            role.app == "support"
+            and role.model == "helpdesk"
+            and role.action in ["all", "edit"]
+        ):
+            desc = f"{this_name} {verb} use the Helpdesk module"
+
+        if (
+            role.app == "system"
+            and role.model == "admin"
+            and role.action in ["all", "edit"]
+        ):
+            desc = f"{this_name} {verb} manage global system settings"
 
         if role.app == "events":
             if role.model == "org":
+                # normal users have model_ids
                 if role.model_id:
                     org = Organisation.objects.get(pk=role.model_id)
                     if org:
-                        desc = f"{this_name} {verb} create and run congresses for {org} (id={role.model_id})."
+                        desc = f"{this_name} {verb} create and run congresses for {org}"
                     else:
                         desc = f"{this_name} {verb} create and run congresses for org_id={role.model_id} (org not found)."
                 else:
@@ -815,7 +852,74 @@ def rbac_access_in_english_sub(user, this_name):
             if role.model == "global":
                 desc = f"{this_name} {verb} manage global settings for Events such as creating new types of congress."
 
-        english.append(desc)
+        if role.app == "club_sessions" and role.model == "sessions":
+
+            # Normal users have a model_id
+            if role.model_id:
+                org = Organisation.objects.get(pk=role.model_id)
+                if role.action in ["edit", "all"]:
+                    desc = f"{this_name} can run sessions for {org}"
+                elif role.action == "view":
+                    desc = f"{this_name} can view sessions for {org}"
+
+            # admin user don't have a model_id
+            elif role.action in ["edit", "all"]:
+                desc = f"{this_name} can run sessions for any club"
+            elif role.action == "view":
+                desc = f"{this_name} can view sessions for any club"
+
+        if role.app == "notifications":
+            if role.model == "admin" and role.action in ["all", "view"]:
+                desc = f"{this_name} is a global administrator for the Notifications module"
+
+            if role.model == "orgcomms":
+                # normal users have a model_id
+                if role.model_id:
+                    org = Organisation.objects.get(pk=role.model_id)
+                    if role.action in ["all", "edit"]:
+                        desc = f"{this_name} can administer comms for {org}"
+
+                elif role.action in ["all", "edit"]:
+                    desc = f"{this_name} can administer comms for all organisations"
+
+            if role.model == "realtime_send":
+                desc = f"{this_name} can send real time messages to members such as SMS"
+
+        if role.app == "orgs":
+            if role.model == "admin":
+                desc = f"{this_name} is a global admin for Orgs. They can add or delete clubs etc."
+
+            if role.model == "members":
+                # normal users have a model_id
+                if role.model_id:
+                    org = Organisation.objects.get(pk=role.model_id)
+                    if role.action in ["edit", "all"]:
+                        desc = f"{this_name} can add, remove and edit members for {org}"
+
+                elif role.action in ["edit", "all"]:
+                    desc = f"{this_name} can add, remove and edit members for any organisation"
+
+            if role.model == "org":
+                # normal users have a model_id
+                if role.model_id:
+                    org = Organisation.objects.get(pk=role.model_id)
+                    if role.action in ["edit", "all"]:
+                        desc = f"{this_name} can edit details for {org} such as address and name"
+                    elif role.action == "view":
+                        desc = f"{this_name} can access the club menu for {org}"
+
+                elif role.action in ["edit", "all"]:
+                    desc = f"{this_name} can edit details for any organisation"
+
+            if role.model == "state":
+                # normal users have a model_id
+                if role.model_id:
+                    state = Organisation.objects.get(pk=role.model_id)
+                    if role.action in ["edit", "all"]:
+                        desc = f"{this_name} add clubs etc for state: {state}"
+
+        # Add to list
+        english.append((role, desc))
 
     return english
 

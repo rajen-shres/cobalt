@@ -673,8 +673,11 @@ def rbac_tests(request):
             role = text
 
         if "user_access_in_english" in request.POST:
-            ans = rbac_access_in_english(user)
-            ans = "\n".join(ans)
+            ans = ""
+            for row in rbac_access_in_english(user):
+                role, description = row
+                ans = f"{ans}\n{role.role} - {description}"
+
             last_query = "User Access in English"
 
         if "user_blocked_for_model" in request.POST:

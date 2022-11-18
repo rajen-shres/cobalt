@@ -110,7 +110,6 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
     club_email_addresses_dict = {
         item.system_number: item.email for item in club_email_addresses
     }
-    print(club_email_addresses_dict)
 
     if not members and not un_regs:
         return "There are no recipients for this email"

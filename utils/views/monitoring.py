@@ -661,11 +661,11 @@ def system_status(request):
     forums = forums_status_summary()
 
     # Get build time of this release
-    TZ = pytz.timezone(TIME_ZONE)
+    tz = pytz.timezone(TIME_ZONE)
 
     stat_time = os.stat("__init__.py").st_mtime
     utc_build_date = datetime.datetime.fromtimestamp(stat_time)
-    build_date = TZ.localize(utc_build_date)
+    build_date = tz.localize(utc_build_date)
 
     return render(
         request,

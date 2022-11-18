@@ -178,11 +178,27 @@
                                         <p>This explains rules specific to you.</p>
                                     </div>
                                     <div class="card-body" style="text-align: left">
-                                        <ul>
-                                            {% for e in english %}
-                                                <li>{{ e }}
-                                            {% endfor %}
-                                        </ul>
+                                        <div class="table-responsive">
+                                            <table class="table table-condensed table-hover">
+                                                <thead>
+                                                    <tr class="text-primary">
+                                                        <th class="text-left">Role</th>
+                                                        <th class="text-left">Description</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+
+                                                    {% for row in english %}
+                                                        <tr>
+                                                            <td class="text-left">{{ row.0.role }}</td>
+                                                            <td class="text-left">{{ row.1 }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>
