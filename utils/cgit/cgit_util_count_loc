@@ -1,14 +1,23 @@
 #!/bin/sh
 
-# about: count lines of code in this branch
+# about: count lines of code in this branch. Use --html to get output as an HTML table
+
+HTML=$1
 
 # Total size of Cobalt - lines of code
 TOTAL=$(git ls-files | grep -Ev 'static|_build|.xml' | xargs wc -l | tail -1 | awk '{print $1}')
 
 # print header
-echo ""
-echo "Application         Models  Functions  Templates  Lines of Code  Percentage"
-echo "===========         ======  =========  =========  =============  =========="
+if [ "$HTML" = "--html" ]; then
+  echo "<table>"
+  echo "<thead><tr><th>Application<th>Models<th>Functions<th>Templates<th>Lines of Code<th>Percentage</tr></thead>"
+  echo "<tbody>"
+
+else
+  echo ""
+  echo "Application         Models  Functions  Templates  Lines of Code  Percentage"
+  echo "===========         ======  =========  =========  =============  =========="
+fi
 
 # go through dirs (some excluded) and get size of each cobalt app
 for DIR in $(ls -d */ | grep -Ev 'static|docs|media|htmlcov|__pycache__')
@@ -21,6 +30,12 @@ do
   TEMPLATES=$(find . -name "*.html" | grep template | wc | awk '{print $1}')
   APP_FMT=$(printf "%'d\n" $APP)
   PERCENT=$(echo "scale=0; 100 * $APP / $TOTAL" | bc)
+
+  if [ "$HTML" = "--html" ]; then
+    echo "<tr><td>$NAME<td>$MODELS<td>$FUNCS<td>$TEMPLATES<td>$APP_FMT<td>$PERCENT<td>"
+
+  else
+
   printf '%-20s' "$NAME"
   printf '%6s' "$MODELS"
   printf '%11s' "$FUNCS"
@@ -29,6 +44,8 @@ do
   printf '%11s%%' "$PERCENT"
   printf "  "
 
+  fi
+
 # print * for every percentage
   for i in $(seq $PERCENT); do
     if [ $PERCENT -gt 0 ]; then
@@ -36,12 +53,25 @@ do
     fi
   done
 
+    if [ "$HTML" = "--html" ]; then
+      echo "</tr>"
+    fi
+
   echo ""
   cd ..
 done
 
+if [ "$HTML" = "--html" ]; then
+  printf "<tr><td colspan='7'><b>Total Lines of Code: %'d</tr>" $TOTAL
+else
 printf "\nTotal %'d lines of code\n" $TOTAL
+fi
 
 # Get total size - ignore .git dir, but we don't ignore all of the .gitignore stuff - approx value
 DIR_SIZE=$(du -hs -I .git | awk '{print $1}')
-echo "Total directory size: $DIR_SIZE"
+
+if [ "$HTML" = "--html" ]; then
+    echo "</table>"
+else
+  echo "Total directory size: $DIR_SIZE"
+fi

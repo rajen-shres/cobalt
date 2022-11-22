@@ -23,6 +23,7 @@ from organisations.forms import ResultsEmailMessageForm
 from organisations.models import (
     Organisation,
     OrgEmailTemplate,
+    ClubLog,
 )
 from organisations.views.admin import (
     rbac_get_basic_and_advanced,
@@ -150,6 +151,24 @@ def tab_dashboard_htmx(request, club):
         .count()
     )
 
+    # Get any outstanding set up required
+    has_templates = OrgEmailTemplate.objects.all().exists()
+    public_profile_edited = ClubLog.objects.filter(
+        action="Updated public profile", organisation=club
+    ).exists()
+    has_members = member_count > 0
+
+    warnings = (
+        not has_templates
+        or not club.bank_bsb
+        or not club.bank_account
+        or not public_profile_edited
+        or not has_members
+    )
+
+    # See if this has just been set up
+    is_initial = ClubLog.objects.latest("pk").action == "Initial defaults set up"
+
     return render(
         request,
         "organisations/club_menu/dashboard/dashboard_htmx.html",
@@ -159,6 +178,11 @@ def tab_dashboard_htmx(request, club):
             "congress_count": congress_count,
             "staff_count": staff_count,
             "diff_28_days": diff_28_days,
+            "has_templates": has_templates,
+            "public_profile_edited": public_profile_edited,
+            "has_members": has_members,
+            "is_initial": is_initial,
+            "warnings": warnings,
         },
     )
 

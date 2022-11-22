@@ -99,6 +99,7 @@ def add_club_defaults(club: Organisation):
     # log it
     system = User.objects.get(pk=ABF_USER)
 
+    # Note: This message is used to identify if this is a fresh setup. If you change this also search for it elsewhere.
     ClubLog(
         organisation=club,
         actor=system,

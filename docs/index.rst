@@ -7,14 +7,6 @@ Cobalt Developer Documentation
  :alt: Cobalt Chemical Symbol
  :align: center
 
-.. admonition:: ABF Specific Documentation
-
-   |
-
-   **Documentation specific to the ABF version of Cobalt can be found on Confluence.**
-
-   |
-
 Introduction
 ============
 

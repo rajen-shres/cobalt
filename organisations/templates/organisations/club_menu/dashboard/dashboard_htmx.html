@@ -1,9 +1,60 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Dashboard view for club admin                                          #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% load static %}
 {% load humanize %}
+
 <div class="table-responsive">
+
     <div class="container">
+
         <div class="row">
+
+            <!-- WARNINGS FOR INCOMPLETE ACTIVITIES -->
+            {% if warnings %}
+                <div class="alert alert-warning mx-auto" role="alert" style="display: none" id="incomplete-box">
+                    {% if is_initial %}
+                        <h1 class="text-center">Welcome to Club Admin!</h1>
+                        <h2 class="text-center">Set Up Your Club</h2>
+                    {% else %}
+                        <h2>Incomplete Set Up</h2>
+                    {% endif %}
+
+                    <h3>Things to Do:</h3>
+
+                    <ul>
+
+                        {% if not club.bank_bsb or not club.bank_account %}
+                            <li><b>Bank Details</b> - go to Settings - Club Details to add your bank details</li>
+                        {% endif %}
+
+                        {% if not has_members %}
+                            <li><b>Import Members</b> - go to Members - Add to add your members</li>
+                        {% endif %}
+
+                        {% if not public_profile_edited %}
+                            <li><b>Public Information</b> - go to Communications to update your clubs profile</li>
+                        {% endif %}
+
+                        {% if not has_templates %}
+                            <li><b>Email Templates</b> - go to Settings - Communications to add a custom template</li>
+                        {% endif %}
+
+                    </ul>
+
+                    <div class="text-center">
+                        <button id="set-cookie-for-warning" class="btn btn-outline-secondary btn-sm">Don't Show Again on this Computer</button>
+                    </div>
+                </div>
+            {% endif %}
+
+
+
+
             <div class="col-12 col-xl-6">
+
                 <table class="table table-hover table-condensed col-md-6 col-lg-4">
                     <tbody>
                         <tr
@@ -34,9 +85,32 @@
                     </tbody>
                 </table>
             </div>
+
             <div id="dashboard_chart_div" class="col-12 col-xl-6">
 
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready( function () {
+
+        // Only show notices about incomplete set up if cookie is missing
+
+        if (typeof $.cookie('club-menu-incomplete-box') === 'undefined') {
+            $("#incomplete-box").show();
+        }
+
+        // set cookie if requested
+        $("#set-cookie-for-warning").click(function() {
+            $.cookie('club-menu-incomplete-box', 'set', {
+                expires: 10000000,
+                domain: '',
+                path: ''
+            });
+            $("#incomplete-box").hide();
+        });
+
+    });
+</script>

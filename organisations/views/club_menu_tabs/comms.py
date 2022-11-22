@@ -24,6 +24,7 @@ from organisations.models import (
     MemberClubEmail,
     OrganisationFrontPage,
     OrgEmailTemplate,
+    ClubLog,
 )
 from organisations.views.club_menu_tabs.settings import tags_htmx
 from organisations.views.club_menu_tabs.utils import (
@@ -491,6 +492,12 @@ def public_info_htmx(request, club):
         if front_page_form.is_valid():
             front_page_form.save()
             message = "Data saved"
+            # log it
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action="Updated public profile",
+            ).save()
         else:
             print(front_page_form.errors)
 
