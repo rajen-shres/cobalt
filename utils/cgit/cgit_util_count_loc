@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # about: count lines of code in this branch. Use --html to get output as an HTML table
 
