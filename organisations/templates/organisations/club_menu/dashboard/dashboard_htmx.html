@@ -14,32 +14,35 @@
 
             <!-- WARNINGS FOR INCOMPLETE ACTIVITIES -->
             {% if warnings %}
-                <div class="alert alert-warning mx-auto" role="alert" style="display: none" id="incomplete-box">
+                <div class="alert alert-warning col-12" role="alert" style="display: none" id="incomplete-box">
+                    <div class="container text-right">
+                        <p class="d-inline font-weight-bold" _="on click hide #incomplete-box" style="cursor: pointer; font-size: larger">X</p>
+                    </div>
                     {% if is_initial %}
                         <h1 class="text-center">Welcome to Club Admin!</h1>
                         <h2 class="text-center">Set Up Your Club</h2>
                     {% else %}
-                        <h2>Incomplete Set Up</h2>
+                        <h2 class="text-center">Incomplete Set Up</h2>
                     {% endif %}
 
                     <h3>Things to Do:</h3>
 
-                    <ul>
+                    <ul style="font-size: larger">
 
                         {% if not club.bank_bsb or not club.bank_account %}
-                            <li><b>Bank Details</b> - go to Settings - Club Details to add your bank details</li>
+                            <li><em class="font-weight-bold">Bank Details</em> - go to Settings - Club Details to add your bank details</li>
                         {% endif %}
 
                         {% if not has_members %}
-                            <li><b>Import Members</b> - go to Members - Add to add your members</li>
+                            <li><em class="font-weight-bold">Import Members</em> - go to Members - Add to add your members</li>
                         {% endif %}
 
                         {% if not public_profile_edited %}
-                            <li><b>Public Information</b> - go to Communications to update your clubs profile</li>
+                            <li><em class="font-weight-bold">Public Information</em> - go to Communications to update your club's profile</li>
                         {% endif %}
 
                         {% if not has_templates %}
-                            <li><b>Email Templates</b> - go to Settings - Communications to add a custom template</li>
+                            <li><em class="font-weight-bold">Email Templates</em> - go to Settings - Communications to add a custom template</li>
                         {% endif %}
 
                     </ul>
