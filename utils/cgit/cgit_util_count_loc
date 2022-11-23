@@ -9,8 +9,8 @@ TOTAL=$(git ls-files | grep -Ev 'static|_build|.xml' | xargs wc -l | tail -1 | a
 
 # print header
 if [ "$HTML" = "--html" ]; then
-  echo "<table>"
-  echo "<thead><tr><th>Application<th>Models<th>Functions<th>Templates<th>Lines of Code<th>Percentage</tr></thead>"
+  echo "<table class='table table-hover table-bordered'>"
+  echo "<thead><tr><th>Application<th class='text-end'>Models<th class='text-end'>Functions<th class='text-end'>Templates<th class='text-end'>Lines of Code<th class='text-end'>Percentage<td></tr></thead>"
   echo "<tbody>"
 
 else
@@ -32,7 +32,7 @@ do
   PERCENT=$(echo "scale=0; 100 * $APP / $TOTAL" | bc)
 
   if [ "$HTML" = "--html" ]; then
-    echo "<tr><td>$NAME<td>$MODELS<td>$FUNCS<td>$TEMPLATES<td>$APP_FMT<td>$PERCENT<td>"
+    echo "<tr><td>$NAME<td class='text-end'>$MODELS<td class='text-end'>$FUNCS<td class='text-end'>$TEMPLATES<td class='text-end'>$APP_FMT<td class='text-end'>$PERCENT<td>"
 
   else
 
