@@ -12,7 +12,7 @@ LICENSE=$(grep license_key "$CONFIG_FILE" | awk '{print $3}')
 
 echo "license_key: $LICENSE" > /etc/newrelic-infra.yml
 LOCAL_NAME=$(hostname | tr "." " " | awk '{print$1}')
-echo "\n\noverride_hostname: $LOCAL_NAME.$COBALT_HOSTNAME" > /etc/newrelic-infra.yml
+echo "override_hostname: $LOCAL_NAME.$COBALT_HOSTNAME" >> /etc/newrelic-infra.yml
 
 chmod 644 /etc/newrelic-infra.yml
 
