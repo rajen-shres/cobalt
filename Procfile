@@ -1,1 +1,1 @@
-web: gunicorn --bind :8000 --workers 3 --threads 2 cobalt.wsgi:application
+web: newrelic-admin run-program gunicorn --bind :8000 --workers 3 --threads 2 cobalt.wsgi:application
