@@ -8,6 +8,7 @@ from django.utils import timezone
 from accounts.models import User
 from club_sessions.views.admin import add_club_session_defaults
 from cobalt.settings import ABF_USER
+from notifications.views.core import send_cobalt_email_with_template
 from organisations.forms import OrgForm
 from organisations.models import (
     Organisation,
@@ -133,7 +134,20 @@ def admin_add_club(request):
             # Add profile page
             OrganisationFrontPage(organisation=org).save()
 
+            # Add standard defaults
             add_club_defaults(org)
+
+            # Notify secretary
+            # context = {
+            #     "name": org.secretary.first_name,
+            #     "title": "{org} has been set up in {GLOBAL_TITLE}",
+            #     "email_body": html,
+            #     "link": "/events/view",
+            #     "link_text": "View Congress Entries",
+            #     "subject": "Entry Cancelled - %s" % event_entry.event,
+            # }
+            #
+            # send_cobalt_email_with_template(to_address=member.email, context=context)
 
             messages.success(
                 request,
