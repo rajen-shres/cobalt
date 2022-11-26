@@ -3,11 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import User
 from club_sessions.views.admin import add_club_session_defaults
-from cobalt.settings import ABF_USER
+from cobalt.settings import ABF_USER, GLOBAL_TITLE
 from notifications.views.core import send_cobalt_email_with_template
 from organisations.forms import OrgForm
 from organisations.models import (
@@ -138,16 +139,30 @@ def admin_add_club(request):
             add_club_defaults(org)
 
             # Notify secretary
-            # context = {
-            #     "name": org.secretary.first_name,
-            #     "title": "{org} has been set up in {GLOBAL_TITLE}",
-            #     "email_body": html,
-            #     "link": "/events/view",
-            #     "link_text": "View Congress Entries",
-            #     "subject": "Entry Cancelled - %s" % event_entry.event,
-            # }
-            #
-            # send_cobalt_email_with_template(to_address=member.email, context=context)
+
+            html = f"""<h2>Congratulations!</h2>
+                        <br>
+                        {request.user.full_name} has set up your club in {GLOBAL_TITLE}.
+                        <br><br>
+                        You can access your club from the main menu bar or click on the link below to go there now.
+                        <br><br>
+            """
+
+            link = reverse("organisations:club_menu", kwargs={"club_id": org.id})
+
+            context = {
+                "name": org.secretary.first_name,
+                "title": f"{org} has been set up in {GLOBAL_TITLE}",
+                "email_body": html,
+                "link": link,
+                "link_text": "Set up your Club",
+                "subject": f"{org} has been set up in {GLOBAL_TITLE}",
+                "box_colour": "danger",
+            }
+
+            send_cobalt_email_with_template(
+                to_address=org.secretary.email, context=context
+            )
 
             messages.success(
                 request,
