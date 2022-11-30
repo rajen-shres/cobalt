@@ -1017,15 +1017,17 @@ def predict_bridge_credits_failures_htmx(request, club, session):
     warnings = []
     for bridge_credit_payment in bridge_credit_payments:
         due = float(bridge_credit_payment.fee) + extras.get(bridge_credit_payment.id, 0)
-        balance = users_dict[bridge_credit_payment.system_number].balance
-        if due > balance:
-            warnings.append(
-                {
-                    "user": users_dict[bridge_credit_payment.system_number],
-                    "due": due,
-                    "balance": balance,
-                }
-            )
+        dict_value = users_dict.get(bridge_credit_payment.system_number)
+        if dict_value:
+            balance = dict_value.balance
+            if due > balance:
+                warnings.append(
+                    {
+                        "user": users_dict[bridge_credit_payment.system_number],
+                        "due": due,
+                        "balance": balance,
+                    }
+                )
 
     return render(
         request,
