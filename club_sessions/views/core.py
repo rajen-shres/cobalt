@@ -95,12 +95,12 @@ def load_session_entry_static(session, club):
     membership_type_dict[VISITOR] = "Guest"
 
     # Load session fees
-    session_fees = get_session_fees_for_club(club)
+    session_fees = get_session_fees_for_session(session)
 
     return session_entries, mixed_dict, session_fees, membership_type_dict
 
 
-def get_session_fees_for_club(club):
+def get_session_fees_for_session(session):
     """return session fees as a dictionary. We use the name of the membership as the key, not the number
 
     e.g. session_fees = {"Standard": {"EFTPOS": 5, "Cash": 12}}
@@ -108,7 +108,7 @@ def get_session_fees_for_club(club):
     """
 
     fees = SessionTypePaymentMethodMembership.objects.filter(
-        session_type_payment_method__session_type__organisation=club
+        session_type_payment_method__session_type=session.session_type
     )
 
     session_fees = {}

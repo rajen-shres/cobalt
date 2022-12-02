@@ -36,6 +36,7 @@
                                         name="fee"
                                         value="{{ session_type_payment_method_membership.fee }}"
                                         step="0.01"
+                                        min="0.00"
                                         class="numberinput form-control"
                                         style="width: 50px;"
                                         hx-post="{% url "organisations:club_menu_tab_settings_table_fee_update_htmx" %}"

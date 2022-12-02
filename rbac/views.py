@@ -47,13 +47,18 @@ import pytz
 
 
 @login_required
-def rbac_forbidden(request, role):
-    """RBAC screen for fobidden access - gives the user more info than a
-    normal error screen"""
+def rbac_forbidden(request, role, htmx=False):
+    """RBAC screen for forbidden access - gives the user more info than a
+    normal error screen.
+
+    If htmx value is set, then we return a simpler template view
+    """
 
     groups = rbac_get_groups_for_role(role)
 
-    return render(request, "rbac/forbidden.html", {"role": role, "groups": groups})
+    template = "rbac/forbidden_htmx.html" if htmx else "rbac/forbidden.html"
+
+    return render(request, template, {"role": role, "groups": groups})
 
 
 @login_required

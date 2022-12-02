@@ -1,5 +1,6 @@
 import random
 import string
+from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -16,6 +17,7 @@ from club_sessions.models import (
     SessionType,
     SessionTypePaymentMethod,
     SessionTypePaymentMethodMembership,
+    Session,
 )
 from cobalt.settings import GLOBAL_MPSERVER, COBALT_HOSTNAME
 from organisations.decorators import check_club_menu_access
@@ -361,7 +363,7 @@ def club_menu_tab_settings_membership_delete_htmx(request, club):
 
 
 @check_club_menu_access()
-def club_menu_tab_settings_sessions_htmx(request, club):
+def club_menu_tab_settings_sessions_htmx(request, club, message=""):
     """Show club sessions details"""
 
     session_types = SessionType.objects.filter(organisation=club)
@@ -369,7 +371,7 @@ def club_menu_tab_settings_sessions_htmx(request, club):
     return render(
         request,
         "organisations/club_menu/settings/sessions_htmx.html",
-        {"session_types": session_types, "club": club},
+        {"session_types": session_types, "club": club, "message": message},
     )
 
 
@@ -617,17 +619,19 @@ def club_menu_tab_settings_misc_pay_amount_htmx(request, club):
     return club_menu_tab_settings_payment_htmx(request, "Amount updated")
 
 
-@check_club_menu_access()
+@check_club_menu_access(check_org_edit=True)
 def club_menu_tab_settings_table_fee_update_htmx(request, club):
     """Change table fees"""
 
-    if not rbac_user_has_role(request.user, f"orgs.org.{club.id}.edit"):
-        return HttpResponse("You do not have access to change rates")
+    # if not rbac_user_has_role(request.user, f"orgs.org.{club.id}.edit"):
+    #     return HttpResponse("You do not have access to change rates")
 
     session = get_object_or_404(
         SessionTypePaymentMethodMembership, pk=request.POST.get("session_id")
     )
-    fee = request.POST.get("fee")
+    fee = Decimal(request.POST.get("fee"))
+    if fee < 0:
+        return HttpResponse("Rates must be positive numbers or zero")
     session.fee = fee
     session.save()
 
@@ -645,28 +649,33 @@ def club_menu_tab_settings_table_fee_update_htmx(request, club):
     return HttpResponse("Data saved")
 
 
-@check_club_menu_access()
-def club_menu_tab_settings_session_delete_htmx(request, club, check_org_edit=True):
+@check_club_menu_access(check_org_edit=True)
+def club_menu_tab_settings_session_delete_htmx(request, club):
     """Delete entire session"""
 
-    session = get_object_or_404(SessionType, pk=request.POST.get("session_id"))
+    session_type = get_object_or_404(SessionType, pk=request.POST.get("session_id"))
 
-    ClubLog(
-        organisation=club,
-        actor=request.user,
-        action=f"Deleted session {session}",
-    ).save()
+    # See if in use
+    if Session.objects.filter(session_type=session_type).exists():
+        message = f"Cannot delete session type: {session_type.name}, it is being used by active sessions"
 
-    session.delete()
+    else:
 
-    return club_menu_tab_settings_sessions_htmx(request)
+        message = f"Session {session_type.name} deleted"
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Deleted session type: {session_type.name}",
+        ).save()
+
+        session_type.delete()
+
+    return club_menu_tab_settings_sessions_htmx(request, message=message)
 
 
 @check_club_menu_access(check_org_edit=True)
 def club_menu_tab_settings_session_add_htmx(request, club):
     """Add new session"""
-
-    print("inside")
 
     session_name = request.POST.get("session_name")
 

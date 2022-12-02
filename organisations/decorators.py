@@ -14,7 +14,7 @@ def _check_extra_role(request, function, club, extra_role, *args, **kwargs):
     if rbac_user_has_role(request.user, extra_role):
         return function(request, club, *args, **kwargs)
     else:
-        return rbac_forbidden(request, extra_role)
+        return rbac_forbidden(request, extra_role, htmx=True)
 
 
 def check_club_menu_access(
@@ -156,7 +156,7 @@ def check_club_menu_access(
                 # Passed the access check and there are no additional checks so all good
                 return function(request, club, *args, **kwargs)
 
-            return rbac_forbidden(request, club_role)
+            return rbac_forbidden(request, club_role, htmx=True)
 
         return _arguments_wrapper
 
