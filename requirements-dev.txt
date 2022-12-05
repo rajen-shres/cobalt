@@ -1,6 +1,6 @@
 pre-commit==2.20.0
 pylint==2.15.6
-ipython==8.6.0
+ipython
 radon==5.1.0
 termcolor==2.1.0
 selenium==4.6.0
