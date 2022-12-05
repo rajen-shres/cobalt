@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum, Q
 from django.db import transaction
+from django.utils import timezone
 
 from organisations.models import Organisation
 from payments.views.payments_api import payment_api_interactive
@@ -2175,7 +2176,7 @@ def show_congresses_for_club_htmx(request):
     club = get_object_or_404(Organisation, pk=request.POST.get("club_id"))
 
     congresses = Congress.objects.filter(
-        congress_master__org=club, status="Published"
+        congress_master__org=club, status="Published", end_date__gte=timezone.now()
     ).order_by("start_date")
 
     things = cobalt_paginator(request, congresses)
