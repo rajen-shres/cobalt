@@ -356,7 +356,7 @@ def csv_download(request, session_id):
     writer.writerow(["Director", session.director])
     writer.writerow(["Description", session.description])
     writer.writerow(["Session Date", session.session_date])
-    writer.writerow(["Session Type", session.session_type])
+    writer.writerow(["Session Type", session.session_type.name])
     writer.writerow(["Time of Day", session.time_of_day])
     if session.venue:
         writer.writerow(["Venue", session.venue])
