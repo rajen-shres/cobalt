@@ -362,7 +362,7 @@ def calculate_payment_method_and_balance(session_entries, session_fees, club):
         # fee due
         if (
             session_entry.payment_method
-            and not session_entry.fee
+            and session_entry.fee == -99
             and session_entry.system_number not in [PLAYING_DIRECTOR, SITOUT]
         ):
             session_entry.fee = session_fees[session_entry.membership][
@@ -709,7 +709,7 @@ def pay_bridge_credit_for_extra(
 
     return payment_api_batch(
         member=member,
-        description=f"{session}",
+        description=f"{session_misc_payment.description}",
         amount=session_misc_payment.amount,
         organisation=club,
         payment_type="Club Payment",
@@ -746,6 +746,38 @@ def refund_bridge_credit_for_extra(
         organisation=club,
         actor=director,
         action=f"Refunded {player} {GLOBAL_CURRENCY_SYMBOL}{session_misc_payment.amount:.2f} for {session_misc_payment.description}",
+    ).save()
+
+
+def back_out_top_up(
+    session_misc_payment: SessionMiscPayment,
+    club: Organisation,
+    player: User,
+    director: User,
+):
+    """Reverse a top up"""
+
+    update_account(
+        member=player,
+        amount=-session_misc_payment.amount,
+        description=f"Reversal of {session_misc_payment.description}",
+        payment_type="Club Top Up Rev",
+        organisation=club,
+    )
+
+    update_organisation(
+        organisation=club,
+        amount=session_misc_payment.amount,
+        description=f"Reversal of {session_misc_payment.description} by {director.full_name}",
+        payment_type="Club Top Up Rev",
+        member=player,
+    )
+
+    # log it
+    ClubLog(
+        organisation=club,
+        actor=director,
+        action=f"Reversed a top up for {player}. {GLOBAL_CURRENCY_SYMBOL}{session_misc_payment.amount:.2f} for {session_misc_payment.description}",
     ).save()
 
 

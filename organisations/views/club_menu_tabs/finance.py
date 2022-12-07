@@ -216,6 +216,57 @@ def pay_member_from_organisation(request, club, amount, description, member):
     )
 
 
+def top_up_member_from_organisation(request, club, amount, description, member):
+    """Pay a member from an organisation's account when a top up is made. Calling module is responsible for security.
+
+    This works off the request object.
+
+    Request should have member_id, description and amount. Although description can be overridden as a parameter
+
+    Return: status, message
+
+    Status is True/False for success
+    Message contains tet narrative
+
+    """
+
+    if amount <= 0:
+        return False, "Amount was less than zero"
+
+    if amount > org_balance(club):
+        return False, "Club has insufficient funds for this transfer"
+
+    # Pay user
+    update_account(
+        member=member,
+        amount=amount,
+        description=description,
+        organisation=club,
+        payment_type="Club Top Up",
+    )
+
+    # debit club
+    update_organisation(
+        organisation=club,
+        amount=-amount,
+        description=description,
+        payment_type="Club Top Up",
+        member=member,
+    )
+
+    # log it
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Made top up payment of {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} to {member}",
+    ).save()
+
+    return (
+        True,
+        f"Top Up of {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} made to {member.full_name}",
+    )
+
+
 @check_club_menu_access(check_payments=True)
 def pay_member_htmx(request, club):
     """make a payment to a member"""

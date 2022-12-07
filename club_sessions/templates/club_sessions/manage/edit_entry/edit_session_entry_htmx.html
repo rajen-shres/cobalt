@@ -345,6 +345,13 @@
             })
         });
 
+        // If fee is set to zero, also mark as processed
+        $("#id_fee").change(function(){
+            if ($("#id_fee").val() == 0) {
+                $("#id_is_paid").prop('checked', true);
+            }
+        })
+
     });
 
 </script>

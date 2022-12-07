@@ -149,7 +149,8 @@ class SessionEntry(models.Model):
     payment_method = models.ForeignKey(
         OrgPaymentMethod, on_delete=models.PROTECT, null=True, blank=True
     )
-    fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    fee = models.DecimalField(max_digits=10, decimal_places=2, default=-99)
+    """ default to -99 so we know it hasn't been set. Zero is a valid fee to set it to """
     is_paid = models.BooleanField("Is Processed", default=False)
     player_name_from_file = models.TextField(max_length=60, default="Unknown")
     """Player name as it appears on the file. We usually use the system_number, but for non-ABF members we need this"""
@@ -173,6 +174,10 @@ class SessionMiscPayment(models.Model):
     """holds miscellaneous payments associated with a session. These are not paid until the payments
     for this session are all processed."""
 
+    class TypeOfPayment(models.TextChoices):
+        TOP_UP = "TU"
+        OTHER = "OT"
+
     session_entry = models.ForeignKey(SessionEntry, on_delete=models.PROTECT)
     payment_made = models.BooleanField("Is Processed", default=False)
     """ Has this payment been processed. We use a different name from SessionEntry to help with searching the code """
@@ -182,6 +187,9 @@ class SessionMiscPayment(models.Model):
 
     description = models.TextField(max_length=50, blank=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_type = models.CharField(
+        max_length=2, choices=TypeOfPayment.choices, default=TypeOfPayment.OTHER
+    )
 
     def __str__(self):
         return f"{self.session_entry} - {self.amount}"

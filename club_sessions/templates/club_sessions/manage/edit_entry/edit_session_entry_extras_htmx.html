@@ -21,9 +21,10 @@
 
 {% endif %}
 
+<!-- HIDE UNLESS WE HAVE DATA OR A MESSAGE (EG JUST DELETED SOMETHING) -->
 <div class="card" id="extras"
 
-    {% if not user_pending_payments and not session_misc_payments %}
+    {% if not user_pending_payments and not session_misc_payments and message == "" %}
         style="display: none;"
     {% endif %}
 
@@ -146,6 +147,10 @@
 
                                                 {% if session_misc_payment.payment_made and session_misc_payment.payment_method.payment_method == "Bridge Credits" %}
                                                     bridge_credits_paid_for
+                                                {% endif %}
+
+                                                {% if session_misc_payment.payment_type == "TU" %}
+                                                    misc_pay_top_up
                                                 {% endif %}
 
                                                 "
@@ -339,6 +344,11 @@
             // check if this is going to also reverse a bridge credit transaction
             if ($(this).hasClass('bridge_credits_paid_for')){
                 warning_msg = "Delete this. Payment has been made and will be refunded. This will appear on {{ player.first_name|default_if_none:"player" }}'s statement."
+            }
+
+            // check if this is was a top up
+            if ($(this).hasClass('misc_pay_top_up')){
+                warning_msg = "Delete this. The top up will also be reversed. This will appear on {{ player.first_name|default_if_none:"player" }}'s statement."
             }
 
             Swal.fire({

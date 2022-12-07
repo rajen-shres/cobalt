@@ -41,11 +41,17 @@ from club_sessions.views.core import (
     get_session_fee_for_player,
     handle_iou_changes_for_misc_off,
     handle_iou_changes_for_misc_on,
+    back_out_top_up,
+    SITOUT,
+    PLAYING_DIRECTOR,
 )
 from club_sessions.views.decorators import user_is_club_director
 from cobalt.settings import ALL_SYSTEM_ACCOUNTS, BRIDGE_CREDITS, GLOBAL_CURRENCY_SYMBOL
 from organisations.models import Organisation, MiscPayType, MemberMembershipType
-from organisations.views.club_menu_tabs.finance import pay_member_from_organisation
+from organisations.views.club_menu_tabs.finance import (
+    pay_member_from_organisation,
+    top_up_member_from_organisation,
+)
 from payments.models import OrgPaymentMethod, UserPendingPayment
 from payments.views.core import get_balance
 from payments.views.payments_api import payment_api_batch
@@ -497,8 +503,12 @@ def change_paid_amount_status_htmx(request, club, session, session_entry):
 
     # Check status now
     unpaid_count = (
-        SessionEntry.objects.filter(session=session).filter(is_paid=False).count()
+        SessionEntry.objects.filter(session=session)
+        .filter(is_paid=False)
+        .exclude(system_number__in=[SITOUT, PLAYING_DIRECTOR])
+        .count()
     )
+
     if unpaid_count > 1:
         return HttpResponse("")
 
@@ -795,18 +805,31 @@ def delete_misc_session_payment_htmx(request, club, session, session_entry):
             request, message="Misc payment not for this session"
         )
 
-    # handle already paid
-    if session_misc_payment.payment_made:
-        player = get_user_or_unregistered_user_from_system_number(
-            session_entry.system_number
+    # Get player
+    player = get_user_or_unregistered_user_from_system_number(
+        session_entry.system_number
+    )
+
+    # Was it a top up? If so reverse it but we can just delete the misc payment - can't be bridge credits
+    if session_misc_payment.payment_type == SessionMiscPayment.TypeOfPayment.TOP_UP:
+        back_out_top_up(session_misc_payment, club, player, request.user)
+        session_misc_payment.delete()
+        return edit_session_entry_extras_htmx(
+            request, message="Top Up reversed, and misc payment removed"
         )
+
+    # handle already paid
+    if (
+        session_misc_payment.payment_made
+        and session_misc_payment.payment_method.payment_method == "Bridge Credits"
+    ):
         refund_bridge_credit_for_extra(session_misc_payment, club, player, request.user)
         session_misc_payment.delete()
         return edit_session_entry_extras_htmx(
             request, message="Refund issued and payment deleted"
         )
 
-    # delete
+    # simple delete
     session_misc_payment.delete()
     response = edit_session_entry_extras_htmx(
         request, message="Miscellaneous payment deleted"
@@ -921,7 +944,7 @@ def top_up_member_htmx(request, club, session, session_entry):
     description = f"Top up of {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f}"
 
     # Process form
-    status, message = pay_member_from_organisation(
+    status, message = top_up_member_from_organisation(
         request, club, amount, description, member
     )
 
@@ -932,6 +955,7 @@ def top_up_member_htmx(request, club, session, session_entry):
             description=description,
             payment_method=payment_method,
             amount=amount,
+            payment_type=SessionMiscPayment.TypeOfPayment.TOP_UP,
         ).save()
 
     # return whole edit page

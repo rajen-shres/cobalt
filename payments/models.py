@@ -25,6 +25,8 @@ TRANSACTION_TYPE = [
     ("Transfer In", "Money transferred in to account"),
     ("Auto Top Up", "Automated CC top up"),
     ("Manual Top Up", "Manual CC top up"),
+    ("Club Top Up", "Club top up"),
+    ("Club Top Up Rev", "Club top up reversal"),
     ("Congress Entry", "Entry to an event"),
     ("CC Payment", "Credit Card payment"),
     ("Club Payment", "Club game payment"),
