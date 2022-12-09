@@ -34,7 +34,7 @@
 
                         {% if is_admin %}
 
-                            <a class="btn btn-sm btn-info"href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}">Edit<a>
+                            <a class="btn btn-sm btn-success"href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}">Edit<a>
                                 <a class="btn btn-sm btn-info" href="{% url "events:admin_summary" congress_id=congress.id %}">Manage</a>
                         {% endif %}
 
