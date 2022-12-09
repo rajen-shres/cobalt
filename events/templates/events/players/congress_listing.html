@@ -86,9 +86,9 @@
 
             <!-- REVERSE ORDER -->
             {% if reverse_list %}
-                <a href="{% url "events:next_version" %}" class="text-white" style="text-decoration: underline">View running and upcoming congresses</a>
+                <a href="{% url "events:congress_listing" %}" class="text-white" style="text-decoration: underline">View running and upcoming congresses</a>
             {% else %}
-                <a href="{% url "events:next_version" reverse_list="reverse" %}" class="text-white" style="text-decoration: underline">View completed congresses</a>
+                <a href="{% url "events:congress_listing" reverse_list="reverse" %}" class="text-white" style="text-decoration: underline">View completed congresses</a>
             {% endif %}
 
         </div>
@@ -153,7 +153,7 @@
             </form>
 
             <div id="events_list"
-                hx-post="{% url "events:next_version_data_htmx" %}"
+                hx-post="{% url "events:congress_listing_data_htmx" %}"
                 hx-include="[id='events_form']"
                 hx-trigger="load, refresh_events"
 

@@ -29,6 +29,15 @@
                     <h2 class="card-title"><a href="#program">{{ congress.name }}<a></h2>
                         <h3>{{ congress.congress_master.org }}</h3>
                         <h3>{{ congress.date_string }}</h3>
+
+                        <!-- CONGRESS ADMIN BUTTONS -->
+
+                        {% if is_admin %}
+
+                            <a class="btn btn-sm btn-info"href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}">Edit<a>
+                                <a class="btn btn-sm btn-info" href="{% url "events:admin_summary" congress_id=congress.id %}">Manage</a>
+                        {% endif %}
+
                     </div>
 
                         <!-- CARD BODY FOR WHOLE PAGE -->

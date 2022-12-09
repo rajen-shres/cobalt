@@ -14,7 +14,7 @@
         data-toggle="tooltip"
         {#        title="Rewind 6 months"#}
         _="on click go to the top of the body smoothly"
-        hx-post="{% url "events:next_version_data_htmx" %}"
+        hx-post="{% url "events:congress_listing_data_htmx" %}"
         hx-include="[id='events_form']"
         hx-target="#events_list"
         hx-trigger="click"
@@ -40,7 +40,7 @@
         data-toggle="tooltip"
         {#        title="Fast Forward 6 months"#}
         _="on click go to the top of the body smoothly"
-        hx-post="{% url "events:next_version_data_htmx" %}"
+        hx-post="{% url "events:congress_listing_data_htmx" %}"
         hx-include="[id='events_form']"
         hx-target="#events_list"
         hx-trigger="click"

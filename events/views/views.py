@@ -65,7 +65,7 @@ from utils.utils import cobalt_paginator
 TZ = pytz.timezone(TIME_ZONE)
 
 
-def next_version(request, reverse_list=False):
+def congress_listing(request, reverse_list=False):
     """Show list of events
 
     reverse_list is used to show historic data
@@ -78,11 +78,11 @@ def next_version(request, reverse_list=False):
 
     # If not logged in, show different view
     if not request.user.is_authenticated:
-        return next_version_logged_out(request)
+        return congress_listing_logged_out(request)
 
     return render(
         request,
-        "events/players/next_version.html",
+        "events/players/congress_listing.html",
         {
             "states": states,
             "congress_types": CONGRESS_TYPES,
@@ -91,7 +91,7 @@ def next_version(request, reverse_list=False):
     )
 
 
-def next_version_logged_out(request):
+def congress_listing_logged_out(request):
     """Congress view when logged out"""
 
     # Get today
@@ -115,12 +115,12 @@ def next_version_logged_out(request):
 
     return render(
         request,
-        "events/players/next_version_logged_out.html",
+        "events/players/congress_listing_logged_out.html",
         {"month_list": month_list},
     )
 
 
-def next_version_data_htmx(request):
+def congress_listing_data_htmx(request):
     """Returns the data for the events listing page.
 
     There is a limited number of future events, so we just return them all.
@@ -159,7 +159,7 @@ def next_version_data_htmx(request):
             show_back_arrow,
             show_forward_arrow,
             last_data_date,
-        ) = next_version_data_backwards(last_data_date, where_to_go, date_now)
+        ) = congress_listing_data_backwards(last_data_date, where_to_go, date_now)
 
     else:
         # Going forwards, show everything
@@ -195,7 +195,7 @@ def next_version_data_htmx(request):
 
     return render(
         request,
-        "events/players/next_version_data_htmx.html",
+        "events/players/congress_listing_data_htmx.html",
         {
             "month_list": month_list,
             "last_data_date": last_data_date,
@@ -207,7 +207,7 @@ def next_version_data_htmx(request):
     )
 
 
-def next_version_data_backwards(last_data_date, where_to_go, date_now):
+def congress_listing_data_backwards(last_data_date, where_to_go, date_now):
     """sub to handle going backwards
 
     Args:
@@ -294,144 +294,6 @@ def next_version_data_backwards(last_data_date, where_to_go, date_now):
         date_string = f"{ref_date_end:%B %Y} back to {ref_date_start:%B %Y}"
 
     return congresses, date_string, show_back_arrow, show_forward_arrow, last_data_date
-
-
-def home_new(request):
-    # check if user has any admin rights to show link to create congress
-    width_dict = {
-        "defaultContent_width": "4%",
-        "congress_start_width": "4%",
-        "congress_end_width": "4%",
-        "congress_name_width": "24%",
-        "run_by_width": "18%",
-        "state_width": "4%",
-        "event_type_width": "14%",
-        "status_width": "6%",
-        "actions_width": "14%",
-    }
-    if request.user.is_authenticated:
-        (all_access, some_access) = rbac_user_allowed_for_model(
-            request.user, "events", "org", "edit"
-        )
-        if all_access or some_access:
-            admin = True
-        else:
-            admin = False
-            width_dict = {
-                "defaultContent_width": "4%",
-                "congress_start_width": "4%",
-                "congress_end_width": "4%",
-                "congress_name_width": "29%",
-                "run_by_width": "24%",
-                "state_width": "4%",
-                "event_type_width": "16%",
-                "status_width": "6%",
-                "actions_width": "0%",
-            }
-    else:
-        admin = False
-        width_dict = {
-            "defaultContent_width": "4%",
-            "congress_start_width": "4%",
-            "congress_end_width": "4%",
-            "congress_name_width": "30%",
-            "run_by_width": "24%",
-            "state_width": "4%",
-            "event_type_width": "16%",
-            "status_width": "6%",
-            "actions_width": "0%",
-        }
-    return render(
-        request, "events/players/home_new.html", {"admin": admin, "config": width_dict}
-    )
-
-
-def home(request):
-    """main screen to show congresses
-
-    Can be called without logging in
-    """
-
-    congresses = (
-        Congress.objects.order_by("start_date")
-        .filter(start_date__gte=datetime.now())
-        .filter(status="Published")
-    )
-
-    if request.user.is_authenticated:
-
-        template = "events/players/home.html"
-
-        # get draft congresses
-        draft_congresses = Congress.objects.filter(status="Draft")
-        draft_congress_flag = False
-        for draft_congress in draft_congresses:
-            role = "events.org.%s.edit" % draft_congress.congress_master.org.id
-            if rbac_user_has_role(request.user, role):
-                draft_congress_flag = True
-                break
-    else:
-
-        template = "events/players/home_logged_out.html"
-
-        draft_congress_flag = False
-
-    grouped_by_month = {}
-    for congress in congresses:
-
-        # Comment field
-        if (
-            congress.entry_open_date
-            and congress.entry_open_date > datetime.now().date()
-        ):
-            congress.msg = "Entries open on " + congress.entry_open_date.strftime(
-                "%d %b %Y"
-            )
-        elif (
-            congress.entry_close_date
-            and congress.entry_close_date > datetime.now().date()
-        ):
-            congress.msg = "Entries close on " + congress.entry_close_date.strftime(
-                "%d %b %Y"
-            )
-        elif (
-            congress.entry_close_date
-            and congress.entry_close_date <= datetime.now().date()
-        ):
-            congress.msg = "Congress entries are closed"
-
-        # check access
-        if request.user.is_authenticated:
-            congress.convener = congress.user_is_convener(request.user)
-
-        # Group congresses by date
-        month = congress.start_date.strftime("%B %Y")
-        if month in grouped_by_month:
-            grouped_by_month[month].append(congress)
-        else:
-            grouped_by_month[month] = [congress]
-
-    # check if user has any admin rights to show link to create congress
-    if request.user.is_authenticated:
-        (all_access, some_access) = rbac_user_allowed_for_model(
-            request.user, "events", "org", "edit"
-        )
-        if all_access or some_access:
-            admin = True
-        else:
-            admin = False
-    else:
-        admin = False
-
-    return render(
-        request,
-        template,
-        {
-            "grouped_by_month": grouped_by_month,
-            "admin": admin,
-            "draft_congress_flag": draft_congress_flag,
-        },
-    )
 
 
 def view_congress(request, congress_id, fullscreen=False):
@@ -614,6 +476,17 @@ def view_congress(request, congress_id, fullscreen=False):
     # Get downloads
     downloads = CongressDownload.objects.filter(congress=congress).order_by("pk")
 
+    # Check for admin rights to show edit/manage buttons
+    if request.user.is_authenticated:
+        is_admin = rbac_user_has_role(
+            request.user, f"events.org.{congress.congress_master.org.id}.edit"
+        )
+        # try global admin
+        if not is_admin:
+            is_admin = rbac_user_has_role(request.user, "events.org.edit")
+    else:
+        is_admin = False
+
     return render(
         request,
         template,
@@ -624,6 +497,7 @@ def view_congress(request, congress_id, fullscreen=False):
             "bulletins": bulletins,
             "downloads": downloads,
             "msg": msg,
+            "is_admin": is_admin,
         },
     )
 

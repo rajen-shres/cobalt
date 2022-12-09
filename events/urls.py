@@ -9,11 +9,16 @@ urlpatterns = [
     #################################
     # Screens for normal players    #
     #################################
-    path("", views.home_new, name="events"),
-    path("next-version", views.next_version, name="next_version"),
-    path("next-version/<str:reverse_list>", views.next_version, name="next_version"),
+    path("", views.congress_listing, name="congress_listing"),
     path(
-        "next-version-data", views.next_version_data_htmx, name="next_version_data_htmx"
+        "congress-listing/<str:reverse_list>",
+        views.congress_listing,
+        name="congress_listing",
+    ),
+    path(
+        "congress-listing-data",
+        views.congress_listing_data_htmx,
+        name="congress_listing_data_htmx",
     ),
     path("congress/view/<int:congress_id>", views.view_congress, name="view_congress"),
     path(

@@ -6,66 +6,66 @@
 
 
 
-				<div class="container animate__animated animate__fadeInUp animate__delay-1s">
+    <div class="container animate__animated animate__fadeInUp animate__delay-1s">
 
 
-						<div class="parallax">
-						</div>
+        <div class="parallax">
+        </div>
 
-					 	<a href="{% url "events:events" %}">	<button> VIEW CONGRESSES </button> </a>
+        <a href="{% url "events:congress_listing" %}">	<button> VIEW CONGRESSES </button> </a>
 
-				</div>
-
-
-					<div class="buttoncluster">
-
-								<button class="animate__animated animate__fadeInLeft animate__delay-2s"><a href="{{ GLOBAL_ABOUT }}" target="_blank"> MAIN ABF SITE </a></button>
-
-								<button class="animate__animated animate__fadeInRight animate__delay-2s" style="float:right"><a href="https://www.abf.com.au/youth-bridge/" target="_blank"> YOUTH BRIDGE <a></button>
-
-					</div>
+    </div>
 
 
-								<div class="arrow-up">
-								</div>
+    <div class="buttoncluster">
 
-								<div class="boldfeature">
+        <button class="animate__animated animate__fadeInLeft animate__delay-2s"><a href="{{ GLOBAL_ABOUT }}" target="_blank"> MAIN ABF SITE </a></button>
 
+        <button class="animate__animated animate__fadeInRight animate__delay-2s" style="float:right"><a href="https://www.abf.com.au/youth-bridge/" target="_blank"> YOUTH BRIDGE <a></button>
 
-<h3> What is Bridge? Get started with our in depth tutorials from expert Bridge players. </h3>
-<button><a href="https://www.abf.com.au/education/getting-started/" target="_blank"> LEARN TO PLAY <a></button>
-								</div>
+        </div>
 
 
+            <div class="arrow-up">
+            </div>
+
+            <div class="boldfeature">
 
 
-					<br>
-
-
-								<br>
-								<h2> LATEST NEWS </h2>
- 								<br>
-
-								<div class="flex-container">
-
-
-                  {% for post in posts %}
-
-                  <div>
-
-                  <h2> {{ post.title }} </h2>
-
-                  <p>{{ post.text|truncatewords_html:15|safe }}</p>
-
-                  <button><a href="{% url 'forums:post_detail' pk=post.pk %}"> READ MORE </a></button>
-
-                  </div>
-                  {% endfor %}
+                <h3> What is Bridge? Get started with our in depth tutorials from expert Bridge players. </h3>
+                <button><a href="https://www.abf.com.au/education/getting-started/" target="_blank"> LEARN TO PLAY <a></button>
+                </div>
 
 
 
-							  </div>
 
-								<br>
+                    <br>
+
+
+                    <br>
+                    <h2> LATEST NEWS </h2>
+                    <br>
+
+                    <div class="flex-container">
+
+
+                        {% for post in posts %}
+
+                            <div>
+
+                                <h2> {{ post.title }} </h2>
+
+                                <p>{{ post.text|truncatewords_html:15|safe }}</p>
+
+                                <button><a href="{% url 'forums:post_detail' pk=post.pk %}"> READ MORE </a></button>
+
+                            </div>
+                        {% endfor %}
+
+
+
+                    </div>
+
+                    <br>
 
 {% endblock %}
