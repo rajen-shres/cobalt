@@ -104,6 +104,11 @@ urlpatterns = [
         name="reports_reconciliation_htmx",
     ),
     path(
+        "reports/payment-methods",
+        reports.payment_methods_htmx,
+        name="reports_payment_methods_htmx",
+    ),
+    path(
         "reports/import-messages",
         reports.import_messages_htmx,
         name="reports_import_messages_htmx",

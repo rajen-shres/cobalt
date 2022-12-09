@@ -234,6 +234,17 @@
                             Full
                         </button>
 
+                        <!-- PAYMENT METHODS REPORT -->
+                        <button
+                            class="btn btn-success"
+                            hx-post="{% url "club_sessions:reports_payment_methods_htmx" %}"
+                            hx-trigger="click"
+                            hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                            hx-target="#id_pane_reports"
+                        >
+                            Payment Methods
+                        </button>
+
                         <!-- LOW BALANCE REPORT -->
                         <button
                             class="btn btn-success"

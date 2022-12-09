@@ -3,7 +3,7 @@ import json
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
@@ -434,6 +434,58 @@ def csv_download(request, session_id):
             ]
             writer.writerow(values)
 
+    # Now do payment method summaries
+    payment_methods, extras = payment_method_summary(session)
+
+    writer.writerow([])
+    writer.writerow(["Payment Methods Summary"])
+    writer.writerow([])
+    # Write a first row with header information
+    field_names = [
+        "Payment Method",
+        "Players Paid",
+        "Players Un-Paid",
+        "Amount Paid",
+        "Amount Un-Paid",
+    ]
+    writer.writerow(field_names)
+
+    for payment_method in payment_methods:
+        print(payment_method)
+        values = [
+            payment_method,
+            payment_methods[payment_method]["paid"]["count"],
+            payment_methods[payment_method]["unpaid"]["count"],
+            payment_methods[payment_method]["paid"]["total"],
+            payment_methods[payment_method]["unpaid"]["total"],
+        ]
+        writer.writerow(values)
+
+    if extras:
+        writer.writerow([])
+        writer.writerow(["Extras Summary"])
+        writer.writerow([])
+        # Write a first row with header information
+        field_names = [
+            "Payment Method",
+            "Number Paid",
+            "Number Un-Paid",
+            "Amount Paid",
+            "Amount Un-Paid",
+        ]
+        writer.writerow(field_names)
+
+        for extra in extras:
+            print(extra)
+            values = [
+                extra,
+                extras[extra]["paid"]["count"],
+                extras[extra]["unpaid"]["count"],
+                extras[extra]["paid"]["total"],
+                extras[extra]["unpaid"]["total"],
+            ]
+            writer.writerow(values)
+
     return response
 
 
@@ -484,4 +536,83 @@ def low_balance_report_htmx(request, club, session):
             "last_trans": last_trans,
             "players_without_transactions": players_without_transactions,
         },
+    )
+
+
+def payment_method_summary_sub(payment_methods, payment_status_field):
+    """sub of payment_method_summary to format the data for sessions and extras with all values including zeros
+    for unpaid or paid amounts.
+
+    The only difference between SessionEntry and SessionMiscPayment is the field name used to check if payment
+    has been made. We accept this as a parameter.
+
+    """
+
+    # Fill in missing bits
+    payment_methods_display = {}
+
+    # Set up structure
+    for payment_method in payment_methods:
+        item = payment_method["payment_method__payment_method"]
+        if item not in payment_methods_display:
+            payment_methods_display[item] = {
+                "paid": {"total": Decimal(0), "count": 0},
+                "unpaid": {"total": Decimal(0), "count": 0},
+            }
+
+    # Fill in data
+    for payment_method in payment_methods:
+        item = payment_method["payment_method__payment_method"]
+        if payment_method[payment_status_field]:
+            payment_methods_display[item]["paid"] = {
+                "total": payment_method["total"],
+                "count": payment_method["count"],
+            }
+        else:
+            payment_methods_display[item]["unpaid"] = {
+                "total": payment_method["total"],
+                "count": payment_method["count"],
+            }
+
+    return payment_methods_display
+
+
+def payment_method_summary(session):
+    """Summarise the payment methods and extras - used for both online and CSV reporting"""
+
+    # Get summary data
+    payment_methods = (
+        SessionEntry.objects.filter(session=session)
+        .values("payment_method__payment_method", "is_paid")
+        .annotate(total=Sum("fee"), count=Count("pk"))
+        .order_by("payment_method__payment_method", "is_paid")
+    )
+
+    # format
+    payment_methods_display = payment_method_summary_sub(payment_methods, "is_paid")
+
+    # Get extras
+    extras = (
+        SessionMiscPayment.objects.filter(session_entry__session=session)
+        .values("payment_method__payment_method", "payment_made")
+        .annotate(total=Sum("amount"), count=Count("pk"))
+        .order_by("payment_method__payment_method")
+    )
+
+    # format
+    extras_display = payment_method_summary_sub(extras, "payment_made")
+
+    return payment_methods_display, extras_display
+
+
+@user_is_club_director()
+def payment_methods_htmx(request, club, session):
+    """Show summary by payment methods"""
+
+    payment_methods, extras = payment_method_summary(session)
+
+    return render(
+        request,
+        "club_sessions/reports/payment_methods_htmx.html",
+        {"payment_methods": payment_methods, "extras": extras},
     )

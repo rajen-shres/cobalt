@@ -1,0 +1,115 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Payment methods report tab                                             #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+
+<!-- SESSION FEES -->
+
+<div class="card col-lg-9">
+    <div class="card-header card-header-warning">
+        <h3>Table Fees</h3>
+    </div>
+    <div class="card-body">
+
+
+        <div class="table-responsive">
+
+            <table class="table table-condensed table-hover">
+
+                <thead>
+                    <tr>
+                        <th class="text-left">Payment Method</th>
+                        <th class="text-right">Players Paid</th>
+                        <th class="text-right">Players Un-Paid</th>
+                        <th class="text-right">Amount Paid</th>
+                        <th class="text-right">Amount Un-Paid</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for payment_method, values in payment_methods.items %}
+
+                        <tr>
+                            <td class="text-left">{{ payment_method|default_if_none:"Free" }}</td>
+                            <td class="text-right">{{ values.paid.count }}</td>
+                            <td class="text-right">{{ values.unpaid.count }}</td>
+                            <td class="text-right">{{ values.paid.total|cobalt_currency }}</td>
+                            <td class="text-right">
+                                {% if values.unpaid.total > 0 %}
+                                    {{ values.unpaid.total|cobalt_currency }}
+                                {% endif %}
+                            </td>
+                        </tr>
+
+
+                    {% endfor %}
+
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+
+<!-- EXTRAS -->
+
+{% if extras %}
+
+    <div class="pt-3">
+        <div class="card col-lg-9">
+            <div class="card-header card-header-info">
+                <h3>Extras</h3>
+            </div>
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <table class="table table-condensed table-hover">
+
+                        <thead>
+                            <tr>
+                                <th class="text-left">Payment Method</th>
+                                <th class="text-right">Number Paid</th>
+                                <th class="text-right">Number Un-Paid</th>
+                                <th class="text-right">Amount Paid</th>
+                                <th class="text-right">Amount Un-Paid</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for payment_method, values in extras.items %}
+
+                                <tr>
+                                    <td class="text-left">{{ payment_method|default_if_none:"Free" }}</td>
+                                    <td class="text-right">{{ values.paid.count }}</td>
+                                    <td class="text-right">{{ values.unpaid.count }}</td>
+                                    <td class="text-right">{{ values.paid.total|cobalt_currency }}</td>
+                                    <td class="text-right">
+                                        {% if values.unpaid.total > 0 %}
+                                            {{ values.unpaid.total|cobalt_currency }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+
+                            {% endfor %}
+
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endif %}
