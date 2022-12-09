@@ -1122,6 +1122,7 @@ def get_allowed_payment_methods(session_entries, session, payment_methods):
     """logic is too complicated for a template, so build the payment_methods here for each session_entry
 
     Only allow IOU for properly registered users
+    Only allow Bridge Credits for properly registered users
     Don't allow changes to bridge credits if already paid for
     Don't show bridge credits as an option if we have already processed them
 
@@ -1135,6 +1136,7 @@ def get_allowed_payment_methods(session_entries, session, payment_methods):
             and session_entry.is_paid
         ):
             session_entry.payment_methods = [session_entry.payment_method]
+        # Bridge credits have been processed
         elif session.status in [
             Session.SessionStatus.COMPLETE,
             Session.SessionStatus.CREDITS_PROCESSED,
@@ -1146,13 +1148,13 @@ def get_allowed_payment_methods(session_entries, session, payment_methods):
                     or payment_method.payment_method != "IOU"
                 ):
                     session_entry.payment_methods.append(payment_method)
+        # Nothing special - default options based on user type
         else:
             session_entry.payment_methods = []
             for payment_method in payment_methods:
-                if (
-                    session_entry.player_type == "User"
-                    or payment_method.payment_method != "IOU"
-                ):
+                if session_entry.player_type == "User":
+                    session_entry.payment_methods.append(payment_method)
+                elif payment_method.payment_method not in ["IOU", BRIDGE_CREDITS]:
                     session_entry.payment_methods.append(payment_method)
 
     return session_entries

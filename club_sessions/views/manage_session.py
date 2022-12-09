@@ -61,7 +61,14 @@ from rbac.views import rbac_forbidden
 
 @login_required()
 def manage_session(request, session_id):
-    """Main page to manage a club session after it has been created"""
+    """Main page to manage a club session after it has been created.
+
+    Not much happens in this function, mostly it just renders the page.
+
+    The different tabs look after themselves: tab_settings_htmx, tab_session_htmx live here
+    and the reports run from their own file.
+
+    """
 
     session = get_object_or_404(Session, pk=session_id)
 
