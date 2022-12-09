@@ -182,9 +182,9 @@ def admin_add_club(request):
 
 @login_required()
 def admin_list_clubs(request):
-    """List Clubs in the system. For State or ABF Administrators"""
+    """List Clubs in the system. For State or ABF Administrators. Modified to show all organisations, not just clubs"""
 
-    clubs = Organisation.objects.filter(type="Club").order_by("state", "name")
+    clubs = Organisation.objects.order_by("state", "name")
 
     # Check roles so we only show clubs user can edit
 
