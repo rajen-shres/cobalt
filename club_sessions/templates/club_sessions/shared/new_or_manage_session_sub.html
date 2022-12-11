@@ -62,7 +62,18 @@
             </div>
             <div class="col-md-6">
                 <div class="form-group">
-                    {% cobalt_bs4_field session_form.session_type %}
+                    <!-- ALLOW EDITING SESSION TYPE IF NO FEES TAKEN -->
+                    {% if session.status == "LD" %}
+                        {% cobalt_bs4_field session_form.session_type %}
+                    {% else %}
+
+                        <div class="float-left">
+                            <span>
+                                {{ session.session_type.name }}
+                            </span>
+                        </div>
+
+                    {% endif %}
                 </div>
             </div>
         </div>

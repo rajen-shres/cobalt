@@ -50,9 +50,9 @@ class SessionType(models.Model):
 
     def __str__(self):
         if self.status:
-            return f"{self.organisation} - {self.master_session_type}"
+            return f"{self.organisation} - {self.name}"
         else:
-            return f"Not Active - {self.organisation} - {self.master_session_type}"
+            return f"Not Active - {self.organisation} - {self.name}"
 
 
 class SessionTypePaymentMethod(models.Model):

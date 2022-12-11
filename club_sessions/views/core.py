@@ -996,6 +996,19 @@ def handle_change_additional_session_fee(old_fee, new_fee, session, club, old_re
     return message
 
 
+def handle_change_session_type(session, administrator):
+    """Called when the settings for the session change and the session type is modified"""
+
+    if session.status != session.SessionStatus.DATA_LOADED:
+        return ". Session type cannot be changed after payments have been made."
+
+    # Update fees on all entries. We can do this by just setting to default -99 and letting
+    # the fees be applied later
+    SessionEntry.objects.filter(session=session).update(fee=-99)
+
+    return ". Session rates have been applied."
+
+
 def get_summary_table_data(session, session_entries, mixed_dict, membership_type_dict):
     """Summarise session_entries for the summary view.
 

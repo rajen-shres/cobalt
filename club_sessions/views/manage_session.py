@@ -44,6 +44,7 @@ from club_sessions.views.core import (
     back_out_top_up,
     SITOUT,
     PLAYING_DIRECTOR,
+    handle_change_session_type,
 )
 from club_sessions.views.decorators import user_is_club_director
 from cobalt.settings import ALL_SYSTEM_ACCOUNTS, BRIDGE_CREDITS, GLOBAL_CURRENCY_SYMBOL
@@ -132,6 +133,10 @@ def tab_settings_htmx(request, club, session):
                     club=club,
                     administrator=request.user,
                 )
+
+            if "session_type" in session_form.changed_data:
+                message += handle_change_session_type(session, request.user)
+
         else:
             print(session_form.errors)
 
@@ -457,7 +462,7 @@ def change_payment_method_htmx(request, club, session, session_entry):
         member_membership = None  # Guest
 
     fee = SessionTypePaymentMethodMembership.objects.filter(
-        session_type_payment_method__session_type__organisation=club,
+        session_type_payment_method__session_type=session.session_type,
         session_type_payment_method__payment_method=payment_method,
         membership=member_membership,
     ).first()

@@ -22,7 +22,7 @@
 
     {% include "utils/summernote_heading.html" %}
 
-    <!-- BASIC HEADING -->
+    <!-- BASIC HEADING. THIS CAN BE UPDATED BY A HTMX HEADER CALLBACK -->
 
     <h1 class="text-center pt-4"><span id="t_club_name">{{ club }}</span> - {{ club.state }}</h1>
 
@@ -125,7 +125,7 @@
 
                             <div id="id_totals"
                                 hx-post="{% url "club_sessions:session_entry_session_totals_htmx" %}"
-                                hx-trigger="load, update_totals from:body"
+                                hx-trigger="load, update_totals from:body, reload_sessions from:body"
                                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
                             >
                             </div>
@@ -152,7 +152,7 @@
                                     <label class="btn btn-success active"
                                         class="btn btn-success"
                                         hx-post="{% url "club_sessions:tab_session_htmx" %}"
-                                        hx-trigger="load, click"
+                                        hx-trigger="load, click, reload_sessions from:body"
                                         hx-target="#id_pane_session"
                                         hx-indicator="#low_spinner"
                                         hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, view_type: 'summary'"
