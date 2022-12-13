@@ -126,9 +126,10 @@ def _import_file_upload_htmx_compscore2(request, club, session):
             player_file_name = player2_file_name
 
     # The session title is the second line
-    session.description = (
-        lines[1].decode("utf-8")[:30].replace("\r", "").replace("\n", "")
-    )
+    session.description = lines[1].decode("utf-8")[:50]
+    session.description = session.description.encode("ascii", errors="ignore").decode()
+    session.description = session.description.replace("\r", "").replace("\n", "")
+
     session.import_messages = json.dumps(messages)
     session.save()
 
@@ -187,8 +188,10 @@ def _import_file_upload_htmx_compscore3(request, club, session):
 
     # The session title is part of the file name
     session.description = text_file.name
+    session.description = session.description.encode("ascii", errors="ignore").decode()
     session.description = session.description.replace(".csv", "")
     session.description = session.description.replace("Names - ", "")[:50]
+    session.description = session.description.replace("\r", "").replace("\n", "")
     session.import_messages = json.dumps(messages)
     session.save()
 

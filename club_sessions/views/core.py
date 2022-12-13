@@ -134,11 +134,14 @@ def get_session_fee_for_player(session_entry: SessionEntry, club: Organisation):
 
     session_type_payment_method_membership = (
         SessionTypePaymentMethodMembership.objects.filter(
-            session_type_payment_method__payment_method=session_entry.payment_method
+            session_type_payment_method__session_type=session_entry.session
         )
         .filter(membership=membership)
         .first()
     )
+
+    print(session_type_payment_method_membership)
+    print(session_type_payment_method_membership.fee)
 
     return session_type_payment_method_membership.fee
 
