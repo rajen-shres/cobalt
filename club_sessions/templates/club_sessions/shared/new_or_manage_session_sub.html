@@ -8,7 +8,7 @@
 {% load cobalt_tags %}
 {% load static %}
 
-<h3 class="text-primary font-weight-bold">{{ message }}</h3>
+<h3 class="text-primary font-weight-bold" _="on load wait 5s then transition opacity to 0 then remove me">{{ message }}</h3>
 
 <!-- FORM -->
 <form method="post">
@@ -16,6 +16,10 @@
     {% csrf_token %}
 
     <div class="container">
+
+        <h2 class="text-danger">
+            {{ session_form.errors }}
+        </h2>
 
         <div class="row align-items-center h-100 my-0">
 
@@ -62,16 +66,20 @@
             </div>
             <div class="col-md-6">
                 <div class="form-group">
-                    <!-- ALLOW EDITING SESSION TYPE IF NO FEES TAKEN -->
-                    {% if session.status == "LD" %}
-                        {% cobalt_bs4_field session_form.session_type %}
-                    {% else %}
 
+                    <!-- ALLOW EDITING SESSION TYPE ONLY IF NO FEES TAKEN -->
+                    {% if block_edit_session_type %}
+
+                        <input type="hidden" name="session_type" value="{{ session.session_type.id }}">
                         <div class="float-left">
                             <span>
                                 {{ session.session_type.name }}
                             </span>
                         </div>
+
+                    {% else %}
+
+                        {% cobalt_bs4_field session_form.session_type %}
 
                     {% endif %}
                 </div>

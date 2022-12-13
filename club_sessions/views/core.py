@@ -363,7 +363,7 @@ def calculate_payment_method_and_balance(session_entries, session_fees, club):
         if (
             session_entry.payment_method
             and session_entry.fee == -99
-            and session_entry.system_number not in [PLAYING_DIRECTOR, SITOUT]
+            # and session_entry.system_number not in [PLAYING_DIRECTOR, SITOUT]
         ):
             session_entry.fee = session_fees[session_entry.membership][
                 session_entry.payment_method.payment_method
@@ -632,7 +632,10 @@ def edit_session_entry_handle_bridge_credits(
             # mark the extras as paid
             extras.update(payment_made=True)
 
-            return "Payment made", session_entry
+            return (
+                f"Payment made of {GLOBAL_CURRENCY_SYMBOL}{session_entry.fee:,.2f}",
+                session_entry,
+            )
 
         else:
 
@@ -1337,6 +1340,7 @@ def add_table(session):
             pair_team_number=last_table,
             system_number=SITOUT,
             seat=direction,
+            fee=0,
         ).save()
 
 

@@ -451,9 +451,10 @@ def csv_download(request, session_id):
     writer.writerow(field_names)
 
     for payment_method in payment_methods:
-        print(payment_method)
+
+        payment_method_display = payment_method or "Not Set"
         values = [
-            payment_method,
+            payment_method_display,
             payment_methods[payment_method]["paid"]["count"],
             payment_methods[payment_method]["unpaid"]["count"],
             payment_methods[payment_method]["paid"]["total"],
@@ -476,7 +477,6 @@ def csv_download(request, session_id):
         writer.writerow(field_names)
 
         for extra in extras:
-            print(extra)
             values = [
                 extra,
                 extras[extra]["paid"]["count"],

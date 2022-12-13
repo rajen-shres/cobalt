@@ -300,6 +300,10 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         player_name_from_file=player_file_name,
     )
 
+    # set sitout or director to zero fee
+    if session_entry.system_number in [SITOUT, PLAYING_DIRECTOR]:
+        session_entry.fee = 0
+
     session_entry.save()
 
     # Add additional session payments if set
@@ -334,4 +338,5 @@ def _import_file_upload_htmx_fill_in_table_gaps(session):
                     pair_team_number=table,
                     seat=compass,
                     system_number=-1,
+                    fee=0,
                 ).save()

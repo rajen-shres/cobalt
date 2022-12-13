@@ -104,8 +104,9 @@
                         <h3 class="mt-0">Settings</h3>
                         <div id="id_pane_settings">
                             <div
+                                id="id_pane_settings_sub"
                                 hx-post="{% url "club_sessions:tab_settings_htmx" %}"
-                                hx-trigger="load"
+                                hx-trigger="load, tab_load_event"
                                 hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
                             ></div>
                         </div>
@@ -318,6 +319,9 @@
 
                 if (id === "report"){
                     htmx.trigger(htmx.find("#id_pane_reports"), "tab_load_event");
+                }
+                if (id === "basics"){
+                    htmx.trigger(htmx.find("#id_pane_settings_sub"), "tab_load_event");
                 }
 
             })

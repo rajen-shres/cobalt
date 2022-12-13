@@ -144,6 +144,11 @@ def tab_settings_htmx(request, club, session):
 
     director_name = f"{session.director}"
 
+    # You can't change the session type if payments have been made
+    block_edit_session_type = SessionEntry.objects.filter(
+        session=session, is_paid=True
+    ).exists()
+
     response = render(
         request,
         "club_sessions/shared/settings_htmx.html",
@@ -153,6 +158,7 @@ def tab_settings_htmx(request, club, session):
             "session": session,
             "message": message,
             "director_name": director_name,
+            "block_edit_session_type": block_edit_session_type,
         },
     )
 
@@ -826,9 +832,11 @@ def delete_misc_session_payment_htmx(request, club, session, session_entry):
     if session_misc_payment.payment_type == SessionMiscPayment.TypeOfPayment.TOP_UP:
         back_out_top_up(session_misc_payment, club, player, request.user)
         session_misc_payment.delete()
-        return edit_session_entry_extras_htmx(
+        response = edit_session_entry_extras_htmx(
             request, message="Top Up reversed, and misc payment removed"
         )
+        response["HX-Trigger"] = '{"update_totals": 1, "refresh_balance": 1}'
+        return response
 
     # handle already paid
     if (
@@ -971,7 +979,7 @@ def top_up_member_htmx(request, club, session, session_entry):
         ).save()
 
     # return whole edit page
-    return edit_session_entry_htmx(request)
+    return edit_session_entry_htmx(request, message=message)
 
 
 @user_is_club_director(include_session_entry=True)

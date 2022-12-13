@@ -4,6 +4,7 @@ from django_summernote.widgets import SummernoteInplaceWidget
 from accounts.models import UnregisteredUser, User
 from club_sessions.views.core import PLAYING_DIRECTOR, SITOUT, VISITOR
 from club_sessions.models import Session, SessionType
+from cobalt.settings import BRIDGE_CREDITS
 from organisations.models import OrgVenue, MemberMembershipType
 from payments.models import OrgPaymentMethod
 
@@ -125,6 +126,7 @@ class UserSessionForm(forms.Form):
             self.player = UnregisteredUser.objects.filter(
                 system_number=session_entry.system_number
             ).first()
+            self.is_user = False
 
             # See if this is even a valid system_number, if neither are true. Usually we add the un_reg automatically
             if self.player:
@@ -141,9 +143,16 @@ class UserSessionForm(forms.Form):
         self.fields["is_paid"].initial = session_entry.is_paid
 
         # Get payment method choices
-        payment_methods = OrgPaymentMethod.objects.filter(
+        all_payment_methods = OrgPaymentMethod.objects.filter(
             organisation=club, active=True
         ).values_list("id", "payment_method")
+
+        # Only allow Bridge Credits and IOUs for real users
+        payment_methods = []
+        for all_payment_method in all_payment_methods:
+            if self.is_user or all_payment_method[1] not in [BRIDGE_CREDITS, "IOU"]:
+                payment_methods.append(all_payment_method)
+
         self.fields["payment_method"].choices = payment_methods
         if session_entry.payment_method:
             self.fields["payment_method"].initial = session_entry.payment_method.id
