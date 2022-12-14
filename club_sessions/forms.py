@@ -3,7 +3,7 @@ from django_summernote.widgets import SummernoteInplaceWidget
 
 from accounts.models import UnregisteredUser, User
 from club_sessions.views.core import PLAYING_DIRECTOR, SITOUT, VISITOR
-from club_sessions.models import Session, SessionType
+from club_sessions.models import Session, SessionType, SessionEntry
 from cobalt.settings import BRIDGE_CREDITS
 from organisations.models import OrgVenue, MemberMembershipType
 from payments.models import OrgPaymentMethod
@@ -77,6 +77,14 @@ class SessionForm(forms.ModelForm):
             self.fields[
                 "default_secondary_payment_method"
             ].initial = club.default_secondary_payment_method.id
+
+    # def clean_session_type(self):
+    #     """ validate session type - don't allow changes if payments made """
+    #
+    #     if SessionEntry.objects.filter(
+    #         session=self.instance, is_paid=True
+    #     ).exists():
+    #         self.add_error('session_type', "Cannot change session type as payments have been made")
 
 
 class UserSessionForm(forms.Form):
