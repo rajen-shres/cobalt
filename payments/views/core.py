@@ -267,6 +267,9 @@ def stripe_manual_payment_intent(request):
     our_trans.status = "Intent"
     our_trans.save()
 
+    logger.info(f"Publishable key: {STRIPE_PUBLISHABLE_KEY}")
+    logger.info(f"clientSecret: {intent.client_secret}")
+
     return JsonResponse(
         {
             "publishableKey": STRIPE_PUBLISHABLE_KEY,
