@@ -387,6 +387,8 @@ def csv_download(request, session_id):
         else:
             payment_method = ""
 
+        is_paid = "Yes" if session_entry.is_paid else "No"
+
         values = [
             session.description,
             session.session_date,
@@ -396,7 +398,7 @@ def csv_download(request, session_id):
             session_entry.seat,
             payment_method,
             session_entry.fee,
-            session_entry.is_paid,
+            is_paid,
         ]
         writer.writerow(values)
 

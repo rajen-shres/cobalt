@@ -167,7 +167,10 @@ def tab_dashboard_htmx(request, club):
     )
 
     # See if this has just been set up
-    is_initial = ClubLog.objects.latest("pk").action == "Initial defaults set up"
+    try:
+        is_initial = ClubLog.objects.latest("pk").action == "Initial defaults set up"
+    except ClubLog.DoesNotExist:
+        is_initial = False
 
     return render(
         request,

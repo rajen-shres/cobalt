@@ -9,6 +9,7 @@ from club_sessions.models import (
     SessionTypePaymentMethodMembership,
     SessionMiscPayment,
     Session,
+    SessionTypePaymentMethod,
 )
 from cobalt.settings import (
     GLOBAL_ORG,
@@ -129,19 +130,25 @@ def get_session_fee_for_player(session_entry: SessionEntry, club: Organisation):
     if session_entry.system_number in [PLAYING_DIRECTOR, SITOUT]:
         return Decimal(0)
 
-    # Get membership. None for Guests
+    # Get session
+    session = session_entry.session
+
+    # Get membership for this player. None for Guests
     membership = get_membership_for_player(session_entry.system_number, club)
 
+    # Get session type and payment method
+    session_type_payment_method = SessionTypePaymentMethod.objects.filter(
+        session_type=session.session_type, payment_method=session_entry.payment_method
+    ).first()
+
+    # Finally get the fee
     session_type_payment_method_membership = (
         SessionTypePaymentMethodMembership.objects.filter(
-            session_type_payment_method__session_type=session_entry.session
+            session_type_payment_method=session_type_payment_method
         )
         .filter(membership=membership)
         .first()
     )
-
-    print(session_type_payment_method_membership)
-    print(session_type_payment_method_membership.fee)
 
     return session_type_payment_method_membership.fee
 
@@ -1528,5 +1535,7 @@ def change_user_on_session_entry_non_player(player_type, session_entry, club, me
 
     session_entry.system_number = player_type
     session_entry = reset_values_on_session_entry(session_entry, club)
+    session_entry.is_paid = True
+    session_entry.payment_method = None
     session_entry.save()
     return message
