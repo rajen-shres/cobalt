@@ -521,7 +521,11 @@ def view_congress(request, congress_id, fullscreen=False):
 
         # get all sessions for this event plus days and number of rows (# of days)
         sessions = event.session_set.all()
-        days = sessions.distinct("session_date")
+
+        # We want the first session for each day
+        days = sessions.order_by("session_date", "session_start").distinct(
+            "session_date"
+        )
         rows = days.count()
         total_entries = (
             EventEntry.objects.filter(event=event)
