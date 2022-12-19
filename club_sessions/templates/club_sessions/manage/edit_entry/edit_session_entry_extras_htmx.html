@@ -7,24 +7,58 @@
 {#---------------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 
-<!-- HIDE EXTRAS IF NOTHING TO SHOW -->
-{% if not user_pending_payments and not session_misc_payments %}
+<!-- USER PENDING PAYMENTS -->
 
-    <div class="text-center">
-        <a href="javascript: void(0);"
-            _="on click show #extras then hide me"
-            class="btn btn-sm btn-primary"
-        >
-            extras
-        </a>
+{% if user_pending_payments %}
+
+    <div class="card pb-4">
+        <div class="card-header card-header-danger">
+            <h2>User has Outstanding IOUs</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-condensed">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Club</th>
+                            <th class="text-left">Amount</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for iou in user_pending_payments %}
+                            <tr>
+                                <td class="text-left">{{ iou.organisation }}</td>
+                                <td class="text-left">{{ GLOBAL_CURRENCY_SYMBOL }}{{ iou.amount|floatformat:2 }}</td>
+                                <td>{{ iou.created_at|cobalt_nice_datetime_short }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
     </div>
 
+{% endif %}
+
+<!-- HIDE EXTRAS IF NOTHING TO SHOW -->
+{% if not session_misc_payments and not message %}
+
+    <div class="text-center">
+        <button
+            _="on click show #extras then remove me"
+            class="btn btn-sm btn-primary"
+        >
+            Add Extras
+        </button>
+    </div>
 {% endif %}
 
 <!-- HIDE UNLESS WE HAVE DATA OR A MESSAGE (EG JUST DELETED SOMETHING) -->
 <div class="card" id="extras"
 
-    {% if not user_pending_payments and not session_misc_payments and message == "" %}
+    {% if not session_misc_payments and message == "" %}
         style="display: none;"
     {% endif %}
 
@@ -35,42 +69,7 @@
     <div class="card-body">
 
         <!-- MESSAGE -->
-        <h3 class="text-primary font-weight-bold">{{ message }}</h3>
-
-        <!-- USER PENDING PAYMENTS -->
-
-        {% if user_pending_payments %}
-
-            <div class="card">
-                <div class="card-header card-header-danger">
-                    <h4>User has Outstanding IOUs</h4>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-condensed">
-                            <thead>
-                                <tr>
-                                    <th class="text-left">Club</th>
-                                    <th class="text-left">Amount</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for iou in user_pending_payments %}
-                                    <tr>
-                                        <td class="text-left">{{ iou.organisation }}</td>
-                                        <td class="text-left">{{ GLOBAL_CURRENCY_SYMBOL }}{{ iou.amount|floatformat:2 }}</td>
-                                        <td>{{ iou.created_at|cobalt_nice_datetime_short }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
-            </div>
-
-        {% endif %}
+        {% include "utils/cobalt_message_h3.html" %}
 
         <!--  MISC PAYMENTS   -->
 
@@ -263,42 +262,44 @@
                 </div>
             </div>
         </div>
-
-        <!-- TOP UP MEMBER -->
-        {% if player.is_user %}
-
-            <button
-                _="on click show #top-up-form then remove me"
-                class="btn btn-sm btn-danger ml-3"
-            >Top Up</button>
-
-            <div
-                id="top-up-form"
-                style="display: none;"
-                hx-post="{% url "club_sessions:session_top_up_member_htmx" %}"
-                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
-                hx-trigger="load"
-                hx-target="this"
-            ></div>
-
-        {% endif %}
-
-        <!-- PAY ON BEHALF -->
-        <!-- DISABLE FOR NOW -->
-
-        {#        {% if player|get_class == "User" %}#}
-        {#            <div class="card">#}
-        {#                <div class="card-header card-header-info">#}
-        {#                    <h4>Pay On Behalf Of - NOT COMPLETE</h4>#}
-        {#                </div>#}
-        {#                <div class="body">#}
-        {#                    <h3>{{ player.full_name  }} pays for</h3>#}
-        {#                    <h3>{{ player.full_name  }} is paid for by</h3>#}
-        {#                </div>#}
-        {#        {% endif %}#}
-
     </div>
 </div>
+
+<!-- TOP UP MEMBER -->
+{% if player.is_user %}
+
+    <!-- BUTTON TO SHOW FORM -->
+    <div class="text-center">
+        <button
+            _="on click show #top-up-form then remove me"
+            class="btn btn-sm btn-danger"
+        >Add Top Up</button>
+    </div>
+
+    <div
+        id="top-up-form"
+        style="display: none;"
+        hx-post="{% url "club_sessions:session_top_up_member_htmx" %}"
+        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, session_entry_id:{{ session_entry.id }}"
+        hx-trigger="load"
+        hx-target="this"
+    ></div>
+
+{% endif %}
+
+<!-- PAY ON BEHALF -->
+<!-- DISABLE FOR NOW -->
+
+{#        {% if player|get_class == "User" %}#}
+{#            <div class="card">#}
+{#                <div class="card-header card-header-info">#}
+{#                    <h4>Pay On Behalf Of - NOT COMPLETE</h4>#}
+{#                </div>#}
+{#                <div class="body">#}
+{#                    <h3>{{ player.full_name  }} pays for</h3>#}
+{#                    <h3>{{ player.full_name  }} is paid for by</h3>#}
+{#                </div>#}
+{#        {% endif %}#}
 
 <script>
     $(document).ready( function () {

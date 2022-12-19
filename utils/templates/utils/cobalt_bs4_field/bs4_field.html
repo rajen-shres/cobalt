@@ -3,7 +3,7 @@
     {# Handle errors if present #}
 
     {% if field.errors %}
-        <span class="cobalt-form-error">{{ field.errors|striptags }}</span>
+        <div class="cobalt-form-error pt-5">{{ field.errors|striptags }}</div>
     {% endif %}
 
     {# special field handling #}
@@ -22,11 +22,11 @@
         </div>
 
     {% elif widget_type == "date" %}
+
         <input
             type="date"
             name="{{ field.name }}"
-            value="{{ field.value|date:"Y-m-d" }}"
-            raw="{{ field.value }}"
+            value="{{ formatted_date }}"
             class="dateinput form-control"
             id="id_{{ field.name }}"
         >

@@ -73,6 +73,7 @@ def _add_data_to_report_data_structure(
             membership_type = membership_type_dict.get(
                 session_entry.system_number, "Guest"
             )
+            print(session_entry)
             payment_method = session_entry.payment_method.payment_method
 
             # This cell

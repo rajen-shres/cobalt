@@ -287,8 +287,28 @@ def cobalt_bs4_field(field, no_label=False):
 
     field_template = get_template("utils/cobalt_bs4_field/bs4_field.html")
 
+    # Special handling for dates
+    formatted_date = None
+    if field.widget_type == "date":
+
+        value = field.value()
+        initial = field.initial
+
+        # if we have a value, then use it
+        if value:
+            # We might get a string or a date
+            formatted_date = value if type(value) is str else value.strftime("%Y-%m-%d")
+        else:
+            # no value so use initial
+            formatted_date = initial.strftime("%Y-%m-%d")
+
     return field_template.render(
-        {"field": field, "show_label": show_label, "widget_type": field.widget_type}
+        {
+            "field": field,
+            "show_label": show_label,
+            "widget_type": field.widget_type,
+            "formatted_date": formatted_date,
+        }
     )
 
 

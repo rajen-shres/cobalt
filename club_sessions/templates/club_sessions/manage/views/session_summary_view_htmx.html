@@ -9,7 +9,7 @@
 {% load static %}
 
 <!-- MESSAGE -->
-<h3 class="text-primary font-weight-bold">{{ message }}</h3>
+{% include "utils/cobalt_message_h3.html" %}
 
 <!-- SHOW WHO FAILED IF WE HAVE BRIDGE CREDIT FAILURES -->
 {% if bridge_credit_failures %}

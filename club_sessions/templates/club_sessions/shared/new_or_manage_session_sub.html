@@ -8,7 +8,7 @@
 {% load cobalt_tags %}
 {% load static %}
 
-<h3 class="text-primary font-weight-bold" _="on load wait 5s then transition opacity to 0 then remove me">{{ message }}</h3>
+{% include "utils/cobalt_message_h3.html" with fade=True %}
 
 <!-- FORM -->
 <form method="post">
@@ -16,10 +16,6 @@
     {% csrf_token %}
 
     <div class="container">
-
-        <h2 class="text-danger">
-            {{ session_form.errors }}
-        </h2>
 
         <div class="row align-items-center h-100 my-0">
 
@@ -93,7 +89,9 @@
             </div>
             <div class="col-md-6">
                 <div class="form-group">
-                    <input type="date" name="session_date" value="{{ session_form.session_date.value|date:'Y-m-d' }}" class="form-control" id="id_session_date">
+
+                    {% cobalt_bs4_field session_form.session_date %}
+
                 </div>
             </div>
         </div>

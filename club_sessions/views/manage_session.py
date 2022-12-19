@@ -140,7 +140,9 @@ def tab_settings_htmx(request, club, session):
         else:
             print(session_form.errors)
 
-    session_form = SessionForm(club=club, instance=session)
+    else:
+
+        session_form = SessionForm(club=club, instance=session)
 
     director_name = f"{session.director}"
 

@@ -238,6 +238,7 @@ def augment_session_entries_process_entry(
         # Visitor with no ABF number
         session_entry.player_type = "NotRegistered"
         session_entry.icon = "handshake"
+        session_entry.icon_colour = "warning"
         session_entry.player = {
             "full_name": session_entry.player_name_from_file.title(),
             "first_name": session_entry.player_name_from_file.split(" ")[0].title(),
@@ -259,7 +260,10 @@ def augment_session_entries_process_entry(
     if session_entry.system_number == SITOUT:
         # Sit out
         session_entry.membership = "Guest"
-    elif session_entry.system_number in membership_type_dict:
+    elif (
+        session_entry.system_number in membership_type_dict
+        and session_entry.system_number != VISITOR
+    ):
         # This person is a member
         session_entry.membership = membership_type_dict[session_entry.system_number]
         session_entry.membership_type = "member"
@@ -269,13 +273,13 @@ def augment_session_entries_process_entry(
     else:
         # Not a member
         session_entry.membership = "Guest"
+        session_entry.icon_colour = "warning"
         if session_entry.system_number not in [SITOUT, PLAYING_DIRECTOR, VISITOR]:
             icon_text += "a Guest."
         if session_entry.system_number >= 0 and abf_checksum_is_valid(
             session_entry.system_number
         ):
             session_entry.membership_type = "Valid Number"
-            session_entry.icon_colour = "warning"
         else:
             session_entry.membership_type = "Invalid Number"
             session_entry.icon_colour = "dark"
@@ -1078,7 +1082,10 @@ def get_summary_table_data_sub(
         if item.system_number in [SITOUT, PLAYING_DIRECTOR]:
             continue
 
-        pay_method = item.payment_method.payment_method
+        try:
+            pay_method = item.payment_method.payment_method
+        except AttributeError:
+            pay_method = "Unknown"
 
         # Add to dict if not present
         if pay_method not in payment_summary:
@@ -1520,14 +1527,20 @@ def change_user_on_session_entry(
                 action=f"Added un-registered user {return_value[0]} {return_value[1]}",
             ).save()
 
-        # Set payment method to secondary
-        session_entry.payment_method = session.default_secondary_payment_method
+        # Set payment method
+        if source in ["mpc", "unregistered"]:
+            session_entry.payment_method = session.default_secondary_payment_method
+        else:
+            bridge_credits = bridge_credits_for_club(club)
+            session_entry.payment_method = (
+                bridge_credits or session.default_secondary_payment_method
+            )
 
-        return change_user_on_session_entry_non_player(
+        return change_user_on_session_entry_player(
             system_number, session_entry, club, "Player changed"
         )
 
-    return "Error Occurred. Should not reach here."
+    return "Error occurred. Should not get here"
 
 
 def change_user_on_session_entry_non_player(player_type, session_entry, club, message):
@@ -1537,5 +1550,14 @@ def change_user_on_session_entry_non_player(player_type, session_entry, club, me
     session_entry = reset_values_on_session_entry(session_entry, club)
     session_entry.is_paid = True
     session_entry.payment_method = None
+    session_entry.save()
+    return message
+
+
+def change_user_on_session_entry_player(system_number, session_entry, club, message):
+    """sub of change_user_on_session_entry"""
+
+    session_entry.system_number = system_number
+    session_entry = reset_values_on_session_entry(session_entry, club)
     session_entry.save()
     return message

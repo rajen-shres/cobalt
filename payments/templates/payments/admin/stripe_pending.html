@@ -35,7 +35,7 @@
                                     sent us formal confirmation. This should not happen and needs to be investigated.</p>
                             </div>
                             <div class="card-body table-responsive">
-                                <h3 class="text-primary font-weight-bold">{{ stripe_manual_pending_message }}</h3>
+                                {% include "utils/cobalt_message_h3.html" with message=stripe_manual_pending_message %}
                                 <div class="container">
                                     {% if stripe_manual_pending %}
 
@@ -79,7 +79,7 @@
                                     sent us formal confirmation. This should not happen and needs to be investigated.</p>
                             </div>
                             <div class="card-body table-responsive">
-                                <h3 class="text-primary font-weight-bold">{{ stripe_auto_pending_message }}</h3>
+                                {% include "utils/cobalt_message_h3.html" with message=stripe_auto_pending_message %}
                                 <div class="container">
                                     {% if stripe_auto_pending %}
 

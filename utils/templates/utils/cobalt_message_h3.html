@@ -1,0 +1,31 @@
+{#-------------------------------------------------------------------------#}
+{#                                                                         #}
+{# Template to include a standard message for users as an H3               #}
+{#                                                                         #}
+{#  Paramters:                                                             #}
+{#                                                                         #}
+{#    message - str (required) Message to show                             #}
+{#    error - bool If True will change colour for an error. Default: False #}
+{#    fade - bool. If True will fade the message after 10 secs             #}
+{#                                                                         #}
+{#-------------------------------------------------------------------------#}
+{% if message and message != "" %}
+    <h3
+        class="font-weight-bold
+
+        {% if error %}
+            text-danger
+        {% else %}
+            text-primary
+        {% endif %}
+
+        "
+
+        {% if fade %}
+            _="on load wait 10s then transition opacity to 0 then remove me"
+        {% endif %}
+    >
+        {{ message }}
+
+    </h3>
+{% endif %}

@@ -128,7 +128,9 @@ def _import_file_upload_htmx_compscore2(request, club, session):
     # The session title is the second line
     session.description = lines[1].decode("utf-8")[:50]
     session.description = session.description.encode("ascii", errors="ignore").decode()
-    session.description = session.description.replace("\r", "").replace("\n", "")
+    session.description = (
+        session.description.replace("\r", "").replace("\n", "").replace("\t", "")
+    )
 
     session.import_messages = json.dumps(messages)
     session.save()

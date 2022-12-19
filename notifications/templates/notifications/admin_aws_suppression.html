@@ -35,7 +35,7 @@
 
                 <h3>There are {{ suppression_list|length }} entries</h3>
 
-                <h3 class="text-primary font-weight-bold">{{ message }}</h3>
+                {% include "utils/cobalt_message_h3.html" %}
 
                 <div class="table-responsive">
                     <table id="suppression_table" class="table table hover table condensed">

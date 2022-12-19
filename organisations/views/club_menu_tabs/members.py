@@ -754,11 +754,9 @@ def edit_member_htmx(request, club, message=""):
     # Look for save as all requests are posts
     if "save" in request.POST:
 
-        return _edit_member_htmx_save(request, club, member)
+        message = _edit_member_htmx_save(request, club, member)
 
-    else:
-
-        form = _edit_member_htmx_default(club, member)
+    form = _edit_member_htmx_default(club, member)
 
     # Add on common parts
 
@@ -891,11 +889,11 @@ def _edit_member_htmx_save(request, club, member):
         print(form.errors)
         message = f"Errors on form: {form.errors}"
 
-    return list_htmx(request, message=message)
+    return message
 
 
 def _edit_member_htmx_default(club, member):
-    """sub of edit_member_htmx for when we don't get a POST"""
+    """sub of edit_member_htmx for when we don't get a POST."""
 
     member_membership = (
         MemberMembershipType.objects.filter(system_number=member.system_number)

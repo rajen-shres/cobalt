@@ -16,12 +16,14 @@
                         hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
                         hx-target="#id_member_list_tab"
                         hx-vars="club_id:{{ club.id }},member:{{ user.id }}"
+                        hx-push-url="{{ club.id }}"
                     >
                 {% else %}
                     <a href="javascript:void(0)"
                         hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
                         hx-target="#id_member_list_tab"
                         hx-vars="club_id:{{ club.id }},un_reg_id:{{ user.id }}"
+                        hx-push-url="{{ club.id }}"
                     >
                 {% endif %}
                 {{ user }}

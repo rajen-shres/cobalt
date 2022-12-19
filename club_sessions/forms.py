@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django_summernote.widgets import SummernoteInplaceWidget
 
 from accounts.models import UnregisteredUser, User
@@ -78,13 +79,22 @@ class SessionForm(forms.ModelForm):
                 "default_secondary_payment_method"
             ].initial = club.default_secondary_payment_method.id
 
-    # def clean_session_type(self):
-    #     """ validate session type - don't allow changes if payments made """
-    #
-    #     if SessionEntry.objects.filter(
-    #         session=self.instance, is_paid=True
-    #     ).exists():
-    #         self.add_error('session_type', "Cannot change session type as payments have been made")
+    def clean_session_type(self):
+        """validate session type - don't allow changes if payments made"""
+
+        data = self.cleaned_data["session_type"]
+
+        # If no change, don't worry
+        if "session_type" not in self.changed_data:
+            return data
+
+        # See if any payments have been made, if so reject change
+        if SessionEntry.objects.filter(session=self.instance, is_paid=True).exists():
+            raise ValidationError(
+                "Cannot change session type as payments have been made"
+            )
+
+        return data
 
 
 class UserSessionForm(forms.Form):
