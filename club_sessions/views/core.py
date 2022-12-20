@@ -577,15 +577,18 @@ def edit_session_entry_handle_bridge_credits(
     if not is_user:
         return "Player is not a registered user.", session_entry
 
-    # If this isn't paid, and we change it then no problem
-    if not old_is_paid and not new_is_paid:
+    # Get Bridge Credits
+    bridge_credit_payment_method = bridge_credits_for_club(club)
+
+    # If this isn't paid, and we change it then no problem,
+    # or if it wasn't paid, and we aren't now bridge credits that is okay
+    if (not old_is_paid and not new_is_paid) or (
+        not old_is_paid and new_payment_method != bridge_credit_payment_method
+    ):
         session_entry.payment_method = new_payment_method
         session_entry.fee = new_fee
         session_entry.save()
         return "Data saved", session_entry
-
-    # Get Bridge Credits
-    bridge_credit_payment_method = bridge_credits_for_club(club)
 
     # if it was paid using bridge credits, and we change the fee, block the change
     if (
@@ -681,7 +684,7 @@ def edit_session_entry_handle_bridge_credits(
             new_is_paid,
         )
 
-    return "Oops", session_entry
+    return "", session_entry
 
 
 def edit_session_entry_handle_other(

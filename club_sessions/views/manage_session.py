@@ -147,9 +147,11 @@ def tab_settings_htmx(request, club, session):
     director_name = f"{session.director}"
 
     # You can't change the session type if payments have been made
-    block_edit_session_type = SessionEntry.objects.filter(
-        session=session, is_paid=True
-    ).exists()
+    block_edit_session_type = (
+        SessionEntry.objects.filter(session=session, is_paid=True)
+        .exclude(system_number__in=[SITOUT, PLAYING_DIRECTOR])
+        .exists()
+    )
 
     response = render(
         request,
@@ -494,7 +496,7 @@ def change_payment_method_htmx(request, club, session, session_entry):
 
     return HttpResponse(
         f"""<div>{fee.fee}</div>
-                            <div id="id_session_entry_total_{session_entry.id }" hx-swap-oob="true"> {total:.2f} </div>
+                            <div id="id_session_entry_total_{session_entry.id}" hx-swap-oob="true"> {total:.2f} </div>
                             <div id="detail_message" hx-swap-oob="true">Session Updated</div>
                             """
     )
