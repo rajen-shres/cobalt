@@ -73,7 +73,7 @@ Environment: {{ COBALT_HOSTNAME }}
     </head>
 
     <body>
-        {# login_as sets this variable to we how if this is a session controlled by an admin - show message if true #}
+        {# login_as sets this variable so we how if this is a session controlled by an admin - show message if true #}
         {% if is_impersonated_session %}
             <div class="main-panel">
                 <div class="container-fluid">
@@ -115,26 +115,20 @@ Environment: {{ COBALT_HOSTNAME }}
                             </a>
                         </li>
 
-                        {# Temp - only show extra tabs for super users #}
 
-                        {% if COBALT_HOSTNAME != "myabf.com.au" %}
+                        <li class="nav-item {% if request.path|slice:":8" == "/results" %}active{% endif %} ">
+                            <a class="nav-link" href="/results">
+                                <i class="material-icons">content_paste</i>
+                                <p>Results</p>
+                            </a>
+                        </li>
 
-                            <li class="nav-item {% if request.path|slice:":8" == "/results" %}active{% endif %} ">
-                                <a class="nav-link" href="/results">
-                                    <i class="material-icons">content_paste</i>
-                                    <p>Results</p>
-                                </a>
-                            </li>
-
-                            <li class="nav-item {% if request.path|slice:":22" == "/organisations/general" %}active{% endif %} ">
-                                <a class="nav-link" href="/organisations/general">
-                                    <i class="material-icons">groups</i>
-                                    <p>Clubs</p>
-                                </a>
-                            </li>
-
-                        {% endif %}
-
+                        <li class="nav-item {% if request.path|slice:":22" == "/organisations/general" %}active{% endif %} ">
+                            <a class="nav-link" href="/organisations/general">
+                                <i class="material-icons">groups</i>
+                                <p>Clubs</p>
+                            </a>
+                        </li>
 
                         <li class="nav-item {% if request.path|slice:":13" == "/masterpoints" %}active{% endif %} ">
                             <a class="nav-link" href="/masterpoints">
