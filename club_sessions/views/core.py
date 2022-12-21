@@ -1115,7 +1115,10 @@ def get_summary_table_data_sub(
         payment_summary[pay_method]["player_count"] += 1
 
         # Add session_entry as well for drop down list
-        name = mixed_dict[item.system_number]["value"]
+        try:
+            name = mixed_dict[item.system_number]["value"]
+        except KeyError:
+            name = "Unknown"
         member_type = membership_type_dict.get(item.system_number, "Guest")
 
         # Augment session entry with amount_paid

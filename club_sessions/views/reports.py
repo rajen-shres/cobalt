@@ -312,7 +312,8 @@ def _get_name_for_csv(session_entry, mixed_dict):
     elif session_entry.system_number == VISITOR:
         return session_entry.player_name_from_file
     else:
-        return mixed_dict.get(session_entry.system_number).get("value")
+        match = mixed_dict.get(session_entry.system_number)
+        return match.get("value") if match else session_entry.player_name_from_file
 
 
 @login_required()
@@ -383,12 +384,24 @@ def csv_download(request, session_id):
     writer.writerow(field_names)
     # Write data rows
     for session_entry in session_entries:
+
+        # Payment status
+        is_paid = "Yes" if session_entry.is_paid else "No"
+
+        # Payment method
         if session_entry.payment_method:
             payment_method = session_entry.payment_method.payment_method
         else:
             payment_method = ""
 
-        is_paid = "Yes" if session_entry.is_paid else "No"
+        # Handle non-players
+        if (
+            session_entry.system_number in [PLAYING_DIRECTOR, SITOUT]
+            and payment_method == ""
+        ):
+            payment_method = "Free"
+            is_paid = ""
+            session_entry.fee = ""
 
         values = [
             session.description,
@@ -424,6 +437,7 @@ def csv_download(request, session_id):
 
         # Write data rows
         for extra in extras:
+            payment_made = "Yes" if extra.payment_made else "No"
             values = [
                 extra.session_entry.session.description,
                 session.session_date,
@@ -433,7 +447,7 @@ def csv_download(request, session_id):
                 "",
                 extra.payment_method.payment_method,
                 extra.amount,
-                extra.payment_made,
+                payment_made,
             ]
             writer.writerow(values)
 
@@ -455,7 +469,7 @@ def csv_download(request, session_id):
 
     for payment_method in payment_methods:
 
-        payment_method_display = payment_method or "Not Set"
+        payment_method_display = payment_method or "Free"
         values = [
             payment_method_display,
             payment_methods[payment_method]["paid"]["count"],
