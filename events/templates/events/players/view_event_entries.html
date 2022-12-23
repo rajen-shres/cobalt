@@ -27,52 +27,54 @@
             </div>
             <div class="card-body">
                 <div class="row justify-content-center">
-                    <div class="col-auto">
-                        <table class="table table-responsive text-center">
-                            <thead>
-                                <tr>
-                                    <th class="text-left">Entry</th>
-                                    <th class="text-left">Status</th>
-                                    {% if categories %}
-                                        <th>Category</th>
-                                    {% endif %}
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                                {% for entry in entries %}
+                    <div >
+                        <div class="table-responsive">
+                            <table class="table text-center">
+                                <thead>
                                     <tr>
-                                        <td class="py-1 text-left">
-                                            {% if entry.my_entry %}
-                                                <a class="" href="{% url "events:edit_event_entry" event_id=event.id congress_id=congress.id %}/edit=1">
-                                            {% endif %}
-                                            {% if event.allow_team_names %}
-                                                <strong>{{ entry.get_team_name }} - </strong>
-                                            {% endif %}
-                                            {% for player in entry.ordered_event_entry_player %}
-                                                {#                                            {% for player in entry.event_entry_player_all %}#}
-                                                {% if player.player.id == TBA_PLAYER and player.override_tba_name %}<span class="font-italic" title="This name was added by an administrator">{{ player.override_tba_name }}</span>{% else %}{{ player.player.full_name }}{% endif %}{% if not forloop.last %}, {% endif %}
-                                            {% endfor %}
-                                            {% if entry.my_entry %}
-                                                </a>
-                                            {% endif %}
-                                        </td>
-                                        <td class="py-1 text-left"">
-                                            {{ entry.entry_status }}
-                                        </td>
-
+                                        <th class="text-left">Entry</th>
+                                        <th class="text-left">Status</th>
                                         {% if categories %}
-                                            <td>
-                                                {{ entry.category }}
-                                            </td>
+                                            <th>Category</th>
                                         {% endif %}
-
                                     </tr>
-                                {% empty %}
-                                    <tr><td colspan="2"><h3>No entries yet</h3></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+
+                                    {% for entry in entries %}
+                                        <tr>
+                                            <td class="py-1 text-left">
+                                                {% if entry.my_entry %}
+                                                    <a class="" href="{% url "events:edit_event_entry" event_id=event.id congress_id=congress.id %}/edit=1">
+                                                {% endif %}
+                                                {% if event.allow_team_names %}
+                                                    <strong>{{ entry.get_team_name }} - </strong>
+                                                {% endif %}
+                                                {% for player in entry.ordered_event_entry_player %}
+                                                    {#                                            {% for player in entry.event_entry_player_all %}#}
+                                                    {% if player.player.id == TBA_PLAYER and player.override_tba_name %}<span class="font-italic" title="This name was added by an administrator">{{ player.override_tba_name }}</span>{% else %}{{ player.player.full_name }}{% endif %}{% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                                {% if entry.my_entry %}
+                                                    </a>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-1 text-left"">
+                                                {{ entry.entry_status }}
+                                            </td>
+
+                                            {% if categories %}
+                                                <td>
+                                                    {{ entry.category }}
+                                                </td>
+                                            {% endif %}
+
+                                        </tr>
+                                    {% empty %}
+                                        <tr><td colspan="2"><h3>No entries yet</h3></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
