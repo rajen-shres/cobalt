@@ -89,12 +89,21 @@ class SessionForm(forms.ModelForm):
             return data
 
         # See if any payments have been made, if so reject change
-        if SessionEntry.objects.filter(session=self.instance, is_paid=True).exists():
+        if (
+            SessionEntry.objects.filter(session=self.instance, is_paid=True)
+            .exclude(system_number__in=[PLAYING_DIRECTOR, SITOUT])
+            .exists()
+        ):
             raise ValidationError(
                 "Cannot change session type as payments have been made"
             )
 
         return data
+
+    def clean_description(self):
+        """remove "; from description in case someone deliberately wants it to fail. Least likely code to ever run"""
+
+        return self.cleaned_data["description"].replace('";', "")
 
 
 class UserSessionForm(forms.Form):

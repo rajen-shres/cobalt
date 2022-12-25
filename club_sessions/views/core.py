@@ -454,8 +454,12 @@ def edit_session_entry_handle_ious(
         handle_iou_changes_off(club, session_entry)
         return f"{message}IOU deleted.", session_entry
 
-    # Shouldn't get here
-    return f"{message}An error occurred", session_entry
+    # We get here if we have changed to IOU or changed from IOU but no payment took place
+    session_entry.is_paid = new_is_paid
+    session_entry.payment_method = new_payment_method
+    session_entry.fee = new_fee
+    session_entry.save()
+    return message, session_entry
 
 
 def handle_iou_changes_on(club, session_entry, administrator):
