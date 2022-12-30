@@ -265,6 +265,14 @@
                             Messages
                         </button>
 
+                        <!-- Excel -->
+                        <a
+                            class="btn btn-success"
+                            href="{% url "club_sessions:reports_xlsx_download" session_id=session.id %}"
+                        >
+                            Excel Download
+                        </a>
+
                         <!-- CSV -->
                         <a
                             class="btn btn-success"

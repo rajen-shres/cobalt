@@ -119,6 +119,11 @@ urlpatterns = [
         name="reports_csv_download",
     ),
     path(
+        "reports/xlsx-download/<int:session_id>",
+        reports.xlsx_download,
+        name="reports_xlsx_download",
+    ),
+    path(
         "reports/low-balance",
         reports.low_balance_report_htmx,
         name="reports_low_balance_report_htmx",
