@@ -394,10 +394,9 @@ def csv_download(request, session_id):
         else:
             payment_method = ""
 
-        # Handle non-players
-        if (
-            session_entry.system_number in [PLAYING_DIRECTOR, SITOUT]
-            and payment_method == ""
+        # Handle non-players - fudge it a bit for the report.
+        if session_entry.system_number in [PLAYING_DIRECTOR, SITOUT] and (
+            payment_method == "" or session_entry.fee == 0
         ):
             payment_method = "Free"
             is_paid = ""
