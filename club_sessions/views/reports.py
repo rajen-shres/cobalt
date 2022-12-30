@@ -17,7 +17,7 @@ from club_sessions.views.core import (
 from club_sessions.views.decorators import user_is_club_director
 from club_sessions.models import Session, SessionEntry, SessionMiscPayment
 from cobalt.settings import GLOBAL_ORG
-from payments.models import MemberTransaction
+from payments.models import MemberTransaction, OrgPaymentMethod
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
 
@@ -336,6 +336,23 @@ def csv_download(request, session_id):
         membership_type_dict,
     ) = load_session_entry_static(session, club)
 
+    # Manipulate the data for the report
+    for session_entry in session_entries:
+        # Payment method
+        if session_entry.payment_method:
+            session_entry.payment_method_display = (
+                session_entry.payment_method.payment_method
+            )
+        else:
+            session_entry.payment_method_display = ""
+
+        # Fudge the session entries for non-players to show as free if no payment taken
+        if (
+            session_entry.system_number in [PLAYING_DIRECTOR, SITOUT]
+            and session_entry.fee == 0
+        ):
+            session_entry.payment_method_display = "Free"
+
     # Get extras
     extras = SessionMiscPayment.objects.filter(
         session_entry__session=session
@@ -388,17 +405,8 @@ def csv_download(request, session_id):
         # Payment status
         is_paid = "Yes" if session_entry.is_paid else "No"
 
-        # Payment method
-        if session_entry.payment_method:
-            payment_method = session_entry.payment_method.payment_method
-        else:
-            payment_method = ""
-
-        # Handle non-players - fudge it a bit for the report.
-        if session_entry.system_number in [PLAYING_DIRECTOR, SITOUT] and (
-            payment_method == "" or session_entry.fee == 0
-        ):
-            payment_method = "Free"
+        # Don't show values for free players
+        if session_entry.payment_method_display == "Free":
             is_paid = ""
             session_entry.fee = ""
 
@@ -409,7 +417,7 @@ def csv_download(request, session_id):
             session_entry.system_number,
             session_entry.pair_team_number,
             session_entry.seat,
-            payment_method,
+            session_entry.payment_method_display,
             session_entry.fee,
             is_paid,
         ]
@@ -594,20 +602,57 @@ def payment_method_summary_sub(payment_methods, payment_status_field):
 
 
 def payment_method_summary(session):
-    """Summarise the payment methods and extras - used for both online and CSV reporting"""
+    """Summarise the payment methods and extras - used for both online and CSV reporting
 
-    # Get summary data
-    payment_methods = (
-        SessionEntry.objects.filter(session=session)
-        .values("payment_method__payment_method", "is_paid")
-        .annotate(total=Sum("fee"), count=Count("pk"))
-        .order_by("payment_method__payment_method", "is_paid")
-    )
+    We don't use a database query to summarise the sessions as we need to manipulate the non-players
+    for the report.
 
-    # format
-    payment_methods_display = payment_method_summary_sub(payment_methods, "is_paid")
+    """
 
-    # Get extras
+    # Load the data
+    session_entries = SessionEntry.objects.filter(session=session)
+
+    # Go through and summarise
+    payment_methods_display = {}
+    for session_entry in session_entries:
+        # Mark as Free if no payment method
+        if session_entry.payment_method:
+            payment_method = session_entry.payment_method.payment_method
+        else:
+            payment_method = "Free"
+        # Also mark as Free for non-player and no fee set
+        if (
+            session_entry.system_number
+            in [
+                PLAYING_DIRECTOR,
+                SITOUT,
+            ]
+            and session_entry.fee in [0, -99]
+        ):
+            payment_method = "Free"
+            # Force to paid if Free
+            session_entry.is_paid = True
+
+        # Add to dict if not present
+        if payment_method not in payment_methods_display:
+            payment_methods_display[payment_method] = {
+                "paid": {"total": Decimal(0), "count": 0},
+                "unpaid": {"total": Decimal(0), "count": 0},
+            }
+
+        # Increment dict
+        if session_entry.is_paid:
+            payment_methods_display[payment_method]["paid"][
+                "total"
+            ] += session_entry.fee
+            payment_methods_display[payment_method]["paid"]["count"] += 1
+        else:
+            payment_methods_display[payment_method]["unpaid"][
+                "total"
+            ] += session_entry.fee
+            payment_methods_display[payment_method]["unpaid"]["count"] += 1
+
+    # Get extras - this can use a query
     extras = (
         SessionMiscPayment.objects.filter(session_entry__session=session)
         .values("payment_method__payment_method", "payment_made")
