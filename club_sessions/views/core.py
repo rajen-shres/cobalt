@@ -923,9 +923,11 @@ def handle_change_secondary_payment_method(
 ):
     """make changes when the secondary payment method is updated"""
 
-    session_entries = SessionEntry.objects.filter(
-        session=session, payment_method=old_method
-    ).exclude(system_number__in=[PLAYING_DIRECTOR, SITOUT])
+    session_entries = (
+        SessionEntry.objects.filter(session=session, payment_method=old_method)
+        .exclude(system_number__in=[PLAYING_DIRECTOR, SITOUT])
+        .exclude(is_paid=True)
+    )
     for session_entry in session_entries:
         session_entry.payment_method = new_method
         session_entry.save()

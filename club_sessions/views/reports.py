@@ -523,89 +523,101 @@ def csv_download(request, session_id):
 
 
 class XLSXFormat:
-    """Hold common formatting for Excel download"""
+    """Holds common formatting for Excel download"""
+
+    # Bootstrap / Creative Tim Colours
+    bs_success = "#4CAF50"
+    bs_primary = "#9C27B0"
+    bs_danger = "#F44336"
+    bs_info = "#00BCD4"
+    bs_warning = "#FF9800"
+
+    # Other colours
+    bs_white = "#FFFFFF"
+    bs_grey = "#D5FFFF"
+    bs_dark_grey = "#ADCECE"
 
     h1 = {
         "bold": True,
         "font_size": 50,
         "center_across": True,
-        "bg_color": "#28386B",
-        "font_color": "#d5ffff",
+        "bg_color": bs_primary,
+        "font_color": bs_white,
     }
     h2 = {
         "font_size": 20,
         "center_across": True,
-        "bg_color": "#28386B",
-        "font_color": "#d5ffff",
+        "bg_color": bs_primary,
+        "font_color": bs_white,
     }
     h3 = {
         "italic": True,
         "font_size": 15,
         "center_across": True,
-        "bg_color": "#28386B",
-        "font_color": "#d5ffff",
+        "bg_color": bs_primary,
+        "font_color": bs_white,
     }
     summary_heading = {
         "bold": True,
         "font_size": 25,
         "center_across": True,
-        "bg_color": "#d5ffff",
+        "bg_color": bs_grey,
     }
     summary_row_title = {
         "bold": True,
         "font_size": 15,
         "align": "left",
         "valign": "top",
-        "bg_color": "#d5ffff",
+        "bg_color": bs_grey,
     }
-    summary_row_data = {"font_size": 15, "align": "left", "bg_color": "#d5ffff"}
+    summary_row_data = {"font_size": 15, "align": "left", "bg_color": bs_grey}
     director_notes = {
         "font_size": 15,
         "align": "left",
         "valign": "top",
         "text_wrap": True,
-        "bg_color": "#8CA7A7",
+        "bg_color": bs_warning,
     }
     detail_row_title = {
         "bold": True,
         "font_size": 20,
         "align": "left",
-        "bg_color": "#d5ffff",
+        "bg_color": bs_grey,
     }
     detail_row_title_number = {
         "bold": True,
         "font_size": 20,
         "align": "right",
-        "bg_color": "#d5ffff",
+        "bg_color": bs_grey,
     }
-    detail_row_data = {"font_size": 15, "align": "left", "bg_color": "#d5ffff"}
-    detail_row_number = {"font_size": 15, "align": "right", "bg_color": "#d5ffff"}
+    detail_row_data = {"font_size": 15, "align": "left", "bg_color": bs_grey}
+    detail_row_number = {"font_size": 15, "align": "right", "bg_color": bs_grey}
     detail_row_money = {
         "font_size": 15,
         "align": "right",
-        "bg_color": "#d5ffff",
+        "bg_color": bs_grey,
         "num_format": "$#,##0.00",
     }
-    detail_row_free = {"font_size": 15, "align": "left", "bg_color": "#ADCECE"}
+    detail_row_free = {"font_size": 15, "align": "left", "bg_color": bs_dark_grey}
     info = {"italic": True, "font_size": 15, "align": "left"}
     section = {
         "bold": True,
         "font_size": 50,
         "center_across": True,
-        "bg_color": "#7271A3",
-        "font_color": "#d5ffff",
+        "bg_color": bs_info,
+        "font_color": bs_white,
     }
     link = {
         "bold": True,
-        "font_size": 20,
+        "font_size": 15,
         "center_across": True,
-        "font_color": "#FF0000",
+        "font_color": bs_danger,
     }
     attribution = {
         "italic": True,
         "font_size": 10,
         "center_across": True,
-        "font_color": "#FF0000",
+        "font_color": bs_danger,
     }
 
 
