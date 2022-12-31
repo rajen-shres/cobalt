@@ -21,7 +21,8 @@ from club_sessions.views.core import (
 )
 from club_sessions.views.decorators import user_is_club_director
 from club_sessions.models import Session, SessionEntry, SessionMiscPayment
-from cobalt.settings import GLOBAL_ORG, COBALT_HOSTNAME
+from cobalt.settings import GLOBAL_ORG, COBALT_HOSTNAME, GLOBAL_TITLE
+from cobalt.version import COBALT_VERSION
 from payments.models import MemberTransaction, OrgPaymentMethod
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
@@ -600,6 +601,12 @@ class XLSXFormat:
         "center_across": True,
         "font_color": "#FF0000",
     }
+    attribution = {
+        "italic": True,
+        "font_size": 10,
+        "center_across": True,
+        "font_color": "#FF0000",
+    }
 
 
 @login_required()
@@ -865,6 +872,9 @@ def _xlsx_download_basic_structure(
 def _xlsx_download_summary(session, summary_sheet, workbook, summary_row_no):
     """fill in the summary data for the summary tab"""
 
+    # formats
+    attribution = workbook.add_format(XLSXFormat.attribution)
+
     # Get summary info
     payment_methods, extras = payment_method_summary(session)
 
@@ -881,9 +891,20 @@ def _xlsx_download_summary(session, summary_sheet, workbook, summary_row_no):
     if extras:
         # Buffer
         summary_sheet.merge_range(summary_row_no, 0, summary_row_no, 4, "")
-        _xlsx_download_summary_sub(
+        summary_row_no = _xlsx_download_summary_sub(
             "Payment Methods - Extras", extras, summary_sheet, workbook, summary_row_no
         )
+
+    # Insert image and attribution
+    summary_sheet.insert_image(
+        summary_row_no + 2,
+        0,
+        "cobalt/static/assets/img/abftechlogo.png",
+        {"x_scale": 0.17, "y_scale": 0.17},
+    )
+    summary_sheet.write(
+        summary_row_no + 8, 0, f"{GLOBAL_TITLE} Version:{COBALT_VERSION}", attribution
+    )
 
 
 def _xlsx_download_summary_sub(
