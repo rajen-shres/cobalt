@@ -459,6 +459,7 @@ class LatestNewsForm(forms.Form):
         self.fields["latest_news"].label = False
 
     latest_news = forms.CharField(
+        required=False,
         widget=SummernoteInplaceWidget(
             attrs={
                 "summernote": {
@@ -466,7 +467,7 @@ class LatestNewsForm(forms.Form):
                     "placeholder": "<br><br>Enter the latest news for the top of your homepage. If this is blank it will be skipped. If you overwrite what is in here it will be lost.",
                 }
             }
-        )
+        ),
     )
 
 

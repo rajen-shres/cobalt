@@ -1338,7 +1338,7 @@ def admin_latest_news(request, congress_id):
     congress = get_object_or_404(Congress, pk=congress_id)
 
     # check access
-    role = "events.org.%s.edit" % congress.congress_master.org.id
+    role = f"events.org.{congress.congress_master.org.id}.edit"
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
@@ -1363,7 +1363,7 @@ def admin_latest_news(request, congress_id):
             return redirect("events:view_congress", congress_id=congress.id)
 
     else:
-        form = LatestNewsForm()
+        form = LatestNewsForm(initial={"latest_news": congress.latest_news})
 
     return render(
         request,
