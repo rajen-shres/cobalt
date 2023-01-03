@@ -426,9 +426,19 @@ def view_congress(request, congress_id, fullscreen=False):
                         "links"
                     ] = f"<td rowspan='{rows}'><a href='/events/congress/event/change-entry/{congress.id}/{event.id}' class='btn btn-block btn-sm btn-primary'>View Your Entry</a>"
                 else:
-                    program[
-                        "links"
-                    ] = f"<td rowspan='{rows}'><a href='/events/congress/event/enter/{congress.id}/{event.id}' class='btn btn-block btn-sm btn-success'>Enter</a>"
+                    # See if taking entries
+                    is_open, reason = event.is_open_with_reason()
+
+                    if is_open:
+
+                        program[
+                            "links"
+                        ] = f"<td rowspan='{rows}'><a href='/events/congress/event/enter/{congress.id}/{event.id}' class='btn btn-block btn-sm btn-success'>Enter</a>"
+
+                    else:
+                        program[
+                            "links"
+                        ] = f"<td rowspan='{rows}' class='text-center'>{reason}"
 
                 # Handle common parts of links
                 program["links"] += (

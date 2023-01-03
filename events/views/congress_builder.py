@@ -196,7 +196,7 @@ def create_congress_wizard(request, step=1, congress_id=None):
     congress = get_object_or_404(Congress, pk=congress_id)
 
     # check access
-    role = "events.org.%s.edit" % congress.congress_master.org.id
+    role = f"events.org.{congress.congress_master.org.id}.edit"
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
@@ -457,6 +457,7 @@ def create_congress_wizard_5(request, step_list, congress):
                 "events:create_congress_wizard", step=6, congress_id=congress.id
             )
         else:
+            print(form.errors)
             for er in form.errors:
                 messages.error(
                     request,

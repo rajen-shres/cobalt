@@ -111,6 +111,7 @@ class CongressForm(forms.ModelForm):
         self.fields["cheque_details"].required = False
         self.fields["automatic_refund_cutoff"].required = False
         self.fields["contact_email"].required = False
+        self.fields["congress_venue_type"].required = False
 
     general_info = forms.CharField(
         widget=SummernoteInplaceWidget(

@@ -467,7 +467,7 @@ class Event(models.Model):
     denormalised_end_time = models.TimeField(null=True, blank=True)
 
     def __str__(self):
-        return "%s - %s" % (self.congress, self.event_name)
+        return f"{self.congress} - {self.event_name}"
 
         # If the text changes, run it through bleach before saving
 
@@ -540,6 +540,55 @@ class Event(models.Model):
                 return False
 
         return True
+
+    def is_open_with_reason(self):
+        """check if this event is taking entries today and explain why"""
+
+        today = localdate()
+        time_now = localtime().time()
+
+        open_date = self.entry_open_date
+        if not open_date:
+            open_date = self.congress.entry_open_date
+        if open_date and today < open_date:
+            time_delta = open_date - today
+            if time_delta.days > 1:
+                time_delta_msg = f"in {time_delta.days} days"
+            elif time_delta.days == 1:
+                time_delta_msg = "tomorrow"
+            else:
+                # Shouldn't happen
+                time_delta_msg = "soon"
+            return False, f"Entries open {time_delta_msg}"
+
+        close_date = self.entry_close_date
+        if not close_date:
+            close_date = self.congress.entry_close_date
+        if close_date:
+            if today > close_date:
+                return False, f"Entries closed on {close_date:%A %-d %b %Y}"
+            if (
+                today == close_date
+                and self.entry_close_time
+                and self.entry_close_time < time_now
+            ):
+                return False, f"Entries closed at {self.entry_close_time:%H:%M}"
+
+        # check start date of event
+        start_date = self.start_date()
+
+        if start_date and start_date < today:  # event started
+            return False, "Event has started"
+        elif start_date == today:
+            start_time = self.start_time()
+            if start_time and start_time < time_now:
+                return False, "Event has started"
+
+        # Check if full
+        if self.is_full():
+            return False, "Event is full"
+
+        return True, "Open"
 
     def entry_fee_for(self, user, check_date=None):
         """return entry fee for user based on age and date. Also any EventPlayerDiscount applied

@@ -196,71 +196,88 @@
 
                             <!-- VENUE LOCATION -->
 
-                            <div class="row">
-                                <div class="card col-lg-10 mx-auto">
-                                    <div class="card-header card-header-success">
-                                        <h4 class="card-title">Location - {{ congress.venue_name }}</h4>
-                                    </div>
-                                    <div class="card-body table-responsive">
-                                        {% if congress.venue_location %}
-                                            <iframe
-                                                width="100%"
-                                                height="450"
-                                                style="border:0"
-                                                loading="lazy"
-                                                allowfullscreen
-                                                referrerpolicy="no-referrer-when-downgrade"
-                                                src="https://www.google.com/maps/embed/v1/place?key=AIzaSyAAXnhnh7zL17kiLo59SnWbTiy4rwoi9VY
-                                                &q={{ congress.venue_location }}">
-                                            </iframe>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- DON'T SHOW FOR ONLINE CONGRESSES -->
 
-                            <!-- VENUE TRANSPORT -->
+                            {% if congress.get_congress_venue_type_display != "Online" %}
 
-                            {% if congress.venue_transport %}
                                 <div class="row">
                                     <div class="card col-lg-10 mx-auto">
                                         <div class="card-header card-header-info">
-                                            <h4 class="card-title">Transport</h4>
+                                            <h4 class="card-title">Location - {{ congress.venue_name }}</h4>
                                         </div>
                                         <div class="card-body table-responsive">
-                                            {{ congress.venue_transport|safe }}
+                                            {% if congress.venue_location %}
+                                                <iframe
+                                                    width="100%"
+                                                    height="450"
+                                                    style="border:0"
+                                                    loading="lazy"
+                                                    allowfullscreen
+                                                    referrerpolicy="no-referrer-when-downgrade"
+                                                    src="https://www.google.com/maps/embed/v1/place?key=AIzaSyAAXnhnh7zL17kiLo59SnWbTiy4rwoi9VY
+                                                    &q={{ congress.venue_location }}">
+                                                </iframe>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
-                            {% endif %}
 
-                            <!-- VENUE CATERING -->
+                                <!-- VENUE TRANSPORT -->
 
-                            {% if congress.venue_catering %}
+                                {% if congress.venue_transport %}
+                                    <div class="row">
+                                        <div class="card col-lg-10 mx-auto">
+                                            <div class="card-header card-header-info">
+                                                <h4 class="card-title">Transport</h4>
+                                            </div>
+                                            <div class="card-body table-responsive">
+                                                {{ congress.venue_transport|safe }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <!-- VENUE CATERING -->
+
+                                {% if congress.venue_catering %}
+                                    <div class="row">
+                                        <div class="card col-lg-10 mx-auto">
+                                            <div class="card-header card-header-primary">
+                                                <h4 class="card-title">Catering</h4>
+                                            </div>
+                                            <div class="card-body table-responsive">
+                                                {{ congress.venue_catering|safe }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <!-- VENUE ADDITIONAL INFO -->
+
+                                {% if congress.venue_additional_info %}
+                                    <div class="row">
+                                        <div class="card col-lg-10 mx-auto">
+                                            <div class="card-header card-header-warning">
+                                                <h4 class="card-title">Venue Additional Information</h4>
+                                            </div>
+                                            <div class="card-body table-responsive">
+                                                {{ congress.venue_additional_info|safe }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <!-- END IF FOR NOT SHOWING IF ONLINE -->
+                            {% else %}
                                 <div class="row">
                                     <div class="card col-lg-10 mx-auto">
-                                        <div class="card-header card-header-primary">
-                                            <h4 class="card-title">Catering</h4>
+                                        <div class="card-header card-header-info">
+                                            <h4 class="card-title">This Congress is being held Online</h4>
                                         </div>
-                                        <div class="card-body table-responsive">
-                                            {{ congress.venue_catering|safe }}
-                                        </div>
+                                        <div class="card-body"></div>
                                     </div>
                                 </div>
-                            {% endif %}
 
-                            <!-- VENUE ADDITIONAL INFO -->
-
-                            {% if congress.venue_additional_info %}
-                                <div class="row">
-                                    <div class="card col-lg-10 mx-auto">
-                                        <div class="card-header card-header-warning">
-                                            <h4 class="card-title">Venue Additional Information</h4>
-                                        </div>
-                                        <div class="card-body table-responsive">
-                                            {{ congress.venue_additional_info|safe }}
-                                        </div>
-                                    </div>
-                                </div>
                             {% endif %}
 
                             <!-- PARTNERSHIP DESK -->
