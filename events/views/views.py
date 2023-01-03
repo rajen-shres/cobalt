@@ -80,12 +80,17 @@ def congress_listing(request, reverse_list=False):
     if not request.user.is_authenticated:
         return congress_listing_logged_out(request)
 
+    # Hardcode the venue types. We don't match with the database.
+    # People want to filter by online or face to face, not mixed
+    congress_venue_types = [("O", "Online"), ("F", "Face-to-Face")]
+
     return render(
         request,
         "events/players/congress_listing.html",
         {
             "states": states,
             "congress_types": CONGRESS_TYPES,
+            "congress_venue_types": congress_venue_types,
             "reverse_list": reverse_list,
         },
     )
@@ -137,6 +142,7 @@ def congress_listing_data_htmx(request):
     # Get any parameters from the form
     state = request.POST.get("state")
     congress_type = request.POST.get("congress_type")
+    congress_venue_type = request.POST.get("congress_venue_type")
     congress_search_string = request.POST.get("congress_search_string")
 
     # Reverse list means we want the historic date (closed events, going backwards)
@@ -178,6 +184,13 @@ def congress_listing_data_htmx(request):
 
     if congress_type != "All":
         congresses = congresses.filter(congress_type=congress_type)
+
+    if congress_venue_type != "All":
+        # If user searches for face-to-face or online also show mixed
+        if congress_venue_type == "F":
+            congresses = congresses.filter(congress_venue_type__in=["F", "M"])
+        if congress_venue_type == "O":
+            congresses = congresses.filter(congress_venue_type__in=["O", "M"])
 
     if congress_search_string:
         congresses = congresses.filter(

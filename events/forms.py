@@ -74,6 +74,7 @@ class CongressForm(forms.ModelForm):
         self.fields["automatic_refund_cutoff"].label = False
         self.fields["congress_type"].label = False
         self.fields["contact_email"].label = False
+        self.fields["congress_venue_type"].label = False
 
         # mark fields as optional
         self.fields["name"].required = False
@@ -267,6 +268,7 @@ class CongressForm(forms.ModelForm):
             "automatic_refund_cutoff",
             "congress_type",
             "contact_email",
+            "congress_venue_type",
         )
 
 

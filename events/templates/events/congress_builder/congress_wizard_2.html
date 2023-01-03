@@ -45,6 +45,21 @@
                                 </div>
                             </div>
 
+                            <div class="row pb-2">
+                                <div class="col-2 justify-content-center align-self-center pt-3">
+                                    Congress Venue Type
+                                </div>
+                                <div class="col-8">
+                                    <div id="div_id_congress_types" class="form-group">
+                                        <span class="cobalt-form-error" id="id_congress_venue_type_errors">{{ form.congress_venue_type.errors|striptags }}</span>
+                                        {% render_field form.congress_venue_type class+="form-control" %}
+                                    </div>
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center pt-3">
+                                    <a href="javascript:void(0)" onclick='help("Congress Venue Type", "Select what format this congress will be F2F, Online, Both or Unknown.");'>help</a>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <div class="col-2 justify-content-center align-self-center">
                                     Contact Email

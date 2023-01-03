@@ -300,6 +300,7 @@ def create_congress_wizard_2(request, step_list, congress):
             congress.people = form.cleaned_data["people"]
             congress.additional_info = form.cleaned_data["additional_info"]
             congress.contact_email = form.cleaned_data["contact_email"]
+            congress.congress_venue_type = form.cleaned_data["congress_venue_type"]
             congress.save()
 
             return redirect(
@@ -358,7 +359,6 @@ def create_congress_wizard_3(request, step_list, congress):
             congress.venue_location = form.cleaned_data["venue_location"]
             congress.venue_transport = form.cleaned_data["venue_transport"]
             congress.venue_catering = form.cleaned_data["venue_catering"]
-            congress.venue_additional_info = form.cleaned_data["venue_additional_info"]
             congress.venue_additional_info = form.cleaned_data["venue_additional_info"]
             congress.save()
             return redirect(

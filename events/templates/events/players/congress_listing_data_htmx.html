@@ -45,6 +45,7 @@
                                 <th style="font-weight: bold">Congress</th>
                                 <th style="font-weight: bold">State</th>
                                 <th style="font-weight: bold">Congress Type</th>
+                                <th class="text-center" style="font-weight: bold">Venue Type</th>
                                 <th style="font-weight: bold">Organiser</th>
                             </tr>
                         </thead>
@@ -62,6 +63,38 @@
                                             <span class="material-icons d-none d-xl-inline" style="color: red; vertical-align: bottom;font-size: 25px !important;">star</span>
                                         {% endif %}
                                         {{ congress.get_congress_type_display|title }}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if congress.get_congress_venue_type_display == "Face-to-Face" %}
+                                            <span class="material-icons text-primary"
+                                                style="vertical-align: bottom;font-size: 25px !important;"
+                                                data-toggle="tooltip"
+                                                title="This congress is being held Face-to-Face"
+                                            >face</span>
+                                        {% elif congress.get_congress_venue_type_display == "Online" %}
+                                            <span class="material-icons text-success"
+                                                style="vertical-align: bottom;font-size: 25px !important;"
+                                                data-toggle="tooltip"
+                                                title="This congress is being held Online"
+                                            >videocam</span>
+                                        {% elif congress.get_congress_venue_type_display == "Mixed" %}
+                                            <span class="material-icons  text-primary"
+                                                style="vertical-align: bottom;font-size: 25px !important;"
+                                                data-toggle="tooltip"
+                                                title="This congress has both Online and Face-to-Face events"
+                                            >face</span>
+                                            <span class="material-icons text-success"
+                                                style="vertical-align: bottom;font-size: 25px !important;"
+                                                data-toggle="tooltip"
+                                                title="This congress has both Online and Face-to-Face events"
+                                            >videocam</span>
+                                        {% elif congress.get_congress_venue_type_display == "Unknown" %}
+                                            <span class="material-icons text-info"
+                                                style="vertical-align: bottom;font-size: 25px !important;"
+                                                data-toggle="tooltip"
+                                                title="The convener has not specified a format for this congress"
+                                            >help</span>
+                                        {% endif %}
                                     </td>
                                     <td>{{ congress.congress_master.org }}</td>
                                 </tr>

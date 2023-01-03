@@ -131,6 +131,14 @@ class Congress(models.Model):
     save partial data as we go. The validation for completeness of data
     lies in the view."""
 
+    class CongressVenueType(models.TextChoices):
+        """Face to Face, Online"""
+
+        FACE_TO_FACE = "F", "Face-to-Face"
+        ONLINE = "O"
+        MIXED = "M"
+        UNKNOWN = "U"
+
     name = models.CharField("Name", max_length=100)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
@@ -202,6 +210,11 @@ class Congress(models.Model):
         "Congress Type", max_length=30, choices=CONGRESS_TYPES, blank=True, null=True
     )
     contact_email = models.EmailField(blank=True, null=True)
+    congress_venue_type = models.CharField(
+        choices=CongressVenueType.choices,
+        default=CongressVenueType.UNKNOWN,
+        max_length=1,
+    )
 
     class Meta:
         verbose_name_plural = "Congresses"
