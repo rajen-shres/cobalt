@@ -1,5 +1,7 @@
 import time
 
+from selenium.webdriver.common.by import By
+
 from organisations.tests.integration.common_functions import (
     club_menu_go_to_tab,
     login_and_go_to_club_menu,
@@ -58,8 +60,8 @@ class ClubSettings:
         )
 
         # Change club name
-        self.manager.driver.find_element_by_id("id_name").send_keys("fish")
-        self.manager.driver.find_element_by_name("Save").click()
+        self.manager.driver.find_element(By.ID, "id_name").send_keys("fish")
+        self.manager.driver.find_element(By.NAME, "Save").click()
 
         self.manager.save_results(
             status=True,

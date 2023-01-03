@@ -1,6 +1,7 @@
 import time
 
 from django.urls import reverse
+from selenium.webdriver.common.by import By
 
 from tests.test_manager import CobaltTestManagerIntegration
 
@@ -12,7 +13,7 @@ def invalid_data_on_form(manager, test_name, test_description, element, error):
     manager.selenium_wait_for("id_signup").click()
 
     # check error
-    msg = manager.driver.find_element_by_id(element)
+    msg = manager.driver.find_element(By.ID, element)
     validation_message = msg.get_attribute("validationMessage")
 
     # Check we get an error

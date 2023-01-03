@@ -1,6 +1,7 @@
 from time import sleep
 
 from post_office.models import Email
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 
 from events.models import EventEntryPlayer
@@ -73,7 +74,7 @@ def enter_event(
         test_instance.manager.selenium_wait_for_clickable("id_player0_payment")
         # select payment type field
         select_payment_type = Select(
-            test_instance.manager.driver.find_element_by_id("id_player0_payment")
+            test_instance.manager.driver.find_element(By.ID, "id_player0_payment")
         )
         # select payment type value
         select_payment_type.select_by_value(player0_payment_type)
@@ -83,7 +84,7 @@ def enter_event(
         test_instance.manager.selenium_wait_for_clickable(f"id_player{player_no}")
         # Select Player field
         select_player = Select(
-            test_instance.manager.driver.find_element_by_id(f"id_player{player_no}")
+            test_instance.manager.driver.find_element(By.ID, f"id_player{player_no}")
         )
         # select Player value
         select_player.select_by_value(f"{player[0].id}")
@@ -93,8 +94,8 @@ def enter_event(
         )
         # select payment type field
         select_payment_type = Select(
-            test_instance.manager.driver.find_element_by_id(
-                f"id_player{player_no}_payment"
+            test_instance.manager.driver.find_element(
+                By.ID, f"id_player{player_no}_payment"
             )
         )
         # select payment type value

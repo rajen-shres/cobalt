@@ -5,6 +5,7 @@ import time
 from pprint import pprint
 
 from django.urls import reverse
+from selenium.webdriver.common.by import By
 
 from accounts.models import User
 from organisations.models import Organisation
@@ -242,7 +243,7 @@ def access_club_menu(
     manager.driver.get(url)
 
     # Get club name
-    club_name = manager.driver.find_elements_by_id("t_club_name")
+    club_name = manager.driver.find_elements(By.ID, "t_club_name")
 
     # Check for club
     ok = club_name[0].text == expected_club_name if len(club_name) > 0 else False
@@ -275,7 +276,7 @@ def club_menu_items(
     """
 
     # Get all of the nav-links
-    elements = manager.driver.find_elements_by_class_name("nav-link")
+    elements = manager.driver.find_elements(By.CLASS_NAME, "nav-link")
 
     # Find the ones with id_tab_
     tabs = []
@@ -378,7 +379,7 @@ def login_and_go_to_club_menu(
     )
     manager.driver.get(url)
 
-    club_name = manager.driver.find_elements_by_id("t_club_name")
+    club_name = manager.driver.find_elements(By.ID, "t_club_name")
 
     if club_name:
         title = club_name[0].text
