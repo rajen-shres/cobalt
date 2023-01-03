@@ -33,16 +33,16 @@ def setup_auto_top_up(manager: CobaltTestManagerIntegration, user: User = None):
     time.sleep(3)
 
     # Stripe fields are in an iFrame, we need to switch to that to find them
-    manager.driver.switch_to.frame(manager.driver.find_element_by_tag_name("iframe"))
+    manager.driver.switch_to.frame(manager.driver.find_element(By.TAG_NAME, "iframe"))
 
     # Enter details
-    manager.driver.find_element_by_css_selector('input[name="cardnumber"]').send_keys(
+    manager.driver.find_element(By.CSS_SELECTOR, 'input[name="cardnumber"]').send_keys(
         "4242424242424242"
     )
-    manager.driver.find_element_by_css_selector('input[name="exp-date"]').send_keys(
+    manager.driver.find_element(By.CSS_SELECTOR, 'input[name="exp-date"]').send_keys(
         "0235"
     )
-    manager.driver.find_element_by_css_selector('input[name="cvc"]').send_keys("999")
+    manager.driver.find_element(By.CSS_SELECTOR, 'input[name="cvc"]').send_keys("999")
 
     # Switch back to main part of document
     manager.driver.switch_to.default_content()
@@ -64,7 +64,7 @@ def stripe_manual_payment_screen(manager: CobaltTestManagerIntegration):
     time.sleep(5)
 
     #    manager.driver.switch_to.frame(2)
-    manager.driver.switch_to.frame(manager.driver.find_element_by_tag_name("iframe"))
+    manager.driver.switch_to.frame(manager.driver.find_element(By.TAG_NAME, "iframe"))
 
     manager.driver.find_element(By.NAME, "cardnumber").click()
 

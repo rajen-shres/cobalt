@@ -4,6 +4,7 @@
 import time
 
 from django.urls import reverse
+from selenium.webdriver.common.by import By
 
 from accounts.models import User
 from tests.test_manager import CobaltTestManagerIntegration
@@ -28,21 +29,21 @@ def register_user(
     manager.driver.get(url)
 
     # Enter ABF Number
-    manager.driver.find_element_by_id("id_username").send_keys(system_number)
+    manager.driver.find_element(By.ID, "id_username").send_keys(system_number)
 
     # Move to email field to fill in name using background search
-    manager.driver.find_element_by_id("id_email").click()
+    manager.driver.find_element(By.ID, "id_email").click()
     time.sleep(1)
 
     # Enter email
-    manager.driver.find_element_by_id("id_email").send_keys("a@b.com")
+    manager.driver.find_element(By.ID, "id_email").send_keys("a@b.com")
 
     # Enter password
-    manager.driver.find_element_by_id("id_password1").send_keys(manager.test_code)
-    manager.driver.find_element_by_id("id_password2").send_keys(manager.test_code)
+    manager.driver.find_element(By.ID, "id_password1").send_keys(manager.test_code)
+    manager.driver.find_element(By.ID, "id_password2").send_keys(manager.test_code)
 
     # Enter
-    manager.driver.find_element_by_class_name("btn").click()
+    manager.driver.find_element(By.CLASS_NAME, "btn").click()
 
     # We won't get an email so just mark member as active
     user = User.objects.filter(system_number=system_number).first()

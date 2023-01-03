@@ -525,7 +525,7 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
         self.driver.get(f"{self.base_url}/accounts/login")
         self.driver.find_element(By.ID, "id_username").send_keys(user.username)
         self.driver.find_element(By.ID, "id_password").send_keys(self.test_code)
-        self.driver.find_element_by_class_name("btn").click()
+        self.driver.find_element(By.CLASS_NAME, "btn").click()
 
     def _selenium_wait(self, wait_event, element_id, timeout):
         """Wait for something and return it"""
@@ -537,7 +537,7 @@ class CobaltTestManagerIntegration(CobaltTestManagerAbstract):
             WebDriverWait(
                 self.driver, timeout, ignored_exceptions=ignored_exceptions
             ).until(wait_event)
-            return self.driver.find_element_by_id(element_id)
+            return self.driver.find_element(By.ID, element_id)
         except TimeoutException:
             print("***** Timeout Exception in _selenium_wait() *****")
             return False

@@ -1,5 +1,6 @@
 from django.urls import reverse
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.common.by import By
 
 from accounts.tests.integration.common_functions import register_user
 from organisations.models import Organisation
@@ -181,7 +182,7 @@ class ClubLevelAdmin:
         # Wait for screen - will have betty on it
         self.manager.selenium_wait_for_text("Betty", "access")
         # Check for Fiona
-        ok = self.manager.driver.find_element_by_id("access").text.find("Fiona") == -1
+        ok = self.manager.driver.find_element(By.ID, "access").text.find("Fiona") == -1
 
         if ok:
             output = "Fiona no longer on page. Pass."

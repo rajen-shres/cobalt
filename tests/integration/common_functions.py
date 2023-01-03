@@ -30,7 +30,7 @@ def cobalt_htmx_user_search(
     system_number.send_keys(user_system_id)
 
     # # click on system number search
-    # manager.driver.find_element_by_id(
+    # manager.driver.find_element(By.ID,
     #     f"id_button_system_number_search{search_id}"
     # ).click()
 

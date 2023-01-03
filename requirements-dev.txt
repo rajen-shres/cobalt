@@ -4,7 +4,7 @@ pylint==2.15.6
 ipython
 radon==5.1.0
 termcolor==2.1.0
-selenium==4.6.0
+selenium==4.6.0 
 sphinx==4.5.0
 #sphinx-book-theme==0.3.3
 #pydata-sphinx-theme==0.12.0
