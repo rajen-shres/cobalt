@@ -32,9 +32,9 @@ urlpatterns = [
         name="enter_event",
     ),
     path(
-        "congress/event/enter-new/<int:congress_id>/<int:event_id>",
-        views.enter_event_new,
-        name="enter_event_new",
+        "congress/event/enter/<int:congress_id>/<int:event_id>/<int:enter_for_another>",
+        views.enter_event,
+        name="enter_event_for_another",
     ),
     path(
         "congress/event/enter/success",
@@ -61,15 +61,21 @@ urlpatterns = [
         views.edit_event_entry,
         name="edit_event_entry",
     ),
-    # as above but accepts edit=1 to open window with edit enabled
+    # as above but includes event_entry_id so primary_entrant can edit other entries they have made
     path(
-        "congress/event/change-entry/<int:congress_id>/<int:event_id>/edit=<int:edit_flag>",
+        "congress/event/change-entry/<int:event_entry_id>",
         views.edit_event_entry,
         name="edit_event_entry",
     ),
-    # as above with extra parameter for messages after pay now pressed
+    # as above but accepts edit=1 to open window with edit enabled
+    # path(
+    #     "congress/event/change-entry/<int:congress_id>/<int:event_id>/edit=<int:edit_flag>",
+    #     views.edit_event_entry,
+    #     name="edit_event_entry",
+    # ),
+    # # as above with extra parameter for messages after pay now pressed
     path(
-        "congress/event/change-entry/<int:congress_id>/<int:event_id>/edit=<int:edit_flag>/<str:pay_status>",
+        "congress/event/change-entry/<int:congress_id>/<int:event_id>/<str:pay_status>",
         views.edit_event_entry,
         name="edit_event_entry",
     ),
@@ -223,6 +229,11 @@ urlpatterns = [
         "show-congresses-for-club",
         views.show_congresses_for_club_htmx,
         name="show_congresses_for_club_htmx",
+    ),
+    path(
+        "get-other-entries-to-event-for-user/<int:event_id>/<int:this_event_entry_id>",
+        views.get_other_entries_to_event_for_user_htmx,
+        name="get_other_entries_to_event_for_user_htmx",
     ),
     ########################################################################
     # Congress Builder screens for conveners to create and edit congresses #

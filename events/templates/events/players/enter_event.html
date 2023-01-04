@@ -2,8 +2,6 @@
 {#                                                                        #}
 {# Entry screen for events                                                #}
 {#                                                                        #}
-{# Needs a re-write to use HTMX                                           #}
-{#                                                                        #}
 {#------------------------------------------------------------------------#}
 
 {% extends 'base.html' %}
@@ -65,6 +63,12 @@
                 <!-- MAIN CARD BODY FOR PAGE -->
                 <div class="card-body mx-lg-auto">
                     <div class="container">
+
+                        <!-- ALERT USER IF THEY HAVE ALREADY ENTERED -->
+                        {% if enter_for_another %}
+                            <h5>You are placing an entry for someone else</h5>
+                            <h5>Click here to <a class="btn btn-sm btn-info" href="{% url "events:edit_event_entry" congress_id=congress.id event_id=event.id %}">Edit Your Own Entry</a></h5>
+                        {% endif %}
 
                         <!-- PLAYER SEARCHES -->
 

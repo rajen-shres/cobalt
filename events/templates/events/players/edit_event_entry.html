@@ -46,10 +46,10 @@
                     <h1>
                         <div class="d-flex justify-content-between">
                             <div>
-                                <span id="title">View</span> Entry
+                                Edit Entry
                             </div>
                             <div>
-                                <i class="material-icons" id="icon" style="font-size:60px; display:none;">edit</i>
+                                <i class="material-icons" id="icon" style="font-size:60px;">edit</i>
                             </div>
                         </div>
                     </h1>
@@ -69,14 +69,30 @@
 
                 <!-- MAIN CARD BODY FOR PAGE -->
                 <div class="card-body">
-                    <div class="text-left"><a href="{% url "events:view_event_entries" congress_id=congress.id event_id=event.id %}">View all entries</a></div>
 
-                    <p class="display-4">Entry status is: <b>{{ event_entry.entry_status }}</b></p>
+                    <!-- SHOW BUTTON LINKS -->
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a class="btn btn-sm btn-info" href="{% url "events:view_event_entries" congress_id=congress.id event_id=event.id %}">View all entries</a>
+                        </div>
+                        <div>
+                            <a class="btn btn-sm btn-warning"
+                                href="{% url "events:enter_event_for_another" congress_id=congress.id event_id=event.id enter_for_another=1 %}"
+                            >Enter for Someone Else
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- INCLUDE LINKS TO OTHER ENTRIES (IF MADE) SO USER CAN EDIT THEM -->
+                    <div
+                        hx-get="{% url "events:get_other_entries_to_event_for_user_htmx" event_id=event.id this_event_entry_id=event_entry.id %}"
+                        hx-trigger="load"
+                    ></div>
 
                     {% if event_entry.primary_entrant == user %}
-                        <p>You made this entry</p>
+                        <h3 class="text-danger">You made this entry</h3>
                     {% else %}
-                        <p>Entry made by: <b>{{ event_entry.primary_entrant.full_name }}</b></p>
+                        <h3 class="text-danger">Entry made by: <b>{{ event_entry.primary_entrant.full_name }}</b></h3>
                     {% endif %}
 
                     <!-- OUTER WRAPPER FOR EXTRA INFO -->
@@ -85,9 +101,7 @@
                         {% if categories %}
                             <div class="category"><b>Category:</b> {{ event_entry.category }}</div>
                         {% endif %}
-                        {% if event.free_format_question %}
-                            <div class="category"><b>{{ event.free_format_question }}:</b> {{ event_entry.free_format_answer|default_if_none:"" }}</div>
-                        {% endif %}
+
                         <div style = "border-radius: 25px; border: 2px solid grey; padding: 20px;" class="extras">
 
                             <!-- CATEGORIES -->
