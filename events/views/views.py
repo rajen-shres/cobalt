@@ -1856,10 +1856,22 @@ def get_other_entries_to_event_for_user_htmx(request, event_id, this_event_entry
     # Get entries made by this user, where they aren't a player, exclude the one provided
     # Also include entries for this user (not primary)
     entries = (
+        # only want entries for this event
         EventEntry.objects.filter(event=event)
+        # exclude the provided event_id, this is the one asking for others so they don't want themselves back
         .exclude(pk=this_event_entry_id)
-        .exclude(primary_entrant=request.user)
+        # primary entrant OR any player
+        .filter(
+            Q(primary_entrant=request.user) | Q(evententryplayer__player=request.user)
+        ).distinct()
     )
+
+    a = EventEntry.objects.filter(pk=this_event_entry_id).first()
+    print("Event entry id", this_event_entry_id)
+    print("Event Entry", a)
+    b = EventEntryPlayer.objects.filter(event_entry=a)
+    for x in b:
+        print(x.player)
 
     return render(
         request,
