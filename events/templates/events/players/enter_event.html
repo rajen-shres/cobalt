@@ -136,8 +136,21 @@
                                                                 title="Select"
                                                                 id="id_player0"
                                                                 name="player0">
-                                                                <option value="{{ player0.id }}"
-                                                                    selected>{{ player0.name }}</option>
+
+                                                                <!-- PLAYER NAME IF A PRIMARY ENTRY, OTHERWISE SELECT OPTION -->
+
+                                                                {% if enter_for_another %}
+
+                                                                    <option selected disabled>Select...</option>
+
+                                                                {% else %}
+
+                                                                    <option value="{{ player0.id }}"
+                                                                        selected>{{ player0.name }}
+                                                                    </option>
+
+                                                                {% endif %}
+
                                                                 {% for val,item in player0.name_choices %}
 
                                                                     <option value="{{ val }}"

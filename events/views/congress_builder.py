@@ -289,23 +289,11 @@ def create_congress_wizard_2(request, step_list, congress):
     if request.method == "POST":
         form = CongressForm(request.POST)
         if form.is_valid():
-            congress.year = form.cleaned_data["year"]
-            congress.congress_type = form.cleaned_data["congress_type"]
-            congress.name = form.cleaned_data["name"]
-            congress.date_string = form.cleaned_data["date_string"]
-            congress.start_date = form.cleaned_data["start_date"]
-            congress.end_date = form.cleaned_data["end_date"]
-            congress.general_info = form.cleaned_data["general_info"]
-            congress.links = form.cleaned_data["links"]
-            congress.people = form.cleaned_data["people"]
-            congress.additional_info = form.cleaned_data["additional_info"]
-            congress.contact_email = form.cleaned_data["contact_email"]
-            congress.congress_venue_type = form.cleaned_data["congress_venue_type"]
-            congress.save()
+            # Extra validation if already published
+            if congress.status == "Published":
+                errors, _ = _create_congress_wizard_errors(congress)
 
-            return redirect(
-                "events:create_congress_wizard", step=3, congress_id=congress.id
-            )
+            return _create_congress_wizard_2_handle_form(form, congress)
         else:
             print(form.errors)
     else:
@@ -331,11 +319,7 @@ def create_congress_wizard_2(request, step_list, congress):
     slug = Slug.objects.filter(redirect_path=redirect_path).first()
 
     # slug_text starts as the registered slug or blank but gets changed by the HTMX calls
-    if slug:
-        slug_text = slug.slug
-    else:
-        slug_text = ""
-
+    slug_text = slug.slug if slug else ""
     return render(
         request,
         "events/congress_builder/congress_wizard_2.html",
@@ -347,6 +331,25 @@ def create_congress_wizard_2(request, step_list, congress):
             "slug_text": slug_text,
         },
     )
+
+
+# TODO Rename this here and in `create_congress_wizard_2`
+def _create_congress_wizard_2_handle_form(form, congress):
+    congress.year = form.cleaned_data["year"]
+    congress.congress_type = form.cleaned_data["congress_type"]
+    congress.name = form.cleaned_data["name"]
+    congress.date_string = form.cleaned_data["date_string"]
+    congress.start_date = form.cleaned_data["start_date"]
+    congress.end_date = form.cleaned_data["end_date"]
+    congress.general_info = form.cleaned_data["general_info"]
+    congress.links = form.cleaned_data["links"]
+    congress.people = form.cleaned_data["people"]
+    congress.additional_info = form.cleaned_data["additional_info"]
+    congress.contact_email = form.cleaned_data["contact_email"]
+    congress.congress_venue_type = form.cleaned_data["congress_venue_type"]
+    congress.save()
+
+    return redirect("events:create_congress_wizard", step=3, congress_id=congress.id)
 
 
 def create_congress_wizard_3(request, step_list, congress):

@@ -1,3 +1,8 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Congress Wizard Page 2 - General                                       #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% extends 'base.html' %}
 {% load static %}
 {% load widget_tweaks %}
@@ -7,10 +12,16 @@
     {% include "events/congress_builder/congress_wizard_include_header.html" %}
 {% endblock %}
 {% block content %}
+
+    <!-- STANDARD INCLUDE FOR CONGRESS WIZARD -->
     {% include "events/congress_builder/congress_wizard_include_body.html" %}
 
+    <!-- MAIN CONTAINER -->
     <div class="container">
+
+        <!-- LINK TO DOWNLOAD FILES MANAGER -->
         <a class="btn btn-warning btn-sm" href="{% url "events:manage_congress_download" congress_id=congress.id %}">Manage Download Files</a>
+
         <div class="row">
             <div class="card">
                 <div class="card-header card-header-primary">
@@ -25,11 +36,13 @@
                         </div>
                         <br>
 
-                        {#                        {% include "events/congress_builder/congress_wizard_2_slug_htmx.html" %}#}
+                        <!-- SLUG EDITOR -->
+                        {% include "events/congress_builder/congress_wizard_2_slug_htmx.html" %}
 
                         <form method="POST">
                             {% csrf_token %}
 
+                            <!-- CONGRESS TYPE -->
                             <div class="row">
                                 <div class="col-2 justify-content-center align-self-center">
                                     Congress Type
@@ -45,6 +58,7 @@
                                 </div>
                             </div>
 
+                            <!-- CONGRESS VENUE TYPE -->
                             <div class="row pb-2">
                                 <div class="col-2 justify-content-center align-self-center pt-3">
                                     Congress Venue Type
@@ -60,6 +74,7 @@
                                 </div>
                             </div>
 
+                            <!-- CONTACT EMAIL -->
                             <div class="row">
                                 <div class="col-2 justify-content-center align-self-center">
                                     Contact Email
@@ -75,6 +90,7 @@
                                 </div>
                             </div>
 
+                            <!-- YEAR -->
                             <div class="row">
                                 <div class="col-2 justify-content-center align-self-center">
                                     Year
@@ -90,6 +106,7 @@
                                 </div>
                             </div>
 
+                            <!-- CONGRESS NAME -->
                             <div class="row">
                                 <div class="col-2 justify-content-center align-self-center">
                                     Name
@@ -105,20 +122,25 @@
                                 </div>
                             </div>
 
+                            <!-- DATES -->
                             <div class="row">
                                 <div class="col-2 justify-content-center align-self-center">
                                     Dates
                                 </div>
+
+                                <!-- START DATE -->
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label class="bmd-label-float" style="font-size:11px">Start</label>
-                                        <input type="text" name="start_date" id="id_start_date" class="form-control datepicker" value="{{ form.start_date.value|default_if_none:'' }}">
+                                        <input type="text" name="start_date" id="id_start_date" required class="form-control datepicker" value="{{ form.start_date.value|default_if_none:'' }}">
                                     </div>
                                 </div>
+
+                                <!-- END DATE -->
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label class="bmd-label-float" style="font-size:11px">End</label>
-                                        <input type="text" name="end_date" id="id_end_date" class="form-control datepicker" value="{{ form.end_date.value|default_if_none:'' }}">
+                                        <input type="text" name="end_date" id="id_end_date" required class="form-control datepicker" value="{{ form.end_date.value|default_if_none:'' }}">
                                     </div>
                                 </div>
                                 <div class="col-2 justify-content-center align-self-center">
@@ -126,6 +148,7 @@
                                 </div>
                             </div>
 
+                            <!-- DATE STRING - ENGLISH DESCRIPTION OF DATES -->
                             <div class="row">
                                 <div class="col-2 justify-content-center align-self-center">
                                     Date String
@@ -142,7 +165,8 @@
                             </div>
 
                             <hr>
-                            {{ congress.people|safe }}
+
+                            <!-- PEOPLE -->
                             <div class="row">
                                 <div class="col-10 justify-content-center align-self-center">
                                     <h3>People</h3>
@@ -159,6 +183,7 @@
                             </div>
                             <hr>
 
+                            <!-- GENERAL INFORMATION -->
                             <div class="row">
                                 <div class="col-10 justify-content-center align-self-center">
                                     <h3>General Information</h3>
@@ -172,6 +197,7 @@
                             </div>
                             <hr>
 
+                            <!-- LINKS -->
                             <div class="row">
                                 <div class="col-10 justify-content-center align-self-center">
                                     <h3>Links</h3>
@@ -185,6 +211,7 @@
                             </div>
                             <hr>
 
+                            <!-- ADDITIONAL INFO FOOTER -->
                             <div class="row">
                                 <div class="col-10 justify-content-center align-self-center">
                                     <h3>Additional Information (footer)</h3>
@@ -196,6 +223,8 @@
                                     {{ form.additional_info|as_crispy_field }}
                                 </div>
                             </div>
+
+                            <!-- SAVE BUTTON -->
                             <div class="row">
                                 <div class="col text-center">
                                     <button class="btn btn-info btn-sm cobalt-save">Save/Next</button>
