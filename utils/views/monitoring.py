@@ -16,6 +16,7 @@ from django.utils.safestring import mark_safe
 
 from accounts.models import User
 from accounts.views.core import get_user_statistics
+from club_sessions.views.utils import get_session_statistics
 from cobalt.settings import (
     COBALT_HOSTNAME,
     AWS_ACCESS_KEY_ID,
@@ -611,6 +612,7 @@ def system_statistics(request):
     support_statistics = get_support_statistics()
     logs_statistics = get_logs_statistics()
     results_statistics = get_results_statistics()
+    session_statistics = get_session_statistics()
 
     return render(
         request,
@@ -626,6 +628,7 @@ def system_statistics(request):
             "support_statistics": support_statistics,
             "logs_statistics": logs_statistics,
             "results_statistics": results_statistics,
+            "session_statistics": session_statistics,
         },
     )
 

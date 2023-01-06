@@ -87,8 +87,8 @@ else
   exit
 fi
 
-echo "Deleting branch $BRANCH..."
-echo ""
-
-git branch -d $BRANCH
-git push -d origin $BRANCH
+#echo "Deleting branch $BRANCH..."
+#echo ""
+#
+#git branch -d $BRANCH
+#git push -d origin $BRANCH

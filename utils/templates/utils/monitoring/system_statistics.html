@@ -232,6 +232,28 @@
                         </div>
                     </div>
 
+                    <!-- SESSIONS -->
+                    <div class="card col-md-9 mx-auto">
+                        <div class="card-header card-header-info">
+                            <h3>Club Sessions</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
+                                    <tr>
+                                        <td class="text-left font-weight-bold">Total Sessions Played</td>
+                                        <td class="text-right font-weight-bold">{{ session_statistics.total_sessions|intcomma }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="text-left">Total Clubs Using Sessions</td>
+                                        <td class="text-right">{{ session_statistics.distinct_clubs|intcomma }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- RESULTS -->
                     <div class="card col-md-9 mx-auto">
                         <div class="card-header card-header-primary">

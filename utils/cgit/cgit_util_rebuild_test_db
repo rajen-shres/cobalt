@@ -4,8 +4,8 @@
 # This used to be easier but now you need to switch database as there will be locks on it
 # This also used to run on the server but runs out of memory loading the test data
 
-unset AWS_SECRET_ACCESS_KEY
-unset AWS_ACCESS_KEY_ID
+#unset AWS_SECRET_ACCESS_KEY
+#unset AWS_ACCESS_KEY_ID
 
 if [ $# -ne 1 ];then
   echo ""
@@ -30,7 +30,7 @@ fi
 if [[ "$ENV" == "cobalt-test-black" ]];then
     RDS_HOSTNAME="cobalt-test.c97jawiow7ed.ap-southeast-2.rds.amazonaws.com"
 elif [[ "$ENV" == "cobalt-uat-yellow" ]];then
-    RDS_HOSTNAME="cobalt-uat.c97jawiow7ed.ap-southeast-2.rds.amazonaws.com"
+    RDS_HOSTNAME="cobalt-test.c97jawiow7ed.ap-southeast-2.rds.amazonaws.com"
 else
   echo "Unknown environment. Update script with database details"
   exit 1
