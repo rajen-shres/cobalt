@@ -235,6 +235,11 @@ urlpatterns = [
         views.get_other_entries_to_event_for_user_htmx,
         name="get_other_entries_to_event_for_user_htmx",
     ),
+    path(
+        "get-player-payment-amount-ajax",
+        ajax.get_player_payment_amount_ajax,
+        name="get_player_payment_amount_ajax",
+    ),
     ########################################################################
     # Congress Builder screens for conveners to create and edit congresses #
     ########################################################################

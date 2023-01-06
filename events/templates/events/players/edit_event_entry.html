@@ -149,8 +149,8 @@
                                     <tr>
                                         <th class="px-lg-5">Player</th>
                                         <th class="px-lg-5">Actions</th>
-                                        <th class="px-lg-5">Payment Method</th>
                                         <th class="px-lg-5">Entry Fee</th>
+                                        <th class="px-lg-5">Payment Method</th>
                                         <th class="px-lg-5">Status</th>
                                     </tr>
                                 </thead>
@@ -277,6 +277,11 @@
                                             </div>
                                         </td>
 
+                                        <!-- ENTRY FEE -->
+                                        <td>
+                                            {{ event_entry_player.entry_fee|cobalt_credits }}
+                                        </td>
+
                                         <!-- PAYMENT METHOD -->
                                         <td style="white-space: nowrap;">
                                             {{ event_entry_player.get_payment_type_display }}
@@ -288,10 +293,6 @@
                                             {% endif %}
                                         </td>
 
-                                        <!-- ENTRY FEE -->
-                                        <td>
-                                            {{ event_entry_player.entry_fee|cobalt_credits }}
-                                        </td>
                                         <td>
                                             <div>
 
@@ -434,29 +435,41 @@
                 } else {
 
                     // not entered so swap player - the search_id is the id of the player event entry
-                    $.getJSON("{% url "events:change_player_entry_ajax" %}" + "?member_id=" + member + "&player_event_entry=" + search_id)
+
+                    // If player being replaced has paid, ask the user if they want to give a refund
+                    $.getJSON("{% url "events:get_player_payment_amount_ajax" %}?player_event_entry=" + search_id)
                         .done(response => {
-                        if (response['message'] === "Success"){
-                            // update page
-                            $("#cobalt-pic-" + search_id).attr("src", "/media/" + pic);
-                            $("#player-name-" + search_id).html(name);
-                            $("#popup-name-" + search_id).html(name);
-                            let box_title = "Player Changed";
-                            if (response['user_is_player']){
-                                box_title = "Removed You from this Team";
-                            }
-                            Swal.fire({
-                                title: box_title,
-                                html: response['html'],
-                            }).then((result) => {
-                                if (response['user_is_player']){
-                                    window.location.replace("/");
-                                } else {
-                                    reloadPage();
-                                }
-                            })
+                        if (response["refund_is_due"] === 1){
+                            console.log("Give a refund");
                         }
+
+                        console.log(response);
                     });
+
+                    {#$.getJSON("{% url "events:change_player_entry_ajax" %}" + "?member_id=" + member + "&player_event_entry=" + search_id)#}
+                    {#    .done(response => {#}
+                    {#    if (response['message'] === "Success"){#}
+                    {#        // update page#}
+                    {#        $("#cobalt-pic-" + search_id).attr("src", "/media/" + pic);#}
+                    {#        $("#player-name-" + search_id).html(name);#}
+                    {#        $("#popup-name-" + search_id).html(name);#}
+                    {#        let box_title = "Player Changed";#}
+                    {#        if (response['user_is_player']){#}
+                    {#            box_title = "Removed You from this Team";#}
+                    {#        }#}
+                    {#        Swal.fire({#}
+                    {#            title: box_title,#}
+                    {#            html: response['html'],#}
+                    {#        }).then((result) => {#}
+                    {#            if (response['user_is_player']){#}
+                    {#                window.location.replace("/");#}
+                    {#            } else {#}
+                    {#                reloadPage();#}
+                    {#            }#}
+                    {#        })#}
+                    {#    }#}
+                    {#});#}
+
                 }
             })
         }

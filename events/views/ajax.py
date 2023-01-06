@@ -729,6 +729,29 @@ def check_player_entry_ajax(request):
 
 @login_required()
 @require_GET
+def get_player_payment_amount_ajax(request):
+    """Before we change a player in an entry, see if the old player qualifies for a refund"""
+
+    # Get entry
+    event_entry_player_id = request.GET["player_event_entry"]
+    event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
+
+    # Return if no refund due
+    if event_entry_player.payment_received == 0:
+        return JsonResponse({"refund_is_due": 0})
+
+    # Provide name and amount
+    return JsonResponse(
+        {
+            "refund_is_due": 1,
+            "refund_who": f"{event_entry_player.player.full_name}",
+            "refund_amount": event_entry_player.payment_received,
+        }
+    )
+
+
+@login_required()
+@require_GET
 def change_player_entry_ajax(request):
     """Change a player in an event. Also update entry_fee if required"""
 
