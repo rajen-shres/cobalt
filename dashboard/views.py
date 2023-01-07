@@ -63,6 +63,10 @@ def home(request):
 def logged_out(request):
     """Home screen for logged out users"""
 
+    # Check if user should be here
+    if request.user.is_authenticated:
+        return redirect("/")
+
     posts = get_announcements_logged_out()
     return render(request, "dashboard/logged_out.html", {"posts": posts})
 

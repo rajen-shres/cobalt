@@ -248,6 +248,7 @@ def import_file_upload_htmx(request):
                 _import_file_upload_htmx_compscore3(request, club, session)
 
         except (IndexError, ValueError):
+            session.delete()
             return tab_sessions_htmx(request, message="Invalid file format")
 
         _import_file_upload_htmx_fill_in_table_gaps(session)

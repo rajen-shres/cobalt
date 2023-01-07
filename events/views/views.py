@@ -1858,6 +1858,8 @@ def get_other_entries_to_event_for_user_htmx(request, event_id, this_event_entry
     entries = (
         # only want entries for this event
         EventEntry.objects.filter(event=event)
+        # Not cancelled
+        .exclude(entry_status="Cancelled")
         # exclude the provided event_id, this is the one asking for others so they don't want themselves back
         .exclude(pk=this_event_entry_id)
         # primary entrant OR any player
@@ -1865,13 +1867,6 @@ def get_other_entries_to_event_for_user_htmx(request, event_id, this_event_entry
             Q(primary_entrant=request.user) | Q(evententryplayer__player=request.user)
         ).distinct()
     )
-
-    a = EventEntry.objects.filter(pk=this_event_entry_id).first()
-    print("Event entry id", this_event_entry_id)
-    print("Event Entry", a)
-    b = EventEntryPlayer.objects.filter(event_entry=a)
-    for x in b:
-        print(x.player)
 
     return render(
         request,
