@@ -2,6 +2,8 @@
 
 # about: Editor for template comments
 
+# This can be installed as an app using py2app
+
 import PySimpleGUI as sg
 from tkinter import Tk
 
