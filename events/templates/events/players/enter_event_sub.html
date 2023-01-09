@@ -32,12 +32,7 @@
                 {#            class="form-group"#}
                 id="div_id_player_sub_{{ our_form_row.player_no }}">
 
-                <select class="cobalt-playerN selectpicker"
-                    data-container="body"
-                    data-style="btn btn-warning"
-                    title="Team Mate"
-                    name="player{{ our_form_row.player_no }}" id="id_player{{ our_form_row.player_no }}"
-                >
+                <select class="form-control cobalt-playerN" data-container="body" data-style="btn btn-info"  title="Team Mate" name="player{{ our_form_row.player_no }}" id="id_player{{ our_form_row.player_no }}">
                     <option selected disabled>Select...</option>
                     {% for val,item in our_form_row.name_choices %}
 
@@ -63,9 +58,8 @@
         >
             <select id="id_player{{ our_form_row.player_no }}_payment"
                 name="player{{ our_form_row.player_no }}_payment"
-                class="payment-method selectpicker"
-                data-style="btn btn-primary"
-                {#                style="width: 160px"#}
+                class="payment-method form-control"
+                style="width: 160px"
                 disabled
             >
 
