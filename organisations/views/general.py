@@ -246,7 +246,11 @@ def get_clubs_for_player(player):
 
 def get_membership_type_for_players(system_number_list, club):
     """returns the membership type for a list of system_numbers. It returns a dict of system_number to
-    membership type name e.g. "Standard" """
+    membership type name e.g. "Standard"
+
+    Guests will not be in the dictionary
+
+    """
 
     membership_types = (
         MemberMembershipType.objects.select_related("membership_type")

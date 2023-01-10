@@ -223,7 +223,7 @@ def reconciliation_htmx(request, club, session):
 def _reconciliation_extras(session, column_headings):
     """Get summarised view of extras for a session
 
-    We use the same column headings as the session fees table - payment types
+    We use the same column headings as the table fees table - payment types
 
     For the rows we use the description
 
@@ -635,7 +635,9 @@ def xlsx_download(request, session_id):
         return rbac_forbidden(request, club_role)
 
     # Get the data
-    session_entries, extras, mixed_dict = _xlsx_download_get_data(session, club)
+    session_entries, extras, mixed_dict, membership_type_dict = _xlsx_download_get_data(
+        session, club
+    )
 
     # Create HttpResponse to put the Excel file into
     response = HttpResponse(
@@ -648,7 +650,7 @@ def xlsx_download(request, session_id):
     # Create an Excel file and add worksheets
     workbook = xlsxwriter.Workbook(response)
     summary_sheet = workbook.add_worksheet("Summary")
-    details_sheet = workbook.add_worksheet("Session Fees")
+    details_sheet = workbook.add_worksheet("Table Fees")
     extras_sheet = workbook.add_worksheet("Extras") if extras else None
 
     # Do the headers and basic info
@@ -668,7 +670,13 @@ def xlsx_download(request, session_id):
 
     # fill in the details tab
     _xlsx_download_details(
-        mixed_dict, workbook, details_sheet, session_entries, extras, details_row
+        mixed_dict,
+        membership_type_dict,
+        workbook,
+        details_sheet,
+        session_entries,
+        extras,
+        details_row,
     )
 
     # fill in the extras tab if we have any
@@ -715,7 +723,7 @@ def _xlsx_download_get_data(session, club):
         session_entry__session=session
     ).select_related("session_entry")
 
-    return session_entries, extras, mixed_dict
+    return session_entries, extras, mixed_dict, membership_type_dict
 
 
 def _xlsx_download_basic_structure(
@@ -748,7 +756,7 @@ def _xlsx_download_basic_structure(
         sheet_list.append(extras_sheet)
 
     # How wide for the title
-    title_width = {summary_sheet: 4, details_sheet: 6, extras_sheet: 5}
+    title_width = {summary_sheet: 4, details_sheet: 7, extras_sheet: 5}
 
     for sheet in sheet_list:
         # Put cursor away from title
@@ -775,7 +783,7 @@ def _xlsx_download_basic_structure(
     summary_sheet.write(
         7,
         3,
-        "You can change to the Session Fees tab below to see a list of the transactions",
+        "You can change to the Table Fees tab below to see a list of the transactions",
         info,
     )
 
@@ -843,22 +851,24 @@ def _xlsx_download_basic_structure(
         summary_row_no += 1
 
     # Now do headings on detail sheet
-    details_sheet.merge_range(7, 0, 7, 6, "Session Fees", section)
+    details_sheet.merge_range(7, 0, 7, 7, "Table Fees", section)
 
-    details_sheet.write(8, 0, "Player Name", detail_row_title)
-    details_sheet.set_column("A:A", 30)
-    details_sheet.write(8, 1, f"{GLOBAL_ORG} Number", detail_row_title)
-    details_sheet.set_column("B:B", 25)
-    details_sheet.write(8, 2, "Pair Team Number", detail_row_title)
-    details_sheet.set_column("C:C", 35)
-    details_sheet.write(8, 3, "Seat", detail_row_title)
-    details_sheet.set_column("D:D", 15)
-    details_sheet.write(8, 4, "Payment Method", detail_row_title)
-    details_sheet.set_column("E:E", 30)
-    details_sheet.write(8, 5, "Fee", detail_row_title_number)
-    details_sheet.set_column("F:F", 15)
-    details_sheet.write(8, 6, "Processed", detail_row_title_number)
+    details_sheet.write(8, 0, "Table Number", detail_row_title)
+    details_sheet.set_column("A:A", 35)
+    details_sheet.write(8, 1, "Seat", detail_row_title)
+    details_sheet.set_column("B:B", 15)
+    details_sheet.write(8, 2, "Player Name", detail_row_title)
+    details_sheet.set_column("C:C", 30)
+    details_sheet.write(8, 3, f"{GLOBAL_ORG} Number", detail_row_title)
+    details_sheet.set_column("D:D", 25)
+    details_sheet.write(8, 4, "Membership", detail_row_title)
+    details_sheet.set_column("E:E", 25)
+    details_sheet.write(8, 5, "Payment Method", detail_row_title)
+    details_sheet.set_column("F:F", 30)
+    details_sheet.write(8, 6, "Fee", detail_row_title_number)
     details_sheet.set_column("G:G", 15)
+    details_sheet.write(8, 7, "Processed", detail_row_title_number)
+    details_sheet.set_column("H:H", 15)
 
     # now do headings on extras sheet if we have one
     if extras:
@@ -892,7 +902,7 @@ def _xlsx_download_summary(session, summary_sheet, workbook, summary_row_no):
 
     # Print payment_methods
     summary_row_no = _xlsx_download_summary_sub(
-        "Payment Methods - Session Fees",
+        "Payment Methods - Table Fees",
         payment_methods,
         summary_sheet,
         workbook,
@@ -987,7 +997,13 @@ def _xlsx_download_summary_sub(
 
 
 def _xlsx_download_details(
-    mixed_dict, workbook, details_sheet, session_entries, extras, details_row
+    mixed_dict,
+    membership_type_dict,
+    workbook,
+    details_sheet,
+    session_entries,
+    extras,
+    details_row,
 ):
     """produce the session_entry and extras details for the detail tab"""
 
@@ -1013,20 +1029,32 @@ def _xlsx_download_details(
             format_type = detail_row_free
             format_type_money = detail_row_free
 
+        details_sheet.write(details_row, 0, session_entry.pair_team_number, format_type)
+        details_sheet.write(details_row, 1, session_entry.seat, format_type)
         details_sheet.write(
             details_row,
-            0,
+            2,
             _get_name_for_csv(session_entry, mixed_dict).__str__(),
             format_type,
         )
-        details_sheet.write(details_row, 1, session_entry.system_number, format_type)
-        details_sheet.write(details_row, 2, session_entry.pair_team_number, format_type)
-        details_sheet.write(details_row, 3, session_entry.seat, format_type)
+        details_sheet.write(details_row, 3, session_entry.system_number, format_type)
+
+        # Get membership type for members
+        membership_type = membership_type_dict.get(session_entry.system_number)
+
+        # If we have no membership type, then it will be a Guest or director or phantom
+        if not membership_type:
+            if session_entry.system_number in [PLAYING_DIRECTOR, SITOUT]:
+                membership_type = ""
+            else:
+                membership_type = "Guest"
+
+        details_sheet.write(details_row, 4, membership_type, format_type)
         details_sheet.write(
-            details_row, 4, session_entry.payment_method_display, format_type
+            details_row, 5, session_entry.payment_method_display, format_type
         )
-        details_sheet.write(details_row, 5, session_entry.fee, format_type_money)
-        details_sheet.write(details_row, 6, is_paid, format_type_money)
+        details_sheet.write(details_row, 6, session_entry.fee, format_type_money)
+        details_sheet.write(details_row, 7, is_paid, format_type_money)
 
         details_row += 1
 
