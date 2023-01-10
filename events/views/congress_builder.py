@@ -167,7 +167,7 @@ def delete_congress(request, congress_id):
         messages.success(
             request, "Congress deleted", extra_tags="cobalt-message-success"
         )
-        return redirect("events:events")
+        return redirect("events:congress_listing")
 
     return render(
         request, "events/congress_builder/delete_congress.html", {"congress": congress}

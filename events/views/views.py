@@ -745,7 +745,7 @@ def pay_outstanding(request):
         messages.warning(
             request, "You have nothing due to pay", extra_tags="cobalt-message-warning"
         )
-        return redirect("events:events")
+        return redirect("events:view_events")
 
     # Get total amount
     amount = event_entry_players.aggregate(Sum("entry_fee"))
