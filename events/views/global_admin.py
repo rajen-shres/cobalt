@@ -6,7 +6,10 @@ from django.utils import timezone
 
 from accounts.models import User
 from cobalt.settings import TBA_PLAYER
-from events.views.core import events_status_summary
+from events.views.core import (
+    events_status_summary,
+    get_completed_congresses_with_money_due,
+)
 from events.forms import CongressMasterForm
 from events.models import (
     CongressMaster,
@@ -212,6 +215,9 @@ def global_admin_event_payment_health_report(request):
         ).exists():
             dangerous_entries.append(very_old_bridge_credit_entry)
 
+    # Summary values
+    bad_congresses, _, _ = get_completed_congresses_with_money_due()
+
     return render(
         request,
         "events/global_admin/global_admin_event_payment_health_report.html",
@@ -220,6 +226,7 @@ def global_admin_event_payment_health_report(request):
             "basket_items_with_paid_entries": basket_items_with_paid_entries,
             "very_old_bridge_credit_entries": very_old_bridge_credit_entries,
             "dangerous_entries": dangerous_entries,
+            "bad_congresses": bad_congresses,
         },
     )
 

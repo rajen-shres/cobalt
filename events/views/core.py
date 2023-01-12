@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta, date
 
 import pytz
-from django.db.models import Q
+from django.db.models import Q, F
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
@@ -805,3 +805,52 @@ def get_event_statistics():
         "total_sessions": total_sessions,
         "total_player_entries": total_player_entries,
     }
+
+
+def get_completed_congresses_with_money_due(congress=None):
+    """
+    Find congresses which are finished but still have outstanding money to collect
+
+    Optionally only list a single congress
+    """
+
+    # Get the player entries that are causing problems
+    event_entry_players_needing_attention = (
+        # Look at entries in congresses that have finished
+        EventEntryPlayer.objects.filter(
+            event_entry__event__congress__end_date__lt=timezone.now()
+        )
+        # ignore paid or free entries
+        .exclude(payment_status__in=["Paid", "Free"])
+        # Some edited entries are paid but marked as unpaid
+        .exclude(entry_fee=F("payment_received"))
+        # TBAs don't cause problems for real players
+        .exclude(player_id=TBA_PLAYER)
+        # Ignore cancelled entries
+        .exclude(event_entry__entry_status="Cancelled")
+        # Ignore anything with no money due
+        .exclude(entry_fee=0)
+        # also get the event and congress - maybe later, see how it goes
+        # .select_related("event_entry__event")
+        # .select_related("event_entry__event__congress")
+    )
+
+    # event_entry_players_needing_attention.prefetch_related("event_entry__event__session_set")
+
+    # If we got a congress, then only show that one
+    if congress:
+        event_entry_players_needing_attention = (
+            event_entry_players_needing_attention.filter(
+                event_entry__event__congress=congress
+            )
+        )
+
+    # filter
+    congresses = event_entry_players_needing_attention.values(
+        "event_entry__event__congress", "event_entry__event__congress__name"
+    ).distinct("event_entry__event__congress")
+    events = event_entry_players_needing_attention.values(
+        "event_entry__event__event_name"
+    ).distinct("event_entry__event__event_name")
+
+    return congresses, events, event_entry_players_needing_attention

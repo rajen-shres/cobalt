@@ -82,6 +82,18 @@
                     Nothing found
                 {% endif %}
 
+                {% if bad_congresses %}
+
+                    <h3>Congresses Needing Attention</h3>
+
+                    {% for bad_congress in bad_congresses %}
+                        <a
+                            href="{% url "events:admin_summary" congress_id=bad_congress.event_entry__event__congress %}"
+                            class="btn btn-{% cobalt_random_colour %}"
+                        >{{ bad_congress.event_entry__event__congress__name }}</a>
+                    {% endfor %}
+
+                {% endif %}
 
                 <h3>Completed Events with Pending Bridge Credits, still in Basket</h3>
                 <p>If a player has a basket item with an entry that has been marked to pay with Bridge Credits then the next time

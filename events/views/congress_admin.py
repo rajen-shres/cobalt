@@ -12,7 +12,10 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone, dateformat
 from django.db.models import Sum
 
-from events.views.core import sort_events_by_start_date
+from events.views.core import (
+    sort_events_by_start_date,
+    get_completed_congresses_with_money_due,
+)
 from notifications.models import BlockNotification
 from notifications.views.core import (
     contact_member,
@@ -155,10 +158,18 @@ def admin_summary(request, congress_id):
     # add start date and sort by start date
     events_list_sorted = sort_events_by_start_date(events)
 
+    # See if this congress is on the naughty list - finished but not closed off
+    _, bad_events, _ = get_completed_congresses_with_money_due(congress)
+
     return render(
         request,
         "events/congress_admin/summary.html",
-        {"events": events_list_sorted, "total": total, "congress": congress},
+        {
+            "events": events_list_sorted,
+            "total": total,
+            "congress": congress,
+            "bad_events": bad_events,
+        },
     )
 
 
