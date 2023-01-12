@@ -16,6 +16,10 @@
             </div>
             <div class="card-body">
 
+                {% if is_admin %}
+                    <a href="{% url "organisations:club_menu" club_id=org.id %}" class="btn btn-info">Club Menu</a>
+                {% endif %}
+
                 {% if front_page.summary %}
 
                     {{ front_page.summary | safe }}

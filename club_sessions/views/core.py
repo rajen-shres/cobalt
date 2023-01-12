@@ -1074,11 +1074,13 @@ def get_summary_table_data(session, session_entries, mixed_dict, membership_type
         extra.session_entry_pk = extra.session_entry.pk
         extra.summary_extras = Decimal(0)
 
+    # Same again, but pass in the existing data as first parameter
     payment_summary = get_summary_table_data_sub(
         payment_summary, extras, mixed_dict, membership_type_dict, extra_flag=True
     )
 
-    return payment_summary
+    # Sort alphabetically "Bridge Credits", "Cash" etc
+    return dict(sorted(payment_summary.items()))
 
 
 def get_summary_table_data_sub(
