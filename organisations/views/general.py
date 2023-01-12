@@ -209,6 +209,7 @@ def active_email_for_un_reg(un_reg, club):
     return member_club_email.email if member_club_email else None
 
 
+@login_required()
 def org_profile(request, org_id):
     """Show public profile for organisation"""
     org = get_object_or_404(Organisation, pk=org_id)
@@ -227,11 +228,35 @@ def org_profile(request, org_id):
 
     front_page.summary = front_page.summary.replace("{{ CONGRESSES }}", congresses)
 
+    # See if this user is an admin for this club
+    is_admin = is_admin_for_organisation(request.user, org)
+
     return render(
         request,
         "organisations/org_profile.html",
-        {"org": org, "front_page": front_page},
+        {"org": org, "front_page": front_page, "is_admin": is_admin},
     )
+
+
+def is_admin_for_organisation(user, club):
+    """Boolean. Does this user have admin access to this club"""
+
+    # Check for state level access
+    rbac_model_for_state = get_rbac_model_for_state(club.state)
+    state_role = f"orgs.state.{rbac_model_for_state}.edit"
+    if rbac_user_has_role(user, state_role):
+        return True
+
+    # Check for global role
+    if rbac_user_has_role(user, "orgs.admin.edit"):
+        return True
+
+    # Check for club level access
+    club_role = f"orgs.org.{club.id}.view"
+    if rbac_user_has_role(user, club_role):
+        return True
+
+    return False
 
 
 def get_clubs_for_player(player):
