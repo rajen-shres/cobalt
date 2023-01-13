@@ -218,6 +218,7 @@ def tab_sessions_htmx(request, club, message=""):
         .select_related("session_type")
     )
 
+    print(request.GET)
     things = cobalt_paginator(request, sessions)
 
     hx_post = reverse("organisations:club_menu_tab_sessions_htmx")
