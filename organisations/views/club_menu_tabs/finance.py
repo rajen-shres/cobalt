@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Sum, Min
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -64,12 +65,12 @@ def get_org_balance_htmx(request, club):
 def transactions_htmx(request, club):
     """handle the transaction listing part of the finance tab"""
 
-    summarise = request.POST.get("summarise")
+    summarise = request.POST.get("summarise") == "on"
     if not summarise:
-        summarise = request.GET.get("summarise")
+        summarise = request.GET.get("summarise") == "on"
 
     # Set htmx paginate value too
-    searchparams = f"summarise={summarise}&"
+    searchparams = "summarise=on&" if summarise else ""
 
     # We want to summarise sessions if requested
     if not summarise:
@@ -120,7 +121,11 @@ def _transactions_with_sessions(request, club):
         .annotate(amount=Sum("amount"))
         .annotate(created_date=Min("created_date"))
     )
+
     session_things = cobalt_paginator(request, session_transactions)
+
+    # We might not get any more sessions
+    print("session_things", session_things)
 
     # Now we need to combine two quite different things with common fields
 
@@ -150,11 +155,15 @@ def _transactions_with_sessions(request, club):
         }
         things.append(thing)
 
+    print("things", things)
+
     # Sort by date
     things.sort(key=lambda x: x["created_date"], reverse=True)
 
     # Now we want to change it to a paginating object again
     page_things = cobalt_paginator(request, things)
+
+    print("page things", page_things)
 
     # TODO: Check if this actually works
     page_things.has_previous = (

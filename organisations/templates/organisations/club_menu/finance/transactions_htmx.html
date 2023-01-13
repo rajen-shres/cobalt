@@ -13,23 +13,25 @@
     <div class="card-header card-header-info">
         <h2>Transactions</h2>
 
-        <label class="form-check-label text-white mx-5">
-            <input
-                class="form-check-input"
-                type="checkbox"
-                name="summarise"
-                id="id_summarise"
-                {% if summarise %}checked="Checked"{% endif %}
-                hx-target="#id_finance_transactions"
-                hx-trigger="change"
-                hx-post="{% url "organisations:transactions_htmx" %}"
-                hx-vars="club_id: {{ club.id }}"
-            >
-            Summarise Sessions
-            <span class="form-check-sign">
-                <span class="check"></span>
-            </span>
-        </label>
+        <!-- COMMENTED OUT AS IT DOESN"T WORK WITH SUMMARIES NOT BEING PRESENT ON PAGE 2 -->
+
+        {#        <label class="form-check-label text-white mx-5">#}
+        {#            <input#}
+        {#                class="form-check-input"#}
+        {#                type="checkbox"#}
+        {#                name="summarise"#}
+        {#                id="id_summarise"#}
+        {#                {% if summarise %}checked="Checked"{% endif %}#}
+        {#                hx-target="#id_finance_transactions"#}
+        {#                hx-trigger="change"#}
+        {#                hx-post="{% url "organisations:transactions_htmx" %}"#}
+        {#                hx-vars="club_id: {{ club.id }}"#}
+        {#            >#}
+        {#            Summarise Sessions#}
+        {#            <span class="form-check-sign">#}
+        {#                <span class="check"></span>#}
+        {#            </span>#}
+        {#        </label>#}
     </div>
 
     <!-- CARD BODY -->
