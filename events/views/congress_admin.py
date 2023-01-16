@@ -1,10 +1,12 @@
 """ The file has the code relating to a convener managing an existing event """
 
 import csv
+from datetime import timedelta
 from itertools import chain
 from threading import Thread
 
 import bleach
+from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import formset_factory
 from django.http import HttpResponse
@@ -12,9 +14,11 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone, dateformat
 from django.db.models import Sum
 
+from events.decorators import check_convener_access
 from events.views.core import (
     sort_events_by_start_date,
     get_completed_congresses_with_money_due,
+    fix_closed_congress,
 )
 from notifications.models import BlockNotification
 from notifications.views.core import (
@@ -76,7 +80,7 @@ TZ = pytz.timezone(TIME_ZONE)
 
 
 @login_required()
-def admin_summary(request, congress_id):
+def admin_summary(request, congress_id, message=""):
     """Admin View"""
 
     congress = get_object_or_404(Congress, pk=congress_id)
@@ -158,9 +162,6 @@ def admin_summary(request, congress_id):
     # add start date and sort by start date
     events_list_sorted = sort_events_by_start_date(events)
 
-    # See if this congress is on the naughty list - finished but not closed off
-    _, bad_events, _ = get_completed_congresses_with_money_due(congress)
-
     return render(
         request,
         "events/congress_admin/summary.html",
@@ -168,7 +169,7 @@ def admin_summary(request, congress_id):
             "events": events_list_sorted,
             "total": total,
             "congress": congress,
-            "bad_events": bad_events,
+            "message": message,
         },
     )
 
@@ -1180,7 +1181,6 @@ def _admin_email_common_thread(request, congress, subject, body, recipients, bat
     reply_to = congress.contact_email or request.user.email
 
     for recipient in recipients:
-
         context = {
             "name": recipient[0],
             "title1": f"Message from {request.user.full_name} on behalf of {congress}",
@@ -1425,7 +1425,6 @@ def admin_move_entry(request, event_entry_id):
         # Notify players
 
         for recipient in event_entry.evententryplayer_set.all():
-
             # send
             contact_member(
                 member=recipient.player,
@@ -1517,7 +1516,6 @@ def admin_event_entry_add(request, event_id):
 
         # notify players
         for recipient in players:
-
             # send
             contact_member(
                 member=recipient,
@@ -2100,7 +2098,6 @@ def edit_player_name_htmx(request):
 
     # notify deleted member
     if old_user.id != TBA_PLAYER:
-
         # send
         contact_member(
             member=old_user,
@@ -2113,7 +2110,6 @@ def edit_player_name_htmx(request):
 
     # notify added member
     if new_user.id != TBA_PLAYER:
-
         # send
         contact_member(
             member=new_user,
@@ -2175,3 +2171,77 @@ def edit_tba_player_details_htmx(request):
             "message": message,
         },
     )
+
+
+@login_required()
+def congress_finished_with_overdue_payments_htmx(request, message=""):
+    """
+
+    When a congress is complete, we shouldn't have any overdue payments. If we do, then there is
+    a problem. It could be because the convener doesn't really care (has no impact on them), or
+    it could be because they are still chasing up money.
+
+    Why is this a problem? Mainly for Bridge Credits - the player will be asked to make the payment
+    but it is likely that the convener has also sorted this out and doesn't expect them to pay.
+
+    After a congress is finished, if there are overdue payments then we email the convener. We also
+    add a dialog box to the congress admin summary page (this function generates that).
+
+    A convener can:
+
+    1) Hit the "fix it" button, and we mark everything as done.
+    2) Do nothing and after a period of time we fix it automatically.
+    3) Press the "don't fix" button, so we don't automatically close the congress (we will after 3 months).
+    """
+
+    congress_id = request.POST.get("congress_id")
+    congress = get_object_or_404(Congress, pk=congress_id)
+
+    # See if this congress is on the naughty list - finished but not closed off
+    bad_congresses = get_completed_congresses_with_money_due(congress)
+
+    # We may not have a date we are paused to, but calculate it in case the template needs it
+    if bad_congresses:
+        pause_date = congress.end_date + relativedelta(months=+3)
+    else:
+        pause_date = None
+
+    return render(
+        request,
+        "events/congress_admin/congress_finished_with_overdue_payments.html",
+        {
+            "congress": congress,
+            "bad_congresses": bad_congresses,
+            "message": message,
+            "pause_date": pause_date,
+        },
+    )
+
+
+@check_convener_access()
+def do_not_automatically_fix_closed_congress_htmx(request, congress):
+    """Mark congress so that it doesn't get automatically closed out (entries marked as paid)"""
+
+    congress.do_not_auto_close_congress = True
+    congress.save()
+
+    return congress_finished_with_overdue_payments_htmx(request)
+
+
+@check_convener_access()
+def do_automatically_fix_closed_congress_htmx(request, congress):
+    """Mark congress so that it does get automatically closed out (entries marked as paid)"""
+
+    congress.do_not_auto_close_congress = False
+    congress.save()
+
+    return congress_finished_with_overdue_payments_htmx(request)
+
+
+@check_convener_access()
+def fix_closed_congress_htmx(request, congress):
+    """Fix a congress that is close with unpaid entries"""
+
+    message = fix_closed_congress(congress, request.user)
+
+    return admin_summary(request, congress_id=congress.id, message=message)

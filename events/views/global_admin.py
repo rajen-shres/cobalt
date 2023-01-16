@@ -216,7 +216,7 @@ def global_admin_event_payment_health_report(request):
             dangerous_entries.append(very_old_bridge_credit_entry)
 
     # Summary values
-    bad_congresses, _, _ = get_completed_congresses_with_money_due()
+    bad_congresses = get_completed_congresses_with_money_due()
 
     return render(
         request,

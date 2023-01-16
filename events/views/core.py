@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, date
 import pytz
 from django.db.models import Q, F
 from django.template import loader
+from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 
@@ -13,6 +14,7 @@ from cobalt.settings import (
     BRIDGE_CREDITS,
     TIME_ZONE,
     TBA_PLAYER,
+    GLOBAL_CURRENCY_SYMBOL,
 )
 
 from logs.views import log_event
@@ -814,6 +816,21 @@ def get_completed_congresses_with_money_due(congress=None):
     Optionally only list a single congress
     """
 
+    event_entry_players_needing_attention = get_event_entry_players_needing_attention(
+        congress
+    )
+
+    # filter
+    congress_list = event_entry_players_needing_attention.values_list(
+        "event_entry__event__congress"
+    ).distinct("event_entry__event__congress")
+
+    return Congress.objects.filter(pk__in=congress_list)
+
+
+def get_event_entry_players_needing_attention(congress):
+    """Get the entries that are causing a congress to be in an unfinished state"""
+
     # Get the player entries that are causing problems
     event_entry_players_needing_attention = (
         # Look at entries in congresses that have finished
@@ -832,10 +849,8 @@ def get_completed_congresses_with_money_due(congress=None):
         .exclude(entry_fee=0)
         # also get the event and congress - maybe later, see how it goes
         # .select_related("event_entry__event")
-        # .select_related("event_entry__event__congress")
+        .select_related("event_entry__event__congress")
     )
-
-    # event_entry_players_needing_attention.prefetch_related("event_entry__event__session_set")
 
     # If we got a congress, then only show that one
     if congress:
@@ -845,12 +860,49 @@ def get_completed_congresses_with_money_due(congress=None):
             )
         )
 
-    # filter
-    congresses = event_entry_players_needing_attention.values(
-        "event_entry__event__congress", "event_entry__event__congress__name"
-    ).distinct("event_entry__event__congress")
-    events = event_entry_players_needing_attention.values(
-        "event_entry__event__event_name"
-    ).distinct("event_entry__event__event_name")
+    return event_entry_players_needing_attention
 
-    return congresses, events, event_entry_players_needing_attention
+
+def fix_closed_congress(congress, actor):
+    """sort out a congress that has finished with unpaid entries"""
+
+    event_entry_players_needing_attention = get_event_entry_players_needing_attention(
+        congress
+    )
+
+    if not event_entry_players_needing_attention:
+        return "No errors found with congress. Nothing to do."
+
+    event = event_entry_players_needing_attention[0].event_entry.event
+    count = 0
+
+    for event_entry_player in event_entry_players_needing_attention:
+        # Change from unpaid bridge credits to unpaid non-bridge credits
+        print(event_entry_player.player)
+        print(event_entry_player.entry_fee)
+        print(event_entry_player.payment_received)
+        print(event_entry_player.payment_status)
+        print(event_entry_player.payment_type)
+
+        action = f"Fixed event entry player. Changed {event_entry_player.player}(Entry: {event_entry_player.id}) from '{BRIDGE_CREDITS}' to 'System Adjusted' and marked as paid. Previous amount paid was {GLOBAL_CURRENCY_SYMBOL}{event_entry_player.payment_received:.2f}"
+
+        event_entry_player.payment_type = "System Adjusted"
+        event_entry_player.payment_received = event_entry_player.entry_fee
+        event_entry_player.payment_status = "Paid"
+        event_entry_player.save()
+        # log it
+        logger.info(action)
+        EventLog(
+            event=event,
+            actor=actor,
+            event_entry=event_entry_player.event_entry,
+            action=action,
+        ).save()
+
+        # Update event entry as well. This may be called multiple times but doesn't really matter
+        event_entry_player.event_entry.entry_status = "Complete"
+        event_entry_player.event_entry.save()
+
+        count += 1
+
+    return f"Congress fixed. {count} change{pluralize(count)} made."

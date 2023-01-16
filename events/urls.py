@@ -527,6 +527,26 @@ urlpatterns = [
         congress_admin.edit_team_name_htmx,
         name="admin_edit_team_name_htmx",
     ),
+    path(
+        "congress-admin/congress-finished-with-overdue-payments",
+        events.views.congress_admin.congress_finished_with_overdue_payments_htmx,
+        name="congress_finished_with_overdue_payments_htmx",
+    ),
+    path(
+        "congress-admin/do-not-automatically-fix-closed-congress",
+        events.views.congress_admin.do_not_automatically_fix_closed_congress_htmx,
+        name="do_not_automatically_fix_closed_congress_htmx",
+    ),
+    path(
+        "congress-admin/do-automatically-fix-closed-congress",
+        events.views.congress_admin.do_automatically_fix_closed_congress_htmx,
+        name="do_automatically_fix_closed_congress_htmx",
+    ),
+    path(
+        "congress-admin/fix-closed-congress",
+        events.views.congress_admin.fix_closed_congress_htmx,
+        name="fix_closed_congress_htmx",
+    ),
     #######################################################
     # higher level admin functions                        #
     #######################################################

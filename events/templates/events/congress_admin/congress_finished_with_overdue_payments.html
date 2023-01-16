@@ -1,0 +1,76 @@
+{#--------------------------------------------------------------------------------------#}
+{#                                                                                      #}
+{# Insert into the admin summary view for a congress                                    #}
+{#                                                                                      #}
+{# Shows any problems with a congress and allows convener to automatically fix them     #}
+{#                                                                                      #}
+{# The only problems looked at currently are players who still owe money for a finished #}
+{# congress                                                                             #}
+{#                                                                                      #}
+{#--------------------------------------------------------------------------------------#}
+
+<!-- MESSAGE -->
+{% include "utils/cobalt_message_h3.html" %}
+
+<!-- CHECK IF CONGRESS HAS PROBLEMS -->
+
+{% if bad_congresses %}
+
+    <!-- CHECK IF FLAG IS SET -->
+    {% if congress.do_not_auto_close_congress %}
+        <div class="card col-md-8 mx-auto">
+            <div class="card-header card-header-danger">
+                <h2 class="text-center">Congress Auto Close On Hold</h2>
+            </div>
+            <div class="card-body text-center">
+                <h3>This congress has finished but there are outstanding payments to be taken</h3>
+                <h3>Automatic closure is paused until {{ pause_date }}</h3>
+                <button
+                    class="btn btn-info"
+                    hx-post="{% url "events:fix_closed_congress_htmx" %}"
+                    hx-vars="congress_id: {{ congress.id }}"
+                    hx-trigger="click"
+                    hx-target="#bad_congress"
+                >Fix It</button>
+                <button
+                    class="btn btn-warning"
+                    hx-post="{% url "events:do_automatically_fix_closed_congress_htmx" %}"
+                    hx-vars="congress_id: {{ congress.id }}"
+                    hx-trigger="click"
+                    hx-target="#bad_congress"
+                >Remove Pause</button>
+            </div>
+        </div>
+
+    {% else %}
+
+        <div class="card col-md-8 mx-auto">
+            <div class="card-header card-header-danger">
+                <h2 class="text-center">Fix Required!</h2>
+            </div>
+            <div class="card-body text-center">
+                <h3>This congress has finished but there are outstanding payments to be taken</h3>
+                <p>You can go through the entries and resolve this, or you can click the <b>Fix It</b> button below and we will fix it for you.</p>
+                <p>Alternatively, you can do nothing and the system will close off your congress one week after it finishes.</p>
+                <p>If the missing payments are genuine, and you are still chasing them up, then click on <b>Don't Fix It</b>
+                    and the congress will be left until three months after it finishes.</p>
+                <button
+                    class="btn btn-info"
+                    hx-post="{% url "events:fix_closed_congress_htmx" %}"
+                    hx-vars="congress_id: {{ congress.id }}"
+                    hx-trigger="click"
+                    hx-target="#bad_congress"
+                >Fix It</button>
+                <button
+                    class="btn btn-danger"
+                    hx-post="{% url "events:do_not_automatically_fix_closed_congress_htmx" %}"
+                    hx-vars="congress_id: {{ congress.id }}"
+                    hx-trigger="click"
+                    hx-target="#bad_congress"
+                >Don't Fix It</button>
+            </div>
+        </div>
+
+    {% endif %}
+
+{% endif %}

@@ -215,6 +215,9 @@ class Congress(models.Model):
         default=CongressVenueType.UNKNOWN,
         max_length=1,
     )
+    # We will automatically close events in a congress by marking entries as paid. This flag prevents it so
+    # a convener can continue to chase up any missing money
+    do_not_auto_close_congress = models.BooleanField(default=False)
 
     class Meta:
         verbose_name_plural = "Congresses"
@@ -1058,7 +1061,7 @@ class EventLog(models.Model):
     action = models.TextField("Action")
 
     def __str__(self):
-        return "%s - %s" % (self.event, self.actor)
+        return f"{self.event} - {self.actor}"
 
 
 class EventPlayerDiscount(models.Model):
