@@ -652,7 +652,7 @@ def get_events(user):
 
         # start_date on event is a function, not a field
         start_date = event_entry_player.event_entry.event.start_date()
-        if start_date >= datetime.now().date():
+        if start_date and start_date >= datetime.now().date():
 
             count += 1
 
