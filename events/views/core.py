@@ -634,59 +634,48 @@ def get_basket_for_user(user):
 def get_events(user):
     """called by dashboard to get upcoming events"""
 
-    # get last 50
+    # get last 5 sorted by start date
     event_entry_players = (
         EventEntryPlayer.objects.filter(player=user)
         .exclude(event_entry__entry_status="Cancelled")
-        .order_by("-id")[:50]
+        .exclude(event_entry__event__denormalised_end_date__lt=datetime.today())
+        .order_by("event_entry__event__denormalised_start_date")[:5]
     )
 
-    # Only return first 5
-    max_length = 5
-    count = 0
-
-    # Only include the ones in the future
-    upcoming = {}
+    # Flag for unpaid entries
     unpaid = False
+
+    # Augment data
     for event_entry_player in event_entry_players:
 
-        # start_date on event is a function, not a field
-        start_date = event_entry_player.event_entry.event.start_date()
-        if start_date and start_date >= datetime.now().date():
+        # Check if still in cart
+        basket_item = BasketItem.objects.filter(
+            event_entry=event_entry_player.event_entry
+        )
 
-            count += 1
+        in_cart = basket_item.filter(player=user).exists()
+        event_entry_player.in_cart = in_cart
 
-            # Check if still in cart
-            in_cart = (
-                BasketItem.objects.filter(event_entry=event_entry_player.event_entry)
-                .filter(player=user)
-                .exists()
-            )
-            event_entry_player.in_cart = in_cart
+        # Check if still in someone else's cart (we want to know whose as well)
+        in_other_cart = basket_item.exclude(player=user).first()
+        if in_other_cart:
+            event_entry_player.in_other_cart = in_other_cart.player
+            # we do not want to show other player's cart item as unpaid item, in fact
+            # we do not want to show them to the player at all
+            continue
 
-            # Check if still in someone elses cart
-            in_other_cart = (
-                BasketItem.objects.filter(event_entry=event_entry_player.event_entry)
-                .exclude(player=user)
-                .first()
-            )
-            if in_other_cart:
-                event_entry_player.in_other_cart = in_other_cart.player
-                # we do not want to show other player's cart item as unpaid item, in fact
-                # we do not want to show them to the player at all
-                continue
+        # check if unpaid
+        if event_entry_player.payment_status == "Unpaid":
+            unpaid = True
 
-            # check if unpaid
-            if event_entry_player.payment_status == "Unpaid":
-                unpaid = True
-            upcoming[event_entry_player] = start_date
+        # Check if event is running
+        if (
+            event_entry_player.event_entry.event.denormalised_start_date
+            <= datetime.today().date()
+        ):
+            event_entry_player.is_running = True
 
-            if count == max_length:
-                break
-
-    upcoming_sorted = dict(sorted(upcoming.items(), key=lambda item: item[1]))
-
-    return upcoming_sorted, unpaid
+    return event_entry_players, unpaid
 
 
 def get_conveners_for_congress(congress):

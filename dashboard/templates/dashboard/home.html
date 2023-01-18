@@ -217,7 +217,11 @@
                                         <tr>
 
                                             <td class="text-left">
-                                                {{ event.event_entry.event.start_date }}
+                                                {% if event.is_running  %}
+                                                    <span class="text-success font-weight-bold">TODAY</span>
+                                                {% else %}
+                                                    {{ event.event_entry.event.denormalised_start_date }}
+                                                {% endif %}
                                             </td>
 
                                             <td class="text-left">
