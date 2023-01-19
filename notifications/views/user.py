@@ -58,7 +58,7 @@ def get_notifications_for_user(user):
 
 
 def acknowledge_in_app_notification(id):
-    note = InAppNotification.objects.get(id=id)
+    note = get_object_or_404(InAppNotification, pk=id)
     note.acknowledged = True
     note.save()
     return note
