@@ -2,10 +2,7 @@
 
 from django.contrib import admin
 
-from payments.models import MemberOrganisationLink
 from .models import (
-    MasterSessionType,
-    TimeOfDay,
     SessionType,
     SessionTypePaymentMethod,
     SessionTypePaymentMethodMembership,
@@ -94,4 +91,3 @@ admin.site.register(
 admin.site.register(Session, SessionAdmin)
 admin.site.register(SessionEntry, SessionEntryAdmin)
 admin.site.register(SessionMiscPayment, SessionMiscPaymentAdmin)
-admin.site.register(MemberOrganisationLink, MemberOrganisationLinkAdmin)

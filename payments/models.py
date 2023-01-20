@@ -447,3 +447,49 @@ class MemberOrganisationLink(models.Model):
     organisation_transaction = models.ForeignKey(
         OrganisationTransaction, on_delete=models.CASCADE
     )
+
+
+class AbstractFinanceClassification(models.Model):
+    """Definitions of types of transactions for an organisation
+
+    We want to be able to summarise and categorise transactions for organisations.
+    We do this by giving a code (actually a series of things that make up a code)
+    to a transaction.
+
+    The models derived from this class define the valid combination of fields and
+    hold a free format description for them.
+
+    """
+
+    class TransactionType(models.TextChoices):
+        CONGRESS = "CO"
+        SESSION = "SE"
+
+    organisation = models.ForeignKey(
+        OrganisationTransaction, on_delete=models.CASCADE, blank=True, null=True
+    )
+    """ This can be blank to allow for generic options """
+    transaction_type = models.CharField(max_length=2, choices=TransactionType.choices)
+    """ High level, system defined options """
+    category = models.CharField(max_length=50)
+    """ First level of user customisable code """
+    description = models.CharField(max_length=100, blank=True, null=True)
+    """ Description of this """
+
+
+class FinanceClassificationCategory(AbstractFinanceClassification):
+    """Definitions for Category"""
+
+    pass
+
+    def __str__(self):
+        return f"{self.organisation} - {self.transaction_type} - {self.category}"
+
+
+class FinanceClassificationSubCategory(AbstractFinanceClassification):
+    """Definitions for Sub-Category"""
+
+    sub_category = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.organisation} - {self.transaction_type} - - {self.sub_category} - {self.category}"
