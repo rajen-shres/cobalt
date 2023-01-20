@@ -671,6 +671,7 @@ def get_events(user):
         # Check if event is running
         if (
             event_entry_player.event_entry.event.denormalised_start_date
+            and event_entry_player.event_entry.event.denormalised_start_date
             <= datetime.today().date()
         ):
             event_entry_player.is_running = True
