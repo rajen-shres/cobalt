@@ -184,7 +184,7 @@ def admin_add_club(request):
 def admin_list_clubs(request):
     """List Clubs in the system. For State or ABF Administrators. Modified to show all organisations, not just clubs"""
 
-    clubs = Organisation.objects.order_by("state", "name")
+    clubs = Organisation.objects.order_by("state", "name").select_related("secretary")
 
     # Check roles so we only show clubs user can edit
 
@@ -221,6 +221,7 @@ def admin_list_clubs(request):
                 club.user_can_edit = True
 
     # Check for old style clubs
+    # TODO: THIS IS REALLY INEFFICIENT AND TEMPORARY - REMOVE WHEN CLUBS MIGRATED
     for club in clubs:
         try:
             if club.user_can_edit:

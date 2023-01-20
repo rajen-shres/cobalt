@@ -634,13 +634,19 @@ def get_basket_for_user(user):
 def get_events(user):
     """called by dashboard to get upcoming events"""
 
-    # get last 5 sorted by start date
+    # get last 6 sorted by start date
     event_entry_players = (
         EventEntryPlayer.objects.filter(player=user)
         .exclude(event_entry__entry_status="Cancelled")
         .exclude(event_entry__event__denormalised_end_date__lt=datetime.today())
-        .order_by("event_entry__event__denormalised_start_date")[:5]
+        .order_by("event_entry__event__denormalised_start_date")[:6]
     )
+
+    # We get 6 but show 5. If we have 6 then show the more button
+    more_events = len(event_entry_players) == 6
+
+    # Drop the 6th if we have one
+    event_entry_players = event_entry_players[:5]
 
     # Flag for unpaid entries
     unpaid = False
@@ -676,7 +682,7 @@ def get_events(user):
         ):
             event_entry_player.is_running = True
 
-    return event_entry_players, unpaid
+    return event_entry_players, unpaid, more_events
 
 
 def get_conveners_for_congress(congress):

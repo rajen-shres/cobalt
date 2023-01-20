@@ -260,6 +260,10 @@
                                 </tbody>
                             </table>
 
+                            {% if more_events %}
+                                <a href='{% url "events:view_events" %}'>See More...</a>
+                            {% endif %}
+
                         {% else %}
 
                             <span class="card-link">Nothing booked</span>

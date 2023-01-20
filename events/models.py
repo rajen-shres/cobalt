@@ -686,28 +686,16 @@ class Event(models.Model):
             return None
 
     def start_time(self):
-        """return the start time of this event"""
-        session = Session.objects.filter(event=self)
-        if session:
-            return session.earliest("session_date").session_start
-        else:
-            return None
+        """Originally we didn't have a start time and this function calculated it"""
+        return self.denormalised_start_time
 
     def start_date(self):
-        """return the start date of this event"""
-        session = Session.objects.filter(event=self)
-        if session:
-            return session.earliest("session_date").session_date
-        else:
-            return None
+        """Originally we didn't have a start date and this function calculated it"""
+        return self.denormalised_start_date
 
     def end_date(self):
-        """return the end date of this event"""
-        session = Session.objects.filter(event=self)
-        if session:
-            return session.latest("session_date").session_date
-        else:
-            return None
+        """Originally we didn't have an end date and this function calculated it"""
+        return self.denormalised_end_date
 
     def print_dates(self):
         """returns nicely formatted date string for event"""
@@ -718,7 +706,7 @@ class Event(models.Model):
             return None
 
         if start == end:
-            return "%s %s" % (ordinal(start.strftime("%d")), start.strftime("%B %Y"))
+            return f'{ordinal(start.strftime("%d"))} {start.strftime("%B %Y")}'
 
         start_day = ordinal(start.strftime("%d"))
         start_month = start.strftime("%B")
@@ -733,9 +721,9 @@ class Event(models.Model):
         if start_month == end_month:
             start_month = ""
         else:
-            start_month = " " + start_month
+            start_month = f" {start_month}"
             if start_year != "":
-                start_year = " " + start_year
+                start_year = f" {start_year}"
 
         return (
             f"{start_day}{start_month}{start_year} to {end_day} {end_month} {end_year}"
