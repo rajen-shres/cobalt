@@ -44,6 +44,11 @@ TRANSACTION_TYPE = [
 ]
 
 
+class TransactionType(models.TextChoices):
+    CONGRESS = "CO"
+    SESSION = "SE"
+
+
 class StripeTransaction(models.Model):
     """Our record of Stripe transactions.
 
@@ -290,6 +295,13 @@ class OrganisationTransaction(AbstractTransaction):
     )
     """ Records the actual amount paid out minus the fees for settlement transactions. Blank for anything else"""
 
+    # Optional classification of this transaction for summarisation and better reporting
+    transaction_type = models.CharField(
+        max_length=2, choices=TransactionType.choices, blank=True, null=True
+    )
+    category = models.CharField(max_length=50, blank=True, null=True)
+    sub_category = models.CharField(max_length=50, blank=True, null=True)
+
     def save(self, *args, **kwargs):
         if not self.reference_no:
             self.reference_no = "%s-%s-%s" % (
@@ -460,10 +472,6 @@ class AbstractFinanceClassification(models.Model):
     hold a free format description for them.
 
     """
-
-    class TransactionType(models.TextChoices):
-        CONGRESS = "CO"
-        SESSION = "SE"
 
     organisation = models.ForeignKey(
         OrganisationTransaction, on_delete=models.CASCADE, blank=True, null=True
