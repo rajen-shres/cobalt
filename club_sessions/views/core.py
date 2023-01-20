@@ -58,7 +58,9 @@ def load_session_entry_static(session, club):
     """Sub of tab_session_htmx. Load the data we need to be able to process the session tab"""
 
     # Get the entries for this session
-    session_entries = SessionEntry.objects.filter(session=session)
+    session_entries = SessionEntry.objects.filter(session=session).select_related(
+        "payment_method"
+    )
 
     # Map to Users or UnregisteredUsers
 
@@ -108,8 +110,12 @@ def get_session_fees_for_session(session):
 
     """
 
-    fees = SessionTypePaymentMethodMembership.objects.filter(
-        session_type_payment_method__session_type=session.session_type
+    fees = (
+        SessionTypePaymentMethodMembership.objects.filter(
+            session_type_payment_method__session_type=session.session_type
+        )
+        .select_related("membership")
+        .select_related("session_type_payment_method__payment_method")
     )
 
     session_fees = {}
@@ -358,7 +364,7 @@ def calculate_payment_method_and_balance(session_entries, session_fees, club):
         member_transaction.member: member_transaction.balance
         for member_transaction in MemberTransaction.objects.filter(
             member__system_number__in=bridge_credit_users
-        )
+        ).select_related("member")
     }
 
     bridge_credit_payment_method = bridge_credits_for_club(club)

@@ -139,6 +139,7 @@ def get_posts(request):
         posts_list = (
             Post.objects.filter(forum__in=forum_list_allowed)
             .filter(forum__forum_type="Discussion")
+            .select_related("author", "forum")
             .order_by("-created_date")
         )
 
