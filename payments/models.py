@@ -296,11 +296,16 @@ class OrganisationTransaction(AbstractTransaction):
     """ Records the actual amount paid out minus the fees for settlement transactions. Blank for anything else"""
 
     # Optional classification of this transaction for summarisation and better reporting
-    transaction_type = models.CharField(
+    gl_transaction_type = models.CharField(
         max_length=2, choices=TransactionType.choices, blank=True, null=True
     )
-    category = models.CharField(max_length=50, blank=True, null=True)
-    sub_category = models.CharField(max_length=50, blank=True, null=True)
+    """ see AbstractFinanceClassifications for info on these fields """
+    gl_category = models.CharField(max_length=50, blank=True, null=True)
+    """ see AbstractFinanceClassifications for info on these fields """
+    gl_sub_category = models.CharField(max_length=50, blank=True, null=True)
+    """ see AbstractFinanceClassifications for info on these fields """
+    gl_series = models.PositiveIntegerField(default=0)
+    """ Series is used to separate instances of the same classification. This is implementation specific """
 
     def save(self, *args, **kwargs):
         if not self.reference_no:
@@ -474,14 +479,16 @@ class AbstractFinanceClassification(models.Model):
     """
 
     organisation = models.ForeignKey(
-        OrganisationTransaction, on_delete=models.CASCADE, blank=True, null=True
+        Organisation, on_delete=models.CASCADE, blank=True, null=True
     )
     """ This can be blank to allow for generic options """
-    transaction_type = models.CharField(max_length=2, choices=TransactionType.choices)
+    gl_transaction_type = models.CharField(
+        max_length=2, choices=TransactionType.choices
+    )
     """ High level, system defined options """
-    category = models.CharField(max_length=50)
+    gl_category = models.CharField(max_length=50)
     """ First level of user customisable code """
-    description = models.CharField(max_length=100, blank=True, null=True)
+    gl_description = models.CharField(max_length=100, blank=True, null=True)
     """ Description of this """
 
 
@@ -491,13 +498,13 @@ class FinanceClassificationCategory(AbstractFinanceClassification):
     pass
 
     def __str__(self):
-        return f"{self.organisation} - {self.transaction_type} - {self.category}"
+        return f"{self.organisation} - {self.gl_transaction_type} - {self.gl_category}"
 
 
 class FinanceClassificationSubCategory(AbstractFinanceClassification):
     """Definitions for Sub-Category"""
 
-    sub_category = models.CharField(max_length=50)
+    gl_sub_category = models.CharField(max_length=50)
 
     def __str__(self):
-        return f"{self.organisation} - {self.transaction_type} - - {self.sub_category} - {self.category}"
+        return f"{self.organisation} - {self.gl_transaction_type} - - {self.gl_sub_category} - {self.gl_category}"
