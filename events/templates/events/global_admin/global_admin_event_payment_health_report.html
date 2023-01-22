@@ -88,9 +88,9 @@
 
                     {% for bad_congress in bad_congresses %}
                         <a
-                            href="{% url "events:admin_summary" congress_id=bad_congress.event_entry__event__congress %}"
+                            href="{% url "events:admin_summary" congress_id=bad_congress.id %}"
                             class="btn btn-{% cobalt_random_colour %}"
-                        >{{ bad_congress.event_entry__event__congress__name }}</a>
+                        >{{ bad_congress }}</a>
                     {% endfor %}
 
                 {% endif %}
