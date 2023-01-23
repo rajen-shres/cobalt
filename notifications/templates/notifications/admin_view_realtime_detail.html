@@ -85,7 +85,8 @@
                                                 {% if notification_header.uncontactable_users %}
                                                     <a href="javascript:void(0)" _="on click toggle .cobalt-hidden on #uncontact-rows">Uncontactable</a>
                                                     <div id="uncontact-rows" class="cobalt-hidden bg-warning">
-                                                        <h5>These users are registered but either don't have a valid phone number or have asked not to receive notifications</h5>
+                                                        <h5>These users are registered but either aren't set up for FCM, don't have a valid phone number or
+                                                            have asked not to receive notifications</h5>
                                                         <ul>
                                                             {% for invalid_line in notification_header.uncontactable_users %}
                                                                 <li>{{ invalid_line }}</li>
@@ -121,6 +122,7 @@
                             <th class="text-left">Date</th>
                             <th class="text-left">Member</th>
                             <th class="text-left">Sender</th>
+                            <th class="text-left">Delivery Method</th>
                             <th class="text-left">Message</th>
                             <th>Action</th>
                         </tr>
@@ -131,6 +133,13 @@
                                 <td class="text-left">{{ notification.created_time|cobalt_nice_datetime }}</td>
                                 <td class="text-left">{{ notification.member }}</td>
                                 <td class="text-left">{{ notification.admin }}</td>
+                                <td class="text-left">
+                                    {% if notification.fcm_device %}
+                                        App ({{ notification.fcm_device.name }})
+                                    {% else %}
+                                        SMS
+                                    {% endif %}
+                                </td>
                                 <td class="text-left">
                                     <a id="msg-text-{{ notification.id }}" href="javascript:void(0)" _="on click show #msg-{{ notification.id }} then hide me">+ Show message</a>
                                     <div id="msg-{{ notification.id }}" style="display: none" _="on click show #msg-text-{{ notification.id }} then hide me">

@@ -6,6 +6,7 @@ import string
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+from fcm_django.models import FCMDevice
 from post_office.models import Email as PostOfficeEmail
 
 from accounts.models import User, UnregisteredUser
@@ -289,6 +290,8 @@ class RealtimeNotification(models.Model):
     """AWS message id from SMS call"""
     has_been_read = models.BooleanField(default=False)
     """ Whether message has been read or not by the client app. For SMS we don't know so this is always false"""
+    fcm_device = models.ForeignKey(FCMDevice, on_delete=models.CASCADE, null=True)
+    """ Optional device for FCM """
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
