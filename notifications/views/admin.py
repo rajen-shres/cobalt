@@ -201,6 +201,8 @@ def admin_view_realtime_notification_detail(request, header_id):
         header=notification_header
     ).select_related("member")
 
+    # Get sent by FCM
+
     return render(
         request,
         "notifications/admin_view_realtime_detail.html",
@@ -212,8 +214,6 @@ def admin_view_realtime_notification_detail(request, header_id):
 def admin_view_realtime_notification_item(request, notification_id):
     """Show the detail of a single message. Actually allows anyone with
        notifications.realtime_send.edit to see the message, but that is okay.
-       We save the AWS Message Id when we send the message, this looks in the
-       AWS Cloudwatch logs to find out what happened subsequently.
 
     Args:
         request (HTTPRequest): standard request object
@@ -223,6 +223,26 @@ def admin_view_realtime_notification_item(request, notification_id):
         HTTPResponse
     """
     notification = get_object_or_404(RealtimeNotification, pk=notification_id)
+
+    if notification.fcm_device:
+        return _admin_view_realtime_notification_item_fcm(request, notification)
+    else:
+        return _admin_view_realtime_notification_item_sms(request, notification)
+
+
+def _admin_view_realtime_notification_item_sms(request, notification):
+    """Sub to handle specifics of SMS.
+
+       For SMS we save the AWS Message Id when we send the message, this looks in the
+       AWS Cloudwatch logs to find out what happened subsequently.
+
+    Args:
+        request (HTTPRequest): standard request object
+        notification (RealtimeNotification): RealtimeNotification to show
+
+    Returns:
+        HTTPResponse
+    """
 
     # TODO: Move this to a global variable
     success_log_group = "sns/ap-southeast-2/730536189139/DirectPublishToPhoneNumber"
@@ -264,6 +284,26 @@ def admin_view_realtime_notification_item(request, notification_id):
     )
 
 
+def _admin_view_realtime_notification_item_fcm(request, notification):
+    """Sub to handle specifics of FCM.
+
+    Args:
+        request (HTTPRequest): standard request object
+        notification (RealtimeNotification): RealtimeNotification to show
+
+    Returns:
+        HTTPResponse
+    """
+
+    return render(
+        request,
+        "notifications/admin_view_realtime_item.html",
+        {
+            "notification": notification,
+        },
+    )
+
+
 @rbac_check_role("notifications.admin.view")
 def global_admin_view_emails(request, member_id):
     """Allow an admin to see emails for a player
@@ -288,6 +328,36 @@ def global_admin_view_emails(request, member_id):
             "profile": member,
             "summary": summary,
             "emails": email_list,
+        },
+    )
+
+
+@rbac_check_role("notifications.admin.view", "notifications.realtime_send.edit")
+def global_admin_view_real_time_for_user(request, member_id):
+    """Allow an admin to see real time notifications for a player
+
+    Args:
+        member_id: member to look up
+        request (HTTPRequest): standard request object
+
+    Returns:
+        HTTPResponse
+    """
+
+    member = get_object_or_404(User, pk=member_id)
+    summary = user_summary(member.system_number)
+
+    real_time_list = RealtimeNotification.objects.filter(member=member).order_by(
+        "-created_time"
+    )
+
+    return render(
+        request,
+        "notifications/global_admin_view_real_time_for_user.html",
+        {
+            "profile": member,
+            "summary": summary,
+            "real_time_list": real_time_list,
         },
     )
 

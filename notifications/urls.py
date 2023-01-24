@@ -94,6 +94,11 @@ urlpatterns = [
         name="global_admin_view_emails",
     ),
     path(
+        "system-admin/global-admin-view-real-time-for-user/<int:member_id>",
+        notifications.views.admin.global_admin_view_real_time_for_user,
+        name="global_admin_view_real_time_for_user",
+    ),
+    path(
         "mobile-device/send-test/<int:fcm_device_id>",
         notifications.views.core.send_test_fcm_message,
         name="send_test_fcm_message",
