@@ -25,6 +25,11 @@ urlpatterns = [
         name="club_results_paginator_htmx",
     ),
     path(
+        "home/all-results-paginator",
+        results.views.home.all_results_paginator_htmx,
+        name="all_results_paginator_htmx",
+    ),
+    path(
         "mp-pairs-results-summary/<int:results_file_id>",
         results.views.results_views.usebio_mp_pairs_results_summary_view,
         name="usebio_mp_pairs_results_summary_view",

@@ -68,6 +68,10 @@ class MemberClubEmailAdmin(admin.ModelAdmin):
         "organisation",
     ]
 
+    search_fields = [
+        "email",
+    ]
+
 
 class ClubTagAdmin(admin.ModelAdmin):
     """Admin class for model ClubTag"""

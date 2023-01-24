@@ -178,6 +178,9 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
+                            {% if more_results %}
+                                <a href="{% url "results:results" %}">More Results...</a>
+                            {% endif %}
                         {% else %}
                             No results found
                         {% endif %}

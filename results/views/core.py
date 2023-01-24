@@ -91,10 +91,16 @@ def opponents_list_for(player):
 def get_recent_results(user):
     """Return the 5 most recent results for a user. Called by Dashboard"""
 
-    return PlayerSummaryResult.objects.filter(
+    results = PlayerSummaryResult.objects.filter(
         player_system_number=user.system_number,
         results_file__status=ResultsFile.ResultsStatus.PUBLISHED,
-    ).order_by("result_date")[:5]
+    ).order_by("result_date")[:6]
+
+    # We get 6, so we can return 5 but show if more are available
+    if len(results) == 6:
+        return results[:5], True
+    else:
+        return results, False
 
 
 def double_dummy_from_usebio(board):
