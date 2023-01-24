@@ -23,13 +23,21 @@
                 {% for result in things %}
 
                     <tr>
-                        <td class="text-left">{{ result.result_date|cobalt_nice_date }}</td>
+                        <td class="text-left">
+                            <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=result.id %}">
+                                {{ result.result_date|cobalt_nice_date }}
+                            </a>
+                        </td>
                         <td class="text-left">
                             <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=result.id %}">
                                 {{ result.event_name }}
                             </a>
                         </td>
-                        <td class="text-left">{{ result.organisation }}</td>
+                        <td class="text-left">
+                            <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=result.id %}">
+                                {{ result.organisation }}
+                            </a>
+                        </td>
                     </tr>
 
                 {% endfor %}
