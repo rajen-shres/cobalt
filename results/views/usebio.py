@@ -44,7 +44,15 @@ def create_player_records_from_usebio_format_pairs(
 
     event_name = xml.get("EVENT_DESCRIPTION")
     event_date_str = xml.get("DATE")
-    event_date = datetime.strptime(event_date_str, "%d/%m/%Y").date()
+
+    # Try to get the date from the file. Date format is local
+    try:
+        event_date = datetime.strptime(event_date_str, "%d/%m/%Y").date()
+    except ValueError:
+        try:
+            event_date = datetime.strptime(event_date_str, "%d-%m-%Y").date()
+        except ValueError:
+            event_date = datetime.today()
 
     for detail in xml["PARTICIPANTS"]["PAIR"]:
         percentage = detail["PERCENTAGE"]

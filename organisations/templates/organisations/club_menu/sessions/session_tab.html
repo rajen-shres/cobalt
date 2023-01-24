@@ -22,6 +22,7 @@
                     Compscore3 (csv)
                     <input
                         type="file" name="file"
+                        accept=".csv"
                         id="id_upload_results_file_btn_cs"
                         hx-encoding='multipart/form-data'
                         hx-post="{% url "club_sessions:session_import_file_upload_htmx" %}"
@@ -38,6 +39,7 @@
                     Compscore2 (txt)
                     <input
                         type="file" name="file"
+                        accept=".txt"
                         id="id_upload_results_file_btn_cs"
                         hx-encoding='multipart/form-data'
                         hx-post="{% url "club_sessions:session_import_file_upload_htmx" %}"
@@ -54,6 +56,7 @@
                     Generic CSV
                     <input
                         type="file" name="file"
+                        accept=".csv"
                         id="id_upload_results_file_btn_generic"
                         hx-encoding='multipart/form-data'
                         hx-post="{% url "club_sessions:session_import_file_upload_htmx" %}"

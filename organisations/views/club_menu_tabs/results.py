@@ -1,6 +1,7 @@
 import logging
 import xml
 
+from django.db.transaction import atomic
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -56,6 +57,7 @@ def upload_results_file_valid(request, form, club):
 
 
 @check_club_menu_access(check_sessions=True)
+@atomic()
 def upload_results_file_htmx(request, club):
     """Upload a new results file"""
 

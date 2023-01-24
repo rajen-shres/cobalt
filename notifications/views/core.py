@@ -3,6 +3,7 @@ import re
 from threading import Thread
 
 import boto3
+import firebase_admin.messaging
 from botocore.exceptions import ClientError
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -376,8 +377,10 @@ def send_cobalt_bulk_sms(
     total_file_rows=0,
     from_name=GLOBAL_TITLE,
 ):
-    """Try to send a bunch of SMS messages to users. Will only send if they are registered, want to receive SMS
+    """Try to send a bunch of SMS messages (or FCMs) to users. Will only send if they are registered, want to receive SMS
     and have a valid phone number.
+
+    First try to contact them over FCM if they are set up, so above sentence is no longer totally true.
 
     Args:
         msg_list(list): list of tuples of system number and message to send (system_number, "message")
@@ -390,12 +393,18 @@ def send_cobalt_bulk_sms(
     Returns:
         sent_users(list): Who we think we sent messages to
         unregistered_users(list): list of users who we do not know about
+        fcm_users(list): list of users we sent FCM messages to. Users may have multiple devices registered
         un_contactable_users(list): list of users who don't have mobiles or haven't ticked to receive SMS
     """
 
     unregistered_users = []
     uncontactable_users = []
     sent_users = []
+
+    # For now we just store the users, could change this to store users and devices, for non-blank headers this can be
+    # worked out anyway
+    fcm_sent_users = []
+    fcm_failed_users = []
 
     # Log this batch
     header = RealtimeNotificationHeader(
@@ -407,12 +416,96 @@ def send_cobalt_bulk_sms(
     )
     header.save()
 
+    # load data
+    (
+        app_users,
+        users,
+        registered_users,
+        phone_lookup,
+        user_lookup,
+        fcm_lookup,
+    ) = _send_cobalt_bulk_sms_get_data(msg_list)
+
+    # Go through and try to send the messages
+    for item in msg_list:
+        system_number, msg = item
+
+        # first try fcm
+        fcm_device_list = fcm_lookup.get(system_number)
+        if fcm_device_list:
+            # If it works for any device, count that as successful
+            worked = False
+
+            for fcm_device in fcm_device_list:
+                # Reformat string
+                msg = msg.replace("<br>", "\n")
+                if send_fcm_message(fcm_device, msg, admin, header):
+                    worked = True
+
+            if worked:
+                fcm_sent_users.append(system_number)
+            else:
+                fcm_failed_users.append(system_number)
+
+        else:
+
+            # See if we can send this by SMS
+            if system_number not in phone_lookup:
+                if (
+                    system_number in registered_users
+                ):  # This one is registered but not contactable
+                    uncontactable_users.append(system_number)
+                else:  # This one is not registered
+                    unregistered_users.append(system_number)
+                continue
+
+            user = user_lookup[system_number]
+
+            phone_number = phone_lookup[item[0]]
+            msg = item[1]
+
+            # Send it
+            send_cobalt_sms(
+                phone_number=phone_number,
+                msg=msg,
+                from_name=from_name,
+                header=header,
+                member=user,
+            )
+
+            sent_users.append(system_number)
+
+    # Update header
+    header.send_status = bool(sent_users + fcm_sent_users)
+    header.successful_send_number = len(sent_users) + len(fcm_sent_users)
+
+    # Save lists as strings using model functions
+    header.set_uncontactable_users(uncontactable_users)
+    header.set_unregistered_users(unregistered_users)
+    header.set_invalid_lines(invalid_lines)
+    header.save()
+
+    return sent_users + fcm_sent_users, unregistered_users, uncontactable_users
+
+
+def _send_cobalt_bulk_sms_get_data(msg_list):
+    """sub of send_cobalt_bulk_sms to load required data"""
+
     # Get system_numbers as list
     system_numbers = [item[0] for item in msg_list]
+
+    # Get the App users (people set up with FCM)
+    app_users = FCMDevice.objects.filter(
+        user__system_number__in=system_numbers
+    ).select_related("user")
+
+    # List of FCM Device users to exclude from the SMS
+    app_users_id_list = app_users.values("user__system_number")
 
     # Get the users who want to be contacted and have phone numbers
     users = (
         User.objects.filter(system_number__in=system_numbers)
+        .exclude(system_number__in=app_users_id_list)
         .filter(receive_sms_results=True)
         .filter(mobile__isnull=False)
     )
@@ -431,46 +524,14 @@ def send_cobalt_bulk_sms(
         phone_lookup[user.system_number] = f"+61{user.mobile[1:]}"
         user_lookup[user.system_number] = user
 
-    for item in msg_list:
-        system_number, msg = item
+    # create dict of ABF number to FCM, can be multiple devices per person
+    fcm_lookup = {}
+    for app_user in app_users:
+        if app_user.user.system_number not in fcm_lookup:
+            fcm_lookup[app_user.user.system_number] = []
+        fcm_lookup[app_user.user.system_number].append(app_user)
 
-        # See if we can send this
-        if system_number not in phone_lookup:
-            if (
-                system_number in registered_users
-            ):  # This one is registered but not contactable
-                uncontactable_users.append(system_number)
-            else:  # This one is not registered
-                unregistered_users.append(system_number)
-            continue
-
-        user = user_lookup[system_number]
-
-        phone_number = phone_lookup[item[0]]
-        msg = item[1]
-
-        # Send it
-        send_cobalt_sms(
-            phone_number=phone_number,
-            msg=msg,
-            from_name=from_name,
-            header=header,
-            member=user,
-        )
-
-        sent_users.append(system_number)
-
-    # Update header
-    header.send_status = bool(sent_users)
-    header.successful_send_number = len(sent_users)
-
-    # Save lists as strings using model functions
-    header.set_uncontactable_users(uncontactable_users)
-    header.set_unregistered_users(unregistered_users)
-    header.set_invalid_lines(invalid_lines)
-    header.save()
-
-    return sent_users, unregistered_users, uncontactable_users
+    return app_users, users, registered_users, phone_lookup, user_lookup, fcm_lookup
 
 
 def send_cobalt_sms(
@@ -704,20 +765,26 @@ def send_test_fcm_message(request, fcm_device_id):
             f"It was sent on {now}."
         )
 
-        rc = send_fcm_message(fcm_device, test_msg, request.user)
+        send_fcm_message(fcm_device, test_msg, request.user)
 
-        return HttpResponse(f"Message sent {rc}")
+        return HttpResponse("Message sent")
 
     return HttpResponse("Device not found or access denied")
 
 
-def send_fcm_message(fcm_device, msg, admin=None):
+def send_fcm_message(fcm_device, msg, admin=None, header=None):
     """Send a message to a users registered FCM device"""
 
     if not admin:
         admin = User.objects.get(pk=RBAC_EVERYONE)
 
-    RealtimeNotification(member=fcm_device.user, admin=admin, msg=msg).save()
+    RealtimeNotification(
+        member=fcm_device.user,
+        admin=admin,
+        msg=msg,
+        header=header,
+        fcm_device=fcm_device,
+    ).save()
 
     msg = Message(
         notification=Notification(
@@ -735,9 +802,18 @@ def send_fcm_message(fcm_device, msg, admin=None):
     )
 
     rc = fcm_device.send_message(msg)
-    logger.info(rc)
 
-    return rc
+    # log it
+    if type(rc) is firebase_admin.messaging.SendResponse:
+        logger.info(f"Sent message to {fcm_device.user} on device: {fcm_device.name}")
+        return True
+
+    # If we get an error then handle it
+    else:
+        logger.error(f"Error from FCM for {fcm_device.user} - {rc}")
+        logger.error(f"Deleting FCM device {fcm_device.name} for {fcm_device.user}")
+        fcm_device.delete()
+        return False
 
 
 def send_cobalt_email_to_system_number(

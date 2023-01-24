@@ -195,12 +195,19 @@ def public_profile(request, pk):
     # Admins get more
     payments_admin = bool(rbac_user_has_role(request.user, "payments.global.edit"))
     events_admin = bool(rbac_user_has_role(request.user, "events.global.view"))
+
     if rbac_user_has_role(request.user, "support.helpdesk.edit"):
         tickets = Incident.objects.filter(reported_by_user=pub_profile.id)
     else:
         tickets = False
 
     email_admin = bool(rbac_user_has_role(request.user, "notifications.admin.view"))
+    # real time is covered by the email role or one other
+    real_time_admin = email_admin
+    if real_time_admin:
+        real_time_admin = bool(
+            rbac_user_has_role(request.user, "notifications.realtime_send.edit")
+        )
 
     user_additional_info = UserAdditionalInfo.objects.filter(user=pub_profile).first()
 
@@ -222,6 +229,7 @@ def public_profile(request, pk):
             "payments_admin": payments_admin,
             "events_admin": events_admin,
             "email_admin": email_admin,
+            "real_time_admin": real_time_admin,
             "tickets": tickets,
             "user_additional_info": user_additional_info,
             "member_of_clubs": member_of_clubs,

@@ -255,9 +255,13 @@ def import_file_upload_htmx(request):
 
     else:
         print(form.errors)
+        session = None
 
     response = tab_sessions_htmx(request)
-    response["HX-Trigger"] = f"""{{"file_upload_finished":{{"id": "{session.id}" }}}}"""
+    if session:
+        response[
+            "HX-Trigger"
+        ] = f"""{{"file_upload_finished":{{"id": "{session.id}" }}}}"""
     return response
 
 
