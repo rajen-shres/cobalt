@@ -640,6 +640,11 @@ urlpatterns = [
         name="member_search_tab_name_htmx",
     ),
     path(
+        "member/search-tab-email",
+        organisations.views.club_menu_tabs.members.member_search_tab_email_htmx,
+        name="member_search_tab_email_htmx",
+    ),
+    path(
         "sessions/refresh-sessions-tab",
         organisations.views.club_menu_tabs.sessions.refresh_sessions_tab,
         name="refresh_sessions_tab",

@@ -1212,6 +1212,33 @@ def member_search_tab_name_htmx(request, club):
     )
 
 
+@check_club_menu_access()
+def member_search_tab_email_htmx(request, club):
+    """Search function for searching for a member by email"""
+
+    email_search = request.POST.get("member_email_search")
+
+    # if there is nothing to search for, don't search
+    if not email_search:
+        return HttpResponse()
+
+    # Unregistered Only
+    member_club_system_number_list = (
+        MemberClubEmail.objects.filter(email__icontains=email_search)
+        .filter(organisation=club)
+        .values("system_number")
+    )
+    un_regs = UnregisteredUser.objects.filter(
+        system_number__in=member_club_system_number_list
+    )
+
+    return render(
+        request,
+        "organisations/club_menu/members/member_search_tab_name_htmx.html",
+        {"user_list": un_regs, "club": club},
+    )
+
+
 @check_club_menu_access(check_members=True)
 def bulk_invite_to_join_htmx(request, club):
     """Invite multiple people to join MyABF"""
