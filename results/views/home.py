@@ -15,17 +15,21 @@ def home(request):
     # your results
     your_results = recent_results_paginator_htmx(request, query_only=True)
 
-    # team mate results
+    # teammate results
     teammate_results = teammates_results_paginator_htmx(request, query_only=True)
 
     # club results
     club_results = club_results_paginator_htmx(request, query_only=True)
+
+    # all results
+    all_results = all_results_paginator_htmx(request, query_only=True)
 
     # Add hx_post for paginator controls
     hx_post_dict = {
         "yours": reverse("results:recent_results_paginator_htmx"),
         "teammate": reverse("results:teammates_results_paginator_htmx"),
         "club": reverse("results:club_results_paginator_htmx"),
+        "all_post": reverse("results:all_results_paginator_htmx"),
     }
 
     return render(
@@ -35,6 +39,7 @@ def home(request):
             "your_results": your_results,
             "teammate_results": teammate_results,
             "club_results": club_results,
+            "all_results": all_results,
             "hx_post_dict": hx_post_dict,
         },
     )
@@ -51,9 +56,9 @@ def recent_results_paginator_htmx(request, query_only=False):
     results = PlayerSummaryResult.objects.filter(
         player_system_number=request.user.system_number,
         results_file__status=ResultsFile.ResultsStatus.PUBLISHED,
-    ).order_by("result_date")
+    ).order_by("-result_date")
 
-    things = cobalt_paginator(request, results)
+    things = cobalt_paginator(request, results, 10)
 
     if query_only:
         return things
@@ -83,10 +88,10 @@ def teammates_results_paginator_htmx(request, query_only=False):
     teammate_results_qs = PlayerSummaryResult.objects.filter(
         player_system_number__in=system_numbers,
         results_file__status=ResultsFile.ResultsStatus.PUBLISHED,
-    ).order_by("result_date")
+    ).order_by("-result_date")
 
     # paginate it
-    teammate_results = cobalt_paginator(request, teammate_results_qs)
+    teammate_results = cobalt_paginator(request, teammate_results_qs, 10)
 
     # Add player name
     for teammate_result in teammate_results:
@@ -126,10 +131,10 @@ def club_results_paginator_htmx(request, query_only=False):
     club_results_qs = ResultsFile.objects.filter(
         organisation_id__in=your_clubs,
         status=ResultsFile.ResultsStatus.PUBLISHED,
-    ).order_by("created_at")
+    ).order_by("-created_at")
 
     # paginate it
-    club_results = cobalt_paginator(request, club_results_qs)
+    club_results = cobalt_paginator(request, club_results_qs, 10)
 
     # augment data - name and date are on the player_summary_records
     for club_result in club_results:
@@ -150,4 +155,42 @@ def club_results_paginator_htmx(request, query_only=False):
         request,
         "results/home/club_results_table_htmx.html",
         {"things": club_results, "hx_post": hx_post},
+    )
+
+
+@login_required()
+def all_results_paginator_htmx(request, query_only=False):
+    """show pages for the recent results. Returns paginated query set or HttpResponse.
+
+    Can be called by the main results page to build the initial list or by the htmx call to paginate
+
+    """
+
+    # all results
+    all_results_qs = ResultsFile.objects.filter(
+        status=ResultsFile.ResultsStatus.PUBLISHED,
+    ).order_by("-created_at")
+
+    # paginate it
+    all_results = cobalt_paginator(request, all_results_qs, 10)
+
+    # augment data - name and date are on the player_summary_records
+    for all_result in all_results:
+        first_player = PlayerSummaryResult.objects.filter(
+            results_file=all_result
+        ).first()
+        if first_player:
+            all_result.event_name = first_player.event_name
+            all_result.result_date = first_player.result_date
+
+    if query_only:
+        return all_results
+
+    # Add hx_post for paginator controls
+    hx_post = reverse("results:all_results_paginator_htmx")
+
+    return render(
+        request,
+        "results/home/all_results_table_htmx.html",
+        {"things": all_results, "hx_post": hx_post},
     )

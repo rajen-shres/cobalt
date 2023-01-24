@@ -15,6 +15,9 @@
 
     <div class="card-body" id="id_member_list_tab">
         <div class="container">
+
+            <!-- LAST NAME -->
+
             <div class="row">
                 <div class="col-md-8">
                     <div class="form-group">
@@ -33,6 +36,8 @@
                     </div>
                 </div>
             </div>
+
+            <!-- FIRST NAME -->
             <div class="row">
                 <div class="col-md-8">
                     <div class="form-group">
@@ -45,6 +50,24 @@
                             hx-trigger="keyup changed delay:100ms"
                             hx-target="#member-search-results"
                             hx-include="[id='id_member_last_name_search']"
+                            hx-vars="club_id: {{ club.id }}"
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <!-- EMAIL -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <input type="text"
+                            id="id_member_email_search"
+                            name="member_email_search"
+                            placeholder="Club Email Address (unregistered members only)"
+                            class="form-control"
+                            hx-post="{% url "organisations:member_search_tab_email_htmx" %}"
+                            hx-trigger="keyup changed delay:100ms"
+                            hx-target="#member-search-results"
                             hx-vars="club_id: {{ club.id }}"
                         >
                     </div>

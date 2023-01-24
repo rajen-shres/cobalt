@@ -34,7 +34,7 @@ def home(request):
         posts = get_posts(request)
         posts2 = get_announcements(request)
         events, unpaid = get_events(request.user)
-        recent_results = get_recent_results(request.user)
+        recent_results, more_results = get_recent_results(request.user)
         user_pending_payments = get_user_pending_payments(system_number)
 
         # Show tour for this page?
@@ -51,6 +51,7 @@ def home(request):
                 "events": events,
                 "unpaid": unpaid,
                 "recent_results": recent_results,
+                "more_results": more_results,
                 "user_pending_payments": user_pending_payments,
                 "tour": tour,
             },

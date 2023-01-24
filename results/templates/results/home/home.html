@@ -37,8 +37,8 @@
 
                 <div class="card col pt-4">
                     <div class="card-header card-header-primary">
-                        <h3>Your Team Mates Recent Results</h3>
-                        <p>You can add and remove Team Mates from <a class="btn btn-sm" href="{% url "accounts:user_profile" %}">Your Profile</a></p>
+                        <h3>Your Teammate's Recent Results</h3>
+                        <p>You can add and remove Teammates from <a class="btn btn-sm" href="{% url "accounts:user_profile" %}">Your Profile</a></p>
                     </div>
                     <div
                         id="team_mate_results"
@@ -51,12 +51,25 @@
 
                 <div class="card col pt-4">
                     <div class="card-header card-header-success">
-                        <h3>Your Club Recent Results</h3>
+                        <h3>Your Club(s) Recent Results</h3>
                     </div>
                     <div
                         id="club_results"
                     >
                         {% include "results/home/club_results_table_htmx.html" with things=club_results hx_post=hx_post_dict.club %}
+                    </div>
+                </div>
+
+                <!-- ALL RESULTS -->
+
+                <div class="card col pt-4">
+                    <div class="card-header card-header-danger">
+                        <h3>All Clubs Recent Results</h3>
+                    </div>
+                    <div
+                        id="all_results"
+                    >
+                        {% include "results/home/all_results_table_htmx.html" with things=all_results hx_post=hx_post_dict.all_post %}
                     </div>
                 </div>
 
