@@ -25,19 +25,33 @@
                 {% for result in things %}
 
                     <tr>
-                        <td class="text-left">{{ result.result_date|cobalt_nice_date }}</td>
-                        <td class="text-left">{{ result.teammate.full_name }}</td>
+                        <td class="text-left">
+                            <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=result.results_file.id %}">
+                                {{ result.result_date|cobalt_nice_date }}
+                            </a>
+                        </td>
+                        <td class="text-left">
+                            <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=result.results_file.id %}">
+                                {{ result.teammate.full_name }}
+                            </a>
+                        </td>
                         <td class="text-left">
                             <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=result.results_file.id %}">
                                 {{ result.event_name }}
                             </a>
                         </td>
-                        <td class="text-left">{{ result.results_file.organisation }}</td>
                         <td class="text-left">
-                            {{ result.position|ordinal }}
-                            {% if result.percentage %}
-                                ({{ result.percentage }}%)
-                            {% endif %}
+                            <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=result.results_file.id %}">
+                                {{ result.results_file.organisation }}
+                            </a>
+                        </td>
+                        <td class="text-left">
+                            <a href="{% url "results:usebio_mp_pairs_results_summary_view" results_file_id=result.results_file.id %}">
+                                {{ result.position|ordinal }}
+                                {% if result.percentage %}
+                                    ({{ result.percentage }}%)
+                                {% endif %}
+                            </a>
                         </td>
                     </tr>
 
