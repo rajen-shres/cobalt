@@ -136,8 +136,9 @@ def club_results_paginator_htmx(request, query_only=False):
         first_player = PlayerSummaryResult.objects.filter(
             results_file=club_result
         ).first()
-        club_result.event_name = first_player.event_name
-        club_result.result_date = first_player.result_date
+        if first_player:
+            club_result.event_name = first_player.event_name
+            club_result.result_date = first_player.result_date
 
     if query_only:
         return club_results
