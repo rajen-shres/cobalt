@@ -933,7 +933,9 @@ def edit_event_entry(
         event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
         # Check this is legitimate
         if event_entry.primary_entrant != request.user:
-            return HttpResponse("Invalid request")
+            return HttpResponse(
+                f"Invalid request - attempt to edit EventEntry:{event_entry} which has a Primary Entrant of {event_entry.primary_entrant} by another player {request.user}"
+            )
         # Load the event
         event = event_entry.event
         congress = event.congress
