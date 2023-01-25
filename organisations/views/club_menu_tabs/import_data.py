@@ -1,5 +1,6 @@
 import codecs
 import csv
+import logging
 
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.core.validators import validate_email
@@ -249,7 +250,7 @@ def import_mpc_htmx(request, club):
     We connect directly to the MPC to get members for this club.
 
     Members can be home members or alternate members (members of the club but this
-    isn't their home club so ABF and State fees are not charged for them.
+    isn't their home club so ABF and State fees are not charged for them).
 
     There is no visitor information in the MPC, that happens at the club level.
 
@@ -273,16 +274,26 @@ def import_mpc_htmx(request, club):
     qry = f"{GLOBAL_MPSERVER}/clubMemberList/{club.org_id}"
     club_members = masterpoint_query(qry)
 
-    member_data = [
-        {
-            "system_number": club_member["ABFNumber"],
-            "first_name": club_member["GivenNames"],
-            "last_name": club_member["Surname"],
-            "email": club_member["EmailAddress"],
-            "membership_type": None,
-        }
-        for club_member in club_members
-    ]
+    member_data = []
+
+    for club_member in club_members:
+
+        # Check if email address is valid. Some in the MPC are not
+        email_address = club_member["EmailAddress"]
+        try:
+            validate_email(email_address)
+        except ValidationError:
+            email_address = ""
+
+        member_data.append(
+            {
+                "system_number": club_member["ABFNumber"],
+                "first_name": club_member["GivenNames"],
+                "last_name": club_member["Surname"],
+                "email": email_address,
+                "membership_type": None,
+            }
+        )
 
     (
         home_added_users,

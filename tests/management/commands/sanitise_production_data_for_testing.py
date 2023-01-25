@@ -8,6 +8,9 @@ from cobalt.settings import (
 from accounts.models import User
 from django.core.management.base import BaseCommand
 
+from events.models import Congress
+from organisations.models import MemberClubEmail
+
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
@@ -23,3 +26,5 @@ class Command(BaseCommand):
 
         print("Changing email addresses...")
         User.objects.all().update(email="a@b.com")
+        MemberClubEmail.objects.all().update(email="a@b.com")
+        Congress.objects.all().update(contact_email="a@b.com")
