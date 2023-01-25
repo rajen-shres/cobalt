@@ -934,7 +934,7 @@ def edit_event_entry(
         # Check this is legitimate
         if event_entry.primary_entrant != request.user:
             return HttpResponse(
-                f"Invalid request - attempt to edit EventEntry:{event_entry} which has a Primary Entrant of {event_entry.primary_entrant} by another player {request.user}"
+                f"Invalid request - attempt to edit EventEntry:{event_entry.id} which has a Primary Entrant of {event_entry.primary_entrant} by another player {request.user}"
             )
         # Load the event
         event = event_entry.event
@@ -1911,9 +1911,10 @@ def get_other_entries_to_event_for_user_htmx(request, event_id, this_event_entry
         # exclude the provided event_id, this is the one asking for others so they don't want themselves back
         .exclude(pk=this_event_entry_id)
         # primary entrant OR any player
-        .filter(
-            Q(primary_entrant=request.user) | Q(evententryplayer__player=request.user)
-        ).distinct()
+        .filter(primary_entrant=request.user).distinct()
+        # .filter(
+        #     Q(primary_entrant=request.user) | Q(evententryplayer__player=request.user)
+        # ).distinct()
     )
 
     return render(
