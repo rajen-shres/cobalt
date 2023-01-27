@@ -1093,7 +1093,10 @@ def _xlsx_download_details_extras(
 def import_messages_htmx(request, club, session):
     """Show the messages generated when we imported the file"""
 
-    messages = json.loads(session.import_messages)
+    if session.import_messages:
+        messages = json.loads(session.import_messages)
+    else:
+        messages = None
 
     return render(
         request,
