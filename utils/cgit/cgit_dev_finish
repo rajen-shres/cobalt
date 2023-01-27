@@ -2,8 +2,9 @@
 
 # about: complete work on a branch, check code in and update Test
 
-BRANCH=`git branch --show-current`
+# provide any parameter to prevent releasing to test system as well
 
+BRANCH=`git branch --show-current`
 
 echo ""
 echo ""
@@ -52,6 +53,11 @@ then
   git push origin develop
   if [ $? -ne 0 ];then
    exit 1
+  fi
+
+# Quit if parameter was passed
+  if [ "$#" -eq 1 ]; then
+    exit
   fi
 
   echo ""
