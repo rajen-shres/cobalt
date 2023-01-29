@@ -181,7 +181,7 @@ def admin_event_summary(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
 
     # check access
-    role = "events.org.%s.edit" % event.congress.congress_master.org.id
+    role = f"events.org.{event.congress.congress_master.org.id}.edit"
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
@@ -189,7 +189,10 @@ def admin_event_summary(request, event_id):
         EventEntry.objects.filter(event=event)
         .exclude(entry_status="Cancelled")
         .order_by("first_created_date")
+        .prefetch_related("evententryplayer_set__player")
     )
+
+    print(event_entries.query)
 
     # build summary
     total_received = Decimal(0.0)
@@ -197,7 +200,8 @@ def admin_event_summary(request, event_id):
     total_entry_fee = Decimal(0.0)
 
     for event_entry in event_entries:
-        event_entry_players = EventEntryPlayer.objects.filter(event_entry=event_entry)
+        # event_entry_players = EventEntryPlayer.objects.filter(event_entry=event_entry)
+        event_entry_players = event_entry.evententryplayer_set.all()
         event_entry.received = Decimal(0.0)
         event_entry.outstanding = Decimal(0.0)
         event_entry.entry_fee = Decimal(0.0)
@@ -207,11 +211,7 @@ def admin_event_summary(request, event_id):
 
         for event_entry_player in event_entry_players:
 
-            if event_entry_player.payment_received:
-                received = event_entry_player.payment_received
-            else:
-                received = Decimal(0.0)
-
+            received = event_entry_player.payment_received or Decimal(0.0)
             event_entry.received += received
             event_entry.outstanding += event_entry_player.entry_fee - received
             event_entry.entry_fee += event_entry_player.entry_fee
@@ -246,7 +246,7 @@ def admin_evententry(request, evententry_id):
     event = event_entry.event
     congress = event.congress
 
-    role = "events.org.%s.edit" % congress.congress_master.org.id
+    role = f"events.org.{congress.congress_master.org.id}.edit"
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
