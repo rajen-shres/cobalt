@@ -75,18 +75,18 @@
                                             <span class="material-icons text-success"
                                                 style="vertical-align: bottom;font-size: 25px !important;"
                                                 data-toggle="tooltip"
-                                                title="This congress is being held Online"
+                                                title="This congress is being held Online using {{ congress.get_online_platform_display }}"
                                             >videocam</span>
                                         {% elif congress.get_congress_venue_type_display == "Mixed" %}
                                             <span class="material-icons  text-primary"
                                                 style="vertical-align: bottom;font-size: 25px !important;"
                                                 data-toggle="tooltip"
-                                                title="This congress has both Online and Face-to-Face events"
+                                                title="This congress has both Face-to-Face and Online events using {{ congress.get_online_platform_display }}"
                                             >face</span>
                                             <span class="material-icons text-success"
                                                 style="vertical-align: bottom;font-size: 25px !important;"
                                                 data-toggle="tooltip"
-                                                title="This congress has both Online and Face-to-Face events"
+                                                title="This congress has both Face-to-Face and Online events using {{ congress.get_online_platform_display }}"
                                             >videocam</span>
                                         {% elif congress.get_congress_venue_type_display == "Unknown" %}
                                             <span class="material-icons text-info"

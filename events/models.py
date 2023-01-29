@@ -139,6 +139,12 @@ class Congress(models.Model):
         MIXED = "M"
         UNKNOWN = "U"
 
+    class OnlinePlatform(models.TextChoices):
+        BBO = "B", "BBO"
+        REAL_BRIDGE = "R", "RealBridge"
+        STEP_BRIDGE = "S", "StepBridge"
+        UNKNOWN = "U"
+
     name = models.CharField("Name", max_length=100)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
@@ -213,6 +219,11 @@ class Congress(models.Model):
     congress_venue_type = models.CharField(
         choices=CongressVenueType.choices,
         default=CongressVenueType.UNKNOWN,
+        max_length=1,
+    )
+    online_platform = models.CharField(
+        choices=OnlinePlatform.choices,
+        default=OnlinePlatform.UNKNOWN,
         max_length=1,
     )
     # We will automatically close events in a congress by marking entries as paid. This flag prevents it so

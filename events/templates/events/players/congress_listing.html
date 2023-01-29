@@ -135,15 +135,15 @@
                         </select>
 
                         <!-- VENUE TYPE -->
-                        <label for="id_congress_venue_type">Venue Type</label>
+                        <label for="id_congress_venue_type">Format</label>
                         <select
                             class="selectpicker"
                             data-style="btn btn-warning"
                             id="id_congress_venue_type"
                             name="congress_venue_type">
                             <option value="All">All</option>
-                            {% for congress_venut_type in congress_venue_types %}
-                                <option value="{{ congress_venut_type.0 }}">{{ congress_venut_type.1 }}</option>
+                            {% for congress_venue_type in congress_venue_types %}
+                                <option value="{{ congress_venue_type.0 }}">{{ congress_venue_type.1 }}</option>
                             {% endfor %}
                         </select>
 

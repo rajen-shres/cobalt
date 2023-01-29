@@ -347,6 +347,7 @@ def _create_congress_wizard_2_handle_form(form, congress):
     congress.additional_info = form.cleaned_data["additional_info"]
     congress.contact_email = form.cleaned_data["contact_email"]
     congress.congress_venue_type = form.cleaned_data["congress_venue_type"]
+    congress.online_platform = form.cleaned_data["online_platform"]
     congress.save()
 
     return redirect("events:create_congress_wizard", step=3, congress_id=congress.id)

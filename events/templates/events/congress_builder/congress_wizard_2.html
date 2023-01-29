@@ -61,7 +61,7 @@
                             <!-- CONGRESS VENUE TYPE -->
                             <div class="row pb-2">
                                 <div class="col-2 justify-content-center align-self-center pt-3">
-                                    Congress Venue Type
+                                    Format
                                 </div>
                                 <div class="col-8">
                                     <div id="div_id_congress_types" class="form-group">
@@ -70,7 +70,27 @@
                                     </div>
                                 </div>
                                 <div class="col-2 justify-content-center align-self-center pt-3">
-                                    <a href="javascript:void(0)" onclick='help("Congress Venue Type", "Select what format this congress will be F2F, Online, Both or Unknown.");'>help</a>
+                                    <a href="javascript:void(0)" onclick='help("Format", "Select what format this congress will be F2F, Online, Both or Unknown.");'>help</a>
+                                </div>
+                            </div>
+
+                            <!-- ONLINE PLATFORM -->
+                            <div class="row pb-2" id="id_online_platform_row"
+                                {% if form.congress_venue_type.value == "U" or form.congress_venue_type.value == "F" %}
+                                    style="display: none;"
+                                {% endif %}
+                            >
+                                <div class="col-2 justify-content-center align-self-center pt-3">
+                                    Online Platform
+                                </div>
+                                <div class="col-8">
+                                    <div id="div_id_online_platform" class="form-group">
+                                        <span class="cobalt-form-error" id="id_online_platform_errors">{{ form.online_platform.errors|striptags }}</span>
+                                        {% render_field form.online_platform class+="form-control" %}
+                                    </div>
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center pt-3">
+                                    <a href="javascript:void(0)" onclick='help("Online Platform", "Select the platform used for online competition.");'>help</a>
                                 </div>
                             </div>
 
@@ -318,6 +338,17 @@
             $("#id_date_string").focus(function() {
                 generate_date_string();
             });
+
+            // hide or show the online platform when venue type changes
+            $("#id_congress_venue_type").change(function () {
+                const venue_type = $("#id_congress_venue_type").val();
+                if (venue_type === "U" | venue_type === "F") {
+                    $("#id_online_platform_row").hide();
+                } else {
+                    $("#id_online_platform_row").show();
+                }
+            });
+
 
             if (typeof $.cookie('congress-previewmsg-{{ congress.id }}') === 'undefined') {
                 $.cookie('congress-previewmsg-{{ congress.id }}', 'set', {

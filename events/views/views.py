@@ -82,7 +82,15 @@ def congress_listing(request, reverse_list=False):
 
     # Hardcode the venue types. We don't match with the database.
     # People want to filter by online or face to face, not mixed
-    congress_venue_types = [("O", "Online"), ("F", "Face-to-Face")]
+    # For online we have "O" for all online or "OB" for just BBO etc
+    congress_venue_types = [("F", "Face-to-Face"), ("O", "Online - All")]
+    for online_platform in Congress.OnlinePlatform:
+        # skip Unknown - looks ugly and covered by selecting all online
+        if online_platform == "U":
+            continue
+        congress_venue_types.append(
+            (f"O{online_platform}", f"Online - {online_platform.label}")
+        )
 
     return render(
         request,
@@ -189,8 +197,14 @@ def congress_listing_data_htmx(request):
         # If user searches for face-to-face or online also show mixed
         if congress_venue_type == "F":
             congresses = congresses.filter(congress_venue_type__in=["F", "M"])
-        if congress_venue_type == "O":
+
+        # Check for online - we can get "O" or "Ox"
+        if congress_venue_type[0] == "O":
             congresses = congresses.filter(congress_venue_type__in=["O", "M"])
+            if len(congress_venue_type) == 2:
+                # User wants specific platforms e.g. BBO or StepBridge
+                online_platform = congress_venue_type[1]
+                congresses = congresses.filter(online_platform=online_platform)
 
     if congress_search_string:
         congresses = congresses.filter(
