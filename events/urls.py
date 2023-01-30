@@ -240,6 +240,11 @@ urlpatterns = [
         ajax.get_player_payment_amount_ajax,
         name="get_player_payment_amount_ajax",
     ),
+    path(
+        "give-player-refund-ajax",
+        ajax.give_player_refund_ajax,
+        name="give_player_refund_ajax",
+    ),
     ########################################################################
     # Congress Builder screens for conveners to create and edit congresses #
     ########################################################################

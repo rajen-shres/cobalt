@@ -3,6 +3,7 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
+from django.db.transaction import atomic
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_GET
@@ -744,10 +745,69 @@ def get_player_payment_amount_ajax(request):
     return JsonResponse(
         {
             "refund_is_due": 1,
-            "refund_who": f"{event_entry_player.player.full_name}",
+            "refund_who": f"{event_entry_player.paid_by.full_name}",
             "refund_amount": event_entry_player.payment_received,
         }
     )
+
+
+@login_required()
+@require_GET
+@atomic
+def give_player_refund_ajax(request):
+    """Execute a refund for a player. Called when a user swaps one paid player for another."""
+
+    # Get entry
+    event_entry_player_id = request.GET["player_event_entry"]
+    event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
+    event_entry = event_entry_player.event_entry
+
+    print(event_entry_player, event_entry_player_id)
+
+    # check access on the parent event_entry
+    if not event_entry.user_can_change(request.user):
+        return JsonResponse({"message": "Access Denied"})
+
+    # check refund is due
+    if event_entry_player.payment_received <= 0:
+        return JsonResponse({"message": "No refund due"})
+
+    # create payments in org account
+    update_organisation(
+        organisation=event_entry.event.congress.congress_master.org,
+        amount=-event_entry_player.payment_received,
+        description=f"Refund to {event_entry_player.paid_by} for {event_entry.event.event_name}",
+        payment_type="Refund",
+        member=event_entry_player.paid_by,
+    )
+
+    # create payment for member
+    update_account(
+        organisation=event_entry.event.congress.congress_master.org,
+        amount=event_entry_player.payment_received,
+        description=f"Refund for {event_entry.event}",
+        payment_type="Refund",
+        member=event_entry_player.paid_by,
+    )
+
+    # Log it
+    EventLog(
+        event=event_entry.event,
+        actor=request.user,
+        action=f"Refund of {event_entry_player.payment_received:.2f} to {event_entry_player.paid_by}",
+        event_entry=event_entry,
+    ).save()
+
+    message = f"Refund of {event_entry_player.payment_received:.2f} paid to {event_entry_player.paid_by}"
+
+    event_entry_player.payment_received = 0
+    event_entry_player.paid_by = None
+    event_entry_player.payment_status = "Unpaid"
+    event_entry_player.payment_type = "Unknown"
+    event_entry_player.reason = None
+    event_entry_player.save()
+
+    return JsonResponse({"message": message})
 
 
 @login_required()

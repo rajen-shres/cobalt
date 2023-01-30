@@ -981,7 +981,7 @@ class EventEntryPlayer(models.Model):
     entry_complete_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return "%s - %s" % (self.event_entry, self.player)
+        return f"{self.event_entry} - {self.player}"
 
     def save(self, *args, **kwargs):
 
