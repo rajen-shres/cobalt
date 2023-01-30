@@ -240,13 +240,13 @@ def get_club_members_from_system_number_list(
 
     # sort
     if sort_option == "first_desc":
-        combined_list.sort(key=lambda x: x.first_name)
+        combined_list.sort(key=lambda x: x.first_name.lower())
     elif sort_option == "first_asc":
-        combined_list.sort(key=lambda x: x.first_name, reverse=True)
+        combined_list.sort(key=lambda x: x.first_name.lower(), reverse=True)
     elif sort_option == "last_desc":
-        combined_list.sort(key=lambda x: x.last_name)
+        combined_list.sort(key=lambda x: x.last_name.lower())
     elif sort_option == "last_asc":
-        combined_list.sort(key=lambda x: x.last_name, reverse=True)
+        combined_list.sort(key=lambda x: x.last_name.lower(), reverse=True)
     elif sort_option == "system_number_desc":
         combined_list.sort(key=lambda x: x.system_number)
     elif sort_option == "system_number_asc":

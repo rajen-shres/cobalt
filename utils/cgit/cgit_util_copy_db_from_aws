@@ -38,6 +38,9 @@ aws ec2 modify-security-group-rules \
 # Dump database - requires firewall rule to be in place
 pg_dump --exclude-table-data "public.notifications_abstractemail" --exclude-table-data "public.post_office_*" -h $REMOTE_HOSTNAME -p 5432 -d $POSTGRES_DB -U $POSTGRES_USER -F c -b -v -f $DUMP_FILE
 
+# local database
+RDS_DB_NAME=ebdb
+
 # Load the database
 echo "Loading database, dropping old DB..."
 cat << EOF > /tmp/drop_db_prod_copy
@@ -51,7 +54,7 @@ psql </tmp/drop_db_prod_copy
 
 # Load the database
 echo "Loading the data, this will take a while..."
-pg_restore -h localhost -p 5432 -U guthrie -d prod_load --no-owner --no-privileges --role=cobalt -v $DUMP_FILE
+pg_restore -h localhost -p 5432 -U guthrie -d $RDS_DB_NAME --no-owner --no-privileges --role=cobalt -v $DUMP_FILE
 
 # sanitise data
 ./manage.py sanitise_production_data_for_testing
