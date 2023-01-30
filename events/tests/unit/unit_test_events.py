@@ -1,10 +1,11 @@
-from datetime import timedelta
+from datetime import timedelta, time
 from decimal import Decimal
 
 from django.utils.timezone import localdate, localtime
 
 from accounts.models import User
 from events.models import CongressMaster, Congress, Event, Session, EventPlayerDiscount
+from events.views.congress_builder import update_event_start_and_end_times
 from organisations.models import Organisation
 from rbac.tests.utils import unit_test_rbac_add_role_to_user
 from tests.test_manager import CobaltTestManagerIntegration
@@ -33,6 +34,37 @@ def _create_player():
     )
     player.save()
     return player
+
+
+def _report_denormalised_dates(
+    manager,
+    event,
+    expected_start_date,
+    expected_end_date,
+    expected_start_time,
+    test_name,
+):
+    """helper to check dates"""
+    if (
+        event.denormalised_start_date == expected_start_date
+        and event.denormalised_start_time == expected_start_time
+        and event.denormalised_end_date == expected_end_date
+    ):
+        ok = True
+    else:
+        ok = False
+
+    output = f"""Event start date is {event.denormalised_start_date}. Expected: {expected_start_date}
+                Event start time is {event.denormalised_start_time}. Expected: {expected_start_time}
+                Event end date is {event.denormalised_end_date}. Expected: {expected_end_date}
+    """
+
+    manager.save_results(
+        status=ok,
+        test_name=test_name,
+        test_description="Starting with an empty event that has 3 sessions, add the denormalised dates and check them",
+        output=output,
+    )
 
 
 class CongressModelTests:
@@ -362,4 +394,84 @@ class EventModelTests:
             test_description="Check specific entry fee is picked up.",
             output=f"Checked event entry fee for {player}. Expected 4.55. "
             f"Got {fee}. Expected description to be 'ABC'. Got '{desc}'.",
+        )
+
+    def events_denormalised_dates_functions(self):
+        """Tests for adding and updating denormalised dates"""
+
+        today = localdate()
+
+        # Create a congress
+        congress = _create_congress()
+
+        # Create basic event
+        event = Event(
+            congress=congress,
+            event_name="pytest event",
+            event_type="Open",
+            entry_fee=Decimal(ENTRY_FEE),
+            entry_early_payment_discount=Decimal(EARLY_DISCOUNT),
+            player_format="Pairs",
+        )
+        event.save()
+
+        ######################
+        # denormalised dates #
+        ######################
+
+        expected_start_date = today + timedelta(days=7)
+        expected_end_date = today + timedelta(days=8)
+        expected_start_time = time(10, 00)
+
+        # Sort out starting data
+        session = Session(event=event)
+        session.session_date = expected_start_date
+        session.session_start = expected_start_time
+        session.session_end = None
+        session.save()
+
+        session2 = Session(event=event)
+        session2.session_date = expected_end_date
+        session2.session_start = expected_start_time
+        session2.session_end = None
+        session2.save()
+
+        session3 = Session(event=event)
+        session3.session_date = expected_end_date
+        session3.session_start = time(14, 00)
+        session3.session_end = None
+        session3.save()
+
+        # update the dates
+        update_event_start_and_end_times(event)
+
+        # Check dates
+        _report_denormalised_dates(
+            self.manager,
+            event,
+            expected_start_date,
+            expected_end_date,
+            expected_start_time,
+            test_name="Adding denormalised dates to event",
+        )
+
+        # Change a session and try again
+        expected_start_date = expected_end_date
+        expected_start_time = time(7, 00)
+
+        session.session_date = expected_start_date
+        session.session_start = expected_start_time
+        session.save()
+
+        # update the dates
+        update_event_start_and_end_times(event)
+
+        # Check dates
+        _report_denormalised_dates(
+            self.manager,
+            event,
+            expected_start_date,
+            expected_end_date,
+            expected_start_time,
+            test_name="Updating denormalised dates on event",
         )

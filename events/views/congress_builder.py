@@ -62,6 +62,12 @@ def update_event_start_and_end_times(event: Event):
         "-session_date", "-session_start"
     )
 
+    # reset the values on event
+    event.denormalised_start_date = None
+    event.denormalised_end_date = None
+    event.denormalised_start_time = None
+    event.denormalised_end_time = None
+
     for session in sessions:
 
         # End date

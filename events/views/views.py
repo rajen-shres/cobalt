@@ -13,6 +13,7 @@ from django.contrib import messages
 from django.db.models import Sum, Q
 from django.db import transaction
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from organisations.models import Organisation
 from payments.views.payments_api import payment_api_interactive
@@ -133,6 +134,7 @@ def congress_listing_logged_out(request):
     )
 
 
+@require_POST
 def congress_listing_data_htmx(request):
     """Returns the data for the events listing page.
 

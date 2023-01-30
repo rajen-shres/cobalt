@@ -33,7 +33,7 @@ def home(request):
         payments = get_balance_detail(request.user)
         posts = get_posts(request)
         posts2 = get_announcements(request)
-        events, unpaid, more_events = get_events(request.user)
+        events, unpaid, more_events, total_events = get_events(request.user)
         recent_results, more_results = get_recent_results(request.user)
         user_pending_payments = get_user_pending_payments(system_number)
 
@@ -51,6 +51,7 @@ def home(request):
                 "events": events,
                 "unpaid": unpaid,
                 "more_events": more_events,
+                "total_events": total_events,
                 "recent_results": recent_results,
                 "user_pending_payments": user_pending_payments,
                 "tour": tour,
