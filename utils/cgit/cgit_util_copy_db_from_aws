@@ -58,3 +58,6 @@ pg_restore -h localhost -p 5432 -U guthrie -d $RDS_DB_NAME --no-owner --no-privi
 
 # sanitise data
 ./manage.py sanitise_production_data_for_testing
+
+# add templates
+./manage.py add_notifications_templates
