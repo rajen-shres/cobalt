@@ -88,6 +88,20 @@ Environment: {{ COBALT_HOSTNAME }}
             </div>
         {% endif %}
 
+        <!-- MAKE PRODUCTION LOOK DIFFERENT FOR ADMINS -->
+
+        {% if user.is_superuser and COBALT_HOSTNAME == "myabf.com.au" %}
+            <div class="main-panel">
+                <div class="container-fluid">
+                    <div class="row justify-content-center">
+                        <div class="btn btn-round text-white col-md-11" style="background-color: darkblue">
+                            <h1>Production</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
         {# Main part of page #}
         <div class="wrapper">
 
@@ -97,14 +111,15 @@ Environment: {{ COBALT_HOSTNAME }}
                 {# logo #}
                 <div class="logo text-center">
                     <a href="/" class="simple-text logo-normal">
-
                         <img src="{% static "assets/img/abftechlogo.png" %}" style="width:250px">
                     </a>
                 </div>
 
                 {# Sidebar elements #}
                 <div class="sidebar-wrapper">
+
                     <ul class="nav">
+
                         <li class="nav-item
                             {% if request.path|slice:":10" == "/dashboard" %}active{% endif %}
                             {% if request.path == "/" %}active{% endif %}
