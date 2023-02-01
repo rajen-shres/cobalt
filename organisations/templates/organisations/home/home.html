@@ -46,50 +46,50 @@
                     </div>
                 {% endif %}
 
-                <!-- MEMBERSHIPS -->
+                <!-- MEMBERSHIPS TEMPORARILY COMMENTED OUT AS IT IS CAUSING SOME CONFUSION WITH DIFFERENCES TO ACTUALO MEMBERSHIPS-->
 
-                <div class="card mt-5">
-                    <div class="card-header card-header-success">
-                        <h3>Your Memberships</h3>
-                        <p>If any of these memberships are incorrect please contact the club directly.</p>
-                    </div>
-                    <div class="card-body">
-
-                        {% if not memberships %}
-
-                            <h4>You are not set up as a member of any club through {{ GLOBAL_TITLE }}</h4>
-
-                        {% else %}
-
-                            <table class="table-condensed table table-hover">
-                                <thead>
-                                    <tr class="text-primary">
-                                        <th class="text-left">Club</th>
-                                        <th class="text-left">Membership Type</th>
-                                        <th class="text-left">Last Modified By</th>
-                                        <th class="text-left">Last Updated</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for membership in memberships %}
-                                        <tr>
-                                            <td class="text-left">
-                                                <a href="{% url "organisations:general_org_profile" org_id=membership.membership_type.organisation.id %}">
-                                                    {{ membership.membership_type.organisation }}
-                                                </a>
-                                            </td>
-                                            <td class="text-left">{{ membership.membership_type.name }}</td>
-                                            <td class="text-left">{{ membership.membership_type.last_modified_by }}</td>
-                                            <td class="text-left">{{ membership.membership_type.updated_at|cobalt_nice_datetime }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-
-                        {% endif %}
-
-                    </div>
-                </div>
+                {#                <div class="card mt-5">#}
+                {#                    <div class="card-header card-header-success">#}
+                {#                        <h3>Your Memberships</h3>#}
+                {#                        <p>If any of these memberships are incorrect please contact the club directly.</p>#}
+                {#                    </div>#}
+                {#                    <div class="card-body">#}
+                {##}
+                {#                        {% if not memberships %}#}
+                {##}
+                {#                            <h4>You are not set up as a member of any club through {{ GLOBAL_TITLE }}</h4>#}
+                {##}
+                {#                        {% else %}#}
+                {##}
+                {#                            <table class="table-condensed table table-hover">#}
+                {#                                <thead>#}
+                {#                                    <tr class="text-primary">#}
+                {#                                        <th class="text-left">Club</th>#}
+                {#                                        <th class="text-left">Membership Type</th>#}
+                {#                                        <th class="text-left">Last Modified By</th>#}
+                {#                                        <th class="text-left">Last Updated</th>#}
+                {#                                    </tr>#}
+                {#                                </thead>#}
+                {#                                <tbody>#}
+                {#                                    {% for membership in memberships %}#}
+                {#                                        <tr>#}
+                {#                                            <td class="text-left">#}
+                {#                                                <a href="{% url "organisations:general_org_profile" org_id=membership.membership_type.organisation.id %}">#}
+                {#                                                    {{ membership.membership_type.organisation }}#}
+                {#                                                </a>#}
+                {#                                            </td>#}
+                {#                                            <td class="text-left">{{ membership.membership_type.name }}</td>#}
+                {#                                            <td class="text-left">{{ membership.membership_type.last_modified_by }}</td>#}
+                {#                                            <td class="text-left">{{ membership.membership_type.updated_at|cobalt_nice_datetime }}</td>#}
+                {#                                        </tr>#}
+                {#                                    {% endfor %}#}
+                {#                                </tbody>#}
+                {#                            </table>#}
+                {##}
+                {#                        {% endif %}#}
+                {##}
+                {#                    </div>#}
+                {#                </div>#}
 
 
                 <!-- ALL CLUBS -->

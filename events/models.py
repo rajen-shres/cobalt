@@ -961,7 +961,7 @@ class CongressNewsItem(models.Model):
     text = models.TextField()
 
     def __str__(self):
-        return "%s" % self.congress
+        return f"{self.congress}"
 
     def save(self, *args, **kwargs):
 

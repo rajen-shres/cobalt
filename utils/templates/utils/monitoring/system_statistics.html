@@ -249,6 +249,14 @@
                                         <td class="text-left">Total Clubs Using Sessions</td>
                                         <td class="text-right">{{ session_statistics.distinct_clubs|intcomma }}</td>
                                     </tr>
+                                    <tr>
+                                        <td class="text-left">Total Payments Handled</td>
+                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ session_statistics.total_payments|floatformat:2|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total Payments By {{ BRIDGE_CREDITS }}</td>
+                                        <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ session_statistics.total_bridge_credits|floatformat:2|intcomma }}</td>
+                                    </tr>
                                 </table>
                             </div>
                         </div>
