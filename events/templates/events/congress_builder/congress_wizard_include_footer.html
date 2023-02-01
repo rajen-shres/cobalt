@@ -1,15 +1,32 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Footer for the congress builder wizard                                 #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
 {% load static %}
 
-<script src="{% static "assets/js/cobalt-unsaved.js" %}"></script>
+{#<script src="{% static "assets/js/cobalt-unsaved.js" %}"></script>#}
 
 <script>
+    // help function
     function help(title, html){
         swal.fire({ title:title, html: html, icon: "info"})
         return false;
     }
 
+    // activate tool tips
     $(document).ready(function(){
         $(".myHover").tooltip();
     });
+
+    // warn if editing a closed congress
+    {% now "Y-m-d" as todays_date %}
+    {% if todays_date > congress.end_date|date:"Y-m-d" %}
+        swal.fire({ title:"You are editing a congress that has finished", html: "Are you sure you want to do this? Did you perhaps copy a previous congress and edit the wrong one?", icon: "error"})
+    {% endif %}
+
+    console.log("{{ congress.end_date }}");
+    console.log("{{ now }}");
 
 </script>

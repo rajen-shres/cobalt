@@ -36,6 +36,7 @@ from events.models import (
     Event,
     Session,
     CongressDownload,
+    EventEntry,
 )
 from utils.models import Slug
 
@@ -151,24 +152,26 @@ def delete_congress(request, congress_id):
     congress = get_object_or_404(Congress, pk=congress_id)
 
     # check access
-    role = "events.org.%s.edit" % congress.congress_master.org.id
+    role = f"events.org.{congress.congress_master.org.id}.edit"
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
     if request.method == "POST":
-
-        try:
-            congress.delete()
-        except ProtectedError as e:
+        # Check for entries
+        if EventEntry.objects.filter(event__congress=congress).exists():
             messages.error(
                 request,
-                "Deletion not allowed. Congress still has events.",
+                "Deletion not allowed. Congress has entries.",
                 extra_tags="cobalt-message-error",
             )
-            print(str(e))
             return redirect(
                 "events:create_congress_wizard", congress_id=congress.id, step=7
             )
+
+        # Delete
+        Session.objects.filter(event__congress=congress).delete()
+        Event.objects.filter(congress=congress).delete()
+        congress.delete()
 
         messages.success(
             request, "Congress deleted", extra_tags="cobalt-message-success"
