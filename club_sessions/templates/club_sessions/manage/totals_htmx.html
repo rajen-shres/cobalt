@@ -7,6 +7,11 @@
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 
+<!-- WARN IF THERE ARE ERRORS -->
+{% if session.import_messages != "[]" %}
+    <h3 class="text-danger">There were issues importing this session. You can view them in the reports tab under messages.</h3>
+{% endif %}
+
 <!-- MAIN CARD -->
 <div class="card">
 

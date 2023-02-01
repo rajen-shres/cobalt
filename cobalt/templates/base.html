@@ -51,6 +51,7 @@ Environment: {{ COBALT_HOSTNAME }}
         <link href="{% static "assets/css/font-awesome.5.14/css/all.min.css" %}" rel="stylesheet" />
         <link href="{% static "assets/css/animate.4.0.0/animate.min.css" %}" rel="stylesheet" />
 
+
         {# These can cause problems, for example in forums with Summernote so we allow them to be overridden #}
         {% block headerjs %}
             <script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
@@ -59,6 +60,15 @@ Environment: {{ COBALT_HOSTNAME }}
             <script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
             <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
         {% endblock %}
+
+        <!-- MAKE PRODUCTION DIFFERENT FOR ADMINS -->
+        {% if user.id == 4 and COBALT_HOSTNAME == "myabf.com.au" %}
+            <style>
+                body{
+                    background-color: yellow;
+                }
+            </style>
+        {% endif %}
 
         {# Standard Javascript libraries for all pages #}
         <script src="{% static "assets/js/cobalt-core.js" %}"></script>

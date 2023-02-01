@@ -4,6 +4,7 @@ import io
 import json
 import re
 
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 
@@ -319,7 +320,11 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         session_entry.fee = 0
         session_entry.is_paid = True
 
-    session_entry.save()
+    try:
+        session_entry.save()
+
+    except IntegrityError as err:
+        return f"Invalid data found on line {line_no}. {err}."
 
     # Add additional session payments if set
     if session.additional_session_fee > 0:
