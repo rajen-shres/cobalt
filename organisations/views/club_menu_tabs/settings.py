@@ -55,6 +55,7 @@ from organisations.views.club_menu_tabs.utils import (
 from organisations.views.general import compare_form_with_mpc
 from payments.models import OrgPaymentMethod
 from rbac.core import rbac_user_has_role
+from utils.models import Slug
 from utils.views.general import masterpoint_query
 
 
@@ -153,6 +154,60 @@ def logs_htmx(request, club):
         "organisations/club_menu/settings/logs_htmx.html",
         {"log_events": log_events},
     )
+
+
+@check_club_menu_access()
+def slugs_htmx(request, club):
+    """Handle club slugs"""
+
+    slugs = Slug.objects.filter(owner=club)
+    for slug in slugs:
+        slug.hx_post = reverse("organisations:club_menu_tab_settings_slug_delete_htmx")
+        slug.hx_vars = f"club_id:{club.id},slug_id:{slug.id}"
+
+    return render(
+        request,
+        "organisations/club_menu/settings/slugs_htmx.html",
+        {"slugs": slugs, "club": club},
+    )
+
+
+@check_club_menu_access()
+def slug_delete_htmx(request, club):
+    """Delete club slugs"""
+
+    slugs = Slug.objects.filter(owner=club, pk=request.POST.get("slug_id"))
+
+    for slug in slugs:
+        ClubLog(
+            organisation=club, actor=request.user, action=f"Deleted slug {slug.slug}"
+        ).save()
+
+    slugs.delete()
+
+    return slugs_htmx(request)
+
+
+@check_club_menu_access()
+def slug_edit_htmx(request, club):
+    """Edit club slugs"""
+
+    slug = get_object_or_404(Slug, pk=request.POST.get("slug_id"))
+    if slug.owner != club:
+        return HttpResponse("Access denied")
+
+    redirect_path = request.POST.get("redirect_path")
+
+    slug.redirect_path = redirect_path
+    slug.save()
+
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Changed slug: {slug.slug} to point to {slug.redirect_path}",
+    ).save()
+
+    return slugs_htmx(request)
 
 
 @check_club_menu_access()

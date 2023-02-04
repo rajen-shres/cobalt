@@ -225,6 +225,21 @@ urlpatterns = [
         name="club_menu_tab_settings_general_htmx",
     ),
     path(
+        "club-menu/tabs/settings-slugs",
+        organisations.views.club_menu_tabs.settings.slugs_htmx,
+        name="club_menu_tab_settings_slugs_htmx",
+    ),
+    path(
+        "club-menu/tabs/settings-slug-delete",
+        organisations.views.club_menu_tabs.settings.slug_delete_htmx,
+        name="club_menu_tab_settings_slug_delete_htmx",
+    ),
+    path(
+        "club-menu/tabs/settings-slug-edit",
+        organisations.views.club_menu_tabs.settings.slug_edit_htmx,
+        name="club_menu_tab_settings_slug_edit_htmx",
+    ),
+    path(
         "club-menu/tabs/settings-membership",
         organisations.views.club_menu_tabs.settings.membership_htmx,
         name="club_menu_tab_settings_membership_htmx",

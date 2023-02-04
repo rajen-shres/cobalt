@@ -9,6 +9,7 @@ import pytz
 from django.db import models
 from django.utils import timezone
 from cobalt.settings import HOSTNAME, TIME_ZONE
+from organisations.models import Organisation
 
 JOB_STATUSES = [
     ("Started", "Job started"),
@@ -67,6 +68,7 @@ class Slug(models.Model):
 
     slug = models.CharField(max_length=50, unique=True)
     redirect_path = models.CharField(max_length=200)
+    owner = models.ForeignKey(Organisation, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.slug} -> {self.redirect_path}"

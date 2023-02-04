@@ -7,11 +7,11 @@ def check_slug_is_free(slug):
     return not Slug.objects.filter(slug=slug).exists()
 
 
-def create_new_slug(slug, redirect_path):
+def create_new_slug(slug, redirect_path, owner):
     """create a slug if it doesn't already exist"""
 
     if Slug.objects.filter(slug=slug).exists():
         return False
 
-    Slug(slug=slug, redirect_path=redirect_path).save()
+    Slug(slug=slug, redirect_path=redirect_path, owner=owner).save()
     return True

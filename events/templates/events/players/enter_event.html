@@ -260,7 +260,7 @@
                                         <label class="col-md-5 col-form-label">Team Name</label>
                                         <div class="col-md-5">
                                             <div class="form-group has-success">
-                                                <input type="text"maxlength="15" class="form-control" id="id_team_name" autocomplete="off" name="team_name" value="{{ request.user.last_name }}" style="cursor: auto;">
+                                                <input type="text"maxlength="15" class="form-control" id="id_team_name" autocomplete="off" name="team_name" value="{% if not enter_for_another %}{{ request.user.last_name }}{% endif %}" style="cursor: auto;">
                                             </div>
                                         </div>
                                     </div>
@@ -390,6 +390,12 @@
                             user_entry_fee(member_id[search_id], search_id);
                         }
                         is_form_complete();
+
+                        // Update team name if appropriate
+                        if (search_id === 0){
+                            update_team_name();
+                        }
+
                     }
                 });
             }
@@ -489,8 +495,6 @@
                 }
             });
         }
-
-
 
         // update payment method if team mates
         function user_payment_method(user_id, search_id){
@@ -632,6 +636,17 @@
             is_form_complete();
         }
 
+        // Update the team name
+        function update_team_name() {
+            try {
+                const player0_surname = $("#id_player0 option:selected").text().split(" ")[1].toUpperCase().substring(0, 15);
+                $("#id_team_name").val(player0_surname);
+            }
+            catch (err){
+                console.log("Warning. Unable to change team name. Player0 is " + $("#id_player0 option:selected").text());
+            }
+        }
+
         // player has changed
         function payment_has_changed(event) {
 
@@ -738,6 +753,9 @@
                 $("#id_checkout").prop("disabled", false);
                 $("#id_cart").prop("disabled", false);
             {% endif %}
+
+            // if player0 changes then change the team name
+            $("#id_player0").on("change", update_team_name);
 
 
         });

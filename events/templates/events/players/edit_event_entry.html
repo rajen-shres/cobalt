@@ -239,7 +239,7 @@
                                                         <i class="material-icons">delete_forever</i>
                                                     </button>
                                                 {% else %} <!-- PLAYER 1 TO 4 -->
-                                                    {% if event_entry_player.player.id != TBA_PLAYER %}
+                                                    {% if event_entry_player.player.id != TBA_PLAYER and not has_only_one_real_player %}
                                                         <button type="button" id="delete_team_mate_{{ event_entry_player.id }}"
                                                             data-toggle="tooltip"
                                                             class="btn btn-danger delete_team_mate"
@@ -461,9 +461,20 @@
                     $.getJSON("{% url "events:get_player_payment_amount_ajax" %}?player_event_entry=" + search_id)
                         .done(response => {
                         if (response["refund_is_due"] === 1){
+                            // Check if this user made this entry
+                            var swal_title;
+                            var swal_text;
+                            if (response["payment_made_by_you"] === 1){
+                                swal_title="Refund Entry Fee"
+                                swal_text="You have already paid for this entry. Do you want us to refund you?"
+                            } else {
+                                swal_title='Refund ' + response["refund_who"]
+                                swal_text="This entry has been paid for by " + response["refund_who"] + ". Would you like to give them a refund?"
+                            }
+
                             Swal.fire({
-                                title: 'Refund ' + response["refund_who"],
-                                text: "This entry has been paid for by " + response["refund_who"] + ". Would you like to give them a refund?",
+                                title: swal_title,
+                                text: swal_text,
                                 icon: 'info',
                                 showCancelButton: true,
                                 showDenyButton: true,
@@ -473,12 +484,11 @@
                                 denyButtonText: 'No Refund'
                             }).then((result) => {
                                 if (result.isConfirmed) {
-                                    console.log("give_player_refund_ajax");
                                     $.getJSON("{% url "events:give_player_refund_ajax" %}?player_event_entry=" + search_id)
                                         .done(response => {
                                         console.log(response);
+                                        editPlayerExecute(member, name, pic, search_id)
                                     });
-                                    editPlayerExecute(member, name, pic, search_id)
                                 } else if (result.isDenied) {
                                     editPlayerExecute(member, name, pic, search_id)
                                 }

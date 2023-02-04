@@ -1029,6 +1029,11 @@ def edit_event_entry(
     # valid payment methods
     payment_methods = congress.get_payment_methods()
 
+    # prevent last person being TBA if others are already TBA
+    has_only_one_real_player = (
+        event_entry_players.exclude(player_id=TBA_PLAYER).count() == 1
+    )
+
     return render(
         request,
         "events/players/edit_event_entry.html",
@@ -1041,6 +1046,7 @@ def edit_event_entry(
             "in_basket": in_basket,
             "pay_all": pay_all,
             "payment_methods": payment_methods,
+            "has_only_one_real_player": has_only_one_real_player,
         },
     )
 
@@ -1464,7 +1470,7 @@ def enter_event_payment_fail(request):
     )
 
 
-def enter_event_non_post_delete(event, congress, request, enter_for_another):
+def enter_event_non_post(event, congress, request, enter_for_another):
     """Handle a blank entry. Build the page and return to user."""
 
     our_form = []
@@ -1631,32 +1637,6 @@ def _get_team_mates_for_event(user, event):
     return all_team_mates.exclude(team_mate__in=entered_team_mates)
 
 
-def enter_event_non_post(event, congress, request, enter_for_another):
-    """Handle a blank entry. Build the page and return to user."""
-
-    # Start time of event
-    event_start = (
-        Session.objects.filter(event=event)
-        .order_by("session_date", "session_start")
-        .first()
-    )
-
-    # categories
-    categories = Category.objects.filter(event=event)
-
-    return render(
-        request,
-        "events/players/enter_event_new.html",
-        {
-            "congress": congress,
-            "event": event,
-            "categories": categories,
-            "event_start": event_start,
-            "enter_for_another": enter_for_another,
-        },
-    )
-
-
 @login_required()
 def enter_event_players_area_htmx(request):
     """builds the entry part of the event entry page"""
@@ -1810,7 +1790,7 @@ def enter_event(request, congress_id, event_id, enter_for_another=0):
     if request.method == "POST":
         return enter_event_post(request, congress, event)
     else:
-        return enter_event_non_post_delete(event, congress, request, enter_for_another)
+        return enter_event_non_post(event, congress, request, enter_for_another)
 
 
 @login_required()

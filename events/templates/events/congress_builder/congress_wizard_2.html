@@ -42,6 +42,22 @@
                         <form method="POST">
                             {% csrf_token %}
 
+                            <!-- CONGRESS MASTER -->
+                            <div class="row pb-2">
+                                <div class="col-2 justify-content-center align-self-center pt-3">
+                                    Congress Series
+                                </div>
+                                <div class="col-8">
+                                    <div id="div_id_congress_master" class="form-group">
+                                        <span class="cobalt-form-error" id="id_congress_master_errors">{{ form.congress_master.errors|striptags }}</span>
+                                        {% render_field form.congress_master class+="form-control" %}
+                                    </div>
+                                </div>
+                                <div class="col-2 justify-content-center align-self-center pt-3">
+                                    <a href="javascript:void(0)" onclick='help("Congress Series", "Choose which series this congress is part of");'>help</a>
+                                </div>
+                            </div>
+
                             <!-- CONGRESS TYPE -->
                             <div class="row">
                                 <div class="col-2 justify-content-center align-self-center">

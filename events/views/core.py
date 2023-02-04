@@ -881,7 +881,7 @@ def fix_closed_congress(congress, actor):
     for event_entry_player in event_entry_players_needing_attention:
         # Change from unpaid bridge credits to unpaid non-bridge credits
 
-        action = f"Fixed event entry player. Changed {event_entry_player.player}(Entry: {event_entry_player.id}) from '{BRIDGE_CREDITS}' to 'System Adjusted' and marked as paid. Previous amount paid was {GLOBAL_CURRENCY_SYMBOL}{event_entry_player.payment_received:.2f}"
+        action = f"Fixed event entry player. Changed {event_entry_player.player}(Entry: {event_entry_player.id}) from '{event_entry_player.get_payment_type_display()}' to 'System Adjusted' and marked as paid. Previous amount paid was {GLOBAL_CURRENCY_SYMBOL}{event_entry_player.payment_received:.2f}"
 
         event_entry_player.payment_type = "System Adjusted"
         event_entry_player.payment_received = event_entry_player.entry_fee

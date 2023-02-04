@@ -1,0 +1,94 @@
+{% load cobalt_tags %}
+<div class="card">
+    <div class="card-header card-header-info">
+        <h2 id="t_tab_heading_settings">Club Settings</h2>
+        {% include "organisations/club_menu/settings/nav_htmx.html" with selected="slugs" %}
+    </div>
+
+    <div class="card-body table-responsive">
+        <p>Slugs allow you to use short text links to pages on {{ GLOBAL_TITLE }} which are nicer for users.</p>
+        <p>For example, you can use
+            <u class="text-primary">https://{{ COBALT_HOSTNAME }}/go/MyCongress</u>
+            rather than
+            <u class="text-primary">https://{{ COBALT_HOSTNAME }}/events/congress/view/58472</u>.</p>
+
+        {% if slugs %}
+
+            <table id="id_slug_table" class="table table-hover">
+                <thead class="text-primary">
+                    <tr>
+                        <th>Slug</th>
+                        <th>Address</th>
+                        <th>Links To</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for slug in slugs %}
+                        <tr>
+                            <td id="slug_name_{{ slug.id }}">{{ slug.slug }}</td>
+                            <span style="display: none;" id="slug_link_{{ slug.id }}">{{ slug.redirect_path }}</span>
+                            <td>https://{{ COBALT_HOSTNAME }}/go/{{ slug.slug }}</td>
+                            <td>https://{{ COBALT_HOSTNAME }}/{{ slug.redirect_path }}</td>
+                            {% include "utils/htmx_confirm_modal.html" with id=slug.id delete_item=slug.slug hx_vars=slug.hx_vars hx_target="#id_panel_settings" hx_post=slug.hx_post %}
+
+                            <td class="text-center delete-slug">
+
+                                <button
+                                    id="delete_slug_{{ slug.id }}"
+                                    data-toggle="modal"
+                                    data-target="#deleteModal{{ slug.id }}"
+                                    class="btn btn-sm btn-danger">
+                                    Delete</button>
+                                <button
+                                    class="btn btn-sm btn-info edit-slug"
+                                    id="edit_slug_{{ slug.id }}"
+                                >Edit</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        {% else %}
+
+            <h3>You have no slugs set up yet.</h3>
+
+        {% endif %}
+
+        {#        <div class="text-center">#}
+        {#            <button class="btn btn-info">Add New Slug</button>#}
+        {#        </div>#}
+
+    </div>
+</div>
+
+
+<script>
+    $(document).ready( function () {
+        $(".edit-slug").on("click", function() {
+            const slug_id = $(this).attr('id').split("_")[2];
+            console.log(slug_id);
+            const slug_name = $("#slug_name_" + slug_id).text()
+            const slug_link = $("#slug_link_" + slug_id).text()
+            Swal.fire({
+                title: "Edit " + slug_name,
+                text: "Link:",
+                input: 'text',
+                inputValue: slug_link,
+                showCancelButton: true,
+                confirmButtonColor: 'green'
+            }).then((result) => {
+                if (result.value) {
+                    const postData = {
+                        'club_id': {{ club.id }},
+                        'slug_id': slug_id,
+                        'redirect_path': result.value,
+                    };
+                    htmx.ajax('POST', '{% url "organisations:club_menu_tab_settings_slug_edit_htmx" %}', {'target': '#id_panel_settings', 'values': postData});
+                }
+
+            });
+        });
+    });
+</script>

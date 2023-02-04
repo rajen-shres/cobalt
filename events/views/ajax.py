@@ -741,12 +741,19 @@ def get_player_payment_amount_ajax(request):
     if event_entry_player.payment_received == 0:
         return JsonResponse({"refund_is_due": 0})
 
+    # See if this user made this payment
+    if event_entry_player.paid_by == request.user:
+        payment_made_by_you = 1
+    else:
+        payment_made_by_you = 0
+
     # Provide name and amount
     return JsonResponse(
         {
             "refund_is_due": 1,
             "refund_who": f"{event_entry_player.paid_by.full_name}",
             "refund_amount": event_entry_player.payment_received,
+            "payment_made_by_you": payment_made_by_you,
         }
     )
 
@@ -761,8 +768,6 @@ def give_player_refund_ajax(request):
     event_entry_player_id = request.GET["player_event_entry"]
     event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
     event_entry = event_entry_player.event_entry
-
-    print(event_entry_player, event_entry_player_id)
 
     # check access on the parent event_entry
     if not event_entry.user_can_change(request.user):

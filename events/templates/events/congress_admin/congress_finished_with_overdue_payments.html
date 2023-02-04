@@ -25,13 +25,16 @@
             <div class="card-body text-center">
                 <h3>This congress has finished but there are outstanding payments to be taken</h3>
                 <h3>Automatic closure is paused until {{ pause_date }}</h3>
-                <button
-                    class="btn btn-info"
-                    hx-post="{% url "events:fix_closed_congress_htmx" %}"
-                    hx-vars="congress_id: {{ congress.id }}"
-                    hx-trigger="click"
-                    hx-target="#bad_congress"
-                >Fix It</button>
+
+                <form method="post" action="{% url "events:fix_closed_congress_htmx" %}">
+                    {% csrf_token %}
+                    <input type="text" name="congress_id" value="{{ congress.id }}" hidden="hidden">
+                    <button
+                        type="submit"
+                        class="btn btn-info"
+                    >Fix It</button>
+                </form>
+
                 <button
                     class="btn btn-warning"
                     hx-post="{% url "events:do_automatically_fix_closed_congress_htmx" %}"
@@ -54,13 +57,14 @@
                 <p>Alternatively, you can do nothing and the system will close off your congress one week after it finishes.</p>
                 <p>If the missing payments are genuine, and you are still chasing them up, then click on <b>Don't Fix It</b>
                     and the congress will be left until three months after it finishes.</p>
-                <button
-                    class="btn btn-info"
-                    hx-post="{% url "events:fix_closed_congress_htmx" %}"
-                    hx-vars="congress_id: {{ congress.id }}"
-                    hx-trigger="click"
-                    hx-target="#bad_congress"
-                >Fix It</button>
+                <form method="post" action="{% url "events:fix_closed_congress_htmx" %}">
+                    {% csrf_token %}
+                    <input type="text" name="congress_id" value="{{ congress.id }}" hidden="hidden">
+                    <button
+                        type="submit"
+                        class="btn btn-info"
+                    >Fix It</button>
+                </form>
                 <button
                     class="btn btn-danger"
                     hx-post="{% url "events:do_not_automatically_fix_closed_congress_htmx" %}"

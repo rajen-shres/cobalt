@@ -33,7 +33,7 @@ class CongressForm(forms.ModelForm):
         congress_masters = kwargs.pop("congress_masters", [])
         super().__init__(*args, **kwargs)
 
-        # Modify and congress master if  passed
+        # Modify and congress master if passed
         self.fields["congress_master"].queryset = CongressMaster.objects.filter(
             pk__in=congress_masters
         ).order_by("name")
@@ -76,6 +76,7 @@ class CongressForm(forms.ModelForm):
         self.fields["contact_email"].label = False
         self.fields["congress_venue_type"].label = False
         self.fields["online_platform"].label = False
+        self.fields["congress_master"].label = False
 
         # mark fields as optional
         self.fields["name"].required = False
@@ -114,6 +115,7 @@ class CongressForm(forms.ModelForm):
         self.fields["contact_email"].required = False
         self.fields["congress_venue_type"].required = False
         self.fields["online_platform"].required = False
+        self.fields["congress_master"].required = False
 
     general_info = forms.CharField(
         widget=SummernoteInplaceWidget(

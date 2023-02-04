@@ -156,7 +156,19 @@ hx-target="#id_panel_settings"
     </div>
 </div>
 
+{% if selected == "slugs" %}
+    <button class="btn btn-primary"
+{% else %}
+    <button class="btn bg-transparent"
+    style="outline: 0; outline-offset: 0; box-shadow: none;"
+{% endif %}
 
+type="button"
+hx-post="{% url "organisations:club_menu_tab_settings_slugs_htmx" %}"
+hx-target="#id_panel_settings"
+{#hx-push-url="true"#}
+>Slugs
+</button>
 
 {% if selected == "logs" %}
     <button class="btn btn-primary float-right"

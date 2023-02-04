@@ -296,7 +296,12 @@ def create_congress_wizard_2(request, step_list, congress):
     redirect_path = f"events/congress/view/{congress.id}"
 
     if request.method == "POST":
-        form = CongressForm(request.POST)
+        form = CongressForm(
+            request.POST,
+            congress_masters=CongressMaster.objects.filter(
+                org=congress.congress_master.org
+            ),
+        )
         if form.is_valid():
             # Extra validation if already published
             if congress.status == "Published":
@@ -312,7 +317,13 @@ def create_congress_wizard_2(request, step_list, congress):
             initial["start_date"] = congress.start_date.strftime("%d/%m/%Y")
         if congress.end_date:
             initial["end_date"] = congress.end_date.strftime("%d/%m/%Y")
-        form = CongressForm(instance=congress, initial=initial)
+        form = CongressForm(
+            instance=congress,
+            initial=initial,
+            congress_masters=CongressMaster.objects.filter(
+                org=congress.congress_master.org
+            ),
+        )
 
     form.fields["year"].required = True
     form.fields["name"].required = True
@@ -323,6 +334,7 @@ def create_congress_wizard_2(request, step_list, congress):
     form.fields["links"].required = True
     form.fields["people"].required = True
     form.fields["contact_email"].required = True
+    form.fields["congress_master"].required = True
 
     # we can have multiple matches, but it is unlikely
     slug = Slug.objects.filter(redirect_path=redirect_path).first()
@@ -357,6 +369,7 @@ def _create_congress_wizard_2_handle_form(form, congress):
     congress.contact_email = form.cleaned_data["contact_email"]
     congress.congress_venue_type = form.cleaned_data["congress_venue_type"]
     congress.online_platform = form.cleaned_data["online_platform"]
+    congress.congress_master = form.cleaned_data["congress_master"]
     congress.save()
 
     return redirect("events:create_congress_wizard", step=3, congress_id=congress.id)
@@ -926,14 +939,17 @@ def slug_handler_htmx(request):
     """Generates the slug row in congress wizard 2"""
 
     congress_id = request.POST.get("congress_id")
-    # slug_id = request.POST.get("slug_id")
     slug_text = request.POST.get("slug_text")
     congress = Congress.objects.filter(pk=congress_id).first()
     slug = Slug.objects.filter(slug=slug_text).first()
     redirect_path = f"events/congress/view/{congress_id}"
 
     if "create" in request.POST:
-        slug = Slug(slug=slug_text, redirect_path=redirect_path)
+        slug = Slug(
+            slug=slug_text,
+            redirect_path=redirect_path,
+            owner=congress.congress_master.org,
+        )
         slug.save()
         slug_msg = "Short name created"
         show_save = False
