@@ -240,6 +240,16 @@ urlpatterns = [
         name="club_menu_tab_settings_slug_edit_htmx",
     ),
     path(
+        "club-menu/tabs/settings-slug-check-availability",
+        organisations.views.club_menu_tabs.settings.slug_check_available_htmx,
+        name="club_menu_tab_settings_slug_check_available_htmx",
+    ),
+    path(
+        "club-menu/tabs/settings-slug-create-new-for-club",
+        organisations.views.club_menu_tabs.settings.slug_create_new_for_club_htmx,
+        name="club_menu_tab_settings_slug_create_new_for_club_htmx",
+    ),
+    path(
         "club-menu/tabs/settings-membership",
         organisations.views.club_menu_tabs.settings.membership_htmx,
         name="club_menu_tab_settings_membership_htmx",
@@ -438,6 +448,11 @@ urlpatterns = [
         "club-menu/congress/congress-list",
         organisations.views.club_menu_tabs.congresses.congress_list_htmx,
         name="club_menu_tab_congress_list_htmx",
+    ),
+    path(
+        "club-menu/congress/congress-list-draft",
+        organisations.views.club_menu_tabs.congresses.congress_list_draft_htmx,
+        name="club_menu_tab_congress_list_draft_htmx",
     ),
     path(
         "club-menu/congress/create-series-form",

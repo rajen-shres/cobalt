@@ -201,10 +201,17 @@ def tab_congress_htmx(request, club):
             Congress.objects.filter(congress_master=congress_master).exists()
         )
 
+    # Show button for draft congresses if there are any
+    show_draft = (
+        Congress.objects.filter(congress_master__org=club)
+        .filter(status="Draft")
+        .exists()
+    )
+
     return render(
         request,
         "organisations/club_menu/congress/congress_htmx.html",
-        {"club": club, "congress_masters": congress_masters},
+        {"club": club, "congress_masters": congress_masters, "show_draft": show_draft},
     )
 
 

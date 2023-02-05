@@ -35,4 +35,14 @@
         selected.removeClass("btn-outline-info");
         selected.addClass("btn-info");
     }
+
+    // Called by the slug part of settings
+    function copyToClipboard(slug_id) {
+        const $temp = $("<input>");
+        $("body").append($temp);
+        $temp.val("http://{{ COBALT_HOSTNAME }}/go/" + $("#slug_name_" + slug_id).text().trim()).select();
+        document.execCommand("copy");
+        $temp.remove();
+        swal.fire({ title:"Copied", html: "Short name link copied to clipboard", icon: "success"})
+    }
 </script>

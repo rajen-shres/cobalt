@@ -1,0 +1,20 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Part of the slug bit fo settings in club admin                         #}
+{#                                                                        #}
+{# Shows a message about availability and a create button if available    #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+<span class="text-info font-weight-bold font-italic" id="slug-msg">{{ slug_msg }}</span>
+
+{% if show_save %}
+    <br>
+    <button name="create"
+        class="btn btn-sm btn-info"
+        hx-post="{% url "organisations:club_menu_tab_settings_slug_create_new_for_club_htmx" %}"
+        hx-vars="club_id:{{ club.id }}"
+        hx-target="#id_panel_settings"
+        hx-include="[id='id_redirect_path'],[name='slug_text']"
+    >Create</button>
+{% endif %}

@@ -3,6 +3,7 @@ from django.urls import path
 import utils.views.cobalt_batch
 import utils.views.general
 import utils.views.monitoring
+import utils.views.slugs
 
 app_name = "utils"  # pylint: disable=invalid-name
 
@@ -67,5 +68,10 @@ urlpatterns = [
         "api-log-viewer",
         utils.views.general.api_log_viewer,
         name="api_log_viewer",
+    ),
+    path(
+        "admin-manage-slugs",
+        utils.views.slugs.admin_manage_slugs,
+        name="admin_manage_slugs",
     ),
 ]

@@ -1,17 +1,33 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Manage slugs for a club                                                #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
+
+<!-- MAIN CARD -->
 <div class="card">
+
+    <!-- CARD HEADER -->
     <div class="card-header card-header-info">
         <h2 id="t_tab_heading_settings">Club Settings</h2>
         {% include "organisations/club_menu/settings/nav_htmx.html" with selected="slugs" %}
     </div>
 
+    <!-- CARD BODY -->
     <div class="card-body table-responsive">
         <p>Slugs allow you to use short text links to pages on {{ GLOBAL_TITLE }} which are nicer for users.</p>
         <p>For example, you can use
-            <u class="text-primary">https://{{ COBALT_HOSTNAME }}/go/MyCongress</u>
+            <u class="text-primary">/go/MyCongress</u>
             rather than
-            <u class="text-primary">https://{{ COBALT_HOSTNAME }}/events/congress/view/58472</u>.</p>
+            <u class="text-primary">/events/congress/view/58472</u>.</p>
+        <dl>
+            <dt>Why slugs?</dt>
+            <dd>The term comes from the newspaper industry where short names were given to stories as they evolved since the
+                headline or content might change as the story moved through to publication.</dd>
+        </dl>
 
+        <!-- SHOW EXISTING SLUGS IF WE HAVE ANY -->
         {% if slugs %}
 
             <table id="id_slug_table" class="table table-hover">
@@ -26,7 +42,7 @@
                 <tbody>
                     {% for slug in slugs %}
                         <tr>
-                            <td id="slug_name_{{ slug.id }}">{{ slug.slug }}</td>
+                            <td id="slug_name_{{ slug.id }}" class="font-weight-bold">{{ slug.slug }}</td>
                             <span style="display: none;" id="slug_link_{{ slug.id }}">{{ slug.redirect_path }}</span>
                             <td>https://{{ COBALT_HOSTNAME }}/go/{{ slug.slug }}</td>
                             <td>https://{{ COBALT_HOSTNAME }}/{{ slug.redirect_path }}</td>
@@ -34,16 +50,25 @@
 
                             <td class="text-center delete-slug">
 
+                                <!-- DELETE SLUG BUTTON -->
                                 <button
                                     id="delete_slug_{{ slug.id }}"
                                     data-toggle="modal"
                                     data-target="#deleteModal{{ slug.id }}"
                                     class="btn btn-sm btn-danger">
                                     Delete</button>
+
+                                <!-- EDIT SLUG BUTTON -->
                                 <button
                                     class="btn btn-sm btn-info edit-slug"
                                     id="edit_slug_{{ slug.id }}"
                                 >Edit</button>
+
+                                <!-- COPY SLUG BUTTON -->
+                                <button
+                                    class="btn btn-sm btn-success"
+                                    onclick="copyToClipboard({{ slug.id }})"
+                                >Copy to Clipboard</button>
                             </td>
                         </tr>
                     {% endfor %}
@@ -56,19 +81,76 @@
 
         {% endif %}
 
-        {#        <div class="text-center">#}
-        {#            <button class="btn btn-info">Add New Slug</button>#}
-        {#        </div>#}
+        <!-- HIDDEN ADD SLUG OPTION -->
 
+        <div id="add_a_slug" style="display: none">
+            <h3>Add New Slug</h3>
+            <div class="col-lg-8">
+                <div class="row">
+                    <div class="col-6">
+
+                        <!-- AUTO SEARCH FOR NAME -->
+
+                        <div class="form-group bmd-form-group">
+                            <input type="text"
+                                value="{{ slug_text }}"
+                                placeholder="Type name to see if it is available"
+                                class="form-control"
+                                hx-post="{% url "organisations:club_menu_tab_settings_slug_check_available_htmx" %}"
+                                hx-trigger="keyup changed delay:100ms"
+                                hx-target="#slug-htmx"
+                                hx-vars="club_id:{{ club.id }}"
+                                hx-include="[name='redirect_path']"
+                                name="slug_text"
+                                id="id_slug"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- PATH -->
+                    <div class="col-6">
+                        <div class="form-group bmd-form-group">
+
+                            <input type="text"
+                                name="redirect_path"
+                                id="id_redirect_path"
+                                class="form-control"
+                                placeholder="Link location e.g. events/congress/view/1"
+                                hx-post="{% url "organisations:club_menu_tab_settings_slug_check_available_htmx" %}"
+                                hx-trigger="keyup changed delay:100ms"
+                                hx-target="#slug-htmx"
+                                hx-vars="club_id:{{ club.id }}"
+                                hx-include="[name='slug_text']"
+
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PLACEHOLDER FOR SEARCH RESULTS - WHICH INCLUDE SAVE BUTTON IF APPROPRIATE -->
+                <div id="slug-htmx"></div>
+
+            </div>
+        </div>
     </div>
+
+    <div class="text-center">
+        <button
+            class="btn btn-info"
+            _="on click show #add_a_slug then remove me"
+        >Add New Slug</button>
+    </div>
+
+</div>
 </div>
 
 
 <script>
     $(document).ready( function () {
+
+        // edit slug - show dialog
         $(".edit-slug").on("click", function() {
             const slug_id = $(this).attr('id').split("_")[2];
-            console.log(slug_id);
             const slug_name = $("#slug_name_" + slug_id).text()
             const slug_link = $("#slug_link_" + slug_id).text()
             Swal.fire({
@@ -89,6 +171,26 @@
                 }
 
             });
+        });
+    });
+
+    $( document ).ready(function() {
+
+        // only allow alphanumeric and minus sign for slug
+        $('#id_slug').keypress(function( e ) {
+            if(!/[0-9a-zA-Z-]/.test(String.fromCharCode(e.which)))
+            return false;
+        });
+
+        // don't allow leading / for redirect path
+        $('#id_redirect_path').keypress(function( e ) {
+
+            // check character (/ = 47) and length (will be 0)
+            if (e.which === 47 && $('#id_redirect_path').val().length === 0){
+                swal.fire({ title:"No need for a leading backslash", html: "Links must not have a leading backslash character.", icon: "info"})
+                return false;
+            }
+
         });
     });
 </script>

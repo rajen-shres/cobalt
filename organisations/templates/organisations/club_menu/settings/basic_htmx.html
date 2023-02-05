@@ -9,8 +9,6 @@
 
 <div id="id_settings_form">
 
-
-
     <div class="card">
         <div class="card-header card-header-info">
             <h2 id="t_tab_heading_settings">Club Settings</h2>
@@ -260,28 +258,17 @@
                         name="Save"
                         class="btn btn-success"
                     >Save</button>
-                    {#                    <button class="btn btn-info" type=""reset">Reset</button>#}
                 </div>
             </form>
             <div class="font-italic small">last updated {{ club.last_updated|cobalt_nice_datetime }} by {{ club.last_updated_by.full_name }}</div>
         </div>
     </div>
 
-    {#{% include "accounts/search/user_search_include_htmx.html" with search_id="fish" include_me=True callback="ChangeSec" %}#}
-
     <script>
 
         function ChangeSec(search_id, member_id, member_name) {
-            console.log("yup");
             $('#id_secretary').val(member_id);
             $('#club_secretary_dummy_name').text(member_name);
 
         }
-
-        // Hide the message if the form changes so it is obvious when it comes back again after submission. HTMX is too smooth!
-        {#$(document).ready(function () {#}
-        {#    $("input[type='text']").keyup( function() {#}
-        {#        $('#settings_message').text("");#}
-        {#    });#}
-        {#});#}
     </script>

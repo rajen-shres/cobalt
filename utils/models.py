@@ -3,6 +3,7 @@
     This handles the models for general things such as batch processing.
 
 """
+import re
 from datetime import timedelta
 
 import pytz
@@ -68,6 +69,7 @@ class Slug(models.Model):
 
     slug = models.CharField(max_length=50, unique=True)
     redirect_path = models.CharField(max_length=200)
+    """ redirect path should not have a leading / """
     owner = models.ForeignKey(Organisation, on_delete=models.CASCADE)
 
     def __str__(self):

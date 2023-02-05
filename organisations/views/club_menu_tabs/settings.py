@@ -1,6 +1,10 @@
 import random
+import re
 import string
+import urllib
 from decimal import Decimal
+from urllib.error import HTTPError
+from urllib.request import urlopen
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -20,6 +24,7 @@ from club_sessions.models import (
     Session,
 )
 from cobalt.settings import GLOBAL_MPSERVER, COBALT_HOSTNAME
+from events.models import Congress
 from organisations.decorators import check_club_menu_access
 from organisations.forms import (
     OrgForm,
@@ -57,6 +62,7 @@ from payments.models import OrgPaymentMethod
 from rbac.core import rbac_user_has_role
 from utils.models import Slug
 from utils.views.general import masterpoint_query
+from utils.views.slugs import validate_cobalt_slug
 
 
 @check_club_menu_access()
@@ -206,6 +212,50 @@ def slug_edit_htmx(request, club):
         actor=request.user,
         action=f"Changed slug: {slug.slug} to point to {slug.redirect_path}",
     ).save()
+
+    return slugs_htmx(request)
+
+
+@check_club_menu_access()
+def slug_check_available_htmx(request, club):
+    """Check if a slug is available"""
+
+    # Get data
+    slug_text = request.POST.get("slug_text")
+    if not slug_text:
+        return HttpResponse("")
+
+    redirect_path = request.POST.get("redirect_path")
+
+    show_save, slug_msg = validate_cobalt_slug(slug_text, redirect_path)
+
+    return render(
+        request,
+        "organisations/club_menu/settings/slug_check_available_htmx.html",
+        {
+            "slug_msg": slug_msg,
+            "show_save": show_save,
+            "club": club,
+        },
+    )
+
+
+@check_club_menu_access()
+def slug_create_new_for_club_htmx(request, club):
+    """Create a new slug for a club"""
+
+    slug_text = request.POST.get("slug_text")
+    redirect_path = request.POST.get("redirect_path")
+
+    if Slug.objects.filter(slug=slug_text).exists():
+        return HttpResponse("Name in use")
+
+    slug = Slug(
+        slug=slug_text,
+        redirect_path=redirect_path,
+        owner=club,
+    )
+    slug.save()
 
     return slugs_htmx(request)
 

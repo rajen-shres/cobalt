@@ -5,8 +5,7 @@
 
     <div class="card-body">
 
-        {% if congresses %}
-
+        {% if things %}
 
             <div class="table-responsive">
                 <table class="table">
@@ -18,9 +17,15 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for congress in congresses %}
+                        {% for congress in things %}
                             <tr>
-                                <td>{{ congress.start_date|default_if_none:"Not Set" }}</td>
+                                <td
+                                    {% if show_draft %}
+                                        data-toggle="tooltip"
+                                        title="{{ congress.congress_master }}"
+                                    {% endif %}
+                                >{{ congress.start_date|default_if_none:"Not Set" }}
+                                </td>
                                 <td>{{ congress.status }}</td>
                                 <td class="text-right">
 
@@ -75,23 +80,34 @@
                     </tbody>
                 </table>
 
+
+                {% include 'utils/pagination_footer_htmx.html' with hx_target="#congress-list" %}
+
+
+
         {% endif %}
 
+        <!-- ONLY SHOW CREATE BUTTON IF WE AREN"T SHOWING JUST DRAFT CONGRESSES -->
 
-        <button class="btn btn-primary btn-sm"
-            hx-post="{% url "organisations:club_menu_tab_congress_create_congress_htmx" %}"
-            hx-vars="club_id:{{ club.id }},congress_master_id:{{ congress_master.id }}"
-            hx-target="#congress-list"
-            onclick="$('#btn-congress-master-delete-{{ congress_master.id }}').prop('disabled', true)"
-        >
+        {% if not show_draft %}
 
-            {# Change message if empty or existing entries #}
-            {% if congresses %}
-                Create New Congress From Scratch
-            {% else %}
-                Create New Congress
-            {% endif %}
-        </button>
+            <button class="btn btn-primary btn-sm"
+                hx-post="{% url "organisations:club_menu_tab_congress_create_congress_htmx" %}"
+                hx-vars="club_id:{{ club.id }},congress_master_id:{{ congress_master.id }}"
+                hx-target="#congress-list"
+                onclick="$('#btn-congress-master-delete-{{ congress_master.id }}').prop('disabled', true)"
+            >
+
+                {# Change message if empty or existing entries #}
+                {% if congresses %}
+                    Create New Congress From Scratch
+                {% else %}
+                    Create New Congress
+                {% endif %}
+            </button>
+
+        {% endif %}
+
     </div>
 </div>
 </div>

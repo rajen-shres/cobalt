@@ -1,0 +1,72 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Admin view of slugs                                                    #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% extends 'base.html' %}
+{% block title %}- Slug Admin{% endblock %}
+{% load cobalt_tags %}
+{% block content %}
+
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation" xmlns="http://www.w3.org/1999/html">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#email">Communications</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Slugs</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h2>Slug Administration</h2>
+            <p>This lists all slugs in the system. To change slugs in any way use the club admin menus as this gives ownership (through the clubs) and accountablilty (through the logs).</p>
+            <p><i>To find anything on this page use the search functions in your browser:
+                <button
+                    class="btn btn-sm"
+                    style="background-color: black; color: white; font-family: monospace"
+                >
+                    ctrl-F
+                </button>
+                or
+                <button
+                    class="btn btn-sm"
+                    style="background-color: black; color: white; font-family: monospace"
+                >cmd-F
+                </button>
+                or the search bar.
+            </i>
+            </p>
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-condensed table-hover">
+                <thead class="text-primary">
+                    <tr>
+                        <th class="text-left">Slug</th>
+                        <th class="text-left">Link</th>
+                        <th class="text-left">Organisation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for slug in slugs %}
+                        <tr>
+                            <td class="text-left font-weight-bold">{{ slug.slug }}</td>
+                            <td class="text-left">
+                                <a href="/{{ slug.redirect_path }}" target="_blank">
+                                    {{ slug.redirect_path }}
+                                </a>
+                            </td>
+                            <td class="text-left">
+                                <a href="{% url "organisations:club_menu" club_id=slug.owner.id %}">
+                                    {{ slug.owner }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}

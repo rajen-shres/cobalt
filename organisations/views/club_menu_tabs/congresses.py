@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 
 from events.views.congress_builder import copy_congress_from_another
 from events.models import CongressMaster, Congress
@@ -6,6 +7,7 @@ from organisations.decorators import check_club_menu_access
 from organisations.views.club_menu import tab_congress_htmx
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
+from utils.utils import cobalt_paginator
 
 
 @check_club_menu_access()
@@ -22,13 +24,52 @@ def congress_list_htmx(request, club):
         "-pk"
     )
 
+    things = cobalt_paginator(request, congresses, 10)
+
+    # Add hx_post for paginator controls
+    hx_post = reverse("organisations:club_menu_tab_congress_list_htmx")
+    hx_vars = f"club_id:{club.id},congress_master_id:{congress_master.id}"
+
     return render(
         request,
         "organisations/club_menu/congress/congress_list_htmx.html",
         {
             "congress_master": congress_master,
-            "congresses": congresses,
+            "things": things,
+            "hx_post": hx_post,
+            "hx_vars": hx_vars,
             "club": club,
+        },
+    )
+
+
+@check_club_menu_access()
+def congress_list_draft_htmx(request, club):
+    """show congress list for all draft congresses for this club"""
+
+    # We don't check if this user should have access as we only produce a list.
+    # Downstream security will cover us if they try to do anything
+
+    congresses = Congress.objects.filter(
+        congress_master__org=club, status="Draft"
+    ).order_by("-pk")
+
+    things = cobalt_paginator(request, congresses, 10)
+
+    # Add hx_post for paginator controls
+    hx_post = reverse("organisations:club_menu_tab_congress_list_draft_htmx")
+    hx_vars = f"club_id:{club.id}"
+
+    return render(
+        request,
+        "organisations/club_menu/congress/congress_list_htmx.html",
+        {
+            "congress_master": "All Draft Congresses",
+            "things": things,
+            "hx_post": hx_post,
+            "hx_vars": hx_vars,
+            "club": club,
+            "show_draft": True,
         },
     )
 

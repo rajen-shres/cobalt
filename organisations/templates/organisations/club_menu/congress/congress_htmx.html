@@ -95,6 +95,19 @@
 
                     {% endif %}
 
+                    <!-- DRAFT CONGRESSES -->
+                    {% if show_draft %}
+                        <button
+                            class="btn btn-sm btn-success"
+                            hx-post="{% url "organisations:club_menu_tab_congress_list_draft_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}"
+                            hx-target="#congress-list"
+                        >
+                            Show All Drafts
+                        </button>
+
+                    {% endif %}
+
                     <div id="create-series">
                         <button class="btn btn-primary btn-sm"
                             hx-post="{% url "organisations:club_menu_tab_congress_create_series_htmx" %}"
