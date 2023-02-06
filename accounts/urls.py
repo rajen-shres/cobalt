@@ -8,6 +8,7 @@ import accounts.views.settings
 import accounts.views.search
 import accounts.views.core
 import accounts.views.covid
+import accounts.views.system_card
 
 app_name = "accounts"  # pylint: disable=invalid-name
 
@@ -171,5 +172,10 @@ urlpatterns = [
         "unregistered-preferences/<str:identifier>",
         accounts.views.settings.unregistered_user_settings,
         name="unregistered_settings",
+    ),
+    path(
+        "system-card/<int:system_card_id>",
+        accounts.views.system_card.system_card_view,
+        name="system_card_view",
     ),
 ]

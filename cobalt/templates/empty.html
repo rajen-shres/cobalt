@@ -2,57 +2,73 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-  <meta charset="utf-8" />
-  <link rel="apple-touch-icon" sizes="76x76" href="{% static "assets/img/apple-icon.png" %}">
-  <link rel="icon" type="image/png" href="{% static "assets/img/favicon.ico" %}">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
-  <title>
-    {{ GLOBAL_TITLE }}
-  </title>
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
-  <link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
-  <link href="{% static "assets/css/cobalt.css" %}" rel="stylesheet" />
+    <head>
+        <meta charset="utf-8" />
+        <link rel="apple-touch-icon" sizes="76x76" href="{% static "assets/img/favicon.png" %}">
+        <link rel="icon" type="image/png" href="{% static "assets/img/favicon.png" %}">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
 
-{% block headerjs %}
-<!-- These can cause problems, for example in forums with Summernote so we allow them to be overridden -->
-  <script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
-  <script src="{% static "assets/js/core/popper.min.js" %}"></script>
-  <script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
-  <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
-{% endblock %}
+        <!-- INCLUDE NEW RELIC FOR MONITORING -->
 
-{% block header %}
-{% endblock %}
-</head>
+        {% include "newrelic-include.html" %}
 
-<body class="">
-  <!-- This is the section to copy for raw HTML -->
-  <!-- START -->
+        <!-- END NEW RELIC -->
 
+        <title>
+            {{ GLOBAL_TITLE }}
+
+            {# Override this block to set the page title that appears as the name in the browser tab #}
+            {% block title %}
+            {% endblock title %}
+        </title>
+
+        {# Standard CSS for all pages #}
+        {#        <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />#}
+        <link rel="stylesheet" type="text/css" href="{% static "assets/css/google-fonts/fonts.css" %}" />
+        <link href="{% static "assets/css/material-dashboard.css" %}?v=2.1.1" rel="stylesheet" />
+        <link href="{% static "assets/css/cobalt.css" %}" rel="stylesheet" />
+        <link href="{% static "assets/css/font-awesome.5.14/css/all.min.css" %}" rel="stylesheet" />
+        <link href="{% static "assets/css/animate.4.0.0/animate.min.css" %}" rel="stylesheet" />
 
 
-{% block content %}
-{% endblock %}
+        {# These can cause problems, for example in forums with Summernote so we allow them to be overridden #}
+        {% block headerjs %}
+            <script src="{% static "assets/js/core/jquery-3.4.1.min.js" %}"></script>
+            <script src="{% static "assets/js/core/popper.min.js" %}"></script>
+            <script src="{% static "assets/js/plugins/jquery-ui.min.js" %}"></script>
+            <script src="{% static "assets/js/plugins/perfect-scrollbar.jquery.min.js" %}"></script>
+            <script src="{% static "assets/js/core/bootstrap-material-design.min.js" %}"></script>
+        {% endblock %}
+
+        {# Standard Javascript libraries for all pages #}
+        <script src="{% static "assets/js/cobalt-core.js" %}"></script>
+        {# Note htmx needs to be loaded in the head to handle being loaded twice https://github.com/bigskysoftware/htmx/issues/854 #}
+        <script src="{% static "assets/packages/htmx-1.8.0/htmx.min.js" %}"></script>
+        <script src="{% static "assets/js/jquery-validation-1.19.2/jquery.validate.min.js" %}"></script>
+        <script src="{% static "assets/js/jquery-validation-1.19.2/additional-methods.min.js" %}"></script>
+
+        {# Placeholder for any extra stuff that a page needs in the header #}
+        {% block header %}
+        {% endblock %}
+    </head>
 
 
+    <body>
 
+        {% block content %}
+        {% endblock %}
 
-<!-- END -->
-<!-- This is the section to copy for raw HTML -->
+        {% block footer %}
+        {% endblock %}
 
-{% block footer %}
-{% endblock %}
+        <!-- Include a polyfill for ES6 Promises (optional) for IE11, UC Browser and Android browser support SweetAlert -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.js"></script>
+        <!-- Library for adding dinamically elements -->
+        <script src="{% static "assets/js/plugins/arrive.min.js" %}"></script>
+        <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
+        <script src="{% static "assets/js/material-dashboard.js" %}?v=2.1.1" type="text/javascript"></script>
 
-  <!-- Include a polyfill for ES6 Promises (optional) for IE11, UC Browser and Android browser support SweetAlert -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.js"></script>
-  <!-- Library for adding dinamically elements -->
-  <script src="{% static "assets/js/plugins/arrive.min.js" %}"></script>
-    <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
-  <script src="{% static "assets/js/material-dashboard.js" %}?v=2.1.1" type="text/javascript"></script>
-
-</body>
+    </body>
 
 </html>
