@@ -640,6 +640,7 @@ def get_events(user):
         .exclude(event_entry__entry_status="Cancelled")
         .exclude(event_entry__event__denormalised_end_date__lt=datetime.today())
         .order_by("event_entry__event__denormalised_start_date")
+        .select_related("event_entry__event")
     )
 
     # total number of events this user has coming up
@@ -657,28 +658,26 @@ def get_events(user):
     # Flag for unpaid entries
     unpaid = False
 
+    # Load basket items in one hit
+    event_entry_list = [
+        event_entry_player.event_entry for event_entry_player in event_entry_players
+    ]
+    basket_items = BasketItem.objects.filter(
+        event_entry__in=event_entry_list
+    ).select_related("event_entry")
+
+    # Create dicts
+    users_basket = []
+    other_basket = {}
+
+    for basket_item in basket_items:
+        if basket_item.player == user:
+            users_basket.append(basket_item.event_entry)
+        else:
+            other_basket[basket_item.event_entry] = basket_item.player
+
     # Augment data
     for event_entry_player in event_entry_players:
-
-        # Check if still in cart
-        basket_item = BasketItem.objects.filter(
-            event_entry=event_entry_player.event_entry
-        )
-
-        in_cart = basket_item.filter(player=user).exists()
-        event_entry_player.in_cart = in_cart
-
-        # Check if still in someone else's cart (we want to know whose as well)
-        in_other_cart = basket_item.exclude(player=user).first()
-        if in_other_cart:
-            event_entry_player.in_other_cart = in_other_cart.player
-            # we do not want to show other player's cart item as unpaid item, in fact
-            # we do not want to show them to the player at all
-            continue
-
-        # check if unpaid
-        if event_entry_player.payment_status == "Unpaid":
-            unpaid = True
 
         # Check if event is running. Also need to check session is on today in case there is a break between sessions
         if (
@@ -692,6 +691,22 @@ def get_events(user):
                 .filter(session_date=timezone.localdate())
                 .exists()
             )
+
+        # Check if still in cart
+        event_entry_player.in_cart = event_entry_player.event_entry in users_basket
+
+        # Check if still in someone else's cart (we want to know whose as well)
+        if event_entry_player.event_entry in other_basket:
+            event_entry_player.in_other_cart = other_basket[
+                event_entry_player.event_entry
+            ]
+            # we do not want to show other player's cart item as unpaid item, in fact
+            # we do not want to show them to the player at all
+            continue
+
+        # check if unpaid
+        if event_entry_player.payment_status == "Unpaid":
+            unpaid = True
 
     return event_entry_players, unpaid, more_events, total_events
 

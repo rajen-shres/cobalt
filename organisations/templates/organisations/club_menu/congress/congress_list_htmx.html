@@ -10,23 +10,28 @@
             <div class="table-responsive">
                 <table class="table">
                     <thead>
-                        <tr>
+                        <tr>{% if show_draft %}
+                            <th>Series</th>
+                        {% endif %}
                             <th>Start Date</th>
-                            <th>Status</th>
+                            {% if not show_draft %}
+                                <th>Status</th>
+                            {% endif %}
                             <th class="text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for congress in things %}
                             <tr>
+                                {% if show_draft %}
+                                    <td>{{ congress.congress_master }}</td>
+                                {% endif %}
                                 <td
-                                    {% if show_draft %}
-                                        data-toggle="tooltip"
-                                        title="{{ congress.congress_master }}"
-                                    {% endif %}
                                 >{{ congress.start_date|default_if_none:"Not Set" }}
                                 </td>
-                                <td>{{ congress.status }}</td>
+                                {% if not show_draft %}
+                                    <td>{{ congress.status }}</td>
+                                {% endif %}
                                 <td class="text-right">
 
                                     <a href="{% url "events:create_congress_wizard" congress_id=congress.id step=2 %}"

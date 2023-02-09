@@ -957,7 +957,7 @@ def slug_handler_htmx(request):
     else:
 
         if slug:
-            slug_msg = "Short name already used"
+            slug_msg = "Short name already used. Please select another name."
             show_save = False
         elif slug_text:
             slug_msg = "Name is available"

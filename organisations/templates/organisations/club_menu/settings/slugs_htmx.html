@@ -192,5 +192,21 @@
             }
 
         });
+
+        // some people will paste in a URL instead of a path
+        $('#id_redirect_path').on('paste', function() {
+
+            setTimeout(function () {
+                var pasted = $('#id_redirect_path').val();
+                console.log("Pasted");
+                console.log(pasted);
+                pasted = pasted.replace("{{ COBALT_HOSTNAME }}/", "")
+                pasted = pasted.replace("https:\/\/", "")
+                pasted = pasted.replace("http:\/\/", "")
+                console.log(pasted);
+                $('#id_redirect_path').val(pasted);
+            },0);
+        });
+
     });
 </script>
