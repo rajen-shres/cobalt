@@ -474,7 +474,6 @@ class Event(models.Model):
     # Adding denormalised date/time fields makes things easier. These only change if
     # the sessions change which only happens in one place, so not a big deal
     # TODO: Add to test data
-    # TODO: Release this, then change code to update it, then run bulk update and release new code
     denormalised_start_date = models.DateField(null=True, blank=True)
     denormalised_start_time = models.TimeField(null=True, blank=True)
     denormalised_end_date = models.DateField(null=True, blank=True)

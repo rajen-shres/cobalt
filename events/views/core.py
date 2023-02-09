@@ -680,13 +680,18 @@ def get_events(user):
         if event_entry_player.payment_status == "Unpaid":
             unpaid = True
 
-        # Check if event is running
+        # Check if event is running. Also need to check session is on today in case there is a break between sessions
         if (
             event_entry_player.event_entry.event.denormalised_start_date
             and event_entry_player.event_entry.event.denormalised_start_date
-            <= datetime.today().date()
+            <= timezone.localdate()
         ):
-            event_entry_player.is_running = True
+            # Check for session on now. Eg multi week Monday Night event, don't tell them on Tuesday that it is on today
+            event_entry_player.is_running = (
+                Session.objects.filter(event=event_entry_player.event_entry.event)
+                .filter(session_date=timezone.localdate())
+                .exists()
+            )
 
     return event_entry_players, unpaid, more_events, total_events
 
