@@ -89,6 +89,9 @@ class User(AbstractUser):
         "Show %s number on searches" % GLOBAL_ORG, default=True
     )
     receive_sms_results = models.BooleanField("Receive SMS Results", default=True)
+    receive_email_results = models.BooleanField(
+        "Receive Results by Email", default=True
+    )
     receive_sms_reminders = models.BooleanField("Receive SMS Reminders", default=False)
     receive_abf_newsletter = models.BooleanField("Receive ABF Newsletter", default=True)
     receive_marketing = models.BooleanField("Receive Marketing", default=True)
