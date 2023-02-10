@@ -4,8 +4,17 @@ from decimal import Decimal
 from django.utils.timezone import localdate, localtime
 
 from accounts.models import User
-from events.models import CongressMaster, Congress, Event, Session, EventPlayerDiscount
+from events.models import (
+    CongressMaster,
+    Congress,
+    Event,
+    Session,
+    EventPlayerDiscount,
+    EventEntry,
+    EventEntryPlayer,
+)
 from events.views.congress_builder import update_event_start_and_end_times
+from events.views.core import get_events
 from organisations.models import Organisation
 from rbac.tests.utils import unit_test_rbac_add_role_to_user
 from tests.test_manager import CobaltTestManagerIntegration
@@ -64,6 +73,35 @@ def _report_denormalised_dates(
         test_name=test_name,
         test_description="Starting with an empty event that has 3 sessions, add the denormalised dates and check them",
         output=output,
+    )
+
+
+def _dashboard_helper(
+    manager,
+    user,
+    expected_unpaid,
+    expected_more_events,
+    expected_total_events,
+    test_name,
+    test_description,
+):
+    """helper for the events_dashboard tests"""
+
+    event_entry_players, unpaid, more_events, total_events = get_events(user)
+
+    ok = (
+        expected_total_events == total_events
+        and expected_more_events == more_events
+        and expected_unpaid == unpaid
+    )
+
+    manager.save_results(
+        status=ok,
+        test_name=test_name,
+        test_description=test_description,
+        output=f"Expected unpaid: {expected_unpaid}. Unpaid: {unpaid} "
+        f"Expected More: {expected_more_events}. More: {more_events} "
+        f"Expected total: {expected_total_events}. Total: {total_events}",
     )
 
 
@@ -480,6 +518,7 @@ class EventModelTests:
         """Tests for the view presented on the dashboard"""
 
         today = localdate()
+        natalie = self.manager.natalie
 
         # Create a congress
         congress = _create_congress()
@@ -495,13 +534,27 @@ class EventModelTests:
         )
         event.save()
 
-        expected_start_date = today + timedelta(days=7)
-        # expected_end_date = today + timedelta(days=8)
-        expected_start_time = time(10, 00)
-
-        # Sort out starting data
+        # Create a session
         session = Session(event=event)
-        session.session_date = expected_start_date
-        session.session_start = expected_start_time
+        session.session_date = today + timedelta(days=7)
+        session.session_start = time(10, 00)
         session.session_end = None
         session.save()
+
+        # Enter event
+        event_entry = EventEntry(event=event, primary_entrant=natalie)
+        event_entry.save()
+
+        # Add player
+        event_entry_player = EventEntryPlayer(event_entry=event_entry, player=natalie)
+        event_entry_player.save()
+
+        _dashboard_helper(
+            user=natalie,
+            manager=self.manager,
+            expected_unpaid=True,
+            expected_more_events=False,
+            expected_total_events=1,
+            test_name="Pending Entry",
+            test_description="Check entry in future is found and status is correct",
+        )
