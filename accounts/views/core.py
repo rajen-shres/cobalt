@@ -417,10 +417,15 @@ def get_user_or_unregistered_user_from_system_number(system_number):
     return UnregisteredUser.objects.filter(system_number=system_number).first()
 
 
-def get_email_address_and_name_from_system_number(system_number, club=None):
+def get_email_address_and_name_from_system_number(
+    system_number, club=None, requestor=None
+):
     """returns email address for a user or unregistered user
 
     If we get a club passed in, then we check for club level email addresses. Required to get unregistered users
+
+    The requestor field is used to identify which part of the system is asking for this.
+    Initially, we only support "results" as a value here. If provided we exclude people who don't want results emails.
 
     """
 
@@ -432,7 +437,11 @@ def get_email_address_and_name_from_system_number(system_number, club=None):
     )
 
     if user:
-        return user.email, user.first_name
+        # Check if this is allowed
+        if requestor == "results" and user.receive_email_results is False:
+            return None, None
+        else:
+            return user.email, user.first_name
 
     # No good finding name but not email address
     if not club:

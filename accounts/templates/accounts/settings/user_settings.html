@@ -28,6 +28,26 @@
                                             <p class="card-category">SMS and Email</p>
                                         </div>
                                         <div class="card-body">
+
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="col-md-12">
+                                                        <div class="form-check">
+                                                            <div class="row justify-content-center">
+                                                                <span class="cobalt-form-error" id="id_receive_email_errors">{{ form.receive_email.errors|striptags }}</span>
+                                                            </div>
+                                                            <label class="form-check-label">
+                                                                <input class="form-check-input" id="id_receive_email_results" name="receive_email_results" type="checkbox" {% if form.receive_email_results.value %}checked="Checked"{% endif %}>
+                                                                Receive email notifications for results published on {{ GLOBAL_TITLE }}
+                                                                <span class="form-check-sign">
+                                                                    <span class="check"></span>
+                                                                </span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <div class="row">
                                                 <div class="col-md-12">
                                                     <div class="col-md-12">
@@ -49,6 +69,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+
                                         </div>
                                     </div>
 
