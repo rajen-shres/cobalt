@@ -157,7 +157,7 @@ def _send_results_emails(results_file, club, request):
 
             # TODO: Load this higher up as a dictionary to reduce database calls
             email_address, first_name = get_email_address_and_name_from_system_number(
-                system_number, club
+                system_number, club, requestor="results"
             )
 
             if email_address:
