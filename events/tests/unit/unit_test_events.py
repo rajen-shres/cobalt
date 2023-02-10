@@ -475,3 +475,33 @@ class EventModelTests:
             expected_start_time,
             test_name="Updating denormalised dates on event",
         )
+
+    def events_dashboard(self):
+        """Tests for the view presented on the dashboard"""
+
+        today = localdate()
+
+        # Create a congress
+        congress = _create_congress()
+
+        # Create basic event
+        event = Event(
+            congress=congress,
+            event_name="pytest event",
+            event_type="Open",
+            entry_fee=Decimal(ENTRY_FEE),
+            entry_early_payment_discount=Decimal(EARLY_DISCOUNT),
+            player_format="Pairs",
+        )
+        event.save()
+
+        expected_start_date = today + timedelta(days=7)
+        # expected_end_date = today + timedelta(days=8)
+        expected_start_time = time(10, 00)
+
+        # Sort out starting data
+        session = Session(event=event)
+        session.session_date = expected_start_date
+        session.session_start = expected_start_time
+        session.session_end = None
+        session.save()

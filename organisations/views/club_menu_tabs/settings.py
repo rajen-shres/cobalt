@@ -3,6 +3,7 @@ import re
 import string
 import urllib
 from decimal import Decimal
+from http.client import InvalidURL
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
@@ -163,7 +164,7 @@ def logs_htmx(request, club):
 
 
 @check_club_menu_access()
-def slugs_htmx(request, club):
+def slugs_htmx(request, club, message=""):
     """Handle club slugs"""
 
     slugs = Slug.objects.filter(owner=club)
@@ -174,7 +175,7 @@ def slugs_htmx(request, club):
     return render(
         request,
         "organisations/club_menu/settings/slugs_htmx.html",
-        {"slugs": slugs, "club": club},
+        {"slugs": slugs, "club": club, "message": message},
     )
 
 
@@ -204,16 +205,41 @@ def slug_edit_htmx(request, club):
 
     redirect_path = request.POST.get("redirect_path")
 
-    slug.redirect_path = redirect_path
-    slug.save()
+    slug_msg = "Slug Edited"
+    slug_invalid_message = "Link is invalid. Changes not saved."
 
-    ClubLog(
-        organisation=club,
-        actor=request.user,
-        action=f"Changed slug: {slug.slug} to point to {slug.redirect_path}",
-    ).save()
+    # Special case for congresses which may not be published yet
+    match = re.search(r"events/congress/view/(\d+)", redirect_path)
+    if match:
+        if Congress.objects.filter(pk=match[1]).exists():
+            valid = True
+        else:
+            slug_msg = slug_invalid_message
+            valid = False
+    else:
+        # Try url to see if valid
+        url = f"http://{COBALT_HOSTNAME}/{redirect_path}"
 
-    return slugs_htmx(request)
+        try:
+            urlopen(url)
+            valid = True
+
+        except (HTTPError, InvalidURL):
+            slug_msg = slug_invalid_message
+            valid = False
+
+    if valid:
+
+        slug.redirect_path = redirect_path
+        slug.save()
+
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Changed slug: {slug.slug} to point to {slug.redirect_path}",
+        ).save()
+
+    return slugs_htmx(request, message=slug_msg)
 
 
 @check_club_menu_access()

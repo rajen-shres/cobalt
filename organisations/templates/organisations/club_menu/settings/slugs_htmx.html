@@ -27,6 +27,9 @@
                 headline or content might change as the story moved through to publication.</dd>
         </dl>
 
+        <!-- MESSAGE -->
+        {% include "utils/cobalt_message_h3.html" %}
+
         <!-- SHOW EXISTING SLUGS IF WE HAVE ANY -->
         {% if slugs %}
 
@@ -182,11 +185,14 @@
             return false;
         });
 
+        // selector used multiple times
+        const path_input = $('#id_redirect_path');
+
         // don't allow leading / for redirect path
-        $('#id_redirect_path').keypress(function( e ) {
+        path_input.keypress(function( e ) {
 
             // check character (/ = 47) and length (will be 0)
-            if (e.which === 47 && $('#id_redirect_path').val().length === 0){
+            if (e.which === 47 && path_input.val().length === 0){
                 swal.fire({ title:"No need for a leading backslash", html: "Links must not have a leading backslash character.", icon: "info"})
                 return false;
             }
@@ -194,17 +200,18 @@
         });
 
         // some people will paste in a URL instead of a path
-        $('#id_redirect_path').on('paste', function() {
+        path_input.on('paste', function() {
 
             setTimeout(function () {
-                var pasted = $('#id_redirect_path').val();
-                console.log("Pasted");
-                console.log(pasted);
+                let pasted = path_input.val();
+
+                // remove bad bits
                 pasted = pasted.replace("{{ COBALT_HOSTNAME }}/", "")
                 pasted = pasted.replace("https:\/\/", "")
                 pasted = pasted.replace("http:\/\/", "")
-                console.log(pasted);
-                $('#id_redirect_path').val(pasted);
+
+                // update value
+                path_input.val(pasted);
             },0);
         });
 

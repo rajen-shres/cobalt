@@ -1,4 +1,5 @@
 import re
+from http.client import InvalidURL
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
@@ -67,7 +68,7 @@ def validate_cobalt_slug(slug_text, redirect_path):
                 slug_msg = "Name is available and link is valid."
                 show_save = True
 
-            except HTTPError:
+            except (HTTPError, InvalidURL):
                 slug_msg = "Name is available, but link is invalid."
                 show_save = False
 

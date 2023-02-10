@@ -631,8 +631,8 @@ def get_basket_for_user(user):
     return BasketItem.objects.filter(player=user).count()
 
 
-def get_events(user):
-    """called by dashboard to get upcoming events"""
+def _get_events_event_entry_players(user):
+    """sub of get_events to handle the main things to do with event_entry_players"""
 
     # Main query
     event_entry_players_query = (
@@ -655,8 +655,11 @@ def get_events(user):
     # Drop the 6th if we have one
     event_entry_players = event_entry_players[:5]
 
-    # Flag for unpaid entries
-    unpaid = False
+    return event_entry_players, more_events, total_events
+
+
+def _get_events_basket_items(event_entry_players, user):
+    """sub of get_events to handle loading the basket items efficiently"""
 
     # Load basket items in one hit
     event_entry_list = [
@@ -676,21 +679,79 @@ def get_events(user):
         else:
             other_basket[basket_item.event_entry] = basket_item.player
 
+    return users_basket, other_basket
+
+
+def _get_event_start_date_from_sessions(event_entry_players):
+    """
+    Sub of get_event to calculate the effective start date for an event based upon today's date.
+
+    Most events run for one or more continuous days, but events with a break in them, e.g. every Monday for
+    a month, we want to set the event start date to be the next session, not the first session.
+
+    """
+
+    # load all sessions in one hit
+    events_list = [
+        event_entry_player.event_entry.event
+        for event_entry_player in event_entry_players
+    ]
+    sessions = (
+        Session.objects.filter(event__in=events_list)
+        .order_by("event", "session_date")
+        .select_related("event")
+    )
+
+    today = timezone.localdate()
+
+    event_start_dates = {}
+    for session in sessions:
+        # See if this is the next or current session for this event
+        if session.event not in event_start_dates:
+            # No session yet, so we win by default
+            event_start_dates[session.event] = session.session_date
+
+        # For example. today=9. ses1=5, ses2=12, ses3=19
+        # We are checking ses3 and 12 is the current winner (ses2). It should stay the current winner.
+        # ses_date > existing - TICK
+        # ses_date >= today - TICK
+        # today > existing - CROSS
+        elif (
+            session.session_date > event_start_dates[session.event]
+            and session.session_date >= today
+            and today > event_start_dates[session.event]
+        ):
+            event_start_dates[session.event] = session.session_date
+
+    return event_start_dates
+
+
+def get_events(user):
+    """called by dashboard to get upcoming events"""
+
+    # Load event_entry_players for this user
+    event_entry_players, more_events, total_events = _get_events_event_entry_players(
+        user
+    )
+
+    # Flag for unpaid entries. Default to False.
+    unpaid = False
+
+    # set up basket items lists/dictionaries
+    users_basket, other_basket = _get_events_basket_items(event_entry_players, user)
+
+    event_start_dates = _get_event_start_date_from_sessions(event_entry_players)
+
     # Augment data
     for event_entry_player in event_entry_players:
+        # Set start date based upon sessions
 
-        # Check if event is running. Also need to check session is on today in case there is a break between sessions
-        if (
-            event_entry_player.event_entry.event.denormalised_start_date
-            and event_entry_player.event_entry.event.denormalised_start_date
-            <= timezone.localdate()
-        ):
-            # Check for session on now. Eg multi week Monday Night event, don't tell them on Tuesday that it is on today
-            event_entry_player.is_running = (
-                Session.objects.filter(event=event_entry_player.event_entry.event)
-                .filter(session_date=timezone.localdate())
-                .exists()
-            )
+        event_entry_player.calculated_start_date = event_start_dates[
+            event_entry_player.event_entry.event
+        ]
+
+        if event_entry_player.calculated_start_date == timezone.localdate():
+            event_entry_player.is_running = True
 
         # Check if still in cart
         event_entry_player.in_cart = event_entry_player.event_entry in users_basket
