@@ -104,6 +104,8 @@ def _dashboard_helper(
         f"Expected total: {expected_total_events}. Total: {total_events}",
     )
 
+    return event_entry_players
+
 
 class CongressModelTests:
     """Unit tests for things related to the Congress model"""
@@ -306,19 +308,22 @@ class EventModelTests:
             f"Session start: {session.session_start}",
         )
 
-        # Set start date in past - fail
-        session.session_date = today - timedelta(days=7)
-        session.save()
+        # I don't think this is really correct - we don't use the session date for this calculation
+        # so the test is invalid
 
-        self.manager.save_results(
-            status=not bool(event.is_open()),
-            test_name="Event is closed. Open date in past. Close date is today. session date in past.",
-            test_description="The event entry dates are fine (event is open) and the session date is in the past.",
-            output=f"Checked event open. Status={bool(event.is_open())}. Today: {today}. Time: {localtime().time()} "
-            f"Open date: {event.entry_open_date}. Close date: {event.entry_close_date}. "
-            f"Close time: {event.entry_close_time}. Session date: {session.session_date}. "
-            f"Session start: {session.session_start}",
-        )
+        # # Set start date in past - fail
+        # session.session_date = today - timedelta(days=7)
+        # session.save()
+        #
+        # self.manager.save_results(
+        #     status=not bool(event.is_open()),
+        #     test_name="Event is closed. Open date in past. Close date is today. session date in past.",
+        #     test_description="The event entry dates are fine (event is open) and the session date is in the past.",
+        #     output=f"Checked event open. Status={bool(event.is_open())}. Today: {today}. Time: {localtime().time()} "
+        #     f"Open date: {event.entry_open_date}. Close date: {event.entry_close_date}. "
+        #     f"Close time: {event.entry_close_time}. Session date: {session.session_date}. "
+        #     f"Session start: {session.session_start}",
+        # )
 
         ##################
         # Entry Fees     #
@@ -549,12 +554,275 @@ class EventModelTests:
         event_entry_player = EventEntryPlayer(event_entry=event_entry, player=natalie)
         event_entry_player.save()
 
-        _dashboard_helper(
+        event_entry_players = _dashboard_helper(
             user=natalie,
             manager=self.manager,
             expected_unpaid=True,
             expected_more_events=False,
             expected_total_events=1,
             test_name="Pending Entry",
-            test_description="Check entry in future is found and status is correct",
+            test_description="Check entry in future is found and status is correct. Entry unpaid.",
+        )
+
+        self.manager.save_results(
+            status=event_entry_players[0] == event_entry_player,
+            test_name="Pending Entry - Check event_entry_player",
+            test_description="Check that we get the event_entry_player we expect",
+        )
+
+        # Mark as paid
+        event_entry_player.payment_status = "Paid"
+        event_entry_player.save()
+
+        event_entry_players = _dashboard_helper(
+            user=natalie,
+            manager=self.manager,
+            expected_unpaid=False,
+            expected_more_events=False,
+            expected_total_events=1,
+            test_name="Paid Entry",
+            test_description="Check entry in future is found and status is correct. Entry is paid.",
+        )
+
+        self.manager.save_results(
+            status=event_entry_players[0] == event_entry_player,
+            test_name="Paid Entry - Check event_entry_player",
+            test_description="Check that we get the event_entry_player we expect",
+        )
+
+        # In the past
+        session.session_date = today - timedelta(days=1)
+        session.save()
+        update_event_start_and_end_times(event)
+
+        event_entry_players = _dashboard_helper(
+            user=natalie,
+            manager=self.manager,
+            expected_unpaid=False,
+            expected_more_events=False,
+            expected_total_events=0,
+            test_name="No Upcoming",
+            test_description="Check entry in past is not found.",
+        )
+
+        self.manager.save_results(
+            status=len(event_entry_players) == 0,
+            test_name="No Upcoming - Check event_entry_player",
+            test_description="Check that we get empty event_entry_player as we expect",
+        )
+
+        # more than 5 entries
+        # we cheat a bit and enter in the same event
+
+        # fix session
+        session.session_date = today + timedelta(days=7)
+        session.save()
+        update_event_start_and_end_times(event)
+
+        # add entries
+        entries_list = []
+        for _ in range(6):
+            event_entry_temp = EventEntry(event=event, primary_entrant=natalie)
+            event_entry_temp.save()
+            event_entry_player_temp = EventEntryPlayer(
+                event_entry=event_entry_temp, player=natalie
+            )
+            event_entry_player_temp.save()
+            entries_list.append(event_entry_player_temp)
+
+        event_entry_players = _dashboard_helper(
+            user=natalie,
+            manager=self.manager,
+            expected_unpaid=True,
+            expected_more_events=True,
+            expected_total_events=7,
+            test_name="More than 5",
+            test_description="Check more than 5 is handled.",
+        )
+
+        self.manager.save_results(
+            status=len(event_entry_players) == 5,
+            test_name="More than 5 - Check event_entry_player",
+            test_description="Check that we get the event_entry_players we expect",
+        )
+
+        # Now the hard one - session dates
+
+        # clean up, so we are back to just the one entry
+        for event_entry_player_temp in entries_list:
+            event_entry_player_temp.delete()
+
+        # Set up sessions with gaps e.g. simulate weekly sessions
+        # make first session in the past, last session in the future
+        session.session_date = today - timedelta(days=10)
+        session.save()
+
+        session2 = Session(event=event)
+        session2.session_date = today - timedelta(days=3)
+        session2.session_start = time(10, 00)
+        session2.save()
+
+        session3 = Session(event=event)
+        session3.session_date = today + timedelta(days=4)
+        session3.session_start = time(10, 00)
+        session3.save()
+
+        event_entry_players = _dashboard_helper(
+            user=natalie,
+            manager=self.manager,
+            expected_unpaid=False,
+            expected_more_events=False,
+            expected_total_events=1,
+            test_name="Split sessions - midway",
+            test_description="Sessions have gaps. Test we get the right session",
+        )
+
+        expected_start_date = today + timedelta(days=4)
+        actual_start_date = event_entry_players[0].calculated_start_date
+        expected_is_running = False
+        try:
+            actual_is_running = event_entry_players[0].is_running
+        except AttributeError:
+            actual_is_running = False
+
+        self.manager.save_results(
+            status=actual_start_date == expected_start_date,
+            test_name="Split sessions - midway - Check event_entry_player",
+            test_description="Check that we get the event_entry_players we expect",
+            output=f"Expected start date: {expected_start_date}. Actual start date: {actual_start_date} "
+            f"Expected is_running: {expected_is_running}. Actual is_running: {actual_is_running}",
+        )
+
+        # Now move date to be today
+
+        session3.session_date = today
+        session3.save()
+
+        event_entry_players = _dashboard_helper(
+            user=natalie,
+            manager=self.manager,
+            expected_unpaid=False,
+            expected_more_events=False,
+            expected_total_events=1,
+            test_name="Split sessions - on day",
+            test_description="Sessions have gaps. Test we get the right session. Today is a session day.",
+        )
+
+        expected_start_date = today
+        actual_start_date = event_entry_players[0].calculated_start_date
+        expected_is_running = True
+        try:
+            actual_is_running = event_entry_players[0].is_running
+        except AttributeError:
+            actual_is_running = False
+
+        self.manager.save_results(
+            status=actual_start_date == expected_start_date,
+            test_name="Split sessions - on day - Check event_entry_player",
+            test_description="Check that we get the event_entry_players we expect",
+            output=f"Expected start date: {expected_start_date}. Actual start date: {actual_start_date} "
+            f"Expected is_running: {expected_is_running}. Actual is_running: {actual_is_running}",
+        )
+
+        # Sessions on continuous days in future - expect first date returned
+
+        session.session_date = today + timedelta(days=1)
+        session.save()
+        session2.session_date = today + timedelta(days=2)
+        session2.save()
+        session3.session_date = today + timedelta(days=3)
+        session3.save()
+
+        event_entry_players = _dashboard_helper(
+            user=natalie,
+            manager=self.manager,
+            expected_unpaid=False,
+            expected_more_events=False,
+            expected_total_events=1,
+            test_name="Continuous sessions - in future",
+            test_description="Sessions have no gaps. Test we get the right session.",
+        )
+
+        expected_start_date = today + timedelta(days=1)
+        actual_start_date = event_entry_players[0].calculated_start_date
+        expected_is_running = False
+        try:
+            actual_is_running = event_entry_players[0].is_running
+        except AttributeError:
+            actual_is_running = False
+
+        self.manager.save_results(
+            status=actual_start_date == expected_start_date,
+            test_name="Continuous sessions - in future - Check event_entry_player",
+            test_description="Check that we get the event_entry_players we expect",
+            output=f"Expected start date: {expected_start_date}. Actual start date: {actual_start_date} "
+            f"Expected is_running: {expected_is_running}. Actual is_running: {actual_is_running}",
+        )
+
+        # continuous days - today is first day
+        session.session_date = today
+        session.save()
+        session2.session_date = today + timedelta(days=1)
+        session2.save()
+        session3.session_date = today + timedelta(days=2)
+        session3.save()
+
+        event_entry_players = _dashboard_helper(
+            user=natalie,
+            manager=self.manager,
+            expected_unpaid=False,
+            expected_more_events=False,
+            expected_total_events=1,
+            test_name="Continuous sessions - today",
+            test_description="Sessions have no gaps. Test we get the right session.",
+        )
+
+        expected_start_date = today
+        actual_start_date = event_entry_players[0].calculated_start_date
+        expected_is_running = True
+        try:
+            actual_is_running = event_entry_players[0].is_running
+        except AttributeError:
+            actual_is_running = False
+
+        self.manager.save_results(
+            status=actual_start_date == expected_start_date,
+            test_name="Continuous sessions - today - Check event_entry_player",
+            test_description="Check that we get the event_entry_players we expect",
+            output=f"Expected start date: {expected_start_date}. Actual start date: {actual_start_date} "
+            f"Expected is_running: {expected_is_running}. Actual is_running: {actual_is_running}",
+        )
+
+        # continuous days - today is second day
+        session.session_date = today - timedelta(days=1)
+        session.save()
+        session2.session_date = today
+        session2.save()
+        session3.session_date = today + timedelta(days=1)
+        session3.save()
+
+        event_entry_players = _dashboard_helper(
+            user=natalie,
+            manager=self.manager,
+            expected_unpaid=False,
+            expected_more_events=False,
+            expected_total_events=1,
+            test_name="Continuous sessions - today day 2",
+            test_description="Sessions have no gaps. Test we get the right session.",
+        )
+
+        expected_start_date = today
+        actual_start_date = event_entry_players[0].calculated_start_date
+        expected_is_running = True
+        try:
+            actual_is_running = event_entry_players[0].is_running
+        except AttributeError:
+            actual_is_running = False
+
+        self.manager.save_results(
+            status=actual_start_date == expected_start_date,
+            test_name="Continuous sessions - today day 2 - Check event_entry_player",
+            test_description="Check that we get the event_entry_players we expect",
+            output=f"Expected start date: {expected_start_date}. Actual start date: {actual_start_date} "
+            f"Expected is_running: {expected_is_running}. Actual is_running: {actual_is_running}",
         )

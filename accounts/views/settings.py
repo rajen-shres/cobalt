@@ -46,8 +46,10 @@ def user_settings(request):
 
     fcm_devices = FCMDevice.objects.filter(user=request.user).order_by("-date_created")
 
-    # Performance for this is terrible! Commenting out for now - 2023-02-10 Mark
-    # It is not available on the page anyway
+    ################################################################################
+    # PERFORMANCE FOR THIS IS TERRIBLE! COMMENTING OUT FOR NOW - 2023-02-10 MARK
+    # IT IS NOT AVAILABLE ON THE PAGE ANYWAY
+    #################################################################################
 
     # Get user sessions so they can manage them - maybe
     # all_sessions = Session.objects.all()
