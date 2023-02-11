@@ -232,8 +232,7 @@ def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
         welcome_msg = (
             f"Hi {user.first_name},\n"
             f"This device is now set up to receive messages from {GLOBAL_TITLE}.\n\n"
-            f"You can manage your devices through Settings within {GLOBAL_TITLE}, "
-            f"or simply delete this app to turn them off."
+            f"You can manage your devices through Settings within {GLOBAL_TITLE}."
         )
         RealtimeNotification(
             member=user,
