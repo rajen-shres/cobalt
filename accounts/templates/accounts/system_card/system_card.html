@@ -9,6 +9,7 @@
         h1, h2, h3, h4 {
             text-align:center;
         }
+
         .card-body{
             font-size: large;
         }
@@ -78,6 +79,38 @@
             font-weight: bold;
         }
 
+        .nt {
+            font-size: large;
+        }
+
+        .nt::after {
+            content: "NT";
+            font-size: large;
+            font-weight: bold;
+        }
+
+        .bg-colour-1 {
+            background-color: #f1f8e9;
+        }
+
+        .borderless td, .borderless th {
+            border: none;
+        }
+
+        .response-table {
+            width: 250px;
+        }
+
+        .response-table td {
+            text-align: left;
+        }
+
+        .response-highlight {
+            background-color: #3fb8af !important;
+            font-size: xxx-large;
+        }
+
+
     </style>
 {% endblock header %}
 
@@ -98,7 +131,7 @@
                 <div class="row">
                     <!-- SUITS -->
                     <div class="col-sm-6">
-                        <div class="container" style="background-color: #f1f8e9">
+                        <div class="container bg-colour-1">
 
                             <!-- CURLY -->
                             <div class="row">
@@ -124,7 +157,7 @@
 
                     <!-- NT -->
                     <div class="col-sm-6">
-                        <div class="container" style="background-color: #f1f8e9">
+                        <div class="container bg-colour-1">
                             <div class="row">
                                 <div class="col">
                                     <b>1NT</b> 14-16 VUL, 10-12 NV
@@ -145,8 +178,12 @@
                 <p class="mb-0 bb-0 "><b>Bidding</b> - 5 Card Majors, Variable NT, Transfers over 1C, Bergen, 1430</p>
                 <p class="bt-0 mt-0 pt-0"><b>Carding</b> - Overlead, Reverse Count/Attitude, Odds and Evens</p>
 
-                <div class="text-center">
-                    <a href="#pre-alerts" class="btn btn-danger text-white">Pre-Alerts!!!</a>
+                <div class="text-center col-8 mx-auto">
+                    <a href="#pre-alerts" class="btn btn-danger text-white btn-block" style="font-size: x-large">
+                        <i class="material-icons" style="font-size: larger">notifications_active</i>
+                        Pre-Alerts
+                        <i class="material-icons" style="font-size: larger">notifications_active</i>
+                    </a>
                 </div>
 
             </div>
@@ -251,7 +288,7 @@
                 <div class="row">
                     <!-- SUITS -->
                     <div class="col-sm-6">
-                        <div class="container" style="background-color: #f1f8e9">
+                        <div class="container bg-colour-1">
 
                             <!-- CURLY -->
                             <div class="row">
@@ -277,7 +314,7 @@
 
                     <!-- NT -->
                     <div class="col-sm-6">
-                        <div class="container" style="background-color: #f1f8e9">
+                        <div class="container bg-colour-1">
                             <div class="row">
                                 <div class="col">
                                     <b>1NT</b> 14-16 VUL, 10-12 NV
@@ -414,20 +451,17 @@
             </div>
             <div class="card-body">
 
-                <button
-                    class="btn btn-sm btn-outline-secondary py-0 px-1"
-                    _="on click toggle .hidden-class on #one-club"
-                >
-                    <span class="" style="font-size: large"><b>1</b>&clubsuit;</span>
-                    <span class="club">1</span>
-                    <span class="diamond">1</span>
-                    <span class="heart">1</span>
-                    <span class="spade">1</span>
-                    <span style="font-size: large">1</span><span style="font-size: x-large">&spades;</span>
-                </button>
-                <div id="one-club" class="hidden-class">
+                <p>Click on opening bid to see responses:</p>
 
-                </div>
+                {% for bid, responses in all_responses.items %}
+                    {% include "accounts/system_card/system_card_responses_headings.html" with data=response %}
+                {% endfor %}
+
+                <div class="py-3"></div>
+
+                {% for bid, responses in all_responses.items %}
+                    {% include "accounts/system_card/system_card_responses_body.html" with data=response %}
+                {% endfor %}
 
                 <div class="text-right">
                     <span class="to-top"><a href="#top">Back to top</a></span>
@@ -446,7 +480,9 @@
                 <h2>Competitive Bids</h2>
             </div>
             <div class="card-body">
-                <p>Coming later</p>
+
+
+
                 <div class="text-right">
                     <span class="to-top"><a href="#top">Back to top</a></span>
                 </div>
@@ -513,7 +549,42 @@
         <!-- END JUMBOTRON -->
     </div>
 
-
-
-
 {% endblock content %}
+
+{% block footer %}
+
+    <script>
+        $(document).ready( function () {
+
+            // handle clicking on the opening bid in the response section
+            // we hide all other and toggle this one
+            $(".response-button").on("click", function () {
+
+                // get the id from the button and create the jquery selector for this section
+                const button_id = $(this).attr('id');
+                const section_id = button_id.replace("button_","");
+                const button_selector = $("#" + button_id);
+                const section_selector = $("#" + section_id);
+
+                // see if this is showing its data
+                const is_hidden = section_selector.hasClass('hidden-class');
+
+                // hide everything
+                $(".bid").addClass("hidden-class");
+                $(".response-button").removeClass("response-highlight");
+
+                // set on this element
+                if (is_hidden) {
+                    section_selector.removeClass("hidden-class");
+                    button_selector.addClass("response-highlight");
+                } else {
+                    section_selector.addClass("hidden-class");
+                    button_selector.removeClass("response-highlight");
+                }
+            })
+
+        });
+    </script>
+
+
+{% endblock footer %}

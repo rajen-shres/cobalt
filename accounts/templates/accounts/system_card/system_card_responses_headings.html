@@ -1,0 +1,17 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Handles the responses section of the system card                       #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load system_card %}
+
+<!-- OPENING BID BUTTON TO OPEN UP RESPONSES -->
+<button
+    id="button_{{ bid }}"
+    class="btn btn-sm btn-outline-secondary response-button"
+    style="width: 70px; height: 50px;"
+>
+
+    {{ bid|card_symbol_all }}
+
+</button>

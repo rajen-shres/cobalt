@@ -1,0 +1,35 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Handles the responses section of the system card                       #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load system_card %}
+
+<!-- HIDDEN DIVS OF TABLES WITH RESPONSES -->
+<div id="{{ bid }}" class="hidden-class row bid">
+
+    <!-- WE PUT EACH LEVEL OF RESPONSES IN A TABLE INSIDE A DIV SO WE CAN MAKE THEM FLOW -->
+    {% for level, response in responses.items %}
+        <div class="col-md-3 col-sm-6">
+
+            <table class="table table-condensed borderless response-table">
+
+                {% for denomination, text in response.items %}
+
+                    <tr>
+                        <td style="vertical-align: top; width: 50px; text-align: left">
+                            {{ denomination|card_symbol_all }}
+                        </td>
+                        <td class="bg-colour-1" style="text-align: left">
+                            {{ text|card_symbol_bang }}
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+            </table>
+        </div>
+
+    {% endfor %}
+
+</div>
