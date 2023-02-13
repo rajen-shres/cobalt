@@ -924,8 +924,6 @@ def get_event_entry_players_needing_attention(congress):
         .exclude(payment_status__in=["Paid", "Free"])
         # Some edited entries are paid but marked as unpaid
         .exclude(entry_fee=F("payment_received"))
-        # TBAs don't cause problems for real players
-        .exclude(player_id=TBA_PLAYER)
         # Ignore cancelled entries
         .exclude(event_entry__entry_status="Cancelled")
         # Ignore anything with no money due

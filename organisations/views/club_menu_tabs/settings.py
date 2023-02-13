@@ -209,7 +209,7 @@ def slug_edit_htmx(request, club):
     slug_invalid_message = "Link is invalid. Changes not saved."
 
     # Special case for congresses which may not be published yet
-    match = re.search(r"events/congress/view/(\d+)", redirect_path)
+    match = re.search(r"^events/congress/view/(\d+)$", redirect_path)
     if match:
         if Congress.objects.filter(pk=match[1]).exists():
             valid = True
