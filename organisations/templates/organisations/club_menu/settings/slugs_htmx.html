@@ -165,10 +165,16 @@
                 confirmButtonColor: 'green'
             }).then((result) => {
                 if (result.value) {
+
+                    // Handle people pasting a URL in
+                    let redirect_path = result.value.replace("{{ COBALT_HOSTNAME }}/", "");
+                    redirect_path = redirect_path.replace("https:\/\/", "")
+                    redirect_path = redirect_path.replace("http:\/\/", "")
+
                     const postData = {
                         'club_id': {{ club.id }},
                         'slug_id': slug_id,
-                        'redirect_path': result.value,
+                        'redirect_path': redirect_path,
                     };
                     htmx.ajax('POST', '{% url "organisations:club_menu_tab_settings_slug_edit_htmx" %}', {'target': '#id_panel_settings', 'values': postData});
                 }

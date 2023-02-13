@@ -807,6 +807,7 @@ def give_player_refund_ajax(request):
 
     event_entry_player.payment_received = 0
     event_entry_player.paid_by = None
+    event_entry_player.entry_complete_date = None
     event_entry_player.payment_status = "Unpaid"
     event_entry_player.payment_type = "Unknown"
     event_entry_player.reason = None
