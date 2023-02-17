@@ -22,6 +22,17 @@ def fcm_token_get_user_v1(fcm_token):
 
     """
 
+    # Test for empty string
+    if fcm_token == "":
+        return (
+            False,
+            403,
+            {
+                "status": api_app.APIStatus.ACCESS_DENIED,
+                "message": "Token is invalid",
+            },
+        )
+
     fcm_token_object = FCMDevice.objects.filter(registration_id=fcm_token).first()
 
     if fcm_token_object:
