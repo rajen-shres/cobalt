@@ -801,7 +801,12 @@ def send_fcm_message(fcm_device, msg, admin=None, header=None):
         ),
     )
 
-    rc = fcm_device.send_message(msg)
+    # Try to send the message, handle any error, so we don't break the whole sending group
+    try:
+        rc = fcm_device.send_message(msg)
+    except Exception as exc:
+        logger.error(exc.__str__())
+        return False
 
     # log it
     if type(rc) is firebase_admin.messaging.SendResponse:

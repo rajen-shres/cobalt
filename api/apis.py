@@ -299,6 +299,10 @@ def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
         # Don't provide any details about failures for security reasons
         return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
 
+    # Hopefully temporary fix for app sending null requests
+    if not data.name:
+        return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+
     # Delete token if used before (token will be the same if a user logs out and another logs in, same device)
     FCMDevice.objects.filter(registration_id=data.fcm_token).delete()
 

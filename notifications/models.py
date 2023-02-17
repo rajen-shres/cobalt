@@ -13,6 +13,11 @@ from accounts.models import User, UnregisteredUser
 from organisations.models import Organisation
 
 
+def _json_converter(in_string):
+    """ " Helper to convert strings to json"""
+    return json.loads(in_string) if in_string else json.loads("{}")
+
+
 class InAppNotification(models.Model):
     """Temporary storage for notification messages.
 
@@ -254,7 +259,7 @@ class RealtimeNotificationHeader(models.Model):
 
     def get_unregistered_users(self):
         """Convert string to list to load"""
-        return json.loads(self.unregistered_users)
+        return _json_converter(self.unregistered_users)
 
     def set_uncontactable_users(self, data):
         """Convert list to string to save"""
@@ -262,7 +267,7 @@ class RealtimeNotificationHeader(models.Model):
 
     def get_uncontactable_users(self):
         """Convert string to list to load"""
-        return json.loads(self.uncontactable_users)
+        return _json_converter(self.uncontactable_users)
 
     def set_invalid_lines(self, data):
         """Convert list to string to save"""
@@ -270,7 +275,7 @@ class RealtimeNotificationHeader(models.Model):
 
     def get_invalid_lines(self):
         """Convert string to list to load"""
-        return json.loads(self.invalid_lines)
+        return _json_converter(self.invalid_lines)
 
 
 class RealtimeNotification(models.Model):
