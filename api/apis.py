@@ -35,6 +35,7 @@ from accounts.views.api import create_user_session_id
 from api.core import api_rbac
 import api.urls as api_urls
 from cobalt.settings import GLOBAL_TITLE
+from logs.views import log_event
 from masterpoints.factories import masterpoint_factory_creator
 from notifications.apis import (
     notifications_api_sms_file_upload_v1,
@@ -217,6 +218,20 @@ def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
     # Log Api call ourselves as we aren't going through authentication
     api_urls.log_api_call(request)
 
+    # Generic Log
+    log_event(
+        "Unknown",
+        "INFO",
+        "Mobile",
+        "Registration",
+        f"Attempt using username:{data.username} fcm_token: {data.fcm_token}",
+    )
+
+    # Validate
+    if data.fcm_token == "":
+        # Don't provide any details about failures for security reasons
+        return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+
     # Try to Authenticate the user
     user = CobaltBackend().authenticate(request, data.username, data.password)
 
@@ -232,8 +247,7 @@ def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
         welcome_msg = (
             f"Hi {user.first_name},\n"
             f"This device is now set up to receive messages from {GLOBAL_TITLE}.\n\n"
-            f"You can manage your devices through Settings within {GLOBAL_TITLE}, "
-            f"or simply delete this app to turn them off."
+            f"You can manage your devices through Settings within {GLOBAL_TITLE}."
         )
         RealtimeNotification(
             member=user,
@@ -293,12 +307,30 @@ def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
     # Log Api call ourselves as we aren't going through authentication
     api_urls.log_api_call(request)
 
+    # Generic Log
+    log_event(
+        "Unknown",
+        "INFO",
+        "Mobile",
+        "Registration",
+        f"Attempt using username:{data.username} fcm_token: {data.fcm_token}",
+    )
+
+    # Validate
+    if data.fcm_token == "":
+        # Don't provide any details about failures for security reasons
+        return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+
     # Try to Authenticate the user
     user = CobaltBackend().authenticate(request, data.username, data.password)
 
     if not user:
         # Don't provide any details about failures for security reasons
         return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+
+    # # Hopefully temporary fix for app sending null requests
+    # if not data.name:
+    #     return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
 
     # Delete token if used before (token will be the same if a user logs out and another logs in, same device)
     FCMDevice.objects.filter(registration_id=data.fcm_token).delete()
