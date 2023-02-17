@@ -232,8 +232,7 @@ def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
         welcome_msg = (
             f"Hi {user.first_name},\n"
             f"This device is now set up to receive messages from {GLOBAL_TITLE}.\n\n"
-            f"You can manage your devices through Settings within {GLOBAL_TITLE}, "
-            f"or simply delete this app to turn them off."
+            f"You can manage your devices through Settings within {GLOBAL_TITLE}."
         )
         RealtimeNotification(
             member=user,
@@ -298,6 +297,10 @@ def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
 
     if not user:
         # Don't provide any details about failures for security reasons
+        return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+
+    # Hopefully temporary fix for app sending null requests
+    if not data.name:
         return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
 
     # Delete token if used before (token will be the same if a user logs out and another logs in, same device)
