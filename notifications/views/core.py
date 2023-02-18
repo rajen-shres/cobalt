@@ -788,7 +788,7 @@ def send_fcm_message(fcm_device, msg, admin=None, header=None):
 
     msg = Message(
         notification=Notification(
-            title=f"Test Message for {fcm_device.user.first_name}", body=msg
+            title=f"Message for {fcm_device.user.first_name}", body=msg
         ),
         android=AndroidConfig(
             priority="high",
