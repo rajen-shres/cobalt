@@ -224,7 +224,7 @@ def mobile_client_register_v1(request, data: MobileClientRegisterRequestV1):
         "INFO",
         "Mobile",
         "Registration",
-        f"Attempt using username:{data.username} fcm_token: {data.fcm_token}",
+        f"Mobile Register Client 1 - Attempt using username:{data.username} fcm_token: {data.fcm_token}",
     )
 
     # Validate
@@ -313,11 +313,18 @@ def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
         "INFO",
         "Mobile",
         "Registration",
-        f"Attempt using username:{data.username} fcm_token: {data.fcm_token}",
+        f"Mobile Client Register V11 - Attempt using username:{data.username} fcm_token: {data.fcm_token} os:{data.OS} name: {data.name}",
     )
 
     # Validate
     if data.fcm_token == "":
+        log_event(
+            "Unknown",
+            "ERROR",
+            "Mobile",
+            "Registration",
+            f"Mobile Client Register V11 - FCM Token is empty string. Attempt using username:{data.username} fcm_token: {data.fcm_token}",
+        )
         # Don't provide any details about failures for security reasons
         return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
 
@@ -325,22 +332,36 @@ def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
     user = CobaltBackend().authenticate(request, data.username, data.password)
 
     if not user:
+        log_event(
+            "Unknown",
+            "ERROR",
+            "Mobile",
+            "Registration",
+            f"Mobile Client Register V11 - User not found. Attempt using username:{data.username} fcm_token: {data.fcm_token}",
+        )
         # Don't provide any details about failures for security reasons
         return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
 
-    # # Hopefully temporary fix for app sending null requests
-    # if not data.name:
-    #     return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+    # Set a value for an empty name
+    if data.name == "":
+        data.name = "Mobile Device"
 
     # Delete token if used before (token will be the same if a user logs out and another logs in, same device)
     FCMDevice.objects.filter(registration_id=data.fcm_token).delete()
 
-    # Save or update device
-    fcm_device, _ = FCMDevice.objects.get_or_create(
-        user=user, type=data.OS, name=data.name
+    # Save new device
+    fcm_device = FCMDevice(
+        user=user, type=data.OS, name=data.name, registration_id=data.fcm_token
     )
-    fcm_device.registration_id = data.fcm_token
     fcm_device.save()
+
+    log_event(
+        "Unknown",
+        "INFO",
+        "Mobile",
+        "Registration",
+        f"Mobile Client Register V11 - Registered new fcm_device. Attempt using username:{data.username} fcm_token: {data.fcm_token}",
+    )
 
     # Mark all messages previously sent to the user as read to prevent swamping them with old messages
     RealtimeNotification.objects.filter(member=user).update(has_been_read=True)
@@ -349,8 +370,7 @@ def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
     welcome_msg = (
         f"Hi {user.first_name},\n"
         f"This device ({data.name}) is now set up to receive messages from {GLOBAL_TITLE}.\n\n"
-        f"You can manage your devices through Settings within {GLOBAL_TITLE}, "
-        f"or simply delete this app to turn them off."
+        f"You can manage your devices through Settings within {GLOBAL_TITLE}."
     )
     RealtimeNotification(
         member=user,
