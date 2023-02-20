@@ -904,8 +904,14 @@ def get_notifications_statistics():
 
     total_emails = PostOfficeEmail.objects.count()
     total_real_time_notifications = RealtimeNotification.objects.count()
+    total_fcm_notifications = RealtimeNotification.objects.filter(
+        fcm_device__isnull=False
+    ).count()
+    total_sms_notifications = total_real_time_notifications - total_fcm_notifications
 
     return {
         "total_emails": total_emails,
         "total_real_time_notifications": total_real_time_notifications,
+        "total_sms_notifications": total_sms_notifications,
+        "total_fcm_notifications": total_fcm_notifications,
     }

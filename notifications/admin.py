@@ -17,6 +17,7 @@ from .models import (
     EmailAttachment,
     UnregisteredBlockedEmail,
 )
+from accounts.models import User
 
 
 class InAppNotificationAdmin(admin.ModelAdmin):
@@ -84,7 +85,7 @@ class RealtimeNotificationHeaderAdmin(admin.ModelAdmin):
 class RealtimeNotificationAdmin(admin.ModelAdmin):
     """Admin class for model RealtimeNotification"""
 
-    search_fields = ("member", "admin")
+    search_fields = ("member__first_name", "member__last_name")
     autocomplete_fields = [
         "header",
         "member",
