@@ -8,14 +8,6 @@
 {% load humanize %}
 {% block title %} - Statistics{% endblock %}
 
-{% block header %}
-    <style>
-        td, th {
-            font-size: larger;
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
 
     <!-- BREADCRUMBS -->
@@ -127,7 +119,6 @@
                         </div>
                     </div>
 
-
                     <!-- EMAILS -->
                     <div class="card col-md-9 mx-auto">
                         <div class="card-header card-header-info">
@@ -144,11 +135,18 @@
                                         <td class="text-left">Total Real Time Notifications</td>
                                         <td class="text-right">{{ notifications_statistics.total_real_time_notifications|intcomma }}</td>
                                     </tr>
+                                    <tr>
+                                        <td class="text-left">Total SMS Notifications</td>
+                                        <td class="text-right">{{ notifications_statistics.total_sms_notifications|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Total FCM Notifications (Mobile App)</td>
+                                        <td class="text-right">{{ notifications_statistics.total_fcm_notifications|intcomma }}</td>
+                                    </tr>
                                 </table>
                             </div>
                         </div>
                     </div>
-
 
                     <!-- EVENTS -->
                     <div class="card col-md-9 mx-auto">
@@ -179,7 +177,6 @@
                         </div>
                     </div>
 
-
                     <!-- FORUMS -->
                     <div class="card col-md-9 mx-auto">
                         <div class="card-header card-header-danger">
@@ -208,7 +205,6 @@
                             </div>
                         </div>
                     </div>
-
 
                     <!-- ORGANISATIONS -->
                     <div class="card col-md-9 mx-auto">
@@ -372,8 +368,6 @@
                             </div>
                         </div>
                     </div>
-
-
 
                 </div>
             </div>
