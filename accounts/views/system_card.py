@@ -1,4 +1,9 @@
+import io
+
+from django.http import HttpResponse, FileResponse
 from django.shortcuts import render
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
 
 def system_card_view(request, system_card_id):
@@ -219,3 +224,37 @@ def system_card_view(request, system_card_id):
         "accounts/system_card/system_card.html",
         {"all_responses": all_responses},
     )
+
+
+def create_pdf_system_card(request, system_card_id):
+    """Generate a PDF of the system card"""
+
+    # File-like object
+    buffer = io.BytesIO()
+
+    # Create the PDF object
+    width, height = A4
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+
+    pdf = _fill_in_system_card(pdf, system_card_id, width, height)
+
+    # Close it off
+    pdf.showPage()
+    pdf.save()
+
+    # rewind and return the file
+    buffer.seek(0)
+    # return FileResponse(buffer, as_attachment=True, filename='hello.pdf')
+    return FileResponse(buffer, filename="hello.pdf")
+
+
+def _fill_in_system_card(pdf, system_card_id, width, height):
+    """ugly code to file in the system card for the pdf"""
+
+    pdf.setFont("Times-Roman", 20)
+
+    # Draw on the canvas
+    pdf.drawString(50, height - 50, "AUSTRALIAN BRIDGE")
+    pdf.drawString(50, height - 80, "FEDERATION")
+
+    return pdf
