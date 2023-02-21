@@ -317,6 +317,17 @@ def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
     )
 
     # Validate
+    if not data.fcm_token:
+        log_event(
+            "Unknown",
+            "ERROR",
+            "Mobile",
+            "Registration",
+            f"Mobile Client Register V11 - FCM Token is None. Attempt using username:{data.username} fcm_token: {data.fcm_token}",
+        )
+        # Don't provide any details about failures for security reasons
+        return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+
     if data.fcm_token == "":
         log_event(
             "Unknown",
@@ -446,22 +457,60 @@ def mobile_client_update_v1(request, data: MobileClientUpdateRequestV1):
     # Log Api call ourselves as we aren't going through authentication
     api_urls.log_api_call(request)
 
-    old_fcm_token = FCMDevice.objects.filter(registration_id=data.old_fcm_token).first()
+    # Not sure if we really need this. Log it to find out.
 
-    if not old_fcm_token:
+    log_event(
+        "Unknown",
+        "INFO",
+        "Mobile",
+        "Update",
+        f"Mobile Client Update V1 - Attempt using old token: {data.old_fcm_token} new_token: {data.new_fcm_token}",
+    )
+
+    # Validate
+    if not data.new_fcm_token:
+        log_event(
+            "Unknown",
+            "ERROR",
+            "Mobile",
+            "Update",
+            f"Mobile Client Update V1 - New FCM Token is None. Old token : {data.old_fcm_token}",
+        )
+        # Don't provide any details about failures for security reasons
+        return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+
+    if data.new_fcm_token == "":
+        log_event(
+            "Unknown",
+            "ERROR",
+            "Mobile",
+            "Update",
+            f"Mobile Client Update V1 - New FCM Token is Empty string. Old token : {data.old_fcm_token}",
+        )
+        # Don't provide any details about failures for security reasons
+        return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+
+    fcm_device = (
+        FCMDevice.objects.filter(registration_id=data.old_fcm_token)
+        .select_related("user")
+        .first()
+    )
+
+    if not fcm_device:
         return 404, {
             "status": APIStatus.FAILURE,
             "message": f"Existing token not found ({data.old_fcm_token})",
         }
 
-    FCMDevice(user=old_fcm_token.user, registration_id=data.new_fcm_token).save()
+    fcm_device.registration_id = data.new_fcm_token
+    fcm_device.save()
 
     return 200, {
         "status": APIStatus.SUCCESS,
         "user": {
-            "first_name": old_fcm_token.user.first_name,
-            "last_name": old_fcm_token.user.last_name,
-            "system_number": old_fcm_token.user.system_number,
+            "first_name": fcm_device.user.first_name,
+            "last_name": fcm_device.user.last_name,
+            "system_number": fcm_device.user.system_number,
         },
     }
 
