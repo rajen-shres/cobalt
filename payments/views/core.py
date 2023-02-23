@@ -1234,10 +1234,10 @@ def get_payments_statistics():
         "member"
     ).count()
     total_stripe_transactions = StripeTransaction.objects.count()
-    total_stripe_payment_amount = StripeTransaction.objects.aggregate(Sum("amount"))[
-        "amount__sum"
-    ]
-    total_stripe_payment_amount_refunds = StripeTransaction.objects.filter().aggregate(
+    total_stripe_payment_amount = StripeTransaction.objects.filter(
+        status__in=["Succeeded", "Partial refund", "Refunded"]
+    ).aggregate(Sum("amount"))["amount__sum"]
+    total_stripe_payment_amount_refunds = StripeTransaction.objects.aggregate(
         Sum("refund_amount")
     )["refund_amount__sum"]
     total_stripe_payment_amount_less_refunds = (

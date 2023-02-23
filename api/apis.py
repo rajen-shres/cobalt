@@ -477,7 +477,7 @@ def mobile_client_update_v1(request, data: MobileClientUpdateRequestV1):
             f"Mobile Client Update V1 - New FCM Token is None. Old token : {data.old_fcm_token}",
         )
         # Don't provide any details about failures for security reasons
-        return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+        return 404, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
 
     if data.new_fcm_token == "":
         log_event(
@@ -488,7 +488,7 @@ def mobile_client_update_v1(request, data: MobileClientUpdateRequestV1):
             f"Mobile Client Update V1 - New FCM Token is Empty string. Old token : {data.old_fcm_token}",
         )
         # Don't provide any details about failures for security reasons
-        return 403, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
+        return 404, {"status": APIStatus.FAILURE, "message": APIStatus.ACCESS_DENIED}
 
     fcm_device = (
         FCMDevice.objects.filter(registration_id=data.old_fcm_token)

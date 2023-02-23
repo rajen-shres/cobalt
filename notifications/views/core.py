@@ -908,10 +908,12 @@ def get_notifications_statistics():
         fcm_device__isnull=False
     ).count()
     total_sms_notifications = total_real_time_notifications - total_fcm_notifications
+    total_registered_fcm_devices = FCMDevice.objects.count()
 
     return {
         "total_emails": total_emails,
         "total_real_time_notifications": total_real_time_notifications,
         "total_sms_notifications": total_sms_notifications,
         "total_fcm_notifications": total_fcm_notifications,
+        "total_registered_fcm_devices": total_registered_fcm_devices,
     }
