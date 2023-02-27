@@ -392,6 +392,10 @@
     <script src="{% static "assets/js/core/jquery.cookie.min.js" %}"></script>
     <script src="{% static "assets/packages/sweetalert2.11/sweetalert2.js" %}"></script>
     <script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
+
+    <!-- The Refund functionality is shared with the congress admin screen so include file here -->
+    {% include "events/common/edit_player.html" %}
+
     <script>
 
         {% for event_entry_player in event_entry.evententryplayer_set.all %}
@@ -426,6 +430,7 @@
                         box_title = "Removed You from this Team";
                     }
                     Swal.fire({
+                        icon: 'info',
                         title: box_title,
                         html: response['html'],
                     }).then((result) => {
@@ -437,81 +442,6 @@
                     })
                 }
             });
-        }
-
-        function editPlayer(member, name, pic, search_id) {
-            // Check if player entered already
-
-            $.getJSON("{% url "events:check_player_entry_ajax" %}" + "?member_id=" + member + "&event_id={{ event.id }}")
-                .done(response => {
-
-                // already entered
-                if (response['message'] == "Already Entered"){
-                    swal.fire({
-                        title: "Error",
-                        html: name + " is already entered in this event",
-                        icon: "error"
-                    })
-
-                } else {
-
-                    // not entered so swap player - the search_id is the id of the player event entry
-
-                    // If player being replaced has paid, ask the user if they want to give a refund
-                    $.getJSON("{% url "events:get_player_payment_amount_ajax" %}?player_event_entry=" + search_id)
-                        .done(response => {
-                        if (response["refund_is_due"] === 1){
-                            // Check if this user made this entry
-                            var swal_title;
-                            var swal_text;
-                            if (response["payment_made_by_you"] === 1){
-                                swal_title="Refund Entry Fee"
-                                swal_text="You have already paid for this entry. Do you want us to refund you?"
-                            } else {
-                                swal_title='Refund ' + response["refund_who"]
-                                swal_text="This entry has been paid for by " + response["refund_who"] + ". Would you like to give them a refund?"
-                            }
-
-                            Swal.fire({
-                                title: swal_title,
-                                text: swal_text,
-                                icon: 'info',
-                                showCancelButton: true,
-                                showDenyButton: true,
-                                confirmButtonColor: '#3085d6',
-                                cancelButtonColor: '#d33',
-                                confirmButtonText: 'Refund',
-                                denyButtonText: 'No Refund'
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    $.getJSON("{% url "events:give_player_refund_ajax" %}?player_event_entry=" + search_id)
-                                        .done(response => {
-                                        console.log(response);
-                                        editPlayerExecute(member, name, pic, search_id)
-                                    });
-                                } else if (result.isDenied) {
-                                    editPlayerExecute(member, name, pic, search_id)
-                                }
-                            });
-                        } else {
-
-                            Swal.fire({
-                                title: 'Change Player',
-                                text: "Change player to " + name,
-                                icon: 'info',
-                                showCancelButton: true,
-                                confirmButtonColor: '#3085d6',
-                                cancelButtonColor: '#d33',
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    editPlayerExecute(member, name, pic, search_id)
-                                }
-                            });
-                        }
-                    });
-
-                }
-            })
         }
 
         // change payment type
@@ -552,6 +482,7 @@
                             Swal.fire({
                                 title: 'Payment Method Changed',
                                 html: 'Payment method successfully changed',
+                                icon: "success",
                             }).then((result) => {
                                 reloadPage();
                             });
@@ -623,6 +554,7 @@
                         Swal.fire({
                             title: 'Category Changed',
                             html: 'Category successfully changed',
+                            icon: "success",
                         });
                     }
                 });
@@ -637,6 +569,7 @@
                         Swal.fire({
                             title: 'Answer Changed',
                             html: 'Answer successfully changed',
+                            icon: "success",
                         });
                     }
                 });

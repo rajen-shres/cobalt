@@ -42,6 +42,13 @@
                                     <form method="post">
                                         {% csrf_token %}
                                         <table>
+
+                                            {% if event_entry_player.payment_type == "System Adjusted" %}
+                                                <tr>
+                                                    <td colspan="2"><h4>This entry has a payment type of System Adjusted. You can change the values, but you cannot leave the payment type as System Adjusted if you do.</h4></td>
+                                                </tr>
+                                            {% endif %}
+
                                             <tr>
                                                 <td>
                                                     <label class="bmd-label-static px-5">Payment Type</label>
@@ -104,6 +111,18 @@
                                                     </div>
                                                 </td>
                                             </tr>
+
+                                            {% if event_entry_player.paid_by %}
+                                                <tr>
+                                                    <td>
+                                                        <label class="bmd-label-static px-5">Paid By</label>
+                                                    </td>
+                                                    <td>
+                                                        {{ event_entry_player.paid_by|default_if_none:"" }}
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+
                                         </table>
                                         <div class="row justify-content-center">
                                             <button type="submit" class="btn btn-success cobalt-save mx-auto">Save</button>
@@ -118,20 +137,53 @@
         </div>
     </div>
 
-
 {% endblock %}
 
 {% block footer %}
-    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
-    {% include "accounts/search/user_search_include_js_htmx.html" %}
+
+    <!-- Include the refund function from the edit event entry screen for players -->
+    {% include "events/common/edit_player.html" with event=event_entry_player.event_entry.event %}
+
+    <script src="{% static "assets/packages/sweetalert2.11/sweetalert2.js" %}"></script>
+
+    {% include "accounts/search/user_search_include_js_htmx.html" with search_id=event_entry_player.id %}
     <script>
-        function changeMember(search_id, member_id){
+
+        // This gets called if the users wants to go ahead with the change. The included js calls this
+        // We have unused parameters as we share the code
+
+        function editPlayerExecute(member, name, pic, search_id) {
+            // Actually change the player
             postData = {
                 'event_entry_player_id': '{{ event_entry_player.id }}',
-                'player_id': member_id,
+                'player_id': member,
             };
-            url = '{% url "events:admin_edit_player_name_htmx" %}';
-            htmx.ajax('POST', url, {'target': '#player_name', 'values': postData});
+
+            $.ajax({
+                url: '{% url "events:admin_edit_player_name_htmx" %}',
+                method: "POST",
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: postData,
+                dataType: "json"
+            }).done(function(response) {
+                let title = "Error";
+                if (response['status'] === "Success") {
+                    title = "Player Changed to " + name;
+                }
+                Swal.fire({
+                    icon: 'success',
+                    title: title,
+                    html: response['message'],
+                }).then(() => {
+                    location.reload();
+                })
+            });
         }
+
+        // user has changed the member - call function in common js to handle
+        function changeMember(search_id, member_id, new_name){
+            editPlayer(member_id, new_name, "dummy_value", {{ event_entry_player.id }});
+        }
+
     </script>
 {% endblock %}

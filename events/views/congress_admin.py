@@ -9,7 +9,7 @@ import bleach
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import formset_factory
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone, dateformat
 from django.db.models import Sum
@@ -210,7 +210,6 @@ def admin_event_summary(request, event_id):
         event_entry.masterpoints = "100,45"
 
         for event_entry_player in event_entry_players:
-
             received = event_entry_player.payment_received or Decimal(0.0)
             event_entry.received += received
             event_entry.outstanding += event_entry_player.entry_fee - received
@@ -2085,7 +2084,7 @@ def edit_player_name_htmx(request):
     # check access
     role = "events.org.%s.edit" % event.congress.congress_master.org.id
     if not rbac_user_has_role(request.user, role):
-        return rbac_forbidden(request, role)
+        return JsonResponse({"status": "Failure", "message": "Access Denied"})
 
     old_user = copy.copy(event_entry_player.player)
     new_user = get_object_or_404(User, pk=request.POST.get("player_id"))
@@ -2127,17 +2126,9 @@ def edit_player_name_htmx(request):
             action=f"Convener Action: Changed player from {old_user} to {new_user} on Entry:{event_entry_player.event_entry.href}",
         ).save()
 
-    tba_form = EventEntryPlayerTBAForm(instance=event_entry_player)
+    # We used to return an HTMX/HTML block, but it is cleaner to reload the page so just return Json
 
-    return render(
-        request,
-        "events/congress_admin/event_entry_player_name_htmx.html",
-        {
-            "event_entry_player": event_entry_player,
-            "tba_form": tba_form,
-            "message": message,
-        },
-    )
+    return JsonResponse({"status": "Success", "message": message})
 
 
 @login_required()

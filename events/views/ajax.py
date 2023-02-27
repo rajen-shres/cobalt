@@ -762,7 +762,7 @@ def get_player_payment_amount_ajax(request):
 @require_GET
 @atomic
 def give_player_refund_ajax(request):
-    """Execute a refund for a player. Called when a user swaps one paid player for another."""
+    """Execute a refund for a player. Called when a user swaps one paid player for another or an admin does"""
 
     # Get entry
     event_entry_player_id = request.GET["player_event_entry"]
@@ -771,7 +771,10 @@ def give_player_refund_ajax(request):
 
     # check access on the parent event_entry
     if not event_entry.user_can_change(request.user):
-        return JsonResponse({"message": "Access Denied"})
+        # Now check if user is a congress admin
+        role = f"events.org.{event_entry_player.event_entry.event.congress.congress_master.org.id}.edit"
+        if not rbac_user_has_role(request.user, role):
+            return JsonResponse({"message": "Access Denied"})
 
     # check refund is due
     if event_entry_player.payment_received <= 0:
@@ -811,7 +814,11 @@ def give_player_refund_ajax(request):
     event_entry_player.payment_status = "Unpaid"
     event_entry_player.payment_type = "Unknown"
     event_entry_player.reason = None
+    event_entry_player.entry_complete_date = None
     event_entry_player.save()
+
+    # Check status of entry now
+    event_entry_player.event_entry.check_if_paid()
 
     return JsonResponse({"message": message})
 
