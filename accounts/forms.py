@@ -11,7 +11,7 @@ from django.contrib.auth.forms import UserCreationForm
 import accounts.views.admin
 from cobalt.settings import GLOBAL_ORG
 from masterpoints.factories import masterpoint_factory_creator
-from .models import User, UnregisteredUser
+from .models import User, UnregisteredUser, SystemCard
 from django.core.exceptions import ValidationError
 
 
@@ -220,3 +220,15 @@ class UnregisteredUserForm(forms.ModelForm):
             )
 
         return system_number
+
+
+class SystemCardForm(forms.ModelForm):
+    """Class to edit a system card. We store the data as Json so this form has a bit of work to do"""
+
+    class Meta:
+        model = SystemCard
+        fields = ["user", "card_name"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["partner"] = forms.TextInput()

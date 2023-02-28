@@ -304,3 +304,11 @@ class UserAdditionalInfo(models.Model):
 
     def __str__(self):
         return self.user.__str__()
+
+
+class SystemCard(models.Model):
+    """System cards for users"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    card_name = models.CharField(max_length=100)
+    json = models.TextField()

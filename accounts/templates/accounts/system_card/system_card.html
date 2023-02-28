@@ -4,11 +4,17 @@
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 {% extends 'empty.html' %}
+{% load cobalt_system_card_tags %}
 
 {% block title %}
     - System Card
 {% endblock title %}
 
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Styles                                                                 #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% block header %}
     <style>
         h1, h2, h3, h4 {
@@ -123,7 +129,13 @@
     <div class="jumbotron" id="top">
 
         <h1>ABF System Card</h1>
-        <h2>Fred West - Marvin Gaye</h2>
+        <h2>
+
+
+            Fred West
+            -
+            Marvin Gaye
+        </h2>
 
         <a target="_blank" href="{% url "accounts:create_pdf_system_card" system_card_id=1 %}" class="btn btn-sm btm-info">Generate PDF</a>
 

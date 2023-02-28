@@ -9,6 +9,7 @@ from .models import (
     UserPaysFor,
     APIToken,
     UserAdditionalInfo,
+    SystemCard,
 )
 
 
@@ -67,9 +68,18 @@ class UserAdditionalInfoAdmin(admin.ModelAdmin):
     ]
 
 
+class SystemCardAdmin(admin.ModelAdmin):
+    """Admin class for model SystemCard"""
+
+    autocomplete_fields = [
+        "user",
+    ]
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(UnregisteredUser, UnregisteredUserAdmin)
 admin.site.register(TeamMate, TeamMateAdmin)
 admin.site.register(UserPaysFor, UserPaysForAdmin)
 admin.site.register(APIToken, APITokenAdmin)
 admin.site.register(UserAdditionalInfo, UserAdditionalInfoAdmin)
+admin.site.register(SystemCard, SystemCardAdmin)

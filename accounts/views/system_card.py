@@ -226,6 +226,11 @@ def system_card_view(request, system_card_id):
     )
 
 
+def system_card_edit(request, system_card_id):
+    """Edit a system card"""
+    return render(request, "accounts/system_card/system_card.html", {"edit_card": True})
+
+
 def create_pdf_system_card(request, system_card_id):
     """Generate a PDF of the system card"""
 

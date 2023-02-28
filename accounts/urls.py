@@ -179,6 +179,11 @@ urlpatterns = [
         name="system_card_view",
     ),
     path(
+        "system-card-edit/<int:system_card_id>",
+        accounts.views.system_card.system_card_edit,
+        name="system_card_edit",
+    ),
+    path(
         "create-pdf-system-card/<int:system_card_id>",
         accounts.views.system_card.create_pdf_system_card,
         name="create_pdf_system_card",
