@@ -68,4 +68,9 @@ urlpatterns = [
         utils.views.general.api_log_viewer,
         name="api_log_viewer",
     ),
+    path(
+        "timeout",
+        utils.views.general.timeout,
+        name="timeout",
+    ),
 ]
