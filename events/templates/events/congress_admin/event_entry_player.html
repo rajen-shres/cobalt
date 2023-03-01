@@ -154,6 +154,7 @@
 
         function editPlayerExecute(member, name, pic, search_id) {
             // Actually change the player
+
             postData = {
                 'event_entry_player_id': '{{ event_entry_player.id }}',
                 'player_id': member,
@@ -182,6 +183,11 @@
 
         // user has changed the member - call function in common js to handle
         function changeMember(search_id, member_id, new_name){
+
+            //If we dont have a name set to TBA
+            if(typeof new_name == "undefined"){
+                new_name = "TBA";
+            }
             editPlayer(member_id, new_name, "dummy_value", {{ event_entry_player.id }});
         }
 

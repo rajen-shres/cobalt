@@ -1449,8 +1449,9 @@ def _third_party_checkout_entry_common(request, event_entry, event_entry_players
         next_url=reverse(
             "events:edit_event_entry",
             kwargs={
-                "event_id": event_entry.event.id,
-                "congress_id": event_entry.event.congress.id,
+                # "event_id": event_entry.event.id,
+                # "congress_id": event_entry.event.congress.id,
+                "event_entry_id": event_entry.id,
                 "pay_status": "success",
             },
         ),

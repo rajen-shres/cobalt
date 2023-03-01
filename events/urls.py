@@ -67,6 +67,12 @@ urlpatterns = [
         views.edit_event_entry,
         name="edit_event_entry",
     ),
+    # as above with status message
+    path(
+        "congress/event/change-entry/<int:event_entry_id>/<str:pay_status>",
+        views.edit_event_entry,
+        name="edit_event_entry",
+    ),
     # as above but accepts edit=1 to open window with edit enabled
     # path(
     #     "congress/event/change-entry/<int:congress_id>/<int:event_id>/edit=<int:edit_flag>",

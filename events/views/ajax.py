@@ -737,6 +737,10 @@ def get_player_payment_amount_ajax(request):
     event_entry_player_id = request.GET["player_event_entry"]
     event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
 
+    # If a convener has edited this then we may not have a paid_by
+    if not event_entry_player.paid_by:
+        return JsonResponse({"refund_is_due": 0})
+
     # Return if no refund due
     if event_entry_player.payment_received == 0:
         return JsonResponse({"refund_is_due": 0})
