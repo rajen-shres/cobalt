@@ -12,16 +12,16 @@ import notifications.views.redirect
 app_name = "notifications"  # pylint: disable=invalid-name
 
 urlpatterns = [
-    # path(
-    #     "ses/event-webhook/",
-    #     SESEventWebhookView.as_view(),
-    #     name="handle-event-webhook",
-    # ),
     path(
         "ses/event-webhook/",
-        notifications.views.aws.debug,
+        SESEventWebhookView.as_view(),
         name="handle-event-webhook",
     ),
+    # path(
+    #     "ses/event-webhook/",
+    #     notifications.views.aws.debug,
+    #     name="handle-event-webhook",
+    # ),
     path("", notifications.views.user.homepage, name="homepage"),
     path(
         "passthrough/<int:id>/",
