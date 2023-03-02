@@ -94,7 +94,7 @@ def get_recent_results(user):
     results = PlayerSummaryResult.objects.filter(
         player_system_number=user.system_number,
         results_file__status=ResultsFile.ResultsStatus.PUBLISHED,
-    ).order_by("result_date")[:6]
+    ).order_by("-result_date")[:6]
 
     # We get 6, so we can return 5 but show if more are available
     if len(results) == 6:
