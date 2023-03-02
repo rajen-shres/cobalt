@@ -309,6 +309,240 @@ class UserAdditionalInfo(models.Model):
 class SystemCard(models.Model):
     """System cards for users"""
 
+    class SystemClassification(models.TextChoices):
+        GREEN = "G"
+        BLUE = "B"
+        YELLOW = "Y"
+        RED = "R"
+
+    # Meta data
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     card_name = models.CharField(max_length=100)
-    json = models.TextField()
+
+    # Basic Info
+    player1 = models.CharField(max_length=100)
+    player2 = models.CharField(max_length=100)
+    basic_system = models.CharField(max_length=50, default="Standard American")
+    system_classification = models.CharField(
+        max_length=1,
+        choices=SystemClassification.choices,
+        default=SystemClassification.GREEN,
+    )
+    brown_sticker = models.BooleanField(default=False)
+    brown_sticker_why = models.CharField(max_length=50, blank=True)
+    canape = models.BooleanField(default=False)
+
+    # Openings
+    opening_1c = models.CharField(max_length=20)
+    opening_1d = models.CharField(max_length=20)
+    opening_1h = models.CharField(max_length=20)
+    opening_1s = models.CharField(max_length=20)
+    opening_1nt = models.CharField(max_length=20)
+
+    # Summary
+    summary_bidding = models.CharField(max_length=100)
+    summary_carding = models.CharField(max_length=100)
+
+    # Pre-alerts
+    pre_alerts = models.TextField(blank=True)
+
+    # 1NT Responses
+    nt1_response_2c = models.CharField(max_length=20, blank=True)
+    nt1_response_2d = models.CharField(max_length=20, blank=True)
+    nt1_response_2h = models.CharField(max_length=20, blank=True)
+    nt1_response_2s = models.CharField(max_length=20, blank=True)
+    nt1_response_2nt = models.CharField(max_length=20, blank=True)
+
+    # 2 Level Openings
+    opening_2c = models.CharField(max_length=20)
+    opening_2d = models.CharField(max_length=20)
+    opening_2h = models.CharField(max_length=20)
+    opening_2s = models.CharField(max_length=20)
+    opening_2nt = models.CharField(max_length=20)
+
+    # Higher Openings
+    opening_3nt = models.CharField(max_length=20, blank=True)
+    opening_other = models.CharField(max_length=20, blank=True)
+
+    # Competitive bids
+    competitive_doubles = models.CharField(max_length=100, blank=True)
+    competitive_lead_directing_doubles = models.CharField(max_length=100, blank=True)
+    competitive_jump_overcalls = models.CharField(max_length=100, blank=True)
+    competitive_unusual_nt = models.CharField(max_length=100, blank=True)
+    competitive_1nt_overcall_immediate = models.CharField(max_length=20, blank=True)
+    competitive_1nt_overcall_reopening = models.CharField(max_length=20, blank=True)
+    competitive_negative_double_through = models.CharField(max_length=20, blank=True)
+    competitive_responsive_double_through = models.CharField(max_length=20, blank=True)
+    competitive_immediate_cue_bid_minor = models.CharField(max_length=100, blank=True)
+    competitive_immediate_cue_bid_major = models.CharField(max_length=100, blank=True)
+    competitive_weak_2_defense = models.CharField(max_length=100, blank=True)
+    competitive_weak_3_defense = models.CharField(max_length=100, blank=True)
+    competitive_transfer_defense = models.CharField(max_length=100, blank=True)
+    competitive_nt_defense = models.CharField(max_length=100, blank=True)
+
+    # Basic Responses
+    basic_response_jump_raise_minor = models.CharField(max_length=100, blank=True)
+    basic_response_jump_raise_major = models.CharField(max_length=100, blank=True)
+    basic_response_jump_shift_minor = models.CharField(max_length=100, blank=True)
+    basic_response_jump_shift_major = models.CharField(max_length=100, blank=True)
+    basic_response_to_2c_opening = models.CharField(max_length=100, blank=True)
+    basic_response_to_strong_2_opening = models.CharField(max_length=100, blank=True)
+    basic_response_to_2nt_opening = models.CharField(max_length=100, blank=True)
+
+    # Carding - suit
+    play_suit_lead_sequence = models.CharField(max_length=100, blank=True)
+    play_suit_lead_4_or_more = models.CharField(max_length=100, blank=True)
+    play_suit_lead_4_small = models.CharField(max_length=100, blank=True)
+    play_suit_lead_3 = models.CharField(max_length=100, blank=True)
+    play_suit_lead_in_partners_suit = models.CharField(max_length=100, blank=True)
+    play_suit_discards = models.CharField(max_length=100, blank=True)
+    play_suit_count = models.CharField(max_length=100, blank=True)
+    play_suit_signal_on_partner_lead = models.CharField(max_length=100, blank=True)
+
+    # Carding - NT
+    play_nt_lead_sequence = models.CharField(max_length=100, blank=True)
+    play_nt_lead_4_or_more = models.CharField(max_length=100, blank=True)
+    play_nt_lead_4_small = models.CharField(max_length=100, blank=True)
+    play_nt_lead_3 = models.CharField(max_length=100, blank=True)
+    play_nt_lead_in_partners_suit = models.CharField(max_length=100, blank=True)
+    play_nt_discards = models.CharField(max_length=100, blank=True)
+    play_nt_count = models.CharField(max_length=100, blank=True)
+    play_nt_signal_on_partner_lead = models.CharField(max_length=100, blank=True)
+
+    play_signal_declarer_lead = models.CharField(max_length=100, blank=True)
+    play_notes = models.CharField(max_length=100, blank=True)
+
+    # Slams
+    slam_conventions = models.CharField(max_length=200, blank=True)
+
+    # Other
+    other_conventions = models.CharField(max_length=200, blank=True)
+
+    # Responses
+    # 1C
+    response_1c_1d = models.CharField(max_length=20, blank=True)
+    response_1c_1h = models.CharField(max_length=20, blank=True)
+    response_1c_1s = models.CharField(max_length=20, blank=True)
+    response_1c_1n = models.CharField(max_length=20, blank=True)
+    response_1c_2c = models.CharField(max_length=20, blank=True)
+    response_1c_2d = models.CharField(max_length=20, blank=True)
+    response_1c_2h = models.CharField(max_length=20, blank=True)
+    response_1c_2s = models.CharField(max_length=20, blank=True)
+    response_1c_2n = models.CharField(max_length=20, blank=True)
+    response_1c_3c = models.CharField(max_length=20, blank=True)
+    response_1c_3d = models.CharField(max_length=20, blank=True)
+    response_1c_3h = models.CharField(max_length=20, blank=True)
+    response_1c_3s = models.CharField(max_length=20, blank=True)
+    response_1c_3n = models.CharField(max_length=20, blank=True)
+    response_1c_other = models.CharField(max_length=100, blank=True)
+
+    # 1D
+    response_1d_1h = models.CharField(max_length=20, blank=True)
+    response_1d_1s = models.CharField(max_length=20, blank=True)
+    response_1d_1n = models.CharField(max_length=20, blank=True)
+    response_1d_2c = models.CharField(max_length=20, blank=True)
+    response_1d_2d = models.CharField(max_length=20, blank=True)
+    response_1d_2h = models.CharField(max_length=20, blank=True)
+    response_1d_2s = models.CharField(max_length=20, blank=True)
+    response_1d_2n = models.CharField(max_length=20, blank=True)
+    response_1d_3c = models.CharField(max_length=20, blank=True)
+    response_1d_3d = models.CharField(max_length=20, blank=True)
+    response_1d_3h = models.CharField(max_length=20, blank=True)
+    response_1d_3s = models.CharField(max_length=20, blank=True)
+    response_1d_3n = models.CharField(max_length=20, blank=True)
+    response_1d_other = models.CharField(max_length=100, blank=True)
+
+    # 1H
+    response_1h_1s = models.CharField(max_length=20, blank=True)
+    response_1h_1n = models.CharField(max_length=20, blank=True)
+    response_1h_2c = models.CharField(max_length=20, blank=True)
+    response_1h_2d = models.CharField(max_length=20, blank=True)
+    response_1h_2h = models.CharField(max_length=20, blank=True)
+    response_1h_2s = models.CharField(max_length=20, blank=True)
+    response_1h_2n = models.CharField(max_length=20, blank=True)
+    response_1h_3c = models.CharField(max_length=20, blank=True)
+    response_1h_3d = models.CharField(max_length=20, blank=True)
+    response_1h_3h = models.CharField(max_length=20, blank=True)
+    response_1h_3s = models.CharField(max_length=20, blank=True)
+    response_1h_3n = models.CharField(max_length=20, blank=True)
+    response_1h_other = models.CharField(max_length=100, blank=True)
+
+    # 1S
+    response_1s_1n = models.CharField(max_length=20, blank=True)
+    response_1s_2c = models.CharField(max_length=20, blank=True)
+    response_1s_2d = models.CharField(max_length=20, blank=True)
+    response_1s_2h = models.CharField(max_length=20, blank=True)
+    response_1s_2s = models.CharField(max_length=20, blank=True)
+    response_1s_2n = models.CharField(max_length=20, blank=True)
+    response_1s_3c = models.CharField(max_length=20, blank=True)
+    response_1s_3d = models.CharField(max_length=20, blank=True)
+    response_1s_3h = models.CharField(max_length=20, blank=True)
+    response_1s_3s = models.CharField(max_length=20, blank=True)
+    response_1s_3n = models.CharField(max_length=20, blank=True)
+    response_1s_other = models.CharField(max_length=100, blank=True)
+
+    # 1N
+    response_1n_3c = models.CharField(max_length=20, blank=True)
+    response_1n_3d = models.CharField(max_length=20, blank=True)
+    response_1n_3h = models.CharField(max_length=20, blank=True)
+    response_1n_3s = models.CharField(max_length=20, blank=True)
+    response_1n_3n = models.CharField(max_length=20, blank=True)
+    response_1n_other = models.CharField(max_length=100, blank=True)
+
+    # 2c
+    response_2c_2d = models.CharField(max_length=20, blank=True)
+    response_2c_2h = models.CharField(max_length=20, blank=True)
+    response_2c_2s = models.CharField(max_length=20, blank=True)
+    response_2c_2n = models.CharField(max_length=20, blank=True)
+    response_2c_3c = models.CharField(max_length=20, blank=True)
+    response_2c_3d = models.CharField(max_length=20, blank=True)
+    response_2c_3h = models.CharField(max_length=20, blank=True)
+    response_2c_3s = models.CharField(max_length=20, blank=True)
+    response_2c_3n = models.CharField(max_length=20, blank=True)
+    response_2c_other = models.CharField(max_length=100, blank=True)
+
+    # 2d
+    response_2d_2h = models.CharField(max_length=20, blank=True)
+    response_2d_2s = models.CharField(max_length=20, blank=True)
+    response_2d_2n = models.CharField(max_length=20, blank=True)
+    response_2d_3c = models.CharField(max_length=20, blank=True)
+    response_2d_3d = models.CharField(max_length=20, blank=True)
+    response_2d_3h = models.CharField(max_length=20, blank=True)
+    response_2d_3s = models.CharField(max_length=20, blank=True)
+    response_2d_3n = models.CharField(max_length=20, blank=True)
+    response_2d_other = models.CharField(max_length=100, blank=True)
+
+    # 2h
+    response_2h_2s = models.CharField(max_length=20, blank=True)
+    response_2h_2n = models.CharField(max_length=20, blank=True)
+    response_2h_3c = models.CharField(max_length=20, blank=True)
+    response_2h_3d = models.CharField(max_length=20, blank=True)
+    response_2h_3h = models.CharField(max_length=20, blank=True)
+    response_2h_3s = models.CharField(max_length=20, blank=True)
+    response_2h_3n = models.CharField(max_length=20, blank=True)
+    response_2h_other = models.CharField(max_length=100, blank=True)
+
+    # 2s
+    response_2s_2n = models.CharField(max_length=20, blank=True)
+    response_2s_3c = models.CharField(max_length=20, blank=True)
+    response_2s_3d = models.CharField(max_length=20, blank=True)
+    response_2s_3h = models.CharField(max_length=20, blank=True)
+    response_2s_3s = models.CharField(max_length=20, blank=True)
+    response_2s_3n = models.CharField(max_length=20, blank=True)
+    response_2s_other = models.CharField(max_length=100, blank=True)
+
+    # 2NT
+    response_2n_3c = models.CharField(max_length=20, blank=True)
+    response_2n_3d = models.CharField(max_length=20, blank=True)
+    response_2n_3h = models.CharField(max_length=20, blank=True)
+    response_2n_3s = models.CharField(max_length=20, blank=True)
+    response_2n_3n = models.CharField(max_length=20, blank=True)
+    response_2n_other = models.CharField(max_length=100, blank=True)
+
+    # notes
+    response_notes = models.CharField(max_length=200, blank=True)
+
+    other_notes = models.CharField(max_length=400, blank=True)
+
+    def __str__(self):
+        return f"{self.user.full_name} - {self.card_name}"

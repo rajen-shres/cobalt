@@ -223,12 +223,8 @@ class UnregisteredUserForm(forms.ModelForm):
 
 
 class SystemCardForm(forms.ModelForm):
-    """Class to edit a system card. We store the data as Json so this form has a bit of work to do"""
+    """Class to edit a system card."""
 
     class Meta:
         model = SystemCard
-        fields = ["user", "card_name"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["partner"] = forms.TextInput()
+        exclude = []

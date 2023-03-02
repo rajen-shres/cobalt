@@ -1,9 +1,12 @@
 import io
 
 from django.http import HttpResponse, FileResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+
+from accounts.forms import SystemCardForm
+from accounts.models import SystemCard
 
 
 def system_card_view(request, system_card_id):
@@ -228,7 +231,16 @@ def system_card_view(request, system_card_id):
 
 def system_card_edit(request, system_card_id):
     """Edit a system card"""
-    return render(request, "accounts/system_card/system_card.html", {"edit_card": True})
+
+    system_card = get_object_or_404(SystemCard, pk=system_card_id)
+
+    form = SystemCardForm(instance=system_card)
+
+    return render(
+        request,
+        "accounts/system_card/system_card.html",
+        {"edit_card": True, "form": form},
+    )
 
 
 def create_pdf_system_card(request, system_card_id):
