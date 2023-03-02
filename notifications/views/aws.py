@@ -1,5 +1,6 @@
 import boto3
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import render
 
 from accounts.models import User, UnregisteredUser
@@ -8,6 +9,11 @@ from notifications.views.core import remove_email_from_blocked_list
 from organisations.models import MemberClubEmail
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
+
+
+def debug(request):
+    print(request)
+    return HttpResponse()
 
 
 @login_required()

@@ -1,4 +1,5 @@
 import csv
+from time import sleep
 
 import dateutil.utils
 import requests
@@ -99,3 +100,11 @@ def api_log_viewer(request):
     return render(
         request, "utils/api_log_viewer.html", {"things": things, "summary": summary}
     )
+
+
+def timeout(request):
+    """simulate a timeout for testing purposes"""
+
+    sleep(100)
+
+    return HttpResponse("time out test")
