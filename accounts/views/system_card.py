@@ -1,5 +1,6 @@
 import io
 
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, FileResponse
 from django.shortcuts import render, get_object_or_404
 from reportlab.lib.pagesizes import A4
@@ -222,24 +223,39 @@ def system_card_view(request, system_card_id):
         },
     }
 
+    system_card = get_object_or_404(SystemCard, pk=system_card_id)
+    form = SystemCardForm(instance=system_card)
+
     return render(
         request,
         "accounts/system_card/system_card.html",
-        {"all_responses": all_responses},
+        {"all_responses": all_responses, "form": form, "editable": False},
     )
 
 
+@login_required
 def system_card_edit(request, system_card_id):
     """Edit a system card"""
 
     system_card = get_object_or_404(SystemCard, pk=system_card_id)
+    if system_card.user != request.user:
+        return HttpResponse("Access Denied. You are not the owner of this system card.")
+
+    if request.method == "POST":
+        print("Posted")
+        form = SystemCardForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponse("Card saved")
+        else:
+            return HttpResponse(f"Errors on Card - not saved<br>{form.errors}")
 
     form = SystemCardForm(instance=system_card)
 
     return render(
         request,
         "accounts/system_card/system_card.html",
-        {"edit_card": True, "form": form},
+        {"editable": True, "form": form, "system_card": system_card},
     )
 
 

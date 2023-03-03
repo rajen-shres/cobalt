@@ -227,4 +227,4 @@ class SystemCardForm(forms.ModelForm):
 
     class Meta:
         model = SystemCard
-        exclude = []
+        exclude = ["user", "card_name"]

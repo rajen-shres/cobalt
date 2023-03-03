@@ -121,31 +121,51 @@
             font-size: xxx-large;
         }
 
+        .save-button {
+            position: fixed;
+            right: 40px;
+        }
+
+        .sc-inline {
+            display: table;
+        }
+
 
     </style>
 {% endblock header %}
 
 {% block content %}
+
+    {% if editable %}
+        <!-- MAKE THIS A FORM, EVEN IF ONLY DISPLAYING THE DATA -->
+        <form method="POST"
+            hx-post="{% url "accounts:system_card_edit" system_card_id=system_card.id %}"
+            hx-target="#save_msg"
+        >
+            {% csrf_token %}
+            <div class="container">
+                <div class="row">
+                    <div class="col-11">
+
+    {% endif %}
+
     <div class="jumbotron" id="top">
 
         <h1>ABF System Card</h1>
         <h2>
 
 
-            Fred West
+            {% cobalt_edit_or_show form.player1 editable %}
             -
-            Marvin Gaye
+            {% cobalt_edit_or_show form.player2 editable %}
         </h2>
 
-        {{ form.as_p }}
-
-        <a target="_blank" href="{% url "accounts:create_pdf_system_card" system_card_id=1 %}" class="btn btn-sm btm-info">Generate PDF</a>
 
         <!-- BASIC SYSTEM -->
         <div class="card">
             <div class="card-header card-header-success">
-                <h2>Standard American</h2>
-                <h4>Green System - with Brown Sticker</h4>
+                <h2>{% cobalt_edit_or_show form.basic_system editable %}</h2>
+                <h4>{% cobalt_edit_or_show form.system_classification editable True %} - with Brown Sticker</h4>
             </div>
             <div class="card-body">
 
@@ -316,8 +336,14 @@
 
                             <!-- CURLY -->
                             <div class="row">
-                                <div class="col-md-6">
-                                    <b>1</b><span style="font-size: larger">&clubs;</span> 11-19 <b>2+</b>
+                                <div class="col-md-6 sc-inline">
+                                    <span style="display: table-cell">
+
+                                        <b>1</b><span style="font-size: larger">&clubs;</span>
+                                    </span>
+                                    <span style="display: table-cell">
+                                        {% cobalt_edit_or_show form.opening_1c editable %}
+                                    </span>
                                 </div>
                                 <div class="col-md-6">
                                     <b>1</b><span class="red-card">&hearts;</span> 11-19 5+
@@ -582,6 +608,25 @@
 
         <!-- END JUMBOTRON -->
     </div>
+
+    {% if editable %}
+        </div>
+        <div class="col-1">
+            <div class="save-button">
+                <!-- SAVE BUTTON STAYS IN PLACE AS WE SCROLL -->
+                <div class="row">
+                    <a target="_blank" href="{% url "accounts:create_pdf_system_card" system_card_id=1 %}" class="btn btn-sm btn-info mx-auto">Generate PDF</a>
+                </div>
+                <button class="btn btn-success btn-sm">Save</button>
+                <div id="save_msg"></div>
+            </div>
+        </div>
+        </div>
+        </div>
+        </form>
+
+    {% endif %}
+
 
 {% endblock content %}
 
