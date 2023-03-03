@@ -981,4 +981,4 @@ def fix_closed_congress(congress, actor):
 
         count += 1
 
-    return f"Congress fixed. {count} change{pluralize(count)} made."
+    return f"Congress fixed. {count} player{pluralize(count)} updated."

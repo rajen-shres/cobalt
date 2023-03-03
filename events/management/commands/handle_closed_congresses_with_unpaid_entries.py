@@ -32,7 +32,7 @@ def send_first_warning(congress):
 
     email_body = f"""
                     <h1>Completed Congress with Outstanding Payments</h1>
-                    <p>You are registered as the convener for a congress on MyABF that finished
+                    <p>You are registered as the contact email for <b>{congress}</b> on MyABF that finished
                     {FIRST_WARNING_DAYS} days ago.</p>
                     <p>This congress still has outstanding payments due.<p>
                     <p>You have three options:<p>
@@ -46,7 +46,7 @@ def send_first_warning(congress):
     """
 
     context = {
-        "name": "Convener",
+        "name": "Tournament Organiser",
         "title": f"Congress Requiring Attention - {congress}",
         "email_body": email_body,
         "box_colour": "primary",
@@ -68,7 +68,7 @@ def send_last_warning(congress):
 
     email_body = f"""
                      <h1>Completed Congress with Outstanding Payments - Final Notice</h1>
-                     <p>You are registered as the convener for a congress on MyABF that finished
+                     <p>You are registered as the contact email for <b>{congress}</b> on MyABF that finished
                      {FIRST_WARNING_DAYS} days ago.</p>
                      <p>This congress still has outstanding payments due.<p>
                      <p>You have three options:<p>
@@ -82,7 +82,7 @@ def send_last_warning(congress):
      """
 
     context = {
-        "name": "Convener",
+        "name": "Tournament Organiser",
         "title": f"Congress Requiring Attention - Final Notice - {congress}",
         "email_body": email_body,
         "box_colour": "primary",
@@ -102,17 +102,18 @@ def fix_congress_normal(congress, system_account):
 
     email_body = f"""
                      <h1>Completed Congress with Outstanding Payments - Closed</h1>
-                     <p>You are registered as the convener for a congress on MyABF that finished
+                     <p>You are registered as the contact email address for <b>{congress}</b> on MyABF that finished
                      on {congress.end_date}.</p>
                      <p>This congress still had outstanding payments due.<p>
-                     <p>We have fixed this.</p>
+                     <p>We have adjusted all outstanding amounts to regard them as paid and marked them as
+                     “System adjusted”  This removes any debts still showing to players.</p>
                      <h2>There is nothing more to do</h2>
                      <br>
                      {results}
      """
 
     context = {
-        "name": "Convener",
+        "name": "Tournament Organiser",
         "title": f"Congress Issues Resolved - {congress}",
         "email_body": email_body,
         "box_colour": "primary",
@@ -132,17 +133,18 @@ def fix_congress_after_extension(congress, system_account):
 
     email_body = f"""
                      <h1>Completed Congress with Outstanding Payments - Closed After {AUTO_FIX_REGARDLESS_MONTHS} months</h1>
-                     <p>You are registered as the convener for a congress on MyABF that finished
+                     <p>You are registered as the contact email for <b>{congress}</b> on MyABF that finished
                      on {congress.end_date}.</p>
                      <p>This congress still had outstanding payments due.<p>
-                     <p>We have fixed this.</p>
+                     <p>We have adjusted all outstanding amounts to regard them as paid and marked them as
+                     “System adjusted”  This removes any debts still showing to players.</p>
                      <h2>There is nothing more to do</h2>
                      <br>
                      {results}
      """
 
     context = {
-        "name": "Convener",
+        "name": "Tournament Organiser",
         "title": f"Congress Issues Resolved - {congress}",
         "email_body": email_body,
         "box_colour": "primary",
