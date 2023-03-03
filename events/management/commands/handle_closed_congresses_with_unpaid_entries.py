@@ -21,7 +21,7 @@ from events.views.core import (
 from notifications.views.core import send_cobalt_email_with_template
 
 FIRST_WARNING_DAYS = 2
-AUTO_FIX_UNLESS_OVERRIDDEN_DAYS = 7
+AUTO_FIX_UNLESS_OVERRIDDEN_DAYS = 1
 AUTO_FIX_REGARDLESS_MONTHS = 3
 
 
@@ -103,7 +103,7 @@ def fix_congress_normal(congress, system_account):
     email_body = f"""
                      <h1>Completed Congress with Outstanding Payments - Closed</h1>
                      <p>You are registered as the contact email address for <b>{congress}</b> on MyABF that finished
-                     on {congress.end_date}.</p>
+                     on {congress.end_date:%-d %B %Y}.</p>
                      <p>This congress still had outstanding payments due.<p>
                      <p>We have adjusted all outstanding amounts to regard them as paid and marked them as
                      “System adjusted”  This removes any debts still showing to players.</p>
@@ -134,7 +134,7 @@ def fix_congress_after_extension(congress, system_account):
     email_body = f"""
                      <h1>Completed Congress with Outstanding Payments - Closed After {AUTO_FIX_REGARDLESS_MONTHS} months</h1>
                      <p>You are registered as the contact email for <b>{congress}</b> on MyABF that finished
-                     on {congress.end_date}.</p>
+                     on {congress.end_date:%-d %B %Y}.</p>
                      <p>This congress still had outstanding payments due.<p>
                      <p>We have adjusted all outstanding amounts to regard them as paid and marked them as
                      “System adjusted”  This removes any debts still showing to players.</p>
