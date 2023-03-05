@@ -21,7 +21,7 @@ from events.views.core import (
 from notifications.views.core import send_cobalt_email_with_template
 
 FIRST_WARNING_DAYS = 2
-AUTO_FIX_UNLESS_OVERRIDDEN_DAYS = 1
+AUTO_FIX_UNLESS_OVERRIDDEN_DAYS = 7
 AUTO_FIX_REGARDLESS_MONTHS = 3
 
 
