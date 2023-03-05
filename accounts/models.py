@@ -318,10 +318,11 @@ class SystemCard(models.Model):
     # Meta data
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     card_name = models.CharField(max_length=100)
+    save_date = models.DateTimeField(auto_now=True)
 
     # Basic Info
-    player1 = models.CharField(max_length=100)
-    player2 = models.CharField(max_length=100)
+    player1 = models.CharField(max_length=100, blank=True)
+    player2 = models.CharField(max_length=100, blank=True)
     basic_system = models.CharField(max_length=50, default="Standard American")
     system_classification = models.CharField(
         max_length=1,
@@ -333,15 +334,15 @@ class SystemCard(models.Model):
     canape = models.BooleanField(default=False)
 
     # Openings
-    opening_1c = models.CharField(max_length=20)
-    opening_1d = models.CharField(max_length=20)
-    opening_1h = models.CharField(max_length=20)
-    opening_1s = models.CharField(max_length=20)
-    opening_1nt = models.CharField(max_length=20)
+    opening_1c = models.CharField(max_length=20, blank=True)
+    opening_1d = models.CharField(max_length=20, blank=True)
+    opening_1h = models.CharField(max_length=20, blank=True)
+    opening_1s = models.CharField(max_length=20, blank=True)
+    opening_1nt = models.CharField(max_length=20, blank=True)
 
     # Summary
-    summary_bidding = models.CharField(max_length=100)
-    summary_carding = models.CharField(max_length=100)
+    summary_bidding = models.CharField(max_length=100, blank=True)
+    summary_carding = models.CharField(max_length=100, blank=True)
 
     # Pre-alerts
     pre_alerts = models.TextField(blank=True)
@@ -354,11 +355,11 @@ class SystemCard(models.Model):
     nt1_response_2nt = models.CharField(max_length=20, blank=True)
 
     # 2 Level Openings
-    opening_2c = models.CharField(max_length=20)
-    opening_2d = models.CharField(max_length=20)
-    opening_2h = models.CharField(max_length=20)
-    opening_2s = models.CharField(max_length=20)
-    opening_2nt = models.CharField(max_length=20)
+    opening_2c = models.CharField(max_length=20, blank=True)
+    opening_2d = models.CharField(max_length=20, blank=True)
+    opening_2h = models.CharField(max_length=20, blank=True)
+    opening_2s = models.CharField(max_length=20, blank=True)
+    opening_2nt = models.CharField(max_length=20, blank=True)
 
     # Higher Openings
     opening_3nt = models.CharField(max_length=20, blank=True)
