@@ -7,10 +7,10 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
 from accounts.forms import SystemCardForm
-from accounts.models import SystemCard
+from accounts.models import SystemCard, User
 
 
-def system_card_view(request, system_card_id):
+def system_card_view(request, user_id, system_card_name):
     """Show a system card"""
 
     all_responses = {}
@@ -223,7 +223,19 @@ def system_card_view(request, system_card_id):
         },
     }
 
-    system_card = get_object_or_404(SystemCard, pk=system_card_id)
+    user = User.objects.filter(pk=user_id).first()
+    if not user:
+        return HttpResponse("User not found")
+
+    system_card = (
+        SystemCard.objects.filter(user=user, card_name=system_card_name)
+        .order_by("-save_date")
+        .first()
+    )
+
+    if not system_card:
+        return HttpResponse("Card not found")
+
     form = SystemCardForm(instance=system_card)
 
     return render(
@@ -234,21 +246,33 @@ def system_card_view(request, system_card_id):
 
 
 @login_required
-def system_card_edit(request, system_card_id):
+def system_card_edit(request, system_card_name):
     """Edit a system card"""
 
-    system_card = get_object_or_404(SystemCard, pk=system_card_id)
+    system_card = (
+        SystemCard.objects.filter(user=request.user, card_name=system_card_name)
+        .order_by("-save_date")
+        .first()
+    )
+    if not system_card:
+        return HttpResponse("Card not found")
+
     if system_card.user != request.user:
         return HttpResponse("Access Denied. You are not the owner of this system card.")
 
     if request.method == "POST":
         print("Posted")
         form = SystemCardForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponse("Card saved")
-        else:
+        if not form.is_valid():
             return HttpResponse(f"Errors on Card - not saved<br>{form.errors}")
+
+        # Create a new system card each time we save it so user can go back if they mess it up
+        new_system_card = form.save(commit=False)
+        new_system_card.user = system_card.user
+        new_system_card.card_name = system_card.card_name
+
+        new_system_card.save()
+        return HttpResponse("Card saved")
 
     form = SystemCardForm(instance=system_card)
 
@@ -259,7 +283,7 @@ def system_card_edit(request, system_card_id):
     )
 
 
-def create_pdf_system_card(request, system_card_id):
+def create_pdf_system_card(request, system_card_name):
     """Generate a PDF of the system card"""
 
     # File-like object
@@ -269,7 +293,7 @@ def create_pdf_system_card(request, system_card_id):
     width, height = A4
     pdf = canvas.Canvas(buffer, pagesize=A4)
 
-    pdf = _fill_in_system_card(pdf, system_card_id, width, height)
+    pdf = _fill_in_system_card(pdf, system_card_name, width, height)
 
     # Close it off
     pdf.showPage()
@@ -281,7 +305,7 @@ def create_pdf_system_card(request, system_card_id):
     return FileResponse(buffer, filename="hello.pdf")
 
 
-def _fill_in_system_card(pdf, system_card_id, width, height):
+def _fill_in_system_card(pdf, system_card_name, width, height):
     """ugly code to file in the system card for the pdf"""
 
     pdf.setFont("Times-Roman", 20)

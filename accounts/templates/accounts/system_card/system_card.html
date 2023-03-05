@@ -139,10 +139,11 @@
     {% if editable %}
         <!-- MAKE THIS A FORM, EVEN IF ONLY DISPLAYING THE DATA -->
         <form method="POST"
-            hx-post="{% url "accounts:system_card_edit" system_card_id=system_card.id %}"
+            hx-post="{% url "accounts:system_card_edit" system_card_name=system_card.card_name %}"
             hx-target="#save_msg"
         >
             {% csrf_token %}
+
             <div class="container">
                 <div class="row">
                     <div class="col-11">
@@ -153,8 +154,6 @@
 
         <h1>ABF System Card</h1>
         <h2>
-
-
             {% cobalt_edit_or_show form.player1 editable %}
             -
             {% cobalt_edit_or_show form.player2 editable %}
@@ -168,6 +167,11 @@
                 <h4>{% cobalt_edit_or_show form.system_classification editable True %} - with Brown Sticker</h4>
             </div>
             <div class="card-body">
+
+                {% if editable %}
+                    <h3>Edit these values down below</h3>
+                    <h3>--Add JS code to update here if it changes--</h3>
+                {% endif %}
 
                 <div class="row">
                     <!-- SUITS -->
@@ -615,7 +619,7 @@
             <div class="save-button">
                 <!-- SAVE BUTTON STAYS IN PLACE AS WE SCROLL -->
                 <div class="row">
-                    <a target="_blank" href="{% url "accounts:create_pdf_system_card" system_card_id=1 %}" class="btn btn-sm btn-info mx-auto">Generate PDF</a>
+                    <a target="_blank" href="{% url "accounts:create_pdf_system_card" system_card_name=system_card.card_name %}" class="btn btn-sm btn-info mx-auto">Generate PDF</a>
                 </div>
                 <button class="btn btn-success btn-sm">Save</button>
                 <div id="save_msg"></div>

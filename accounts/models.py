@@ -4,6 +4,7 @@ import string
 from datetime import date
 
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
@@ -545,5 +546,12 @@ class SystemCard(models.Model):
 
     other_notes = models.CharField(max_length=400, blank=True)
 
+    class Meta:
+        unique_together = (
+            "user",
+            "card_name",
+        )
+
     def __str__(self):
-        return f"{self.user.full_name} - {self.card_name}"
+        local_datetime = timezone.localtime(self.save_date)
+        return f"{self.user.full_name} - {self.card_name} - {local_datetime:%a %-d %b %Y %I:%M%p}"
