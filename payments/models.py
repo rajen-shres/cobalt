@@ -304,7 +304,7 @@ class OrganisationTransaction(AbstractTransaction):
     """ see AbstractFinanceClassifications for info on these fields """
     gl_sub_category = models.CharField(max_length=50, blank=True, null=True)
     """ see AbstractFinanceClassifications for info on these fields """
-    gl_series = models.PositiveIntegerField(default=0)
+    gl_series = models.PositiveIntegerField(default=0, blank=True, null=True)
     """ Series is used to separate instances of the same classification. This is implementation specific """
 
     def save(self, *args, **kwargs):
