@@ -134,6 +134,9 @@ def copy_congress_from_another(congress_id: int):
             session.event = event
             session.save()
 
+        # Update denormalised dates
+        update_event_start_and_end_times(event)
+
     return congress
 
 
