@@ -546,12 +546,6 @@ class SystemCard(models.Model):
 
     other_notes = models.CharField(max_length=400, blank=True)
 
-    class Meta:
-        unique_together = (
-            "user",
-            "card_name",
-        )
-
     def __str__(self):
         local_datetime = timezone.localtime(self.save_date)
         return f"{self.user.full_name} - {self.card_name} - {local_datetime:%a %-d %b %Y %I:%M%p}"
