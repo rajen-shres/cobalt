@@ -4,7 +4,7 @@
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 {% extends 'empty.html' %}
-{% load cobalt_system_card_tags %}
+{% load system_card %}
 
 {% block title %}
     - System Card
@@ -345,7 +345,7 @@
 
                                         <b>1</b><span style="font-size: larger">&clubs;</span>
                                     </span>
-                                    <span style="display: table-cell">
+                                    <span style="display: table-cell; text-align: left">
                                         {% cobalt_edit_or_show form.opening_1c editable %}
                                     </span>
                                 </div>

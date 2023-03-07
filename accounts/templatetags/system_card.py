@@ -29,8 +29,6 @@ def _card_symbol_change_sub(work_string, change_to, matches):
 
     """
 
-    print("Before:", work_string)
-
     if not matches:
         return work_string
 
@@ -65,8 +63,6 @@ def _card_symbol_change_sub(work_string, change_to, matches):
 
         # Put in replacement text
         work_string = work_string.replace(PLACEHOLDER, match["number_found"])
-
-    print("After:", work_string)
 
     return work_string
 
@@ -132,3 +128,19 @@ def card_symbol_bang(value):
     """
 
     return _card_symbol(value, r"\!")
+
+
+@register.simple_tag(name="cobalt_edit_or_show")
+def cobalt_edit_or_show(value, editable=False, display_name=False):
+    """Either show the field as text, or show it as an editable field depending upon the flag editable"""
+
+    if not value:
+        return None
+
+    if not editable:
+        if not display_name:
+            return card_symbol_bang(value.value())
+        else:
+            return "Fish"
+
+    return value
