@@ -2,10 +2,19 @@
 {% load static %}
 {% block title %} - Lost{% endblock %}
 {% block content %}
+
     <div class="jumbotron text-center" style="background-color: white; height: 1000px">
+
         <h1 style="font-size: 80px">Not Found</h1>
+
         <img src="{% static "assets/img/myABF_logo_not_found.png" %}" alt="Not found" width="400">
+
         <h2>You looked for something, but we don't have it</h2>
+
         <h1>Sorry</h1>
+
+        <a href="javascript:window.history.back();" class="btn btn-warning" onclick="history.back()">Go Back</a>
+
+
     </div>
 {% endblock %}

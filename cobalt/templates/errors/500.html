@@ -1,12 +1,28 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# 404 - Not found page                                                   #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
 {% extends 'base.html' %}
 {% load static %}
 {% block title %} - Error{% endblock %}
 {% block content %}
     <div class="jumbotron text-center" style="background-color: white; height: 1000px">
+
         <img src="{% static "assets/img/myABF_logo_broken.png" %}" alt="Broken" width="400">
+
         <h1 style="font-size: 80px">Oops!</h1>
+
         <h2>Well that's a bit embarrassing</h2>
+
         <h3>We tried to get what you were looking for, but something went wrong.
             We have made a note of what happened so somebody can investigate this.</h3>
+
+        <a href="javascript:window.history.back();" class="btn btn-primary" onclick="history.back()">Go Back</a>
+
+
     </div>
+
+
+
 {% endblock %}
