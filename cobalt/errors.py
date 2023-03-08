@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
 
-def not_found_404(request, exception):
+def not_found_404(request, exception=None):
     print("404")
     print(exception)
     # try:

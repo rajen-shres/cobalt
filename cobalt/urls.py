@@ -4,6 +4,7 @@ from dashboard.views import logged_out, home, slug
 from django.conf import settings
 from django.urls import include, path
 from django_otp.admin import OTPAdminSite
+from cobalt import errors
 from loginas.views import user_login as user_login_as
 
 from utils.views.general import download_csv
@@ -43,6 +44,8 @@ urlpatterns = [
     path("tests/", include("tests.urls", namespace="tests")),
     path("health/", include("health_check.urls")),
     path("admin/django-ses/", include("django_ses.urls")),
+    path("404", errors.not_found_404),
+    path("500", errors.server_error_500),
     # This is the slug option for Cobalt
     path("go/<str:slug_name>/", slug, name="slug"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
