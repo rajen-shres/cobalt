@@ -944,11 +944,16 @@ def edit_event_entry(
 
     """
 
-    # If we got an event entry, then try to load it. Will only be for primary_entrant
+    # If we got an event entry, then try to load it.
     if event_entry_id:
         event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
         # Check this is legitimate
-        if event_entry.primary_entrant != request.user:
+        if not (
+            event_entry.primary_entrant == request.user
+            or EventEntryPlayer.objects.filter(
+                event_entry=event_entry, player=request.user
+            ).exists()
+        ):
             return HttpResponse(
                 f"Invalid request - attempt to edit EventEntry:{event_entry.id} which has a Primary Entrant of {event_entry.primary_entrant} by another player {request.user}"
             )
