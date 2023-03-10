@@ -286,8 +286,8 @@ def _payment_with_sufficient_funds(
     if other_member:
         notify_member_to_member_transfer(member, other_member, amount, description)
 
-    # check for auto top up required - if user not set for auto topup then ignore
-    _check_for_auto_topup_or_low_balance(member, amount, balance)
+    # check for auto top up required - or manual top up low balance
+    _check_for_auto_topup_or_low_balance(member, amount, balance, book_internals)
 
     return True
 
@@ -378,10 +378,14 @@ def notify_member_to_member_transfer(member, other_member, amount, description):
     )
 
 
-def _check_for_auto_topup_or_low_balance(member, amount, balance):
+def _check_for_auto_topup_or_low_balance(member, amount, balance, book_internals):
     """Check if member needs to be filled up after this transaction or notified of low balance.
     We don't worry about whether auto top up works or not. If it fails then the auto_topup_member function
     will take care of it.
+
+    If book_internals is False (currently only for events which book their own member transactions
+    so players get to see each one separately), then we don't check for low balance. That must be done
+    by the calling module after the payment is made (or the balance and recent transactions will be wrong).
     """
 
     # Low balance warning - for now make it the same as auto top up
@@ -394,7 +398,7 @@ def _check_for_auto_topup_or_low_balance(member, amount, balance):
 
     # low balance
     else:
-        if balance - amount < low_balance_limit:
+        if book_internals and balance - amount < low_balance_limit:
             payments_core.low_balance_warning(member)
 
 

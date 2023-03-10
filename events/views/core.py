@@ -9,12 +9,14 @@ from django.urls import reverse
 from django.utils import timezone
 
 import payments.views.core as payments_core  # circular dependency
+from accounts.models import User
 
 from cobalt.settings import (
     BRIDGE_CREDITS,
     TIME_ZONE,
     TBA_PLAYER,
     GLOBAL_CURRENCY_SYMBOL,
+    AUTO_TOP_UP_LOW_LIMIT,
 )
 
 from logs.views import log_event
@@ -78,6 +80,9 @@ def events_payments_secondary_callback(status, route_payload):
     # Check status of entry now
     for paid_event_entry_player in paid_event_entry_players:
         paid_event_entry_player.event_entry.check_if_paid()
+
+    # Check for low balance
+    _low_balance_check(payment_user)
 
 
 def _events_payments_secondary_callback_process_basket(
@@ -195,6 +200,9 @@ def events_payments_primary_callback(status, route_payload):
 
     # Tidy up
     _clean_up(notify_event_entries)
+
+    # Check for low balance
+    _low_balance_check(payment_user)
 
 
 def _get_player_who_is_paying(status, route_payload):
@@ -982,3 +990,25 @@ def fix_closed_congress(congress, actor):
         count += 1
 
     return f"Congress fixed. {count} player{pluralize(count)} updated."
+
+
+def _low_balance_check(member: User):
+    """
+    Check if a user has a low balance. For most things (book_internals=True) this is done by payments, but for
+    events we book the member transactions ourselves, so we have to do this after payments has finished its part.
+
+    For the special case of the balance being zero we do not send a warning. This will be the case if someone has
+    paid only for this event or if they had exactly the right amount of money in their count for this entry. This
+    is so likely to be deliberate that we do not annoy them with a warning.
+
+    Args:
+        member: User
+
+    Returns: None
+
+    """
+
+    balance = payments_core.get_balance(member)
+
+    if balance < AUTO_TOP_UP_LOW_LIMIT and balance != 0.0:
+        payments_core.low_balance_warning(member)
