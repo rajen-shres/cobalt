@@ -38,6 +38,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum, F
 from django.http import HttpResponse, JsonResponse
+from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -52,10 +53,12 @@ from cobalt.settings import (
     GLOBAL_CURRENCY_SYMBOL,
     TIME_ZONE,
     GLOBAL_MPSERVER,
+    GLOBAL_TITLE,
+    COBALT_HOSTNAME,
 )
 import events.views.core as events_core
 from logs.views import log_event
-from notifications.views.core import contact_member
+from notifications.views.core import contact_member, send_cobalt_email_with_template
 from payments.models import (
     StripeTransaction,
     MemberTransaction,
@@ -1301,3 +1304,57 @@ def get_payments_statistics():
         "estimated_stripe_fees": estimated_stripe_fees,
         "average_stripe_transaction": average_stripe_transaction,
     }
+
+
+def low_balance_warning(member: User):
+    """Handle a user without auto top up enabled, falling below the low balance threshold"""
+
+    if not member.receive_low_balance_emails:
+        return
+
+    # Get data
+    recent_transactions = MemberTransaction.objects.filter(member=member).order_by(
+        "-pk"
+    )[:5]
+    balance = get_balance(member)
+
+    # Set up links
+    auto_top_up_users = User.objects.filter(stripe_auto_confirmed="On").count()
+    auto_reverse = reverse("payments:setup_autotopup")
+    auto_link = f"{COBALT_HOSTNAME}{auto_reverse}"
+    statement_reverse = reverse("payments:payments")
+    statement_link = f"{COBALT_HOSTNAME}{statement_reverse}"
+    settings_reverse = reverse("accounts:user_settings")
+    settings_link = f"{COBALT_HOSTNAME}{settings_reverse}"
+
+    additional_words = f"""<p style="font-size: 12px"><i>Don't want to be told about low balances?
+                            You can change this through your <a href="http://{settings_link}" target="_blank">settings</a>.</p>"""
+
+    # run template
+    template = get_template("payments/players/low_balance_warning.html")
+    email_body = template.render(
+        {
+            "member": member,
+            "recent_transactions": recent_transactions,
+            "balance": balance,
+            "auto_top_up_users": auto_top_up_users,
+            "GLOBAL_TITLE": GLOBAL_TITLE,
+            "auto_link": auto_link,
+            "statement_link": statement_link,
+            "COBALT_HOSTNAME": COBALT_HOSTNAME,
+        }
+    )
+
+    # set up context
+    context = {
+        "name": member.first_name,
+        "title": "Low Balance Warning",
+        "email_body": email_body,
+        "box_colour": "danger",
+        "link": reverse("payments:manual_topup"),
+        "link_text": "Manual Top Up Now",
+        "additional_words": additional_words,
+    }
+
+    # send email
+    send_cobalt_email_with_template(to_address=member.email, context=context)

@@ -189,6 +189,7 @@ class UserSettingsForm(forms.ModelForm):
             "receive_payments_emails",
             "system_number_search",
             "windows_scrollbar",
+            "receive_low_balance_emails",
         ]
 
 

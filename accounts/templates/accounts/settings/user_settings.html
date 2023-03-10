@@ -53,6 +53,25 @@
                                                     <div class="col-md-12">
                                                         <div class="form-check">
                                                             <div class="row justify-content-center">
+                                                                <span class="cobalt-form-error" id="id_receive_low_balance_emails_errors">{{ form.receive_low_balance_emails.errors|striptags }}</span>
+                                                            </div>
+                                                            <label class="form-check-label">
+                                                                <input class="form-check-input" id="id_receive_low_balance_emails" name="receive_low_balance_emails" type="checkbox" {% if form.receive_low_balance_emails.value %}checked="Checked"{% endif %}>
+                                                                Receive low balance emails
+                                                                <span class="form-check-sign">
+                                                                    <span class="check"></span>
+                                                                </span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="col-md-12">
+                                                        <div class="form-check">
+                                                            <div class="row justify-content-center">
                                                                 <span class="cobalt-form-error" id="id_receive_sms_results">{{ form.receive_sms.errors|striptags }}</span>
                                                             </div>
                                                             <label class="form-check-label">

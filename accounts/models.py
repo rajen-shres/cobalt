@@ -102,6 +102,7 @@ class User(AbstractUser):
     receive_payments_emails = models.BooleanField(
         "Receive Payments Emails", default=True
     )
+    receive_low_balance_emails = models.BooleanField(default=True)
     windows_scrollbar = models.BooleanField(
         "Use Perfect Scrollbar on Windows", default=False
     )

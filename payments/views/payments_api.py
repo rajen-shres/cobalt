@@ -189,11 +189,11 @@ def payment_api_batch(
     Use payment_api_interactive() if you wish the user to be taken to the manual
     payment screen.
 
-    We accept either organisation as the counterpart for this payment or
+    We accept either an organisation as the counterpart for this payment or
     other_member. If the calling function wishes to book their own transactions
     they can pass us neither parameter.
 
-    For Events the booking of the internal transactions is done in the callback
+    For Events, the booking of the internal transactions is done in the callback
     so that we can have individual transactions that are easier to map. The
     optional parameter book_internals handles this. If this is set to false
     then only the necessary Stripe transactions are executed by payment_api.
@@ -287,7 +287,7 @@ def _payment_with_sufficient_funds(
         notify_member_to_member_transfer(member, other_member, amount, description)
 
     # check for auto top up required - if user not set for auto topup then ignore
-    _check_for_auto_topup(member, amount, balance)
+    _check_for_auto_topup_or_low_balance(member, amount, balance)
 
     return True
 
@@ -378,17 +378,24 @@ def notify_member_to_member_transfer(member, other_member, amount, description):
     )
 
 
-def _check_for_auto_topup(member, amount, balance):
-    """Check if member needs to be filled up after this transaction.
-    We don't worry about whether this works or not. If it fails then the auto_topup_member function
+def _check_for_auto_topup_or_low_balance(member, amount, balance):
+    """Check if member needs to be filled up after this transaction or notified of low balance.
+    We don't worry about whether auto top up works or not. If it fails then the auto_topup_member function
     will take care of it.
     """
 
-    if (
-        member.stripe_auto_confirmed == "On"
-        and balance - amount < AUTO_TOP_UP_LOW_LIMIT
-    ):
-        payments_core.auto_topup_member(member)
+    # Low balance warning - for now make it the same as auto top up
+    low_balance_limit = AUTO_TOP_UP_LOW_LIMIT
+
+    # Auto top up
+    if member.stripe_auto_confirmed == "On":
+        if balance - amount < AUTO_TOP_UP_LOW_LIMIT:
+            payments_core.auto_topup_member(member)
+
+    # low balance
+    else:
+        if balance - amount < low_balance_limit:
+            payments_core.low_balance_warning(member)
 
 
 def _payment_with_insufficient_funds(

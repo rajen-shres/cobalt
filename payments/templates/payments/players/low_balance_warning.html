@@ -1,0 +1,72 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Low balance warning email for a user                                   #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+{% load humanize %}
+
+<h2 style="text-align: center">Your balance is {{ balance|cobalt_currency }}</h2>
+
+<p>You can set up auto top up right now, and we won't need to ask you to do anything until your card expires.
+    We never store your credit card details and it is entirely secure.</p>
+<p>{{ auto_top_up_users|intcomma }} bridge players on {{ GLOBAL_TITLE }} are already using auto top up.</p>
+
+<!-- START BUTTON -->
+<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
+    <tr>
+        <td class="article-cta">
+            <table border="0" cellpadding="0" cellspacing="0" class="btn btn-success">
+                <tbody>
+                    <tr>
+                        <td align="center">
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tbody>
+                                    <tr>
+                                        <td> <a href="http://{{ auto_link }}" target="_blank">Set up Auto Top Up</a> </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+</table>
+<!-- END BUTTON -->
+
+<hr>
+
+<h3>Prefer to top up every time?</h3>
+<p>No problem. Visit <a href="https://{{ COBALT_HOSTNAME }}" target="_blank">{{ GLOBAL_TITLE }}</a> or click on the
+    button below to top up manually.</p>
+
+<hr>
+
+<h3>Recent Transactions</h3>
+<p><i>Here are your most recent transactions.</i></p>
+<table>
+    <thead>
+        <tr>
+            <th style="text-align: left">Date</th>
+            <th style="text-align: left">Counterparty</th>
+            <th style="text-align: left">Description</th>
+            <th style="text-align: right">Amount</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for transaction in recent_transactions %}
+            <tr>
+                <td style="text-align: left">{{ transaction.created_date|date:"d M" }}</td>
+                <td style="text-align: left">{{ transaction.other_member.full_name|default_if_none:"" }}{{ transaction.organisation|default_if_none:"" }}</td>
+                <td style="text-align: left">{{ transaction.description }}</td>
+                <td style="text-align: right">{{ transaction.amount }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<hr>
+<br>
+<p>You can view all of your transactions on {{ GLOBAL_TITLE }} in <a href="http://{{ statement_link }}" target="_blank">Bridge Credits.</a></p>
