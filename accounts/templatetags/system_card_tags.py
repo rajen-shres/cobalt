@@ -1,7 +1,10 @@
 from re import finditer
 
 from django import template
+from django.template.loader import get_template
 from django.utils.safestring import mark_safe
+
+from utils.templatetags.cobalt_tags import cobalt_bs4_field
 
 register = template.Library()
 
@@ -131,16 +134,29 @@ def card_symbol_bang(value):
 
 
 @register.simple_tag(name="cobalt_edit_or_show")
-def cobalt_edit_or_show(value, editable=False, display_name=False):
-    """Either show the field as text, or show it as an editable field depending upon the flag editable"""
+def cobalt_edit_or_show(field, editable=False, display_name=False, min_width=False):
+    """
+    Either show the field as text, or show it as an editable field depending upon the flag editable
 
-    if not value:
-        return None
+    This just saves having a million if statements in the system card templates
+
+    Parameters:
+        field: form value
+        editable(bool): If True we show a form field, otherwise we show the text from the form value
+        display_name(bool): Can't remember - LATER
+        min_width(bool): Changes the class so it's not expanded to full width
+
+    """
+
+    if not field:
+        return "<h2>Programming Error. Expected form field.</h2>"
 
     if not editable:
         if not display_name:
-            return card_symbol_bang(value.value())
+            return card_symbol_bang(field.value())
         else:
-            return "Fish"
+            return "Fish - Later"
 
-    return value
+    field_template = get_template("accounts/system_card/template_tag_field.html")
+
+    return field_template.render({"field": field, "min_width": min_width})

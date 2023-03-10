@@ -1,0 +1,18 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# This is called by the system card template tag                         #}
+{#                                                                        #}
+{# We only handle simple text input fields                                #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+<input
+    {% if not min_width %}
+        class="input-group"
+    {% endif %}
+    type="text"
+    name="{{ field.name }}"
+    value="{{ field.value }}"
+    max_length="{{ field.field.max_length }}"
+    id="id_{{ field.name }}"
+>

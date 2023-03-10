@@ -4,140 +4,22 @@
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 {% extends 'empty.html' %}
-{% load system_card %}
+{% load system_card_tags %}
 
 {% block title %}
     - System Card
 {% endblock title %}
 
-{#------------------------------------------------------------------------#}
-{#                                                                        #}
-{# Styles                                                                 #}
-{#                                                                        #}
-{#------------------------------------------------------------------------#}
 {% block header %}
-    <style>
-        h1, h2, h3, h4 {
-            text-align:center;
-        }
-
-        .card-body{
-            font-size: large;
-        }
-        .red-card{
-            color: red;
-            font-size: larger;
-        }
-
-        .brown-sticker {
-            background-color: brown;
-            font-weight: bold;
-            border-radius: 20px;
-            width: auto;
-            height: auto;
-            padding: 5px 30px 5px 30px;
-            margin-left: 100px;
-            margin-right: 100px;
-            font-size: 18px;
-            color: white;
-            text-align:center;
-        }
-
-        .to-top {
-            font-size: small;
-            font-style: italic;
-        }
-
-        .hidden-class {
-            display: none;
-        }
-
-        .club {
-            font-size: large;
-        }
-
-        .club::after {
-            content: "♣";
-            font-size: x-large;
-        }
-
-        .diamond {
-            font-size: large;
-        }
-
-        .diamond::after {
-            content: "♦";
-            color: red;
-            font-size: x-large;
-        }
-        .heart {
-            font-size: large;
-        }
-
-        .heart::after {
-            content: "♥";
-            color: red;
-            font-size: x-large;
-        }
-
-        .spade {
-            font-size: large;
-        }
-
-        .spade::after {
-            content: "♠";
-            font-size: x-large;
-            font-weight: bold;
-        }
-
-        .nt {
-            font-size: large;
-        }
-
-        .nt::after {
-            content: "NT";
-            font-size: large;
-            font-weight: bold;
-        }
-
-        .bg-colour-1 {
-            background-color: #f1f8e9;
-        }
-
-        .borderless td, .borderless th {
-            border: none;
-        }
-
-        .response-table {
-            width: 250px;
-        }
-
-        .response-table td {
-            text-align: left;
-        }
-
-        .response-highlight {
-            background-color: #3fb8af !important;
-            font-size: xxx-large;
-        }
-
-        .save-button {
-            position: fixed;
-            right: 40px;
-        }
-
-        .sc-inline {
-            display: table;
-        }
-
-
-    </style>
+    {% include "accounts/system_card/system_card_styles.html" %}
 {% endblock header %}
 
 {% block content %}
 
+    <!-- WRAP THIS IN AN 11-1 BOOTSTRAP COL THING AND A FORM IF WE AER EDITING IT -->
     {% if editable %}
-        <!-- MAKE THIS A FORM, EVEN IF ONLY DISPLAYING THE DATA -->
+
+        <!-- MAKE THIS A FORM -->
         <form method="POST"
             hx-post="{% url "accounts:system_card_edit" system_card_name=system_card.card_name %}"
             hx-target="#save_msg"
@@ -150,78 +32,107 @@
 
     {% endif %}
 
+    <!-- JUMBOTRON FOR MAIN CARD VIEW -->
     <div class="jumbotron" id="top">
 
         <h1>ABF System Card</h1>
         <h2>
-            {% cobalt_edit_or_show form.player1 editable %}
+            {% cobalt_edit_or_show form.player1 editable min_width=True %}
             -
-            {% cobalt_edit_or_show form.player2 editable %}
+            {% cobalt_edit_or_show form.player2 editable min_width=True %}
         </h2>
 
 
         <!-- BASIC SYSTEM -->
         <div class="card">
             <div class="card-header card-header-success">
-                <h2>{% cobalt_edit_or_show form.basic_system editable %}</h2>
-                <h4>{% cobalt_edit_or_show form.system_classification editable True %} - with Brown Sticker</h4>
+                <h2>{% cobalt_edit_or_show form.basic_system editable min_width=True %}</h2>
+                <h4>{% cobalt_edit_or_show form.system_classification editable display_name=True min_width=True %} - with Brown Sticker</h4>
             </div>
             <div class="card-body">
 
-                {% if editable %}
-                    <h3>Edit these values down below</h3>
-                    <h3>--Add JS code to update here if it changes--</h3>
+                <!-- ONLY SHOW SUMMARY OPENINGS ON VIEWING NOT EDITING -->
+                {% if not editable %}
+
+                    <div class="row">
+                        <!-- SUITS -->
+                        <div class="col-sm-6">
+                            <div class="container bg-colour-1">
+
+                                <!-- CURLY -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <b>1</b><span style="font-size: larger">&clubs;</span> 11-19 <b>2+</b>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <b>1</b><span class="red-card">&hearts;</span> 11-19 5+
+                                    </div>
+                                </div>
+
+                                <!-- POINTY -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <b>1</b><span class="red-card">&diamondsuit;</span> 11-19 4+
+                                    </div>
+                                    <div class="col-md-6">
+                                        <b>1</b><span style="font-size: larger">&spades;</span> 11-19 5+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NT -->
+                        <div class="col-sm-6">
+                            <div class="container bg-colour-1">
+                                <div class="row">
+                                    <div class="col">
+                                        <b>1NT</b> 14-16 VUL, 10-12 NV
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <i style="font-size: medium">5 Card Major Possible</i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 {% endif %}
-
-                <div class="row">
-                    <!-- SUITS -->
-                    <div class="col-sm-6">
-                        <div class="container bg-colour-1">
-
-                            <!-- CURLY -->
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <b>1</b><span style="font-size: larger">&clubs;</span> 11-19 <b>2+</b>
-                                </div>
-                                <div class="col-md-6">
-                                    <b>1</b><span class="red-card">&hearts;</span> 11-19 5+
-                                </div>
-                            </div>
-
-                            <!-- POINTY -->
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <b>1</b><span class="red-card">&diamondsuit;</span> 11-19 4+
-                                </div>
-                                <div class="col-md-6">
-                                    <b>1</b><span style="font-size: larger">&spades;</span> 11-19 5+
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- NT -->
-                    <div class="col-sm-6">
-                        <div class="container bg-colour-1">
-                            <div class="row">
-                                <div class="col">
-                                    <b>1NT</b> 14-16 VUL, 10-12 NV
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col">
-                                    <i style="font-size: medium">5 Card Major Possible</i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
 
                 <h3 class="text-left pt-2">Summary</h3>
 
-                <p class="mb-0 bb-0 "><b>Bidding</b> - 5 Card Majors, Variable NT, Transfers over 1C, Bergen, 1430</p>
-                <p class="bt-0 mt-0 pt-0"><b>Carding</b> - Overlead, Reverse Count/Attitude, Odds and Evens</p>
+                <div class="row">
+                    <div class="col-md-3">
+                        <b>xxxxx</b>
+                    </div>
+                    <div class="col-md-9">
+
+
+                        <input class="input-group" type="text" name="summary_bidding" value="xxx 5 Card Majors, Variable NT, Transfers over 1C, Bergen, 1430" maxlength="1000" id="id_summary_bidding">
+
+
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <b>Bidding</b>
+                    </div>
+                    <div class="col-md-9">
+                        {% cobalt_edit_or_show form.summary_bidding editable %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <b>Carding</b>
+                    </div>
+                    <div class="col-md-9">
+                        {% cobalt_edit_or_show form.summary_carding editable %}
+                    </div>
+                </div>
+
 
                 <div class="text-center col-8 mx-auto">
                     <a href="#pre-alerts" class="btn btn-danger text-white btn-block" style="font-size: x-large">
