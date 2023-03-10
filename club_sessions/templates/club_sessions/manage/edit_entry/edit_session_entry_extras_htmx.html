@@ -301,41 +301,10 @@
 {#                </div>#}
 {#        {% endif %}#}
 
+{% include "club_sessions/manage/shared/misc_payment_functions.html" %}
+
 <script>
     $(document).ready( function () {
-
-        // enable selectpicker
-        $(".selectpicker").selectpicker();
-
-        // Handle changing the misc payment type
-        $("#id_misc_payment").change( function(){
-
-            // description
-            $("#id_misc_description").val($('#id_misc_payment option:selected').text());
-
-            // enable button
-            $("#id_misc_button").removeAttr("disabled");
-
-            // add default payment amount as a dictionary from Django
-            const default_amount = {
-                {% for misc_payment_type in misc_payment_types %}
-                    "{{ misc_payment_type.id }}": "{{ misc_payment_type.default_amount }}",
-                {% endfor %}
-            };
-
-            const new_val = default_amount[$(this).val()];
-            $("#id_amount").val(new_val);
-        });
-
-        // handle manually entering misc payment - enable button if both fields have values
-        $("#id_amount, #id_misc_description").keyup(function() {
-            // check if form is valid to submit
-            if ($("#id_amount").val() > 0 && $("#id_misc_description").val().length > 0){
-                $("#id_misc_button").removeAttr("disabled");
-            } else {
-                $("#id_misc_button").attr("disabled", true);
-            }
-        });
 
         // handle deleting misc payment button
         $(".misc_pay_del").on("click", function(evt){

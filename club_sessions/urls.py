@@ -148,4 +148,9 @@ urlpatterns = [
         club_sessions.views.manage_session.predict_bridge_credits_failures_htmx,
         name="predict_bridge_credits_failures_htmx",
     ),
+    path(
+        "options/bulk-add-extras",
+        club_sessions.views.manage_session.bulk_add_extras_htmx,
+        name="options_bulk_add_extras_htmx",
+    ),
 ]

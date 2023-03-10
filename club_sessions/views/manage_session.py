@@ -1,3 +1,5 @@
+import operator
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import HttpResponse
@@ -1081,4 +1083,103 @@ def predict_bridge_credits_failures_htmx(request, club, session):
         request,
         "club_sessions/manage/predict_bridge_credits_failures_htmx.html",
         {"warnings": warnings, "session": session},
+    )
+
+
+@user_is_club_director()
+def bulk_add_extras_htmx(request, club, session):
+    """Allow a director to add the same extra to multiple players easily (without having to add individually"""
+
+    # get this orgs miscellaneous payment types and payment methods
+    misc_payment_types = MiscPayType.objects.filter(organisation=club)
+    payment_methods = OrgPaymentMethod.objects.filter(active=True, organisation=club)
+
+    # get players
+    (
+        session_entries,
+        mixed_dict,
+        session_fees,
+        membership_type_dict,
+    ) = load_session_entry_static(session, club)
+
+    # augment the session_entries
+    session_entries = augment_session_entries(
+        session_entries, mixed_dict, membership_type_dict, session_fees, club
+    )
+
+    # See if this is a post
+    if "add_button" in request.POST:
+        return _bulk_add_extras_htmx_post(request, session, mixed_dict)
+
+    # sort session entries
+    session_entries_list = []
+    for session_entry in session_entries:
+        # Session Entry has been augmented to work in a template. full_name may be an attribute or a dictionary key
+        # We actually don't want the dictionary key ones as they are for sitouts etc.
+        try:
+            full_name = session_entry.player.full_name
+            session_entries_list.append((session_entry.id, full_name))
+        except AttributeError:
+            pass
+
+    # Sort by full name
+    session_entries_list.sort(key=lambda tup: tup[1])
+
+    return render(
+        request,
+        "club_sessions/manage/options/bulk_add_extras_htmx.html",
+        {
+            "session": session,
+            "club": club,
+            "misc_payment_types": misc_payment_types,
+            "payment_methods": payment_methods,
+            "session_entries_list": session_entries_list,
+        },
+    )
+
+
+def _bulk_add_extras_htmx_post(request, session, mixed_dict):
+    """handle the user pressing the add button"""
+
+    # load the session entries - also filter by session in case someone is being sneaky
+    session_entries = SessionEntry.objects.filter(
+        session=session, pk__in=request.POST.getlist("session_entries")
+    )
+
+    # Get other data
+    misc_description = request.POST.get("misc_description")
+    misc_amount = float(request.POST.get("amount"))
+    payment_method_id = request.POST.get("payment_method")
+    payment_method = OrgPaymentMethod.objects.filter(pk=payment_method_id).first()
+
+    # See if this is bridge credits or IOU. Only registered users can use these
+    payment_method_is_user_only = (
+        OrgPaymentMethod.objects.filter(pk=payment_method_id)
+        .filter(payment_method__in=[BRIDGE_CREDITS, "IOU"])
+        .exists()
+    )
+
+    output = []
+
+    for session_entry in session_entries:
+        player = mixed_dict[session_entry.system_number]
+        # Check payment method is acceptable
+        this_payment_method = payment_method
+        if payment_method_is_user_only and player["type"] != "User":
+            this_payment_method = session.default_secondary_payment_method
+
+        SessionMiscPayment(
+            session_entry=session_entry,
+            description=misc_description,
+            amount=misc_amount,
+            payment_method=this_payment_method,
+        ).save()
+        output.append(
+            f"{player['value']}: Added {GLOBAL_CURRENCY_SYMBOL}{misc_amount:.2f} for '{misc_description}' using {this_payment_method.payment_method}"
+        )
+
+    return render(
+        request,
+        "club_sessions/manage/options/bulk_add_extras_output.html",
+        {"output": output},
     )

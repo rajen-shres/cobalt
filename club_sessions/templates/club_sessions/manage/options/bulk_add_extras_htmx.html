@@ -1,0 +1,172 @@
+{#------------------------------------------------------------------------------#}
+{#                                                                              #}
+{# Allow a director to add the same extra to multiple players in a single place #}
+{#                                                                              #}
+{#------------------------------------------------------------------------------#}
+<form
+    hx-post="{% url "club_sessions:options_bulk_add_extras_htmx" %}"
+    hx-target="#id_pane_session"
+    hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+>
+
+    <!-- MAIN CARD -->
+    <div class="card">
+        <div class="card-header card-header-danger">
+            <h3>Add Miscellaneous Payments to Multiple Players</h3>
+        </div>
+        <div class="card-body">
+
+            <!-- ON LARGER SCREENS SHOW AS 2 COLUMNS -->
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+
+                        <!-- CARD FOR PAYMENT TYPE AND METHOD -->
+                        <div class="card">
+                            <div class="card-header card-header-info">
+                                <h4>Add Miscellaneous Payment</h4>
+                            </div>
+                            <div class="card-body">
+
+
+
+                                <!-- SHOW DROPDOWN IF WE HAVE SET UP MISC PAYMENT TYPES -->
+
+                                {% if misc_payment_types %}
+
+                                    <div class="row">
+
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label for="id_misc_payment" class="bmd-label-static">Item</label>
+                                                <select class="selectpicker" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
+                                                    <option selected value="-1">---select---</option>
+                                                    {% for misc_payment_type in misc_payment_types %}
+                                                        <option value="{{ misc_payment_type.id }}">{{ misc_payment_type.description }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                {% endif %}
+
+                                <!-- INPUT FIELDS, EITHER MANUAL OR FROM DROPDOWN OF SET UP TYPES -->
+
+                                <div class="row">
+
+                                    <!-- DESCRIPTION -->
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label for="id_misc_description" class="bmd-label-floating">Description</label>
+                                            <input type="text" value="" maxlength="30" class="form-control" id="id_misc_description" name="misc_description">
+                                        </div>
+                                    </div>
+
+                                    <!-- AMOUNT -->
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label for="id_amount" class="bmd-label-floating">Amount</label>
+                                            <input type="number" value="" min="0.01" step="0.01" class="form-control" id="id_amount" name="amount">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- PAYMENT METHOD -->
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label for="id_payment_method" class="bmd-label-static">Pay By</label>
+                                            <select class="selectpicker" data-style="btn btn-warning btn-round btn-sm" name="payment_method" id="id_payment_method">
+                                                {% for payment_method in payment_methods %}
+                                                    <option value="{{ payment_method.id }}"
+                                                        {% if payment_method == session_entry.payment_method %}
+                                                            selected
+                                                        {% endif %}
+
+                                                    >{{ payment_method.payment_method }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header card-header-success">
+                                <h4>Select Players</h4>
+                            </div>
+                            <div class="card-body">
+
+                                <!-- CHECK BOXES FOR SELECTING USERS -->
+                                <div class="form-check">
+
+                                    <!-- SELECT ALL BOX -->
+                                    <div class="my-2">
+                                        <label class="form-check-label text-dark">
+                                            <input class="form-check-input" type="checkbox" name="select-all" id="select-all">
+                                            <b>SELECT ALL</b>
+                                            <span class="form-check-sign">
+                                                <span class="check"></span>
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                    <!-- PLAYERS -->
+                                    {% for session_entry in session_entries_list %}
+                                        <div class="my-2">
+                                            <label class="form-check-label text-dark">
+                                                <input class="form-check-input" type="checkbox" name="session_entries" id="{{ session_entry.0 }}" value="{{ session_entry.0 }}">
+                                                {{ session_entry.1 }}
+                                                <span class="form-check-sign">
+                                                    <span class="check"></span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SUBMIT BUTTON -->
+            <div class="row">
+                <div class="col text-center">
+                    <button class="btn btn-success btn-sm" name="add_button" id="id_misc_button" disabled type="submit">Add</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+</form>
+
+{% include "club_sessions/manage/shared/misc_payment_functions.html" %}
+
+<script>
+    $(document).ready( function () {
+
+        // Listen for click on toggle select all
+        $('#select-all').click(function(event) {
+            if(this.checked) {
+                // Iterate each checkbox
+                $(':checkbox').each(function() {
+                    this.checked = true;
+                });
+            } else {
+                $(':checkbox').each(function() {
+                    this.checked = false;
+                });
+            }
+        });
+    });
+</script>

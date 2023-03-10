@@ -1,0 +1,21 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Shows the output of adding the extras to a list of players             #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% if output %}
+
+    <h3>Miscellaneous Bulk Payments Added</h3>
+    <ul>
+        {% for output_line in output %}
+            <li>{{ output_line }}</li>
+        {% endfor %}
+    </ul>
+
+{% else %}
+
+    <h3>Miscellaneous Bulk Payments Error</h3>
+
+    <p>We didn't find anyone in the list. Please try again and select some people to charge.</p>
+
+{% endif %}

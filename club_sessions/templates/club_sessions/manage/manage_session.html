@@ -140,64 +140,112 @@
                                 </span>
                             </div>
 
-                            <!-- TOP VIEW CHOICES - SUMMARY, DETAIL, TABLE VIEWS -->
 
-                            <div class="text-center">
-                                <div id="radio-view-options" class="btn-group btn-group-toggle" data-toggle="buttons">
-                                    <form class="view-type-radio"></form>
+                            <!-- THIS JUSTIFY-CONTENT-BETWEEN IS USED TO SHOW THE SUMMARY/DETAIL/TABLE VIEW IN THE
+                             CENTRE WITH THE OPTIONS ON THE RIGHT -->
+                            <div class="d-flex justify-content-between">
 
-                                    <!-- SUMMARY VIEW (DEFAULT) -->
-                                    <label class="btn btn-success active"
-                                        class="btn btn-success"
-                                        hx-post="{% url "club_sessions:tab_session_htmx" %}"
-                                        hx-trigger="load, click, reload_sessions from:body"
-                                        hx-target="#id_pane_session"
-                                        hx-indicator="#low_spinner"
-                                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, view_type: 'summary'"
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="summary"
-                                            id="option-summary"
-                                            autocomplete="off"
-                                            checked
-                                        > Summary
-                                    </label>
+                                <!-- BLANK DIV FOR LEFT -->
+                                <div>
+                                </div>
 
-                                    <!-- DETAIL VIEW -->
-                                    <label
-                                        class="btn btn-success {% if option == "detail" %}active{% endif %}"
-                                        hx-post="{% url "club_sessions:tab_session_htmx" %}"
-                                        hx-target="#id_pane_session"
-                                        hx-indicator="#low_spinner"
-                                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, view_type: 'detail'"
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="detail"
-                                            id="option-summary"
-                                            autocomplete="off"
-                                        > Detail
-                                    </label>
+                                <!-- CENTRE DIV -->
+                                <div>
+                                    <!-- TOP VIEW CHOICES - SUMMARY, DETAIL, TABLE VIEWS -->
 
-                                    <!-- TABLE VIEW -->
-                                    <label
-                                        class="btn btn-success {% if option == "table" %}active{% endif %}"
-                                        hx-post="{% url "club_sessions:tab_session_htmx" %}"
-                                        hx-target="#id_pane_session"
-                                        hx-indicator="#low_spinner"
-                                        hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, view_type: 'table'"
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="table"
-                                            id="option-summary"
-                                            autocomplete="off"
-                                        > Table View
-                                    </label>
+                                    <div class="text-center">
+                                        <div id="radio-view-options" class="btn-group btn-group-toggle" data-toggle="buttons">
+                                            <form class="view-type-radio"></form>
 
+                                            <!-- SUMMARY VIEW (DEFAULT) -->
+                                            <label class="btn btn-success active"
+                                                class="btn btn-success"
+                                                hx-post="{% url "club_sessions:tab_session_htmx" %}"
+                                                hx-trigger="load, click, reload_sessions from:body"
+                                                hx-target="#id_pane_session"
+                                                hx-indicator="#low_spinner"
+                                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, view_type: 'summary'"
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="summary"
+                                                    id="option-summary"
+                                                    autocomplete="off"
+                                                    checked
+                                                > Summary
+                                            </label>
+
+                                            <!-- DETAIL VIEW -->
+                                            <label
+                                                class="btn btn-success {% if option == "detail" %}active{% endif %}"
+                                                hx-post="{% url "club_sessions:tab_session_htmx" %}"
+                                                hx-target="#id_pane_session"
+                                                hx-indicator="#low_spinner"
+                                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, view_type: 'detail'"
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="detail"
+                                                    id="option-summary"
+                                                    autocomplete="off"
+                                                > Detail
+                                            </label>
+
+                                            <!-- TABLE VIEW -->
+                                            <label
+                                                class="btn btn-success {% if option == "table" %}active{% endif %}"
+                                                hx-post="{% url "club_sessions:tab_session_htmx" %}"
+                                                hx-target="#id_pane_session"
+                                                hx-indicator="#low_spinner"
+                                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}, view_type: 'table'"
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="table"
+                                                    id="option-summary"
+                                                    autocomplete="off"
+                                                > Table View
+                                            </label>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- RIGHT DIV -->
+
+                                <div>
+
+
+                                    <!-- EXTRAS -->
+
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-primary btn-sm dropdown-toggle btn-round" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+
+                                            <span class="d-sm-none">
+                                                +
+                                            </span>
+
+                                            {# Show this on screens md or larger #}
+                                            <span class="d-none d-sm-inline">
+                                                Options
+                                            </span>
+
+                                            <div class="ripple-container"></div></button>
+                                        <div class="dropdown-menu" x-placement="bottom-start" style="position: absolute; top: 41px; left: 0px; will-change: top, left;">
+
+                                            <a
+                                                class="btn btn-sm btn-secondary"
+                                                href="javascript:void(0);"
+                                                hx-post="{% url "club_sessions:options_bulk_add_extras_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
+                                                hx-target="#id_pane_session"
+                                                hx-push-url="1"
+                                            >Bulk Add Extras</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
 
                             <!-- MAIN PART OF SESSION TAB THAT HOLDS THE DIFFERENT VIEWS -->
                             <div id="id_pane_session" style="min-height: 600px"></div>
