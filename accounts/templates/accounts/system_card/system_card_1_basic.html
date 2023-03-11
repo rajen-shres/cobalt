@@ -1,0 +1,100 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# System card - basic system                                             #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load system_card_tags %}
+
+<h1>ABF System Card</h1>
+<h2>
+    {% cobalt_edit_or_show form.player1 editable min_width=True %}
+    -
+    {% cobalt_edit_or_show form.player2 editable min_width=True %}
+</h2>
+
+<div class="card">
+    <div class="card-header card-header-success">
+        <h2>{% cobalt_edit_or_show form.basic_system editable min_width=True %}</h2>
+        <h4>{% cobalt_edit_or_show form.system_classification editable display_name=True min_width=True %} - with Brown Sticker</h4>
+    </div>
+    <div class="card-body">
+
+        <!-- ONLY SHOW SUMMARY OPENINGS ON VIEWING NOT EDITING -->
+        {% if not editable %}
+
+            <div class="row">
+                <!-- SUITS -->
+                <div class="col-sm-6">
+                    <div class="container bg-colour-1">
+
+                        <!-- CURLY -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <b>1</b><span style="font-size: larger">&clubs;</span> 11-19 <b>2+</b>
+                            </div>
+                            <div class="col-md-6">
+                                <b>1</b><span class="red-card">&hearts;</span> 11-19 5+
+                            </div>
+                        </div>
+
+                        <!-- POINTY -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <b>1</b><span class="red-card">&diamondsuit;</span> 11-19 4+
+                            </div>
+                            <div class="col-md-6">
+                                <b>1</b><span style="font-size: larger">&spades;</span> 11-19 5+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NT -->
+                <div class="col-sm-6">
+                    <div class="container bg-colour-1">
+                        <div class="row">
+                            <div class="col">
+                                <b>1NT</b> 14-16 VUL, 10-12 NV
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <i style="font-size: medium">5 Card Major Possible</i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% endif %}
+
+        <h3 class="text-left pt-2">Summary</h3>
+
+        <div class="row">
+            <div class="col-md-3">
+                <b>Bidding</b>
+            </div>
+            <div class="col-md-9">
+                {% cobalt_edit_or_show form.summary_bidding editable %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3">
+                <b>Carding</b>
+            </div>
+            <div class="col-md-9">
+                {% cobalt_edit_or_show form.summary_carding editable %}
+            </div>
+        </div>
+
+        <div class="text-center col-8 mx-auto">
+            <a href="#pre-alerts" class="btn btn-danger text-white btn-block" style="font-size: x-large">
+                <i class="material-icons" style="font-size: larger">notifications_active</i>
+                Pre-Alerts
+                <i class="material-icons" style="font-size: larger">notifications_active</i>
+            </a>
+        </div>
+
+    </div>
+</div>

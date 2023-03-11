@@ -183,4 +183,112 @@ Update an Organisation's Account
         bank_settlement_amount=item.settlement_amount,
     )
 
+**************
+GL Codes
+**************
+
+.. WARNING::
+   This is currently a discussion section. Change this to factual documentation once the changes are made.
+
+OrganisationTransactions have extra fields to track the purpose of the transaction. These are,
+rather incorrectly, internally labelled as GL Codes (General Ledger codes) as they are likely to ultimately
+end up being used in a similar way to GL codes by applications that take date feeds from
+Cobalt.
+
+The structure of the fields is hierarchical. All fields are associated with a single organisation.
+
+    gl_transaction_type (choice field)
+        Top level. Effectively maps to the Cobalt application, currently just Congress or Session.
+    gl_category (text 50)
+        For a congress, this is the congress series name. For a session this is the session type.
+        We only record the name as it stands when this is created, we don't link to the underlying
+        items.
+    gl_sub_category (text 50)
+        For a congress, this is the event. For a session it is the name of the session.
+    gl_series (integer)
+        For a congress, this is the year. For a session, this is a sequential number.
+
+--------------
+Examples
+--------------
+
+.. list-table:: Examples of Codes
+   :widths: 50 50 50 25
+   :header-rows: 1
+
+   * - Transaction Type
+     - Category
+     - Sub Category
+     - Series
+   * - Congress
+     - NSBC Easter Congress
+     - Open Pairs
+     - 2023
+   * - Congress
+     - NSBC Easter Congress
+     - Restricted Teams
+     - 2023
+   * - Congress
+     - NSBC Easter Congress
+     - Open Pairs
+     - 2024
+   * - Congress
+     - NSBC Easter Congress
+     - Restricted Teams
+     - 2024
+   * - Session
+     - Duplicate
+     - EL Tue 1:30pm Rookie
+     - 491
+   * - Session
+     - Duplicate
+     - EL Tue 1:30pm Rookie
+     - 492
+   * - Session
+     - Duplicate
+     - EL Tue 1:30pm Rookie
+     - 493
+   * - Session
+     - Duplicate
+     - RB Sat 10am Open
+     - 53
+   * - Session
+     - Duplicate
+     - RB Sat 10am Open
+     - 54
+
+-----------------------
+Potential Issues / Work
+-----------------------
+
+Congresses
+==========
+
+Congresses are fairly straightforward. We can get all of the data we need just from the
+event and the congress. We don't currently capture this information but it is a manageable
+change to add it.
+
+We will record only the names of things as they are at the time the entry is made. This means
+there is no linkage back to the event, especially if it changes with time. For example,
+if one year it is "Honda Welcome Pairs" and the next year it is "Nissan Opening Pairs" then we
+won't know they are the same event. That should be easy enough to handle in any downstream
+systems, and isn't really a problem for Cobalt.
+
+Sessions
+========
+
+We already store the session on the OrganisationTransaction. We can access the session data and
+save the GL info from this. The main problem is the sub-category which comes in as free format
+text. For the CompScore files we get the session description either from the file or from the
+file name. This seems reasonably reliable but needs manipulation to remove dates. It is not an
+ideal solution but we can also allow the director to change the sub-category on the settings
+page. The series can be generated.
+
+Reporting
+==========
+
+If we have the data available, as described above, we should be able to report in a number of ways.
+We can summarise at the category level (mostly for congresses) or the sub-category level (for
+congresses by event or sessions by session type such as Tuesday Open etc). We can also summarise
+at the series level for sessions which will show individual sessions.
 

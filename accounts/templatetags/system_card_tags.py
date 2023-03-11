@@ -144,7 +144,7 @@ def cobalt_edit_or_show(field, editable=False, display_name=False, min_width=Fal
         field: form value
         editable(bool): If True we show a form field, otherwise we show the text from the form value
         display_name(bool): Can't remember - LATER
-        min_width(bool): Changes the class so it's not expanded to full width
+        min_width(bool): Changes the class, so it's not expanded to full width
 
     """
 

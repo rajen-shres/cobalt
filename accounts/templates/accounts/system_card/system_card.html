@@ -1,22 +1,25 @@
 {#------------------------------------------------------------------------#}
 {#                                                                        #}
-{# Main page for system card view                                         #}
+{# Main page for system card view and edit                                #}
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 {% extends 'empty.html' %}
+
 {% load system_card_tags %}
 
+<!-- TITLE -->
 {% block title %}
     - System Card
 {% endblock title %}
 
+<!-- STYLES -->
 {% block header %}
     {% include "accounts/system_card/system_card_styles.html" %}
 {% endblock header %}
 
 {% block content %}
 
-    <!-- WRAP THIS IN AN 11-1 BOOTSTRAP COL THING AND A FORM IF WE AER EDITING IT -->
+    <!-- WRAP THIS IN AN 11-1 BOOTSTRAP COL THING AND A FORM IF WE ARE EDITING IT -->
     {% if editable %}
 
         <!-- MAKE THIS A FORM -->
@@ -35,495 +38,20 @@
     <!-- JUMBOTRON FOR MAIN CARD VIEW -->
     <div class="jumbotron" id="top">
 
-        <h1>ABF System Card</h1>
-        <h2>
-            {% cobalt_edit_or_show form.player1 editable min_width=True %}
-            -
-            {% cobalt_edit_or_show form.player2 editable min_width=True %}
-        </h2>
-
-
-        <!-- BASIC SYSTEM -->
-        <div class="card">
-            <div class="card-header card-header-success">
-                <h2>{% cobalt_edit_or_show form.basic_system editable min_width=True %}</h2>
-                <h4>{% cobalt_edit_or_show form.system_classification editable display_name=True min_width=True %} - with Brown Sticker</h4>
-            </div>
-            <div class="card-body">
-
-                <!-- ONLY SHOW SUMMARY OPENINGS ON VIEWING NOT EDITING -->
-                {% if not editable %}
-
-                    <div class="row">
-                        <!-- SUITS -->
-                        <div class="col-sm-6">
-                            <div class="container bg-colour-1">
-
-                                <!-- CURLY -->
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <b>1</b><span style="font-size: larger">&clubs;</span> 11-19 <b>2+</b>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <b>1</b><span class="red-card">&hearts;</span> 11-19 5+
-                                    </div>
-                                </div>
-
-                                <!-- POINTY -->
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <b>1</b><span class="red-card">&diamondsuit;</span> 11-19 4+
-                                    </div>
-                                    <div class="col-md-6">
-                                        <b>1</b><span style="font-size: larger">&spades;</span> 11-19 5+
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- NT -->
-                        <div class="col-sm-6">
-                            <div class="container bg-colour-1">
-                                <div class="row">
-                                    <div class="col">
-                                        <b>1NT</b> 14-16 VUL, 10-12 NV
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col">
-                                        <i style="font-size: medium">5 Card Major Possible</i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                {% endif %}
-
-                <h3 class="text-left pt-2">Summary</h3>
-
-                <div class="row">
-                    <div class="col-md-3">
-                        <b>xxxxx</b>
-                    </div>
-                    <div class="col-md-9">
-
-
-                        <input class="input-group" type="text" name="summary_bidding" value="xxx 5 Card Majors, Variable NT, Transfers over 1C, Bergen, 1430" maxlength="1000" id="id_summary_bidding">
-
-
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-3">
-                        <b>Bidding</b>
-                    </div>
-                    <div class="col-md-9">
-                        {% cobalt_edit_or_show form.summary_bidding editable %}
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-3">
-                        <b>Carding</b>
-                    </div>
-                    <div class="col-md-9">
-                        {% cobalt_edit_or_show form.summary_carding editable %}
-                    </div>
-                </div>
-
-
-                <div class="text-center col-8 mx-auto">
-                    <a href="#pre-alerts" class="btn btn-danger text-white btn-block" style="font-size: x-large">
-                        <i class="material-icons" style="font-size: larger">notifications_active</i>
-                        Pre-Alerts
-                        <i class="material-icons" style="font-size: larger">notifications_active</i>
-                    </a>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- END BASIC SYSTEM -->
-
-        <!-- NAVIGATION ELEMENTS -->
-
-        <div class="d-flex justify-content-between pb-5">
-            <a href="#openings" class="btn btn-round btn-primary text-white">
-
-                <span class="d-md-none">
-                    Open
-                </span>
-                <span class="d-none d-md-inline">
-                    Openings
-                </span>
-
-            </a>
-            <a href="#responses" class="btn btn-round btn-success text-white">
-
-                <span class="d-md-none">
-                    Resp
-                </span>
-                <span class="d-none d-md-inline">
-                    Responses
-                </span>
-
-            </a>
-            <a href="#competitive" class="btn btn-round btn-warning text-white">
-                <span class="d-md-none">
-                    Comp
-                </span>
-                <span class="d-none d-md-inline">
-                    Competitive
-                </span>
-            </a>
-
-            <a href="#slams" class="btn btn-round btn-danger text-white">
-
-                <span class="d-md-none">
-                    Slam
-                </span>
-                <span class="d-none d-md-inline">
-                    Slams
-                </span>
-
-            </a>
-            <a href="#defence" class="btn btn-round btn-info text-white">
-
-                <span class="d-md-none">
-                    Def.
-                </span>
-                <span class="d-none d-md-inline">
-                    Defence
-                </span>
-
-            </a>
-        </div>
-
-        <!-- END NAVIGATION ELEMENTS -->
-
-        <!-- PADDING -->
-        <div class="py-5"></div>
-
-        <!-- PRE ALERTS -->
-        <span id="pre-alerts"></span>
-        <div class="card mt-5"><a href="#top">
-            <div class="card-header card-header-danger pt-2 pb-0">
-                <h2>Pre Alerts</h2>
-            </div>
-        </a>
-            <div class="card-body">
-                <p class="brown-sticker">
-                    BROWN STICKER<br>Why? - Unanchored 2 bids
-                </p>
-                <ul>
-                    <li>Opening two bids are unusual, see below</li>
-                    <li>Transfer responses to 1<span style="font-size: larger">&clubs;</span></li>
-                    <li>Shape more important than points</li>
-                    <li>Occasional psyches</li>
-                </ul>
-
-                <div class="text-right">
-                    <span class="to-top"><a href="#top">Back to top</a></span>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- END PRE ALERTS -->
-
-        <!-- OPENINGS -->
-        <span id="openings"></span>
-        <!-- PADDING -->
-        <div class="py-2"></div>
-        <div class="card mt-5">
-            <a href="#top">
-                <div class="card-header card-header-danger pt-2 pb-0">
-                    <h2>Openings</h2>
-                </div>
-            </a>
-            <div class="card-body">
-                <div class="row">
-                    <!-- SUITS -->
-                    <div class="col-sm-6">
-                        <div class="container bg-colour-1">
-
-                            <!-- CURLY -->
-                            <div class="row">
-                                <div class="col-md-6 sc-inline">
-                                    <span style="display: table-cell">
-
-                                        <b>1</b><span style="font-size: larger">&clubs;</span>
-                                    </span>
-                                    <span style="display: table-cell; text-align: left">
-                                        {% cobalt_edit_or_show form.opening_1c editable %}
-                                    </span>
-                                </div>
-                                <div class="col-md-6">
-                                    <b>1</b><span class="red-card">&hearts;</span> 11-19 5+
-                                </div>
-                            </div>
-
-                            <!-- POINTY -->
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <b>1</b><span class="red-card">&diamondsuit;</span> 11-19 4+
-                                </div>
-                                <div class="col-md-6">
-                                    <b>1</b><span style="font-size: larger">&spades;</span> 11-19 5+
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- NT -->
-                    <div class="col-sm-6">
-                        <div class="container bg-colour-1">
-                            <div class="row">
-                                <div class="col">
-                                    <b>1NT</b> 14-16 VUL, 10-12 NV
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col">
-                                    <i style="font-size: medium">5 Card Major Possible</i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- NT RESPONSE AND 2 LEVEL BIDS -->
-                <div class="row">
-                    <div class="col-md-6">
-
-                        <!-- NT RESPONSES -->
-                        <div class="card">
-                            <div class="card-header card-header-info pt-0 pb-0">
-                                <h3 class="mt-2">1NT Responses</h3>
-                            </div>
-                            <div class="card-body">
-
-                                <div class="container">
-                                    <!-- 2C -->
-                                    <div class="row">
-                                        <div class="col">
-                                            <b>2</b><span style="font-size: larger">&clubs;</span> &nbsp;= Puppet Stayman
-                                        </div>
-                                    </div>
-
-                                    <!-- D, H -->
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <b>2</b><span class="red-card">&diamondsuit;</span> -> <span class="red-card">&hearts;</span>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <b>2</b><span class="red-card">&hearts;</span> -> <span style="font-size: larger">&spades;</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- S, NT -->
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <b>2</b><span style="font-size: larger">&spades;</span> -> Minors
-                                        </div>
-                                        <div class="col-md-6">
-                                            <b>2</b>NT -> Invite
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                            </div>
-                        </div>
-                        <!-- END NT RESPONSES -->
-
-                    </div>
-                    <div class="col-md-6">
-
-                        <!-- 2 LEVEL OPENINGS -->
-                        <div class="card">
-                            <div class="card-header card-header-warning pt-0 pb-0">
-                                <h3 class="mt-2">2 Level Openings</h3>
-                            </div>
-                            <div class="card-body">
-
-                                <div class="container">
-
-                                    <!-- MINORS -->
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <b>2</b><span style="font-size: larger">&clubs;</span> Strong 19+
-                                        </div>
-                                        <div class="col-md-6">
-                                            <b>2</b><span class="red-card">&diamondsuit;</span> Weak M or 20-22
-                                        </div>
-                                    </div>
-
-                                    <!-- MAJORS -->
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <b>2</b><span class="red-card">&hearts;</span> Any 4441
-                                        </div>
-                                        <div class="col-md-6">
-                                            <b>2</b><span style="font-size: larger">&spades;</span> Any 2 suits
-                                        </div>
-                                    </div>
-
-                                    <!-- 2NT -->
-                                    <div class="row">
-                                        <div class="col">
-                                            <b>2NT</b> 20-22
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- END 2 LEVEL OPENINGS -->
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col">
-                        <div class="card">
-                            <div class="card-header card-header-primary pt-0 pb-0">
-                                <h3 class="mt-2">Other Openings</h3>
-                            </div>
-                            <div class="card-body">
-                                <ul>
-                                    <li>3NT - Gambling: Solid 8 card minor</li>
-                                    <li><span class="club">4</span> - <span class="heart">7+</span> better than <span class="heart">4</span> opening</li>
-                                    <li><span class="diamond">4</span> - <span class="spade">7+</span> better than <span class="spade">4</span> opening</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <span class="to-top"><a href="#top">Back to top</a></span>
-                </div>
-            </div>
-        </div>
-        <!-- END OPENINGS -->
-
-        <!-- RESPONSES -->
-        <span id="responses"></span>
-        <!-- PADDING -->
-        <div class="py-2"></div>
-        <div class="card mt-5">
-            <a href="#top">
-                <div class="card-header card-header-danger pt-2 pb-0">
-                    <h2>Responses</h2>
-                </div>
-            </a>
-            <div class="card-body">
-
-                <p>Click on opening bid to see responses:</p>
-
-                {% for bid, responses in all_responses.items %}
-                    {% include "accounts/system_card/system_card_responses_headings.html" with data=response %}
-                {% endfor %}
-
-                <div class="py-3"></div>
-
-                {% for bid, responses in all_responses.items %}
-                    {% include "accounts/system_card/system_card_responses_body.html" with data=response %}
-                {% endfor %}
-
-                <div class="text-right">
-                    <span class="to-top"><a href="#top">Back to top</a></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- END RESPONSES -->
-
-        <!-- COMPETITIVE -->
-        <span id="competitive"></span>
-        <!-- PADDING -->
-        <div class="py-2"></div>
-        <div class="card mt-5">
-            <a href="#top">
-                <div class="card-header card-header-danger pt-2 pb-0">
-                    <h2>Competitive Bids</h2>
-                </div>
-            </a>
-            <div class="card-body">
-
-
-
-                <div class="text-right">
-                    <span class="to-top"><a href="#top">Back to top</a></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- END COMPETITIVE -->
-
-        <!-- SLAMS -->
-        <span id="slams"></span>
-        <!-- PADDING -->
-        <div class="py-2"></div>
-        <div class="card mt-5">
-            <a href="#top">
-                <div class="card-header card-header-danger pt-2 pb-0">
-                    <h2>Slam Bidding</h2>
-                </div>
-            </a>
-            <div class="card-body">
-                <p>Coming later</p>
-                <div class="text-right">
-                    <span class="to-top"><a href="#top">Back to top</a></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- END SLAMS -->
-
-        <!-- CONVENTIONS -->
-        <span id="conventions"></span>
-        <!-- PADDING -->
-        <div class="py-2"></div>
-        <div class="card mt-5">
-            <a href="#top">
-                <div class="card-header card-header-danger pt-2 pb-0">
-                    <h2>Other Conventions</h2>
-                </div>
-            </a>
-            <div class="card-body">
-                <p>Coming later</p>
-                <div class="text-right">
-                    <span class="to-top"><a href="#top">Back to top</a></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- END CONVENTIONS -->
-
-        <!-- DEFENCE -->
-        <span id="defence"></span>
-        <!-- PADDING -->
-        <div class="py-2"></div>
-        <div class="card mt-5">
-            <a href="#top">
-                <div class="card-header card-header-danger pt-2 pb-0">
-                    <h2>Defensive Carding</h2>
-                </div>
-            </a>
-            <div class="card-body">
-                <p>Coming later</p>
-                <div class="text-right">
-                    <span class="to-top"><a href="#top">Back to top</a></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- END DEFENCE -->
-
+        {% include "accounts/system_card/system_card_1_basic.html" %}
+        {% include "accounts/system_card/system_card_2_navigation.html" %}
+        {% include "accounts/system_card/system_card_3_pre_alerts.html" %}
+        {% include "accounts/system_card/system_card_4_openings.html" %}
+        {% include "accounts/system_card/system_card_5_responses.html" %}
+        {% include "accounts/system_card/system_card_6_competitive.html" %}
+        {% include "accounts/system_card/system_card_7_slam.html" %}
+        {% include "accounts/system_card/system_card_8_conventions.html" %}
+        {% include "accounts/system_card/system_card_9_defence.html" %}
 
         <!-- END JUMBOTRON -->
     </div>
 
+    <!-- CLOSE WRAPPER IF EDITABLE -->
     {% if editable %}
         </div>
         <div class="col-1">
@@ -542,13 +70,26 @@
 
     {% endif %}
 
-
 {% endblock content %}
 
 {% block footer %}
 
     <script>
         $(document).ready( function () {
+
+            // If we get !c change that to club symbol, same of other symbols
+            $(":input").on("keyup change", function(e) {
+                let this_string = $(this).val();
+                this_string = this_string.replace("!c", "♣")
+                this_string = this_string.replace("!d", "♦")
+                this_string = this_string.replace("!h", "♥")
+                this_string = this_string.replace("!s", "♠")
+                this_string = this_string.replace("!C", "♣")
+                this_string = this_string.replace("!D", "♦")
+                this_string = this_string.replace("!H", "♥")
+                this_string = this_string.replace("!S", "♠")
+                $(this).val(this_string);
+            })
 
             // handle clicking on the opening bid in the response section
             // we hide all other and toggle this one
@@ -579,6 +120,5 @@
 
         });
     </script>
-
 
 {% endblock footer %}

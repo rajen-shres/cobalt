@@ -3,8 +3,8 @@
 # about: publish docs to docs.myabf.com.au
 
 # Clear django AWS credentials
-unset AWS_ACCESS_KEY_ID
-unset AWS_SECRET_ACCESS_KEY
+#unset AWS_ACCESS_KEY_ID
+#unset AWS_SECRET_ACCESS_KEY
 
 # build docs
 cd docs
