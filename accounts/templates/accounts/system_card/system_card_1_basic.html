@@ -6,6 +6,29 @@
 {% load system_card_tags %}
 
 <h1>ABF System Card</h1>
+
+{% if editable %}
+    <!-- SHOW INSTRUCTIONS -->
+    <div class="row">
+
+        <div class="alert alert-rose col-12" role="alert" style="" id="instructions">
+            <div class="container text-right">
+                <p class="d-inline font-weight-bold" _="on click hide #instructions" style="cursor: pointer; font-size: larger">X</p>
+            </div>
+            <h1 class="text-center">Instructions</h1>
+            <p>Fill in the fields below. You can click on the SAVE button on the right as often as you like,
+                to save your system card. We keep the last five versions for each card.</p>
+            <p>To insert suit symbols you can type:</p>
+            <ul>
+                <li style="font-size: larger">!c = clubs</li>
+                <li style="font-size: larger">!d = diamonds</li>
+                <li style="font-size: larger">!h = hearts</li>
+                <li style="font-size: larger">!s = spades</li>
+            </ul>
+            <p>Hearts and Diamonds will show up as black, but don't worry, we will change that when you use the card.</p>
+        </div>
+    </div>
+{% endif %}
 <h2>
     {% cobalt_edit_or_show form.player1 editable min_width=True %}
     -
