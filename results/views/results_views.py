@@ -420,6 +420,16 @@ def usebio_mp_pairs_board_view(request, results_file_id, board_number, pair_id):
     hand = {}
     double_dummy = None
 
+    if "HANDSET" not in usebio or "BOARD" not in usebio["HANDSET"]:
+        return render(
+            request,
+            "utils/coblt_generic_error_page.html",
+            {
+                "title": "No Board Data Available",
+                "message": "Sorry, we don't have any details available for this board.",
+            },
+        )
+
     for board in usebio["HANDSET"]["BOARD"]:
         if int(board["BOARD_NUMBER"]) == board_number:
             for compass in board["HAND"]:
