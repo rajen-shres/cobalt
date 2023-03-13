@@ -1317,7 +1317,12 @@ def process_bridge_credits(session_entries, session, club, bridge_credits, extra
             session_entry.fee = get_session_fee_for_player(session_entry, club)
             session_entry.save()
 
-        # Remove extras so we know they are paid
+            # Also change extras payment method
+            SessionMiscPayment.objects.filter(session_entry=session_entry).update(
+                payment_method=session.default_secondary_payment_method
+            )
+
+        # Remove extras so we know they are handled
         extras.pop(session_entry.id, None)
 
     # If we have anything left in extras, pay it. User had nothing to pay on the session entry using bridge credits

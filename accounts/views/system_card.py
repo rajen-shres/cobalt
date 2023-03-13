@@ -2,7 +2,8 @@ import io
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, FileResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -241,7 +242,12 @@ def system_card_view(request, user_id, system_card_name):
     return render(
         request,
         "accounts/system_card/system_card.html",
-        {"all_responses": all_responses, "form": form, "editable": False},
+        {
+            "all_responses": all_responses,
+            "form": form,
+            "editable": False,
+            "template": "empty.html",
+        },
     )
 
 
@@ -261,7 +267,6 @@ def system_card_edit(request, system_card_name):
         return HttpResponse("Access Denied. You are not the owner of this system card.")
 
     if request.method == "POST":
-        print("Posted")
         form = SystemCardForm(request.POST)
         if not form.is_valid():
             return HttpResponse(f"Errors on Card - not saved<br>{form.errors}")
@@ -269,17 +274,31 @@ def system_card_edit(request, system_card_name):
         # Create a new system card each time we save it so user can go back if they mess it up
         new_system_card = form.save(commit=False)
         new_system_card.user = system_card.user
-        new_system_card.card_name = system_card.card_name
+        new_system_card.card_name = request.POST.get("card_new_name")
 
         new_system_card.save()
-        return HttpResponse("Card saved")
+        response = HttpResponse("Card saved")
+
+        if system_card.card_name != new_system_card.card_name:
+            # Tell htmx to redirect as we have changed the URL
+            response["HX-Redirect"] = reverse(
+                "accounts:system_card_edit",
+                kwargs={"system_card_name": new_system_card.card_name},
+            )
+
+        return response
 
     form = SystemCardForm(instance=system_card)
 
     return render(
         request,
         "accounts/system_card/system_card.html",
-        {"editable": True, "form": form, "system_card": system_card},
+        {
+            "editable": True,
+            "form": form,
+            "system_card": system_card,
+            "template": "base.html",
+        },
     )
 
 

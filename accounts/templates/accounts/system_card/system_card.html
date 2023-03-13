@@ -3,7 +3,7 @@
 {# Main page for system card view and edit                                #}
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
-{% extends 'empty.html' %}
+{% extends template %}
 
 {% load system_card_tags %}
 
@@ -28,6 +28,11 @@
             hx-target="#save_msg"
         >
             {% csrf_token %}
+
+
+            <h2>Card Name:
+                <input type="text" name="card_new_name" value="{{ system_card.card_name }}" max_length="100" id="id_card_new_name">
+            </h2>
 
             <div class="container">
                 <div class="row">
@@ -61,7 +66,6 @@
                     <a target="_blank" href="{% url "accounts:create_pdf_system_card" system_card_name=system_card.card_name %}" class="btn btn-sm btn-info mx-auto">Generate PDF</a>
                 </div>
                 <button class="btn btn-success btn-sm">Save</button>
-                <button class="btn btn-warning btn-sm">Save As</button>
                 <div id="save_msg"></div>
             </div>
         </div>
