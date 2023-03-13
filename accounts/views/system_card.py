@@ -1,7 +1,7 @@
 import io
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from reportlab.lib.pagesizes import A4
@@ -226,7 +226,7 @@ def system_card_view(request, user_id, system_card_name):
 
     user = User.objects.filter(pk=user_id).first()
     if not user:
-        return HttpResponse("User not found")
+        raise Http404
 
     system_card = (
         SystemCard.objects.filter(user=user, card_name=system_card_name)
@@ -235,7 +235,7 @@ def system_card_view(request, user_id, system_card_name):
     )
 
     if not system_card:
-        return HttpResponse("Card not found")
+        raise Http404
 
     form = SystemCardForm(instance=system_card)
 
@@ -245,6 +245,7 @@ def system_card_view(request, user_id, system_card_name):
         {
             "all_responses": all_responses,
             "form": form,
+            "system_card": system_card,
             "editable": False,
             "template": "empty.html",
         },
@@ -261,7 +262,10 @@ def system_card_edit(request, system_card_name):
         .first()
     )
     if not system_card:
-        return HttpResponse("Card not found")
+        if not request.POST:
+            raise Http404
+        else:
+            return HttpResponse("Card not found")
 
     if system_card.user != request.user:
         return HttpResponse("Access Denied. You are not the owner of this system card.")

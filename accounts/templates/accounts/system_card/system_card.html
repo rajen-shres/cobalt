@@ -67,6 +67,12 @@
                 </div>
                 <button class="btn btn-success btn-sm">Save</button>
                 <div id="save_msg"></div>
+                <a
+                    class="btn btn-sm btn-primary"
+                    href="{% url "accounts:system_card_view" user_id=user.id system_card_name=system_card.card_name %}"
+                    target="_blank"
+                >View
+                </a>
             </div>
         </div>
         </div>

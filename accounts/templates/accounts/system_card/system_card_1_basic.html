@@ -38,7 +38,32 @@
 <div class="card">
     <div class="card-header card-header-success">
         <h2>{% cobalt_edit_or_show form.basic_system editable min_width=True %}</h2>
-        <h4>{% cobalt_edit_or_show form.system_classification editable display_name=True min_width=True %} - with Brown Sticker</h4>
+
+        <!-- THESE ARE ABOUT THE ONLY NON-TEXT FIELDS SO JUST HANDLE WITH IF STATEMENTS -->
+        {% if editable %}
+
+            <h3>System Classification: {{ form.system_classification }}</h3>
+
+            <div class="form-check text-center">
+                <label class="form-check-label text-white" style="font-size: x-large">
+                    <input type="checkbox" name="brown_sticker" id="id_brown_sticker" {% if form.brown_sticker.value %}checked="Checked" {% endif %}>
+                    Brown Sticker
+                </label>
+            </div>
+
+        {% else %}
+
+            <h3>
+                {{ system_card.get_system_classification_display }} System
+                {% if system_card.brown_sticker %}
+
+                    with Brown Sticker
+
+                {% endif %}
+            </h3>
+
+        {% endif %}
+
     </div>
     <div class="card-body">
 
