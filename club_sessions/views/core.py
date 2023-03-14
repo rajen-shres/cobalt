@@ -1355,7 +1355,11 @@ def process_bridge_credits(session_entries, session, club, bridge_credits, extra
                 this_extra.save()
 
             else:
-                failures += 1
+                failures.append(
+                    f"Could not pay extras - for {member} - {this_extra.description}"
+                )
+                this_extra.payment_method = session.default_secondary_payment_method
+                this_extra.save()
 
     # Update status of session - see if there are any payments left
     recalculate_session_status(session)

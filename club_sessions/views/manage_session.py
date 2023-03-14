@@ -587,6 +587,9 @@ def session_totals_htmx(request, club, session):
         session, session_entries, session_fees, membership_type_dict
     )
 
+    # Recalculate status
+    recalculate_session_status(session)
+
     # Progress
     if session.status == Session.SessionStatus.DATA_LOADED:
         progress_colour = "danger"
