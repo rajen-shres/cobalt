@@ -533,6 +533,13 @@ def change_paid_amount_status_htmx(request, club, session, session_entry):
         .count()
     )
 
+    # Add in any extras
+    unpaid_count += (
+        SessionMiscPayment.objects.filter(session_entry__session=session)
+        .filter(payment_made=False)
+        .count()
+    )
+
     if unpaid_count > 1:
         return HttpResponse("")
 
@@ -1178,8 +1185,11 @@ def _bulk_add_extras_htmx_post(request, session, mixed_dict):
             f"{player['value']}: Added {GLOBAL_CURRENCY_SYMBOL}{misc_amount:.2f} for '{misc_description}' using {this_payment_method.payment_method}"
         )
 
-    return render(
+    # Include HX-Trigger in response so we know to update the totals too
+    response = render(
         request,
         "club_sessions/manage/options/bulk_add_extras_output.html",
         {"output": output},
     )
+    response["HX-Trigger"] = "update_totals"
+    return response
