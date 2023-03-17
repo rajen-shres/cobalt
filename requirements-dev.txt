@@ -3,7 +3,7 @@ pylint==2.15.6
 # removed specific version
 ipython
 radon==5.1.0
-termcolor==2.1.0
+termcolor==1.1.0
 selenium==4.6.0 
 sphinx==4.5.0
 sphinx-book-theme==0.3.3
