@@ -219,6 +219,18 @@ def pay_member_from_organisation(request, club, amount, description, member):
         action=f"Paid {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} to {member}",
     ).save()
 
+    # notify user
+    msg = f"""{request.user} has paid {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} to your {BRIDGE_CREDITS}
+    account for {description}.
+        <br><br>If you have any queries please contact {club} in the first instance.
+    """
+    send_cobalt_email_to_system_number(
+        system_number=member.system_number,
+        subject=f"Charge from {club}",
+        message=msg,
+        club=club,
+    )
+
     return (
         True,
         f"Payment of {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} made to {member.full_name}",

@@ -2119,12 +2119,12 @@ def edit_player_name_htmx(request):
             subject="Added to - %s" % event,
         )
 
-        EventLog(
-            event=event,
-            event_entry=event_entry_player.event_entry,
-            actor=request.user,
-            action=f"Convener Action: Changed player from {old_user} to {new_user} on Entry:{event_entry_player.event_entry.href}",
-        ).save()
+    EventLog(
+        event=event,
+        event_entry=event_entry_player.event_entry,
+        actor=request.user,
+        action=f"Convener Action: Changed player from {old_user} to {new_user} on Entry:{event_entry_player.event_entry.href}",
+    ).save()
 
     # We used to return an HTMX/HTML block, but it is cleaner to reload the page so just return Json
 
