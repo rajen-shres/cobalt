@@ -16,33 +16,21 @@
     </a>
     <div class="card-body">
         <div class="row">
+
             <!-- SUITS -->
             <div class="col-sm-6">
                 <div class="container bg-colour-1">
 
                     <!-- CURLY -->
                     <div class="row">
-                        <div class="col-md-6 sc-inline">
-                            <span style="display: table-cell">
-                                <b>1</b><span style="font-size: larger">&clubs;</span>
-                            </span>
-                            <span style="display: table-cell; text-align: left">
-                                {% cobalt_edit_or_show form.opening_1c editable %}
-                            </span>
-                        </div>
-                        <div class="col-md-6">
-                            <b>1</b><span class="red-card">&hearts;</span> 11-19 5+
-                        </div>
+                        {% system_card_basic_field form.opening_1c editable "1!C" %}
+                        {% system_card_basic_field form.opening_1h editable "1!H" %}
                     </div>
 
                     <!-- POINTY -->
                     <div class="row">
-                        <div class="col-md-6">
-                            <b>1</b><span class="red-card">&diamondsuit;</span> 11-19 4+
-                        </div>
-                        <div class="col-md-6">
-                            <b>1</b><span style="font-size: larger">&spades;</span> 11-19 5+
-                        </div>
+                        {% system_card_basic_field form.opening_1d editable "1!d" %}
+                        {% system_card_basic_field form.opening_1s editable "1!s" %}
                     </div>
                 </div>
             </div>

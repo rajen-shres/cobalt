@@ -16,7 +16,19 @@ card_mappings = {
     "D": f"<span class='diamond'>{PLACEHOLDER}</span>",
     "H": f"<span class='heart'>{PLACEHOLDER}</span>",
     "S": f"<span class='spade'>{PLACEHOLDER}</span>",
+    "c": f"<span class='club'>{PLACEHOLDER}</span>",
+    "d": f"<span class='diamond'>{PLACEHOLDER}</span>",
+    "h": f"<span class='heart'>{PLACEHOLDER}</span>",
+    "s": f"<span class='spade'>{PLACEHOLDER}</span>",
     "N": f"<span class='nt'>{PLACEHOLDER}</span>",
+    "n": f"<span class='nt'>{PLACEHOLDER}</span>",
+}
+
+symbol_mappings = {
+    "♣": f"<span class='club'>{PLACEHOLDER}</span>",
+    "♦": f"<span class='diamond'>{PLACEHOLDER}</span>",
+    "♥": f"<span class='heart'>{PLACEHOLDER}</span>",
+    "♠": f"<span class='spade'>{PLACEHOLDER}</span>",
 }
 
 
@@ -46,6 +58,10 @@ def _card_symbol_change_sub(work_string, change_to, matches):
         if number_found == "!":
             number_found = ""
 
+        # Also get rid of suit symbol
+        if number_found in ["♣", "♦", "♥", "♠"]:
+            number_found = ""
+
         reverse_matches.append(
             {
                 "start_location": start_location,
@@ -59,10 +75,7 @@ def _card_symbol_change_sub(work_string, change_to, matches):
 
     # Go through and do the replacements
     for match in reverse_matches:
-        work_string = f"""
-        {work_string[:match["start_location"]]}
-        {change_to}
-        {work_string[match["end_location"]:]}"""
+        work_string = f"""{work_string[:match["start_location"]]}{change_to}{work_string[match["end_location"]:]}"""
 
         # Put in replacement text
         work_string = work_string.replace(PLACEHOLDER, match["number_found"])
@@ -86,7 +99,7 @@ def _card_symbol_change(work_string, look_for, change_to=""):
     matches = finditer(r"(\d)" + look_for, work_string)
     work_string = _card_symbol_change_sub(work_string, change_to, matches)
 
-    # Same again without the number - above regex won't match of there is no number
+    # Same again without the number - above regex won't match if there is no number
     matches = finditer(look_for, work_string)
     work_string = _card_symbol_change_sub(work_string, change_to, matches)
 
@@ -96,9 +109,16 @@ def _card_symbol_change(work_string, look_for, change_to=""):
 def _card_symbol(value, qualifier=""):
     """common part of the card symbol calls"""
 
+    # Letters e.g. 3!C or 4d
     for card_mapping in card_mappings:
         value = _card_symbol_change(
             value, f"{qualifier}{card_mapping}", card_mappings[card_mapping]
+        )
+
+    # Card symbols e.g. ♣
+    for symbol_mapping in symbol_mappings:
+        value = _card_symbol_change(
+            value, f"{symbol_mapping}", symbol_mappings[symbol_mapping]
         )
 
     return mark_safe(value)
@@ -123,7 +143,7 @@ def card_symbol_all(value):
 
 @register.filter(name="card_symbol_bang")
 def card_symbol_bang(value):
-    """Converts any !C, !D, !H, !S, !N to a card symbol
+    """Converts any !C, !D, !H, !S, !N to a card symbol. Also handles card symbols e.g. ♠
 
     use this for strings like "I once bid 3!C and they bid 4!D"
     Use card_symbol_all for a string like "3C"
@@ -134,7 +154,7 @@ def card_symbol_bang(value):
 
 
 @register.simple_tag(name="cobalt_edit_or_show")
-def cobalt_edit_or_show(field, editable=False, display_name=False, min_width=False):
+def cobalt_edit_or_show(field, editable=False, min_width=False):
     """
     Either show the field as text, or show it as an editable field depending upon the flag editable
 
@@ -143,7 +163,6 @@ def cobalt_edit_or_show(field, editable=False, display_name=False, min_width=Fal
     Parameters:
         field: form value
         editable(bool): If True we show a form field, otherwise we show the text from the form value
-        display_name(bool): Can't remember - LATER
         min_width(bool): Changes the class, so it's not expanded to full width
 
     """
@@ -152,11 +171,43 @@ def cobalt_edit_or_show(field, editable=False, display_name=False, min_width=Fal
         return "<h2>Programming Error. Expected form field.</h2>"
 
     if not editable:
-        if not display_name:
-            return card_symbol_bang(field.value())
-        else:
-            return "Fish - Later"
+        return card_symbol_bang(field.value())
 
     field_template = get_template("accounts/system_card/template_tag_field.html")
 
     return field_template.render({"field": field, "min_width": min_width})
+
+
+@register.simple_tag(name="system_card_basic_field")
+def system_card_basic_field(field, editable=False, label=""):
+    """Very common edit field for system cards"""
+
+    # handle label
+    label = _card_symbol(label, "!")
+
+    # handle field
+    if not field:
+        return "<h2>Programming Error. Expected form field.</h2>"
+
+    formatted_field = cobalt_edit_or_show(field, editable)
+
+    if editable:
+
+        response = f"""
+                    <div class="col-md-6 sc-inline">
+                        <span style="display: table-cell; width: 35px;">
+                            {label}
+                        </span>
+                        <span style="display: table-cell; text-align: left">
+                            {formatted_field}
+                        </span>
+                    </div>
+            """
+    else:
+        response = f"""
+                    <div class="col-md-6">
+                            {label}&nbsp; {formatted_field}
+                    </div>
+            """
+
+    return mark_safe(response)
