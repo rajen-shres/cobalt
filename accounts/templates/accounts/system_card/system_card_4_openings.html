@@ -40,7 +40,7 @@
                 <div class="container bg-colour-1">
                     <div class="row">
                         <div class="col">
-                            <b>1NT</b> 14-16 VUL, 10-12 NV
+                            {% system_card_basic_field form.opening_1nt editable "1!n" large=True %}
                         </div>
                     </div>
                     <div class="row">
@@ -66,29 +66,20 @@
                         <div class="container">
                             <!-- 2C -->
                             <div class="row">
-                                <div class="col">
-                                    <b>2</b><span style="font-size: larger">&clubs;</span> &nbsp;= Puppet Stayman
-                                </div>
+                                {% system_card_basic_field form.nt1_response_2c editable "2!c" %}
                             </div>
 
                             <!-- D, H -->
                             <div class="row">
-                                <div class="col-md-6">
-                                    <b>2</b><span class="red-card">&diamondsuit;</span> -> <span class="red-card">&hearts;</span>
-                                </div>
-                                <div class="col-md-6">
-                                    <b>2</b><span class="red-card">&hearts;</span> -> <span style="font-size: larger">&spades;</span>
-                                </div>
+                                {% system_card_basic_field form.nt1_response_2d editable "2!d" %}
+                                {% system_card_basic_field form.nt1_response_2h editable "2!h" %}
+
                             </div>
 
                             <!-- S, NT -->
                             <div class="row">
-                                <div class="col-md-6">
-                                    <b>2</b><span style="font-size: larger">&spades;</span> -> Minors
-                                </div>
-                                <div class="col-md-6">
-                                    <b>2</b>NT -> Invite
-                                </div>
+                                {% system_card_basic_field form.nt1_response_2s editable "2!s" %}
+                                {% system_card_basic_field form.nt1_response_2nt editable "2!n" %}
                             </div>
 
                         </div>
@@ -111,29 +102,19 @@
 
                             <!-- MINORS -->
                             <div class="row">
-                                <div class="col-md-6">
-                                    <b>2</b><span style="font-size: larger">&clubs;</span> Strong 19+
-                                </div>
-                                <div class="col-md-6">
-                                    <b>2</b><span class="red-card">&diamondsuit;</span> Weak M or 20-22
-                                </div>
+                                {% system_card_basic_field form.opening_2c editable "2!c" %}
+                                {% system_card_basic_field form.opening_2d editable "2!d" %}
                             </div>
 
                             <!-- MAJORS -->
                             <div class="row">
-                                <div class="col-md-6">
-                                    <b>2</b><span class="red-card">&hearts;</span> Any 4441
-                                </div>
-                                <div class="col-md-6">
-                                    <b>2</b><span style="font-size: larger">&spades;</span> Any 2 suits
-                                </div>
+                                {% system_card_basic_field form.opening_2h editable "2!h" %}
+                                {% system_card_basic_field form.opening_2s editable "2!s" %}
                             </div>
 
                             <!-- 2NT -->
                             <div class="row">
-                                <div class="col">
-                                    <b>2NT</b> 20-22
-                                </div>
+                                {% system_card_basic_field form.opening_2nt editable "2!n" %}
                             </div>
                         </div>
                     </div>
@@ -148,11 +129,11 @@
                         <h3 class="mt-2">Other Openings</h3>
                     </div>
                     <div class="card-body">
-                        <ul>
-                            <li>3NT - Gambling: Solid 8 card minor</li>
-                            <li><span class="club">4</span> - <span class="heart">7+</span> better than <span class="heart">4</span> opening</li>
-                            <li><span class="diamond">4</span> - <span class="spade">7+</span> better than <span class="spade">4</span> opening</li>
-                        </ul>
+                        {% if editable %}
+                            <textarea class="input-group" name="opening_other" rows="5" cols="80" id="id_opening_other">{{ form.opening_other.value }}</textarea>
+                        {% else %}
+                            {{ form.opening_other.value|linebreaks }}
+                        {% endif %}
                     </div>
                 </div>
             </div>

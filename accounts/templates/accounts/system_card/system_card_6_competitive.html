@@ -15,6 +15,117 @@
         </div>
     </a>
     <div class="card-body">
+
+        <div class="row">
+
+            <div class="col-md-7">
+                <div class="row">
+                    <div class="col-5">
+                        <span><b>Doubles</b></span>
+                    </div>
+                    <div class="col-7">
+                        {% system_card_basic_field form.competitive_doubles editable large=True %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="row">
+                    <div class="col-8">
+                        <span><b>Negative Double thru</b></span>
+                    </div>
+                    <div class="col-4">
+                        {% system_card_basic_field form.competitive_negative_double_through editable large=True %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-7">
+                <div class="row">
+                    <div class="col-5">
+                        <span><b>Lead Directing</b></span>
+                    </div>
+                    <div class="col-7">
+                        {% system_card_basic_field form.competitive_lead_directing_doubles editable large=True %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="row">
+                    <div class="col-8">
+                        <span><b>Responsive Double thru</b></span>
+                    </div>
+                    <div class="col-4">
+                        {% system_card_basic_field form.competitive_responsive_double_through editable large=True table_cell=False %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-7">
+                <div class="row">
+                    <div class="col-5">
+                        <span><b>Jump Overcalls</b></span>
+                    </div>
+                    <div class="col-7">
+                        {% system_card_basic_field form.competitive_jump_overcalls editable large=True %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="row">
+                    <div class="col-8" style="background-color: orange">
+                        <span><b>Unusual NT</b></span>
+                    </div>
+                    <div class="col-4" style="background-color: blue">
+                        {% system_card_basic_field form.competitive_unusual_nt editable large=True table_cell=False %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+
+        <div class="row">
+            <div class="col-md-7">
+                {% system_card_basic_field form.competitive_1nt_overcall_immediate editable "1NT Overcall (Immediate)" large=True %}
+            </div>
+            <div class="col-md-5">
+                {% system_card_basic_field form.competitive_1nt_overcall_reopening editable "(Reopening)" large=True %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-7">
+                {% system_card_basic_field form.competitive_immediate_cue_bid_minor editable "Immediate Cue (Minor)" large=True %}
+            </div>
+            <div class="col-md-5">
+                {% system_card_basic_field form.competitive_immediate_cue_bid_major editable "(Major)" large=True %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-7">
+                {% system_card_basic_field form.competitive_weak_2_defense editable "Weak Two Defense" large=True %}
+            </div>
+            <div class="col-md-5">
+                {% system_card_basic_field form.competitive_weak_3_defense editable "Weak 3 Defense" large=True %}
+            </div>
+        </div>
+
+        {% system_card_basic_field form.competitive_transfer_defense editable "Opponents Transfers" large=True %}
+        {% system_card_basic_field form.competitive_nt_defense editable "NT Defense" large=True %}
+
         <div class="text-right">
             <span class="to-top"><a href="#top">Back to top</a></span>
         </div>

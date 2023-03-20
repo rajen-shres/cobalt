@@ -179,33 +179,57 @@ def cobalt_edit_or_show(field, editable=False, min_width=False):
 
 
 @register.simple_tag(name="system_card_basic_field")
-def system_card_basic_field(field, editable=False, label=""):
-    """Very common edit field for system cards"""
+def system_card_basic_field(
+    field, editable=False, label="", large=False, table_cell=True
+):
+    """
+
+    Very common edit field for system cards
+
+    Args:
+        field(Django form field): if a field isn't provided you will get an error
+        editable(bool): If true we show the form, if not then just the text in the field
+        label(str): Optional label to include for the field
+        large(bool): If set, uses call="col" else "col-md-6"
+        table_cell(bool): we use the table cell classes for the nice inline stuff, but not for competitive bidding etc
+
+    """
+
+    class_name = "col" if large else "col-md-6"
+
+    if table_cell:
+        div_class = "sc_inline"
+        span_style = "style='display: table-cell; text-align: left'"
+    else:
+        div_class = ""
+        span_style = ""
 
     # handle label
     label = _card_symbol(label, "!")
 
     # handle field
     if not field:
-        return "<h2>Programming Error. Expected form field.</h2>"
+        return mark_safe(
+            "<h3 class='text-danger'>Programming Error. Expected form field.</h2>"
+        )
 
     formatted_field = cobalt_edit_or_show(field, editable)
 
     if editable:
 
         response = f"""
-                    <div class="col-md-6 sc-inline">
-                        <span style="display: table-cell; width: 35px;">
+                    <div class="{class_name} {div_class}">
+                        <span {span_style}>
                             {label}
                         </span>
-                        <span style="display: table-cell; text-align: left">
+                        <span {span_style}>
                             {formatted_field}
                         </span>
                     </div>
             """
     else:
         response = f"""
-                    <div class="col-md-6">
+                    <div class="{class_name}">
                             {label}&nbsp; {formatted_field}
                     </div>
             """

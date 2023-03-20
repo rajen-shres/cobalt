@@ -19,6 +19,8 @@
 
 {% block content %}
 
+    <div id="ignore_cobalt_save"></div>
+
     <!-- WRAP THIS IN AN 11-1 BOOTSTRAP COL THING AND A FORM IF WE ARE EDITING IT -->
     {% if editable %}
 
@@ -34,7 +36,7 @@
                 <input type="text" name="card_new_name" value="{{ system_card.card_name }}" max_length="100" id="id_card_new_name">
             </h2>
 
-            <div class="container">
+            <div class="container-fluid">
                 <div class="row">
                     <div class="col-11">
 
@@ -59,11 +61,11 @@
     <!-- CLOSE WRAPPER IF EDITABLE -->
     {% if editable %}
         </div>
-        <div class="col-1">
+        <div class="col-1" style="z-index: 10">
             <div class="save-button">
                 <!-- SAVE BUTTON STAYS IN PLACE AS WE SCROLL -->
                 <div class="row">
-                    <a target="_blank" href="{% url "accounts:create_pdf_system_card" system_card_name=system_card.card_name %}" class="btn btn-sm btn-info mx-auto">Generate PDF</a>
+                    <a target="_blank" href="{% url "accounts:create_pdf_system_card" system_card_name=system_card.card_name %}" class="btn btn-sm btn-info mx-auto">Print</a>
                 </div>
                 <button class="btn btn-success btn-sm">Save</button>
                 <div id="save_msg"></div>
