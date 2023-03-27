@@ -1,10 +1,10 @@
 import requests
 
 host = "http://localhost:8000"
-# host = "https://test.myabf.com.au"
+host = "https://test.myabf.com.au"
 
 headers = {"key": "API_G$h9UM-e_t07W36C^ocCRVuI$l9l1VIwhCl$", "accept": "*/*"}
-# headers = {"key": "test_2xfYE)!ziO4s8Un6zz}vL56UY^KQh-h67Yq", "accept": "*/*"}
+headers = {"key": "test_2xfYE)!ziO4s8Un6zz}vL56UY^KQh-h67Yq", "accept": "*/*"}
 
 # Test key is valid
 url = f"{host}/api/cobalt/keycheck/v1.0"

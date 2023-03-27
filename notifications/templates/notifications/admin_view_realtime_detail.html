@@ -28,6 +28,7 @@
                             <div class="card-header card-header-danger">
                                 <h3>General Information</h3>
                                 <h4>Sent by {{ notification_header.admin }}</h4>
+                                <h4>Sender Identification: {{ notification_header.sender_identification|default_if_none:"" }}</h4>
                             </div>
                             <div class="card-body table-responsive">
                                 <table class="table table-condensed table-hover">
@@ -85,8 +86,7 @@
                                                 {% if notification_header.uncontactable_users %}
                                                     <a href="javascript:void(0)" _="on click toggle .cobalt-hidden on #uncontact-rows">Uncontactable</a>
                                                     <div id="uncontact-rows" class="cobalt-hidden bg-warning">
-                                                        <h5>These users are registered but either aren't set up for FCM, don't have a valid phone number or
-                                                            have asked not to receive notifications</h5>
+                                                        <h5>These users are registered but aren't set up for FCM, or we had a problem sending to them.</h5>
                                                         <ul>
                                                             {% for invalid_line in notification_header.uncontactable_users %}
                                                                 <li>{{ invalid_line }}</li>
