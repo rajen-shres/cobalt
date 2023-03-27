@@ -3,7 +3,7 @@ import requests
 host = "http://localhost:8000"
 # host = "https://test.myabf.com.au"
 
-headers = {"key": "PROD_uT2}nr1$DS2tNXh1RAR8L)sU0jxPAVf9Lg)", "accept": "*/*"}
+headers = {"key": "API_G$h9UM-e_t07W36C^ocCRVuI$l9l1VIwhCl$", "accept": "*/*"}
 # headers = {"key": "test_2xfYE)!ziO4s8Un6zz}vL56UY^KQh-h67Yq", "accept": "*/*"}
 
 # Test key is valid
@@ -12,13 +12,13 @@ response = requests.get(url, headers=headers)
 print(response)
 
 # Send file
-url = f"{host}/api/cobalt/sms-file-upload/v1.0"
+url = f"{host}/api/cobalt/notification-file-upload/v1.0"
 
 files = {"file": open("utils/sms_cli.txt", "rb")}
 values = {
-    "file": "file.txt",
+    "sender_identification": "12345abc",
 }
-response = requests.post(url, files=files, headers=headers)
+response = requests.post(url, files=files, data=values, headers=headers)
 
 print(response.request.url)
 print(response.request.body)
