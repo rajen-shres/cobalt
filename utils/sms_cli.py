@@ -14,9 +14,9 @@ print(response)
 # Send file
 url = f"{host}/api/cobalt/sms-file-upload/v1.0"
 
-files = {"file": open("utils/sms_cli.txt", "rb")}
+files = {"filexx": open("utils/sms_cli.txt", "rb")}
 values = {
-    "file": "file.txt",
+    "filexx": "file.txt",
 }
 response = requests.post(url, files=files, data=values, headers=headers)
 

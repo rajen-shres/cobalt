@@ -91,6 +91,7 @@ def custom_validation_errors(request, exc):
     logger.warning(f"accepted_types: {request.accepted_types}")
     logger.warning(f"GET: {request.GET}")
     logger.warning(f"POST: {request.POST}")
+    logger.warning(f"FILES: {request.FILES}")
     logger.warning(exc.errors)
     return api.create_response(request, {"detail": exc.errors}, status=422)
 
