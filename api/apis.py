@@ -25,9 +25,11 @@ APIs should all return JSON with at least one parameter e.g.
 """
 from typing import List
 
+from django.http import HttpResponse
 from fcm_django.models import FCMDevice
 from firebase_admin.messaging import Message, Notification
 from ninja import Router, File, NinjaAPI, Schema
+from ninja.errors import ValidationError, HttpError
 from ninja.files import UploadedFile
 
 from accounts.backend import CobaltBackend
@@ -48,7 +50,6 @@ from notifications.models import RealtimeNotification
 
 router = Router()
 api = NinjaAPI()
-
 
 #########################################################
 # Data Structures                                       #
