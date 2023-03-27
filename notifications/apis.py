@@ -4,7 +4,7 @@ from fcm_django.models import FCMDevice
 import api.apis as api_app
 from cobalt.settings import GLOBAL_ORG, TIME_ZONE
 from notifications.models import RealtimeNotification
-from notifications.views.core import send_cobalt_bulk_sms
+from notifications.views.core import send_cobalt_bulk_notifications
 
 TZ = pytz.timezone(TIME_ZONE)
 
@@ -48,7 +48,7 @@ def fcm_token_get_user_v1(fcm_token):
     )
 
 
-def notifications_api_sms_file_upload_v1(request, file):
+def notifications_api_file_upload_v1(request, file, sender_identification=None):
     """API call to upload a file and send SMS messages"""
 
     from api.apis import APIStatus
@@ -90,12 +90,17 @@ def notifications_api_sms_file_upload_v1(request, file):
             else:
                 invalid_lines.append(f"Line {lines_in_file}. Invalid row {exc}: {line}")
 
-    sent_users, unregistered_users, uncontactable_users = send_cobalt_bulk_sms(
+    (
+        sent_users,
+        unregistered_users,
+        uncontactable_users,
+    ) = send_cobalt_bulk_notifications(
         msg_list=data,
         admin=request.auth,
         description=file.name,
         invalid_lines=invalid_lines,
         total_file_rows=lines_in_file,
+        sender_identification=sender_identification,
     )
 
     # If we sent anything, we were successful

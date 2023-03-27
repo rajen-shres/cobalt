@@ -275,7 +275,7 @@ Messaging
     Send an SMS to a user.
 :func:`~notifications.views.core.send_fcm_message`
     Send a Google FCM message to a user.
-:func:`~notifications.views.core.send_cobalt_bulk_sms`
+:func:`~notifications.views.core.send_cobalt_bulk_notifications`
     Send SMS to multiple recipients.
 
 General

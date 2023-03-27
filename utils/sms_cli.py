@@ -14,11 +14,11 @@ print(response)
 # Send file
 url = f"{host}/api/cobalt/sms-file-upload/v1.0"
 
-files = {"filexx": open("utils/sms_cli.txt", "rb")}
+files = {"file": open("utils/sms_cli.txt", "rb")}
 values = {
-    "filexx": "file.txt",
+    "file": "file.txt",
 }
-response = requests.post(url, files=files, data=values, headers=headers)
+response = requests.post(url, files=files, headers=headers)
 
 print(response.request.url)
 print(response.request.body)

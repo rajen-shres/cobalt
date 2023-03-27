@@ -369,25 +369,22 @@ def send_cobalt_bulk_email_thread(bcc_addresses, subject, message, reply_to):
     connection.close()
 
 
-def send_cobalt_bulk_sms(
+def send_cobalt_bulk_notifications(
     msg_list,
     admin,
     description,
     invalid_lines=None,
     total_file_rows=0,
-    from_name=GLOBAL_TITLE,
+    sender_identification=None,
 ):
-    """Try to send a bunch of SMS messages (or FCMs) to users. Will only send if they are registered, want to receive SMS
-    and have a valid phone number.
-
-    First try to contact them over FCM if they are set up, so above sentence is no longer totally true.
+    """This originally sent messages over SMS, but now we only support FCM.
 
     Args:
+        sender_identification(str): e.g. Compscore licence number to identify the sender
         msg_list(list): list of tuples of system number and message to send (system_number, "message")
         admin(User): administrator responsible for sending these messages
         description(str): Text description of this batch of messages
         invalid_lines(list): list of invalid lines in upload file
-        from_name(str): Name to use as the sender
         total_file_rows(int): Number of rows in original file
 
     Returns:
@@ -413,24 +410,18 @@ def send_cobalt_bulk_sms(
         attempted_send_number=len(msg_list),
         invalid_lines=invalid_lines,
         total_record_number=total_file_rows,
+        sender_identification=sender_identification,
     )
     header.save()
 
     # load data
-    (
-        app_users,
-        users,
-        registered_users,
-        phone_lookup,
-        user_lookup,
-        fcm_lookup,
-    ) = _send_cobalt_bulk_sms_get_data(msg_list)
+
+    app_users, fcm_lookup = _send_cobalt_bulk_notification_get_data(msg_list)
 
     # Go through and try to send the messages
     for item in msg_list:
         system_number, msg = item
 
-        # first try fcm
         fcm_device_list = fcm_lookup.get(system_number)
         if fcm_device_list:
             # If it works for any device, count that as successful
@@ -446,34 +437,10 @@ def send_cobalt_bulk_sms(
                 fcm_sent_users.append(system_number)
             else:
                 fcm_failed_users.append(system_number)
+                uncontactable_users.append(system_number)
 
         else:
-
-            # See if we can send this by SMS
-            if system_number not in phone_lookup:
-                if (
-                    system_number in registered_users
-                ):  # This one is registered but not contactable
-                    uncontactable_users.append(system_number)
-                else:  # This one is not registered
-                    unregistered_users.append(system_number)
-                continue
-
-            user = user_lookup[system_number]
-
-            phone_number = phone_lookup[item[0]]
-            msg = item[1]
-
-            # Send it
-            send_cobalt_sms(
-                phone_number=phone_number,
-                msg=msg,
-                from_name=from_name,
-                header=header,
-                member=user,
-            )
-
-            sent_users.append(system_number)
+            unregistered_users.append(system_number)
 
     # Update header
     header.send_status = bool(sent_users + fcm_sent_users)
@@ -488,8 +455,8 @@ def send_cobalt_bulk_sms(
     return sent_users + fcm_sent_users, unregistered_users, uncontactable_users
 
 
-def _send_cobalt_bulk_sms_get_data(msg_list):
-    """sub of send_cobalt_bulk_sms to load required data"""
+def _send_cobalt_bulk_notification_get_data(msg_list):
+    """sub of send_cobalt_bulk_notifications to load required data"""
 
     # Get system_numbers as list
     system_numbers = [item[0] for item in msg_list]
@@ -499,31 +466,6 @@ def _send_cobalt_bulk_sms_get_data(msg_list):
         user__system_number__in=system_numbers
     ).select_related("user")
 
-    # List of FCM Device users to exclude from the SMS
-    app_users_id_list = app_users.values("user__system_number")
-
-    # Get the users who want to be contacted and have phone numbers
-    users = (
-        User.objects.filter(system_number__in=system_numbers)
-        .exclude(system_number__in=app_users_id_list)
-        .filter(receive_sms_results=True)
-        .filter(mobile__isnull=False)
-    )
-
-    # Get the users who are in the system
-    registered_users = User.objects.filter(
-        system_number__in=system_numbers
-    ).values_list("system_number", flat=True)
-    registered_users = list(registered_users)
-
-    # Create dict of ABF number to phone number
-    phone_lookup = {}
-    user_lookup = {}
-    for user in users:
-        # Convert to international
-        phone_lookup[user.system_number] = f"+61{user.mobile[1:]}"
-        user_lookup[user.system_number] = user
-
     # create dict of ABF number to FCM, can be multiple devices per person
     fcm_lookup = {}
     for app_user in app_users:
@@ -531,7 +473,7 @@ def _send_cobalt_bulk_sms_get_data(msg_list):
             fcm_lookup[app_user.user.system_number] = []
         fcm_lookup[app_user.user.system_number].append(app_user)
 
-    return app_users, users, registered_users, phone_lookup, user_lookup, fcm_lookup
+    return app_users, fcm_lookup
 
 
 def send_cobalt_sms(
@@ -650,7 +592,7 @@ def contact_member(
         send_cobalt_email_with_template(to_address=member.email, context=context)
 
     if contact_type == "SMS":
-        send_cobalt_sms(member.mobile, msg)
+        raise PermissionError("SMS not supported any more")
 
 
 def add_in_app_notification(member, msg, link=None):

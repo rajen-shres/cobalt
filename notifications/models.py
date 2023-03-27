@@ -249,6 +249,7 @@ class RealtimeNotificationHeader(models.Model):
     invalid_lines = models.TextField(null=True, blank=True)
     """List of invalid lines in the upload file"""
     created_time = models.DateTimeField(auto_now_add=True)
+    sender_identification = models.CharField(100, blank=True, null=True)
 
     def __str__(self):
         return f"[{self.successful_send_number}/{self.total_record_number}] {self.admin.full_name} - {self.created_time.strftime('%Y-%m-%d%H:%M:%S')} - {self.description}"

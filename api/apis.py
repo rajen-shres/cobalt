@@ -40,7 +40,7 @@ from cobalt.settings import GLOBAL_TITLE
 from logs.views import log_event
 from masterpoints.factories import masterpoint_factory_creator
 from notifications.apis import (
-    notifications_api_sms_file_upload_v1,
+    notifications_api_file_upload_v1,
     notifications_api_unread_messages_for_user_v1,
     notifications_api_latest_messages_for_user_v1,
     notifications_delete_message_for_user_v1,
@@ -159,6 +159,10 @@ class MobileClientSingleMessageRequestV1(Schema):
     message_id: int
 
 
+class NotificationFileUpload(Schema):
+    sender_identification: str
+
+
 @router.get("/keycheck/v1.0")
 def key_check_v1(request):
     """Allow a developer to check that their key is valid"""
@@ -188,7 +192,35 @@ def sms_file_upload_v1(request, file: UploadedFile = File(...)):
     if not status:
         return return_error
 
-    return notifications_api_sms_file_upload_v1(request, file)
+    return notifications_api_file_upload_v1(request, file)
+
+
+@router.post(
+    "/notification-file-upload/v1.0",
+    # response={200: SmsResponseV1, 401: UnauthorizedV1, 403: ErrorV1},
+    summary="Notification file upload API for distribution of different messages to a list of players.",
+)
+def notification_file_upload_v1(
+    request, data: NotificationFileUpload, file: UploadedFile = File(...)
+):
+    """Allow scorers to upload a file with ABF numbers and messages to send to members.
+
+    File format is abf_number[tab character (\\t)]message
+
+    The filename is used as the description.
+
+    If the message contains \\<NL\\> then we change this to a newline (\\n).
+
+    Messages are sent through Google Firebase Messaging to a mobile app.
+    """
+
+    # Check access
+    role = "notifications.realtime_send.edit"
+    status, return_error = api_rbac(request, role)
+    if not status:
+        return return_error
+
+    return notifications_api_file_upload_v1(request, file, data.sender_identification)
 
 
 @router.post(
