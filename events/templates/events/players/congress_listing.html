@@ -101,6 +101,49 @@
         <!-- CARD BODY -->
         <div class="card-body">
 
+            <div class="row" id="id_filters" style="display: none">
+
+                <span class="d-md-none">
+                    <h2>Filters</h2>
+                </span>
+                {# Show this on screens md or larger #}
+                <span class="d-none d-md-inline">
+                </span>
+
+                <div class="ml-auto mr-3 mb-3">
+                    <div class="btn btn-round" id="clear_filters">
+                        <span class="material-icons" style="font-size: large">restart_alt</span>
+                        <span class="d-md-none">
+                            Clear
+                        </span>
+                        {# Show this on screens md or larger #}
+                        <span class="d-none d-md-inline">
+                            Clear Filters
+                        </span>
+                    </div>
+                    <div class="btn btn-outline-secondary btn-round" id="save_filters" style="display: none">
+                        <span class="material-icons" style="font-size: large">save</span>
+                        <span class="d-md-none">
+                            Save
+                        </span>
+                        {# Show this on screens md or larger #}
+                        <span class="d-none d-md-inline">
+                            Save Filters
+                        </span>
+                    </div>
+                    <div class="btn btn-outline-secondary btn-round" id="delete_filters" style="display: none">
+                        <span class="material-icons" style="font-size: large">delete</span>
+                        <span class="d-md-none">
+                            Delete
+                        </span>
+                        {# Show this on screens md or larger #}
+                        <span class="d-none d-md-inline">
+                            Delete Filters
+                        </span>
+                    </div>
+                </div>
+            </div>
+
             <form id="events_form">
 
                 <!-- NAVIGATION, FILTER AND SEARCH -->
@@ -178,9 +221,7 @@
                 {% if reverse_list %}
                     hx-vars="reverse_list:'reverse'"
                 {% endif %}
-
             >
-
             </div>
 
         </div>
@@ -191,7 +232,48 @@
 {% block footer %}
     <script src="{% static "assets/js/plugins/bootstrap-selectpicker.js" %}"></script>
     <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
+    <script src="{% static "assets/js/plugins/jquery.cookie.1.4.1.min.js" %}"></script>
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+
     <script>
+
+        // Show or hide the filter buttons if there are (or aren't) filters set
+        function manage_filter_buttons(){
+            if ($("#id_state").val() !== "All" || $("#id_congress_type").val() !== "All" || $("#id_congress_venue_type").val() !== "All" || $("#id_congress_search_string").val() !== "") {
+                $("#id_filters").show();
+            } else {
+                $("#id_filters").hide();
+            }
+        }
+
+        // when something changes we check if we should allow the save filters button to show or not
+        function check_save_filter_button(){
+            // show unless everything is at defaults:
+            if ($("#id_state").val() !== "All" || $("#id_congress_type").val() !== "All" || $("#id_congress_venue_type").val() !== "All" || $("#id_congress_search_string").val() !== "") {
+                $("#save_filters").show();
+            }else {
+                $("#save_filters").hide();
+            }
+        }
+
+        // clear form
+        function clear_form() {
+            // update select pickers
+            $('select[name=state]').val("All");
+            $('select[name=congress_type]').val("All");
+            $('select[name=congress_venue_type]').val("All");
+
+            // refresh select pickers
+            $('.selectpicker').selectpicker('refresh')
+
+            // update the search field
+            $("#id_congress_search_string").val("");
+
+            // refresh data
+            htmx.trigger("#events_list", "refresh_events");
+            manage_filter_buttons();
+        }
+
         $(document).ready(function () {
 
             // Activate select pickers
@@ -205,13 +287,77 @@
             // if dropdowns change, reload
             $("#id_state, #id_congress_type, #id_congress_venue_type").on("changed.bs.select", function() {
                 htmx.trigger("#events_list", "refresh_events");
+                manage_filter_buttons();
+                check_save_filter_button();
             });
 
             // if search change, reload
             $("#id_congress_search_string").on("keyup", function() {
-                console.log("here");
                 htmx.trigger("#events_list", "refresh_events");
+                manage_filter_buttons();
+                check_save_filter_button();
             });
+
+            // handle save filters
+            $("#save_filters").on("click", function() {
+                const state = $("#id_state").val();
+                const congress_type = $("#id_congress_type").val();
+                const congress_venue_type = $("#id_congress_venue_type").val();
+                const search_string = $("#id_congress_search_string").val();
+                const cookie_data = state + "!" + congress_type + "!" + congress_venue_type + "!" + search_string;
+                $.cookie('congress-filter', cookie_data, {
+                    expires: 100000,
+                    domain: '',
+                    path: ''
+                });
+
+                swal.fire({ title:"Filters Saved", html: "Your filters have been saved on this browser.", icon: "success"})
+
+                $("#delete_filters").show();
+                $("#save_filters").hide();
+
+            });
+
+            // load filters from cookie if we have one
+            const cookie_load_data = $.cookie('congress-filter');
+            if (typeof cookie_load_data !== "undefined"){
+
+                $("#delete_filters").show();
+
+                // split the cookie up
+                const split_data = cookie_load_data.split("!");
+
+                // update select pickers
+                $('select[name=state]').val(split_data[0]);
+                $('select[name=congress_type]').val(split_data[1]);
+                $('select[name=congress_venue_type]').val(split_data[2]);
+
+                // refresh select pickers
+                $('.selectpicker').selectpicker('refresh')
+
+                // update the search field
+                $("#id_congress_search_string").val(split_data[3]);
+
+                // refresh data
+                htmx.trigger("#events_list", "refresh_events");
+
+                // check if we should show filter buttons
+                manage_filter_buttons();
+            }
+
+            // handle clear filters
+            $("#clear_filters").on("click", function() {
+                clear_form();
+            });
+
+            // handle delete filters
+            $("#delete_filters").on("click", function() {
+                $.removeCookie('congress-filter');
+                clear_form();
+                swal.fire({ title:"Filters Removed", html: "Your filters have been removed on this browser.", icon: "success"})
+
+            });
+
         });
     </script>
 
