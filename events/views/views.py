@@ -1101,7 +1101,7 @@ def _delete_event_entry_validation(request, event_entry):
     """Perform validation for the delete entry screen"""
 
     # check if already cancelled
-    if event_entry.entry_status == "Cancelled":
+    if event_entry.entry_status == EventEntry.EntryStatus.CANCELLED:
         error = "This entry is already in a cancelled state."
         title = "This entry is already cancelled"
         return False, render(
@@ -1150,7 +1150,7 @@ def _delete_event_entry_handle_post(
     if basket_item and not event_entry_players.exclude(payment_received=0).exists():
         return _delete_event_entry_handle_post_basket(event_entry, request, basket_item)
 
-    event_entry.entry_status = "Cancelled"
+    event_entry.entry_status = EventEntry.EntryStatus.CANCELLED
     event_entry.save()
 
     EventLog(
@@ -1407,7 +1407,7 @@ def _third_party_checkout_entry_common(request, event_entry, event_entry_players
         )
 
     # check for cancelled
-    if event_entry.entry_status == "Cancelled":
+    if event_entry.entry_status == EventEntry.EntryStatus.CANCELLED:
         error = "This entry has been cancelled. You cannot change this entry."
         title = "Cancelled Entry"
         return render(
@@ -1726,6 +1726,17 @@ def enter_event_post(request, congress, event):
         if p_id < 4:
             event_entry_player.entry_fee = entry_fee
             event_entry_player.reason = reason
+            # handle auto paying for things
+            if (
+                congress.automatically_mark_non_bridge_credits_as_paid
+                and event_entry_player.payment_type
+                not in [
+                    "my-system-dollars",
+                    "their-system-dollars",
+                    "other-system-dollars",
+                ]
+            ):
+                event_entry_player.payment_status = "Paid"
         else:
             event_entry_player.entry_fee = 0
             event_entry_player.reason = "Team > 4"

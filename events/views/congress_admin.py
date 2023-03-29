@@ -813,7 +813,7 @@ def admin_evententry_delete(request, evententry_id):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
-    if event_entry.entry_status == "Cancelled":
+    if event_entry.entry_status == EventEntry.EntryStatus.CANCELLED:
         return HttpResponse("Event is already cancelled")
 
     event_entry_players = EventEntryPlayer.objects.filter(event_entry=event_entry)
@@ -908,7 +908,7 @@ def admin_evententry_delete(request, evententry_id):
             event_entry=event_entry,
         ).save()
 
-        event_entry.entry_status = "Cancelled"
+        event_entry.entry_status = EventEntry.EntryStatus.CANCELLED
         event_entry.save()
 
         # Also remove from basket if still present
