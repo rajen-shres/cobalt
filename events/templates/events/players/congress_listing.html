@@ -306,7 +306,7 @@
                 const search_string = $("#id_congress_search_string").val();
                 const cookie_data = state + "!" + congress_type + "!" + congress_venue_type + "!" + search_string;
                 $.cookie('congress-filter', cookie_data, {
-                    expires: 1100000,
+                    expires: 1000000,
                 });
 
                 swal.fire({ title:"Filters Saved", html: "Your filters have been saved on this browser.", icon: "success"})
@@ -341,6 +341,11 @@
 
                 // check if we should show filter buttons
                 manage_filter_buttons();
+
+                // not sure, but it seems like you can't set a cookie for more than a year, so reset it
+                $.cookie('congress-filter', cookie_load_data, {
+                    expires: 1000000,
+                });
             }
 
             // handle clear filters
