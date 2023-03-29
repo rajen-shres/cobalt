@@ -1762,6 +1762,9 @@ def enter_event_post(request, congress, event):
             event_entry=event_entry,
         ).save()
 
+    # Check status
+    event_entry.check_if_paid()
+
     if "now" in request.POST:
         # if only one thing in basket, go straight to checkout
         if get_basket_for_user(request.user) == 1:

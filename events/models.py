@@ -829,7 +829,7 @@ class EventEntry(models.Model):
         PENDING = "Pending"
         COMPLETE = "Complete"
         CANCELLED = "Cancelled"
-        IN_BASKET = "In Basket"
+        IN_BASKET = "In Cart"
 
     event = models.ForeignKey(Event, on_delete=models.PROTECT)
     entry_status = models.CharField(
