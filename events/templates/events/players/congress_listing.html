@@ -306,7 +306,7 @@
                 const search_string = $("#id_congress_search_string").val();
                 const cookie_data = state + "!" + congress_type + "!" + congress_venue_type + "!" + search_string;
                 $.cookie('congress-filter', cookie_data, {
-                    expires: 1000000,
+                    expires: 1100000,
                 });
 
                 swal.fire({ title:"Filters Saved", html: "Your filters have been saved on this browser.", icon: "success"})
