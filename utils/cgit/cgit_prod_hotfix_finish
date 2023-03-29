@@ -98,7 +98,7 @@ then
   echo "Deploying to PRODUCTION server..."
   echo ""
 
-  PRODENV=$(eb list | grep cobalt-prod)
+  PRODENV=$(eb list | grep $CGIT_ENV-prod)
 
   echo "Deploying code to $PRODENV from release/$RELEASE--$PATCH..."
   DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')

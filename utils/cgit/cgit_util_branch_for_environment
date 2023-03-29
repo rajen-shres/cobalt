@@ -44,7 +44,7 @@ fi
 echo "Getting current $ENV branch..."
 
 # get full name of environment e.g. test -> cobalt-test-black
-THISENV=$(eb list | grep cobalt-$ENV | tr \* " ")
+THISENV=$(eb list | grep $CGIT_ENV-$ENV | tr \* " ")
 
 echo "EB Name: $THISENV..."
 

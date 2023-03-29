@@ -10,7 +10,7 @@ echo "First we will give this release a new version number."
 echo "Then we will create a release branch and deploy it to UAT."
 echo ""
 
-OLDRELEASE=`grep VER cobalt/version.py | awk '{print $3}' | tr -d "\""`
+OLDRELEASE=`grep VER $CGIT_ENV/version.py | awk '{print $3}' | tr -d "\""`
 
 echo "Last release was $OLDRELEASE"
 echo ""
@@ -36,10 +36,10 @@ if [ $? -ne 0 ];then
 fi
 
 echo ""
-echo "Updating release version in Cobalt code..."
+echo "Updating release version in $CGIT_ENV code..."
 echo ""
 
-echo "COBALT_VERSION = \"$RELEASE\"" > cobalt/version.py
+echo "COBALT_VERSION = \"$RELEASE\"" > $CGIT_ENV/version.py
 
 echo ""
 echo "Saving version number to develop..."
@@ -83,8 +83,8 @@ echo ""
 echo "Deploying to UAT server..."
 echo ""
 
-UATENV=`eb list | grep cobalt-uat` 
-UATNUM=`eb list | grep cobalt-uat | wc | awk '{print $1}'`
+UATENV=`eb list | grep $CGIT_ENV-uat`
+UATNUM=`eb list | grep $CGIT_ENV-uat | wc | awk '{print $1}'`
 
 if [ "$UATNUM" = "1" ]
 then
