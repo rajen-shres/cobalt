@@ -303,6 +303,8 @@ class UserAdditionalInfo(models.Model):
     email_hard_bounce_reason = models.TextField(null=True, blank=True)
     """ Reason for the bounce """
     email_hard_bounce_date = models.DateTimeField(null=True, blank=True)
+    congress_view_filters = models.CharField(max_length=200, blank=True)
+    """ user preferences for the congress listing page """
 
     def __str__(self):
         return self.user.__str__()

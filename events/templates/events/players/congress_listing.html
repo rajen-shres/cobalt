@@ -198,6 +198,7 @@
                             <input
                                 type="text"
                                 value=""
+                                maxlength="10"
                                 class="form-control"
                                 name="congress_search_string"
                                 id="id_congress_search_string"
@@ -300,53 +301,61 @@
 
             // handle save filters
             $("#save_filters").on("click", function() {
+
+                // get data from page
                 const state = $("#id_state").val();
                 const congress_type = $("#id_congress_type").val();
                 const congress_venue_type = $("#id_congress_venue_type").val();
                 const search_string = $("#id_congress_search_string").val();
-                const cookie_data = state + "!" + congress_type + "!" + congress_venue_type + "!" + search_string;
-                $.cookie('congress-filter', cookie_data, {
-                    expires: 1000000,
+
+                // convert to json and add csrf token
+                const json_data = {
+                    "state": state,
+                    "congress_type": congress_type,
+                    "congress_venue_type": congress_venue_type,
+                    "search_string": search_string,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                }
+
+                // save to server
+                $.post("{% url "events:save_congress_view_filters_ajax" %}", json_data, function(result) {
+
+                    // notify user
+                    swal.fire({ title:"Filters Saved", html: "Your filters have been saved.", icon: "success"});
+
+                    // hide/show buttons
+                    $("#delete_filters").show();
+                    $("#save_filters").hide();
+
                 });
-
-                swal.fire({ title:"Filters Saved", html: "Your filters have been saved on this browser.", icon: "success"})
-
-                $("#delete_filters").show();
-                $("#save_filters").hide();
 
             });
 
-            // load filters from cookie if we have one
-            const cookie_load_data = $.cookie('congress-filter');
-            if (typeof cookie_load_data !== "undefined"){
+            // load filters at start up
+            $.post("{% url "events:load_congress_view_filters_ajax" %}", {'csrfmiddlewaretoken': '{{ csrf_token }}'}, function(result) {
 
-                $("#delete_filters").show();
+                if (result !== ""){
+                    $("#delete_filters").show();
 
-                // split the cookie up
-                const split_data = cookie_load_data.split("!");
+                    // update select pickers
+                    $('select[name=state]').val(result.state);
+                    $('select[name=congress_type]').val(result.congress_type);
+                    $('select[name=congress_venue_type]').val(result.congress_venue_type);
 
-                // update select pickers
-                $('select[name=state]').val(split_data[0]);
-                $('select[name=congress_type]').val(split_data[1]);
-                $('select[name=congress_venue_type]').val(split_data[2]);
+                    // refresh select pickers
+                    $('.selectpicker').selectpicker('refresh')
 
-                // refresh select pickers
-                $('.selectpicker').selectpicker('refresh')
+                    // update the search field
+                    $("#id_congress_search_string").val(result.search_string);
 
-                // update the search field
-                $("#id_congress_search_string").val(split_data[3]);
+                    // refresh data
+                    htmx.trigger("#events_list", "refresh_events");
 
-                // refresh data
-                htmx.trigger("#events_list", "refresh_events");
+                    // check if we should show filter buttons
+                    manage_filter_buttons();
+                }
+            });
 
-                // check if we should show filter buttons
-                manage_filter_buttons();
-
-                // not sure, but it seems like you can't set a cookie for more than a year, so reset it
-                $.cookie('congress-filter', cookie_load_data, {
-                    expires: 1000000,
-                });
-            }
 
             // handle clear filters
             $("#clear_filters").on("click", function() {
@@ -355,10 +364,14 @@
 
             // handle delete filters
             $("#delete_filters").on("click", function() {
-                $.removeCookie('congress-filter');
-                clear_form();
-                swal.fire({ title:"Filters Removed", html: "Your filters have been removed on this browser.", icon: "success"})
-
+                $.post("{% url "events:clear_congress_view_filters_ajax" %}", {'csrfmiddlewaretoken': '{{ csrf_token }}'}, function(result) {
+                    clear_form();
+                    swal.fire({
+                        title: "Filters Removed",
+                        html: "Your filters have been removed.",
+                        icon: "success"
+                    });
+                });
             });
 
         });
