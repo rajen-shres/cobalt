@@ -440,7 +440,6 @@ class OrganisationFrontPage(models.Model):
                         </span>
                         </p>
                         {{ website }}
-                        <p style="font-size: 18px">{{ secretary }}</p>
                         <h3 class="">Registered Address</h3>
                         <p style="font-size: 18px; line-height: 0.5;"><b>{{ Address1 }}</b></p>
                         <p style="font-size: 18px; line-height: 0.5;"><b>{{ Address2 }}</b></p>
