@@ -5,6 +5,11 @@
 {#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 
+<!-- ALERT IF EMAILS ARE DISABLED -->
+{% if not club.send_results_email %}
+    <h2 class="text-danger">You have disabled sending result emails. You can change this under settings.</h2>
+{% endif %}
+
 <!-- LET USER KNOW THEY CAN CUSTOMISE -->
 {% if results_template_exists %}
     <h5>Using custom template "Results". To change appearance, edit this template in Settings if you have access.</h5>
