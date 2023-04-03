@@ -190,6 +190,7 @@ def results_htmx(request, club):
         send_results_email = bool(request.POST.get("send_results_email"))
         club.send_results_email = send_results_email
         club.save()
+        message = "Settings saved"
 
     return render(
         request,

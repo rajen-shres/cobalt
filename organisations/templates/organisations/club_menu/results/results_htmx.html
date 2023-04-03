@@ -136,7 +136,7 @@
             const button_text = $("#" + this.id).text().trim();
             let text_msg;
             if (button_text == "Publish"){
-                text_msg = "Publish results. This will make results visible to everyone and will email results to players for whom we have email addresses."
+                text_msg = "Publish results. This will make results visible to everyone. {% if club.send_results_email %} We will also email results to players for whom we have email addresses. {% else %}No emails will be sent. {% endif %}"
             } else {
                 text_msg = "Un-publish results. This will prevent people from accessing the results for this session."
             }
