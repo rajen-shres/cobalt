@@ -50,6 +50,7 @@ from organisations.models import (
     MemberClubTag,
     OrgEmailTemplate,
     WelcomePack,
+    Organisation,
 )
 from organisations.views.admin import get_secretary_from_org_form
 from organisations.views.club_menu_tabs.members import _send_welcome_pack
@@ -180,6 +181,24 @@ def slugs_htmx(request, club, message=""):
 
 
 @check_club_menu_access()
+def results_htmx(request, club):
+    """Handle results settings"""
+
+    message = ""
+
+    if "save" in request.POST:
+        send_results_email = bool(request.POST.get("send_results_email"))
+        club.send_results_email = send_results_email
+        club.save()
+
+    return render(
+        request,
+        "organisations/club_menu/settings/results_htmx.html",
+        {"club": club, "message": message},
+    )
+
+
+@check_club_menu_access()
 def slug_delete_htmx(request, club):
     """Delete club slugs"""
 
@@ -229,7 +248,6 @@ def slug_edit_htmx(request, club):
             valid = False
 
     if valid:
-
         slug.redirect_path = redirect_path
         slug.save()
 

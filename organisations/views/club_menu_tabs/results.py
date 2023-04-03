@@ -80,8 +80,11 @@ def toggle_result_publish_state_htmx(request, club):
 
     if results_file.status == ResultsFile.ResultsStatus.PENDING:
         results_file.status = ResultsFile.ResultsStatus.PUBLISHED
-        sent_email_count = _send_results_emails(results_file, club, request)
-        message = f"{results_file.description} published, and {sent_email_count} players emailed"
+        if club.send_results_email:
+            sent_email_count = _send_results_emails(results_file, club, request)
+            message = f"{results_file.description} published, and {sent_email_count} players emailed"
+        else:
+            message = f"{results_file.description} published. No emails sent as your settings block this."
     else:
         results_file.status = ResultsFile.ResultsStatus.PENDING
         message = f"{results_file.description} changed to pending"

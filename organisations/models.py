@@ -200,6 +200,9 @@ class Organisation(models.Model):
     )
     """ bridge credits are the default, but we can use a secondary default if bridge credits aren't an option """
 
+    send_results_email = models.BooleanField(default=True)
+    """ Club level control over whether an email is sent to members when results are published """
+
     results_email_message = models.TextField(default="")
     """ Message sent with the results emails """
 
