@@ -216,6 +216,14 @@
                                         </div>
                                     </div>
 
+
+                                    <div class="row h-100" id="cheques" style="display:none;">
+                                        <div class="col-2 my-auto font-weight-bold" >Cheque Details:</div>
+                                        <div class="col-9">
+                                            {{ form.cheque_details|as_crispy_field }}
+                                        </div>
+                                    </div>
+
                                     <div class="row">
                                         <div class="col-6">
                                             <div class="form-check">
@@ -230,19 +238,18 @@
                                         </div>
                                     </div>
 
-                                    <div class="row h-100" id="cheques" style="display:none;">
-                                        <div class="col-2 my-auto font-weight-bold" >Cheque Details:</div>
-                                        <div class="col-9">
-                                            {{ form.cheque_details|as_crispy_field }}
-                                        </div>
-                                    </div>
+                                    <div class="row ml-5" id="auto_pay_pp"
 
-                                    <div class="row">
+                                        {% if not form.payment_method_off_system_pp.value %}
+                                            style="display: none"
+                                        {% endif %}
+
+                                    >
                                         <div class="col">
                                             <div class="form-check">
                                                 <label class="form-check-label">
-                                                    <input class="form-check-input" id="id_automatically_mark_non_bridge_credits_as_paid" name="automatically_mark_non_bridge_credits_as_paid" type="checkbox" {% if form.automatically_mark_non_bridge_credits_as_paid.value %}checked="Checked" {% endif %}>
-                                                    Automatically mark entries for any payment method other than {{ BRIDGE_CREDITS }} as paid.
+                                                    <input class="form-check-input" id="id_automatically_mark_club_pp_as_paid" name="automatically_mark_club_pp_as_paid" type="checkbox" {% if form.automatically_mark_club_pp_as_paid.value %}checked="Checked" {% endif %}>
+                                                    Automatically mark entries as paid for your own pre-paid system
                                                     <span class="form-check-sign">
                                                         <span class="check"></span>
                                                     </span>
@@ -250,6 +257,7 @@
                                             </div>
                                         </div>
                                     </div>
+
 
                                 </div>
                             </div>
@@ -355,6 +363,15 @@
                     $("#cheques").show()
                 } else {
                     $("#cheques").hide()
+                }
+            });
+
+            // show or hide auto pay pp
+            $("#id_payment_method_off_system_pp").change(function (){
+                if(this.checked) {
+                    $("#auto_pay_pp").show()
+                } else {
+                    $("#auto_pay_pp").hide()
                 }
             });
 

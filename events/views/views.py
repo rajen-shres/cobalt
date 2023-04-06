@@ -565,9 +565,11 @@ def _checkout_perform_action(request):
     )
     # players that are using club pp to pay are pending payments not unpaid
     # unpaid would prompt the player to pay for event which is not desired here
+    # However, if we are auto paying club PP we want to ignore this is exclude status="Paid"
     event_entry_player_club_pp = (
         EventEntryPlayer.objects.filter(event_entry__in=event_entries)
         .filter(payment_type="off-system-pp")
+        .exclude(payment_status="Paid")
         .distinct()
     )
     for event_entry in event_entry_player_club_pp:
@@ -1726,15 +1728,10 @@ def enter_event_post(request, congress, event):
         if p_id < 4:
             event_entry_player.entry_fee = entry_fee
             event_entry_player.reason = reason
-            # handle auto paying for things
+            # handle club PP
             if (
-                congress.automatically_mark_non_bridge_credits_as_paid
-                and event_entry_player.payment_type
-                not in [
-                    "my-system-dollars",
-                    "their-system-dollars",
-                    "other-system-dollars",
-                ]
+                congress.automatically_mark_club_pp_as_paid
+                and event_entry_player.payment_type == "off-system-pp"
             ):
                 event_entry_player.payment_status = "Paid"
         else:

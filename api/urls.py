@@ -87,7 +87,7 @@ def custom_validation_errors(request, exc):
     logger.warning(f"headers: {request.headers}")
     logger.warning(f"content_type: {request.content_type}")
     logger.warning(f"content_params: {request.content_params}")
-    logger.warning(f"auth: {request.auth}")
+    # logger.warning(f"auth: {request.auth}")
     logger.warning(f"accepted_types: {request.accepted_types}")
     logger.warning(f"GET: {request.GET}")
     logger.warning(f"POST: {request.POST}")

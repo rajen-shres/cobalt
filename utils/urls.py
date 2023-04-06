@@ -74,9 +74,9 @@ urlpatterns = [
         utils.views.slugs.admin_manage_slugs,
         name="admin_manage_slugs",
     ),
-    path(
-        "timeout",
-        utils.views.general.timeout,
-        name="timeout",
-    ),
+    # path(
+    #     "timeout",
+    #     utils.views.general.timeout,
+    #     name="timeout",
+    # ),
 ]

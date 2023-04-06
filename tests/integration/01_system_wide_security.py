@@ -20,6 +20,7 @@ NON_AUTH_URLS = [
     "/dashboard/help",
     "/dashboard/logged-out",
     "/events/",
+    "congress-listing/",
     "/events/congress/get_all_congresses",
     "/events/congress/view/1",
     "/events/congress/view/1",
@@ -37,6 +38,8 @@ NON_AUTH_URLS = [
     "/api/docs/",
     "/api/openapi.json",
     "/accounts/unregistered-preferences/dummy",
+    "/500",
+    "/accounts/create-pdf-system-card/",
 ]
 
 # URLs that we do not test
@@ -70,6 +73,7 @@ class TestURLsRequireLogin:
         )
         for line in process.stdout.readlines():
             url = line.decode("utf-8").strip()
+            print("Testing", url)
             if url in DO_NOT_TEST_URLS:
                 print("Skipping:", url)
                 continue

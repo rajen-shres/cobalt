@@ -481,8 +481,8 @@ def create_congress_wizard_5(request, step_list, congress):
 
             congress.bank_transfer_details = form.cleaned_data["bank_transfer_details"]
             congress.cheque_details = form.cleaned_data["cheque_details"]
-            congress.automatically_mark_non_bridge_credits_as_paid = form.cleaned_data[
-                "automatically_mark_non_bridge_credits_as_paid"
+            congress.automatically_mark_club_pp_as_paid = form.cleaned_data[
+                "automatically_mark_club_pp_as_paid"
             ]
             congress.save()
             return redirect(

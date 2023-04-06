@@ -224,8 +224,8 @@ class Congress(models.Model):
     # We will automatically close events in a congress by marking entries as paid. This flag prevents it so
     # a convener can continue to chase up any missing money
     do_not_auto_close_congress = models.BooleanField(default=False)
-    # This allows conveners to set all payment methods except bridge credits, to be paid
-    automatically_mark_non_bridge_credits_as_paid = models.BooleanField(default=False)
+    # This allows conveners to set all club pp entries to show as paid
+    automatically_mark_club_pp_as_paid = models.BooleanField(default=True)
 
     class Meta:
         verbose_name_plural = "Congresses"
