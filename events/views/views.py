@@ -997,6 +997,14 @@ def edit_event_entry(
         event_entry=event_entry
     ).order_by("first_created_date")
 
+    # Update the payment status if required
+    if congress.automatically_mark_club_pp_as_paid:
+        for event_entry_player in event_entry_players:
+            if event_entry_player.payment_type == "off-system-pp":
+                event_entry_player.payment_status = "Paid"
+                event_entry_player.save()
+        event_entry.check_if_paid()
+
     pay_count = 0
     for count, event_entry_player in enumerate(event_entry_players, start=1):
         if count > 4:
