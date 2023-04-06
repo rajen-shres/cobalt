@@ -1005,6 +1005,16 @@ def edit_event_entry(
                 event_entry_player.save()
         event_entry.check_if_paid()
 
+    # Check if payment method can be edited
+    for event_entry_player in event_entry_players:
+        if (
+            event_entry_player.payment_status not in ["Paid", "Free"]
+            or event_entry_player.payment_type == "off-system-pp"
+        ):
+            event_entry_player.can_edit_payment_type = True
+        else:
+            event_entry_player.can_edit_payment_type = False
+
     pay_count = 0
     for count, event_entry_player in enumerate(event_entry_players, start=1):
         if count > 4:
