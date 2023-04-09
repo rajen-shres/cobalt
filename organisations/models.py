@@ -211,6 +211,9 @@ class Organisation(models.Model):
     )
     """ How much of a float to leave in the account balance when settlement takes place """
 
+    xero_contact_id = models.CharField(max_length=50, null=True, default="")
+    """ optional customer id for Xero """
+
     @property
     def settlement_fee_percent(self):
         """return what our settlement fee is set to"""

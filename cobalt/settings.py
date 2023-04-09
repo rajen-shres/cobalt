@@ -100,27 +100,21 @@ RDS_HOSTNAME = set_value("RDS_HOSTNAME")
 RDS_PORT = set_value("RDS_PORT")
 USE_SQLITE = set_value("USE_SQLITE", 0)
 
-if USE_SQLITE == "True":
-    print("Using SQLite")
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR + "/db.sqlite3",
-        }
-    }
+# xero
+XERO_CLIENT_ID = set_value("XERO_CLIENT_ID")
+XERO_CLIENT_SECRET = set_value("XERO_CLIENT_SECRET")
+XERO_TENANT_NAME = "17 Ways"
 
-else:
-
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": RDS_DB_NAME,
-            "USER": RDS_USERNAME,
-            "PASSWORD": RDS_PASSWORD,
-            "HOST": RDS_HOSTNAME,
-            "PORT": RDS_PORT,
-        }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": RDS_DB_NAME,
+        "USER": RDS_USERNAME,
+        "PASSWORD": RDS_PASSWORD,
+        "HOST": RDS_HOSTNAME,
+        "PORT": RDS_PORT,
     }
+}
 
 # Test Only - Dummy data count
 DUMMY_DATA_COUNT = int(set_value("DUMMY_DATA_COUNT", 20))
@@ -180,6 +174,7 @@ INSTALLED_APPS = [
     "club_sessions",
     "utils",
     "tests",
+    "xero",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -320,7 +315,7 @@ MESSAGE_TAGS = {
     messages.ERROR: "alert-danger",
 }
 
-EMAIL_SUBJECT_PREFIX = "[%s] " % COBALT_HOSTNAME
+EMAIL_SUBJECT_PREFIX = f"[{COBALT_HOSTNAME}] "
 
 GLOBAL_ORG = "ABF"
 GLOBAL_TITLE = "My ABF"

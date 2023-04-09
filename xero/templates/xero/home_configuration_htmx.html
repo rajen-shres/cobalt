@@ -1,0 +1,37 @@
+{% load humanize %}
+
+<div class="card mb-4">
+    <div class="card-header text-white bg-success">
+        <h2>Configuration</h2>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <tr>
+                    <td>Tenant</td>
+                    <td>{{ XERO_TENANT_NAME }}</td>
+                </tr>
+                <tr>
+                    <td>Tenant ID</td>
+                    <td>{{ xero.tenant_id }}</td>
+                </tr>
+                <tr>
+                    <td>Last Characters of Access Code</td>
+                    <td>...{{ xero.access_token|slice:"-5:" }}</td>
+                </tr>
+                <tr>
+                    <td>Access Code Expiry</td>
+                    <td>{{ xero_credentials.expires }}</td>
+                </tr>
+                <tr>
+                    <td>Access Code Expiry</td>
+                    <td>{{ xero_credentials.expires|naturaltime }}</td>
+                </tr>
+                <tr>
+                    <td>Refresh Code</td>
+                    <td>{{ xero.refresh_token }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

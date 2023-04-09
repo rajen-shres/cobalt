@@ -52,4 +52,5 @@ def global_settings(request):
         "RBAC_EVERYONE": settings.RBAC_EVERYONE,
         "TBA_PLAYER": settings.TBA_PLAYER,
         "NEW_RELIC_APP_ID": settings.NEW_RELIC_APP_ID,
+        "XERO_TENANT_NAME": settings.XERO_TENANT_NAME,
     }

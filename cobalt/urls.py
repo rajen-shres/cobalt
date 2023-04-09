@@ -40,6 +40,7 @@ urlpatterns = [
     path("organisations/", include("organisations.urls", namespace="organisations")),
     path("support/", include("support.urls", namespace="support")),
     path("sessions/", include("club_sessions.urls", namespace="club_sessions")),
+    path("xero/", include("xero.urls", namespace="xero")),
     path("summernote/", include("django_summernote.urls")),
     path("tests/", include("tests.urls", namespace="tests")),
     path("health/", include("health_check.urls")),
