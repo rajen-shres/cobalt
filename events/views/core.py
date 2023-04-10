@@ -633,6 +633,10 @@ def _clean_up(notify_event_entries):
         event_entry__in=notify_event_entries.values_list("id")
     ).delete()
 
+    # Check status as basket item is now an option
+    for event_entry in notify_event_entries:
+        event_entry.check_if_paid()
+
 
 def get_basket_for_user(user):
     """called by base html to show basket"""
@@ -984,7 +988,7 @@ def fix_closed_congress(congress, actor):
         ).save()
 
         # Update event entry as well. This may be called multiple times but doesn't really matter
-        event_entry_player.event_entry.entry_status = "Complete"
+        event_entry_player.event_entry.entry_status = EventEntry.EntryStatus.COMPLETE
         event_entry_player.event_entry.save()
 
         count += 1

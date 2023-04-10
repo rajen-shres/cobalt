@@ -4,11 +4,11 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.db.transaction import atomic
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_GET
 
-from accounts.models import User, TeamMate
+from accounts.models import User, TeamMate, UserAdditionalInfo
 from cobalt.settings import TBA_PLAYER, BRIDGE_CREDITS
 from events.views.congress_builder import update_event_start_and_end_times
 from logs.views import log_event
@@ -1513,3 +1513,56 @@ def edit_team_name_event_entry_ajax(request):
     ).save()
 
     return JsonResponse({"message": "Success"})
+
+
+@login_required()
+def save_congress_view_filters_ajax(request):
+    """Save a users preferences for viewing congresses"""
+
+    # Get data
+    state = request.POST.get("state")
+    congress_type = request.POST.get("congress_type")
+    congress_venue_type = request.POST.get("congress_venue_type")
+    search_string = request.POST.get("search_string")
+    preferences = {
+        "state": state,
+        "congress_type": congress_type,
+        "congress_venue_type": congress_venue_type,
+        "search_string": search_string,
+    }
+
+    # save
+    user_additional_info, _ = UserAdditionalInfo.objects.get_or_create(
+        user=request.user
+    )
+    user_additional_info.congress_view_filters = json.dumps(preferences)
+    user_additional_info.save()
+
+    return HttpResponse()
+
+
+@login_required()
+def clear_congress_view_filters_ajax(request):
+    """Clear a users preferences for viewing congresses"""
+
+    user_additional_info, _ = UserAdditionalInfo.objects.get_or_create(
+        user=request.user
+    )
+    user_additional_info.congress_view_filters = ""
+    user_additional_info.save()
+
+    return HttpResponse()
+
+
+@login_required()
+def load_congress_view_filters_ajax(request):
+    """load a users preferences for viewing congresses"""
+
+    user_additional_info = UserAdditionalInfo.objects.filter(user=request.user).first()
+
+    if not user_additional_info:
+        return HttpResponse()
+
+    preferences = json.loads(user_additional_info.congress_view_filters)
+
+    return JsonResponse(preferences)

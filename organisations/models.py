@@ -200,6 +200,9 @@ class Organisation(models.Model):
     )
     """ bridge credits are the default, but we can use a secondary default if bridge credits aren't an option """
 
+    send_results_email = models.BooleanField(default=True)
+    """ Club level control over whether an email is sent to members when results are published """
+
     results_email_message = models.TextField(default="")
     """ Message sent with the results emails """
 
@@ -207,6 +210,9 @@ class Organisation(models.Model):
         decimal_places=2, max_digits=10, default=0
     )
     """ How much of a float to leave in the account balance when settlement takes place """
+
+    xero_contact_id = models.CharField(max_length=50, null=True, default="")
+    """ optional customer id for Xero """
 
     @property
     def settlement_fee_percent(self):
@@ -440,7 +446,6 @@ class OrganisationFrontPage(models.Model):
                         </span>
                         </p>
                         {{ website }}
-                        <p style="font-size: 18px">{{ secretary }}</p>
                         <h3 class="">Registered Address</h3>
                         <p style="font-size: 18px; line-height: 0.5;"><b>{{ Address1 }}</b></p>
                         <p style="font-size: 18px; line-height: 0.5;"><b>{{ Address2 }}</b></p>

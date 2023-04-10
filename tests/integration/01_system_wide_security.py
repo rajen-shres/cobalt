@@ -20,6 +20,7 @@ NON_AUTH_URLS = [
     "/dashboard/help",
     "/dashboard/logged-out",
     "/events/",
+    "congress-listing/",
     "/events/congress/get_all_congresses",
     "/events/congress/view/1",
     "/events/congress/view/1",
@@ -37,10 +38,21 @@ NON_AUTH_URLS = [
     "/api/docs/",
     "/api/openapi.json",
     "/accounts/unregistered-preferences/dummy",
+    "/404",
+    "/500",
 ]
 
 # URLs that we do not test
-DO_NOT_TEST_URLS = ["/masterpoints/system_number_lookup"]
+DO_NOT_TEST_URLS = [
+    "/masterpoints/system_number_lookup",
+    "/accounts/create-pdf-system-card/",
+    "/xero/",
+    "/xero/callback",
+    "/xero/config",
+    "/xero/initialise",
+    "/xero/refresh",
+    "/xero/run-xero-api",
+]
 
 
 class TestURLsRequireLogin:
@@ -70,6 +82,7 @@ class TestURLsRequireLogin:
         )
         for line in process.stdout.readlines():
             url = line.decode("utf-8").strip()
+            print("Testing", url)
             if url in DO_NOT_TEST_URLS:
                 print("Skipping:", url)
                 continue

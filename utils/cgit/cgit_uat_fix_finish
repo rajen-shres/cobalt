@@ -68,8 +68,8 @@ then
   echo "Deploying to UAT server..."
   echo ""
 
-  UATENV=`eb list | grep cobalt-uat` 
-  UATNUM=`eb list | grep cobalt-uat | wc | awk '{print $1}'`
+  UATENV=`eb list | grep $CGIT_ENV-uat`
+  UATNUM=`eb list | grep $CGIT_ENV-uat | wc | awk '{print $1}'`
 
   if [ "$UATNUM" = "1" ]
   then

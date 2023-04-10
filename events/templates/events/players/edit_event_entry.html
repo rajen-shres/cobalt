@@ -285,8 +285,8 @@
                                         <!-- PAYMENT METHOD -->
                                         <td style="white-space: nowrap;">
                                             {{ event_entry_player.get_payment_type_display }}
-                                            <!-- CHECK IF PAYMENT METHOD IS EDITABLE -->
-                                            {% if event_entry_player.payment_status != "Paid" and event_entry_player.payment_status != "Free" %}
+                                            <!-- CHECK IF PAYMENT TYPE IS EDITABLE -->
+                                            {% if event_entry_player.can_edit_payment_type %}
                                                 <a class="change_payment_method" href="javascript:void(0)">
                                                     <i class="material-icons" id="change_payment_{{ event_entry_player.id }}">edit</i>
                                                 </a>

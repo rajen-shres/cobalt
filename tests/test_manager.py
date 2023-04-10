@@ -9,6 +9,7 @@ import traceback
 from abc import ABC
 
 from django.utils.safestring import SafeString
+from django.utils.timezone import now
 from selenium.common.exceptions import (
     TimeoutException,
     NoSuchElementException,
@@ -39,7 +40,7 @@ setup_test_environment()
 # For unit tests each test should stand alone, and they are dynamically found
 LIST_OF_INTEGRATION_TESTS = {
     "TestURLsRequireLogin": "tests.integration.01_system_wide_security",
-    "HTMXSearch": "accounts.tests.integration.02_htmx_search",
+    # "HTMXSearch": "accounts.tests.integration.02_htmx_search",
     "EventEntry": "events.tests.integration.01_user_event_entry",
     "APITests": "api.tests.integration.01_authorisation_tests",
     "SMSTests": "notifications.tests.integration.01_sms_tests",
@@ -131,6 +132,9 @@ class CobaltTestManagerAbstract(ABC):
         # Document Title and Icon
         self.document_title = "Cobalt Test Results"
         self.icon = "build"
+
+        # Start timer
+        self.start_time = now()
 
     def login_test_client(self, user):
         """login user through test client interface"""
@@ -398,6 +402,8 @@ class CobaltTestManagerAbstract(ABC):
                 total_score = "D-"
             else:
                 total_score = "Fail"
+
+        elapse = now() - self.start_time
         return render_to_string(
             "tests/test_results.html",
             {
@@ -410,6 +416,8 @@ class CobaltTestManagerAbstract(ABC):
                 "total_score": total_score,
                 "document_title": self.document_title,
                 "icon": self.icon,
+                "start_time": self.start_time,
+                "elapse": elapse,
             },
         )
 

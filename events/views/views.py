@@ -565,9 +565,11 @@ def _checkout_perform_action(request):
     )
     # players that are using club pp to pay are pending payments not unpaid
     # unpaid would prompt the player to pay for event which is not desired here
+    # However, if we are auto paying club PP we want to ignore this is exclude status="Paid"
     event_entry_player_club_pp = (
         EventEntryPlayer.objects.filter(event_entry__in=event_entries)
         .filter(payment_type="off-system-pp")
+        .exclude(payment_status="Paid")
         .distinct()
     )
     for event_entry in event_entry_player_club_pp:
@@ -995,6 +997,16 @@ def edit_event_entry(
         event_entry=event_entry
     ).order_by("first_created_date")
 
+    # Check if payment method can be edited
+    for event_entry_player in event_entry_players:
+        if (
+            event_entry_player.payment_status not in ["Paid", "Free"]
+            or event_entry_player.payment_type == "off-system-pp"
+        ):
+            event_entry_player.can_edit_payment_type = True
+        else:
+            event_entry_player.can_edit_payment_type = False
+
     pay_count = 0
     for count, event_entry_player in enumerate(event_entry_players, start=1):
         if count > 4:
@@ -1101,7 +1113,7 @@ def _delete_event_entry_validation(request, event_entry):
     """Perform validation for the delete entry screen"""
 
     # check if already cancelled
-    if event_entry.entry_status == "Cancelled":
+    if event_entry.entry_status == EventEntry.EntryStatus.CANCELLED:
         error = "This entry is already in a cancelled state."
         title = "This entry is already cancelled"
         return False, render(
@@ -1150,7 +1162,7 @@ def _delete_event_entry_handle_post(
     if basket_item and not event_entry_players.exclude(payment_received=0).exists():
         return _delete_event_entry_handle_post_basket(event_entry, request, basket_item)
 
-    event_entry.entry_status = "Cancelled"
+    event_entry.entry_status = EventEntry.EntryStatus.CANCELLED
     event_entry.save()
 
     EventLog(
@@ -1407,7 +1419,7 @@ def _third_party_checkout_entry_common(request, event_entry, event_entry_players
         )
 
     # check for cancelled
-    if event_entry.entry_status == "Cancelled":
+    if event_entry.entry_status == EventEntry.EntryStatus.CANCELLED:
         error = "This entry has been cancelled. You cannot change this entry."
         title = "Cancelled Entry"
         return render(
@@ -1750,6 +1762,9 @@ def enter_event_post(request, congress, event):
             action=f"Event entry player {event_entry_player.id} created for {event_entry_player.player}",
             event_entry=event_entry,
         ).save()
+
+    # Check status
+    event_entry.check_if_paid()
 
     if "now" in request.POST:
         # if only one thing in basket, go straight to checkout

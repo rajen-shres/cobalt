@@ -94,7 +94,7 @@ hx-target="#id_panel_settings"
 <div class="btn-group" style="z-index:9999">
     <button type="button"
         class="btn dropdown-toggle
-        {% if selected == "tags" or selected == "templates" or selected == "slugs" or selected == "welcome" %}
+        {% if selected == "tags" or selected == "templates" or selected == "slugs" or selected == "welcome" or selected == "results" %}
             btn-primary
         {% else %}
             bg-transparent
@@ -164,6 +164,20 @@ hx-target="#id_panel_settings"
             hx-target="#id_panel_settings"
             id="t_comms_tab_slugs"
         >Slugs
+        </a>
+
+        <a href="javascript: void(0)"
+            class="btn btn-sm w-100
+            {% if selected == "results" %}
+                btn-primary text-white
+            {% else %}
+                btn-secondary
+            {% endif %}
+            "
+            hx-post="{% url "organisations:club_menu_tab_settings_results_htmx" %}"
+            hx-target="#id_panel_settings"
+            id="t_comms_tab_results"
+        >Results
         </a>
 
     </div>

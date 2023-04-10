@@ -33,11 +33,6 @@ PAYMENT_STATUSES = [
     ("Free", "Free"),
 ]
 
-ENTRY_STATUSES = [
-    ("Pending", "Pending"),
-    ("Complete", "Complete"),
-    ("Cancelled", "Cancelled"),
-]
 
 # my-system-dollars - you can pay for your own or other people's entries with
 # your money.
@@ -828,9 +823,18 @@ class Session(models.Model):
 class EventEntry(models.Model):
     """An entry to an event"""
 
+    class EntryStatus(models.TextChoices):
+        PENDING = "Pending"
+        COMPLETE = "Complete"
+        CANCELLED = "Cancelled"
+        IN_BASKET = "In Cart"
+
     event = models.ForeignKey(Event, on_delete=models.PROTECT)
     entry_status = models.CharField(
-        "Entry Status", max_length=20, choices=ENTRY_STATUSES, default="Pending"
+        "Entry Status",
+        max_length=20,
+        choices=EntryStatus.choices,
+        default=EntryStatus.PENDING,
     )
     primary_entrant = models.ForeignKey(User, on_delete=models.PROTECT)
     category = models.ForeignKey(
@@ -898,10 +902,14 @@ class EventEntry(models.Model):
                 all_complete = False
                 break
         if all_complete:
-            self.entry_status = "Complete"
+            self.entry_status = EventEntry.EntryStatus.COMPLETE
             self.entry_complete_date = timezone.now()
         else:
-            self.entry_status = "Pending"
+            # See if in basket still
+            if BasketItem.objects.filter(event_entry=self).exists():
+                self.entry_status = EventEntry.EntryStatus.IN_BASKET
+            else:
+                self.entry_status = EventEntry.EntryStatus.PENDING
         self.save()
 
     def user_can_change(self, member):

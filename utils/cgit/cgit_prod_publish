@@ -38,8 +38,8 @@ then
   echo "Deploying to PRODUCTION server..."
   echo ""
 
-PRODENV=`eb list | grep cobalt-production`
-PRODNUM=`eb list | grep cobalt-production | wc | awk '{print $1}'`
+PRODENV=`eb list | grep $CGIT_ENV-production`
+PRODNUM=`eb list | grep $CGIT_ENV-production | wc | awk '{print $1}'`
 
 if [ "$PRODNUM" = "1" ]
 then

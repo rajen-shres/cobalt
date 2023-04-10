@@ -251,6 +251,21 @@ urlpatterns = [
         ajax.give_player_refund_ajax,
         name="give_player_refund_ajax",
     ),
+    path(
+        "save-congress-view-filters-ajax",
+        ajax.save_congress_view_filters_ajax,
+        name="save_congress_view_filters_ajax",
+    ),
+    path(
+        "clear-congress-view-filters-ajax",
+        ajax.clear_congress_view_filters_ajax,
+        name="clear_congress_view_filters_ajax",
+    ),
+    path(
+        "load-congress-view-filters-ajax",
+        ajax.load_congress_view_filters_ajax,
+        name="load_congress_view_filters_ajax",
+    ),
     ########################################################################
     # Congress Builder screens for conveners to create and edit congresses #
     ########################################################################

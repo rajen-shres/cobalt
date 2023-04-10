@@ -19,8 +19,8 @@ fi
 RELEASE=`echo $BRANCH|cut -d= -f1`
 
 # Where do we deploy this?
-TESTENV=`eb list | grep cobalt-test` 
-TESTNUM=`eb list | grep cobalt-test | wc | awk '{print $1}'`
+TESTENV=`eb list | grep $CGIT_ENV-test`
+TESTNUM=`eb list | grep $CGIT_ENV-test | wc | awk '{print $1}'`
 
 # See if we got a parameter which overrides the default
 if [ "$1" != "" ];then

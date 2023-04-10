@@ -1,0 +1,102 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Main page for the Xero integration                                     #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+
+    <div class="container">
+
+        <div class="card">
+            <!-- MAIN CARD HEADER -->
+            <div class="card-header text-white bg-primary">
+                <h1>Xero Functions - Not Production Yet</h1>
+            </div>
+
+            <!-- MAIN CARD BODY -->
+            <div class="card-body">
+
+                <!-- TOP ROW WITh CONFIG -->
+                <div class="row">
+
+                    <div class="col-md-6">
+                        <!-- CONFIG INFO LOADED VIA HTMX -->
+                        <div id="id_config"
+                            hx-post="{% url "xero:xero_home_config_htmx" %}"
+                            hx-trigger="load, update_config from:body"
+                            hx-indicator="#spinner"
+                        >
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <a href="{{ xero.xero_auth_url }}" class="btn btn-danger">User Authorise</a>
+
+                        <a
+                            href="javascript: void(0)"
+                            class="btn btn-success"
+                            hx-post="{% url "xero:xero_refresh_keys_htmx" %}"
+                            hx-target="#refresh"
+                            hx-indicator="#spinner"
+                        >Refresh Tokens</a>
+                        <div id="refresh"></div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <!-- SPINNER -->
+                    <div class="col-12 text-center my-4">
+                        <span class="htmx-indicator" id="spinner">
+                            <img style="width: 40px" src="{% static "img/bars.svg" %}"/>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 2ND ROW WITH BUSINESS LOGIC -->
+                <div class="row">
+
+                    <div class="col-12">
+
+                        <button
+                            class="btn btn-success"
+                            hx-post="{% url "xero:run_xero_api_htmx" %}"
+                            hx-target="#data"
+                            hx-vars="'cmd': 'create_club'"
+                            hx-indicator="#spinner"
+                        >Create Club</button>
+
+                        <button
+                            class="btn btn-info"
+                            hx-post="{% url "xero:run_xero_api_htmx" %}"
+                            hx-target="#data"
+                            hx-vars="'cmd': 'list_clubs'"
+                            hx-indicator="#spinner"
+                        >List Clubs</button>
+
+                        <button
+                            class="btn btn-info"
+                            hx-post="{% url "xero:run_xero_api_htmx" %}"
+                            hx-target="#data"
+                            hx-vars="'cmd': 'create_invoice'"
+                            hx-indicator="#spinner"
+                        >Create Invoice</button>
+
+                        <div id="data"></div>
+                    </div>
+                </div>
+
+
+            </div>
+
+        </div>
+    </div>
+    </div>
+
+{% endblock content %}

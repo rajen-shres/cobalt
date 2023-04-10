@@ -1,10 +1,12 @@
 """This is the main entry point for the cobalt API. The API is a separate Django app as
 this makes things cleaner and easier to manage than having the (relatively small) API code
 spread across lots of modules."""
+import logging
 
 from django.urls import path
 import urllib.parse
 from ninja import NinjaAPI
+from ninja.errors import ValidationError
 
 from accounts.models import User, APIToken
 from .apis import router as cobalt_router
@@ -17,6 +19,8 @@ from ninja.security import (
 )
 
 from .models import ApiLog
+
+logger = logging.getLogger("cobalt")
 
 
 def log_api_call(request, user=None):
@@ -71,6 +75,26 @@ api = NinjaAPI(
     docs_url="/docs/",
     auth=[QueryKey(), HeaderKey(), BearerKey()],
 )
+
+
+# Temporary handler to look at helping Peter Busch with getting this to work from VB .NET
+
+
+@api.exception_handler(ValidationError)
+def custom_validation_errors(request, exc):
+    logger.warning("Validation error from API")
+    logger.warning(f"method: {request.method}")
+    logger.warning(f"headers: {request.headers}")
+    logger.warning(f"content_type: {request.content_type}")
+    logger.warning(f"content_params: {request.content_params}")
+    # logger.warning(f"auth: {request.auth}")
+    logger.warning(f"accepted_types: {request.accepted_types}")
+    logger.warning(f"GET: {request.GET}")
+    logger.warning(f"POST: {request.POST}")
+    logger.warning(f"FILES: {request.FILES}")
+    logger.warning(exc.errors)
+    return api.create_response(request, {"detail": exc.errors}, status=422)
+
 
 # You can have multiple routers so if this gets too big it can be split up.
 # We use an unnecessary namespace to make this easy to do later if required.

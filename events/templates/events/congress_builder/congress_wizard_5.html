@@ -216,6 +216,14 @@
                                         </div>
                                     </div>
 
+
+                                    <div class="row h-100" id="cheques" style="display:none;">
+                                        <div class="col-2 my-auto font-weight-bold" >Cheque Details:</div>
+                                        <div class="col-9">
+                                            {{ form.cheque_details|as_crispy_field }}
+                                        </div>
+                                    </div>
+
                                     <div class="row">
                                         <div class="col-6">
                                             <div class="form-check">
@@ -230,12 +238,15 @@
                                         </div>
                                     </div>
 
-                                    <div class="row h-100" id="cheques" style="display:none;">
-                                        <div class="col-2 my-auto font-weight-bold" >Cheque Details:</div>
-                                        <div class="col-9">
-                                            {{ form.cheque_details|as_crispy_field }}
-                                        </div>
+                                    <div class="row ml-5" id="auto_pay_pp"
+
+                                        {% if not form.payment_method_off_system_pp.value %}
+                                            style="display: none"
+                                        {% endif %}
+
+                                    >
                                     </div>
+
 
                                 </div>
                             </div>
@@ -343,6 +354,15 @@
                     $("#cheques").hide()
                 }
             });
+
+            // show or hide auto pay pp
+            {#$("#id_payment_method_off_system_pp").change(function (){#}
+            {#    if(this.checked) {#}
+            {#        $("#auto_pay_pp").show()#}
+            {#    } else {#}
+            {#        $("#auto_pay_pp").hide()#}
+            {#    }#}
+            {#});#}
 
         });
     </script>

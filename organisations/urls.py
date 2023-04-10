@@ -230,6 +230,11 @@ urlpatterns = [
         name="club_menu_tab_settings_slugs_htmx",
     ),
     path(
+        "club-menu/tabs/settings-results",
+        organisations.views.club_menu_tabs.settings.results_htmx,
+        name="club_menu_tab_settings_results_htmx",
+    ),
+    path(
         "club-menu/tabs/settings-slug-delete",
         organisations.views.club_menu_tabs.settings.slug_delete_htmx,
         name="club_menu_tab_settings_slug_delete_htmx",

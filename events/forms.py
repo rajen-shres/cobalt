@@ -33,7 +33,7 @@ class CongressForm(forms.ModelForm):
         congress_masters = kwargs.pop("congress_masters", [])
         super().__init__(*args, **kwargs)
 
-        # Modify and congress master if passed
+        # Modify congress master if passed
         self.fields["congress_master"].queryset = CongressMaster.objects.filter(
             pk__in=congress_masters
         ).order_by("name")

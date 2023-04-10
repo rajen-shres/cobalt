@@ -5,6 +5,11 @@
 {#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
 
+<!-- ALERT IF EMAILS ARE DISABLED -->
+{% if not club.send_results_email %}
+    <h2 class="text-danger">You have disabled sending result emails. You can change this under settings.</h2>
+{% endif %}
+
 <!-- LET USER KNOW THEY CAN CUSTOMISE -->
 {% if results_template_exists %}
     <h5>Using custom template "Results". To change appearance, edit this template in Settings if you have access.</h5>
@@ -136,7 +141,7 @@
             const button_text = $("#" + this.id).text().trim();
             let text_msg;
             if (button_text == "Publish"){
-                text_msg = "Publish results. This will make results visible to everyone and will email results to players for whom we have email addresses."
+                text_msg = "Publish results. This will make results visible to everyone. {% if club.send_results_email %} We will also email results to players for whom we have email addresses. {% else %}No emails will be sent. {% endif %}"
             } else {
                 text_msg = "Un-publish results. This will prevent people from accessing the results for this session."
             }

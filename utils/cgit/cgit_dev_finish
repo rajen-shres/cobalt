@@ -65,8 +65,8 @@ then
   echo ""
 
 # Remove * if this is default env for eb
-  TESTENV=`eb list | grep cobalt-test | tr \* " "`
-  TESTNUM=`eb list | grep cobalt-test | wc | awk '{print $1}'`
+  TESTENV=`eb list | grep $CGIT_ENV-test | tr \* " "`
+  TESTNUM=`eb list | grep $CGIT_ENV-test | wc | awk '{print $1}'`
 
   if [ "$TESTNUM" = "1" ]
   then

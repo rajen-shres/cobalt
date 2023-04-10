@@ -156,19 +156,13 @@ class SMSTests:
                 "notifications/tests/integration/test_data/count_test.txt", "rb"
             )
         }
-        # response = requests.post(self.sms_url, headers=self.headers, files=files)
-        # print(response)
-        # time.sleep(99999)
         response = requests.post(self.sms_url, headers=self.headers, files=files).json()
 
-        if (
+        ok = (
             response["counts"]["valid_lines_in_file"] == 6
             and response["counts"]["registered_users_in_file"] == 1
             and response["counts"]["registered_contactable_users_in_file"] == 0
-        ):
-            ok = True
-        else:
-            ok = False
+        )
 
         self.manager.save_results(
             status=ok,

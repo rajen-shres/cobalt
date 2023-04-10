@@ -1,0 +1,47 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Manage settings for results                                            #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+
+<!-- MAIN CARD -->
+<div class="card">
+
+    <!-- CARD HEADER -->
+    <div class="card-header card-header-info">
+        <h2 id="t_tab_heading_settings">Results Settings</h2>
+        {% include "organisations/club_menu/settings/nav_htmx.html" with selected="results" %}
+    </div>
+
+    <!-- CARD BODY -->
+    <div class="card-body">
+
+        <!-- MESSAGE -->
+        {% include "utils/cobalt_message_h3.html" %}
+
+        <form
+            hx-post="{% url "organisations:club_menu_tab_settings_results_htmx" %}"
+            hx-target="#id_panel_settings"
+            hx-vars="club_id:{{ club.id }}"
+        >
+
+            <div class="form-check mt-5">
+                <label class="form-check-label">
+                    <input class="form-check-input" id="id_send_results_email" name="send_results_email" type="checkbox" {% if club.send_results_email %}checked="Checked"{% endif %}">
+                    Send emails to players when results are published
+                    <span class="form-check-sign">
+                        <span class="check"></span>
+                    </span>
+                </label>
+            </div>
+
+            <button name="save" class="btn btn-sm btn-success mt-5">Save</button>
+        </form>
+    </div>
+</div>
+
+
+
+</div>
+</div>

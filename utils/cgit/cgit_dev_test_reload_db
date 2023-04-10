@@ -15,7 +15,7 @@ fi
 cat << EOF > /tmp/drop_db
 \c postgres
 drop database IF EXISTS $RDS_DB_NAME;
-create database $RDS_DB_NAME with owner cobalt;
+create database $RDS_DB_NAME with owner $CGIT_ENV;
 EOF
 
 psql </tmp/drop_db

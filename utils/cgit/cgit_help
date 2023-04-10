@@ -75,6 +75,6 @@ get_status() {
   printf "Release Date: ${BLUE}${TIMESTAMP}${NC} [$FILE_DIFF files different from $REFBRANCH]\n"
 }
 
-get_status "Test" "cobalt-test" "$BRANCH"
-get_status "UAT" "cobalt-uat" "develop"
-get_status "Production" "cobalt-production" "develop"
+get_status "Test" "$CGIT_ENV-test" "$BRANCH"
+get_status "UAT" "$CGIT_ENV-uat" "develop"
+get_status "Production" "$CGIT_ENV-production" "develop"

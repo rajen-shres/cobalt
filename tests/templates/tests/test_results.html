@@ -41,7 +41,8 @@
         <h1 class="text-center pt-03" style="font-size: 70px">{{ document_title }}</h1>
         <div class="jumbotron">
             <div class="container">
-
+                <h3 class="text-center">Run at {{ start_time| date:"D jS M Y P" }}</h3>
+                <h3 class="text-center">Elapse: {{ start_time|timesince }}</h3>
 
                 {#  Overall Score  #}
                 <div class="container">
