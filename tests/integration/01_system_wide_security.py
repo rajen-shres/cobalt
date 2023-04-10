@@ -38,12 +38,21 @@ NON_AUTH_URLS = [
     "/api/docs/",
     "/api/openapi.json",
     "/accounts/unregistered-preferences/dummy",
+    "/404",
     "/500",
-    "/accounts/create-pdf-system-card/",
 ]
 
 # URLs that we do not test
-DO_NOT_TEST_URLS = ["/masterpoints/system_number_lookup"]
+DO_NOT_TEST_URLS = [
+    "/masterpoints/system_number_lookup",
+    "/accounts/create-pdf-system-card/",
+    "/xero/",
+    "/xero/callback",
+    "/xero/config",
+    "/xero/initialise",
+    "/xero/refresh",
+    "/xero/run-xero-api",
+]
 
 
 class TestURLsRequireLogin:

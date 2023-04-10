@@ -77,7 +77,6 @@ class CongressForm(forms.ModelForm):
         self.fields["congress_venue_type"].label = False
         self.fields["online_platform"].label = False
         self.fields["congress_master"].label = False
-        # self.fields["automatically_mark_club_pp_as_paid"].label = False
 
         # mark fields as optional
         self.fields["name"].required = False
@@ -117,7 +116,6 @@ class CongressForm(forms.ModelForm):
         self.fields["congress_venue_type"].required = False
         self.fields["online_platform"].required = False
         self.fields["congress_master"].required = False
-        # self.fields["automatically_mark_club_pp_as_paid"].required = False
 
     general_info = forms.CharField(
         widget=SummernoteInplaceWidget(
@@ -277,7 +275,6 @@ class CongressForm(forms.ModelForm):
             "contact_email",
             "congress_venue_type",
             "online_platform",
-            # "automatically_mark_club_pp_as_paid",
         )
 
 

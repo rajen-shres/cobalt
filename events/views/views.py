@@ -997,14 +997,6 @@ def edit_event_entry(
         event_entry=event_entry
     ).order_by("first_created_date")
 
-    # Update the payment status if required
-    # if congress.automatically_mark_club_pp_as_paid:
-    #     for event_entry_player in event_entry_players:
-    #         if event_entry_player.payment_type == "off-system-pp":
-    #             event_entry_player.payment_status = "Paid"
-    #             event_entry_player.save()
-    #     event_entry.check_if_paid()
-
     # Check if payment method can be edited
     for event_entry_player in event_entry_players:
         if (
@@ -1746,16 +1738,10 @@ def enter_event_post(request, congress, event):
         if p_id < 4:
             event_entry_player.entry_fee = entry_fee
             event_entry_player.reason = reason
-            # handle club PP
-        #     if (
-        #         congress.automatically_mark_club_pp_as_paid
-        #         and event_entry_player.payment_type == "off-system-pp"
-        #     ):
-        #         event_entry_player.payment_status = "Paid"
-        # else:
-        event_entry_player.entry_fee = 0
-        event_entry_player.reason = "Team > 4"
-        event_entry_player.payment_status = "Free"
+        else:
+            event_entry_player.entry_fee = 0
+            event_entry_player.reason = "Team > 4"
+            event_entry_player.payment_status = "Free"
 
         # set payment status depending on payment type
         if event_entry_player.payment_status not in [
