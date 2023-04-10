@@ -245,17 +245,17 @@
                                         {% endif %}
 
                                     >
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <label class="form-check-label">
-                                                    <input class="form-check-input" id="id_automatically_mark_club_pp_as_paid" name="automatically_mark_club_pp_as_paid" type="checkbox" {% if form.automatically_mark_club_pp_as_paid.value %}checked="Checked" {% endif %}>
-                                                    Automatically mark entries as paid for your own pre-paid system
-                                                    <span class="form-check-sign">
-                                                        <span class="check"></span>
-                                                    </span>
-                                                </label>
-                                            </div>
-                                        </div>
+                                        {#                                        <div class="col">#}
+                                        {#                                            <div class="form-check">#}
+                                        {#                                                <label class="form-check-label">#}
+                                        {#                                                    <input class="form-check-input" id="id_automatically_mark_club_pp_as_paid" name="automatically_mark_club_pp_as_paid" type="checkbox" {% if form.automatically_mark_club_pp_as_paid.value %}checked="Checked" {% endif %}>#}
+                                        {#                                                    Automatically mark entries as paid for your own pre-paid system#}
+                                        {#                                                    <span class="form-check-sign">#}
+                                        {#                                                        <span class="check"></span>#}
+                                        {#                                                    </span>#}
+                                        {#                                                </label>#}
+                                        {#                                            </div>#}
+                                        {#                                        </div>#}
                                     </div>
 
 
@@ -367,13 +367,13 @@
             });
 
             // show or hide auto pay pp
-            $("#id_payment_method_off_system_pp").change(function (){
-                if(this.checked) {
-                    $("#auto_pay_pp").show()
-                } else {
-                    $("#auto_pay_pp").hide()
-                }
-            });
+            {#$("#id_payment_method_off_system_pp").change(function (){#}
+            {#    if(this.checked) {#}
+            {#        $("#auto_pay_pp").show()#}
+            {#    } else {#}
+            {#        $("#auto_pay_pp").hide()#}
+            {#    }#}
+            {#});#}
 
         });
     </script>
