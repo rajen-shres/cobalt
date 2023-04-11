@@ -1567,6 +1567,6 @@ def load_congress_view_filters_ajax(request):
     try:
         preferences = json.loads(user_additional_info.congress_view_filters)
     except JSONDecodeError:
-        preferences = None
+        return HttpResponse()
 
     return JsonResponse(preferences)
