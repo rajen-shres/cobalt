@@ -1,5 +1,6 @@
 import copy
 import json
+from json import JSONDecodeError
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
@@ -1563,6 +1564,9 @@ def load_congress_view_filters_ajax(request):
     if not user_additional_info:
         return HttpResponse()
 
-    preferences = json.loads(user_additional_info.congress_view_filters)
+    try:
+        preferences = json.loads(user_additional_info.congress_view_filters)
+    except JSONDecodeError:
+        preferences = None
 
     return JsonResponse(preferences)
