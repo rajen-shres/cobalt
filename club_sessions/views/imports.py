@@ -312,7 +312,7 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
             .order_by("pk")
             .last()
         )
-        if last_payment:
+        if last_payment and last_payment.payment_method.payment_method != "IOU":
             payment_method = last_payment.payment_method
 
     # create session entry
