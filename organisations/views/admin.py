@@ -160,9 +160,11 @@ def admin_add_club(request):
                 "box_colour": "danger",
             }
 
-            send_cobalt_email_with_template(
-                to_address=org.secretary.email, context=context
-            )
+            # We are doing a bulk upload and defaulting the blank ones to the ABF account.
+            if org.secretary.id != 3:
+                send_cobalt_email_with_template(
+                    to_address=org.secretary.email, context=context
+                )
 
             messages.success(
                 request,
