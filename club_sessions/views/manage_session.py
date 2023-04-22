@@ -494,14 +494,17 @@ def change_payment_method_htmx(request, club, session, session_entry):
     if extras:
         total += extras[0]["extras"]
 
-    # Use htmx Out of Band option to also update the total
+    # Use htmx Out of Band option to also update the total, and also trigger totals to update
 
-    return HttpResponse(
+    response = HttpResponse(
         f"""<div>{fee.fee}</div>
                             <div id="id_session_entry_total_{session_entry.id}" hx-swap-oob="true"> {total:.2f} </div>
                             <div id="detail_message" hx-swap-oob="true">Session Updated</div>
                             """
     )
+    response["HX-Trigger"] = "update_totals"
+
+    return response
 
 
 @user_is_club_director(include_session_entry=True)
