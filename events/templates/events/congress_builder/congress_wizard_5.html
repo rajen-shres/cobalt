@@ -238,16 +238,6 @@
                                         </div>
                                     </div>
 
-                                    <div class="row ml-5" id="auto_pay_pp"
-
-                                        {% if not form.payment_method_off_system_pp.value %}
-                                            style="display: none"
-                                        {% endif %}
-
-                                    >
-                                    </div>
-
-
                                 </div>
                             </div>
 
@@ -354,15 +344,6 @@
                     $("#cheques").hide()
                 }
             });
-
-            // show or hide auto pay pp
-            {#$("#id_payment_method_off_system_pp").change(function (){#}
-            {#    if(this.checked) {#}
-            {#        $("#auto_pay_pp").show()#}
-            {#    } else {#}
-            {#        $("#auto_pay_pp").hide()#}
-            {#    }#}
-            {#});#}
 
         });
     </script>

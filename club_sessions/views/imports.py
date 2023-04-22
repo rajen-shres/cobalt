@@ -305,6 +305,22 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
     else:
         payment_method = session.default_secondary_payment_method
 
+    # See if this club is using the last payment method for the user
+    if club.use_last_payment_method_for_player_sessions:
+        last_payment = (
+            SessionEntry.objects.filter(
+                system_number=system_number, session__session_type__organisation=club
+            )
+            .order_by("pk")
+            .last()
+        )
+
+        try:
+            if last_payment.payment_method.payment_method != "IOU":
+                payment_method = last_payment.payment_method
+        except AttributeError:
+            pass
+
     # create session entry
     session_entry = SessionEntry(
         session=session,

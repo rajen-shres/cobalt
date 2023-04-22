@@ -214,6 +214,9 @@ class Organisation(models.Model):
     xero_contact_id = models.CharField(max_length=50, null=True, default="")
     """ optional customer id for Xero """
 
+    use_last_payment_method_for_player_sessions = models.BooleanField(default=False)
+    """ some clubs want to default payments for sessions to use whatever the player last paid with """
+
     @property
     def settlement_fee_percent(self):
         """return what our settlement fee is set to"""

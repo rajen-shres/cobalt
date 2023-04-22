@@ -724,4 +724,9 @@ urlpatterns = [
         organisations.views.club_menu_tabs.members.recent_sessions_for_member_htmx,
         name="club_menu_tab_members_recent_sessions_for_member_htmx",
     ),
+    path(
+        "settings/toggle-use-last-payment-method-for-player-sessions",
+        organisations.views.club_menu_tabs.settings.toggle_use_last_payment_method_for_player_sessions_htmx,
+        name="club_menu_tab_settings_use_last_payment_method_for_player_sessions_htmx",
+    ),
 ]

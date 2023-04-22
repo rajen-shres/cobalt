@@ -1404,3 +1404,16 @@ def edit_minimum_balance_after_settlement_htmx(request, club):
         "organisations/club_menu/settings/edit_minimum_balance_after_settlement_htmx.html",
         {"form": form, "club": club, "message": message},
     )
+
+
+@check_club_menu_access(check_org_edit=True)
+def toggle_use_last_payment_method_for_player_sessions_htmx(request, club):
+    """Called from general screen to toggle the use_last_payment_method_for_player_sessions setting"""
+
+    club.use_last_payment_method_for_player_sessions = (
+        not club.use_last_payment_method_for_player_sessions
+    )
+
+    club.save()
+
+    return HttpResponse("Setting saved")

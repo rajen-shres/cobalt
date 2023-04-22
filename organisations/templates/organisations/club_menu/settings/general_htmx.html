@@ -20,6 +20,30 @@
 
         <div class="container">
 
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="form-check">
+                        <label class="form-check-label">
+                            <input
+                                class="form-check-input"
+                                id="id_use_last_payment_method_for_player_sessions"
+                                name="use_last_payment_method_for_player_sessions"
+                                type="checkbox"
+                                {% if club.use_last_payment_method_for_player_sessions %}checked="Checked" {% endif %}
+                                hx-post="{% url 'organisations:club_menu_tab_settings_use_last_payment_method_for_player_sessions_htmx' %}"
+                                hx-trigger="click"
+                                hx-target="#settings_message"
+                            >
+                            Default session payments to last used payment method by player
+                            <span class="form-check-sign">
+                                <span class="check"></span>
+                            </span>
+                        </label>
+                    </div>
+                    <div>If this is checked then we will default the payment method for sessions to be whatever the player used last time which may not be {{ BRIDGE_CREDITS }} or your secondary payment method. Only applies to sessions.</div>
+                </div>
+            </div>
+
             <!-- VENUES -->
             <div class="row">
                 <div class="col-md-6">

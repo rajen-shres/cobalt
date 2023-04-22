@@ -51,8 +51,8 @@
                 {#                secretary           #}
                 <div class="col-md-6">
                     <div class="form-group">
-                        <b>Club Secretary: </b><span id="dummy_name">{{ secretary_name|default_if_none:"Not Set" }}</span>
-                        <input type="hidden" id="id_secretary" name="secretary" value="{{ secretary_id|default_if_none:"" }}">
+                        <b>Club Secretary: </b><span id="dummy_name">{% if secretary_name != "Not Set" %}{{ secretary_name }}{% else %}Defaulting to ABF{% endif %}</span>
+                        <input type="hidden" id="id_secretary" name="secretary" value="{{ secretary_id|default_if_none:"3" }}">
                         <span class="cobalt-form-error">{{ form.secretary.errors }}</span>
                         <button id="id_search_button" type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#userSearchModal1">Edit</button>
                     </div>
