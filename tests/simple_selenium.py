@@ -74,9 +74,6 @@ class SimpleSelenium:
     def handle_finish(self):
         """report on how we went"""
 
-        print(self.messages)
-        # ./manage.py production_smoke_test --password=F1shcake --script=basic_smoke_test.txt
-
         # Build HTML page
         html = render_to_string(
             template_name="tests/simple_selenium_success.html", context={"data": self}
@@ -137,8 +134,8 @@ class SimpleSelenium:
     def screenshot(self, title):
         """grab a picture of the screen"""
 
-        filename = f"/tmp/{str(uuid.uuid4())}.png"
+        filename = f"/tmp/{uuid.uuid4()}.png"
         self.driver.save_screenshot(filename)
         self.screenshots[filename] = title
 
-        self.add_message(f"Took a screenshot - {title}")
+        self.add_message(f"Took a screenshot - {title}", link=title)

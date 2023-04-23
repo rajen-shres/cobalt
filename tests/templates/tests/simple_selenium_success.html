@@ -31,18 +31,26 @@
                     <h2>Actions Taken</h2>
                 </div>
                 <div class="card-body">
-                    <table class="table">
+                    <table class="table table-condensed table-hover">
                         <thead>
                             <tr>
-                                <th>Step</th>
                                 <th>Action</th>
+                                <th>Outcome</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for message in data.messages %}
+                            {% for item in data.messages %}
                                 <tr>
-                                    <td>{{ message}} {{ messsage.current_action }}</td>
-                                    <td>{{ messsage.message }}</td>
+                                    <td>{{ item.current_action }}</td>
+                                    <td>
+                                        {% if item.link %}
+                                            <a href="#{{ item.link }}">
+                                        {% endif %}
+                                        {{ item.message }}
+                                        {% if item.link %}
+                                            </a>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
