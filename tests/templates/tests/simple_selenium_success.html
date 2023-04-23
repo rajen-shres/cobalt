@@ -26,55 +26,7 @@
         <h1 class="text-center pt-03" style="font-size: 70px">Smoke Test Worked</h1>
         <div class="container">
 
-            <div class="card my-5">
-                <div class="card-header bg-primary text-white">
-                    <h2>Actions Taken</h2>
-                </div>
-                <div class="card-body">
-                    <table class="table table-condensed table-hover">
-                        <thead>
-                            <tr>
-                                <th>Action</th>
-                                <th>Outcome</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in data.messages %}
-                                <tr>
-                                    <td>{{ item.current_action }}</td>
-                                    <td>
-                                        {% if item.link %}
-                                            <a href="#{{ item.link }}">
-                                        {% endif %}
-                                        {{ item.message }}
-                                        {% if item.link %}
-                                            </a>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {% if data.screenshots %}
-                <div class="card my-5">
-                    <div class="card-header bg-primary text-white">
-                        <h2>Screenshots</h2>
-                    </div>
-                    <div class="card-body text-center">
-                        {% for img, title in data.screenshots.items %}
-                            <div id="{{ img }}"></div>
-                            <h3>{{ title }}</h3>
-                            <img src="{{ img }}" width="80%">
-                            <div class="mb-5"></div>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-
-
+            {% include "tests/simple_selenium_sub_results.html" with colour="primary" %}
 
         </div>
 

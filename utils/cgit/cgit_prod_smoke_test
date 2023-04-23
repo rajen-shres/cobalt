@@ -7,4 +7,4 @@ read -s -p "Password: " PASSWORD
 echo ""
 echo ""
 
-./manage.py production_smoke_test --password=$PASSWORD --script=basic_smoke_test_production.txt --base_url=https://myabf.com.au
+./manage.py smoke_test --password=$PASSWORD --script=basic_smoke_test_production.txt --base_url=https://myabf.com.au

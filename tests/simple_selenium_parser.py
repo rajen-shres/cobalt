@@ -44,6 +44,9 @@ def build_commands(script):
         elif key_word == "click":
             cmd_string = f'manager.press_by_text("{words[1]}")'
 
+        elif key_word == "click_by_name":
+            cmd_string = f'manager.press_by_name("{words[1]}")'
+
         elif key_word == "find":
             cmd_string = f'manager.find_by_text("{words[1]}")'
 
@@ -58,6 +61,16 @@ def build_commands(script):
 
         elif key_word == "log":
             cmd_string = f'manager.add_message("{words[1]}", bold=True)'
+
+        elif key_word == "selectpicker":
+            # TODO: NOT FINISHED
+            cmd_string = f'manager.selectpicker("{words[2]}", "{words[4]}")'
+
+        elif key_word == "dropdown":
+            cmd_string = f'manager.dropdown("{words[2]}", "{words[4]}")'
+
+        elif key_word == "sleep":
+            cmd_string = f"manager.sleep({words[1]})"
 
         if cmd_string:
             commands.append(cmd_string)

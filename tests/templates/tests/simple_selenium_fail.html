@@ -26,17 +26,7 @@
         <h1 class="text-center pt-03" style="font-size: 70px">Smoke Test Failed</h1>
         <div class="container">
 
-            <div class="card my-5">
-                <div class="card-header bg-danger text-white">
-                    <h2>Actions Taken</h2>
-                </div>
-                <div class="card-body">
-                    {% for message in data.messages %}
-                        {{ message }}
-                        <br>
-                    {% endfor %}
-                </div>
-            </div>
+            {% include "tests/simple_selenium_sub_results.html" with colour="danger" %}
 
             <div class="card">
                 <div class="card-header bg-info">

@@ -1,5 +1,6 @@
 import logging
 import sys
+import time
 import uuid
 import webbrowser
 
@@ -118,6 +119,26 @@ class SimpleSelenium:
         matching_element.click()
         self.add_message(f"Clicked on '{search_text}'")
 
+    def find_by_name(self, name):
+        """find something with matching name"""
+
+        try:
+            match = self.driver.find_element("name", name)
+        except NoSuchElementException:
+            self.add_message(f"Looked for item with name'{name}' but did not find it")
+            self.handle_fatal_error()
+
+        self.add_message(f"Looked for item with name '{name}' and found it")
+
+        return match
+
+    def press_by_name(self, name):
+        """find something with matching name and click it"""
+
+        matching_element = self.find_by_name(name)
+        matching_element.click()
+        self.add_message(f"Clicked on '{name}'")
+
     def go_to(self, location):
         """go to a relative path"""
         self.driver.get(f"{self.base_url}{location}")
@@ -155,3 +176,32 @@ class SimpleSelenium:
         self.screenshots[filename] = title
 
         self.add_message(f"Took a screenshot - {title}", link=filename)
+
+    def selectpicker(self, value, name):
+        """make bootstrap selectpicker have value specified"""
+
+        # TODO - NOT FINISHED. IT WASN"T A SELECT PICKER
+
+        dropdown = self.driver.find_element("name", name)
+        dropdown.click()
+        option = self.driver.find_element(
+            "css selector",
+            f"ul[role=menu] a[data-normalized-text='<span class=\"text\">{value}</span>']",
+        )
+        option.click()
+        # elem.sendKeys("American Samoa");
+        # elem.sendKeys(Keys.ENTER);
+        self.screenshot("temp")
+
+    def dropdown(self, value, name):
+        """choose a value from a dropdown"""
+
+        self.driver.find_element(
+            "xpath", f"//select[@name='{name}']/option[text()='{value}']"
+        ).click()
+        self.add_message(f"Selected '{value}' from dropdown '{name}'")
+
+    def sleep(self, seconds):
+        """sleep for a bit"""
+        time.sleep(seconds)
+        self.add_message(f"Slept for {seconds} second(s)")
