@@ -1,21 +1,13 @@
 import logging
 import sys
-import tempfile
 import uuid
 import webbrowser
 
 from django.template.loader import render_to_string
-from selenium.common.exceptions import (
-    TimeoutException,
-    NoSuchElementException,
-    StaleElementReferenceException,
-)
+from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions
 
 logger = logging.getLogger("cobalt")
 
@@ -23,20 +15,17 @@ logger = logging.getLogger("cobalt")
 class SimpleSelenium:
     """high level commands to control selenium. Why this doesn't exist already, I have no idea"""
 
-    def __init__(self, base_url, browser, show):
+    def __init__(self, base_url, browser, show, silent):
         """set up"""
 
-        hello = """
-        #######################################
-        # Starting
-        #######################################
-        """
-        print(hello)
-
         self.base_url = base_url
+        self.silent = silent
+
         options = ChromeOptions()
         if not show:
+            options.add_argument("window-size=1200x600")
             options.headless = True
+
         self.driver = webdriver.Chrome(options=options)
         url = f"{base_url}/accounts/login"
 
@@ -50,12 +39,19 @@ class SimpleSelenium:
         self.driver.get(url)
 
     def add_message(self, message, link=None):
+        if self.silent:
+            return
+
         self.messages.append(
             {"current_action": self.current_action, "message": message, "link": link}
         )
+        logger.info(message)
 
     def handle_fatal_error(self):
         """we have had a problem - show user and leave"""
+
+        if self.silent:
+            sys.exit(1)
 
         # Save a screenshot
         self.driver.save_screenshot("/tmp/simple_selenium.png")
@@ -71,10 +67,13 @@ class SimpleSelenium:
 
         # Open browser and leave
         webbrowser.open("file:///tmp/simple_selenium_fail.html")
-        sys.exit()
+        sys.exit(1)
 
     def handle_finish(self):
         """report on how we went"""
+
+        if self.silent:
+            sys.exit(0)
 
         # Build HTML page
         html = render_to_string(

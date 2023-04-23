@@ -4,14 +4,14 @@ import shlex
 from tests.simple_selenium import SimpleSelenium
 
 
-def simple_selenium_parser(script_file, base_url, password, browser, show):
+def simple_selenium_parser(script_file, base_url, password, browser, show, silent):
     """translates a test script into code and runs it"""
 
     with open(f"tests/scripts/{script_file}") as in_file:
         script = in_file.readlines()
 
     commands = build_commands(script)
-    run_commands(commands, base_url, password, browser, show)
+    run_commands(commands, base_url, password, browser, show, silent)
 
 
 def build_commands(script):
@@ -62,10 +62,12 @@ def build_commands(script):
     return commands
 
 
-def run_commands(commands, base_url, password, browser, show):
+def run_commands(commands, base_url, password, browser, show, silent):
     """execute the commands"""
 
-    manager = SimpleSelenium(base_url=base_url, browser=browser, show=show)
+    manager = SimpleSelenium(
+        base_url=base_url, browser=browser, show=show, silent=silent
+    )
 
     for cmd_string in commands:
         exec(cmd_string)
