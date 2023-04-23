@@ -4,6 +4,7 @@ import uuid
 import webbrowser
 
 from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -38,9 +39,12 @@ class SimpleSelenium:
 
         self.driver.get(url)
 
-    def add_message(self, message, link=None):
+    def add_message(self, message, link=None, bold=False):
         if self.silent:
             return
+
+        if bold:
+            message = mark_safe(f"<b>--{message.upper()}--</b>")
 
         self.messages.append(
             {"current_action": self.current_action, "message": message, "link": link}

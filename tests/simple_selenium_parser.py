@@ -56,6 +56,9 @@ def build_commands(script):
         elif key_word == "send_enter":
             cmd_string = f'manager.send_enter("{words[2]}")'
 
+        elif key_word == "log":
+            cmd_string = f'manager.add_message("{words[1]}", bold=True)'
+
         if cmd_string:
             commands.append(cmd_string)
 

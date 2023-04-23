@@ -1,6 +1,9 @@
+from django.core.exceptions import SuspiciousOperation
 from django.core.management.base import BaseCommand
 
 from tests.simple_selenium_parser import simple_selenium_parser
+
+ALLOWED_PRODUCTION_SCRIPTS = ["basic_smoke_test_production.txt"]
 
 
 class Command(BaseCommand):
@@ -28,6 +31,15 @@ class Command(BaseCommand):
 
         if not base_url:
             base_url = "https://test.myabf.com.au"
+
+        # Be protective of production
+        if (
+            base_url in ["https://myabf.com.au", "https://www.myabf.com.au"]
+            and script not in ALLOWED_PRODUCTION_SCRIPTS
+        ):
+            raise SuspiciousOperation(
+                "This script is not permitted to be run against production"
+            )
 
         simple_selenium_parser(
             script,
