@@ -13,6 +13,7 @@ from selenium.common.exceptions import (
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
@@ -22,7 +23,7 @@ logger = logging.getLogger("cobalt")
 class SimpleSelenium:
     """high level commands to control selenium. Why this doesn't exist already, I have no idea"""
 
-    def __init__(self, base_url):
+    def __init__(self, base_url, browser, show):
         """set up"""
 
         hello = """
@@ -34,7 +35,8 @@ class SimpleSelenium:
 
         self.base_url = base_url
         options = ChromeOptions()
-        # options.headless = True
+        if not show:
+            options.headless = True
         self.driver = webdriver.Chrome(options=options)
         url = f"{base_url}/accounts/login"
 
@@ -118,6 +120,17 @@ class SimpleSelenium:
         self.driver.get(f"{self.base_url}{location}")
         self.add_message(f"Went to '{location}'")
 
+    def send_enter(self, name):
+        """send the enter key to an object"""
+        try:
+            item = self.driver.find_element("name", name)
+        except NoSuchElementException:
+            self.add_message(f"Couldn't find by name: {name}")
+            self.handle_fatal_error()
+
+        item.send_keys(Keys.RETURN)
+        self.add_message(f"Sent enter to '{name}'")
+
     def enter_value_into_field_by_name(self, name, value):
         """find a field by name and put a value in it"""
 
@@ -138,4 +151,4 @@ class SimpleSelenium:
         self.driver.save_screenshot(filename)
         self.screenshots[filename] = title
 
-        self.add_message(f"Took a screenshot - {title}", link=title)
+        self.add_message(f"Took a screenshot - {title}", link=filename)

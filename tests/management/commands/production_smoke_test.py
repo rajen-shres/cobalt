@@ -13,7 +13,6 @@ from tests.test_manager import CobaltTestManagerIntegration
 class Command(BaseCommand):
     def add_arguments(self, parser):
 
-        parser.add_argument("--app", help="App name e.g. payments.")
         parser.add_argument("--password", help="password for user")
         parser.add_argument("--script", help="script to execute")
         parser.add_argument("--browser", help="Browser - default is chrome")
@@ -21,13 +20,13 @@ class Command(BaseCommand):
             "--base_url", help="Base url for server e.g. http://127.0.0.1:8088"
         )
         parser.add_argument(
-            "--headless", help="Specify an value to run browser in the background"
+            "--show", help="Specify a value to run browser in the foreground"
         )
 
     def handle(self, *args, **options):
 
-        # app = options["app"]
-        # browser = options["browser"]
+        show = options["show"]
+        browser = options["browser"]
         base_url = options["base_url"]
         password = options["password"]
         script = options["script"]
@@ -35,4 +34,6 @@ class Command(BaseCommand):
         if not base_url:
             base_url = "https://test.myabf.com.au"
 
-        simple_selenium_parser(script, base_url=base_url, password=password)
+        simple_selenium_parser(
+            script, base_url=base_url, password=password, show=show, browser=browser
+        )

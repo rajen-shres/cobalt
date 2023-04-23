@@ -4,14 +4,14 @@ import shlex
 from tests.simple_selenium import SimpleSelenium
 
 
-def simple_selenium_parser(script_file, base_url, password):
+def simple_selenium_parser(script_file, base_url, password, browser, show):
     """translates a test script into code and runs it"""
 
     with open(f"tests/scripts/{script_file}") as in_file:
         script = in_file.readlines()
 
     commands = build_commands(script)
-    run_commands(commands, base_url, password)
+    run_commands(commands, base_url, password, browser, show)
 
 
 def build_commands(script):
@@ -24,6 +24,7 @@ def build_commands(script):
         if comment:
             line = line[: comment.start()]
 
+        # Use shlex to split 'hello "I am a string" goodbye' into ['hello', 'I am a string', 'goodbye']
         words = shlex.split(line)
         key_word = words[0].lower()
         cmd_string = None
@@ -52,16 +53,19 @@ def build_commands(script):
         elif key_word == "screenshot":
             cmd_string = f'manager.screenshot("{words[1]}")'
 
+        elif key_word == "send_enter":
+            cmd_string = f'manager.send_enter("{words[2]}")'
+
         if cmd_string:
             commands.append(cmd_string)
 
     return commands
 
 
-def run_commands(commands, base_url, password):
+def run_commands(commands, base_url, password, browser, show):
     """execute the commands"""
 
-    manager = SimpleSelenium(base_url=base_url)
+    manager = SimpleSelenium(base_url=base_url, browser=browser, show=show)
 
     for cmd_string in commands:
         exec(cmd_string)
