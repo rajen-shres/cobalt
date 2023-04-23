@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# about: basic test of production for use after a release or any time there is concern
+
+read -s -p "Password: " PASSWORD
+
+echo ""
+echo ""
+
+./manage.py production_smoke_test --password=$PASSWORD --script=basic_smoke_test.txt --base_url=https://myabf.com.au

@@ -154,3 +154,7 @@ git push origin master
 if [ $? -ne 0 ];then
  exit 1
 fi
+
+echo ""
+echo "Running the smoke test..."
+cgit_prod_smoke_test
