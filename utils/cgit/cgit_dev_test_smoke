@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# about: runs smoke test
+
+# Variables
+PORT=8088
+export RDS_DB_NAME=test
+export DUMMY_DATA_COUNT=1
+
+# Kill manage.py if running
+lsof -i tcp:$PORT | awk 'NR!=1 {print $2}' | xargs kill
+
+# Kill old chromedrivers
+pkill -TERM -f chromedriver
+
+# Rebuild database
+cat << EOF > /tmp/drop_db
+\c postgres
+drop database IF EXISTS $RDS_DB_NAME;
+create database $RDS_DB_NAME with owner $CGIT_ENV;
+EOF
+
+psql test </tmp/drop_db
+psql test < ~/test.db >/dev/null
+
+open . utils/cgit/tools/test_manage_short.terminal
+
+# Wait for port to be open
+echo "Waiting for Webserver to start..."
+while ! nc -z 127.0.0.1 $PORT; do
+  sleep 0.1
+done
+echo "Starting..."
+
+./manage.py smoke_test --password=F1shcake --script=event_entry.txt --base_url=http://127.0.0.1:8088
+
+# Stop the django server
+lsof -i tcp:$PORT | awk 'NR!=1 {print $2}' | xargs kill -SIGINT

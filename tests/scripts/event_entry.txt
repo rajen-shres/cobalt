@@ -1,3 +1,4 @@
+title "Event Entry"
 screenshot "Login page"
 enter "Mark" into "username"
 enter_parameter password into "password"

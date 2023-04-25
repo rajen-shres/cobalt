@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# about: basic test of production for use after a release or any time there is concern
+# about: basic test of production for use after a release or any time there is concern\n
 
 read -s -p "Password: " PASSWORD
 

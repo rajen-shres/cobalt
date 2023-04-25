@@ -35,12 +35,14 @@ class SimpleSelenium:
         self.messages = []
         self.screenshots = {}
         self.current_action = "Starting"
+        self.title = "Smoke Test"
 
         self.add_message(f"Connect to {url}")
 
         self.driver.get(url)
 
     def add_message(self, message, link=None, bold=False):
+        """Add a message to the report on progress"""
         if self.silent:
             return
 
@@ -142,6 +144,7 @@ class SimpleSelenium:
     def go_to(self, location):
         """go to a relative path"""
         self.driver.get(f"{self.base_url}{location}")
+        # We don't know if it works, but it should be easy enough to identify if it doesn't
         self.add_message(f"Went to '{location}'")
 
     def send_enter(self, name):
@@ -156,7 +159,7 @@ class SimpleSelenium:
         self.add_message(f"Sent enter to '{name}'")
 
     def enter_value_into_field_by_name(self, name, value):
-        """find a field by name and put a value in it"""
+        """find a field by name and put a value in it. Can be a variable such as password"""
 
         try:
             item = self.driver.find_element("name", name)
@@ -178,7 +181,7 @@ class SimpleSelenium:
         self.add_message(f"Took a screenshot - {title}", link=filename)
 
     def selectpicker(self, value, name):
-        """make bootstrap selectpicker have value specified"""
+        """make bootstrap selectpicker have value specified. NOT FINISHED"""
 
         # TODO - NOT FINISHED. IT WASN"T A SELECT PICKER
 
@@ -196,12 +199,24 @@ class SimpleSelenium:
     def dropdown(self, value, name):
         """choose a value from a dropdown"""
 
-        self.driver.find_element(
-            "xpath", f"//select[@name='{name}']/option[text()='{value}']"
-        ).click()
+        try:
+            self.driver.find_element(
+                "xpath", f"//select[@name='{name}']/option[text()='{value}']"
+            ).click()
+        except NoSuchElementException:
+            self.add_message(
+                f"Tried to select '{value}' from dropdown '{name}' but couldn't"
+            )
+            self.handle_fatal_error()
+
         self.add_message(f"Selected '{value}' from dropdown '{name}'")
 
     def sleep(self, seconds):
         """sleep for a bit"""
         time.sleep(seconds)
         self.add_message(f"Slept for {seconds} second(s)")
+
+    def set_title(self, title):
+        """set the title for the page"""
+
+        self.title = title

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# about: release to production\n
+# about: release to production
 
 BRANCH=`git branch --show-current`
 

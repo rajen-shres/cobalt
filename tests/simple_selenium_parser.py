@@ -3,6 +3,22 @@ import shlex
 
 from tests.simple_selenium import SimpleSelenium
 
+command_lookup = {
+    "enter": 'manager.enter_value_into_field_by_name("WORDS_3", "WORDS_1")',
+    "enter_parameter": 'manager.enter_value_into_field_by_name("WORDS_3", WORDS_1)',
+    "click": 'manager.press_by_text("WORDS_1")',
+    "click_by_name": 'manager.press_by_name("WORDS_1")',
+    "find": 'manager.find_by_text("WORDS_1")',
+    "title": 'manager.set_title("WORDS_1")',
+    "go": 'manager.go_to("WORDS_1")',
+    "screenshot": 'manager.screenshot("WORDS_1")',
+    "send_enter": 'manager.send_enter("WORDS_2")',
+    "log": 'manager.add_message("WORDS_1", bold=True)',
+    "selectpicker": 'manager.selectpicker("WORDS_2", "WORDS_4")',
+    "dropdown": 'manager.dropdown("WORDS_2", "WORDS_4")',
+    "sleep": "manager.sleep(WORDS_1)",
+}
+
 
 def simple_selenium_parser(script_file, base_url, password, browser, show, silent):
     """translates a test script into code and runs it"""
@@ -26,56 +42,31 @@ def build_commands(script):
 
         # Use shlex to split 'hello "I am a string" goodbye' into ['hello', 'I am a string', 'goodbye']
         words = shlex.split(line)
-        key_word = words[0].lower()
-        cmd_string = None
 
         commands.append(f"manager.current_action='{line}'")
 
-        if key_word == "enter":
-            cmd_string = (
-                f'manager.enter_value_into_field_by_name("{words[3]}", "{words[1]}")'
-            )
-
-        if key_word == "enter_parameter":
-            cmd_string = (
-                f'manager.enter_value_into_field_by_name("{words[3]}", {words[1]})'
-            )
-
-        elif key_word == "click":
-            cmd_string = f'manager.press_by_text("{words[1]}")'
-
-        elif key_word == "click_by_name":
-            cmd_string = f'manager.press_by_name("{words[1]}")'
-
-        elif key_word == "find":
-            cmd_string = f'manager.find_by_text("{words[1]}")'
-
-        elif key_word == "go":
-            cmd_string = f'manager.go_to("{words[1]}")'
-
-        elif key_word == "screenshot":
-            cmd_string = f'manager.screenshot("{words[1]}")'
-
-        elif key_word == "send_enter":
-            cmd_string = f'manager.send_enter("{words[2]}")'
-
-        elif key_word == "log":
-            cmd_string = f'manager.add_message("{words[1]}", bold=True)'
-
-        elif key_word == "selectpicker":
-            # TODO: NOT FINISHED
-            cmd_string = f'manager.selectpicker("{words[2]}", "{words[4]}")'
-
-        elif key_word == "dropdown":
-            cmd_string = f'manager.dropdown("{words[2]}", "{words[4]}")'
-
-        elif key_word == "sleep":
-            cmd_string = f"manager.sleep({words[1]})"
+        cmd_string = build_command_line(words)
 
         if cmd_string:
             commands.append(cmd_string)
 
     return commands
+
+
+def build_command_line(words):
+    """process a single command line"""
+
+    # the first word is the keyword
+    key_word = words[0].lower()
+
+    # Find a match or None from command_lookup
+    cmd_string = command_lookup.get(key_word)
+
+    # Go through and replace the placeholders with the words from the command
+    for index, word in enumerate(words[1:]):
+        cmd_string = cmd_string.replace(f"WORDS_{index + 1}", word)
+
+    return cmd_string
 
 
 def run_commands(commands, base_url, password, browser, show, silent):
