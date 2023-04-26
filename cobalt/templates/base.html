@@ -190,7 +190,7 @@ Environment: {{ COBALT_HOSTNAME }}
 
                         {% if club_staff %}
                             <li class="nav-item {% if request.path|slice:":24" == "/organisations/club-menu" %}active{% endif %} ">
-                                <a class="nav-link" href="{% url "organisations:club_menu" club_id=club_staff %}">
+                                <a class="nav-link" href="{% url "organisations:club_menu" club_id=club_staff change_to_last_visited=1 %}">
                                     <i class="material-icons">storefront</i>
                                     <p>Club Admin</p>
                                 </a>

@@ -75,6 +75,11 @@ urlpatterns = [
         name="club_menu",
     ),
     path(
+        "club-menu/<int:club_id>/<int:change_to_last_visited>",
+        club_menu.club_menu,
+        name="club_menu",
+    ),
+    path(
         "admin/access-basic/delete-user/",
         organisations.views.club_menu_tabs.access.basic_delete_user_htmx,
         name="club_admin_access_basic_delete_user_htmx",

@@ -305,6 +305,8 @@ class UserAdditionalInfo(models.Model):
     email_hard_bounce_date = models.DateTimeField(null=True, blank=True)
     congress_view_filters = models.CharField(max_length=200, blank=True)
     """ user preferences for the congress listing page """
+    last_club_visited = models.IntegerField(null=True, blank=True)
+    """ used to store which club was last visited for users with access to multiple clubs """
 
     def __str__(self):
         return self.user.__str__()

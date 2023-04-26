@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 
+from accounts.models import UserAdditionalInfo
 from accounts.views.core import (
     get_user_or_unregistered_user_from_system_number,
 )
@@ -47,7 +48,7 @@ from utils.utils import cobalt_paginator
 
 
 @login_required()
-def club_menu(request, club_id):
+def club_menu(request, club_id, change_to_last_visited=False):
     """Main menu for club administrators to handle things.
 
     This uses a tabbed navigation panel with each tab providing distinct information.
@@ -60,7 +61,34 @@ def club_menu(request, club_id):
         HttpResponse - page to edit organisation
     """
 
-    club = get_object_or_404(Organisation, pk=club_id)
+    # Get additional info to read and update
+    user_additional_info, _ = UserAdditionalInfo.objects.get_or_create(
+        user=request.user
+    )
+
+    # See if we should show the last visited club
+    if change_to_last_visited and user_additional_info.last_club_visited:
+        club = get_object_or_404(
+            Organisation, pk=user_additional_info.last_club_visited
+        )
+    else:
+        club = get_object_or_404(Organisation, pk=club_id)
+        user_additional_info.last_club_visited = club_id
+        user_additional_info.save()
+
+    # Check if staff member for other clubs - get all from tree that are like "clubs.generated"
+    other_club_ids = (
+        RBACGroupRole.objects.filter(group__rbacusergroup__member=request.user)
+        .filter(group__name_qualifier__contains="clubs.generated")
+        .values("model_id")
+        .distinct()
+    )
+    if len(other_club_ids) > 1:
+        other_clubs = Organisation.objects.filter(pk__in=other_club_ids).exclude(
+            pk=club.id
+        )
+    else:
+        other_clubs = None
 
     # Check access
     allowed, role = _menu_rbac_has_access(club, request.user)
@@ -84,20 +112,6 @@ def club_menu(request, club_id):
     show_sessions = uber_admin or rbac_user_has_role(
         request.user, f"club_sessions.sessions.{club.id}.edit"
     )
-
-    # Check if staff member for other clubs - get all from tree that are like "clubs.generated"
-    other_club_ids = (
-        RBACGroupRole.objects.filter(group__rbacusergroup__member=request.user)
-        .filter(group__name_qualifier__contains="clubs.generated")
-        .values("model_id")
-        .distinct()
-    )
-    if len(other_club_ids) > 1:
-        other_clubs = Organisation.objects.filter(pk__in=other_club_ids).exclude(
-            pk=club.id
-        )
-    else:
-        other_clubs = None
 
     return render(
         request,

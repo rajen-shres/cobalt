@@ -1,7 +1,6 @@
 from django.core.exceptions import SuspiciousOperation
 from django.core.management.base import BaseCommand
 
-from tests.simple_selenium import SimpleSelenium
 from tests.simple_selenium_parser import simple_selenium_parser, command_lookup
 
 ALLOWED_PRODUCTION_SCRIPTS = ["basic_smoke_test_production.txt"]
