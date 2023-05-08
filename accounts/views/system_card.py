@@ -1,4 +1,5 @@
 import io
+import json
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, FileResponse, Http404
@@ -9,6 +10,22 @@ from reportlab.pdfgen import canvas
 
 from accounts.forms import SystemCardForm
 from accounts.models import SystemCard, User
+
+
+def _save_card_as_template(system_card, filename):
+    """Utility to save a card as a template"""
+
+    with open(f"accounts/system_card_templates/{filename}", "w") as outfile:
+
+        # Grab values for system_card
+        for name in dir(system_card):
+            if name[0] != "_":
+                try:
+                    val = getattr(system_card, name)
+                    if type(val) in [str, int, bool, User]:
+                        outfile.write(f"{name}:{val}\n")
+                except AttributeError:
+                    pass
 
 
 def system_card_view(request, user_id, system_card_name):
@@ -273,7 +290,11 @@ def system_card_edit(request, system_card_name):
     if request.method == "POST":
         form = SystemCardForm(request.POST)
         if not form.is_valid():
-            return HttpResponse(f"Errors on Card - not saved<br>{form.errors}")
+            return render(
+                request,
+                "accounts/system_card/system_card_save.html",
+                {"message": f"Errors on Card - not saved<br>{form.errors}"},
+            )
 
         # Create a new system card each time we save it so user can go back if they mess it up
         new_system_card = form.save(commit=False)
@@ -281,7 +302,11 @@ def system_card_edit(request, system_card_name):
         new_system_card.card_name = request.POST.get("card_new_name")
 
         new_system_card.save()
-        response = HttpResponse("Card saved")
+        response = render(
+            request,
+            "accounts/system_card/system_card_save.html",
+            {"message": "Card saved"},
+        )
 
         if system_card.card_name != new_system_card.card_name:
             # Tell htmx to redirect as we have changed the URL
@@ -289,6 +314,8 @@ def system_card_edit(request, system_card_name):
                 "accounts:system_card_edit",
                 kwargs={"system_card_name": new_system_card.card_name},
             )
+
+        _save_card_as_template(system_card, "standard_american.txt")
 
         return response
 

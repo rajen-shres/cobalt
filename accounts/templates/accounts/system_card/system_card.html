@@ -62,19 +62,23 @@
     {% if editable %}
         </div>
         <div class="col-1" style="z-index: 10">
-            <div class="save-button">
+            <div class="save-button mt-5">
                 <!-- SAVE BUTTON STAYS IN PLACE AS WE SCROLL -->
-                <div class="row">
+                <div class="col-12 text-center">
                     <a target="_blank" href="{% url "accounts:create_pdf_system_card" system_card_name=system_card.card_name %}" class="btn btn-sm btn-info mx-auto">Print</a>
                 </div>
-                <button class="btn btn-success btn-sm">Save</button>
-                <div id="save_msg"></div>
-                <a
-                    class="btn btn-sm btn-primary"
-                    href="{% url "accounts:system_card_view" user_id=user.id system_card_name=system_card.card_name %}"
-                    target="_blank"
-                >View
-                </a>
+                <div class="col-12 text-center">
+                    <button class="btn btn-success btn-sm">Save</button>
+                </div>
+                <div class="col-12" id="save_msg"></div>
+                <div class="col-12 text-center">
+                    <a
+                        class="btn btn-sm btn-primary"
+                        href="{% url "accounts:system_card_view" user_id=user.id system_card_name=system_card.card_name %}"
+                        target="_blank"
+                    >View
+                    </a>
+                </div>
             </div>
         </div>
         </div>
@@ -90,7 +94,7 @@
     <script>
         $(document).ready( function () {
 
-            // If we get !c change that to club symbol, same of other symbols
+            // If we get !c change that to club symbol, same for other symbols
             $(":input").on("keyup change", function(e) {
                 let this_string = $(this).val();
                 this_string = this_string.replace("!c", "♣")
