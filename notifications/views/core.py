@@ -421,16 +421,20 @@ def send_cobalt_bulk_notifications(
     # Go through and try to send the messages
     for item in msg_list:
         system_number, msg = item
+        # Reformat string
+        msg = msg.replace("<br>", "\n")
 
         fcm_device_list = fcm_lookup.get(system_number)
         if fcm_device_list:
             # If it works for any device, count that as successful
             worked = False
 
-            for fcm_device in fcm_device_list:
-                # Reformat string
-                msg = msg.replace("<br>", "\n")
-                if send_fcm_message(fcm_device, msg, admin, header):
+            for index, fcm_device in enumerate(fcm_device_list):
+                # Only add the first message to the database
+                add_message_to_database = index == 0
+                if send_fcm_message(
+                    fcm_device, msg, admin, header, add_message_to_database
+                ):
                     worked = True
 
             if worked:
@@ -714,19 +718,23 @@ def send_test_fcm_message(request, fcm_device_id):
     return HttpResponse("Device not found or access denied")
 
 
-def send_fcm_message(fcm_device, msg, admin=None, header=None):
+def send_fcm_message(
+    fcm_device, msg, admin=None, header=None, add_message_to_database=True
+):
     """Send a message to a users registered FCM device"""
 
     if not admin:
         admin = User.objects.get(pk=RBAC_EVERYONE)
 
-    RealtimeNotification(
-        member=fcm_device.user,
-        admin=admin,
-        msg=msg,
-        header=header,
-        fcm_device=fcm_device,
-    ).save()
+    if add_message_to_database:
+        # For people with multiple devices we only add the message to the database once
+        RealtimeNotification(
+            member=fcm_device.user,
+            admin=admin,
+            msg=msg,
+            header=header,
+            fcm_device=fcm_device,
+        ).save()
 
     msg = Message(
         notification=Notification(
