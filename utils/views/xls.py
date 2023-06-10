@@ -41,6 +41,20 @@ class XLSXFormat:
         "bg_color": bs_info,
         "font_color": bs_white,
     }
+    h1_primary = {
+        "bold": True,
+        "font_size": 50,
+        "center_across": True,
+        "bg_color": bs_primary,
+        "font_color": bs_white,
+    }
+    h1_warning = {
+        "bold": True,
+        "font_size": 50,
+        "center_across": True,
+        "bg_color": bs_warning,
+        "font_color": bs_white,
+    }
     h2 = {
         "font_size": 20,
         "center_across": True,
@@ -66,6 +80,13 @@ class XLSXFormat:
         "bg_color": bs_primary,
         "font_color": bs_white,
     }
+    h3_warning = {
+        "italic": True,
+        "font_size": 15,
+        "center_across": True,
+        "bg_color": bs_warning,
+        "font_color": bs_white,
+    }
     h3_success = {
         "italic": True,
         "font_size": 15,
@@ -78,6 +99,13 @@ class XLSXFormat:
         "font_size": 15,
         "center_across": True,
         "bg_color": bs_info,
+        "font_color": bs_white,
+    }
+    h3_primary = {
+        "italic": True,
+        "font_size": 15,
+        "center_across": True,
+        "bg_color": bs_primary,
         "font_color": bs_white,
     }
     summary_heading = {
@@ -122,6 +150,12 @@ class XLSXFormat:
         "num_format": "$#,##0.00",
     }
     detail_row_free = {"font_size": 15, "align": "left", "bg_color": bs_dark_grey}
+    warning_message = {
+        "font_size": 18,
+        "align": "left",
+        "bg_color": bs_dark_grey,
+        "bold": True,
+    }
     info = {"italic": True, "font_size": 15, "align": "left"}
     section = {
         "bold": True,

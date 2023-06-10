@@ -358,7 +358,7 @@ def organisation_transactions_csv_download(request, club, start_date, end_date):
 
 
 def _organisation_transactions_xls_header(
-    request, club, sheet, formats, title, subtitle, width
+    request, club, sheet, formats, title, subtitle, subtitle_style, width
 ):
     """Add a title to a sheet"""
 
@@ -371,7 +371,7 @@ def _organisation_transactions_xls_header(
     sheet.merge_range(
         5, 0, 5, width, f"Downloaded by {request.user.full_name}", formats.h3_info
     )
-    sheet.merge_range(6, 0, 9, width, subtitle, formats.h1_success)
+    sheet.merge_range(6, 0, 9, width, subtitle, subtitle_style)
 
     # Buffer
     sheet.merge_range(10, 0, 10, width, "")
@@ -389,6 +389,7 @@ def _organisation_transactions_xls_download_details(
         formats,
         title=f"Download for {start_date} to {end_date}",
         subtitle="Transactions",
+        subtitle_style=formats.h1_success,
         width=11,
     )
 
@@ -452,13 +453,14 @@ def _organisation_transactions_xls_download_sessions(
         club,
         sessions_sheet,
         formats,
-        f"Download for {start_date} to {end_date}",
-        "Sessions",
-        11,
+        title=f"Download for {start_date} to {end_date}",
+        subtitle="Sessions",
+        subtitle_style=formats.h1_primary,
+        width=3,
     )
 
     # Now do data headings
-    sessions_sheet.write(11, 0, "First Payment Date/Time", formats.detail_row_title)
+    sessions_sheet.write(11, 0, "Session Date", formats.detail_row_title)
     sessions_sheet.set_column("A:A", 35)
     sessions_sheet.write(11, 1, "Session ID", formats.detail_row_title_number)
     sessions_sheet.set_column("B:B", 20)
@@ -467,45 +469,213 @@ def _organisation_transactions_xls_download_sessions(
     sessions_sheet.write(11, 3, "Amount", formats.detail_row_title_number)
     sessions_sheet.set_column("D:D", 15)
 
-    # Convert dates to date times
-    start_datetime, end_datetime = _start_end_date_to_datetime(start_date, end_date)
-
-    # run query
-    session_summaries = (
-        OrganisationTransaction.objects.filter(organisation=club)
-        .filter(created_date__gte=start_datetime, created_date__lte=end_datetime)
-        .exclude(club_session_id=None)
-        .order_by("-club_session_id")
-        .values("description", "club_session_id")
-        .annotate(amount=Sum("amount"))
-        .annotate(created_date=Min("created_date"))
-    )
-
     sessions_sheet.write(
         10,
         0,
         "This has data for session within the date range. Payments may have occurred outside the date range.",
-        formats.h3_success,
+        formats.h3_primary,
     )
 
-    print(session_summaries)
+    # Get sessions in this date range
+    sessions_in_range = (
+        Session.objects.filter(session_type__organisation=club)
+        .filter(session_date__gte=start_date, session_date__lte=end_date)
+        .order_by("session_date")
+    )
 
-    for row_no, session_summary in enumerate(session_summaries, start=12):
+    # Get ids of sessions
+    sessions_list = sessions_in_range.values_list("id", flat=True)
+
+    # Get payments
+    session_payments = (
+        OrganisationTransaction.objects.filter(organisation=club)
+        .filter(club_session_id__in=sessions_list)
+        .values("club_session_id")
+        .annotate(amount=Sum("amount"))
+    )
+
+    # map payments into a dictionary
+    payments_dict = {}
+    for session_payment in session_payments:
+        payments_dict[session_payment["club_session_id"]] = session_payment["amount"]
+
+    for row_no, session_in_range in enumerate(sessions_in_range, start=12):
+
+        if session_in_range.id in payments_dict:
+            amount = payments_dict[session_in_range.id]
+        else:
+            amount = "No Payments"
+
         sessions_sheet.write(
+            row_no, 0, f"{session_in_range.session_date}", formats.detail_row_data
+        )
+        sessions_sheet.write(row_no, 1, session_in_range.id, formats.detail_row_number)
+        sessions_sheet.write(
+            row_no, 2, session_in_range.description, formats.detail_row_data
+        )
+        sessions_sheet.write(row_no, 3, amount, formats.detail_row_money)
+
+
+def event_payments_summary_by_date_range(club, start_date, end_date):
+    """return summary of event payments within a date range.
+
+    returns a dictionary with key: event_id
+                              values: dictionary
+                                      congress_name
+                                      event_name
+                                      start_date
+                                      amount
+                                      amount_outside_range (payments for event not in date range)
+
+    """
+
+    # Get payments in range and summarise by event id
+    start_datetime, end_datetime = _start_end_date_to_datetime(start_date, end_date)
+
+    event_payments = (
+        OrganisationTransaction.objects.filter(organisation=club)
+        .filter(event_id__isnull=False)
+        .filter(created_date__gte=start_datetime, created_date__lte=end_datetime)
+        .values("event_id")
+        .annotate(amount=Sum("amount"))
+    )
+
+    # Get event ids. Need new query as annotate and distinct not yet implemented
+    event_id_list = (
+        OrganisationTransaction.objects.filter(organisation=club)
+        .filter(event_id__isnull=False)
+        .filter(created_date__gte=start_datetime, created_date__lte=end_datetime)
+        .distinct("event_id")
+        .values_list("event_id", flat=True)
+    )
+
+    # Get event names and start date
+    event_names = (
+        Event.objects.filter(id__in=event_id_list)
+        .select_related("congress")
+        .values("id", "event_name", "congress__name", "denormalised_start_date")
+    )
+
+    # Turn into a dictionary
+    event_names_dict = {}
+    for event_name in event_names:
+        event_names_dict[event_name["id"]] = {
+            "congress_name": event_name["congress__name"],
+            "event_name": event_name["event_name"],
+            "start_date": event_name["denormalised_start_date"],
+        }
+
+    # We have payments within the date range, we also want total payments for events to highlight anything missed
+    total_event_payments = (
+        OrganisationTransaction.objects.filter(organisation=club)
+        .filter(event_id__in=event_id_list)
+        .values("event_id")
+        .annotate(amount=Sum("amount"))
+    )
+
+    # Turn into a dictionary
+    total_event_payments_dict = {}
+    for total_event_payment in total_event_payments:
+        total_event_payments_dict[
+            total_event_payment["event_id"]
+        ] = total_event_payment["amount"]
+
+    # Now combine it all
+    event_payment_dict = {}
+    for event_payment in event_payments:
+        this_id = event_payment["event_id"]
+        event_payment_dict[this_id] = {
+            "id": this_id,
+            "amount": event_payment["amount"],
+            "congress_name": event_names_dict[this_id]["congress_name"],
+            "event_name": event_names_dict[this_id]["event_name"],
+            "start_date": event_names_dict[this_id]["start_date"],
+            "amount_outside_range": total_event_payments_dict[this_id]
+            - event_payment["amount"],
+        }
+
+    # We can't select on start date order as we use an annotation, so sort it now by date
+    sorted_index = sorted(
+        event_payment_dict, key=lambda x: event_payment_dict[x]["start_date"]
+    )
+
+    sorted_event_payment_dict = {}
+    for index in sorted_index:
+        sorted_event_payment_dict[index] = event_payment_dict[index]
+
+    return sorted_event_payment_dict
+
+
+def _organisation_transactions_xls_download_events(
+    formats, events_sheet, request, club, start_date, end_date
+):
+    """sub of organisation_transactions_xls_download to handle the events tab"""
+
+    _organisation_transactions_xls_header(
+        request,
+        club,
+        events_sheet,
+        formats,
+        title=f"Download for {start_date} to {end_date}",
+        subtitle="Events",
+        subtitle_style=formats.h1_warning,
+        width=4,
+    )
+
+    # Now do data headings
+    events_sheet.write(11, 0, "Event Start Date", formats.detail_row_title)
+    events_sheet.set_column("A:A", 35)
+    events_sheet.write(11, 1, "Event ID", formats.detail_row_title_number)
+    events_sheet.set_column("B:B", 20)
+    events_sheet.write(11, 2, "Congress", formats.detail_row_title)
+    events_sheet.set_column("C:C", 40)
+    events_sheet.write(11, 3, "Event Name", formats.detail_row_title)
+    events_sheet.set_column("D:D", 40)
+    events_sheet.write(11, 4, "Amount", formats.detail_row_title_number)
+    events_sheet.set_column("E:E", 15)
+
+    # Get data
+    events_with_payments = event_payments_summary_by_date_range(
+        club, start_date, end_date
+    )
+
+    row_no = 12
+    for event_key in events_with_payments:
+
+        events_sheet.write(
             row_no,
             0,
-            _format_date_helper(session_summary["created_date"]),
+            f"{events_with_payments[event_key]['start_date']}",
             formats.detail_row_data,
         )
-        sessions_sheet.write(
-            row_no, 1, session_summary["club_session_id"], formats.detail_row_number
+        events_sheet.write(
+            row_no, 1, events_with_payments[event_key]["id"], formats.detail_row_number
         )
-        sessions_sheet.write(
-            row_no, 2, session_summary["amount"], formats.detail_row_data
+        events_sheet.write(
+            row_no,
+            2,
+            events_with_payments[event_key]["congress_name"],
+            formats.detail_row_data,
         )
-        sessions_sheet.write(
-            row_no, 3, session_summary["amount"], formats.detail_row_money
+        events_sheet.write(
+            row_no,
+            3,
+            events_with_payments[event_key]["event_name"],
+            formats.detail_row_data,
         )
+        events_sheet.write(
+            row_no,
+            4,
+            events_with_payments[event_key]["amount"],
+            formats.detail_row_money,
+        )
+
+        if events_with_payments[event_key]["amount_outside_range"] != 0:
+            msg = f"There are payments of {GLOBAL_CURRENCY_SYMBOL}{events_with_payments[event_key]['amount_outside_range']} that are outside the selected date range."
+            events_sheet.write(row_no, 5, msg, formats.warning_message)
+            events_sheet.set_column("F:F", 100)
+
+        row_no += 1
 
 
 def organisation_transactions_xls_download(request, club, start_date, end_date):
@@ -521,7 +691,7 @@ def organisation_transactions_xls_download(request, club, start_date, end_date):
     workbook = xlsxwriter.Workbook(response)
     details_sheet = workbook.add_worksheet("Transactions")
     sessions_sheet = workbook.add_worksheet("Sessions")
-    # events_sheet = workbook.add_worksheet("Events")
+    events_sheet = workbook.add_worksheet("Events")
 
     # Create styles
     formats = XLSXStyles(workbook)
@@ -534,6 +704,11 @@ def organisation_transactions_xls_download(request, club, start_date, end_date):
     # Sessions tab
     _organisation_transactions_xls_download_sessions(
         formats, sessions_sheet, request, club, start_date, end_date
+    )
+
+    # Events tab
+    _organisation_transactions_xls_download_events(
+        formats, events_sheet, request, club, start_date, end_date
     )
 
     workbook.close()
