@@ -640,6 +640,11 @@ urlpatterns = [
         name="transactions_htmx",
     ),
     path(
+        "finance/csv-download",
+        organisations.views.club_menu_tabs.finance.csv_download_htmx,
+        name="csv_download_htmx",
+    ),
+    path(
         "finance/pay-member",
         organisations.views.club_menu_tabs.finance.pay_member_htmx,
         name="pay_member_htmx",

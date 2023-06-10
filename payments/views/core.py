@@ -37,6 +37,7 @@ import stripe
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum, F
+from django.db.transaction import atomic
 from django.http import HttpResponse, JsonResponse
 from django.template.loader import get_template
 from django.urls import reverse
@@ -68,6 +69,8 @@ from payments.models import (
     PaymentStatic,
 )
 from payments.views.payments_api import notify_member_to_member_transfer
+from utils.models import Lock
+from utils.views.cobalt_lock import CobaltLock
 
 TZ = pytz.timezone(TIME_ZONE)
 
@@ -771,6 +774,7 @@ def update_account(
     other_member=None,
     organisation=None,
     session=None,
+    debug=None,
 ):
     """Function to update a customer account by adding a transaction.
 
@@ -788,25 +792,40 @@ def update_account(
         MemberTransaction
 
     """
-    # Get new balance
-    balance = get_balance(member) + float(amount)
+    # Lock so nobody else can update at the same time
 
-    # Create new MemberTransaction entry
-    act = MemberTransaction()
-    act.member = member
-    act.amount = amount
-    act.stripe_transaction = stripe_transaction
-    act.other_member = other_member
-    act.organisation = organisation
-    act.balance = balance
-    act.description = description
-    act.type = payment_type
-    if session:
-        act.club_session_id = session.id
+    with atomic():
+        print(f"[{debug}] getting lock...")
+        lock2 = Lock.objects.all()
+        print(f"[{debug}] Checking DB. Found {lock2}")
 
-    act.save()
+        lock = (
+            Lock.objects.select_for_update().filter(topic="Account Update Lock").first()
+        )
 
-    return act
+        print(f"[{debug}] lock id is {lock}")
+        print(f"[{debug}] got lock")
+
+        # Get new balance
+        balance = get_balance(member) + float(amount)
+
+        # Create new MemberTransaction entry
+        act = MemberTransaction()
+        act.member = member
+        act.amount = amount
+        act.stripe_transaction = stripe_transaction
+        act.other_member = other_member
+        act.organisation = organisation
+        act.balance = balance
+        act.description = description
+        act.type = payment_type
+        if session:
+            act.club_session_id = session.id
+
+        act.save()
+
+        print(f"[{debug}] finished")
+        return act
 
 
 #########################

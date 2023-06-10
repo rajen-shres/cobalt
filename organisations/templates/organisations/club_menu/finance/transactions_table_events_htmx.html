@@ -1,0 +1,46 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# table view for events                                                  #}
+{#                                                                        #}
+{# sub of transactions_htmx.html                                          #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load humanize %}
+{% load cobalt_tags %}
+{% load static %}
+
+<table class="table table-hover table-condensed">
+    <thead>
+        <tr>
+            <th></th>
+            <th class="text-left text-primary">First Payment Date</th>
+            <th class="text-left text-primary">Congress - Event</th>
+            <th class="text-right text-primary cobalt-no-wrap">Amount({{ GLOBAL_CURRENCY_SYMBOL }})</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for thing in things %}
+
+            <!-- DETAILS FOR EVENTS -->
+            <tr>
+
+                <td><i class="material-icons text-primary">info</i></td>
+                <td class="text-left cobalt-no-wrap">{{ thing.created_date|cobalt_nice_date }}</td>
+                <td class="text-left">
+                    <a href="{% url "events:admin_event_summary" event_id=thing.event_id %}" target="_blank">{{ thing.description }}</a>
+                </td>
+                <td class="text-right font-weight-bold">{{ thing.amount|cobalt_currency_colour }}</td>
+            </tr>
+
+            <!-- HIDDEN ROW FOR DETAILS WHEN CLICKED ON -->
+            <tr class="trans_detail_class" id="session_dets_{{ thing.club_session_id }}"
+                _="on click put '' into me"
+            >
+            </tr>
+
+        {% endfor %}
+    </tbody>
+</table>
+
+
+

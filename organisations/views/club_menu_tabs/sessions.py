@@ -120,6 +120,7 @@ def _cancel_and_refund_bridge_credits_and_ious(request, payments, ious, club, se
             amount=-payment.fee,
             description=f"Refund for cancelled session {session.description} by {request.user}",
             payment_type="Refund",
+            session=session,
         )
 
         update_account(

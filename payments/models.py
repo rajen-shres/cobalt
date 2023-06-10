@@ -211,6 +211,9 @@ class AbstractTransaction(models.Model):
     # We can't use a foreign key as there is a circular import issue
     club_session_id = models.IntegerField(blank=True, null=True)
 
+    # Event id is needed for summarising by event
+    event_id = models.IntegerField(blank=True, null=True)
+
     #    session = models.ForeignKey(Session, blank=True, null=True, on_delete=models.PROTECT)
 
     class Meta:  # pylint: disable=too-few-public-methods,missing-class-docstring

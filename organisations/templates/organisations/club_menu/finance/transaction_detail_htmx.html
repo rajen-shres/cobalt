@@ -72,6 +72,12 @@
                                 <td class="text-left">{{ trans.club_session_id }}</td>
                             </tr>
                         {% endif %}
+                        {% if trans.event_id %}
+                            <tr>
+                                <td class="font-weight-bold text-left">Event ID:</td>
+                                <td class="text-left"><a href="{% url "events:admin_event_summary" event_id=trans.event_id %}" target="_blank">{{ trans.event_id }}</a></td>
+                            </tr>
+                        {% endif %}
 
                     </tbody>
                 </table>

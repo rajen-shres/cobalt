@@ -1,0 +1,49 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# CSV download menu page                                                 #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+<button
+    hx-post="{% url 'organisations:transactions_htmx' %}"
+    hx-target="#id_panel_finance"
+    hx-vars="club_id: {{ club.id }}"
+    class="btn btn-sm btn-outline-secondary"
+>
+    << Back
+</button>
+
+<h2>CSV Download</h2>
+
+<div class="container mx-auto">
+
+    <form action="{% url 'organisations:csv_download_htmx' %}" method="post">
+
+        {% csrf_token %}
+
+        <input type="hidden" name="club_id" value="{{ club.id }}">
+
+        <div class="row">
+            <label class="mx-5">
+                Start Date
+                <input type="date" name="start_date" class="form-control" required>
+            </label>
+            <label class="mx-5">
+                End Date
+                <input type="date" name="end_date" class="form-control" required>
+            </label>
+        </div>
+
+        <div class="row mt-5 mx-5">
+            <button class="btn btn-sm btn-primary" name="download-csv">
+                CSV Download
+            </button>
+
+            <button class="btn btn-sm btn-success" name="download-xls">
+                Excel Download
+            </button>
+        </div>
+
+    </form>
+
+</div>

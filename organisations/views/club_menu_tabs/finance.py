@@ -7,6 +7,7 @@ from django.urls import reverse
 from accounts.models import User
 from club_sessions.models import Session
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS
+from events.models import Event
 from notifications.views.core import send_cobalt_email_to_system_number
 from organisations.decorators import check_club_menu_access
 from organisations.models import ClubLog, MemberMembershipType, Organisation
@@ -17,6 +18,10 @@ from payments.views.core import (
     update_account,
     update_organisation,
     org_balance,
+)
+from payments.views.orgs import (
+    organisation_transactions_csv_download,
+    organisation_transactions_xls_download,
 )
 from payments.views.payments_api import payment_api_batch
 from rbac.core import (
@@ -65,26 +70,33 @@ def get_org_balance_htmx(request, club):
 def transactions_htmx(request, club):
     """handle the transaction listing part of the finance tab"""
 
-    summarise = request.POST.get("summarise") == "on"
-    if not summarise:
-        summarise = request.GET.get("summarise") == "on"
+    # Get view type - default to all
+    view_type = request.POST.get("view_type", "all")
 
-    # Set htmx paginate value too
-    searchparams = "summarise=on&" if summarise else ""
+    if view_type == "session":
+        things = _summary_by_sessions(request, club)
 
-    # We want to summarise sessions if requested
-    if not summarise:
+    elif view_type == "event":
+        things = _summary_by_events(request, club)
+
+    elif view_type == "other":
+        transactions = (
+            OrganisationTransaction.objects.filter(organisation=club)
+            .filter(event_id__isnull=True)
+            .filter(club_session_id__isnull=True)
+            .order_by("-pk")
+        )
+        things = cobalt_paginator(request, transactions)
+
+    else:  # all
         transactions = OrganisationTransaction.objects.filter(
             organisation=club
         ).order_by("-pk")
         things = cobalt_paginator(request, transactions)
 
-    else:
-        things = _transactions_with_sessions(request, club)
-
     hx_post = reverse("organisations:transactions_htmx")
     hx_target = "#id_finance_transactions"
-    hx_vars = f"club_id: {club.id}"
+    hx_vars = f"club_id: {club.id}, view_type: '{view_type}'"
 
     return render(
         request,
@@ -95,24 +107,15 @@ def transactions_htmx(request, club):
             "hx_post": hx_post,
             "hx_target": hx_target,
             "hx_vars": hx_vars,
-            "searchparams": searchparams,
-            "summarise": summarise,
+            "view_type": view_type,
         },
     )
 
 
-def _transactions_with_sessions(request, club):
-    """handle mixing summary lines for sessions with general transactions. Instead of a line for each user, we want
-    to have a summary of the session
-    """
+def _summary_by_sessions(request, club):
+    """Summarise by session only"""
 
-    # First get transactions without sessions and create this page
-    no_session_transactions = OrganisationTransaction.objects.filter(
-        organisation=club, club_session_id=None
-    ).order_by("-pk")
-    no_session_things = cobalt_paginator(request, no_session_transactions)
-
-    # Now get the session transactions on their own and paginate
+    # Get the session transactions on their own and paginate
     session_transactions = (
         OrganisationTransaction.objects.filter(organisation=club)
         .exclude(club_session_id=None)
@@ -122,56 +125,44 @@ def _transactions_with_sessions(request, club):
         .annotate(created_date=Min("created_date"))
     )
 
-    session_things = cobalt_paginator(request, session_transactions)
+    return cobalt_paginator(request, session_transactions)
 
-    # We might not get any more sessions
-    print("session_things", session_things)
 
-    # Now we need to combine two quite different things with common fields
+def _summary_by_events(request, club):
+    """Summarise by event only"""
 
-    # start with no_session_things
-    things = [
-        {
-            "pk": no_session_thing.pk,
-            "id": no_session_thing.pk,
-            "created_date": no_session_thing.created_date,
-            "description": no_session_thing.description,
-            "member": no_session_thing.member,
-            "other_organisation": no_session_thing.other_organisation,
-            "amount": no_session_thing.amount,
-            "balance": no_session_thing.balance,
-        }
-        for no_session_thing in no_session_things
-    ]
+    # TODO: This loads all events for an organisation since the start of time. Probably okay for many years, but
+    # may need fixed later.
 
-    # add in session details
-    for session_thing in session_things:
-        thing = {
-            "description": session_thing["description"],
-            "amount": session_thing["amount"],
-            "created_date": session_thing["created_date"],
-            "member": "--Session--",
-            "club_session_id": session_thing["club_session_id"],
-        }
-        things.append(thing)
-
-    print("things", things)
-
-    # Sort by date
-    things.sort(key=lambda x: x["created_date"], reverse=True)
-
-    # Now we want to change it to a paginating object again
-    page_things = cobalt_paginator(request, things)
-
-    print("page things", page_things)
-
-    # TODO: Check if this actually works
-    page_things.has_previous = (
-        no_session_things.has_previous or session_things.has_previous
+    # Get the event transactions on their own and paginate
+    event_transactions = (
+        OrganisationTransaction.objects.filter(organisation=club)
+        .exclude(event_id=None)
+        .order_by("-event_id")
+        .values("event_id")
+        .annotate(amount=Sum("amount"))
+        .annotate(created_date=Min("created_date"))
     )
-    page_things.has_next = no_session_things.has_next or session_things.has_next
 
-    return page_things
+    # Get event names
+    event_ids = event_transactions.values_list("event_id")
+    event_names = Event.objects.filter(id__in=event_ids).values(
+        "id", "congress__name", "event_name"
+    )
+
+    event_names_dict = {}
+    for event_name in event_names:
+        event_names_dict[
+            event_name["id"]
+        ] = f"{event_name['congress__name']} - {event_name['event_name']}"
+
+    # Augment data
+    for event_transaction in event_transactions:
+        event_transaction["description"] = event_names_dict[
+            event_transaction["event_id"]
+        ]
+
+    return cobalt_paginator(request, event_transactions)
 
 
 def pay_member_from_organisation(request, club, amount, description, member):
@@ -504,4 +495,34 @@ def transaction_session_details_htmx(request, club):
             "club_session": club_session,
             "session_transactions": session_transactions,
         },
+    )
+
+
+def _download_xls(request, club, start_date, end_date):
+    """download statement data in XLS format"""
+
+    return HttpResponse("XLS download")
+
+
+@check_club_menu_access(check_payments=True)
+def csv_download_htmx(request, club):
+    """tab for CSV downloads"""
+
+    start_date = request.POST.get("start_date")
+    end_date = request.POST.get("end_date")
+
+    if "download-csv" in request.POST:
+        return organisation_transactions_csv_download(
+            request, club, start_date, end_date
+        )
+
+    if "download-xls" in request.POST:
+        return organisation_transactions_xls_download(
+            request, club, start_date, end_date
+        )
+
+    return render(
+        request,
+        "organisations/club_menu/finance/csv_download_htmx.html",
+        {"club": club},
     )

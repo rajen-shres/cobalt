@@ -5,96 +5,56 @@
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
+{% load static %}
 
 <!-- CARD FOR TRANSACTIONS -->
 <div class="card">
 
     <!-- CARD HEADER -->
-    <div class="card-header card-header-info">
+    <div class="card-header card-header-warning">
         <h2>Transactions</h2>
 
-        <!-- COMMENTED OUT AS IT DOESN"T WORK WITH SUMMARIES NOT BEING PRESENT ON PAGE 2 -->
+        <div class="col-md-4">
+            <select
+                name="view_type"
+                class="form-control bg-primary text-white"
+                hx-target="#id_finance_transactions"
+                hx-trigger="change"
+                hx-post="{% url "organisations:transactions_htmx" %}"
+                hx-vars="club_id: {{ club.id }}"
+                hx-indicator="#tran-refresh"
+            >
+                <option {% if view_type == "all" %}selected{% endif %}value="all">All Transactions</option>
+                <option {% if view_type == "session" %}selected{% endif %} value="session">Summary by Session</option>
+                <option {% if view_type == "event" %}selected{% endif %} value="event">Summary by Event</option>
+                <option {% if view_type == "other" %}selected{% endif %} value="other">Exclude Sessions and Events</option>
+            </select>
+        </div>
 
-        {#        <label class="form-check-label text-white mx-5">#}
-        {#            <input#}
-        {#                class="form-check-input"#}
-        {#                type="checkbox"#}
-        {#                name="summarise"#}
-        {#                id="id_summarise"#}
-        {#                {% if summarise %}checked="Checked"{% endif %}#}
-        {#                hx-target="#id_finance_transactions"#}
-        {#                hx-trigger="change"#}
-        {#                hx-post="{% url "organisations:transactions_htmx" %}"#}
-        {#                hx-vars="club_id: {{ club.id }}"#}
-        {#            >#}
-        {#            Summarise Sessions#}
-        {#            <span class="form-check-sign">#}
-        {#                <span class="check"></span>#}
-        {#            </span>#}
-        {#        </label>#}
     </div>
 
     <!-- CARD BODY -->
     <div class="card-body">
 
-        <div class="table-responsive">
-            <table class="table table-hover table-condensed">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th class="text-left text-primary">Date</th>
-                        <th class="text-left text-primary">Description</th>
-                        <th class="text-left text-primary">Who</th>
-                        <th class="text-right text-primary cobalt-no-wrap">Amount({{ GLOBAL_CURRENCY_SYMBOL }})</th>
-                        <th class="text-right text-primary cobalt-no-wrap">Balance({{ GLOBAL_CURRENCY_SYMBOL }})</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for thing in things %}
+        <!-- INDICATOR -->
+        <div class='justify-content-center text-center'>
+            <span class="htmx-indicator" id="tran-refresh">
+                <img style="width: 40px" src="{% static "assets/img/spinners/bars.svg" %}"/>
+            </span>
+        </div>
 
-                        {% if thing.pk %}
-                            <!-- DETAILS FOR TRANSACTIONS -->
-                            <tr
-                                _="on click put '' into .trans_detail_class"
-                                hx-post="{% url "organisations:transaction_details_htmx" %}"
-                                hx-vars="club_id:{{ club.id }}, trans_id:{{ thing.id }}"
-                                hx-target="#trans_dets_{{ thing.id }}"
-                            >
-                        {% else %}
-                            <!-- DETAILS FOR SESSIONS -->
-                            <tr
-                                _="on click put '' into .trans_detail_class"
-                                hx-post="{% url "organisations:transaction_session_details_htmx" %}"
-                                hx-vars="club_id:{{ club.id }}, club_session_id:{{ thing.club_session_id }}"
-                                hx-target="#session_dets_{{ thing.club_session_id }}"
-                            >
-                        {% endif %}
+        <div class="table-responsive" id="tran-table">
 
-                        <td><i class="material-icons text-primary">info</i></td>
-                        <td class="text-left cobalt-no-wrap">{{ thing.created_date|cobalt_nice_datetime_short }}</td>
-                        <td class="text-left">{{ thing.description }}</td>
-                        <td class="text-left">{{ thing.member|default_if_none:"" }}{{ thing.other_organisation|default_if_none:"" }}</td>
-                        <td class="text-right font-weight-bold">{{ thing.amount|cobalt_currency_colour }}</td>
-                        <td class="text-right">{{ thing.balance|cobalt_currency_colour }}</td>
-                        </tr>
-
-                        <!-- HIDDEN ROW FOR DETAILS WHEN CLICKED ON -->
-                        {% if thing.pk %}
-                            <tr class="trans_detail_class" id="trans_dets_{{ thing.id }}"
-                                _="on click put '' into me"
-                            >
-                            </tr>
-                        {% else %}
-                            <tr class="trans_detail_class" id="session_dets_{{ thing.club_session_id }}"
-                                _="on click put '' into me"
-                            >
-                            </tr>
-                        {% endif %}
-
-
-                    {% endfor %}
-                </tbody>
-            </table>
+            <!-- LOAD TABLE BASED UPON VIEW -->
+            {% if view_type == "all" or view_type == "other" %}
+                {% include "organisations/club_menu/finance/transactions_table_all_htmx.html" %}
+            {% endif %}
+            {% if view_type == "session" %}
+                {% include "organisations/club_menu/finance/transactions_table_sessions_htmx.html" %}
+            {% endif %}
+            {% if view_type == "event" %}
+                {% include "organisations/club_menu/finance/transactions_table_events_htmx.html" %}
+            {% endif %}
 
             {% include 'utils/pagination_footer_htmx.html' %}
 

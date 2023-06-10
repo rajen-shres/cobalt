@@ -45,7 +45,11 @@
                 </div>
 
                 <div class="col-6 col-md-6 col-lg-4 text-right">
-                    <a href="{% url 'payments:statement_csv_org' org_id=club.id %}">
+                    <a
+                        hx-post="{% url 'organisations:csv_download_htmx' %}"
+                        hx-target="#id_panel_finance"
+                        hx-vars="club_id: {{ club.id }}"
+                    >
                         <button class="text-center btn btn-primary float-right" style="width: 170px;">
                             <i class="material-icons">arrow_downward</i>&nbsp;CSV Download
                         </button>
