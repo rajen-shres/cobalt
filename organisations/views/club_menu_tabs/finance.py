@@ -19,10 +19,8 @@ from payments.views.core import (
     update_organisation,
     org_balance,
 )
-from payments.views.orgs import (
-    organisation_transactions_csv_download,
-    organisation_transactions_xls_download,
-)
+from payments.views.org_report.csv import organisation_transactions_csv_download
+from payments.views.org_report.xls import organisation_transactions_xls_download
 from payments.views.payments_api import payment_api_batch
 from rbac.core import (
     rbac_get_users_in_group_by_name,
