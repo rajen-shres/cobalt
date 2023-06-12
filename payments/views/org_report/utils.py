@@ -33,3 +33,15 @@ def start_end_date_to_datetime(start_date, end_date):
     end_datetime = timezone.make_aware(end_datetime_raw, TZ)
 
     return start_datetime, end_datetime
+
+
+def derive_counterparty(organisation_transaction):
+    """get the counterparty from an OrganisationTransaction object"""
+
+    # counterparty
+    if organisation_transaction.member:
+        return organisation_transaction.member.__str__()
+    elif organisation_transaction.other_organisation:
+        return organisation_transaction.other_organisation.__str__()
+    else:
+        return ""

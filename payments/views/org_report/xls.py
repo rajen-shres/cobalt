@@ -34,7 +34,7 @@ def _organisation_transactions_xls_header(
     sheet.merge_range(10, 0, 10, width, "")
 
 
-def _details_headings(details_sheet, formats):
+def _details_headings(details_sheet, formats, show_balance=True):
     """common headings for details and combined view"""
 
     # Now do data headings
@@ -60,8 +60,9 @@ def _details_headings(details_sheet, formats):
     details_sheet.set_column("J:J", 60)
     details_sheet.write(11, 10, "Amount", formats.detail_row_title_number)
     details_sheet.set_column("K:K", 15)
-    details_sheet.write(11, 11, "Balance", formats.detail_row_title_number)
-    details_sheet.set_column("L:L", 15)
+    if show_balance:
+        details_sheet.write(11, 11, "Balance", formats.detail_row_title_number)
+        details_sheet.set_column("L:L", 15)
 
 
 def _organisation_transactions_xls_download_details(
@@ -121,11 +122,11 @@ def _organisation_transactions_xls_download_combined(
         title=f"Download for {start_date} to {end_date}",
         subtitle="Combined",
         subtitle_style=formats.h1_success,
-        width=11,
+        width=10,
     )
 
     # Now do data headings
-    _details_headings(details_sheet, formats)
+    _details_headings(details_sheet, formats, show_balance=False)
 
     # Get data
     organisation_transactions = combined_view_events_sessions_other(
@@ -133,18 +134,19 @@ def _organisation_transactions_xls_download_combined(
     )
 
     # Data rows
-    for row_no, org_tran in enumerate(organisation_transactions, start=12):
+    for row_no, org_tran_tuple in enumerate(organisation_transactions, start=12):
+        org_tran = org_tran_tuple[1]
         details_sheet.write(
             row_no, 0, org_tran.get("formatted_date", ""), formats.detail_row_data
         )
         details_sheet.write(
-            row_no, 1, org_tran.get("counterparty", ""), formats.detail_row_data
+            row_no, 1, org_tran.get("counterparty", "Multiple"), formats.detail_row_data
         )
         details_sheet.write(
-            row_no, 2, org_tran.get("reference_no", ""), formats.detail_row_data
+            row_no, 2, org_tran.get("reference_no", "-"), formats.detail_row_data
         )
         details_sheet.write(
-            row_no, 3, org_tran.get("id", ""), formats.detail_row_number
+            row_no, 3, org_tran.get("id", "-"), formats.detail_row_number
         )
         details_sheet.write(
             row_no, 4, org_tran.get("type", ""), formats.detail_row_data
@@ -166,9 +168,6 @@ def _organisation_transactions_xls_download_combined(
         )
         details_sheet.write(
             row_no, 10, org_tran.get("amount", ""), formats.detail_row_money
-        )
-        details_sheet.write(
-            row_no, 11, org_tran.get("balance", ""), formats.detail_row_money
         )
 
 

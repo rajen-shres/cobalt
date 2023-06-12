@@ -1,5 +1,6 @@
 from datetime import datetime
 from django.db.models import Sum
+from django.forms import model_to_dict
 
 from club_sessions.models import Session
 from events.models import Event
@@ -8,6 +9,7 @@ from payments.views.org_report.utils import (
     start_end_date_to_datetime,
     format_date_helper,
     date_to_datetime_midnight,
+    derive_counterparty,
 )
 
 
@@ -125,16 +127,9 @@ def _organisation_transactions_by_date_range_augment_data(
         organisation_transaction.event_name = ""
 
     # counterparty
-    if organisation_transaction.member:
-        organisation_transaction.counterparty = (
-            organisation_transaction.member.__str__()
-        )
-    elif organisation_transaction.other_organisation:
-        organisation_transaction.counterparty = (
-            organisation_transaction.other_organisation.__str__()
-        )
-    else:
-        organisation_transaction.counterparty = ""
+    organisation_transaction.counterparty = derive_counterparty(
+        organisation_transaction
+    )
 
     # Date
     organisation_transaction.formatted_date = format_date_helper(
@@ -268,6 +263,7 @@ def organisation_transactions_excluding_summary_by_date_range(
         .filter(event_id__isnull=True)
         .filter(club_session_id__isnull=True)
         .filter(created_date__gte=start_datetime, created_date__lte=end_datetime)
+        .select_related("member")
         .order_by("pk")
     )
 
@@ -280,7 +276,9 @@ def combined_view_events_sessions_other(club, start_date, end_date):
 
     # Get 3 different types of data
     events = event_payments_summary_by_date_range(club, start_date, end_date)
-    sessions, _ = sessions_and_payments_by_date_range(club, start_date, end_date)
+    sessions, payments_dict = sessions_and_payments_by_date_range(
+        club, start_date, end_date
+    )
     transactions = organisation_transactions_excluding_summary_by_date_range(
         club, start_date, end_date
     )
@@ -293,8 +291,20 @@ def combined_view_events_sessions_other(club, start_date, end_date):
     # list of tuples (datetime, values). We need to change the date to a datetime as well
     events_list = []
     for index in sorted_index:
+
+        data = {
+            "formatted_date": date_to_datetime_midnight(
+                events[index]["start_date"]
+            ).__str__()[:-6],
+            "event_id": index,
+            "event_name": f"{events[index]['congress_name']} - {events[index]['event_name']}",
+            "description": f"{events[index]['congress_name']} - {events[index]['event_name']}",
+            "amount_outside_range": events[index]["amount_outside_range"],
+            "amount": events[index]["amount"],
+            "type": "Event Entry",
+        }
         events_list.append(
-            (date_to_datetime_midnight(events[index]["start_date"]), events[index])
+            (date_to_datetime_midnight(events[index]["start_date"]), data)
         )
 
     # sessions to list
@@ -303,8 +313,18 @@ def combined_view_events_sessions_other(club, start_date, end_date):
     # list of tuples (datetime, values). We need to change the date to a datetime as well
     sessions_list = []
     for index in sorted_index:
+        data = {
+            "formatted_date": date_to_datetime_midnight(
+                sessions[index].session_date
+            ).__str__()[:-6],
+            "club_session_id": index,
+            "club_session_name": sessions[index].description,
+            "description": sessions[index].description,
+            "amount": payments_dict.get(index, "No Payments"),
+            "type": "Club Payment",
+        }
         sessions_list.append(
-            (date_to_datetime_midnight(sessions[index].session_date), sessions[index])
+            (date_to_datetime_midnight(sessions[index].session_date), data)
         )
 
     # transactions to list
@@ -313,17 +333,15 @@ def combined_view_events_sessions_other(club, start_date, end_date):
     # list of tuples (datetime, values)
     transaction_list = []
     for index in sorted_index:
-        transaction_list.append((transactions[index].created_date, transactions[index]))
+        data = model_to_dict(transactions[index])
+        data["counterparty"] = derive_counterparty(transactions[index])
+        data["formatted_date"] = format_date_helper(transactions[index].created_date)
+        transaction_list.append((transactions[index].created_date, data))
 
     # combine lists
     combined_list = events_list + sessions_list + transaction_list
 
     # sort on date
     combined_list.sort(key=lambda x: x[0])
-
-    # fill in the gaps in the combined data
-    # for item in combined_list:
-    #     if "created_date" in item:
-    #         item[]
 
     return combined_list
