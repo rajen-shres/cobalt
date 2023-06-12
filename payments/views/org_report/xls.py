@@ -128,6 +128,14 @@ def _organisation_transactions_xls_download_combined(
     # Now do data headings
     _details_headings(details_sheet, formats, show_balance=False)
 
+    # write warning
+    details_sheet.write(
+        10,
+        0,
+        "Events and Sessions use their start date, payments can occur on different dates.",
+        formats.h3_primary,
+    )
+
     # Get data
     organisation_transactions = combined_view_events_sessions_other(
         club, start_date, end_date
@@ -169,6 +177,10 @@ def _organisation_transactions_xls_download_combined(
         details_sheet.write(
             row_no, 10, org_tran.get("amount", ""), formats.detail_row_money
         )
+        if "amount_outside_range" in org_tran:
+            msg = f"Payments of {GLOBAL_CURRENCY_SYMBOL}{org_tran['amount_outside_range']} were made outside the date range"
+            details_sheet.write(row_no, 11, msg, formats.warning_message)
+            details_sheet.set_column("L:L", 100)
 
 
 def _organisation_transactions_xls_download_sessions(
