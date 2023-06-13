@@ -774,7 +774,6 @@ def update_account(
     other_member=None,
     organisation=None,
     session=None,
-    debug=None,
 ):
     """Function to update a customer account by adding a transaction.
 
@@ -792,40 +791,25 @@ def update_account(
         MemberTransaction
 
     """
-    # Lock so nobody else can update at the same time
+    # Get new balance
+    balance = get_balance(member) + float(amount)
 
-    with atomic():
-        print(f"[{debug}] getting lock...")
-        lock2 = Lock.objects.all()
-        print(f"[{debug}] Checking DB. Found {lock2}")
+    # Create new MemberTransaction entry
+    act = MemberTransaction()
+    act.member = member
+    act.amount = amount
+    act.stripe_transaction = stripe_transaction
+    act.other_member = other_member
+    act.organisation = organisation
+    act.balance = balance
+    act.description = description
+    act.type = payment_type
+    if session:
+        act.club_session_id = session.id
 
-        lock = (
-            Lock.objects.select_for_update().filter(topic="Account Update Lock").first()
-        )
+    act.save()
 
-        print(f"[{debug}] lock id is {lock}")
-        print(f"[{debug}] got lock")
-
-        # Get new balance
-        balance = get_balance(member) + float(amount)
-
-        # Create new MemberTransaction entry
-        act = MemberTransaction()
-        act.member = member
-        act.amount = amount
-        act.stripe_transaction = stripe_transaction
-        act.other_member = other_member
-        act.organisation = organisation
-        act.balance = balance
-        act.description = description
-        act.type = payment_type
-        if session:
-            act.club_session_id = session.id
-
-        act.save()
-
-        print(f"[{debug}] finished")
-        return act
+    return act
 
 
 #########################
