@@ -28,8 +28,6 @@ class CobaltLock:
 
         lock = Lock.objects.select_for_update().filter(topic=self.topic).first()
 
-        print(f"inside. After lock. {lock}")
-
         if lock:  # Lock found
 
             if lock.lock_open_time and lock.lock_open_time > timezone.now():
