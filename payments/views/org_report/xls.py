@@ -66,7 +66,7 @@ def _details_headings(details_sheet, formats, show_balance=True):
 
 
 def _organisation_transactions_xls_download_details(
-    formats, details_sheet, request, club, start_date, end_date
+    formats, details_sheet, request, club, start_date, end_date, description_search=None
 ):
     """sub of organisation_transactions_xls_download to handle the details tab"""
 
@@ -84,9 +84,18 @@ def _organisation_transactions_xls_download_details(
     # Now do data headings
     _details_headings(details_sheet, formats)
 
+    # write warning
+    if description_search:
+        details_sheet.write(
+            10,
+            0,
+            f"Description search is '{description_search}'. This only applies to this tab.",
+            formats.h3_primary,
+        )
+
     # Get data
     organisation_transactions = organisation_transactions_by_date_range(
-        club, start_date, end_date
+        club, start_date, end_date, description_search
     )
 
     # Data rows
@@ -301,7 +310,9 @@ def _organisation_transactions_xls_download_events(
             sessions_sheet.set_column("F:F", 100)
 
 
-def organisation_transactions_xls_download(request, club, start_date, end_date):
+def organisation_transactions_xls_download(
+    request, club, start_date, end_date, description_search=None
+):
     """Download XLS File of org transactions"""
 
     combined_view_events_sessions_other(club, start_date, end_date)

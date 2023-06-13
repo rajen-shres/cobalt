@@ -20,6 +20,10 @@ from payments.views.core import (
     org_balance,
 )
 from payments.views.org_report.csv import organisation_transactions_csv_download
+from payments.views.org_report.data import (
+    organisation_transactions_by_date_range,
+    sessions_and_payments_by_date_range,
+)
 from payments.views.org_report.xls import organisation_transactions_xls_download
 from payments.views.payments_api import payment_api_batch
 from rbac.core import (
@@ -503,24 +507,95 @@ def _download_xls(request, club, start_date, end_date):
 
 
 @check_club_menu_access(check_payments=True)
-def csv_download_htmx(request, club):
-    """tab for CSV downloads"""
+def transaction_filter_htmx(request, club):
+    """tab for CSV downloads and filtered view"""
 
     start_date = request.POST.get("start_date")
     end_date = request.POST.get("end_date")
+    description_search = request.POST.get("description_search")
+    view_type_selector = request.POST.get("view_type_selector")
 
     if "download-csv" in request.POST:
         return organisation_transactions_csv_download(
-            request, club, start_date, end_date
+            request, club, start_date, end_date, description_search
         )
 
     if "download-xls" in request.POST:
         return organisation_transactions_xls_download(
-            request, club, start_date, end_date
+            request, club, start_date, end_date, description_search
+        )
+
+    if "show_filtered_data" in request.POST:
+        return organisation_transactions_filtered_data(
+            request, club, start_date, end_date, description_search, view_type_selector
         )
 
     return render(
         request,
-        "organisations/club_menu/finance/csv_download_htmx.html",
+        "organisations/club_menu/finance/transaction_filter_htmx.html",
         {"club": club},
     )
+
+
+def organisation_transactions_filtered_data(
+    request, club, start_date, end_date, description_search, view_type_selector
+):
+    """show filtered data (date and search) on screen, not as CSV/XLS download"""
+
+    # set up data for pagination footer
+    hx_post = reverse("organisations:transaction_filter_htmx")
+    hx_target = "#id_filtered_transactions"
+    hx_vars = f"club_id: {club.id}, show_filtered_data: 1, start_date: '{start_date}', end_date: '{end_date}', view_type_selector: '{view_type_selector}'"
+    if description_search:
+        hx_vars = f"{hx_vars}, description_search: '{description_search}'"
+
+    if view_type_selector == "all":
+
+        organisation_transactions = organisation_transactions_by_date_range(
+            club, start_date, end_date, description_search, augment_data=False
+        )
+
+        things = cobalt_paginator(request, organisation_transactions, 50)
+
+        return render(
+            request,
+            "organisations/club_menu/finance/organisation_transactions_filtered_data_all_htmx.html",
+            {
+                "club": club,
+                "things": things,
+                "organisation_transactions": organisation_transactions,
+                "hx_target": hx_target,
+                "hx_post": hx_post,
+                "hx_vars": hx_vars,
+            },
+        )
+
+    elif view_type_selector == "session":
+
+        # Get data
+        sessions_in_range, payments_dict = sessions_and_payments_by_date_range(
+            club, start_date, end_date
+        )
+
+        # Add session total amount to data
+        for session_in_range_id in sessions_in_range:
+            sessions_in_range[session_in_range_id].amount = payments_dict.get(
+                session_in_range_id, "No Payments"
+            )
+
+        # Paginate
+        list_of_sessions = list(sessions_in_range.values())
+        list_of_sessions.reverse()
+        things = cobalt_paginator(request, list_of_sessions)
+
+        return render(
+            request,
+            "organisations/club_menu/finance/organisation_transactions_filtered_data_sessions_htmx.html",
+            {
+                "club": club,
+                "things": things,
+                "hx_target": hx_target,
+                "hx_post": hx_post,
+                "hx_vars": hx_vars,
+            },
+        )

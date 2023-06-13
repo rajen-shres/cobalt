@@ -1,0 +1,34 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# show org transaction search results grouped by sessions                #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% if things %}
+
+    <div class="table-responsive">
+        <table class="table table-condensed table-hover">
+            <thead>
+                <tr>
+                    <th>Session Date</th>
+                    <th>Session</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for thing in things %}
+                    <tr>
+                        <td><a href="{% url "club_sessions:manage_session" session_id=thing.id %}" target="_blank">{{ thing.session_date }}</a></td>
+                        <td>{{ thing.description }}</td>
+                        <td>{{ thing.amount }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "utils/pagination_footer_htmx.html" %}
+
+{% else %}
+
+    <h4>No data found</h4>
+
+{% endif %}

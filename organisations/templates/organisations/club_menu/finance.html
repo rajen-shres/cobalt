@@ -44,17 +44,42 @@
                     </div>
                 </div>
 
-                <div class="col-6 col-md-6 col-lg-4 text-right">
+                <!-- WHEN FILTER IS CLICKED HIDE IT AND SHOW UN-FILTER -->
+
+                <div
+                    class="col-6 col-md-6 col-lg-4 text-right"
+                    id="id_transaction_filter"
+                    _="on click show #id_transaction_un_filter then hide me"
+                >
                     <a
-                        hx-post="{% url 'organisations:csv_download_htmx' %}"
+                        hx-post="{% url 'organisations:transaction_filter_htmx' %}"
                         hx-target="#id_panel_finance"
                         hx-vars="club_id: {{ club.id }}"
                     >
-                        <button class="text-center btn btn-primary float-right" style="width: 170px;">
-                            <i class="material-icons">arrow_downward</i>&nbsp;CSV Download
+                        <button class="text-center btn btn-secondary float-right">
+                            <i class="material-icons">filter_alt</i>Filter
                         </button>
                     </a>
                 </div>
+
+                <div
+                    class="col-6 col-md-6 col-lg-4 text-right"
+                    id="id_transaction_un_filter"
+                    style="display: none"
+                    _="on click show #id_transaction_filter then hide me"
+                >
+                    <a
+                        hx-post="{% url 'organisations:transactions_htmx' %}"
+                        hx-target="#id_panel_finance"
+                        hx-vars="club_id: {{ club.id }}"
+                    >
+                        <button class="text-center btn btn-secondary float-right">
+                            <i class="material-icons">filter_alt_off</i>Unfilter
+                        </button>
+                    </a>
+                </div>
+
+
             </div>
 
         </div>

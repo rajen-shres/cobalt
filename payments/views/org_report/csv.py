@@ -10,7 +10,9 @@ from payments.views.org_report.data import organisation_transactions_by_date_ran
 TZ = pytz.timezone(TIME_ZONE)
 
 
-def organisation_transactions_csv_download(request, club, start_date, end_date):
+def organisation_transactions_csv_download(
+    request, club, start_date, end_date, description_search=None
+):
     """Organisation CSV download. Internal function, security is handled by the calling function.
 
     Returns a CSV.
@@ -19,7 +21,7 @@ def organisation_transactions_csv_download(request, club, start_date, end_date):
 
     # get details
     organisation_transactions = organisation_transactions_by_date_range(
-        club, start_date, end_date
+        club, start_date, end_date, description_search
     )
 
     # Download datetime
@@ -49,6 +51,9 @@ def organisation_transactions_csv_download(request, club, start_date, end_date):
             "Balance",
         ]
     )
+
+    if description_search:
+        writer.writerow(["Search value:", description_search])
 
     # Add data rows
     for row in organisation_transactions:

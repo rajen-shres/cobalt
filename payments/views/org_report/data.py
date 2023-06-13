@@ -139,7 +139,9 @@ def _organisation_transactions_by_date_range_augment_data(
     return organisation_transaction
 
 
-def organisation_transactions_by_date_range(club, start_date, end_date):
+def organisation_transactions_by_date_range(
+    club, start_date, end_date, description_search=None, augment_data=True
+):
     """get the data for both the CSV and Excel downloads
 
     Returns: queryset of OrganisationTransactions in range with augmented fields for -
@@ -165,6 +167,16 @@ def organisation_transactions_by_date_range(club, start_date, end_date):
         .order_by("-created_date")
         .select_related("member")
     )
+
+    # filter if required
+    if description_search:
+        organisation_transactions = organisation_transactions.filter(
+            description__icontains=description_search
+        )
+
+    if not augment_data:
+        # for the web display, don't augment data
+        return organisation_transactions
 
     # Get session and event name mappings
     session_names_dict = session_names_for_date_range(

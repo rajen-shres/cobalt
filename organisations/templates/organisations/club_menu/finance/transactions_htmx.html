@@ -7,65 +7,56 @@
 {% load cobalt_tags %}
 {% load static %}
 
-<!-- CARD FOR TRANSACTIONS -->
-<div class="card">
-
-    <!-- CARD HEADER -->
-    <div class="card-header card-header-warning">
-        <h2>Transactions</h2>
-
-        <div class="col-md-4">
-            <select
-                name="view_type"
-                class="form-control bg-primary text-white"
-                hx-target="#id_finance_transactions"
-                hx-trigger="change"
-                hx-post="{% url "organisations:transactions_htmx" %}"
-                hx-vars="club_id: {{ club.id }}"
-                hx-indicator="#tran-refresh"
-            >
-                <option {% if view_type == "all" %}selected{% endif %}value="all">All Transactions</option>
-                <option {% if view_type == "session" %}selected{% endif %} value="session">Summary by Session</option>
-                <option {% if view_type == "event" %}selected{% endif %} value="event">Summary by Event</option>
-                <option {% if view_type == "other" %}selected{% endif %} value="other">Exclude Sessions and Events</option>
-            </select>
-        </div>
-
-    </div>
-
-    <!-- CARD BODY -->
-    <div class="card-body">
-
-        <!-- INDICATOR -->
-        <div class='justify-content-center text-center'>
-            <span class="htmx-indicator" id="tran-refresh">
-                <img style="width: 40px" src="{% static "assets/img/spinners/bars.svg" %}"/>
-            </span>
-        </div>
-
-        <div class="table-responsive" id="tran-table">
-
-            <!-- LOAD TABLE BASED UPON VIEW -->
-            {% if view_type == "all" or view_type == "other" %}
-                {% include "organisations/club_menu/finance/transactions_table_all_htmx.html" %}
-            {% endif %}
-            {% if view_type == "session" %}
-                {% include "organisations/club_menu/finance/transactions_table_sessions_htmx.html" %}
-            {% endif %}
-            {% if view_type == "event" %}
-                {% include "organisations/club_menu/finance/transactions_table_events_htmx.html" %}
-            {% endif %}
-
-            {% include 'utils/pagination_footer_htmx.html' %}
-
-        </div>
-
-
-    </div>
+<div class="col-md-4">
+    <select
+        name="view_type"
+        class="form-control"
+        hx-target="#id_finance_transactions"
+        hx-trigger="change"
+        hx-post="{% url "organisations:transactions_htmx" %}"
+        hx-vars="club_id: {{ club.id }}"
+        hx-indicator="#tran-refresh"
+    >
+        <option {% if view_type == "all" %}selected{% endif %}value="all">All Transactions</option>
+        <option {% if view_type == "session" %}selected{% endif %} value="session">Summary by Session</option>
+        <option {% if view_type == "event" %}selected{% endif %} value="event">Summary by Event</option>
+        <option {% if view_type == "other" %}selected{% endif %} value="other">Exclude Sessions and Events</option>
+    </select>
 </div>
 
+<!-- INDICATOR -->
+<div class='justify-content-center text-center'>
+    <span class="htmx-indicator" id="tran-refresh">
+        <img style="width: 40px" src="{% static "assets/img/spinners/bars.svg" %}"/>
+    </span>
+</div>
+
+<div class="table-responsive" id="tran-table">
+
+    <!-- LOAD TABLE BASED UPON VIEW -->
+    {% if view_type == "all" or view_type == "other" %}
+        {% include "organisations/club_menu/finance/transactions_table_all_htmx.html" %}
+    {% endif %}
+    {% if view_type == "session" %}
+        {% include "organisations/club_menu/finance/transactions_table_sessions_htmx.html" %}
+    {% endif %}
+    {% if view_type == "event" %}
+        {% include "organisations/club_menu/finance/transactions_table_events_htmx.html" %}
+    {% endif %}
+
+    {% include 'utils/pagination_footer_htmx.html' %}
+
+</div>
+
+<!-- RESET THE FILTER/UN-FILTER TOGGLE IF WE GET RELOADED -->
+<div
+    _="on load show #id_transaction_filter then hide #id_transaction_un_filter"
+>
+</div>
 
 <a href="{% url "payments:statement_org" org_id=club.id %}" class="btn btn-success">Go To Club Statement</a>
+
+
 
 
 

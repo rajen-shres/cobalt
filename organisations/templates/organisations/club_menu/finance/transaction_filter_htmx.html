@@ -1,0 +1,119 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# CSV download menu page                                                 #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+<div class="container mx-auto" style="min-height: 600px">
+
+    <h2>Filter Transactions</h2>
+
+    <form action="{% url 'organisations:transaction_filter_htmx' %}" method="post">
+
+        {% csrf_token %}
+
+        <input type="hidden" name="club_id" value="{{ club.id }}">
+
+        <!-- INPUTS -->
+        <div class="row">
+
+            <!-- START DATE -->
+            <label class="mx-5">
+                Start Date
+                <input type="date" name="start_date" id="id_start_date" class="form-control" required>
+            </label>
+
+            <!-- END DATE -->
+            <label class="mx-5">
+                End Date
+                <input type="date" name="end_date" id="id_end_date" class="form-control" required>
+            </label>
+
+            <!-- VIEW -->
+            <label class="mx-5">
+                View
+                <select
+                    id="id_view_type_selector"
+                    name="view_type_selector"
+                    class="form-control"
+                    _="on change put '' into #id_filtered_transactions"
+                >
+                    <option {% if view_type == "all" %}selected{% endif %}value="all">All Transactions</option>
+                    <option {% if view_type == "session" %}selected{% endif %} value="session">Summary by Session</option>
+                    <option {% if view_type == "event" %}selected{% endif %} value="event">Summary by Event</option>
+                    <option {% if view_type == "combined" %}selected{% endif %} value="other">Combined</option>
+                </select>
+            </label>
+
+            <!-- SEARCH -->
+            <label class="mx-5" id="id_tran_description_search">
+                Description Search
+                <input type="text" name="description_search" id="id_description_search" class="form-control">
+            </label>
+
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="d-flex justify-content-between mt-2">
+            <div>
+                <button
+                    class="btn btn-sm btn-primary"
+                    hx-post="{% url 'organisations:transaction_filter_htmx' %}"
+                    hx-target="#id_filtered_transactions"
+                    hx-vars="club_id: {{ club.id }}, show_filtered_data: 1"
+                >
+                    Search
+                </button>
+            </div>
+            <div>
+                <div class="row">
+                    <button class="btn btn-sm btn-warning" name="download-csv">
+                        CSV Download
+                    </button>
+
+                    <button class="btn btn-sm btn-success" name="download-xls">
+                        Excel Download
+                    </button>
+                </div>
+                <div id="id_warning_msg" class="row text-info" style="display: none">View settings do not apply to downloads</div>
+            </div>
+
+        </div>
+
+
+    </form>
+
+    <!-- PLACEHOLDER FOR SEARCH DATA -->
+    <div id="id_filtered_transactions"></div>
+
+</div>
+
+<script>
+    $(document).ready( function () {
+        // handle the selector changing
+        $("#id_view_type_selector").on("change", function (){
+            const view_type = $('#id_view_type_selector').find(":selected").val();
+            if (view_type === "all"){
+                $("#id_tran_description_search").show();
+                $("#id_warning_msg").hide();
+            } else {
+                $("#id_tran_description_search").hide();
+                $("#id_warning_msg").show();
+                $("#id_description_search").val("");
+            }
+        })
+
+        // make sure second date greater than first
+        $("#id_start_date").on("change", function (){
+            const start_date_val = $("#id_start_date").val();
+            {#$("#id_end_date").val("");#}
+            $("#id_end_date").attr({"min" : start_date_val});
+        });
+        $("#id_end_date").on("change", function (){
+            const end_date_val = $("#id_end_date").val();
+            {#$("#id_start_date").val("");#}
+            $("#id_start_date").attr({"max" : end_date_val});
+        });
+
+    });
+</script>
