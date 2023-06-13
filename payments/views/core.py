@@ -37,7 +37,6 @@ import stripe
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum, F
-from django.db.transaction import atomic
 from django.http import HttpResponse, JsonResponse
 from django.template.loader import get_template
 from django.urls import reverse
@@ -69,8 +68,6 @@ from payments.models import (
     PaymentStatic,
 )
 from payments.views.payments_api import notify_member_to_member_transfer
-from utils.models import Lock
-from utils.views.cobalt_lock import CobaltLock
 
 TZ = pytz.timezone(TIME_ZONE)
 
