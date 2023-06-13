@@ -9,41 +9,47 @@
 {% load cobalt_tags %}
 {% load static %}
 
-<table class="table table-hover table-condensed">
-    <thead>
-        <tr>
-            <th></th>
-            <th class="text-left text-primary">Date</th>
-            <th class="text-left text-primary">Session</th>
-            <th class="text-right text-primary cobalt-no-wrap">Amount({{ GLOBAL_CURRENCY_SYMBOL }})</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for thing in things %}
+{% if things %}
 
-            <!-- DETAILS FOR SESSIONS -->
-            <tr
-                _="on click put '' into .trans_detail_class"
-                hx-post="{% url "organisations:transaction_session_details_htmx" %}"
-                hx-vars="club_id:{{ club.id }}, club_session_id:{{ thing.club_session_id }}"
-                hx-target="#session_dets_{{ thing.club_session_id }}"
-            >
-
-                <td><i class="material-icons text-primary">info</i></td>
-                <td class="text-left cobalt-no-wrap">{{ thing.created_date|cobalt_nice_datetime_short }}</td>
-                <td class="text-left">{{ thing.description }}</td>
-                <td class="text-right font-weight-bold">{{ thing.amount|cobalt_currency_colour }}</td>
+    <table class="table table-hover table-condensed">
+        <thead>
+            <tr>
+                <th></th>
+                <th class="text-left text-primary">Date</th>
+                <th class="text-left text-primary">Session</th>
+                <th class="text-right text-primary cobalt-no-wrap">Amount</th>
             </tr>
+        </thead>
+        <tbody>
+            {% for thing in things %}
 
-            <!-- HIDDEN ROW FOR DETAILS WHEN CLICKED ON -->
-            <tr class="trans_detail_class" id="session_dets_{{ thing.club_session_id }}"
-                _="on click put '' into me"
-            >
-            </tr>
+                <!-- DETAILS FOR SESSIONS -->
+                <tr
+                    _="on click put '' into .trans_detail_class"
+                    hx-post="{% url "organisations:transaction_session_details_htmx" %}"
+                    hx-vars="club_id:{{ club.id }}, club_session_id:{{ thing.club_session_id }}"
+                    hx-target="#session_dets_{{ thing.club_session_id }}"
+                >
 
-        {% endfor %}
-    </tbody>
-</table>
+                    <td><i class="material-icons text-primary">info</i></td>
+                    <td class="text-left cobalt-no-wrap">{{ thing.created_date|cobalt_nice_datetime_short }}</td>
+                    <td class="text-left">{{ thing.description }}</td>
+                    <td class="text-right font-weight-bold">{{ thing.amount|cobalt_currency_colour }}</td>
+                </tr>
 
+                <!-- HIDDEN ROW FOR DETAILS WHEN CLICKED ON -->
+                <tr class="trans_detail_class" id="session_dets_{{ thing.club_session_id }}"
+                    _="on click put '' into me"
+                >
+                </tr>
 
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% else %}
+
+    <h3>No data found</h3>
+
+{% endif %}
 

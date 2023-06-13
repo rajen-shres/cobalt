@@ -298,18 +298,6 @@ class OrganisationTransaction(AbstractTransaction):
     )
     """ Records the actual amount paid out minus the fees for settlement transactions. Blank for anything else"""
 
-    # Optional classification of this transaction for summarisation and better reporting
-    gl_transaction_type = models.CharField(
-        max_length=2, choices=TransactionType.choices, blank=True, null=True
-    )
-    """ see AbstractFinanceClassifications for info on these fields """
-    gl_category = models.CharField(max_length=50, blank=True, null=True)
-    """ see AbstractFinanceClassifications for info on these fields """
-    gl_sub_category = models.CharField(max_length=50, blank=True, null=True)
-    """ see AbstractFinanceClassifications for info on these fields """
-    gl_series = models.PositiveIntegerField(default=0, blank=True, null=True)
-    """ Series is used to separate instances of the same classification. This is implementation specific """
-
     def save(self, *args, **kwargs):
         if not self.reference_no:
             self.reference_no = "%s-%s-%s" % (
@@ -467,47 +455,3 @@ class MemberOrganisationLink(models.Model):
     organisation_transaction = models.ForeignKey(
         OrganisationTransaction, on_delete=models.CASCADE
     )
-
-
-class AbstractFinanceClassification(models.Model):
-    """Definitions of types of transactions for an organisation
-
-    We want to be able to summarise and categorise transactions for organisations.
-    We do this by giving a code (actually a series of things that make up a code)
-    to a transaction.
-
-    The models derived from this class define the valid combination of fields and
-    hold a free format description for them.
-
-    """
-
-    organisation = models.ForeignKey(
-        Organisation, on_delete=models.CASCADE, blank=True, null=True
-    )
-    """ This can be blank to allow for generic options """
-    gl_transaction_type = models.CharField(
-        max_length=2, choices=TransactionType.choices
-    )
-    """ High level, system defined options """
-    gl_category = models.CharField(max_length=50)
-    """ First level of user customisable code """
-    gl_description = models.CharField(max_length=100, blank=True, null=True)
-    """ Description of this """
-
-
-class FinanceClassificationCategory(AbstractFinanceClassification):
-    """Definitions for Category"""
-
-    pass
-
-    def __str__(self):
-        return f"{self.organisation} - {self.gl_transaction_type} - {self.gl_category}"
-
-
-class FinanceClassificationSubCategory(AbstractFinanceClassification):
-    """Definitions for Sub-Category"""
-
-    gl_sub_category = models.CharField(max_length=50)
-
-    def __str__(self):
-        return f"{self.organisation} - {self.gl_transaction_type} - - {self.gl_sub_category} - {self.gl_category}"

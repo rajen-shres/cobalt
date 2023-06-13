@@ -23,6 +23,8 @@ from payments.views.org_report.csv import organisation_transactions_csv_download
 from payments.views.org_report.data import (
     organisation_transactions_by_date_range,
     sessions_and_payments_by_date_range,
+    event_payments_summary_by_date_range,
+    combined_view_events_sessions_other,
 )
 from payments.views.org_report.xls import organisation_transactions_xls_download
 from payments.views.payments_api import payment_api_batch
@@ -515,6 +517,17 @@ def transaction_filter_htmx(request, club):
     description_search = request.POST.get("description_search")
     view_type_selector = request.POST.get("view_type_selector")
 
+    if not view_type_selector:
+        # first call - show blank form
+        return render(
+            request,
+            "organisations/club_menu/finance/transaction_filter_htmx.html",
+            {"club": club},
+        )
+
+    if not start_date or not end_date:
+        return HttpResponse("Enter dates to perform search")
+
     if "download-csv" in request.POST:
         return organisation_transactions_csv_download(
             request, club, start_date, end_date, description_search
@@ -530,11 +543,7 @@ def transaction_filter_htmx(request, club):
             request, club, start_date, end_date, description_search, view_type_selector
         )
 
-    return render(
-        request,
-        "organisations/club_menu/finance/transaction_filter_htmx.html",
-        {"club": club},
-    )
+    return HttpResponse("an error occurred")
 
 
 def organisation_transactions_filtered_data(
@@ -599,3 +608,52 @@ def organisation_transactions_filtered_data(
                 "hx_vars": hx_vars,
             },
         )
+
+    elif view_type_selector == "event":
+
+        event_data = event_payments_summary_by_date_range(club, start_date, end_date)
+
+        list_of_events = list(event_data.values())
+        list_of_events.reverse()
+        things = cobalt_paginator(request, list_of_events)
+
+        return render(
+            request,
+            "organisations/club_menu/finance/organisation_transactions_filtered_data_events_htmx.html",
+            {
+                "club": club,
+                "things": things,
+                "hx_target": hx_target,
+                "hx_post": hx_post,
+                "hx_vars": hx_vars,
+            },
+        )
+
+    elif view_type_selector == "combined":
+
+        organisation_transactions = combined_view_events_sessions_other(
+            club, start_date, end_date
+        )
+
+        # this is a tuple, convert to a list
+        data = [
+            organisation_transaction[1]
+            for organisation_transaction in organisation_transactions
+        ]
+        data.reverse()
+        things = cobalt_paginator(request, data)
+
+        return render(
+            request,
+            "organisations/club_menu/finance/organisation_transactions_filtered_data_combined_htmx.html",
+            {
+                "club": club,
+                "things": things,
+                "hx_target": hx_target,
+                "hx_post": hx_post,
+                "hx_vars": hx_vars,
+            },
+        )
+
+    else:
+        return HttpResponse("No view provided")

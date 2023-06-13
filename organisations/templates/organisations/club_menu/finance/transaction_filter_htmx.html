@@ -1,6 +1,6 @@
 {#------------------------------------------------------------------------#}
 {#                                                                        #}
-{# CSV download menu page                                                 #}
+{# CSV download menu page, now also does inline filtering                 #}
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 
@@ -36,12 +36,12 @@
                     id="id_view_type_selector"
                     name="view_type_selector"
                     class="form-control"
-                    _="on change put '' into #id_filtered_transactions"
+                    _="on change send click to #id_filter_submit_button"
                 >
                     <option {% if view_type == "all" %}selected{% endif %}value="all">All Transactions</option>
                     <option {% if view_type == "session" %}selected{% endif %} value="session">Summary by Session</option>
                     <option {% if view_type == "event" %}selected{% endif %} value="event">Summary by Event</option>
-                    <option {% if view_type == "combined" %}selected{% endif %} value="other">Combined</option>
+                    <option {% if view_type == "combined" %}selected{% endif %} value="combined">Combined</option>
                 </select>
             </label>
 
@@ -57,6 +57,7 @@
         <div class="d-flex justify-content-between mt-2">
             <div>
                 <button
+                    id="id_filter_submit_button"
                     class="btn btn-sm btn-primary"
                     hx-post="{% url 'organisations:transaction_filter_htmx' %}"
                     hx-target="#id_filtered_transactions"

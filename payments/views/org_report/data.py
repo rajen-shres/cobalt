@@ -308,6 +308,7 @@ def combined_view_events_sessions_other(club, start_date, end_date):
             "formatted_date": date_to_datetime_midnight(
                 events[index]["start_date"]
             ).__str__()[:-6],
+            "unformatted_date": date_to_datetime_midnight(events[index]["start_date"]),
             "event_id": index,
             "event_name": f"{events[index]['congress_name']} - {events[index]['event_name']}",
             "description": f"{events[index]['congress_name']} - {events[index]['event_name']}",
@@ -329,6 +330,7 @@ def combined_view_events_sessions_other(club, start_date, end_date):
             "formatted_date": date_to_datetime_midnight(
                 sessions[index].session_date
             ).__str__()[:-6],
+            "unformatted_date": date_to_datetime_midnight(sessions[index].session_date),
             "club_session_id": index,
             "club_session_name": sessions[index].description,
             "description": sessions[index].description,

@@ -1,0 +1,74 @@
+{% load cobalt_tags %}
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# show org transaction search results combined view                      #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% if things %}
+
+    <div class="table-responsive">
+        <table class="table table-condensed table-hover">
+            <thead>
+                <tr>
+                    <th class="text-left">Start Date</th>
+                    <th class="text-left">Counterparty</th>
+                    <th class="text-left">Transaction Type</th>
+                    <th class="text-left">Description</th>
+                    <th class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for thing in things %}
+                    <tr
+                        {% if thing.event_name %}
+                            class="table-info"
+                        {% elif thing.club_session_name %}
+                            class="table-warning"
+                        {% elif thing.type == "Settlement" %}
+                            class="table-success"
+                        {% endif %}
+                    >
+                        <td class="text-left" style="white-space:nowrap; overflow:hidden">
+                            {% if thing.created_date %}
+                                {{ thing.created_date|cobalt_nice_datetime_short }}
+                            {% elif thing.unformatted_date %}
+                                {{ thing.unformatted_date|cobalt_nice_date_short }}
+                            {% endif %}
+                        </td>
+
+                        <td class="text-left">
+                            {{ thing.counterparty }}
+                            {% if thing.event_name %}
+                                Event Entries
+                            {% endif %}
+                            {% if thing.club_session_name %}
+                                Session Payments
+                            {% endif %}
+                        </td>
+                        <td class="text-left">{{ thing.type }}</td>
+                        <td class="text-left">{{ thing.description }}</td>
+                        <td class="text-right" style="white-space:nowrap; overflow:hidden">
+                            {% if thing.amount_outside_range and thing.amount_outside_range != 0 %}
+                                <button class="btn btn-xs btn-danger" data-toggle="tooltip" title="Payments of {{ thing.amount_outside_range|cobalt_currency_colour }} were made outside the selected date range">!</button>
+                            {% endif %}
+                            {{ thing.amount|cobalt_currency_colour }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "utils/pagination_footer_htmx.html" %}
+
+{% else %}
+
+    <h4>No data found</h4>
+
+{% endif %}
+
+<script>
+    $(document).ready( function () {
+        // initialise tooltips
+        $('[data-toggle="tooltip"]').tooltip()
+    });
+</script>

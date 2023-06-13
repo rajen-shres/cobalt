@@ -10,9 +10,6 @@ from .models import (
     OrganisationSettlementFees,
     OrgPaymentMethod,
     UserPendingPayment,
-    AbstractFinanceClassification,
-    FinanceClassificationCategory,
-    FinanceClassificationSubCategory,
     MemberOrganisationLink,
 )
 
@@ -80,14 +77,6 @@ class UserPendingPaymentAdmin(admin.ModelAdmin):
     ]
 
 
-class AbstractFinanceClassificationAdmin(admin.ModelAdmin):
-    """Admin class for model AbstractFinanceClassification"""
-
-    autocomplete_fields = [
-        "organisation",
-    ]
-
-
 class StripeLogAdmin(admin.ModelAdmin):
     search_fields = ["event"]
 
@@ -109,7 +98,4 @@ admin.site.register(PaymentStatic, PaymentStaticAdmin)
 admin.site.register(OrganisationSettlementFees)
 admin.site.register(OrgPaymentMethod, OrgPaymentMethodAdmin)
 admin.site.register(UserPendingPayment, UserPendingPaymentAdmin)
-admin.site.register(AbstractFinanceClassification, AbstractFinanceClassificationAdmin)
-admin.site.register(FinanceClassificationCategory)
-admin.site.register(FinanceClassificationSubCategory)
 admin.site.register(MemberOrganisationLink, MemberOrganisationLinkAdmin)

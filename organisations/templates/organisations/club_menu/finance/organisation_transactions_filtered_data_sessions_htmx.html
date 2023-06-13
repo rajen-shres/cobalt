@@ -1,3 +1,4 @@
+{% load cobalt_tags %}
 {#------------------------------------------------------------------------#}
 {#                                                                        #}
 {# show org transaction search results grouped by sessions                #}
@@ -9,17 +10,17 @@
         <table class="table table-condensed table-hover">
             <thead>
                 <tr>
-                    <th>Session Date</th>
-                    <th>Session</th>
-                    <th>Amount</th>
+                    <th class="text-left">Session Date</th>
+                    <th class="text-left">Session</th>
+                    <th class="text-right">Total Amount</th>
                 </tr>
             </thead>
             <tbody>
                 {% for thing in things %}
                     <tr>
-                        <td><a href="{% url "club_sessions:manage_session" session_id=thing.id %}" target="_blank">{{ thing.session_date }}</a></td>
-                        <td>{{ thing.description }}</td>
-                        <td>{{ thing.amount }}</td>
+                        <td class="text-left"><a href="{% url "club_sessions:manage_session" session_id=thing.id %}" target="_blank">{{ thing.session_date }}</a></td>
+                        <td class="text-left"><a href="{% url "club_sessions:manage_session" session_id=thing.id %}" target="_blank">{{ thing.description }}</a></td>
+                        <td class="text-right">{{ thing.amount|cobalt_currency_colour }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
