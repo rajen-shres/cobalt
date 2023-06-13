@@ -61,10 +61,3 @@ class CobaltLock:
             return
         lock.lock_open_time = None
         lock.save()
-
-    def lock_status_debug(self):
-        """show status of lock"""
-
-        print(f"lock status: {self._locked}")
-        lock = Lock.objects.filter(topic=self.topic).first()
-        print(f"DB lock is: {lock}")
