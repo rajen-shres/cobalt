@@ -40,6 +40,7 @@
                 >
                     <option {% if view_type == "all" %}selected{% endif %}value="all">All Transactions</option>
                     <option {% if view_type == "session" %}selected{% endif %} value="session">Summary by Session</option>
+                    <option {% if view_type == "congress" %}selected{% endif %} value="congress">Summary by Congress</option>
                     <option {% if view_type == "event" %}selected{% endif %} value="event">Summary by Event</option>
                     <option {% if view_type == "combined" %}selected{% endif %} value="combined">Combined</option>
                 </select>

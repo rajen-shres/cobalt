@@ -25,6 +25,7 @@ from payments.views.org_report.data import (
     sessions_and_payments_by_date_range,
     event_payments_summary_by_date_range,
     combined_view_events_sessions_other,
+    congress_payments_summary_by_date_range,
 )
 from payments.views.org_report.xls import organisation_transactions_xls_download
 from payments.views.payments_api import payment_api_batch
@@ -446,7 +447,6 @@ def pay_org_htmx(request, club):
         )
 
     for other_club_admin in other_club_admins:
-
         msg = f"""{request.user} from {club} has paid {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} into the {BRIDGE_CREDITS}
         account for {org}. The description was: {description}.
             <br><br>If you have any queries please contact {club} in the first instance.
@@ -552,108 +552,179 @@ def organisation_transactions_filtered_data(
     """show filtered data (date and search) on screen, not as CSV/XLS download"""
 
     # set up data for pagination footer
-    hx_post = reverse("organisations:transaction_filter_htmx")
-    hx_target = "#id_filtered_transactions"
-    hx_vars = f"club_id: {club.id}, show_filtered_data: 1, start_date: '{start_date}', end_date: '{end_date}', view_type_selector: '{view_type_selector}'"
+    hx_data = {
+        "hx_post": reverse("organisations:transaction_filter_htmx"),
+        "hx_target": "#id_filtered_transactions",
+        "hx_vars": f"club_id: {club.id}, show_filtered_data: 1, start_date: '{start_date}', end_date: '{end_date}', view_type_selector: '{view_type_selector}'",
+    }
     if description_search:
-        hx_vars = f"{hx_vars}, description_search: '{description_search}'"
+        hx_data[
+            "hx_vars"
+        ] = f"{hx_data['hx_vars']}, description_search: '{description_search}'"
 
     if view_type_selector == "all":
-
-        organisation_transactions = organisation_transactions_by_date_range(
-            club, start_date, end_date, description_search, augment_data=False
-        )
-
-        things = cobalt_paginator(request, organisation_transactions, 50)
-
-        return render(
-            request,
-            "organisations/club_menu/finance/organisation_transactions_filtered_data_all_htmx.html",
-            {
-                "club": club,
-                "things": things,
-                "organisation_transactions": organisation_transactions,
-                "hx_target": hx_target,
-                "hx_post": hx_post,
-                "hx_vars": hx_vars,
-            },
+        return organisation_transactions_filtered_data_all(
+            request, club, start_date, end_date, description_search, hx_data
         )
 
     elif view_type_selector == "session":
-
-        # Get data
-        sessions_in_range, payments_dict = sessions_and_payments_by_date_range(
-            club, start_date, end_date
-        )
-
-        # Add session total amount to data
-        for session_in_range_id in sessions_in_range:
-            sessions_in_range[session_in_range_id].amount = payments_dict.get(
-                session_in_range_id, "No Payments"
-            )
-
-        # Paginate
-        list_of_sessions = list(sessions_in_range.values())
-        list_of_sessions.reverse()
-        things = cobalt_paginator(request, list_of_sessions)
-
-        return render(
-            request,
-            "organisations/club_menu/finance/organisation_transactions_filtered_data_sessions_htmx.html",
-            {
-                "club": club,
-                "things": things,
-                "hx_target": hx_target,
-                "hx_post": hx_post,
-                "hx_vars": hx_vars,
-            },
+        return organisation_transactions_filtered_data_sessions(
+            request, club, start_date, end_date, hx_data
         )
 
     elif view_type_selector == "event":
+        return organisation_transactions_filtered_data_events(
+            request, club, start_date, end_date, hx_data
+        )
 
-        event_data = event_payments_summary_by_date_range(club, start_date, end_date)
-
-        list_of_events = list(event_data.values())
-        list_of_events.reverse()
-        things = cobalt_paginator(request, list_of_events)
-
-        return render(
-            request,
-            "organisations/club_menu/finance/organisation_transactions_filtered_data_events_htmx.html",
-            {
-                "club": club,
-                "things": things,
-                "hx_target": hx_target,
-                "hx_post": hx_post,
-                "hx_vars": hx_vars,
-            },
+    elif view_type_selector == "congress":
+        return organisation_transactions_filtered_data_congresses(
+            request, club, start_date, end_date, hx_data
         )
 
     elif view_type_selector == "combined":
-
-        organisation_transactions = combined_view_events_sessions_other(
-            club, start_date, end_date
-        )
-
-        # this is a tuple, convert to a list
-        data = [
-            organisation_transaction[1]
-            for organisation_transaction in organisation_transactions
-        ]
-        data.reverse()
-        things = cobalt_paginator(request, data)
-
-        return render(
-            request,
-            "organisations/club_menu/finance/organisation_transactions_filtered_data_combined_htmx.html",
-            {
-                "club": club,
-                "things": things,
-                "hx_target": hx_target,
-                "hx_post": hx_post,
-                "hx_vars": hx_vars,
-            },
+        return organisation_transactions_filtered_data_combined(
+            request, club, start_date, end_date, hx_data
         )
 
     else:
         return HttpResponse("No view provided")
+
+
+def organisation_transactions_filtered_data_all(
+    request, club, start_date, end_date, description_search, hx_data
+):
+    """handle the all option"""
+
+    organisation_transactions = organisation_transactions_by_date_range(
+        club, start_date, end_date, description_search, augment_data=False
+    )
+
+    things = cobalt_paginator(request, organisation_transactions, 50)
+
+    return render(
+        request,
+        "organisations/club_menu/finance/organisation_transactions_filtered_data_all_htmx.html",
+        {
+            "club": club,
+            "things": things,
+            "organisation_transactions": organisation_transactions,
+            "hx_target": hx_data["hx_target"],
+            "hx_post": hx_data["hx_post"],
+            "hx_vars": hx_data["hx_vars"],
+        },
+    )
+
+
+def organisation_transactions_filtered_data_sessions(
+    request, club, start_date, end_date, hx_data
+):
+    """handle the sessions option"""
+
+    # Get data
+    sessions_in_range, payments_dict = sessions_and_payments_by_date_range(
+        club, start_date, end_date
+    )
+
+    # Add session total amount to data
+    for session_in_range_id in sessions_in_range:
+        sessions_in_range[session_in_range_id].amount = payments_dict.get(
+            session_in_range_id, "No Payments"
+        )
+
+    # Paginate
+    list_of_sessions = list(sessions_in_range.values())
+    list_of_sessions.reverse()
+    things = cobalt_paginator(request, list_of_sessions)
+
+    return render(
+        request,
+        "organisations/club_menu/finance/organisation_transactions_filtered_data_sessions_htmx.html",
+        {
+            "club": club,
+            "things": things,
+            "hx_target": hx_data["hx_target"],
+            "hx_post": hx_data["hx_post"],
+            "hx_vars": hx_data["hx_vars"],
+        },
+    )
+
+
+def organisation_transactions_filtered_data_events(
+    request, club, start_date, end_date, hx_data
+):
+    """handle the events option"""
+
+    event_data = event_payments_summary_by_date_range(club, start_date, end_date)
+
+    list_of_events = list(event_data.values())
+    list_of_events.reverse()
+    things = cobalt_paginator(request, list_of_events)
+
+    return render(
+        request,
+        "organisations/club_menu/finance/organisation_transactions_filtered_data_events_htmx.html",
+        {
+            "club": club,
+            "things": things,
+            "hx_target": hx_data["hx_target"],
+            "hx_post": hx_data["hx_post"],
+            "hx_vars": hx_data["hx_vars"],
+        },
+    )
+
+
+def organisation_transactions_filtered_data_combined(
+    request, club, start_date, end_date, hx_data
+):
+    """handle the all option"""
+
+    organisation_transactions = combined_view_events_sessions_other(
+        club, start_date, end_date
+    )
+
+    # this is a tuple, convert to a list
+    data = [
+        organisation_transaction[1]
+        for organisation_transaction in organisation_transactions
+    ]
+    data.reverse()
+    things = cobalt_paginator(request, data)
+
+    return render(
+        request,
+        "organisations/club_menu/finance/organisation_transactions_filtered_data_combined_htmx.html",
+        {
+            "club": club,
+            "things": things,
+            "hx_target": hx_data["hx_target"],
+            "hx_post": hx_data["hx_post"],
+            "hx_vars": hx_data["hx_vars"],
+        },
+    )
+
+
+def organisation_transactions_filtered_data_congresses(
+    request, club, start_date, end_date, hx_data
+):
+    """handle the congress option"""
+
+    congress_data = congress_payments_summary_by_date_range(club, start_date, end_date)
+
+    list_of_congresses = list(congress_data.values())
+    list_of_congresses.reverse()
+    things = cobalt_paginator(request, list_of_congresses)
+
+    print("cgress")
+
+    return render(
+        request,
+        "organisations/club_menu/finance/organisation_transactions_filtered_data_congresses_htmx.html",
+        {
+            "club": club,
+            "things": things,
+            "hx_target": hx_data["hx_target"],
+            "hx_post": hx_data["hx_post"],
+            "hx_vars": hx_data["hx_vars"],
+        },
+    )

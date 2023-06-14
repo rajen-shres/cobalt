@@ -65,6 +65,49 @@ def event_names_for_date_range(club, start_datetime, end_datetime):
     }
 
 
+def congress_names_for_date_range(club, start_datetime, end_datetime):
+    """return a dict of event_id to congress name for a given date range. Also returns a dict of event_id to congress_id
+
+    We can't map things directly to congresses, only to events
+    """
+
+    # Get event ids
+    event_ids = (
+        OrganisationTransaction.objects.filter(
+            organisation=club,
+            created_date__gte=start_datetime,
+            created_date__lte=end_datetime,
+        )
+        .filter(event_id__isnull=False)
+        .values_list("event_id", flat=True)
+        .distinct("event_id")
+    )
+
+    # Get congress names and start date, as well as congress_id and event_id
+    congress_names = (
+        Event.objects.filter(id__in=event_ids)
+        .select_related("congress")
+        .values("id", "congress_id", "congress__name", "congress__start_date")
+    )
+
+    print(congress_names)
+
+    congress_name_dict = {}
+
+    for congress_name in congress_names:
+        congress_name_dict[congress_name["congress_id"]] = {
+            "congress_id": congress_name["congress_id"],
+            "congress_name": congress_name["congress__name"],
+            "start_date": congress_name["congress__start_date"],
+        }
+
+    event_to_congress_dict = {}
+    for congress_name in congress_names:
+        event_to_congress_dict[congress_name["id"]] = congress_name["congress_id"]
+
+    return congress_name_dict, event_to_congress_dict
+
+
 def sessions_and_payments_by_date_range(club, start_date, end_date):
     """ " Get session and payments in this date range
 
@@ -256,6 +299,84 @@ def event_payments_summary_by_date_range(club, start_date, end_date):
     )
 
     return {index: event_payment_dict[index] for index in sorted_index}
+
+
+def congress_payments_summary_by_date_range(club, start_date, end_date):
+    """return summary of congress payments within a date range.
+
+    returns a dictionary with key: congress_id
+                              values: dictionary
+                                      congress_name
+                                      start_date
+                                      amount
+                                      amount_outside_range (payments for event not in date range)
+
+    """
+
+    # Get payments in range and summarise by event id - we can't do it by congress_id in one step
+    start_datetime, end_datetime = start_end_date_to_datetime(start_date, end_date)
+
+    event_payments = (
+        OrganisationTransaction.objects.filter(organisation=club)
+        .filter(event_id__isnull=False)
+        .filter(created_date__gte=start_datetime, created_date__lte=end_datetime)
+        .values("event_id")
+        .annotate(amount=Sum("amount"))
+    )
+
+    # get congress names mapping
+    congress_name_dict, event_to_congress_dict = congress_names_for_date_range(
+        club, start_datetime, end_datetime
+    )
+
+    # We have payments within the date range, we also want total payments for events to highlight anything missed
+    total_event_payments = (
+        OrganisationTransaction.objects.filter(organisation=club)
+        .filter(event_id__in=event_to_congress_dict.keys())
+        .values("event_id")
+        .annotate(amount=Sum("amount"))
+    )
+
+    # turn into a dictionary
+    total_event_payments_dict = {
+        total_event_payment["event_id"]: total_event_payment["amount"]
+        for total_event_payment in total_event_payments
+    }
+
+    # Now combine it all
+    congress_payment_dict = {}
+    # One congress can have multiple events. Go through at the event level
+    for event_payment in event_payments:
+        # get congress id for this event
+        congress_id = event_to_congress_dict[event_payment["event_id"]]
+        # If already in dictionary then add this event to the totals
+        if congress_id in congress_payment_dict:
+            congress_payment_dict[congress_id]["amount"] += event_payment["amount"]
+            congress_payment_dict[congress_id][
+                "amount_outside_range"
+            ] += total_event_payments_dict[event_payment["event_id"]]
+            congress_payment_dict[congress_id]["amount_outside_range"] -= event_payment[
+                "amount"
+            ]
+        # if not in dictionary, then add it
+        else:
+            congress_payment_dict[congress_id] = {
+                "id": congress_id,
+                "amount": event_payment["amount"],
+                "congress_name": congress_name_dict[congress_id]["congress_name"],
+                "start_date": congress_name_dict[congress_id]["start_date"],
+                "amount_outside_range": total_event_payments_dict[
+                    event_payment["event_id"]
+                ]
+                - event_payment["amount"],
+            }
+
+    # We can't select on start date order as we use an annotation, so sort it now by date
+    sorted_index = sorted(
+        congress_payment_dict, key=lambda x: congress_payment_dict[x]["start_date"]
+    )
+
+    return {index: congress_payment_dict[index] for index in sorted_index}
 
 
 def organisation_transactions_excluding_summary_by_date_range(
