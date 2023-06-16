@@ -499,53 +499,77 @@ def _send_notifications(
     # Loop through by player, then congress and send email. 1 email per player per congress
     for player, value in struct.items():
         for congress in value:
-            # What payment types are we expecting?
-            payment_types = list(
-                event_entry_players.filter(event_entry__event__congress=congress)
-                .values_list("payment_type", flat=True)
-                .distinct()
+            send_email_to_player_entered_into_event_by_another(
+                player=player,
+                congress=congress,
+                event_entry_players=event_entry_players,
+                struct=struct,
+                event_entries=event_entries,
+                payment_user=payment_user,
+                triggered_by_team_mate_payment=triggered_by_team_mate_payment,
+                team_mate_who_triggered=team_mate_who_triggered,
             )
-
-            # Has this user paid?
-            user_owes_money = (
-                event_entry_players.filter(player=player)
-                .filter(event_entry__event__congress=congress)
-                .exclude(payment_status="Paid")
-                .exclude(payment_status="Free")
-                .exclude(event_entry__entry_status="Cancelled")
-                .exists()
-            )
-
-            # Use the template to build the email for this user and this congress
-            html = loader.render_to_string(
-                "events/players/email/player_event_entry.html",
-                {
-                    "player": player,
-                    "events_struct": struct[player][congress],
-                    "payment_user": payment_user,
-                    "congress": congress,
-                    "event": event_entries,
-                    "payment_types": payment_types,
-                    "user_owes_money": user_owes_money,
-                    "triggered_by_team_mate_payment": triggered_by_team_mate_payment,
-                    "team_mate_who_triggered": team_mate_who_triggered,
-                },
-            )
-
-            context = {
-                "name": player.first_name,
-                "title": f"Event Entry - {congress}",
-                "email_body": html,
-                "link": "/events/view",
-                "link_text": "View Entry",
-                "subject": f"Event Entry - {congress}",
-            }
-
-            logger.info(f"Sending email to {player}")
-            send_cobalt_email_with_template(to_address=player.email, context=context)
 
     # Notify conveners as well
     _send_notifications_notify_conveners(event_entries)
+
+
+def send_email_to_player_entered_into_event_by_another(
+    player,
+    congress,
+    event_entry_players,
+    struct,
+    event_entries,
+    payment_user,
+    triggered_by_team_mate_payment,
+    team_mate_who_triggered,
+):
+    """sends an email to someone who has been entered in an event by someone else"""
+
+    # What payment types are we expecting?
+    payment_types = list(
+        event_entry_players.filter(event_entry__event__congress=congress)
+        .values_list("payment_type", flat=True)
+        .distinct()
+    )
+
+    # Has this user paid?
+    user_owes_money = (
+        event_entry_players.filter(player=player)
+        .filter(event_entry__event__congress=congress)
+        .exclude(payment_status="Paid")
+        .exclude(payment_status="Free")
+        .exclude(event_entry__entry_status="Cancelled")
+        .exists()
+    )
+
+    # Use the template to build the email for this user and this congress
+    html = loader.render_to_string(
+        "events/players/email/player_event_entry.html",
+        {
+            "player": player,
+            "events_struct": struct[player][congress],
+            "payment_user": payment_user,
+            "congress": congress,
+            "event": event_entries,
+            "payment_types": payment_types,
+            "user_owes_money": user_owes_money,
+            "triggered_by_team_mate_payment": triggered_by_team_mate_payment,
+            "team_mate_who_triggered": team_mate_who_triggered,
+        },
+    )
+
+    context = {
+        "name": player.first_name,
+        "title": f"Event Entry - {congress}",
+        "email_body": html,
+        "link": "/events/view",
+        "link_text": "View Entry",
+        "subject": f"Event Entry - {congress}",
+    }
+
+    logger.info(f"Sending email to {player}")
+    send_cobalt_email_with_template(to_address=player.email, context=context)
 
 
 def _send_notifications_build_struct(event_entry_players):

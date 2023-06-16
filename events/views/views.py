@@ -1066,6 +1066,9 @@ def edit_event_entry(
     # valid payment methods
     payment_methods = congress.get_payment_methods()
 
+    # Include ask them to pay
+    payment_methods.append(("other-system-dollars", "Ask them to pay"))
+
     # prevent last person being TBA if others are already TBA
     has_only_one_real_player = (
         event_entry_players.exclude(player_id=TBA_PLAYER).count() == 1
@@ -1673,11 +1676,6 @@ def _get_team_mates_for_event(user, event):
         .values_list("player")
     )
     return all_team_mates.exclude(team_mate__in=entered_team_mates)
-
-
-@login_required()
-def enter_event_players_area_htmx(request):
-    """builds the entry part of the event entry page"""
 
 
 def enter_event_post(request, congress, event):

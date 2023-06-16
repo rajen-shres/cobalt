@@ -27,7 +27,10 @@ from rbac.core import (
     rbac_get_users_with_role,
 )
 from rbac.views import rbac_user_has_role, rbac_forbidden
-from events.views.core import notify_conveners
+from events.views.core import (
+    notify_conveners,
+    send_email_to_player_entered_into_event_by_another,
+)
 from events.models import (
     Congress,
     CONGRESS_TYPES,
@@ -1404,6 +1407,26 @@ def change_payment_method_on_existing_entry_ajax(request):
             sub_source="change_event_entry",
             message=f"Changed payment method to {payment_method} for {player_entry.event_entry.event.href}",
         )
+
+        # If changed to ask them to pay ie other-system-dollars, then notify the player who needs to pay
+        if payment_method == "other-system-dollars":
+            player = player_entry.player
+            event_entry = player_entry.event_entry
+            event = event_entry.event
+            congress = event.congress
+            event_entry_players = EventEntryPlayer.objects.filter(
+                event_entry=event_entry
+            )
+            send_email_to_player_entered_into_event_by_another(
+                player=player,
+                congress=congress,
+                event_entry_players=event_entry_players,
+                struct={player: {congress: {event: event_entry_players}}},
+                event_entries=[event_entry],
+                payment_user=request.user,
+                triggered_by_team_mate_payment=False,
+                team_mate_who_triggered=request.user,
+            )
 
         return JsonResponse({"message": "Success"})
 
