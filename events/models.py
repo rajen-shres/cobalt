@@ -940,7 +940,12 @@ class EventEntry(models.Model):
     def ordered_event_entry_player(self):
         """helper function to set order of queryset for event_entry_player"""
 
-        return self.evententryplayer_set.all().distinct("pk").order_by("pk")
+        return (
+            self.evententryplayer_set.all()
+            .distinct("pk")
+            .order_by("pk")
+            .select_related("player")
+        )
 
     def get_team_name(self):
         """If the team name field is None we default the team name to the surname of the primary entrant.

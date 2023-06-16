@@ -871,43 +871,42 @@ def pay_outstanding(request):
 def view_event_entries(request, congress_id, event_id):
     """Screen to show entries to an event"""
 
-    print("here")
-
+    # Get data
     congress = get_object_or_404(Congress, pk=congress_id)
     event = get_object_or_404(Event, pk=event_id)
-    entries = (
-        EventEntry.objects.filter(event=event)
-        .exclude(entry_status="Cancelled")
-        .order_by("entry_complete_date")
+
+    # Assume user not entered, check further down
+    user_entered = False
+    user_entry_id = 0
+
+    # Get player entries for this event
+    player_entries = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .exclude(event_entry__entry_status="Cancelled")
+        .order_by("event_entry__entry_complete_date", "id")
+        .select_related("event_entry", "player")
     )
-    entries.prefetch_related("evententryplayer_set")
-    # entries.prefetch_related("evententryplayer_player_set")
 
-    # identify this users entry
-    if request.user.is_authenticated:
-        for entry in entries:
-            # Commenting this out for now as doesn't go to the entry it is intended to go to
-            # if entry.primary_entrant == request.user:
-            #     entry.my_entry = True
-            #     continue
-            for player in entry.evententryplayer_set.all():
-                if player.player == request.user:
-                    entry.my_entry = True
+    # convert to dictionary keyed by event entry with a list of player entries for that event entry
+    entries_dict = {}
+    for player_entry in player_entries:
 
+        # add to dict if not there already
+        if player_entry.event_entry not in entries_dict:
+            entries_dict[player_entry.event_entry] = []
+
+        # Check if this is the entry made by this use
+        if request.user.is_authenticated and player_entry.player == request.user:
+            user_entry_id = player_entry.event_entry_id
+            user_entered = True
+
+        entries_dict[player_entry.event_entry].append(player_entry)
+
+    # Get categories
     categories = Category.objects.filter(event=event).exists()
-    date_string = event.print_dates()
 
-    # See if this user is already entered
-    try:
-        user_entered = (
-            EventEntryPlayer.objects.filter(event_entry__event=event)
-            .filter(player=request.user)
-            .exclude(event_entry__entry_status="Cancelled")
-            .exists()
-        )
-    except TypeError:
-        # may be anonymous
-        user_entered = False
+    # Get nice formatted date string
+    date_string = event.print_dates()
 
     # Check sessions for different start time. 1pm on first day, then 10am etc
     sessions = Session.objects.filter(event=event).order_by(
@@ -931,12 +930,13 @@ def view_event_entries(request, congress_id, event_id):
         {
             "congress": congress,
             "event": event,
-            "entries": entries,
+            "entries_dict": entries_dict,
             "categories": categories,
             "date_string": date_string,
             "user_entered": user_entered,
             "multiple_start_times": multiple_start_times,
             "sessions": sessions,
+            "user_entry_id": user_entry_id,
         },
     )
 
