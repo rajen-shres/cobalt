@@ -46,12 +46,20 @@ def cookies(request):
     return render(request, "support/general/cookies.html")
 
 
+def cookies_logged_out(request):
+    return render(request, "support/general/cookies_logged_out.html")
+
+
 def guidelines(request):
     return render(request, "support/general/guidelines.html")
 
 
 def acceptable_use(request):
     return render(request, "support/general/acceptable_use.html")
+
+
+def acceptable_use_logged_out(request):
+    return render(request, "support/general/acceptable_use_logged_out.html")
 
 
 def non_production_email_changer(request):

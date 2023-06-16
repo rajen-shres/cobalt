@@ -60,37 +60,19 @@ def update_event_start_and_end_times(event: Event):
 
     # Sessions in start order - could be possible for overlapping sessions, but we don't handle that
     sessions = Session.objects.filter(event=event).order_by(
-        "-session_date", "-session_start"
+        "session_date", "session_start"
     )
 
-    # reset the values on event
-    event.denormalised_start_date = None
-    event.denormalised_end_date = None
-    event.denormalised_start_time = None
-    event.denormalised_end_time = None
-
-    for session in sessions:
-
-        # End date
-        if (
-            not event.denormalised_end_date
-            or session.session_date >= event.denormalised_end_date
-        ):
-            event.denormalised_end_date = session.session_date
-            event.denormalised_end_time = session.session_end
-
-        # start date
-        if (
-            not event.denormalised_start_date
-            or session.session_date <= event.denormalised_start_date
-        ):
-            event.denormalised_start_date = session.session_date
-
-            # start time
-            if (
-                not event.denormalised_start_time
-            ) or session.session_start < event.denormalised_start_time:
-                event.denormalised_start_time = session.session_start
+    if sessions:
+        event.denormalised_start_date = sessions.first().session_date
+        event.denormalised_start_time = sessions.first().session_start
+        event.denormalised_end_date = sessions.last().session_date
+        event.denormalised_end_time = sessions.last().session_end
+    else:
+        event.denormalised_start_date = None
+        event.denormalised_start_time = None
+        event.denormalised_end_date = None
+        event.denormalised_end_time = None
 
     event.save()
 

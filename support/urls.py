@@ -9,10 +9,16 @@ urlpatterns = [
     path("browser-errors", views.browser_errors, name="browser_errors"),
     path("search", views.global_search, name="search"),
     path("cookies", views.cookies, name="cookies"),
+    path("cookies-logged-out", views.cookies_logged_out, name="cookies_logged_out"),
     path("contact-logged-in", views.contact_logged_in, name="contact_logged_in"),
     path("contact-logged-out", views.contact_logged_out, name="contact_logged_out"),
     path("guidelines", views.guidelines, name="guidelines"),
     path("acceptable-use", views.acceptable_use, name="acceptable_use"),
+    path(
+        "acceptable-use-logged-out",
+        views.acceptable_use_logged_out,
+        name="acceptable_use_logged_out",
+    ),
     path(
         "non-production-email-changer",
         views.non_production_email_changer,

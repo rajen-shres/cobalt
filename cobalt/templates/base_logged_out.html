@@ -59,10 +59,17 @@
 
 
         <div id="footer"> AUSTRALIAN BRIDGE FEDERATION </div>
-    </body>
-    {% block footer %}
-    {% endblock %}
 
-    <!-- Design work by Juliette Davies - www.juliettedavies.com  -->
+        <div class="header-right">
+            <a href="{% url "support:acceptable_use_logged_out" %}">Acceptable Use</a>
+            <a href="https://www.abf.com.au/privacy/" style="margin-left: 30px">Privacy</a>
+            <a href="{% url "support:cookies_logged_out" %}" style="margin-left: 30px">Cookies</a></a>
+    </div>
+
+</body>
+{% block footer %}
+{% endblock %}
+
+<!-- Design work by Juliette Davies - www.juliettedavies.com  -->
 
 </html>

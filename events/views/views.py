@@ -871,6 +871,8 @@ def pay_outstanding(request):
 def view_event_entries(request, congress_id, event_id):
     """Screen to show entries to an event"""
 
+    print("here")
+
     congress = get_object_or_404(Congress, pk=congress_id)
     event = get_object_or_404(Event, pk=event_id)
     entries = (
@@ -907,6 +909,22 @@ def view_event_entries(request, congress_id, event_id):
         # may be anonymous
         user_entered = False
 
+    # Check sessions for different start time. 1pm on first day, then 10am etc
+    sessions = Session.objects.filter(event=event).order_by(
+        "session_date", "session_start"
+    )
+    earliest_start_by_day = {}
+    for session in sessions:
+        if session.session_date not in earliest_start_by_day:
+            # not in dict so add it
+            earliest_start_by_day[session.session_date] = session.session_start
+        elif session.session_start < earliest_start_by_day[session.session_date]:
+            # in dict and earlier than current entry, update it
+            earliest_start_by_day[session.session_date] = session.session_start
+
+    # see if start times are the same
+    multiple_start_times = len(set(earliest_start_by_day.values())) > 1
+
     return render(
         request,
         "events/players/view_event_entries.html",
@@ -917,6 +935,8 @@ def view_event_entries(request, congress_id, event_id):
             "categories": categories,
             "date_string": date_string,
             "user_entered": user_entered,
+            "multiple_start_times": multiple_start_times,
+            "sessions": sessions,
         },
     )
 

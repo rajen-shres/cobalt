@@ -10,7 +10,30 @@
                 <div class="text-center">
                     <h2>{{ event.event_name|safe }}</h2>
                     <h3>{{ congress }}</h3>
-                    <h3>{{ date_string }} - {{ event.start_time|cobalt_time }} Start</h3>
+                    <h3>{{ date_string }} - {{ event.denormalised_start_time|cobalt_time }} Start</h3>
+
+                    {% if multiple_start_times %}
+                        <h3>This event starts at different times on subsequent days</h3>
+                        <div class="table-responsive col-md-6 mx-auto">
+                            <table class="table table-condensed">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Start Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for session in sessions %}
+                                        <tr>
+                                            <td>{{ session.session_date|cobalt_nice_date }}</td>
+                                            <td>{{ session.session_start|cobalt_time }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
                     <h4>{{ entries|length }} entr{{ entries|length|pluralize:"y,ies" }}
                         {% if event.max_entries %}
                             out of a maximum of {{ event.max_entries }}
