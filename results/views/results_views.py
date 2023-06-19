@@ -173,7 +173,7 @@ def usebio_mp_pairs_results_summary_view_two_field(
 
         # This may break for ties
         position = int(item["PLACE"])
-        masterpoints = int(item["MASTER_POINTS_AWARDED"]) / 100.0
+        masterpoints = int(item.get("MASTER_POINTS_AWARDED", 0)) / 100.0
         pair_number = item["PAIR_NUMBER"]
         direction = item["DIRECTION"]
         percentage = item["PERCENTAGE"]
