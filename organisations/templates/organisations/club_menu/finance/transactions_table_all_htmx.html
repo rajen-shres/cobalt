@@ -4,6 +4,8 @@
 {#                                                                        #}
 {# sub of transactions_htmx.html                                          #}
 {#                                                                        #}
+{#  also called by transaction_event_detail_htmx.html which doesn't want  #}
+{#  the balance.                                                          #}
 {#------------------------------------------------------------------------#}
 {% load humanize %}
 {% load cobalt_tags %}
@@ -17,7 +19,9 @@
             <th class="text-left text-primary">Description</th>
             <th class="text-left text-primary">Who</th>
             <th class="text-right text-primary cobalt-no-wrap">Amount</th>
-            <th class="text-right text-primary cobalt-no-wrap">Balance</th>
+            {% if not hide_balance %}
+                <th class="text-right text-primary cobalt-no-wrap">Balance</th>
+            {% endif %}
         </tr>
     </thead>
     <tbody>
@@ -36,7 +40,9 @@
                 <td class="text-left">{{ thing.description }}</td>
                 <td class="text-left">{{ thing.member|default_if_none:"" }}{{ thing.other_organisation|default_if_none:"" }}</td>
                 <td class="text-right font-weight-bold">{{ thing.amount|cobalt_currency_colour }}</td>
-                <td class="text-right">{{ thing.balance|cobalt_currency_colour }}</td>
+                {% if not hide_balance %}
+                    <td class="text-right">{{ thing.balance|cobalt_currency_colour }}</td>
+                {% endif %}
             </tr>
 
             <!-- HIDDEN ROW FOR DETAILS WHEN CLICKED ON -->

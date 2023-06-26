@@ -28,8 +28,15 @@
 
                     <td><i class="material-icons text-primary">info</i></td>
                     <td class="text-left cobalt-no-wrap">{{ thing.created_date|cobalt_nice_date }}</td>
-                    <td class="text-left">
-                        <a href="{% url "events:admin_event_summary" event_id=thing.event_id %}" target="_blank">{{ thing.description }}</a>
+
+                    <td class="text-left"><a
+                        href="#"
+                        hx-post="{% url 'organisations:transaction_event_details_htmx' %}"
+                        hx-target="#id_finance_transactions"
+                        hx-vars="club_id: {{ club.id }}, event_id: {{ thing.event_id }}"
+                    >
+                        {{ thing.description }}
+                    </a>
                     </td>
                     <td class="text-right font-weight-bold">{{ thing.amount|cobalt_currency_colour }}</td>
                 </tr>

@@ -821,6 +821,7 @@ def update_organisation(
     member=None,
     bank_settlement_amount=None,
     session=None,
+    event=None,
 ):
     """method to update an organisations account
 
@@ -848,6 +849,8 @@ def update_organisation(
     act.bank_settlement_amount = bank_settlement_amount
     if session:
         act.club_session_id = session.id
+    if event:
+        act.event_id = event.id
 
     act.save()
 

@@ -3,6 +3,9 @@
 {# CSV download menu page, now also does inline filtering                 #}
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+{% load humanize %}
+
 
 <div class="container mx-auto" style="min-height: 600px">
 
@@ -17,16 +20,28 @@
         <!-- INPUTS -->
         <div class="row">
 
+            <!-- DATE RANGES -->
+            <label class="mx-5">
+                Date Range
+                <select class="form-control" _="on change put my.value into #id_start_date.value then put '{% now "Y-m-d" %}' into #id_end_date.value">
+                    <option value="{{ -30|cobalt_add_days|date:"Y-m-d" }}">30 Days</option>
+                    <option value="{{ -90|cobalt_add_days|date:"Y-m-d" }}" selected>90 Days</option>
+                    <option value="{{ -180|cobalt_add_days|date:"Y-m-d" }}">180 Days</option>
+                    <option value="{{ -365|cobalt_add_days|date:"Y-m-d" }}">1 Year</option>
+                </select>
+            </label>
+
+
             <!-- START DATE -->
             <label class="mx-5">
                 Start Date
-                <input type="date" name="start_date" id="id_start_date" class="form-control" required>
+                <input type="date" name="start_date" id="id_start_date" class="form-control" value="{{ -90|cobalt_add_days|date:"Y-m-d" }}" required>
             </label>
 
             <!-- END DATE -->
             <label class="mx-5">
                 End Date
-                <input type="date" name="end_date" id="id_end_date" class="form-control" required>
+                <input type="date" name="end_date" id="id_end_date" class="form-control" value="{% now "Y-m-d" %}" required>
             </label>
 
             <!-- VIEW -->

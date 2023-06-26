@@ -847,6 +847,7 @@ def admin_evententry_delete(request, evententry_id):
                         description=f"Refund to {player} for {event_entry.event.event_name}",
                         payment_type="Refund",
                         member=player,
+                        event=event_entry.event,
                     )
 
                     # create payment for member

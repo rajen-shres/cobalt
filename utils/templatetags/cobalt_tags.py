@@ -1,6 +1,7 @@
 import logging
 import pprint
 import random
+import datetime
 
 from django import template
 from django.template.loader import get_template
@@ -317,10 +318,7 @@ def cobalt_trick_count(tricks):
     """Return empty string if tricks < 7 or tricks minus 6."""
 
     try:
-        if tricks < 7:
-            return ""
-        else:
-            return tricks - 6
+        return "" if tricks < 7 else tricks - 6
     except TypeError:
         return tricks
 
@@ -361,3 +359,10 @@ def cobalt_dev_list(item):
     </pre>
     """
     )
+
+
+@register.filter(name="cobalt_add_days", is_safe=True)
+def cobalt_add_days(days):
+    """add days to today"""
+
+    return datetime.date.today() + datetime.timedelta(days=days)

@@ -1,0 +1,23 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Show the transactions that make up an event                            #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load humanize %}
+{% load cobalt_tags %}
+
+<h3>All Transactions for {{ event }}</h3>
+{% if date_range_warning %}
+    <h4>Date Range is Not Applied to This View</h4>
+{% else %}
+
+    <button
+        class="btn btn-outline-secondary btn-sm"
+        hx-post="{% url 'organisations:transactions_htmx' %}"
+        hx-target="#id_finance_transactions"
+        hx-vars="club_id: {{ club.id }}, show_filtered_data: 1, view_type: 'event'"
+    ><< Show All</button>
+
+{% endif %}
+
+{% include "organisations/club_menu/finance/transactions_table_all_htmx.html" with hide_balance=True %}

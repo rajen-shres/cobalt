@@ -21,7 +21,15 @@
                     <tr>
                         <td class="text-left">{{ thing.start_date }}</td>
                         <td class="text-left">{{ thing.congress_name }}</td>
-                        <td class="text-left"><a href="{% url "events:admin_event_summary" event_id=thing.id %}" target="_blank">{{ thing.event_name }}</a></td>
+                        <td class="text-left"><a
+                            href="#"
+                            hx-post="{% url 'organisations:transaction_event_details_htmx' %}"
+                            hx-target="#id_filtered_transactions"
+                            hx-vars="club_id: {{ club.id }}, event_id: {{ thing.id }}, date_range_warning: 1"
+                        >
+                            {{ thing.event_name }}
+                        </a>
+                        </td>
                         <td class="text-right">
                             {% if thing.amount_outside_range != 0 %}
                                 <button class="btn btn-xs btn-danger" data-toggle="tooltip" title="Payments of {{ thing.amount_outside_range|cobalt_currency_colour }} were made outside the selected date range">!</button>

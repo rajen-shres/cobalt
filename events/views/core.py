@@ -337,6 +337,7 @@ def _mark_event_entry_player_as_paid_and_book_payments(event_entry_player, who_p
         description=f"{event_entry_player.event_entry.event.event_name} - {event_entry_player.player}",
         payment_type="Entry to an event",
         member=who_paid,
+        event=event_entry_player.event_entry.event,
     )
 
     # create payment for user
@@ -449,6 +450,7 @@ def _update_entries_process_their_system_dollars_make_payments(event_entries_by_
                 organisation=event_entry_player.event_entry.event.congress.congress_master.org,
                 payment_type="Entry to an event",
                 book_internals=True,
+                event=event_entry.event,
             ):
                 event_entry_player.payment_status = "Paid"
                 event_entry_player.entry_complete_date = datetime.now()

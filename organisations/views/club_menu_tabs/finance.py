@@ -7,7 +7,7 @@ from django.urls import reverse
 from accounts.models import User
 from club_sessions.models import Session
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS
-from events.models import Event
+from events.models import Event, Congress, CongressMaster
 from notifications.views.core import send_cobalt_email_to_system_number
 from organisations.decorators import check_club_menu_access
 from organisations.models import ClubLog, MemberMembershipType, Organisation
@@ -170,7 +170,9 @@ def _summary_by_events(request, club):
     return cobalt_paginator(request, event_transactions)
 
 
-def pay_member_from_organisation(request, club, amount, description, member):
+def pay_member_from_organisation(
+    request, club, amount, description, member, event_id=-1
+):
     """Pay a member from an organisation's account. Calling module is responsible for security.
 
     This works off the request object.
@@ -190,6 +192,8 @@ def pay_member_from_organisation(request, club, amount, description, member):
     if amount > org_balance(club):
         return False, "Club has insufficient funds for this transfer"
 
+    event = Event.objects.get(pk=event_id) if event_id > 0 else None
+
     # Pay user
     update_account(
         member=member,
@@ -206,6 +210,7 @@ def pay_member_from_organisation(request, club, amount, description, member):
         description=description,
         payment_type="Org Transfer",
         member=member,
+        event=event,
     )
 
     # log it
@@ -222,7 +227,7 @@ def pay_member_from_organisation(request, club, amount, description, member):
     """
     send_cobalt_email_to_system_number(
         system_number=member.system_number,
-        subject=f"Charge from {club}",
+        subject=f"Payment from {club}",
         message=msg,
         club=club,
     )
@@ -290,18 +295,24 @@ def pay_member_htmx(request, club):
 
     if "save" not in request.POST:
         hx_post = reverse("organisations:pay_member_htmx")
+        events = (
+            Event.objects.filter(congress__congress_master__org=club)
+            .select_related("congress")
+            .order_by("-denormalised_start_date")[:20]
+        )
         return render(
             request,
             "organisations/club_menu/finance/pay_member_htmx.html",
-            {"club": club, "hx_post": hx_post},
+            {"club": club, "hx_post": hx_post, "events": events},
         )
 
     member = get_object_or_404(User, pk=request.POST.get("member_id"))
     amount = float(request.POST.get("amount"))
     description = request.POST.get("description")
+    event_id = int(request.POST.get("event_id", -1))
 
     _, message = pay_member_from_organisation(
-        request, club, amount, description, member
+        request, club, amount, description, member, event_id
     )
 
     return tab_finance_htmx(request, message=message)
@@ -480,6 +491,78 @@ def transaction_details_htmx(request, club):
 
 
 @check_club_menu_access(check_payments=True)
+def transaction_event_details_htmx(request, club):
+    """return a breakdown of the transactions that make up payments for an event. Appears on the finance view when
+    a user drills into the event"""
+
+    date_range_warning = request.POST.get("date_range_warning")
+
+    event = get_object_or_404(Event, pk=request.POST.get("event_id"))
+    event_transactions = OrganisationTransaction.objects.filter(
+        organisation=club, event_id=event.id
+    ).order_by("-created_date")
+    things = cobalt_paginator(request, event_transactions)
+
+    return render(
+        request,
+        "organisations/club_menu/finance/transaction_event_detail_htmx.html",
+        {
+            "things": things,
+            "club": club,
+            "event": event,
+            "date_range_warning": date_range_warning,
+        },
+    )
+
+
+@check_club_menu_access(check_payments=True)
+def transaction_congress_details_htmx(request, club):
+    """return a list of events for a congress so the user can drill into the details"""
+
+    date_range_warning = request.POST.get("date_range_warning")
+
+    # Get congress from POST
+    congress_id = request.POST.get("congress_id")
+    congress = get_object_or_404(Congress, pk=congress_id)
+
+    # Get events for this congress
+    event_ids = Event.objects.filter(congress_id=congress_id)
+
+    # Get payments for these events
+    event_payments = (
+        OrganisationTransaction.objects.filter(organisation=club)
+        .filter(event_id__in=event_ids)
+        .values("event_id")
+        .annotate(amount=Sum("amount"))
+    )
+
+    # Turn into dictionary
+    event_payments_dict = {}
+    for event_payment in event_payments:
+        event_payments_dict[event_payment["event_id"]] = event_payment["amount"]
+
+    # Get events so we have name, dates etc
+    events = Event.objects.filter(pk__in=event_ids).order_by("-denormalised_start_date")
+
+    # Augment with payment amounts
+    for event in events:
+        event.total_payments = event_payments_dict.get(event.id, 0)
+
+    things = cobalt_paginator(request, events)
+
+    return render(
+        request,
+        "organisations/club_menu/finance/transaction_congress_detail_htmx.html",
+        {
+            "things": things,
+            "club": club,
+            "congress": congress,
+            "date_range_warning": date_range_warning,
+        },
+    )
+
+
+@check_club_menu_access(check_payments=True)
 def transaction_session_details_htmx(request, club):
     """return details of a session"""
 
@@ -500,12 +583,6 @@ def transaction_session_details_htmx(request, club):
             "session_transactions": session_transactions,
         },
     )
-
-
-def _download_xls(request, club, start_date, end_date):
-    """download statement data in XLS format"""
-
-    return HttpResponse("XLS download")
 
 
 @check_club_menu_access(check_payments=True)
@@ -714,8 +791,6 @@ def organisation_transactions_filtered_data_congresses(
     list_of_congresses = list(congress_data.values())
     list_of_congresses.reverse()
     things = cobalt_paginator(request, list_of_congresses)
-
-    print("cgress")
 
     return render(
         request,

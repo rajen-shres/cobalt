@@ -1,0 +1,41 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Show the events for a congress and allow user to drill in              #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load humanize %}
+{% load cobalt_tags %}
+
+<h3>All Events for {{ congress }}</h3>
+{% if date_range_warning %}
+    <h4>Date Range is Not Applied to This View</h4>
+{% endif %}
+
+<div class="table-responsive">
+    <table class="table table-condensed table-hover">
+        <thead>
+            <tr class="text-primary">
+                <th class="text-left">Start Date</th>
+                <th class="text-left">Event</th>
+                <th class="text-right">Total Payments</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for thing in things %}
+                <tr>
+                    <td class="text-left">{{ thing.denormalised_start_date|cobalt_nice_date }}</td>
+                    <td class="text-left"><a
+                        href="#"
+                        hx-post="{% url 'organisations:transaction_event_details_htmx' %}"
+                        hx-target="#id_filtered_transactions"
+                        hx-vars="club_id: {{ club.id }}, event_id: {{ thing.id }}, date_range_warning:1"
+                    >
+                        {{ thing.event_name }}
+                    </a>
+                    </td>
+                    <td class="text-right">{{ thing.total_payments|cobalt_currency_colour }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

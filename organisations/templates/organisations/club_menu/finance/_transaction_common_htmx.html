@@ -59,8 +59,34 @@
                     </div>
                 </div>
 
-                <div class="row text-center">
+                {% if events %}
+
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+
+                                <select class="form-control mb-5" name="event_id">
+                                    <option value="-1" disabled selected>OPTIONAL - Link to Congress Event</option>
+                                    {% for event in events %}
+                                        <option value="{{ event.id }}">{{ event.congress.name }} - {{ event.event_name }}</option>
+                                    {% endfor %}
+                                </select>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="id_congress_names"></div>
+
+                {% endif %}
+
+                <div class="row text-center mt-5">
                     <button type="submit" name="save" class="btn btn-sm btn-success">{{ button }}</button>
+                    <button
+                        class="btn btn-sm btn-info"
+                        _="on click send tab_load_event to #id_panel_finance"
+                    >Cancel</button>
                 </div>
 
             </div>

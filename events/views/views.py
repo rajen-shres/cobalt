@@ -1295,6 +1295,7 @@ def _delete_event_entry_handle_post_refunds(request, event_entry, event_entry_pl
                 description=f"Refund to {event_entry_player.paid_by} for {event_entry.event.event_name}",
                 payment_type="Refund",
                 member=event_entry_player.paid_by,
+                event=event_entry.event,
             )
 
             # create payment for member
