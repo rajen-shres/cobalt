@@ -152,9 +152,13 @@
                     end_date.attr({"min" : {{dates.0}} });
                 }
             {% endfor %}
+
+            // if we already have data then refresh
+            if ($("#id_filtered_transactions").text().length >= 1){
+                $("#id_filter_submit_button").trigger("click");
+            }
+
         });
-
-
 
     });
 </script>
