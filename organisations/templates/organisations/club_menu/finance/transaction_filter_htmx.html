@@ -23,11 +23,10 @@
             <!-- DATE RANGES -->
             <label class="mx-5">
                 Date Range
-                <select class="form-control" _="on change put my.value into #id_start_date.value then put '{% now "Y-m-d" %}' into #id_end_date.value">
-                    <option value="{{ -30|cobalt_add_days|date:"Y-m-d" }}">30 Days</option>
-                    <option value="{{ -90|cobalt_add_days|date:"Y-m-d" }}" selected>90 Days</option>
-                    <option value="{{ -180|cobalt_add_days|date:"Y-m-d" }}">180 Days</option>
-                    <option value="{{ -365|cobalt_add_days|date:"Y-m-d" }}">1 Year</option>
+                <select id="id_date_range_picker" class="form-control">
+                    {% for index in reference_dates %}
+                        <option value="{{ index }}">{{ index }}</option>
+                    {% endfor %}
                 </select>
             </label>
 
@@ -131,6 +130,31 @@
             {#$("#id_start_date").val("");#}
             $("#id_start_date").attr({"max" : end_date_val});
         });
+
+        // handle date range picker
+        $("#id_date_range_picker").on("change", function (){
+
+            // links to date fields
+            const start_date = $("#id_start_date");
+            const end_date = $("#id_end_date");
+
+            // new value
+            const ref_date = $("#id_date_range_picker").val();
+
+            {% for index, dates in reference_dates.items %}
+                if (ref_date === "{{ index }}") {
+                    // set dates
+                    start_date.val("{{ dates.0 }}");
+                    end_date.val("{{ dates.1 }}");
+
+                    // set constraints
+                    start_date.attr({"max" : {{dates.1}} });
+                    end_date.attr({"min" : {{dates.0}} });
+                }
+            {% endfor %}
+        });
+
+
 
     });
 </script>

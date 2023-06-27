@@ -7,8 +7,15 @@
 {% load cobalt_tags %}
 
 <h3>All Transactions for {{ event }}</h3>
-{% if date_range_warning %}
+{% if use_filtered_view %}
     <h4>Date Range is Not Applied to This View</h4>
+
+
+    <button
+        class="btn btn-outline-secondary btn-sm"
+        _="on click send click to #id_filter_submit_button"
+    ><< Show All</button>
+
 {% else %}
 
     <button
@@ -21,3 +28,5 @@
 {% endif %}
 
 {% include "organisations/club_menu/finance/transactions_table_all_htmx.html" with hide_balance=True %}
+
+{% include 'utils/pagination_footer_htmx.html' %}

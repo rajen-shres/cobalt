@@ -24,7 +24,7 @@
                                 href="#"
                                 hx-post="{% url 'organisations:transaction_congress_details_htmx' %}"
                                 hx-target="#id_filtered_transactions"
-                                hx-vars="club_id: {{ club.id }}, congress_id: {{ thing.id }}, date_range_warning: 1"
+                                hx-vars="club_id: {{ club.id }}, congress_id: {{ thing.id }}, use_filtered_view: 1"
                             >
                                 {{ thing.congress_name }}
                             </a>

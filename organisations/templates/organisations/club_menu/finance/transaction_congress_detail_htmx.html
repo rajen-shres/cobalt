@@ -7,7 +7,7 @@
 {% load cobalt_tags %}
 
 <h3>All Events for {{ congress }}</h3>
-{% if date_range_warning %}
+{% if use_filtered_view %}
     <h4>Date Range is Not Applied to This View</h4>
 {% endif %}
 
@@ -28,7 +28,7 @@
                         href="#"
                         hx-post="{% url 'organisations:transaction_event_details_htmx' %}"
                         hx-target="#id_filtered_transactions"
-                        hx-vars="club_id: {{ club.id }}, event_id: {{ thing.id }}, date_range_warning:1"
+                        hx-vars="club_id: {{ club.id }}, event_id: {{ thing.id }}, use_filtered_view:1"
                     >
                         {{ thing.event_name }}
                     </a>
@@ -39,3 +39,6 @@
         </tbody>
     </table>
 </div>
+
+
+{% include 'utils/pagination_footer_htmx.html' %}

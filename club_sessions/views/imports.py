@@ -166,7 +166,15 @@ def _import_file_upload_htmx_compscore3(request, club, session):
         player_file_name = row[1]
         system_number = row[2]
         initial_seating = row[3]
-        table, both_direction = initial_seating.split("-")
+        try:
+            table, both_direction = initial_seating.split("-")
+        except ValueError:
+            # CS3 had a bug where it didn't show phantoms properly and had them with no information
+            # likely fixed by the time you read this
+            # Ignore this if player is a phantom, we will fill in the gap later
+            if player_file_name.strip() != "PHANTOM":
+                raise ValueError
+            continue
         direction = both_direction[1] if row_no % 2 == 0 else both_direction[0]
 
         # Handle sit out and playing director

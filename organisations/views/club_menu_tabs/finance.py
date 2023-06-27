@@ -1,4 +1,5 @@
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+import datetime
+
 from django.db.models import Sum, Min
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -7,7 +8,7 @@ from django.urls import reverse
 from accounts.models import User
 from club_sessions.models import Session
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS
-from events.models import Event, Congress, CongressMaster
+from events.models import Event, Congress
 from notifications.views.core import send_cobalt_email_to_system_number
 from organisations.decorators import check_club_menu_access
 from organisations.models import ClubLog, MemberMembershipType, Organisation
@@ -495,13 +496,25 @@ def transaction_event_details_htmx(request, club):
     """return a breakdown of the transactions that make up payments for an event. Appears on the finance view when
     a user drills into the event"""
 
-    date_range_warning = request.POST.get("date_range_warning")
+    use_filtered_view = request.POST.get("use_filtered_view")
 
+    # Get transactions and paginate
     event = get_object_or_404(Event, pk=request.POST.get("event_id"))
     event_transactions = OrganisationTransaction.objects.filter(
         organisation=club, event_id=event.id
     ).order_by("-created_date")
     things = cobalt_paginator(request, event_transactions)
+
+    # Set up HTMX data
+
+    hx_post = reverse("organisations:transaction_event_details_htmx")
+    hx_vars = f"club_id: {club.id}, event_id:{event.id}"
+
+    if use_filtered_view:
+        hx_target = "#id_filtered_transactions"
+        hx_vars = f"{hx_vars}, use_filtered_view:1"
+    else:
+        hx_target = "#id_finance_transactions"
 
     return render(
         request,
@@ -510,7 +523,10 @@ def transaction_event_details_htmx(request, club):
             "things": things,
             "club": club,
             "event": event,
-            "date_range_warning": date_range_warning,
+            "use_filtered_view": use_filtered_view,
+            "hx_post": hx_post,
+            "hx_target": hx_target,
+            "hx_vars": hx_vars,
         },
     )
 
@@ -519,7 +535,7 @@ def transaction_event_details_htmx(request, club):
 def transaction_congress_details_htmx(request, club):
     """return a list of events for a congress so the user can drill into the details"""
 
-    date_range_warning = request.POST.get("date_range_warning")
+    use_filtered_view = request.POST.get("use_filtered_view")
 
     # Get congress from POST
     congress_id = request.POST.get("congress_id")
@@ -550,6 +566,17 @@ def transaction_congress_details_htmx(request, club):
 
     things = cobalt_paginator(request, events)
 
+    # Set up HTMX data
+
+    hx_post = reverse("organisations:transaction_congress_details_htmx")
+    hx_vars = f"club_id: {club.id}, congress_id:{congress.id}"
+
+    if use_filtered_view:
+        hx_target = "#id_filtered_transactions"
+        hx_vars = f"{hx_vars}, use_filtered_view:1"
+    else:
+        hx_target = "#id_finance_transactions"
+
     return render(
         request,
         "organisations/club_menu/finance/transaction_congress_detail_htmx.html",
@@ -557,7 +584,10 @@ def transaction_congress_details_htmx(request, club):
             "things": things,
             "club": club,
             "congress": congress,
-            "date_range_warning": date_range_warning,
+            "use_filtered_view": use_filtered_view,
+            "hx_post": hx_post,
+            "hx_target": hx_target,
+            "hx_vars": hx_vars,
         },
     )
 
@@ -596,10 +626,36 @@ def transaction_filter_htmx(request, club):
 
     if not view_type_selector:
         # first call - show blank form
+
+        today = datetime.date.today()
+        today_str = today.strftime("%Y-%m-%d")
+        last_month = today.replace(day=1) - datetime.timedelta(days=1)
+        first_of_last_month_str = f"{last_month.strftime('%Y-%m')}-01"
+        last_of_last_month_str = last_month.strftime("%Y-%m-%d")
+        first_of_last_year_str = datetime.date(
+            int(today.strftime("%Y")) - 1, 1, 1
+        ).strftime("%Y-%m-%d")
+        last_of_last_year_str = datetime.date(
+            int(today.strftime("%Y")) - 1, 12, 31
+        ).strftime("%Y-%m-%d")
+
+        reference_dates = {
+            "Month to date": (
+                f"{datetime.date.today().strftime('%Y-%m')}-01",
+                today_str,
+            ),
+            "Year to date": (
+                f"{datetime.date.today().strftime('%Y')}-01-01",
+                today_str,
+            ),
+            "Last Month": (first_of_last_month_str, last_of_last_month_str),
+            "Last Year": (first_of_last_year_str, last_of_last_year_str),
+        }
+
         return render(
             request,
             "organisations/club_menu/finance/transaction_filter_htmx.html",
-            {"club": club},
+            {"club": club, "reference_dates": reference_dates},
         )
 
     if not start_date or not end_date:
