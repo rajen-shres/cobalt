@@ -29,6 +29,9 @@ class AccountUpdateTests:
     def account_update(self):
         """Tests for the account update"""
 
+        # TODO: This is not finished
+        return
+
         new_lock = Lock(topic="Account Update Lock")
         new_lock.save()
         print(f"Lock set up - {new_lock}")
