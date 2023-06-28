@@ -1,5 +1,4 @@
-from datetime import datetime
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.forms import model_to_dict
 
 from club_sessions.models import Session
@@ -211,10 +210,12 @@ def organisation_transactions_by_date_range(
         .select_related("member")
     )
 
-    # filter if required
+    # filter if required - note we also search for first name and last name as well as description
     if description_search:
         organisation_transactions = organisation_transactions.filter(
-            description__icontains=description_search
+            Q(description__icontains=description_search)
+            | Q(member__first_name__icontains=description_search)
+            | Q(member__last_name__icontains=description_search)
         )
 
     if not augment_data:

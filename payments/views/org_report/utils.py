@@ -29,7 +29,10 @@ def start_end_date_to_datetime(start_date, end_date):
     # Convert dates to date times
     start_datetime_raw = datetime.datetime.strptime(start_date, "%Y-%m-%d")
     start_datetime = timezone.make_aware(start_datetime_raw, TZ)
+
+    # Start date is 00:00 time on the day, for end date use 00:00 time on the next day
     end_datetime_raw = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+    end_datetime_raw += datetime.timedelta(days=1)
     end_datetime = timezone.make_aware(end_datetime_raw, TZ)
 
     return start_datetime, end_datetime

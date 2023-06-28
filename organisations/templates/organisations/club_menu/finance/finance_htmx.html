@@ -4,6 +4,7 @@
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 {% load cobalt_tags %}
+{% load static %}
 
 <!-- SHOW WARNING IF BSB NOT SET -->
 {% if not club.bank_bsb or not club.bank_account %}
@@ -86,8 +87,16 @@
 
 <!-- SHOW TRANSACTIONS -->
 
+<!-- SPINNER -->
+<div class='justify-content-center text-center'>
+    <span class="htmx-indicator" id="low_spinner">
+        <img style="width: 40px" src="{% static "assets/img/spinners/bars.svg" %}"/>
+    </span>
+</div>
+
 <div id="id_finance_transactions"
     hx-trigger="load"
     hx-post="{% url "organisations:transactions_htmx" %}"
     hx-vars="club_id: {{ club.id }}"
+    hx-indicator="#low_spinner"
 ></div>

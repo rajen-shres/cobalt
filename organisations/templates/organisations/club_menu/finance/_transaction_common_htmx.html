@@ -61,25 +61,43 @@
 
                 {% if events %}
 
-                    <div class="row">
+                    <div class="row mb-5">
                         <div class="col">
                             <div class="form-group">
 
-                                <select class="form-control mb-5" name="event_id">
-                                    <option value="-1" disabled selected>OPTIONAL - Link to Congress Event</option>
+                                <select class="form-control" name="event_id" id="id_event_id">
+                                    <option value="-1" selected>OPTIONAL - Link to Congress Event</option>
                                     {% for event in events %}
-                                        <option value="{{ event.id }}">{{ event.congress.name }} - {{ event.event_name }}</option>
+                                        <option value="{{ event.id }}">{{ event.denormalised_start_date }}: {{ event.congress.name }} - {{ event.event_name }}</option>
                                     {% endfor %}
                                 </select>
-
 
                             </div>
                         </div>
                     </div>
 
-                    <div id="id_congress_names"></div>
+                {% endif %}
+
+                {% if sessions %}
+
+                    <div class="row my-5">
+                        <div class="col">
+                            <div class="form-group">
+
+                                <select class="form-control" name="session_id" id="id_session_id">
+                                    <option value="-1" selected>OPTIONAL - Link to Club Session</option>
+                                    {% for session in sessions %}
+                                        <option value="{{ session.id }}">{{ session.session_date }}: {{ session.description }}</option>
+                                    {% endfor %}
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
 
                 {% endif %}
+
+                <div class="my-5">&nbsp;</div>
 
                 <div class="row text-center mt-5">
                     <button type="submit" name="save" class="btn btn-sm btn-success">{{ button }}</button>
@@ -115,6 +133,23 @@
     jQuery(document).ready(function () {
         // show modal straight away
         $('#userSearchModalpay_member').modal('show');
+
+        // don't allow both event_id and session_id
+        $("#id_event_id").on("change", function(){
+            if  ($("#id_event_id").val() === "-1"){
+                $("#id_session_id").removeAttr("disabled");
+            } else {
+                $("#id_session_id").attr("disabled", true);
+            }
+        });
+
+        $("#id_session_id").on("change", function(){
+            if  ($("#id_session_id").val() === "-1"){
+                $("#id_event_id").removeAttr("disabled");
+            } else {
+                $("#id_event_id").attr("disabled", true);
+            }
+        });
     });
 
 

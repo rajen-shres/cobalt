@@ -172,7 +172,7 @@ def _summary_by_events(request, club):
 
 
 def pay_member_from_organisation(
-    request, club, amount, description, member, event_id=-1
+    request, club, amount, description, member, event_id=-1, session_id=-1
 ):
     """Pay a member from an organisation's account. Calling module is responsible for security.
 
@@ -194,6 +194,7 @@ def pay_member_from_organisation(
         return False, "Club has insufficient funds for this transfer"
 
     event = Event.objects.get(pk=event_id) if event_id > 0 else None
+    session = Session.objects.get(pk=session_id) if session_id > 0 else None
 
     # Pay user
     update_account(
@@ -212,6 +213,7 @@ def pay_member_from_organisation(
         payment_type="Org Transfer",
         member=member,
         event=event,
+        session=session,
     )
 
     # log it
@@ -301,19 +303,23 @@ def pay_member_htmx(request, club):
             .select_related("congress")
             .order_by("-denormalised_start_date")[:20]
         )
+        sessions = Session.objects.filter(session_type__organisation=club).order_by(
+            "-session_date"
+        )[:20]
         return render(
             request,
             "organisations/club_menu/finance/pay_member_htmx.html",
-            {"club": club, "hx_post": hx_post, "events": events},
+            {"club": club, "hx_post": hx_post, "events": events, "sessions": sessions},
         )
 
     member = get_object_or_404(User, pk=request.POST.get("member_id"))
     amount = float(request.POST.get("amount"))
     description = request.POST.get("description")
     event_id = int(request.POST.get("event_id", -1))
+    session_id = int(request.POST.get("session_id", -1))
 
     _, message = pay_member_from_organisation(
-        request, club, amount, description, member, event_id
+        request, club, amount, description, member, event_id, session_id
     )
 
     return tab_finance_htmx(request, message=message)
@@ -650,6 +656,7 @@ def transaction_filter_htmx(request, club):
             ),
             "Last Month": (first_of_last_month_str, last_of_last_month_str),
             "Last Year": (first_of_last_year_str, last_of_last_year_str),
+            "All": ("1901-01-01", today_str),
         }
 
         return render(
