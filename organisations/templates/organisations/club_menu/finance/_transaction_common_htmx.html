@@ -78,27 +78,6 @@
 
                 {% endif %}
 
-                {% if sessions %}
-
-                    <div class="row my-5">
-                        <div class="col">
-                            <div class="form-group">
-
-                                <select class="form-control" name="session_id" id="id_session_id">
-                                    <option value="-1" selected>OPTIONAL - Link to Club Session</option>
-                                    {% for session in sessions %}
-                                        <option value="{{ session.id }}">{{ session.session_date }}: {{ session.description }}</option>
-                                    {% endfor %}
-                                </select>
-
-                            </div>
-                        </div>
-                    </div>
-
-                {% endif %}
-
-                <div class="my-5">&nbsp;</div>
-
                 <div class="row text-center mt-5">
                     <button type="submit" name="save" class="btn btn-sm btn-success">{{ button }}</button>
                     <button
@@ -134,22 +113,24 @@
         // show modal straight away
         $('#userSearchModalpay_member').modal('show');
 
-        // don't allow both event_id and session_id
-        $("#id_event_id").on("change", function(){
-            if  ($("#id_event_id").val() === "-1"){
-                $("#id_session_id").removeAttr("disabled");
-            } else {
-                $("#id_session_id").attr("disabled", true);
-            }
-        });
+        // COMMENTED OUT FOR NOW. 2023-06-29
 
-        $("#id_session_id").on("change", function(){
-            if  ($("#id_session_id").val() === "-1"){
-                $("#id_event_id").removeAttr("disabled");
-            } else {
-                $("#id_event_id").attr("disabled", true);
-            }
-        });
+        {#// don't allow both event_id and session_id#}
+        {#$("#id_event_id").on("change", function(){#}
+        {#    if  ($("#id_event_id").val() === "-1"){#}
+        {#        $("#id_session_id").removeAttr("disabled");#}
+        {#    } else {#}
+        {#        $("#id_session_id").attr("disabled", true);#}
+        {#    }#}
+        {#});#}
+        {##}
+        {#$("#id_session_id").on("change", function(){#}
+        {#    if  ($("#id_session_id").val() === "-1"){#}
+        {#        $("#id_event_id").removeAttr("disabled");#}
+        {#    } else {#}
+        {#        $("#id_event_id").attr("disabled", true);#}
+        {#    }#}
+        {#});#}
     });
 
 
