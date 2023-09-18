@@ -62,13 +62,13 @@ Environment: {{ COBALT_HOSTNAME }}
         {% endblock %}
 
         <!-- MAKE PRODUCTION DIFFERENT FOR ADMINS -->
-        {% if user.id == 4 and COBALT_HOSTNAME == "myabf.com.au" %}
-            <style>
-                body{
-                    background-color: yellow;
-                }
-            </style>
-        {% endif %}
+        {#        {% if user.id == 4 and COBALT_HOSTNAME == "myabf.com.au" %}#}
+        {#            <style>#}
+        {#                body{#}
+        {#                    background-color: yellow;#}
+        {#                }#}
+        {#            </style>#}
+        {#        {% endif %}#}
 
         {# Standard Javascript libraries for all pages #}
         <script src="{% static "assets/js/cobalt-core.js" %}"></script>

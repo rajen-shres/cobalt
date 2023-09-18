@@ -45,7 +45,7 @@ API_KEY_PREFIX = set_value("API_KEY_PREFIX", "API_")
 
 # Set up ADMINS list from string
 ADMINS = [
-    ("Mark Guthrie", "m@rkguthrie.com"),
+    ("Developer Name", "success@simulator.amazonses.com"),
     #   ("Julian Foster", "julianrfoster@gmail.com"),
 ]
 
@@ -60,7 +60,7 @@ EMAIL_HOST_USER = set_value("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = set_value("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = set_value("DEFAULT_FROM_EMAIL", "notset@fake.com")
 # TODO: SUPPORT_EMAIL is only used to send client side errors - replace with ADMINS
-SUPPORT_EMAIL = set_value("SUPPORT_EMAIL", ["m@rkguthrie.com"])
+SUPPORT_EMAIL = set_value("SUPPORT_EMAIL", ["success@simulator.amazonses.com"])
 
 # playpen - don't send emails from non-prod systems
 DISABLE_PLAYPEN = set_value("DISABLE_PLAYPEN", "OFF")

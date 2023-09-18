@@ -32,12 +32,16 @@ class Command(BaseCommand):
         print("Running createsu.")
         # RBAC Everyone
         self.create_initial_user(
-            "EVERYONE", "m@rkguthrie.com", "0", "EVERYONE", "system_account"
+            "EVERYONE",
+            "success@simulator.amazonses.com",
+            "0",
+            "EVERYONE",
+            "system_account",
         )
         # TBA User for event entry
         self.create_initial_user(
             "TBA",
-            "m@rkguthrie.com",
+            "success@simulator.amazonses.com",
             "1",
             "TBA",
             "",
@@ -57,7 +61,7 @@ class Command(BaseCommand):
 
         self.create_initial_user(
             "Mark",
-            "m@rkguthrie.com",
+            "success@simulator.amazonses.com",
             "620246",
             "Mark",
             "Guthrie",
@@ -68,7 +72,7 @@ class Command(BaseCommand):
         self.create_initial_user(
             "518891",
             # "julianrfoster@gmail.com",
-            "m@rkguthrie.com",
+            "success@simulator.amazonses.com",
             "518891",
             "Julian",
             "Foster",
