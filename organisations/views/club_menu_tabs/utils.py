@@ -178,7 +178,7 @@ def invite_user_to_join_htmx(request, club):
     # # Check for non-prod environments
     # if COBALT_HOSTNAME not in ["myabf.com.au", "www.myabf.com.au"]:
     #     print(f"NOT sending to {email}. Substituted for dev email address")
-    #     email = "m@rkguthrie.com"
+    #     email = "success@simulator.amazonses.com"
 
     if invite_to_join(
         un_reg=un_reg,

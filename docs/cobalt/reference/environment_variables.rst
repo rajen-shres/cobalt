@@ -101,7 +101,7 @@ Development example::
     export AWS_REGION_NAME=ap-southeast-2
     export AWS_SES_REGION_ENDPOINT=email.ap-southeast-2.amazonaws.com
     export AWS_SES_CONFIGURATION_SET=cobalt-dev
-    export SERVER_MAIL='ABF Dev - Errors<m@rkguthrie.com>'
+    export SERVER_MAIL='ABF Dev - Errors<success@simulator.amazonses.com>'
 
     # Google recaptcha
     export RECAPTCHA_SITE_KEY=<your key>
