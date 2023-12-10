@@ -195,10 +195,10 @@ class Command(BaseCommand):
                 fix_congress_normal(congress, system_account)
 
             # Final closure regardless
+            # COB-776: Fixed to test for correct time delta
             elif (
                 datetime.date.today()
-                >= congress.end_date
-                + relativedelta(days=AUTO_FIX_UNLESS_OVERRIDDEN_DAYS)
+                >= congress.end_date + relativedelta(months=AUTO_FIX_REGARDLESS_MONTHS)
                 and congress.do_not_auto_close_congress
             ):
                 fix_congress_after_extension(congress, system_account)

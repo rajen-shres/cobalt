@@ -22,10 +22,11 @@
                                     <input type="hidden" name="username" id="id_username" value="{{ form.username.value }}">
 
                                     <!-- Personal Notifications -->
+                                    <!-- COB-775: Change in wording-->
                                     <div class="card">
                                         <div class="card-header card-header-primary">
                                             <h4 class="card-title">Personal Notifications</h4>
-                                            <p class="card-category">SMS and Email</p>
+                                            <p class="card-category">Email</p>
                                         </div>
                                         <div class="card-body">
 
@@ -38,7 +39,7 @@
                                                             </div>
                                                             <label class="form-check-label">
                                                                 <input class="form-check-input" id="id_receive_email_results" name="receive_email_results" type="checkbox" {% if form.receive_email_results.value %}checked="Checked"{% endif %}>
-                                                                Receive email notifications for results published on {{ GLOBAL_TITLE }}
+                                                                Receive email notifications for club duplicate results published on {{ GLOBAL_TITLE }}
                                                                 <span class="form-check-sign">
                                                                     <span class="check"></span>
                                                                 </span>
@@ -65,6 +66,15 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                            </div>
+                                            <!-- COB-775: Additional wording-->
+                                            <div class="content">
+                                                <p>
+                                                    Messages for congress results and draws are handled through the
+                                                    {{ GLOBAL_TITLE }} mobile app, available on the
+                                                    <a href="https://apps.apple.com/au/app/myabf/id1604472868">Apple</a> or
+                                                    <a href="https://play.google.com/store/apps/details?id=au.com.myabf&hl=en_US">Google</a> app stores.
+                                                </p>
                                             </div>
 
                                             {#                                            <div class="row">#}
