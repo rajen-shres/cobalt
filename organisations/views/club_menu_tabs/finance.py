@@ -224,7 +224,8 @@ def pay_member_from_organisation(
     ).save()
 
     # notify user
-    msg = f"""{request.user} has paid {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} to your {BRIDGE_CREDITS}
+    # COB-768 JPG 15-12-23: Change in message text
+    msg = f"""{club} (administrator {request.user}) has paid {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} to your {BRIDGE_CREDITS}
     account for {description}.
         <br><br>If you have any queries please contact {club} in the first instance.
     """
@@ -371,7 +372,8 @@ def charge_member_htmx(request, club):
         ).save()
 
         # notify user
-        msg = f"""{request.user} has charged {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} to your {BRIDGE_CREDITS}
+        # COB-768 JPG 15-12-23: Change in message text
+        msg = f"""{club} (administrator {request.user}) has charged {GLOBAL_CURRENCY_SYMBOL}{amount:,.2f} to your {BRIDGE_CREDITS}
         account for {description}.
             <br><br>If you have any queries please contact {club} in the first instance.
         """
