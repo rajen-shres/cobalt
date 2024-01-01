@@ -31,9 +31,11 @@ class HelpdeskLoggedOutContactForm(forms.ModelForm):
             "reported_by_name",
             "reported_by_email",
             "title",
+            "incident_type",
             "description",
         )
         labels = {
+            "incident_type": "Area",
             "title": "Subject",
             "reported_by_email": "Your email address",
             "reported_by_name": "Your name",
