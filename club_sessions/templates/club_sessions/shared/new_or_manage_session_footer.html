@@ -51,8 +51,16 @@
     }
 
     function UpdateDescriptionAndTimeOfDay(){
+        // COB-767 JPG 01-01-24
+        // Only set the time of day if creating rather than updating
+        saveButtons = document.getElementsByName("save_settings")
+        if (saveButtons.length > 0) {
+            if (saveButtons[0].innerText == "CREATE") {
+                UpdateTimeOfDay();
+            }
+        }
+
         UpdateDescription();
-        UpdateTimeOfDay();
     }
 
 
