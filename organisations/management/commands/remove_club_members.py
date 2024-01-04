@@ -1,26 +1,20 @@
 """
-Bulk transfer of club prepayment account balances to bridge credits.
-
-A script to perform once off transfers of bridge credits from a club account
-to member accounts to reflect the members balance in their club prepayment
-system.
+Bulk removal of club members
 
 The input is a csv file. Row 1 identifies the club and a administrator,
-all subsequent rows are triplets of abf number, name (not used in matching)
-and account balance.
+all subsequent rows are pairs of abf number and name (not used in matching).
 
 The script can be run in two modes - report only or update. In report only
-mode no database updates are made and no emails sent, but the output file
-is created to document what would have happened if the script had been run
-in update mode.
+mode no database updates are made, but the output file is created to document
+what would have happened if the script had been run in update mode.
 
 The command takes a csv filename as an input, with an optional --update parameter.
 If update is not specified the mode defaults to report only.
 
 Output is to a csv file with the same name as the input file, but with '-log'
-added to the file name (eg if the input file is "TBA-pp-balances-231220.csv",
-the log file is "TBA-pp-balances-231220-log.csv"). The output is a copy of the
-imput data with up to two fields appended to the balance rows, a status flag
+added to the file name (eg if the input file is "TBA-member-removal-240104.csv",
+the log file is "TBA-member-removal-240104-log.csv"). The output is a copy of the
+imput data with up to two fields appended to the member rows, a status flag
 ('Y' = processed, 'E' = errored, 'U' = unregistered user) and an error message.
 """
 
@@ -30,20 +24,22 @@ from os import path
 
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS
 
-from organisations.models import ClubLog, Organisation
 from accounts.models import User
-from notifications.views.core import send_cobalt_email_to_system_number
-from payments.views.core import update_account, update_organisation
+from organisations.models import (
+    ClubLog,
+    Organisation,
+    MemberMembershipType,
+    MemberClubTag,
+    MemberClubEmail,
+)
 
-# DATA_DIR = "tests/test_data"
 
 RESULT_ERROR = "Error"
-RESULT_PROCESSED = "Processed"
-RESULT_NOT_REGISTERED = "Not registered"
+RESULT_PROCESSED = "Removed"
 
 
 class Command(BaseCommand):
-    help = "Bulk transfer of club prepayment account balances to bridge credits"
+    help = "Bulk removal of club members"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -87,100 +83,82 @@ class Command(BaseCommand):
         # TO DO - should check RBAC for requestor
         return (True, None)
 
-    def do_transfer(self, member, pp_balance):
+    def cancel_membership(self, system_number):
         """
-        Do the transfer, debiting the club, crediting the member and sending an email to the member
-        Returns success.
-        Should only be called in update mode
+        Cancel a membership - based on the common routine _cancel_membership
+        Requires club and requestor to be set
+        Returns an result code and error message (or None)
         """
-        description = "Transfer of club pre-payment account balance"
 
-        with transaction.atomic():
-            # Perform the databse updates as a single LUW
+        try:
+            with transaction.atomic():
+                # Memberships are coming later. For now we treat as basically binary - they start on the date they are
+                # entered and we assume only one without checking
+                memberships = MemberMembershipType.objects.filter(
+                    system_number=system_number
+                ).filter(membership_type__organisation=self.club)
 
-            # Credit user
-            update_account(
-                member=member,
-                amount=pp_balance,
-                description=description,
-                organisation=self.club,
-                payment_type="Org Transfer",
-            )
+                if len(memberships) == 0:
+                    return (RESULT_ERROR, "Not a member")
 
-            # Debit club
-            update_organisation(
-                organisation=self.club,
-                amount=-pp_balance,
-                description=description,
-                payment_type="Org Transfer",
-                member=member,
-            )
+                # Should only be one but not enforced at database level so close any that match to be safe
+                for membership in memberships:
+                    membership.delete()
 
-            # log it
-            ClubLog(
-                organisation=self.club,
-                actor=self.requestor,
-                action=f"Paid {GLOBAL_CURRENCY_SYMBOL}{pp_balance:,.2f} to {member}",
-            ).save()
+                    ClubLog(
+                        organisation=self.club,
+                        actor=self.requestor,
+                        action=f"Cancelled membership for {system_number}",
+                    ).save()
 
-        # notify user
-        msg = f"""{self.club} (administrator {self.requestor}) has paid {GLOBAL_CURRENCY_SYMBOL}{pp_balance:,.2f} to your {BRIDGE_CREDITS}
-        account for {description}.
-            <br><br>If you have any queries please contact {self.club} in the first instance.
-        """
-        send_cobalt_email_to_system_number(
-            system_number=member.system_number,
-            subject=f"Payment from {self.club}",
-            message=msg,
-            club=self.club,
-        )
+                # Delete any tags
+                MemberClubTag.objects.filter(club_tag__organisation=self.club).filter(
+                    system_number=system_number
+                ).delete()
 
-        # TO DO - data integrity across LUW
-        return True
+                # Remove any email addresses for this club and user
+                MemberClubEmail.objects.filter(
+                    organisation=self.club, system_number=system_number
+                ).delete()
+
+        except Exception as e:
+            return (RESULT_ERROR, f"{e}")
+
+        return (RESULT_PROCESSED, None)
 
     def process_user_row(self, row):
         """
-        Process a non-blank, non-comment row as specifying a user balance
-        Returns a result code, the balance amount (or None) and an error message (or None)
+        Process a non-blank, non-comment row as specifying a member
+        Returns a result code and an error message (or None)
         """
         csv_fields = row.split(",")
 
-        if len(csv_fields) < 3:
-            return (RESULT_ERROR, None, "Malformed row, at least 3 columns required")
+        if len(csv_fields) < 2:
+            return (RESULT_ERROR, "Malformed row, at least 2 columns required")
 
         try:
             this_system_number = int(csv_fields[0])
         except ValueError:
-            return (RESULT_ERROR, None, "Malformed user number")
+            return (RESULT_ERROR, "Malformed user number")
 
         user_query = User.objects.filter(system_number=this_system_number)
         if not user_query.exists():
-            return (RESULT_NOT_REGISTERED, None, "User not registered")
-
-        try:
-            pp_balance = float(csv_fields[2])
-        except ValueError:
-            return (RESULT_ERROR, None, "Error reading balance")
-
-        if pp_balance != float(int(pp_balance * 100) / 100):
-            return (RESULT_ERROR, None, "Invalid balance, fractional cents")
-
-        if pp_balance == 0:
-            return (RESULT_PROCESSED, 0, None)
-
-        if pp_balance < 0:
-            return (RESULT_ERROR, None, "Club prepayment account is in debt")
+            return (RESULT_ERROR, "User not registered")
 
         if not self.make_updates:
-            return (RESULT_PROCESSED, pp_balance, None)
-
-        if self.do_transfer(user_query.get(), pp_balance):
-            return (RESULT_PROCESSED, pp_balance, None)
+            if (
+                MemberMembershipType.objects.filter(system_number=this_system_number)
+                .filter(membership_type__organisation=self.club)
+                .exists()
+            ):
+                return (RESULT_PROCESSED, None)
+            else:
+                return (RESULT_ERROR, "Not a member")
         else:
-            return (RESULT_ERROR, None, "An error occurred posting the updates")
+            return self.cancel_membership(this_system_number)
 
     def handle(self, *args, **options):
-        self.stdout.write("Executing transfer_club_pp_balances")
+        self.stdout.write("Executing remove_club_membership")
 
         self.make_updates = options["update"]
 
@@ -188,7 +166,6 @@ class Command(BaseCommand):
             f"Running in {'UPDATE' if self.make_updates else 'report only'} mode"
         )
 
-        # in_path = path.join(DATA_DIR, options['filename'][0])
         in_path = path.abspath(path.expandvars(path.expanduser(options["filename"][0])))
         (root, ext) = path.splitext(in_path)
         out_path = root + "-log" + ext
@@ -202,9 +179,7 @@ class Command(BaseCommand):
             abort = False
             users_read = 0
             users_processed = 0
-            users_not_registered = 0
             users_errored = 0
-            total_transferred = 0
             for row in in_file:
                 clean_row = row.strip()
 
@@ -226,22 +201,15 @@ class Command(BaseCommand):
 
                 else:
                     users_read += 1
-                    result_code, balance, msg = self.process_user_row(row)
+                    result_code, msg = self.process_user_row(row)
                     if result_code == RESULT_PROCESSED:
                         users_processed += 1
-                        total_transferred += balance
                         out_file.write(f"{clean_row},{RESULT_PROCESSED}\n")
-
-                    elif result_code == RESULT_NOT_REGISTERED:
-                        users_not_registered += 1
-                        out_file.write(
-                            f"{clean_row},{RESULT_NOT_REGISTERED},{msg if msg is not None else 'User not registered'}\n"
-                        )
 
                     elif result_code == RESULT_ERROR:
                         users_errored += 1
                         out_file.write(
-                            f"{clean_row},{RESULT_ERROR},{msg if msg is not None else 'Error processing transfer'}\n"
+                            f"{clean_row},{RESULT_ERROR},{msg if msg is not None else 'Error processing removal'}\n"
                         )
 
                     else:
@@ -260,6 +228,7 @@ class Command(BaseCommand):
                 out_file.write("#\n")
             if abort:
                 out_file.write("#   Processing aborted, invalid club or requestor\n")
+                print("*** Run aborted - check the log ***")
             else:
                 out_file.write(f"#   Club: {self.club}\n")
                 out_file.write(f"#   Requestor: {self.requestor}\n")
@@ -268,17 +237,15 @@ class Command(BaseCommand):
                     f"#   User records read                 : {users_read}\n"
                 )
                 out_file.write(
-                    f"#   Balances transferred              : {users_processed}\n"
+                    f"#   Members removed                   : {users_processed}\n"
                 )
                 out_file.write(
-                    f"#   Users not registered with MyABF   : {users_not_registered}\n"
-                )
-                out_file.write(
-                    f"#   Users not transfered due to error : {users_errored}\n"
-                )
-                out_file.write("#\n")
-                out_file.write(
-                    f"#   Total balance transferred         : ${total_transferred:,.2f}\n"
+                    f"#   Users not removed due to error    : {users_errored}\n"
                 )
             out_file.write("#\n")
             out_file.write(f"{'#' * 80}\n")
+
+            if users_errored > 0:
+                print(f"*** Completed with {users_errored} errors - check the log *** ")
+            else:
+                print("Completed - no errors")
