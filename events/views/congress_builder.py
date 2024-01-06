@@ -99,7 +99,8 @@ def copy_congress_from_another(congress_id: int):
 
     congress.created_date = timezone.now()
     congress.last_updated = timezone.now()
-    congress.entry_close_date = _increment_date_by_a_year(congress.entry_close_date)
+    # COB-746
+    # congress.entry_close_date = _increment_date_by_a_year(congress.entry_close_date)
 
     congress.save()
 
