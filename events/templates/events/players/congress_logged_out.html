@@ -188,6 +188,11 @@
 
                 <p>{{ congress.additional_info|safe }}</p>
 
+                <!-- COB-548 -->
+                {% if congress.payment_method_bank_transfer and congress.bank_transfer_details %}
+                    <h3>Bank Transfer Details</h3>
+                    {{ congress.bank_transfer_details|safe }}
+                {% endif %}
 
             </div>
 
