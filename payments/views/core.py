@@ -31,6 +31,7 @@ import logging
 from decimal import Decimal
 from json import JSONDecodeError
 
+import datetime
 import pytz
 import requests
 import stripe
@@ -1072,6 +1073,37 @@ def org_balance(organisation):
 
     # get balance
     last_tran = OrganisationTransaction.objects.filter(organisation=organisation).last()
+    balance = last_tran.balance if last_tran else 0.0
+    return float(balance)
+
+
+###################################
+# org_balance_at_date             #
+###################################
+def org_balance_at_date(organisation, as_at_date):
+    """Returns org balance as at a specified date
+
+    Args:
+        organisation (organisations.models.Organisation): Organisation object
+        as_at_date: date
+
+    Returns:
+        float: balance
+    """
+
+    # COB-772
+    # for end date use 00:00 time on the next day
+    end_datetime_raw = datetime.datetime.strptime(as_at_date, "%Y-%m-%d")
+    end_datetime_raw += datetime.timedelta(days=1)
+    end_datetime = timezone.make_aware(end_datetime_raw, pytz.timezone(TIME_ZONE))
+
+    last_tran = (
+        OrganisationTransaction.objects.filter(
+            organisation=organisation, created_date__lte=end_datetime
+        )
+        .order_by("created_date")
+        .last()
+    )
     balance = last_tran.balance if last_tran else 0.0
     return float(balance)
 

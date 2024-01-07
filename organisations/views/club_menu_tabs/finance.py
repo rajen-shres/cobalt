@@ -19,6 +19,7 @@ from payments.views.core import (
     update_account,
     update_organisation,
     org_balance,
+    org_balance_at_date,
 )
 from payments.views.org_report.csv import organisation_transactions_csv_download
 from payments.views.org_report.data import (
@@ -744,12 +745,18 @@ def organisation_transactions_filtered_data_all(
 
     things = cobalt_paginator(request, organisation_transactions, 50)
 
+    # COB-772
+    balance_at_end_date = org_balance_at_date(club, end_date)
+    end_datetime = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+
     return render(
         request,
         "organisations/club_menu/finance/organisation_transactions_filtered_data_all_htmx.html",
         {
             "club": club,
             "things": things,
+            "balance_at_end_date": balance_at_end_date,
+            "end_datetime": end_datetime,
             "organisation_transactions": organisation_transactions,
             "hx_target": hx_data["hx_target"],
             "hx_post": hx_data["hx_post"],
@@ -769,15 +776,22 @@ def organisation_transactions_filtered_data_sessions(
     )
 
     # Add session total amount to data
+    sessions_total = 0
     for session_in_range_id in sessions_in_range:
         sessions_in_range[session_in_range_id].amount = payments_dict.get(
             session_in_range_id, "No Payments"
         )
+        # COB-772
+        sessions_total += payments_dict.get(session_in_range_id, 0)
 
     # Paginate
     list_of_sessions = list(sessions_in_range.values())
     list_of_sessions.reverse()
     things = cobalt_paginator(request, list_of_sessions)
+
+    # COB-772
+    balance_at_end_date = org_balance_at_date(club, end_date)
+    end_datetime = datetime.datetime.strptime(end_date, "%Y-%m-%d")
 
     return render(
         request,
@@ -785,6 +799,9 @@ def organisation_transactions_filtered_data_sessions(
         {
             "club": club,
             "things": things,
+            "balance_at_end_date": balance_at_end_date,
+            "end_datetime": end_datetime,
+            "sessions_total": sessions_total,
             "hx_target": hx_data["hx_target"],
             "hx_post": hx_data["hx_post"],
             "hx_vars": hx_data["hx_vars"],
@@ -803,12 +820,22 @@ def organisation_transactions_filtered_data_events(
     list_of_events.reverse()
     things = cobalt_paginator(request, list_of_events)
 
+    # COB-772
+    balance_at_end_date = org_balance_at_date(club, end_date)
+    end_datetime = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+    events_total = 0
+    for event_id in event_data:
+        events_total += event_data[event_id]["amount"]
+
     return render(
         request,
         "organisations/club_menu/finance/organisation_transactions_filtered_data_events_htmx.html",
         {
             "club": club,
             "things": things,
+            "balance_at_end_date": balance_at_end_date,
+            "end_datetime": end_datetime,
+            "events_total": events_total,
             "hx_target": hx_data["hx_target"],
             "hx_post": hx_data["hx_post"],
             "hx_vars": hx_data["hx_vars"],
@@ -833,12 +860,18 @@ def organisation_transactions_filtered_data_combined(
     data.reverse()
     things = cobalt_paginator(request, data)
 
+    # COB-772
+    balance_at_end_date = org_balance_at_date(club, end_date)
+    end_datetime = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+
     return render(
         request,
         "organisations/club_menu/finance/organisation_transactions_filtered_data_combined_htmx.html",
         {
             "club": club,
             "things": things,
+            "balance_at_end_date": balance_at_end_date,
+            "end_datetime": end_datetime,
             "hx_target": hx_data["hx_target"],
             "hx_post": hx_data["hx_post"],
             "hx_vars": hx_data["hx_vars"],
@@ -852,10 +885,18 @@ def organisation_transactions_filtered_data_congresses(
     """handle the congress option"""
 
     congress_data = congress_payments_summary_by_date_range(club, start_date, end_date)
+    print(congress_data)
 
     list_of_congresses = list(congress_data.values())
     list_of_congresses.reverse()
     things = cobalt_paginator(request, list_of_congresses)
+
+    # COB-772
+    balance_at_end_date = org_balance_at_date(club, end_date)
+    end_datetime = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+    congresses_total = 0
+    for congress_id in congress_data:
+        congresses_total += congress_data[congress_id]["amount"]
 
     return render(
         request,
@@ -863,6 +904,9 @@ def organisation_transactions_filtered_data_congresses(
         {
             "club": club,
             "things": things,
+            "balance_at_end_date": balance_at_end_date,
+            "end_datetime": end_datetime,
+            "congresses_total": congresses_total,
             "hx_target": hx_data["hx_target"],
             "hx_post": hx_data["hx_post"],
             "hx_vars": hx_data["hx_vars"],

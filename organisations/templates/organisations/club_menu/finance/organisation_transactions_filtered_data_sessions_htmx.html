@@ -6,6 +6,12 @@
 {#------------------------------------------------------------------------#}
 {% if things %}
 
+    {% if balance_at_end_date %}
+        <h3>Balance as at {{ end_datetime|cobalt_nice_date_short }}: {{ balance_at_end_date|cobalt_currency_colour }},
+            Total for sessions: {{ sessions_total|cobalt_currency_colour }}
+        </h3>
+    {% endif %}
+
     <div class="table-responsive">
         <table class="table table-condensed table-hover">
             <thead>
