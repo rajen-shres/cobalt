@@ -13,6 +13,7 @@ from cobalt.settings import (
     GLOBAL_ORG,
     ABF_USER,
 )
+from masterpoints.views import search_mpc_users_by_name
 
 
 @login_required()
@@ -63,14 +64,19 @@ def member_search_ajax(request):
                 first_name__istartswith=search_first_name,
                 last_name__istartswith=search_last_name,
             ).exclude(pk__in=exclude_list)
+            mpc_members = search_mpc_users_by_name(search_first_name, search_last_name)
         elif search_last_name:
             members = User.objects.filter(
                 last_name__istartswith=search_last_name
             ).exclude(pk__in=exclude_list)
+            mpc_members = search_mpc_users_by_name("", search_last_name)
         else:
             members = User.objects.filter(
                 first_name__istartswith=search_first_name
             ).exclude(pk__in=exclude_list)
+            mpc_members = search_mpc_users_by_name(search_first_name, "")
+
+        homes = {int(mpc["ABFNumber"]): mpc["ClubName"] for mpc in mpc_members}
 
         if request.is_ajax:
             if members.count() > 30:
@@ -80,7 +86,12 @@ def member_search_ajax(request):
                 msg = f"No matches found. Have they registered for {GLOBAL_TITLE}? Registration is free."
             html = render_to_string(
                 template_name="accounts/search/search_results_ajax.html",
-                context={"members": members, "msg": msg, "search_id": search_id},
+                context={
+                    "members": members,
+                    "homes": homes,
+                    "msg": msg,
+                    "search_id": search_id,
+                },
             )
 
             data_dict = {"data": html}

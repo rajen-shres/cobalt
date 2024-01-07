@@ -1,3 +1,4 @@
+{% load cobalt_tags %}
 {{ msg }}
 {% if members %}
 
@@ -10,6 +11,8 @@
             <a href="javascript:void(0)" class="p-1 b-1 btn btn-sm btn-outline-primary cobalt-text-transform-off cobalt-names{{ search_id|default_if_none:"" }}" value="{{ member.pk }}">
                 <span style="font-size:larger;">
                     {{ member.full_name }} {{ member.system_number}}
+                    <br>
+                    {{ homes|cobalt_dict_key:member.system_number }}
                 </span>
             </a>
 
