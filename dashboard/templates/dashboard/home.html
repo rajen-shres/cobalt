@@ -69,17 +69,19 @@
                             <div class="card-icon">
                                 <i class="material-icons">account_balance</i>
                             </div>
-                            <p class="card-category">{{ BRIDGE_CREDITS }}</p>
+                            <p class="card-category text-dark">{{ BRIDGE_CREDITS }}</p>
 
                             <h3 class="card-title"><span class="text-nowrap" id="id_account_balance">{{ payments.balance|intcomma }}</span></h3>
                         </div>
                         <div class="card-footer">
                             <div class="stats">
                                 <i class="material-icons">date_range</i>
-                                {% if payments.last_top_up %}
-                                    Last event:
-                                {% endif %}
-                                {{ payments.last_top_up|cobalt_nice_datetime|default_if_none:"No History" }}
+                                <span class="text-dark">
+                                    {% if payments.last_top_up %}
+                                        Last event:
+                                    {% endif %}
+                                    {{ payments.last_top_up|cobalt_nice_datetime|default_if_none:"No History" }}
+                                </span>
                             </div>
                         </div>
                     </a>
@@ -95,13 +97,15 @@
                             <div class="card-icon">
                                 <i class="material-icons">list_alt</i>
                             </div>
-                            <p class="card-category">Booked Events</p>
+                            <p class="card-category  text-dark">Booked Events</p>
                             <h3 class="card-title">{{ total_events }}</h3>
                         </div>
                         <div class="card-footer">
                             <div class="stats">
                                 <i class="material-icons">local_offer</i>
-                                Events
+                                <span class="text-dark">
+                                    Events
+                                </span>
                             </div>
                         </div>
                     </a>
@@ -117,14 +121,17 @@
                             <div class="card-icon">
                                 <i class="material-icons">call_made</i>
                             </div>
-                            <p class="card-category">Masterpoints</p>
+                            <p class="card-category text-dark">Masterpoints</p>
 
                             <h3 class="card-title"><span id="masterpoints" class="text-nowrap text-dark">{{ mp.points|floatformat:2|intcomma }}</span> </h3>
 
                         </div>
                         <div class="card-footer">
                             <div class="stats">
-                                <i class="material-icons">stars</i> {{ mp.rank }}
+                                <i class="material-icons">stars</i>
+                                <span class="text-dark">
+                                    {{ mp.rank }}
+                                </span>
                             </div>
                         </div>
                     </a>
