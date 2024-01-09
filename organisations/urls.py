@@ -190,6 +190,11 @@ urlpatterns = [
         name="club_menu_tab_finance_htmx",
     ),
     path(
+        "club-menu/tabs/finance/<int:club_id>",
+        club_menu.tab_finance_statement,
+        name="club_menu_tab_finance_statement",
+    ),
+    path(
         "club-menu/tabs/members",
         organisations.views.club_menu_tabs.members.list_htmx,
         name="club_menu_tab_members_htmx",

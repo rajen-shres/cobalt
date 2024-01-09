@@ -35,8 +35,16 @@
         })
 
         // first time load the active tab
-        htmx.trigger(htmx.find("#id_panel_dashboard"), "tab_load_event");
+        // htmx.trigger(htmx.find("#id_panel_dashboard"), "tab_load_event");
 
+        // COB-766 - show_tab is passed in to allow particulalrly the finance tab to be shown immediately
+        if (show_tab === null || show_tab.length === 0 || show_tab == 'dashboard') {
+            // if in doubt show the dashboard
+            htmx.trigger(htmx.find("#id_panel_dashboard"), "tab_load_event");
+        } else {
+            // select the specified initial tab
+            $('#id_tab_' + show_tab).trigger('click')
+        }
     });
 
 </script>

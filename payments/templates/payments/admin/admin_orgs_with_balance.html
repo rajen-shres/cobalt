@@ -44,7 +44,7 @@
                             </td>
                             <td class="text-right">{{ thing.balance }}</td>
                             <td class="text-right">{{ thing.organisation.minimum_balance_after_settlement }}</td>
-                            <td><a href="{% url "payments:statement_org" org_id=thing.organisation.id %}" class="btn btn-sm btn-info">View Statement</a></td>
+                            <td><a href="{% url 'organisations:club_menu_tab_finance_statement' club_id=thing.organisation.id %}" class="btn btn-sm btn-info">View Statement</a></td>
                         </tr>
                     {% endfor %}
 

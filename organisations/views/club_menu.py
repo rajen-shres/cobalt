@@ -48,7 +48,7 @@ from utils.utils import cobalt_paginator
 
 
 @login_required()
-def club_menu(request, club_id, change_to_last_visited=False):
+def club_menu(request, club_id, change_to_last_visited=False, show_tab="dashboard"):
     """Main menu for club administrators to handle things.
 
     This uses a tabbed navigation panel with each tab providing distinct information.
@@ -56,6 +56,7 @@ def club_menu(request, club_id, change_to_last_visited=False):
 
     Args:
         club_id - organisation to view
+        show_tab - the name of the tab to be shown initially (for COB-766)
 
     Returns:
         HttpResponse - page to edit organisation
@@ -122,6 +123,7 @@ def club_menu(request, club_id, change_to_last_visited=False):
             "show_congress": show_congress,
             "show_sessions": show_sessions,
             "other_clubs": other_clubs,
+            "show_tab": show_tab,
         },
     )
 
@@ -255,6 +257,13 @@ def tab_sessions_htmx(request, club, message=""):
             "message": message,
         },
     )
+
+
+@login_required()
+def tab_finance_statement(request, club_id):
+    """Entry point for the new club finance statement, for COB-766"""
+
+    return club_menu(request, club_id, show_tab="finance")
 
 
 @check_club_menu_access()

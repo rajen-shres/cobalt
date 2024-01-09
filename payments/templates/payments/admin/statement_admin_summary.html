@@ -135,7 +135,12 @@
             clearModalOrg();
 
             // Go to org statement
-            window.location.href = 'statement-org/' + org_id;
+            //window.location.href = 'statement-org/' + org_id;
+
+            // Go to the new club finance statement
+            // COB-766
+            window.location.href = '/organisations/club-menu/tabs/finance/' + org_id
+
         }
 
     </script>

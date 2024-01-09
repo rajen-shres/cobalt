@@ -77,8 +77,8 @@
                                     {% for org in orgs %}
                                         <tr>
                                             <td class="text-left"><input type="checkbox" value="{{ org.id }}" id="id_settle_list" name="settle_list" value="{{ org.id }}"></td>
-                                            <td><a href="{% url 'payments:statement_org' org_id=org.organisation.id %}">{{ org.organisation.org_id }}</a></td>
-                                            <td><a href="{% url 'payments:statement_org' org_id=org.organisation.id %}">{{ org.organisation.name }}</a></td>
+                                            <td><a href="{% url 'organisations:club_menu_tab_finance_statement' club_id=org.organisation.id %}">{{ org.organisation.org_id }}</a></td>
+                                            <td><a href="{% url 'organisations:club_menu_tab_finance_statement' club_id=org.organisation.id %}">{{ org.organisation.name }}</a></td>
                                             <td>{{ org.organisation.bank_bsb|default_if_none:'<b>NOT SET</b>' }}</td>
                                             <td>{{ org.organisation.bank_account|default_if_none:'<b>NOT SET</b>' }}</td>
                                             <td class="text-right">{{ GLOBAL_CURRENCY_SYMBOL }}{{ org.balance|floatformat:2|intcomma }}</td>
