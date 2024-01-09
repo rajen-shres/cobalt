@@ -318,7 +318,7 @@ def tab_results_htmx(request, club, message=None):
     """build the results tab in club menu"""
 
     recent_results = ResultsFile.objects.filter(organisation=club).order_by(
-        "-created_at"
+        "-event_date"
     )
 
     things = cobalt_paginator(request, recent_results)

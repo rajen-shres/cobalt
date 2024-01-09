@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.html import strip_tags
+from django.utils.datetime_safe import datetime
 
 from accounts.views.core import get_email_address_and_name_from_system_number
 from cobalt.settings import COBALT_HOSTNAME
@@ -48,6 +49,19 @@ def upload_results_file_valid(request, form, club):
         return tab_results_htmx(request, message="Invalid file format")
 
     results_file.description = usebio.get("EVENT").get("EVENT_DESCRIPTION")
+
+    event_date_str = usebio.get("EVENT").get("DATE")
+
+    # Try to get the date from the file (being consistent with player records
+    try:
+        event_date = datetime.strptime(event_date_str, "%d/%m/%Y").date()
+    except ValueError:
+        try:
+            event_date = datetime.strptime(event_date_str, "%d-%m-%Y").date()
+        except ValueError:
+            event_date = datetime.today()
+
+    results_file.event_date = event_date
     results_file.save()
 
     # Create the player records so people know the results are there

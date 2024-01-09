@@ -131,7 +131,7 @@ def club_results_paginator_htmx(request, query_only=False):
     club_results_qs = ResultsFile.objects.filter(
         organisation_id__in=your_clubs,
         status=ResultsFile.ResultsStatus.PUBLISHED,
-    ).order_by("-created_at")
+    ).order_by("-event_date")
 
     # paginate it
     club_results = cobalt_paginator(request, club_results_qs, 10)
@@ -143,7 +143,7 @@ def club_results_paginator_htmx(request, query_only=False):
         ).first()
         if first_player:
             club_result.event_name = first_player.event_name
-            club_result.result_date = first_player.result_date
+            # club_result.result_date = first_player.result_date
 
     if query_only:
         return club_results
@@ -169,7 +169,7 @@ def all_results_paginator_htmx(request, query_only=False):
     # all results
     all_results_qs = ResultsFile.objects.filter(
         status=ResultsFile.ResultsStatus.PUBLISHED,
-    ).order_by("-created_at")
+    ).order_by("-event_date")
 
     # paginate it
     all_results = cobalt_paginator(request, all_results_qs, 10)
@@ -181,7 +181,7 @@ def all_results_paginator_htmx(request, query_only=False):
         ).first()
         if first_player:
             all_result.event_name = first_player.event_name
-            all_result.result_date = first_player.result_date
+            # all_result.result_date = first_player.result_date
 
     if query_only:
         return all_results

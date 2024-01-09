@@ -77,7 +77,8 @@
             <thead class="text-primary">
                 <tr>
                     <th class="text-left">Session</th>
-                    <th class="text-left">Date</th>
+                    <th class="text-left">Event Date</th>
+                    <th class="text-left">Upload Date</th>
                     <th class="text-left">Uploaded By</th>
                     <th class="text-left">Status</th>
                     <th>Action</th>
@@ -88,6 +89,7 @@
                 {% for recent_result in things %}
                     <tr>
                         <td class="text-left">{{ recent_result.description }}</td>
+                        <td class="text-left">{{ recent_result.event_date|cobalt_nice_date_short }}</td>
                         <td class="text-left">{{ recent_result.created_at|cobalt_nice_datetime_short }}</td>
                         <td class="text-left">{{ recent_result.uploaded_by.full_name }}</td>
                         <td class="text-left">{{ recent_result.get_status_display }}</td>

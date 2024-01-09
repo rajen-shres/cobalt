@@ -38,6 +38,7 @@ class ResultsFile(models.Model):
         max_length=2, choices=ResultsStatus.choices, default=ResultsStatus.PENDING
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    event_date = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.results_file.path}"
