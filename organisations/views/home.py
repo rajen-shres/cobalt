@@ -27,7 +27,8 @@ def home(request):
     ).filter(system_number=request.user.system_number)
 
     # Get all clubs (only 300)
-    clubs = Organisation.objects.filter(type="Club", status="Open")
+    # JPG update to remove type="Club" filter
+    clubs = Organisation.objects.filter(status="Open")
 
     return render(
         request,
