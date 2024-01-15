@@ -766,8 +766,9 @@ def send_fcm_message(
     # If we get an error then handle it
     else:
         logger.error(f"Error from FCM for {fcm_device.user} - {rc}")
-        logger.error(f"Deleting FCM device {fcm_device.name} for {fcm_device.user}")
-        fcm_device.delete()
+        # COB-787 temporary workaround
+        # logger.error(f"Deleting FCM device {fcm_device.name} for {fcm_device.user}")
+        # fcm_device.delete()
         return False
 
 
