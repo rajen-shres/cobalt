@@ -18,9 +18,17 @@ class Command(BaseCommand):
 
         print(f"   Filename '{results_file.results_file.name}'")
 
-        usebio = parse_usebio_file(results_file)["EVENT"]
+        try:
+            usebio = parse_usebio_file(results_file)["EVENT"]
+            event_date_str = usebio.get("DATE")
 
-        event_date_str = usebio.get("DATE")
+        except FileNotFoundError:
+            print("    ERROR - File not found")
+            event_date_str = ""
+
+        except Exception as e:
+            print(f"    ERROR - Excpetion while parsing file {e}")
+            event_date_str = ""
 
         # Try to get the date from the file (being consistent with player records
         try:
