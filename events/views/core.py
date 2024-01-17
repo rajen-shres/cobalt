@@ -828,7 +828,7 @@ def convener_wishes_to_be_notified(congress, convener):
 
     return not BlockNotification.objects.filter(member=convener).filter(
         (
-            (Q(model_id=congress.id) | Q(model_id=None))
+            (Q(model_id=congress.congress_master.id) | Q(model_id=None))
             & Q(identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT)
         )
         | (
@@ -841,6 +841,7 @@ def convener_wishes_to_be_notified(congress, convener):
 def notify_conveners(congress, event, subject, email_msg):
     """Let conveners know about things that change."""
 
+    congress_contact_already_emailed = False
     conveners = get_conveners_for_congress(congress)
     link = reverse("events:admin_event_summary", kwargs={"event_id": event.id})
 
@@ -860,6 +861,25 @@ def notify_conveners(congress, event, subject, email_msg):
         }
 
         send_cobalt_email_with_template(to_address=convener.email, context=context)
+
+        if congress.contact_email and convener.email == congress.contact_email:
+            congress_contact_already_emailed = True
+
+    if congress.contact_email and not congress_contact_already_emailed:
+
+        # send it to the congress contact email as well
+        context = {
+            "name": "Congress Contact",
+            "title": "Convener Msg: " + subject,
+            "subject": subject,
+            "email_body": f"{email_msg}<br><br>",
+            "link": link,
+            "link_text": "View Event",
+        }
+
+        send_cobalt_email_with_template(
+            to_address=congress.contact_email, context=context
+        )
 
 
 def events_status_summary():

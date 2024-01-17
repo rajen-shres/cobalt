@@ -21,19 +21,27 @@
             </div>
             <div class="card-body">
                 <h4>By default you will be notified about all entries and changes for congresses for which you have admin rights. Here you can turn notifications off.</h4>
-                <h4>This does not apply to your personal entries in an event.</h4>
+                {% if is_contact %}
+                    <h4><strong>Note:</strong> Your email has been specified as the contact email for this congress. You will continue to receive notifications for this congress regardless of the settings below.</h4>
+                {% else %}
+                    {% if congress_contact_email %}
+                        <h4>Notifications will always be sent to the congress contact email address ({{ congress_contact_email }}).</h4>
+                    {% endif %}
+                {% endif %}
+                <h4>These settings do not apply to your personal entries in an event.</h4>
+
                 <div class="table-responsive col-md-7">
                     <table class="table table-condensed">
                         <tr>
                             <td class="text-left">
-                                Receive notifications for all congresses for which you are a convener
+                                Silence notifications for all congresses for which you have admin rights
                             </td>
                             <td>
                                 <div class="form-check">
                                     <label class="form-check-label">
                                         <input type="checkbox" class="form-check-input" name="all_off" id="id_all_off"
-                                            {% if not all_off %}
-                                                checked=""
+                                            {% if all_off %}
+                                                checked="Y"
                                             {% endif %}
                                             onclick="location.href='{% url "events:admin_convener_settings" congress_id=congress.id %}?all_off={{ all_off|yesno:"False,True" }}';"
                                         >
@@ -44,7 +52,7 @@
                                 </div>
                             </td>
                             <td>
-                                <a href="javascript:void(0)" onclick='help("All Congresses", "Untick this if you do not want to receive <strong>any</strong> email notifications about congress entries.");'>help</a>
+                                <a href="javascript:void(0)" onclick='help("All Congresses", "Select this if you do not want to receive <strong>any</strong> email notifications about congress entries.");'>help</a>
                         </td>
 
                     </tr>
@@ -53,14 +61,14 @@
 
                         <tr>
                             <td class="text-left">
-                                Receive notifications for {{ congress.congress_master.org }} congresses
+                                Silence notifications for all {{ congress.congress_master.org }} congresses for which you have admin rights
                             </td>
                             <td>
                                 <div class="form-check">
                                     <label class="form-check-label">
                                         <input type="checkbox" class="form-check-input" name="this_org_off" id="id_this_org_off"
-                                            {% if not this_org_off %}
-                                                checked=""
+                                            {% if this_org_off %}
+                                                checked="Y"
                                             {% endif %}
                                             onclick="location.href='{% url "events:admin_convener_settings" congress_id=congress.id %}?this_org_off={{ this_org_off|yesno:"False,True" }}';"
                                         >
@@ -71,7 +79,7 @@
                                 </div>
                             </td>
                             <td>
-                                <a href="javascript:void(0)" onclick='help("{{ congress.congress_master.org }}", "Untick this if you do not want to receive email notifications about congress entries for this club.");'>help</a>
+                                <a href="javascript:void(0)" onclick='help("{{ congress.congress_master.org }}", "Select this if you do not want to receive email notifications about congress entries for this club.");'>help</a>
                             </td>
                         </tr>
 
@@ -79,15 +87,15 @@
 
                             <tr>
                                 <td class="text-left">
-                                    Receive notifications for this congress
+                                    Silence notifications for this congress and all subsequent occurrences of it
                                 </td>
 
                                 <td>
                                     <div class="form-check">
                                         <label class="form-check-label">
                                             <input type="checkbox" class="form-check-input" name="this_congress_off" id="id_this_congress_off"
-                                                {% if not this_congress_off %}
-                                                    checked=""
+                                                {% if this_congress_off %}
+                                                    checked="Y"
                                                 {% endif %}
                                                 onclick="location.href='{% url "events:admin_convener_settings" congress_id=congress.id %}?this_congress_off={{ this_congress_off|yesno:"False,True" }}';"
 
@@ -99,7 +107,7 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <a href="javascript:void(0)" onclick='help("{{ congress }}", "Untick this if you want to mute notifications about entries to this specific congress for this specific year.");'>help</a>
+                                    <a href="javascript:void(0)" onclick='help("{{ congress }}", "Select this if you want to mute notifications about entries to this congress and subsequent occurrences of this series.");'>help</a>
                                 </td>
 
                             </tr>

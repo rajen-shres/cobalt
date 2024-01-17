@@ -1992,7 +1992,7 @@ def convener_settings(request, congress_id):
             BlockNotification(
                 member=request.user,
                 identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
-                model_id=congress.id,
+                model_id=congress.congress_master.id,
             ).save()
 
         if request.GET.get("this_congress_off") == "False":
@@ -2000,14 +2000,14 @@ def convener_settings(request, congress_id):
             BlockNotification.objects.filter(
                 member=request.user,
                 identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
-                model_id=congress.id,
+                model_id=congress.congress_master.id,
             ).delete()
 
     # Build current state for view
     this_congress_off = BlockNotification.objects.filter(
         member=request.user,
         identifier=BlockNotification.Identifier.CONVENER_EMAIL_BY_EVENT,
-        model_id=congress.id,
+        model_id=congress.congress_master.id,
     ).exists()
     this_org_off = BlockNotification.objects.filter(
         member=request.user,
@@ -2020,11 +2020,16 @@ def convener_settings(request, congress_id):
         model_id=None,
     ).exists()
 
+    congress_contact_email = congress.contact_email
+    is_contact = congress_contact_email == request.user.email
+
     return render(
         request,
         "events/congress_admin/convener_settings.html",
         {
             "congress": congress,
+            "congress_contact_email": congress_contact_email,
+            "is_contact": is_contact,
             "this_congress_off": this_congress_off,
             "this_org_off": this_org_off,
             "all_off": all_off,

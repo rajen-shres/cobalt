@@ -395,8 +395,7 @@ def mobile_client_register_v11(request, data: MobileClientRegisterRequestV11):
         data.name = "Mobile Device"
 
     # Delete token if used before (token will be the same if a user logs out and another logs in, same device)
-    # COB-787 temporary workaround
-    # FCMDevice.objects.filter(registration_id=data.fcm_token).delete()
+    FCMDevice.objects.filter(registration_id=data.fcm_token).delete()
 
     # Save new device
     fcm_device = FCMDevice(
