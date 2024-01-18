@@ -330,7 +330,7 @@
                                             {% for org in payments_admin %}
                                                 <tr>
                                                     <td>
-                                                        <a class="btn btn-sm btn-primary btn-block" href="{% url "payments:statement_org" org_id=org.id %}">{{org}}</a>
+                                                        <a class="btn btn-sm btn-primary btn-block" href="{% url 'organisations:club_menu_tab_finance_statement' club_id=org.id %}">{{org}}</a>
                                                     </td>
                                                     <td class="text-left pl-5">
                                                         View statement for {{ org }}
