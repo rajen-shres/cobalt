@@ -141,9 +141,10 @@ class Command(BaseCommand):
         except ValueError:
             return (RESULT_ERROR, "Malformed user number")
 
-        user_query = User.objects.filter(system_number=this_system_number)
-        if not user_query.exists():
-            return (RESULT_ERROR, "User not registered")
+        # Bug fix: non-registered users can be club members
+        # user_query = User.objects.filter(system_number=this_system_number)
+        # if not user_query.exists():
+        #     return (RESULT_ERROR, "User not registered")
 
         if not self.make_updates:
             if (
