@@ -1,5 +1,5 @@
 {# HTMX returns this to replace the HTML. This is a list of matching names #}
-
+{% load cobalt_tags %}
 <ul>
     {% for name in name_list %}
         <li class="cobalt-button-as-link"
@@ -13,7 +13,8 @@
             {% if include_me %}, include_me:'yes'{% endif %}
             {% if unregistered %}, unregistered:'yes'{% endif %}
             "
-        >{{ name }}</li>
+        >{{ name }} {{ homes|cobalt_dict_key:name.system_number }}
+        </li>
     {% empty %}
         <h4>No Matches</h4>
     {% endfor %}

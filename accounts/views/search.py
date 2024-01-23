@@ -196,14 +196,20 @@ def member_search_htmx(request):
             .filter(first_name__istartswith=first_name_search)
             .exclude(pk__in=exclude_list)
         )
+        # COB-469 - include home club where possible
+        mpc_members = search_mpc_users_by_name(first_name_search, last_name_search)
     elif last_name_search:
         name_list = base_queryset.filter(
             last_name__istartswith=last_name_search
         ).exclude(pk__in=exclude_list)
+        mpc_members = search_mpc_users_by_name("", last_name_search)
     else:
         name_list = base_queryset.filter(
             first_name__istartswith=first_name_search
         ).exclude(pk__in=exclude_list)
+        mpc_members = search_mpc_users_by_name(first_name_search, "")
+
+    homes = {int(mpc["ABFNumber"]): mpc["ClubName"] for mpc in mpc_members}
 
     # See if there is more data
     more_data = False
@@ -216,6 +222,7 @@ def member_search_htmx(request):
         "accounts/search/member_search_htmx.html",
         {
             "name_list": name_list,
+            "homes": homes,
             "more_data": more_data,
             "search_id": search_id,
             "user_id_field": user_id_field,
