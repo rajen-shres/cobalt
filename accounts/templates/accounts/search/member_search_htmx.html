@@ -2,7 +2,7 @@
 {% load cobalt_tags %}
 <ul>
     {% for name in name_list %}
-        <li class="cobalt-button-as-link"
+        <li class="p-1 b-1 btn btn-sm btn-outline-primary cobalt-text-transform-off"
             id="id_htmx_search_match_{{ search_id }}{{ name.id }}"
             hx-post="{% url "accounts:member_match_htmx" %}"
             hx-target="#name-matches{{ search_id }}"
@@ -13,7 +13,7 @@
             {% if include_me %}, include_me:'yes'{% endif %}
             {% if unregistered %}, unregistered:'yes'{% endif %}
             "
-        >{{ name }} {{ homes|cobalt_dict_key:name.system_number }}
+        >{{ name }} <br> {{ homes|cobalt_dict_key:name.system_number }}
         </li>
     {% empty %}
         <h4>No Matches</h4>
