@@ -27,6 +27,7 @@ imput data with up to two fields appended to the balance rows, a status flag
 from django.core.management.base import BaseCommand, CommandParser
 from django.db import transaction
 from os import path
+from decimal import Decimal
 
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS
 
@@ -40,6 +41,11 @@ from payments.views.core import update_account, update_organisation
 RESULT_ERROR = "Error"
 RESULT_PROCESSED = "Processed"
 RESULT_NOT_REGISTERED = "Not registered"
+
+
+def decimalIsCurrency(a_decimal):
+    """Checks for fractional cents"""
+    return (a_decimal % Decimal("0.01")) == Decimal("0")
 
 
 class Command(BaseCommand):
@@ -143,7 +149,7 @@ class Command(BaseCommand):
         Process a non-blank, non-comment row as specifying a user balance
         Returns a result code, the balance amount (or None) and an error message (or None)
         """
-        csv_fields = row.split(",")
+        csv_fields = row.strip().split(",")
 
         if len(csv_fields) < 3:
             return (RESULT_ERROR, None, "Malformed row, at least 3 columns required")
@@ -158,17 +164,17 @@ class Command(BaseCommand):
             return (RESULT_NOT_REGISTERED, None, "User not registered")
 
         try:
-            pp_balance = float(csv_fields[2])
-        except ValueError:
+            pp_balance = Decimal(csv_fields[2])
+        except Exception:
             return (RESULT_ERROR, None, "Error reading balance")
 
-        if pp_balance != float(int(pp_balance * 100) / 100):
-            return (RESULT_ERROR, None, "Invalid balance, fractional cents")
+        if not decimalIsCurrency(pp_balance):
+            return (RESULT_ERROR, None, "Invalid balance (fractional cents)")
 
         if pp_balance == 0:
             return (RESULT_PROCESSED, 0, None)
 
-        if pp_balance < 0:
+        if pp_balance.compare(Decimal("0")) == -1:
             return (RESULT_ERROR, None, "Club prepayment account is in debt")
 
         if not self.make_updates:
@@ -208,7 +214,12 @@ class Command(BaseCommand):
             for row in in_file:
                 clean_row = row.strip()
 
-                if len(clean_row) == 0 or clean_row[:1] == "#" or abort:
+                if (
+                    len(clean_row) == 0
+                    or clean_row[:1] == "#"
+                    or clean_row == ",,"
+                    or abort
+                ):
                     # ignore the row
                     out_file.write(row)
 
@@ -282,3 +293,10 @@ class Command(BaseCommand):
                 )
             out_file.write("#\n")
             out_file.write(f"{'#' * 80}\n")
+
+            if abort:
+                print("Processing aborted, invalid club or requestor")
+            else:
+                print(
+                    f"Finished: {users_read} user records read, {users_errored} errored"
+                )
