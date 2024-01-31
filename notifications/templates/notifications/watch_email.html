@@ -46,14 +46,16 @@
                                             Sent:
                                         </td>
                                         <td class="h3">
-                                            {{  emails_sent }}
+                                            {{ emails_sent }}
                                         </td>
                                     </tr>
                                 {% endif %}
                             </table>
                         </div>
                         <div class="d-flex justify-content-center pt-5">
-                            <a href="{% url "notifications:watch_emails" batch_id=batch_id %}" class="btn btn-sm btn-info">refresh</a>
+                            {% if not large_batch %}
+                                <a href="{% url "notifications:watch_emails" batch_id=batch_id %}" class="btn btn-sm btn-info">refresh</a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

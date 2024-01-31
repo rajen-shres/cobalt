@@ -1282,7 +1282,11 @@ def _admin_email_common(request, all_recipients, congress, event=None):
                     message=f"Sent email to whole congress {congress.href}",
                 )
 
-            return redirect("notifications:watch_emails", batch_id=batch_id)
+            return redirect(
+                "notifications:watch_emails",
+                batch_id=batch_id,
+                batch_size=len(recipients),
+            )
 
     recipient_count = len(all_recipients)
 

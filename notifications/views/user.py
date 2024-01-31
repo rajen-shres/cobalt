@@ -77,15 +77,18 @@ def homepage(request):
 
 
 @login_required()
-def watch_emails(request, batch_id):
-    """Track progress of email by batch id"""
+def watch_emails(request, batch_id, batch_size=None):
+    """
+    Track progress of email by batch id
+    batch_size used as on the first call the entire batch may still being created
+    """
 
     batch_id_object = get_object_or_404(BatchID, batch_id=batch_id)
 
     emails = Snooper.objects.filter(batch_id=batch_id_object)
     emails_queued = emails.filter(ses_sent_at=None).count()
     emails_sent = emails.exclude(ses_sent_at=None).count()
-    batch_size = emails.count()
+    emails_created = emails.count()
 
     # COB-793 change to notify user of batch limits
 
@@ -97,7 +100,9 @@ def watch_emails(request, batch_id):
             "emails_sent": emails_sent,
             "batch_id": batch_id,
             "batch_size": batch_size,
-            "large_batch": apply_large_email_batch_config(batch_size),
+            "large_batch": apply_large_email_batch_config(
+                batch_size if batch_size is not None else emails_created
+            ),
         },
     )
 
