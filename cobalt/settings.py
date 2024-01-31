@@ -40,23 +40,23 @@ def AWS_SES_configuration_set_selector(
     email_message, dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=()
 ):
     """
-    Selects the appropriate Amazon Simple Email System configuration set
-    for an email, based on batch size (passed in the message context with key 'batch_size').
-    This function is called by the Django-SES package (specified by AWS_SES_CONFIGURATION_SET).
+    Selects the appropriate Amazon Simple Email System configuration set for an email,
+    based on batch size (optionally passed in the email context with the key 'batch_size').
+    This function is called by the Django-SES package (specified by AWS_SES_CONFIGURATION_SET),
+    and only when AWS_SES_CONFIGURATION_SET_DEFAULT is set.
     See https://github.com/django-ses/django-ses#ses-event-monitoring-with-configuration-sets
     and COB-793 for more details.
     """
-    if AWS_SES_CONFIGURATION_SET_LARGE is None or "batch_size" not in email_message:
-        config_set = AWS_SES_CONFIGURATION_SET_DEFAULT
+    if (
+        AWS_SES_CONFIGURATION_SET_LARGE is None
+        or "batch_size" not in email_message.context
+    ):
+        return AWS_SES_CONFIGURATION_SET_DEFAULT
+
+    if apply_large_email_batch_config(email_message.context["batch_size"]):
+        return AWS_SES_CONFIGURATION_SET_LARGE
     else:
-        if (
-            apply_large_email_batch_config(email_message)["batch_size"]
-            >= EMAIL_LARGE_BATCH_SIZE
-        ):
-            config_set = AWS_SES_CONFIGURATION_SET_LARGE
-        else:
-            config_set = AWS_SES_CONFIGURATION_SET_DEFAULT
-    return config_set
+        return AWS_SES_CONFIGURATION_SET_DEFAULT
 
 
 ###########################################
@@ -110,7 +110,8 @@ AWS_SES_REGION_NAME = AWS_REGION_NAME
 AWS_SES_REGION_ENDPOINT = set_value("AWS_SES_REGION_ENDPOINT")
 
 # See COB-793: changes to SES configuration set handling
-# selector function returns the appropriate configuration set for an email
+# Selector function returns the appropriate configuration set for an email
+# Either AWS_SES_CONFIGURATION_SET_DEFAULT or AWS_SES_CONFIGURATION_SET must be set
 EMAIL_LARGE_BATCH_SIZE = int(set_value("EMAIL_LARGE_BATCH_SIZE", 100))
 AWS_SES_CONFIGURATION_SET_DEFAULT = set_value("AWS_SES_CONFIGURATION_SET_DEFAULT", None)
 AWS_SES_CONFIGURATION_SET_LARGE = set_value("AWS_SES_CONFIGURATION_SET_LARGE", None)
