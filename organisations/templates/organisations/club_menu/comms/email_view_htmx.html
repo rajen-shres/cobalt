@@ -48,15 +48,19 @@
     </script>
 
     <h3>Post-Send Activities</h3>
-    <div class="table-responsive">
-        <table class="table table-hover table-condensed">
-            <tbody>
-                {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.sent help_text="Sent means that we sent the email on to an email server to handle" %}
-                {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.delivered help_text="Delivered means that the person's email server (gmail, hotmail etc), has confirmed they have received the message" %}
-                {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.opened help_text="Opened means that something (usually the person we sent it to) has opened this message" %}
-                {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.clicked help_text="Clicked only applies if there are links in the email and means that the person clicked on a link that we sent" %}
-                {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.bounced help_text="Bounced means that the email was not able to be delivered. You can find out why by looking at the email itself." %}
-            </tbody>
-        </table>
-    </div>
+    {% if large_batch %}
+        <p>Due to the size of this batch, email delivery and tracking statistics are not available.</p>
+    {% else %}
+        <div class="table-responsive">
+            <table class="table table-hover table-condensed">
+                <tbody>
+                    {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.sent help_text="Sent means that we sent the email on to an email server to handle" %}
+                    {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.delivered help_text="Delivered means that the person's email server (gmail, hotmail etc), has confirmed they have received the message" %}
+                    {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.opened help_text="Opened means that something (usually the person we sent it to) has opened this message" %}
+                    {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.clicked help_text="Clicked only applies if there are links in the email and means that the person clicked on a link that we sent" %}
+                    {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.bounced help_text="Bounced means that the email was not able to be delivered. You can find out why by looking at the email itself." %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
 </div>
