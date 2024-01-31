@@ -19,6 +19,7 @@ from notifications.views.core import (
     create_rbac_batch_id,
 )
 from utils.utils import cobalt_paginator
+from cobalt.settings import apply_large_email_batch_config
 
 
 def get_notifications_for_user(user):
@@ -84,6 +85,9 @@ def watch_emails(request, batch_id):
     emails = Snooper.objects.filter(batch_id=batch_id_object)
     emails_queued = emails.filter(ses_sent_at=None).count()
     emails_sent = emails.exclude(ses_sent_at=None).count()
+    batch_size = emails.count()
+
+    # COB-793 change to notify user of batch limits
 
     return render(
         request,
@@ -92,6 +96,8 @@ def watch_emails(request, batch_id):
             "emails_queued": emails_queued,
             "emails_sent": emails_sent,
             "batch_id": batch_id,
+            "batch_size": batch_size,
+            "large_batch": apply_large_email_batch_config(batch_size),
         },
     )
 

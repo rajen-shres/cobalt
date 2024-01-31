@@ -120,6 +120,8 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
     # Handle members
     for member in members:
 
+        # COB-793 batch size added
+
         _send_email_sub(
             first_name=member.first_name,
             email=member.email,
@@ -127,6 +129,7 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
             batch_id=batch_id,
             club_template=club_template,
             attachments=attachments,
+            batch_size=len(members) + len(un_regs),
         )
 
         recipient_count += 1
@@ -137,6 +140,8 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
         email = club_email_addresses_dict.get(un_reg.system_number)
         if email:
 
+            # COB-793 batch size added
+
             _send_email_sub(
                 first_name=un_reg.first_name,
                 email=email,
@@ -145,6 +150,7 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
                 club_template=club_template,
                 attachments=attachments,
                 unregistered_identifier=un_reg.identifier,
+                batch_size=len(members) + len(un_regs),
             )
 
             recipient_count += 1
@@ -160,6 +166,7 @@ def _send_email_sub(
     club_template=None,
     attachments=None,
     unregistered_identifier=None,
+    batch_size=1,
 ):
     """Send an email subtask
 
@@ -170,6 +177,7 @@ def _send_email_sub(
         batch_id(BatchID): batch id if required
         club_template(OrgEmailTemplate): has banner, footer etc for club
         attachments(dict): dict of attachments ('filename', 'path-to-file')
+        batch_size(int): number of emails in batch (for COB-793)
     """
 
     logger.debug(f"email address is {email}")
@@ -180,6 +188,7 @@ def _send_email_sub(
         "title": email_form.cleaned_data["subject"],
         "email_body": email_form.cleaned_data["org_email_body"],
         "unregistered_identifier": unregistered_identifier,
+        "batch_size": batch_size,
     }
 
     # Get the extra fields that could have been overridden by the user

@@ -33,6 +33,10 @@ def notify_happening_forums(
             # Add name to context
             context["name"] = listener.member.first_name
 
+            # COB-793 - add batch size for notification configuration management
+
+            context["batch_size"] = len(listeners)
+
             # Send email
             send_cobalt_email_with_template(
                 to_address=listener.member.email, context=context

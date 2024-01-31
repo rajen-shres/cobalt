@@ -1187,7 +1187,10 @@ def _admin_email_common_thread(request, congress, subject, body, recipients, bat
             "title2": subject,
             "email_body": body,
             "subject": subject,
+            "batch_size": len(recipients),
         }
+
+        # COB-793: added batch_size for notification configuration management
 
         send_cobalt_email_with_template(
             to_address=recipient[2],
