@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
-from accounts.models import User
+from accounts.models import User, UserAdditionalInfo
 from organisations.decorators import check_club_menu_access
 from organisations.models import ORGS_RBAC_GROUPS_AND_ROLES, ClubLog
 from organisations.views.admin import (
@@ -11,6 +11,7 @@ from organisations.views.admin import (
 )
 from organisations.views.club_menu_tabs.utils import (
     _menu_rbac_advanced_is_admin,
+    _menu_rbac_has_access,
 )
 from rbac.core import (
     rbac_get_group_by_name,
@@ -83,6 +84,31 @@ def advanced_add_user_htmx(request, club):
     return access_advanced(request, club, errors)
 
 
+def _invalidate_last_club_visited(user, club):
+    """
+    Check whether the user still has access to a club
+    If not, make sure that the club is not their last club visited
+    COB-779 - avoid user getting RBAC block when access to last club visisted is removed
+    """
+
+    allowed, role = _menu_rbac_has_access(club, user)
+    if allowed:
+        # still has access so, no need to check further
+        return
+
+    print(f"*** checking {user} for last visited club")
+    try:
+        additional_info = UserAdditionalInfo.objects.get(user=user)
+        if (
+            additional_info.last_club_visited
+            and additional_info.last_club_visited == club.id
+        ):
+            additional_info.last_club_visited = None
+            additional_info.save()
+    except UserAdditionalInfo.DoesNotExist:
+        pass
+
+
 @check_club_menu_access()
 def basic_delete_user_htmx(request, club):
     """Remove a user from club rbac basic group. Returns HTMX"""
@@ -102,6 +128,8 @@ def basic_delete_user_htmx(request, club):
         f"{club.rbac_admin_name_qualifier}.admin"
     )
     rbac_remove_admin_user_from_group(user, admin_group)
+
+    _invalidate_last_club_visited(user, club)
 
     # log it
     ClubLog(
@@ -126,6 +154,8 @@ def advanced_delete_user_htmx(request, club):
 
     group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{group_name_item}")
     rbac_remove_user_from_group(user, group)
+
+    _invalidate_last_club_visited(user, club)
 
     # log it
     ClubLog(
@@ -156,6 +186,7 @@ def advanced_delete_admin_htmx(request, club):
 
     if RBACAdminUserGroup.objects.filter(group=admin_group).count() > 1:
         rbac_remove_admin_user_from_group(user, admin_group)
+        _invalidate_last_club_visited(user, club)
         # log it
         ClubLog(
             organisation=club,
