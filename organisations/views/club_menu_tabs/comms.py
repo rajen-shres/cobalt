@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 from itertools import chain
 
 from django.contrib.auth.decorators import login_required
@@ -254,15 +255,23 @@ def email_send_htmx(request, club):
             club_template = OrgEmailTemplate()
 
         # Get any attachments and convert to Django post office expected format
+        # COB-794 - attachments not accessible on iOS email client. Try adding mimetype
         attachment_ids = request.POST.getlist("selected_attachments")
         attachments = {}
         total_size = 0.0
         if attachment_ids:
             attachments_objects = EmailAttachment.objects.filter(id__in=attachment_ids)
             for attachments_object in attachments_objects:
-                attachments[
-                    attachments_object.filename()
-                ] = attachments_object.attachment.path
+                mime_type, _ = mimetypes.guess_type(attachments_object.filename())
+                if mime_type is None:
+                    attachments[
+                        attachments_object.filename()
+                    ] = attachments_object.attachment.path
+                else:
+                    attachments[attachments_object.filename()] = {
+                        "file": attachments_object.attachment.path,
+                        "mimetype": mime_type,
+                    }
                 total_size += attachments_object.attachment.size
 
         # Check for maximum size of attachments
