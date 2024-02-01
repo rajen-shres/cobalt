@@ -96,7 +96,6 @@ def _invalidate_last_club_visited(user, club):
         # still has access so, no need to check further
         return
 
-    print(f"*** checking {user} for last visited club")
     try:
         additional_info = UserAdditionalInfo.objects.get(user=user)
         if (
