@@ -37,6 +37,7 @@ from cobalt.settings import (
     AWS_SECRET_ACCESS_KEY,
     AWS_REGION_NAME,
     TBA_PLAYER,
+    apply_large_email_batch_config,
 )
 from notifications.forms import EmailContactForm
 from notifications.models import (
@@ -196,7 +197,10 @@ def send_cobalt_email_with_template(
     to_address, context = _to_address_checker(to_address, context)
 
     # COB-793 - add custom header with batch size
-    headers = {"X-MYABF-BATCH_SIZE": batch_size}
+    headers = {"X-Myabf-Batch-Size": batch_size}
+
+    if apply_large_email_batch_config(batch_size):
+        logger.debug(f"Email is part of a large batch of {batch_size}")
 
     if reply_to:
         headers["Reply-to"] = reply_to

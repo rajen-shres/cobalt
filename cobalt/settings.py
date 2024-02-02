@@ -41,7 +41,7 @@ def AWS_SES_configuration_set_selector(
 ):
     """
     Selects the appropriate Amazon Simple Email System configuration set for an email,
-    based on batch size (optionally passed in the email via a custom header X-MYABF-BATCH_SIZE).
+    based on batch size (optionally passed in the email via a custom header X-Myabf-Batch-Size).
     This function is called by the Django-SES package (specified by AWS_SES_CONFIGURATION_SET),
     and only when AWS_SES_CONFIGURATION_SET_DEFAULT is set.
     See https://github.com/django-ses/django-ses#ses-event-monitoring-with-configuration-sets
@@ -50,11 +50,11 @@ def AWS_SES_configuration_set_selector(
 
     if (
         AWS_SES_CONFIGURATION_SET_LARGE is None
-        or "X-MYABF-BATCH_SIZE" not in email_message.extra_headers
+        or "X-Myabf-Batch-Size" not in email_message.extra_headers
     ):
         return AWS_SES_CONFIGURATION_SET_DEFAULT
 
-    batch_size = int(email_message.extra_headers["X-MYABF-BATCH_SIZE"])
+    batch_size = int(email_message.extra_headers["X-Myabf-Batch-Size"])
 
     if apply_large_email_batch_config(batch_size):
         return AWS_SES_CONFIGURATION_SET_LARGE
