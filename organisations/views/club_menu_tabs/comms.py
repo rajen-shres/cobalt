@@ -35,7 +35,6 @@ from organisations.views.club_menu_tabs.utils import (
 
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
-from cobalt.settings import apply_large_email_batch_config
 from utils.utils import cobalt_paginator
 
 logger = logging.getLogger("cobalt")
@@ -405,8 +404,6 @@ def email_view_htmx(request, club):
     # Total count
     count = snoopers.count()
 
-    large_batch = apply_large_email_batch_config(count)
-
     # We only show the first email
     snooper = snoopers.first()
 
@@ -457,7 +454,7 @@ def email_view_htmx(request, club):
             "club": club,
             "email_batch": email_batch,
             "details": details,
-            "large_batch": large_batch,
+            "large_batch": snooper.limited_notifications,
         },
     )
 

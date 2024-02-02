@@ -199,7 +199,8 @@ def send_cobalt_email_with_template(
     # COB-793 - add custom header with batch size
     headers = {"X-Myabf-Batch-Size": batch_size}
 
-    if apply_large_email_batch_config(batch_size):
+    limited_notifications = apply_large_email_batch_config(batch_size)
+    if limited_notifications:
         logger.debug(f"Email is part of a large batch of {batch_size}")
 
     if reply_to:
@@ -216,7 +217,11 @@ def send_cobalt_email_with_template(
         attachments=attachments,
     )
 
-    Snooper(post_office_email=email, batch_id=batch_id).save()
+    Snooper(
+        post_office_email=email,
+        batch_id=batch_id,
+        limited_notifications=limited_notifications,
+    ).save()
 
     return True
 

@@ -164,6 +164,7 @@ class Snooper(models.Model):
     ses_clicked_count = models.IntegerField("Clicked Count", default=0)
     ses_last_bounce_at = models.DateTimeField("Last Bounce At", blank=True, null=True)
     ses_bounce_reason = models.TextField("Bounce Reason", blank=True, null=True)
+    limited_notifications = models.BooleanField("Limited Notifications", default=False)
     batch_id = models.ForeignKey(
         BatchID, on_delete=models.CASCADE, blank=True, null=True
     )
