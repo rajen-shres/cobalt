@@ -190,7 +190,6 @@ def _send_email_sub(
         "title": email_form.cleaned_data["subject"],
         "email_body": email_form.cleaned_data["org_email_body"],
         "unregistered_identifier": unregistered_identifier,
-        "batch_size": batch_size,
     }
 
     # Get the extra fields that could have been overridden by the user
@@ -207,6 +206,8 @@ def _send_email_sub(
     context["box_colour"] = club_template.box_colour
     context["box_font_colour"] = club_template.box_font_colour
 
+    # COB-793 : added batch size for notifications management
+
     send_cobalt_email_with_template(
         to_address=email,
         context=context,
@@ -215,6 +216,7 @@ def _send_email_sub(
         reply_to=reply_to,
         sender=sender,
         attachments=attachments,
+        batch_size=batch_size,
     )
 
 

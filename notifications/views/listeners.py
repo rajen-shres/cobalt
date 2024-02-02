@@ -35,11 +35,11 @@ def notify_happening_forums(
 
             # COB-793 - add batch size for notification configuration management
 
-            context["batch_size"] = len(listeners)
-
             # Send email
             send_cobalt_email_with_template(
-                to_address=listener.member.email, context=context
+                to_address=listener.member.email,
+                context=context,
+                batch_size=len(listeners),
             )
 
             # Add link

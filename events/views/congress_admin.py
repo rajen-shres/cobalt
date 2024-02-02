@@ -1187,10 +1187,9 @@ def _admin_email_common_thread(request, congress, subject, body, recipients, bat
             "title2": subject,
             "email_body": body,
             "subject": subject,
-            "batch_size": len(recipients),
         }
 
-        # COB-793: added batch_size for notification configuration management
+        # COB-793: added batch_size for notification configuration set management
 
         send_cobalt_email_with_template(
             to_address=recipient[2],
@@ -1198,6 +1197,7 @@ def _admin_email_common_thread(request, congress, subject, body, recipients, bat
             template="system - two headings",
             reply_to=reply_to,
             batch_id=batch_id,
+            batch_size=len(recipients),
         )
 
     # Django creates a new database connection for this thread so close it

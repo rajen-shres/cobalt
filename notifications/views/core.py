@@ -139,6 +139,7 @@ def send_cobalt_email_with_template(
     batch_id=None,
     reply_to=None,
     attachments=None,
+    batch_size=1,
 ):
     """Queue an email using a template and context.
 
@@ -194,7 +195,12 @@ def send_cobalt_email_with_template(
     # Check for playpen - don't send emails to users unless on production or similar
     to_address, context = _to_address_checker(to_address, context)
 
-    headers = {"Reply-to": reply_to} if reply_to else None
+    # COB-793 - add custom header with batch size
+    headers = {"X-MYABF-BATCH_SIZE": batch_size}
+
+    if reply_to:
+        headers["Reply-to"] = reply_to
+
     email = po_email.send(
         sender=sender,
         recipients=to_address,

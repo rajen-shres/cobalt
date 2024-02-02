@@ -199,8 +199,6 @@ def _send_results_emails(results_file, club, request):
 
                 # COB-793 - add batch size - being conservative assumes all players in event have emails
 
-                context["batch_size"] = len(usebio["EVENT"]["PARTICIPANTS"]["PAIR"]) * 2
-
                 send_cobalt_email_with_template(
                     to_address=email_address,
                     context=context,
@@ -208,6 +206,7 @@ def _send_results_emails(results_file, club, request):
                     template="system - club",
                     reply_to=reply_to,
                     sender=sender,
+                    batch_size=len(usebio["EVENT"]["PARTICIPANTS"]["PAIR"]) * 2,
                 )
 
     # Count emails sent
