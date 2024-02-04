@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# about: basic test of development, using the same script as production smoke test
+
+read -p "Userid: " USERID
+
+read -s -p "Password: " PASSWORD
+
+echo ""
+echo ""
+
+./manage.py smoke_test --password=$PASSWORD --userid=$USERID --script=basic_smoke_test_dev.txt --base_url=http://127.0.0.1:8000

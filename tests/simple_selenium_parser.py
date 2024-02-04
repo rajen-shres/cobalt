@@ -20,14 +20,18 @@ command_lookup = {
 }
 
 
-def simple_selenium_parser(script_file, base_url, password, browser, show, silent):
+def simple_selenium_parser(
+    script_file, base_url, password, browser, show, silent, userid="userid-not-set"
+):
     """translates a test script into code and runs it"""
+
+    # COB-789: added userid
 
     with open(f"tests/scripts/{script_file}") as in_file:
         script = in_file.readlines()
 
     commands = build_commands(script)
-    run_commands(commands, base_url, password, browser, show, silent)
+    run_commands(commands, base_url, password, browser, show, silent, userid)
 
 
 def build_commands(script):
@@ -69,8 +73,13 @@ def build_command_line(words):
     return cmd_string
 
 
-def run_commands(commands, base_url, password, browser, show, silent):
+def run_commands(commands, base_url, password, browser, show, silent, userid):
     """execute the commands"""
+
+    # COB-789: added userid. Note that userid and password are not explicitly referenced
+    # in this code. The commands are dynamically created from the test script and executed
+    # as python code. So if the test script uses "password" or "userid" as a literal they will
+    # be dereferenced as python variables in the exec
 
     manager = SimpleSelenium(
         base_url=base_url, browser=browser, show=show, silent=silent

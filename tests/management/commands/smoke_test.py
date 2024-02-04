@@ -30,6 +30,9 @@ class Command(BaseCommand):
             help="List commands available for use in scripts",
         )
         parser.add_argument("--password", help="password for user")
+
+        # COB-789 - generalise userid
+        parser.add_argument("--userid", help="user to run the test under")
         parser.add_argument(
             "--silent", action="store_true", help="don't display any output"
         )
@@ -50,6 +53,7 @@ class Command(BaseCommand):
         browser = options["browser"]
         base_url = options["base_url"]
         password = options["password"]
+        userid = options["userid"]
         script = options["script"]
         silent = options["silent"]
         list_commands = options["list"]
@@ -72,8 +76,9 @@ class Command(BaseCommand):
         simple_selenium_parser(
             script,
             base_url=base_url,
-            password=password,
+            userid=userid,
             show=show,
             browser=browser,
             silent=silent,
+            password=password,
         )
