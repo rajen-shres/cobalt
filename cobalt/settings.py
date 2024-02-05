@@ -85,6 +85,9 @@ ADMINS = [
     #   ("Julian Foster", "julianrfoster@gmail.com"),
 ]
 
+# COB-488 - require 2FA for Admin site access (Y or N)
+REQUIRE_2FA = set_value("REQUIRE_2FA", "N") == "Y"
+
 SERVER_EMAIL = set_value("SERVER_EMAIL", "notset@myabf.com.au")
 
 # masterpoints server

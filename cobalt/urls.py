@@ -5,16 +5,19 @@ from django.conf import settings
 from django.urls import include, path
 from django_otp.admin import OTPAdminSite
 from cobalt import errors
+from cobalt.settings import REQUIRE_2FA
 from loginas.views import user_login as user_login_as
 
 from utils.views.general import download_csv
+
+# COB-488 - require 2FA for Admin site access
+if REQUIRE_2FA:
+    admin.site.__class__ = OTPAdminSite
 
 admin.site.site_header = f"{settings.GLOBAL_TITLE} Administration"
 admin.site.site_title = f"{settings.GLOBAL_TITLE} Administration"
 
 admin.site.add_action(download_csv, "export_as_csv")
-
-# admin.site.__class__ = OTPAdminSite
 
 urlpatterns = [
     path("view", logged_out, name="logged_out"),
