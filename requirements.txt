@@ -24,7 +24,7 @@ django-ses==3.1.2
 # We needed to fork Django post office to add unescape() and an import statement to the subject in models.py
 #git+https://github.com/mgu3/django-post_office
 # COB-798 move to abftech repo
-git+https://github.com/abftech/django-post_office
+git+https://github.com/abftech/django-post_office@b06e5af
 django-model-utils==4.1.1
 django-otp==1.1.1
 qrcode==7.3.1
