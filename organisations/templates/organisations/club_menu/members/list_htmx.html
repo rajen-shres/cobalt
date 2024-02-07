@@ -239,10 +239,56 @@
                                     {% endif %}
                                 </td>
 
-                                <td class="text-left" style="cursor: default">{{ thing.membership }}</td>
+                                <!-- COB-769 -->
 
-                                <td class="text-left" style="cursor: default">
-                                    {{ thing.status }}
+                                <td class="text-left">
+                                    {% if member_admin %}
+
+                                        <!-- ONLY SHOW LINKS IF ADMIN -->
+
+                                        <a href="#"
+                                            id="t_edit_member3_{{ thing.id }}"
+                                            hx-target="#id_member_list_tab"
+                                            {% if thing|get_class == "User" %}
+                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
+                                                hx-push-url="{{ club.id }}"
+                                            {% else %}
+                                                hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
+                                                hx-push-url="{{ club.id }}"
+                                            {% endif %}
+                                        >
+                                            {{ thing.membership }}
+                                        </a>
+                                    {% else %}
+                                        {{ thing.membership }}
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-left">
+                                    {% if member_admin %}
+
+                                        <!-- ONLY SHOW LINKS IF ADMIN -->
+
+                                        <a href="#"
+                                            id="t_edit_member3_{{ thing.id }}"
+                                            hx-target="#id_member_list_tab"
+                                            {% if thing|get_class == "User" %}
+                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
+                                                hx-push-url="{{ club.id }}"
+                                            {% else %}
+                                                hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
+                                                hx-push-url="{{ club.id }}"
+                                            {% endif %}
+                                        >
+                                            {{ thing.status }}
+                                        </a>
+                                    {% else %}
+                                        {{ thing.status }}
+                                    {% endif %}
                                 </td>
 
                                 <td class="text-center">
