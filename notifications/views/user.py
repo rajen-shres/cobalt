@@ -76,19 +76,31 @@ def homepage(request):
 
 
 @login_required()
-def watch_emails(request, batch_id, batch_size=None):
+def watch_emails(request, batch_id):
     """
     Track progress of email by batch id
-    batch_size used as on the first call the entire batch may still being created
     """
 
     batch_id_object = get_object_or_404(BatchID, batch_id=batch_id)
 
-    emails = Snooper.objects.filter(batch_id=batch_id_object)
-    emails_queued = emails.filter(ses_sent_at=None).count()
-    emails_sent = emails.exclude(ses_sent_at=None).count()
+    # COB-793 change to notify user of limited notifications
+    # emails = Snooper.objects.filter(batch_id=batch_id_object)
+    emails = Snooper.objects.select_related("post_office_email").filter(
+        batch_id=batch_id_object
+    )
 
-    # COB-793 change to notify user of batch limits
+    large_batch = emails.first().limited_notifications if emails.first() else False
+    if large_batch:
+
+        # use sent count from post_office rather than snoopers
+        # and assume all emails are either =sent or queued
+        emails_sent = emails.filter(post_office_email__status=0).count()
+        emails_queued = emails.count() - emails_sent
+
+    else:
+
+        emails_queued = emails.filter(ses_sent_at=None).count()
+        emails_sent = emails.exclude(ses_sent_at=None).count()
 
     return render(
         request,
@@ -97,8 +109,7 @@ def watch_emails(request, batch_id, batch_size=None):
             "emails_queued": emails_queued,
             "emails_sent": emails_sent,
             "batch_id": batch_id,
-            "batch_size": batch_size,
-            "large_batch": emails.first().limited_notifications,
+            "large_batch": large_batch,
         },
     )
 

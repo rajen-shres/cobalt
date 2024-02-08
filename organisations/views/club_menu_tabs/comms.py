@@ -447,6 +447,7 @@ def email_view_htmx(request, club):
         "po_counts": po_counts,
     }
 
+    # COB-793
     return render(
         request,
         "organisations/club_menu/comms/email_view_htmx.html",

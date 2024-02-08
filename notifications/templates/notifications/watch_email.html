@@ -23,39 +23,26 @@
                         {% endif %}
                         <div class="d-flex justify-content-center">
                             <table class="table-condensed table-hover">
-                                {% if large_batch %}
-                                    <tr>
-                                        <td class="text-left h3 pr-3">
-                                            Emails:
-                                        </td>
-                                        <td class="h3">
-                                            {{ batch_size }}
-                                        </td>
-                                    </tr>
-                                {% else %}
-                                    <tr>
-                                        <td class="text-left h3 pr-3">
-                                            Queued:
-                                        </td>
-                                        <td class="h3">
-                                            {{ emails_queued }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-left h3">
-                                            Sent:
-                                        </td>
-                                        <td class="h3">
-                                            {{ emails_sent }}
-                                        </td>
-                                    </tr>
-                                {% endif %}
+                                <tr>
+                                    <td class="text-left h3 pr-3">
+                                        Queued:
+                                    </td>
+                                    <td class="h3">
+                                        {{ emails_queued }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left h3">
+                                        Sent:
+                                    </td>
+                                    <td class="h3">
+                                        {{ emails_sent }}
+                                    </td>
+                                </tr>
                             </table>
                         </div>
                         <div class="d-flex justify-content-center pt-5">
-                            {% if not large_batch %}
-                                <a href="{% url "notifications:watch_emails" batch_id=batch_id %}" class="btn btn-sm btn-info">refresh</a>
-                            {% endif %}
+                            <a href="{% url "notifications:watch_emails" batch_id=batch_id %}" class="btn btn-sm btn-info">refresh</a>
                         </div>
                     </div>
                 </div>

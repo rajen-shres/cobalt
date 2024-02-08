@@ -1285,7 +1285,6 @@ def _admin_email_common(request, all_recipients, congress, event=None):
             return redirect(
                 "notifications:watch_emails",
                 batch_id=batch_id,
-                batch_size=len(recipients),
             )
 
     recipient_count = len(all_recipients)
