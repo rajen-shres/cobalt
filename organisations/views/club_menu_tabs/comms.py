@@ -53,6 +53,7 @@ def email_htmx(request, club, message=None):
         .order_by("-pk")
     )
 
+    # COB-793 - UI changes if limiting notifications
     # Augment data
     for batch_id in batch_ids:
         snoopers = Snooper.objects.filter(batch_id=batch_id.batch_id)
@@ -61,6 +62,9 @@ def email_htmx(request, club, message=None):
         if first_snooper:
             batch_id.created = first_snooper.post_office_email.created
             batch_id.subject = first_snooper.post_office_email.context["subject"]
+            batch_id.limited_notifications = first_snooper.limited_notifications
+        else:
+            batch_id.limited_notifications = False
 
     things = cobalt_paginator(request, batch_ids)
 

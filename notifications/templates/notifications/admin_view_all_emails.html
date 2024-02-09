@@ -56,7 +56,16 @@
 
                                     {# show real status #}
                                     <td class="text-left">
-                                        {% if thing.status != 0 %}
+                                        <!-- COB-793 -->
+                                        {% if thing.snooper.limited_notifications %}
+                                            {% if thing.status = 0 %}
+                                                Sent
+                                            {% elif thing.status = 1 %}
+                                                Failed
+                                            {% else %}
+                                                Queued
+                                            {% endif %}
+                                        {% elif thing.status != 0 %}
                                             {{ thing.get_status_display }}
                                         {% else %}
                                             {% if thing.snooper.ses_bounce_reason %}

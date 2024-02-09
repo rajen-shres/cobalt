@@ -181,3 +181,14 @@
 
     </div>
 </div>
+
+<!-- COB-793 fade out the message over time -->
+<script>
+    $(document).ready(function(){
+        setTimeout(function(){
+            $("#user_list_message").fadeOut("slow", function() {
+                $(this).remove();
+            });
+        }, 10000);
+    });
+</script>
