@@ -58,9 +58,9 @@
                                     <td class="text-left">
                                         <!-- COB-793 -->
                                         {% if thing.snooper.limited_notifications %}
-                                            {% if thing.status = 0 %}
+                                            {% if thing.status == 0 %}
                                                 Sent
-                                            {% elif thing.status = 1 %}
+                                            {% elif thing.status == 1 %}
                                                 Failed
                                             {% else %}
                                                 Queued
