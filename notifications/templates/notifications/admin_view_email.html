@@ -136,13 +136,23 @@
                 <h2>Details</h2>
 
                 <!-- COB-793 -->
-                {% if snoopers and email.snooper.limited_notifications %}
+                {% if snooper.limited_notifications %}
 
                     <p>Due to the size of the batch containing this message, email delivery and tracking statistics are not available.</p>
 
+                    <p>
+                        {% if email.status == 0 %}
+                            This email was set on {{ email.last_update|cobalt_nice_datetime}}.
+                        {% elif email.status == 1 %}
+                            Sending this email failed.
+                        {% else %}
+                            This email is currently queued.
+                        {% endif %}
+                    </p>
+
                 {% else %}
                     <p style="padding-left: 10px">
-                        Date Sent: <i>{{ email.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"Not Sent" }}</i>
+                        Date Sent: <i>{{ snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"Not Sent" }}</i>
                     </p>
 
                     <table class="zui-table" style="margin: 0 auto;">
@@ -151,31 +161,31 @@
                         </thead>
                         <tr>
                             <td>Sent</td>
-                            <td>{{ email.snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"Not sent" }}</td>
+                            <td>{{ snooper.ses_sent_at|cobalt_nice_datetime|default_if_none:"Not sent" }}</td>
                         </tr>
                         <tr>
                             <td>Delivered</td>
-                            <td>{{ email.snooper.ses_delivered_at|cobalt_nice_datetime|default_if_none:"Not delivered" }}</td>
+                            <td>{{ snooper.ses_delivered_at|cobalt_nice_datetime|default_if_none:"Not delivered" }}</td>
                         </tr>
                         <tr>
                             <td>Opened</td>
-                            <td>{{ email.snooper.ses_open_count }} time{{ email.snooper.ses_open_count|pluralize }}.
+                            <td>{{ snooper.ses_open_count }} time{{ email.snooper.ses_open_count|pluralize }}.
                                 Last opened: {{ email.snooper.ses_last_opened_at|cobalt_nice_datetime|default_if_none:"Never" }}</td>
                         </tr>
                         <tr>
                             <td>Clicked</td>
-                            <td>{{ email.snooper.ses_clicked_count }} time{{ email.snooper.ses_clicked_count|pluralize }}.
+                            <td>{{ snooper.ses_clicked_count }} time{{ email.snooper.ses_clicked_count|pluralize }}.
                                 Last clicked: {{ email.snooper.ses_last_clicked_at|cobalt_nice_datetime|default_if_none:"Never" }}</td>
                         </tr>
 
-                        {% if email.snooper.ses_bounce_reason %}
+                        {% if snooper.ses_bounce_reason %}
                             <tr>
                                 <td>Bounce Reason</td>
-                                <td>{{ email.snooper.ses_bounce_reason }}</td>
+                                <td>{{ snooper.ses_bounce_reason }}</td>
                             </tr>
                             <tr>
                                 <td>Last Bounce Time</td>
-                                <td>{{ email.snooper.ses_last_bounce_at|cobalt_nice_datetime }}</td>
+                                <td>{{ snooper.ses_last_bounce_at|cobalt_nice_datetime }}</td>
                             </tr>
                         {% endif %}
                     </table>

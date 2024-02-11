@@ -65,10 +65,15 @@ def admin_view_email_by_batch(request, batch_id):
     if not snoopers:
         return HttpResponse("Not found")
 
+    # COB-793
     return render(
         request,
         "notifications/admin_view_email.html",
-        {"email": snoopers.first().post_office_email, "snoopers": snoopers},
+        {
+            "email": snoopers.first().post_office_email,
+            "snoopers": snoopers,
+            "snooper": snoopers.first(),
+        },
     )
 
 
@@ -100,7 +105,11 @@ def admin_view_email(request, email_id):
     ):
         return rbac_forbidden(request, rbac_role)
 
-    return render(request, "notifications/admin_view_email.html", {"email": email})
+    return render(
+        request,
+        "notifications/admin_view_email.html",
+        {"email": email, "snooper": snooper},
+    )
 
 
 @login_required()
