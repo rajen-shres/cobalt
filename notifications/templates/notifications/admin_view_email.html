@@ -142,7 +142,7 @@
 
                     <p>
                         {% if email.status == 0 %}
-                            This email was set on {{ email.last_update|cobalt_nice_datetime}}.
+                            This email was sent at {{ email.last_updated|cobalt_nice_datetime}}.
                         {% elif email.status == 1 %}
                             Sending this email failed.
                         {% else %}

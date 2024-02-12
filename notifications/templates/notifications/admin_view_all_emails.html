@@ -50,7 +50,7 @@
                                     <!-- COB-793 If not getting SES sent notifications, assume sent DTS is last update DTS if sent according to PO -->
                                     {% if thing.snooper.limited_notifications %}
                                         {% if thing.status == 0 %}
-                                            <td class="text-left">{{ thing.last_update|cobalt_nice_datetime|default_if_none:"Not yet sent" }}</td>
+                                            <td class="text-left">{{ thing.last_updated|cobalt_nice_datetime }}</td>
                                         {% else %}
                                             <td class="text-left">Not yet sent</td>
                                         {% endif %}
