@@ -21,7 +21,7 @@ from cobalt.settings import (
     COBALT_HOSTNAME,
     GLOBAL_CURRENCY_SYMBOL,
 )
-from notifications.models import UnregisteredBlockedEmail
+from notifications.models import UnregisteredBlockedEmail, BatchID
 from notifications.views.core import (
     send_cobalt_email_with_template,
     create_rbac_batch_id,
@@ -650,6 +650,10 @@ def _send_welcome_pack(club, first_name, email, user, invite_to_join):
         rbac_role=f"notifications.orgcomms.{club.id}.edit",
         user=user,
         organisation=club,
+        batch_type=BatchID.BATCH_TYPE_COMMS,
+        batch_size=1,
+        description=context["title"],
+        complete=True,
     )
 
     send_cobalt_email_with_template(

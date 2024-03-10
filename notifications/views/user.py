@@ -174,7 +174,12 @@ def _send_member_to_member_email(request, member):
 
     # Create a batch id, to obscure sender on edit link. User is sender.
     batch_id = create_rbac_batch_id(
-        "notifications.member_comms.view", user=request.user
+        "notifications.member_comms.view",
+        user=request.user,
+        batch_type=BatchID.BATCH_TYPE_MEMBER,
+        batch_size=1,
+        description="Member to member email",
+        complete=True,
     )
 
     link = reverse(

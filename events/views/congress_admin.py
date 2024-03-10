@@ -20,7 +20,7 @@ from events.views.core import (
     get_completed_congresses_with_money_due,
     fix_closed_congress,
 )
-from notifications.models import BlockNotification
+from notifications.models import BlockNotification, BatchID, BatchActivity
 from notifications.views.core import (
     contact_member,
     send_cobalt_email_with_template,
@@ -1228,8 +1228,27 @@ def _admin_email_common(request, all_recipients, congress, event=None):
         )
 
         batch_id = create_rbac_batch_id(
-            f"events.org.{congress.congress_master.org.id}.view"
+            f"events.org.{congress.congress_master.org.id}.view",
+            organisation=congress.congress_master.org,
+            batch_type=BatchID.BATCH_TYPE_EVENT
+            if event
+            else BatchID.BATCH_TYPE_CONGRESS,
+            batch_size=len(recipients),
+            description=subject,
+            complete=True,
         )
+
+        # create a BatchActivity record
+        batch = BatchID.objects.get(batch_id=batch_id)
+        activity = BatchActivity()
+        activity.batch = batch
+        activity.activity_type = (
+            BatchActivity.ACTIVITY_TYPE_EVENT
+            if event
+            else BatchActivity.ACTIVITY_TYPE_CONGRESS
+        )
+        activity.activity_id = event.id if event else congress.id
+        activity.save()
 
         # start thread
         args = {

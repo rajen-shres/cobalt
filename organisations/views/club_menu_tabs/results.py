@@ -11,7 +11,7 @@ from django.utils.datetime_safe import datetime
 
 from accounts.views.core import get_email_address_and_name_from_system_number
 from cobalt.settings import COBALT_HOSTNAME
-from notifications.models import Snooper
+from notifications.models import Snooper, BatchID
 from notifications.views.core import (
     create_rbac_batch_id,
     send_cobalt_email_with_template,
@@ -148,6 +148,9 @@ def _send_results_emails(results_file, club, request):
         rbac_role=f"notifications.orgcomms.{club.id}.edit",
         user=request.user,
         organisation=club,
+        batch_type=BatchID.BATCH_TYPE_RESULTS,
+        description=context["title"],
+        complete=True,
     )
 
     # Go through data, and email results to players
@@ -162,7 +165,8 @@ def _send_results_emails(results_file, club, request):
 
         # get data
         position = int(item["PLACE"])
-        masterpoints = int(item["MASTER_POINTS_AWARDED"]) / 100.0
+        # COB-807 - throwing exception if no masterpoints in file
+        masterpoints = int(item.get("MASTER_POINTS_AWARDED", 0)) / 100.0
         percentage = item["PERCENTAGE"]
 
         for system_number in [player_1_system_number, player_2_system_number]:
@@ -211,8 +215,14 @@ def _send_results_emails(results_file, club, request):
                     ),
                 )
 
-    # Count emails sent
-    return Snooper.objects.filter(batch_id=batch_id).count()
+    # Count emails sent and update batch header
+    batch_size = Snooper.objects.filter(batch_id=batch_id).count()
+
+    batch = BatchID.objects.get(batch_id=batch_id)
+    batch.batch_size = batch_size
+    batch.save()
+
+    return batch_size
 
 
 @check_club_menu_access(check_sessions=True)

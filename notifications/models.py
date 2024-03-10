@@ -124,10 +124,57 @@ class EmailThread(models.Model):
 
 
 class BatchID(models.Model):
-    """Simple model for unique batch ids"""
+    """Simple model for unique batch ids
+
+    sprint-48: Expanded to include batch header information to suppprt email
+    batch list view, and re-entrant batch editing. Really should be renamed
+    Batch or BatchHeader as no longer just the batch id.
+    """
 
     batch_id = models.CharField("Batch Id", max_length=14, blank=True, null=True)
-    """batch id links emails together and controls security """
+    """ Batch id links emails together and controls security """
+    organisation = models.ForeignKey(
+        Organisation,
+        related_name="batches",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    complete = models.BooleanField("Complete", default=False)
+    """ Has the batch been sent (or can it be edited) """
+
+    BATCH_TYPE_ADMIN = "ADM"
+    BATCH_TYPE_COMMS = "COM"
+    BATCH_TYPE_CONGRESS = "CNG"
+    BATCH_TYPE_EVENT = "EVT"
+    BATCH_TYPE_MEMBER = "MBR"
+    BATCH_TYPE_MULTI = "MLT"
+    BATCH_TYPE_RESULTS = "RES"
+    BATCH_TYPE_UNKNOWN = "UNK"
+    BATCH_TYPE = [
+        (BATCH_TYPE_ADMIN, "Admin"),
+        (BATCH_TYPE_COMMS, "Comms"),
+        (BATCH_TYPE_CONGRESS, "Congress"),
+        (BATCH_TYPE_EVENT, "Event"),
+        (BATCH_TYPE_MEMBER, "Member"),
+        (BATCH_TYPE_MULTI, "Multi"),
+        (BATCH_TYPE_RESULTS, "Results"),
+        (BATCH_TYPE_UNKNOWN, "Unknown"),
+    ]
+    batch_type = models.CharField(
+        "Batch Type",
+        max_length=3,
+        choices=BATCH_TYPE,
+        default=BATCH_TYPE_UNKNOWN,
+    )
+
+    batch_size = models.IntegerField("Batch Size", default=0)
+    created = models.DateTimeField("Created Date", default=timezone.now)
+    """ create DTS until sent, then should be updated with the sent DTS """
+    description = models.CharField(
+        "Description", max_length=989, blank=True, default="New batch"
+    )
+    """ A meaningful description when created, but should ultimately be the subject line"""
 
     def create_new(self):
         """create a new batch id"""
@@ -140,6 +187,28 @@ class BatchID(models.Model):
 
     def __str__(self):
         return self.batch_id
+
+
+class BatchActivity(models.Model):
+    """The activities (series, congresses, events) associated with an entrant email batch"""
+
+    ACTIVITY_TYPE_SERIES = "S"
+    ACTIVITY_TYPE_CONGRESS = "C"
+    ACTIVITY_TYPE_EVENT = "E"
+    ACTIVITY_TYPE = [
+        (ACTIVITY_TYPE_SERIES, "Series"),
+        (ACTIVITY_TYPE_CONGRESS, "Congress"),
+        (ACTIVITY_TYPE_EVENT, "Event"),
+    ]
+    batch = models.ForeignKey(
+        BatchID, related_name="activities", on_delete=models.CASCADE
+    )
+    activity_type = models.CharField(
+        "Activity Type",
+        max_length=1,
+        choices=ACTIVITY_TYPE,
+    )
+    activity_id = models.IntegerField("Activity Id")
 
 
 class Snooper(models.Model):

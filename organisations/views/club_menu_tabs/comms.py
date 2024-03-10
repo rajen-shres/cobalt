@@ -11,7 +11,7 @@ from accounts.models import User, UnregisteredUser
 from accounts.views.core import get_users_or_unregistered_users_from_email_list
 from cobalt.settings import COBALT_HOSTNAME
 from notifications.forms import OrgEmailForm
-from notifications.models import Snooper, EmailBatchRBAC, EmailAttachment
+from notifications.models import Snooper, EmailBatchRBAC, EmailAttachment, BatchID
 from notifications.views.core import (
     send_cobalt_email_with_template,
     create_rbac_batch_id,
@@ -76,13 +76,18 @@ def email_htmx(request, club, message=None):
 
 
 def _send_email_to_tags(request, club, tags, email_form, club_template, attachments):
-    """Send an email to a group of members identified by tags"""
+    """Send an email to a group of members identified by tags
+
+    Updated for sprint-48 batch header information"""
 
     # let anyone with comms access to this org view them
     batch_id = create_rbac_batch_id(
         rbac_role=f"notifications.orgcomms.{club.id}.edit",
         user=request.user,
         organisation=club,
+        batch_type=BatchID.BATCH_TYPE_COMMS,
+        description=email_form.cleaned_data["subject"],
+        complete=True,
     )
 
     # Check for Tag=0, means everyone
@@ -159,6 +164,12 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
             )
 
             recipient_count += 1
+
+    # update the BatchID with the batch size
+
+    batch = BatchID.objects.get(batch_id=batch_id)
+    batch.batch_size = recipient_count
+    batch.save()
 
     return f"Email queued to send to {recipient_count} recipients"
 

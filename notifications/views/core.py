@@ -283,14 +283,22 @@ def create_rbac_batch_id(
     batch_id: BatchID = None,
     user: User = None,
     organisation: Organisation = None,
+    batch_type: str = "UNK",
+    batch_size: int = 0,
+    description: str = None,
+    complete: bool = False,
 ):
     """Create a new EmailBatchRBAC object to allow an RBAC role to access a batch of emails
+
+    Updated in sprint-48 to add type and description
 
     Args:
         rbac_role (str): the RBAC role to allow. e.g. "org.orgs.34.view"
         batch_id (BatchID): batch ID, if None a new batch Id will be created
         organisation: Org responsible for sending this
         user: User responsible for sending this
+        batch_type: Type of batch (BatchID.BATCH_TYPE)
+        description: Email subject line or description
 
     Returns: BatchID
 
@@ -299,6 +307,10 @@ def create_rbac_batch_id(
     if not batch_id:
         batch_id = BatchID()
         batch_id.create_new()
+        batch_id.batch_type = batch_type
+        batch_id.batch_size = batch_size
+        batch_id.description = description if description else "New email batch"
+        batch_id.complete = complete
         batch_id.save()
 
         EmailBatchRBAC(
@@ -793,6 +805,9 @@ def send_cobalt_email_to_system_number(
 
     if we get a club then we will use that to look for club specific email addresses
 
+    Updated for sprint-48 to pass additional header information to BatchID
+    Note: all emails sent via this function with a club specified are assumed to
+    be of batch_type Admin.
     """
 
     from accounts.views.core import (
@@ -831,6 +846,10 @@ def send_cobalt_email_to_system_number(
             rbac_role=f"notifications.orgcomms.{club.id}.edit",
             user=administrator,
             organisation=club,
+            batch_type=BatchID.BATCH_TYPE_ADMIN,
+            batch_size=1,
+            description=subject,
+            complete=True,
         )
     else:
         batch_id = None
