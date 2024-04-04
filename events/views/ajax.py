@@ -13,7 +13,8 @@ from accounts.models import User, TeamMate, UserAdditionalInfo
 from cobalt.settings import TBA_PLAYER, BRIDGE_CREDITS
 from events.views.congress_builder import update_event_start_and_end_times
 from logs.views import log_event
-from notifications.views.core import contact_member
+from notifications.views.core import contact_member, create_rbac_batch_id
+from notifications.models import BatchID
 from organisations.models import Organisation
 from payments.views.core import (
     update_account,
@@ -878,6 +879,15 @@ def change_player_entry_ajax(request):
         message=f"Changed {old_player.href} to {member.href} in {event.href}",
     )
 
+    # create batch ID
+    batch_id = create_rbac_batch_id(
+        rbac_role=f"events.org.{congress.congress_master.org.id}.view",
+        organisation=congress.congress_master.org,
+        batch_type=BatchID.BATCH_TYPE_ENTRY,
+        description=f"Event entry - {congress}",
+    )
+    batch_size = 2
+
     # send
     contact_member(
         member=event_entry_player.player,
@@ -887,6 +897,7 @@ def change_player_entry_ajax(request):
         link="/events/view",
         link_text="View Entry",
         subject="Event Entry - %s" % congress,
+        batch_id=batch_id,
     )
 
     # send
@@ -897,6 +908,7 @@ def change_player_entry_ajax(request):
         html_msg=f"{request.user.full_name} has removed you from {event}.<br><br>",
         link="/events/view",
         subject="Event Entry - %s" % congress,
+        batch_id=batch_id,
     )
 
     # tell the conveners
@@ -908,11 +920,12 @@ def change_player_entry_ajax(request):
                   <br><br>
                   """
 
-    notify_conveners(
+    batch_size += notify_conveners(
         congress=congress,
         event=event,
         subject=f"{event} - {event_entry_player.player} added to entry",
         email_msg=email_msg,
+        batch_id=batch_id,
     )
 
     # Check entry fee - they can keep an early entry discount but nothing else
@@ -923,6 +936,12 @@ def change_player_entry_ajax(request):
 
     # Check if this is a free entry - player 5 or 6
     if event_entry_player.payment_type == "Free":
+
+        # update the batch_id
+        batch_id.batch_size = batch_size
+        batch_id.state = BatchID.BATCH_STATE_COMPLETE
+        batch_id.save()
+
         return JsonResponse({"message": "Success", "html": return_html})
 
     # get the entry fee based upon when the entry was created
@@ -990,7 +1009,9 @@ def change_player_entry_ajax(request):
             html_msg=f"A refund of {difference} credits has been made to your {BRIDGE_CREDITS} accounts from {event}.<br><br>",
             link="/events/view",
             subject="Refund from  %s" % event,
+            batch_id=batch_id,
         )
+        batch_size += 1
 
         # tell the conveners
         msg = f"""{event_entry_player.paid_by.full_name} has been refunded
@@ -998,11 +1019,12 @@ def change_player_entry_ajax(request):
                       due to change of player from {old_player} to {event_entry_player.player}.
                       <br><br>
                       """
-        notify_conveners(
+        batch_size += notify_conveners(
             congress,
             event,
             f"{event} - {event_entry_player.paid_by} refund",
             msg,
+            batch_id=batch_id,
         )
 
     # if money is owing then update paid status on event_entry
@@ -1018,6 +1040,11 @@ def change_player_entry_ajax(request):
         event_entry_player.payment_status = "Paid"
         event_entry_player.save()
         event_entry.check_if_paid()
+
+    # update the batch_id
+    batch_id.batch_size = batch_size
+    batch_id.state = BatchID.BATCH_STATE_COMPLETE
+    batch_id.save()
 
     # the HTML screen reloads but we need to tell the user what happened first
     # Also if the player has just deleted themselves then take them back to the dashboard
@@ -1137,6 +1164,15 @@ def delete_player_from_entry_ajax(request):
             event = old_event_entry_player.event_entry.event
             congress = old_event_entry_player.event_entry.event.congress
 
+            # create batch ID
+            batch_id = create_rbac_batch_id(
+                rbac_role=f"events.org.{congress.congress_master.org.id}.view",
+                organisation=congress.congress_master.org,
+                batch_type=BatchID.BATCH_TYPE_ENTRY,
+                description=f"Removal from {event}",
+            )
+            batch_size = 1
+
             # notify member
             contact_member(
                 member=old_event_entry_player.player,
@@ -1145,6 +1181,7 @@ def delete_player_from_entry_ajax(request):
                 html_msg=f"{request.user.full_name} has removed you from their team in {event}.<br><br>",
                 link="/events/view",
                 subject="Removal from %s" % event,
+                batch_id=batch_id,
             )
 
             # tell the conveners
@@ -1154,12 +1191,18 @@ def delete_player_from_entry_ajax(request):
                       The team is still complete.
                       <br><br>
                       """
-            notify_conveners(
+            batch_size += notify_conveners(
                 congress,
                 event,
                 f"{event} - Extra player {old_event_entry_player.player} removed",
                 msg,
+                batch_id=batch_id,
             )
+
+            # update the batch_id
+            batch_id.batch_size = batch_size
+            batch_id.state = BatchID.BATCH_STATE_COMPLETE
+            batch_id.save()
 
         return JsonResponse({"message": "Success"})
 
@@ -1189,6 +1232,14 @@ def change_category_on_existing_entry_ajax(request, event_entry_id, category_id)
         message=f"Changed category to {category} from {event_entry.category} in {event_entry.event.href}",
     )
 
+    # create batch ID
+    batch_id = create_rbac_batch_id(
+        rbac_role=f"events.org.{event_entry.event.congress.congress_master.org.id}.view",
+        organisation=event_entry.event.congress.congress_master.org,
+        batch_type=BatchID.BATCH_TYPE_ENTRY,
+        description=f"{event_entry.event} - {request.user.full_name} Changed category",
+    )
+
     # tell the conveners
     email_msg = f"""{request.user.full_name} has changed an entry for {event_entry.event.event_name} in {event_entry.event.congress}.
               <br><br>
@@ -1196,12 +1247,18 @@ def change_category_on_existing_entry_ajax(request, event_entry_id, category_id)
               <br><br>
               """
 
-    notify_conveners(
+    batch_size = notify_conveners(
         congress=event_entry.event.congress,
         event=event_entry.event,
         subject=f"{event_entry.event} - {request.user.full_name} Changed category",
         email_msg=email_msg,
+        batch_id=batch_id,
     )
+
+    # update the batch_id
+    batch_id.batch_size = batch_size
+    batch_id.state = BatchID.BATCH_STATE_COMPLETE
+    batch_id.save()
 
     event_entry.category = category
     event_entry.save()

@@ -1,0 +1,29 @@
+<!-- List of included attachments with delete buttons -->
+
+{% load cobalt_tags %}
+
+<table id="included_attachments">
+    {% if batch_attachments %}
+
+        {% for batch_attachment in batch_attachments %}
+            <tr>
+                <td>
+                    {{ batch_attachment.attachment.filename }}
+                </td>
+                <td>
+                    <button
+                        class="btn btn-warning btn-sm cobalt-delete"
+                        hx-post="{% url 'notifications:compose_email_content_remove_attachment_htmx' %}"
+                        hx-vars="club_id: {{ club.id }}, batch_id_id: {{ batch.id }}, batch_attachment_id: {{batch_attachment.id}}"
+                        hx-target="#included_attachments"
+                    >
+                    </td>
+                </tr>
+        {% endfor %}
+
+    {% else %}
+        <td>
+            No attachments selected
+        </td>
+    {% endif %}
+</table>

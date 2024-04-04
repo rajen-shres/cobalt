@@ -1,0 +1,311 @@
+{% extends 'notifications/batch_email.html' %}
+
+{% load humanize %}
+{% load cobalt_tags %}
+
+{% block header %}
+    <script>
+
+        // check whether all checkboxes for a selector are checked
+        function allCheckedForSelector(a_selector) {
+            const allCheckboxes = $(a_selector).length;
+            const checkedCheckboxes = $(a_selector + ':checked').length;
+            return allCheckboxes === checkedCheckboxes;
+        }
+
+
+        // ensure that the select all checkbox matches the current selections
+        function setSelectAll() {
+            $("#id-select-all").prop("checked", allCheckedForSelector(".master-cb"))
+        }
+
+
+        function selectMaster(master_id) {
+
+            console.info('selectMaster ' + master_id)
+
+            // select the master
+            $('#id-master-cb-' + master_id).prop('checked', true);
+
+            // deselect and hide the congresses
+            $('.congress-cb-in-master-' + master_id).prop('checked', false);
+            $('#id-master-detail-' + master_id).hide();
+
+            // deselect all events under the master
+            $('#id-master-detail-' + master_id + ' .event-cb').prop('checked', false);
+
+            // check whether all masters selected
+            if (allCheckedForSelector('.master-cb')) {
+                $("#id-select-all").prop("checked", true)
+            }
+        }
+
+
+        function deselectMaster(master_id) {
+
+            console.info('deSelectMaster ' + master_id)
+
+            // deselect the master
+            $('#id-master-cb-' + master_id).prop('checked', false);
+
+            // show the congresses
+            $('#id-master-detail-' + master_id).show();
+
+            // show the events for all congresses
+            $('#id-master-detail-' + master_id + ' .congress-detail').show();
+
+            // uncheck select all
+            $("#id-select-all").prop("checked", false)
+        }
+
+
+        function selectCongress(master_id, congress_id) {
+
+            console.info('selectCongress ' + congress_id)
+
+            // select the congress
+            $('#id-congress-cb-' + master_id + '-' + congress_id).prop('checked', true);
+
+            // deselect the events and hide them
+            $('.event-cb-in-congress-' + congress_id).prop('checked', false);
+            $('#id-congress-detail-' + congress_id).hide();
+
+            // check whether this selects all congresses in a master, if so select the master
+            if (allCheckedForSelector('.congress-cb-in-master-' + master_id)) {
+                selectMaster(master_id);
+            }
+        }
+
+
+        function deselectCongress(master_id, congress_id) {
+
+            console.info('deselectCongress ' + congress_id)
+
+            // deselect the congress
+            $('#id-congress-cb-' + master_id + '-' + congress_id).prop('checked', false);
+
+            // show the events
+            $('#id-congress-detail-' + congress_id).show();
+        }
+
+
+        function selectEvent(master_id, congress_id, event_id) {
+
+            console.info('selectEvent ' + event_id)
+
+            // select the event
+            $('#id-event-cb-' + master_id + '-' + congress_id + '-' + event_id).prop('checked', true);
+
+            // check whether this selects all events in a congress, if so select the congress
+            if (allCheckedForSelector('.event-cb-in-congress-' + congress_id)) {
+                selectCongress(master_id, congress_id);
+            }
+        }
+
+        $(document).ready(function() {
+
+            setSelectAll()
+
+            // Select or deselect all masters (ie everything)
+            $('#id-select-all').change(function() {
+
+                console.info('select all changed')
+
+                if (this.checked) {
+                    $('.master-cb').each(function(index, element){
+                        var this_id = this.id;
+                        var parts = this_id.split('-');
+                        var master_id = parts[parts.length - 1];
+
+                        selectMaster(master_id)
+                    });
+                } else {
+                    $('.master-cb').each(function(index, element){
+                        var this_id = this.id;
+                        var parts = this_id.split('-');
+                        var master_id = parts[parts.length - 1];
+
+                        deselectMaster(master_id)
+                    });
+                }
+            });
+
+            // Handler for master checkbox state changes
+            $('.master-cb').change(function() {
+
+                // Id must end -<master id>
+                var this_id = this.id;
+                var parts = this_id.split('-');
+                var master_id = parts[parts.length - 1];
+
+                console.info('master changed ' + master_id + ' checked=' + this.checked)
+
+                if (this.checked) {
+                    selectMaster(master_id)
+                } else {
+                    deselectMaster(master_id)
+                }
+            });
+
+            // Handler for congress checkbox state changes
+            $('.congress-cb').change(function() {
+
+                console.info('congress changed')
+
+                // Id must end -<congress id>
+                var this_id = this.id;
+                var parts = this_id.split('-');
+                var master_id = parts[parts.length - 2];
+                var congress_id = parts[parts.length - 1];
+
+                if (this.checked) {
+                    selectCongress(master_id, congress_id)
+                } else {
+                    deselectCongress(master_id, congress_id)
+                }
+            });
+
+            // Handler for event checkbox state changes
+            $('.event-cb').change(function() {
+
+                console.info('event changed')
+
+                // Id must end <master id>-<congress id>-<event id>
+                var this_id = this.id;
+                var parts = this_id.split('-');
+                var master_id = parts[parts.length - 3];
+                var congress_id = parts[parts.length - 2];
+                var event_id = parts[parts.length - 1];
+
+                if (this.checked) {
+                    selectEvent(master_id, congress_id, event_id)
+                }
+            });
+
+        });
+
+    </script>
+{% endblock header %}
+
+{% block payload %}
+
+    <form
+        id="congress-select-form"
+        method="post"
+    >
+        {% csrf_token %}
+
+        <div class="container">
+            <div class="row">
+                <div class="col-12" style="margin-left: 30px;">
+                    <input
+                        type="checkbox"
+                        class="form-check-input"
+                        name="select-all"
+                        value="all"
+                        id="id-select-all"
+                    >
+                    <label class="form-check-label text-dark" for="id-select-all">
+                        Select all
+                    </label>
+                </div>
+                <div class="col-12">
+                    <hr/>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            {% for master in masters %}
+                {% if master.congress_set.all|length > 0 %}
+                    <div class="row">
+                        <div class="col-12" style="margin-left: 30px;">
+                            <!-- master -->
+                            <input
+                                class="form-check-input master-cb"
+                                type="checkbox"
+                                name="master-{{ master.pk }}"
+                                value="{{ master.pk }}"
+                                id="id-master-cb-{{ master.pk }}"
+                                {% if master.pk in selected_masters %} checked {% endif %}
+                            >
+                            <label class="form-check-label text-dark" for="id-master-cb-{{ master.pk }}">
+                                {{ master.name }} Series
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- congresses and events within a master -->
+                    <div
+                        class="row flex_column master-detail"
+                        id="id-master-detail-{{ master.pk }}"
+                        {% if master.pk in selected_masters %} style="display: none" {% endif %}
+                    >
+                        {% for congress in master.congress_set.all %}
+                            <div class="col-12" style="margin-left: 60px;">
+                                <!-- congress -->
+                                <input
+                                    class="form-check-input congress-cb congress-cb-in-master-{{ master.pk }}"
+                                    type="checkbox"
+                                    name="congress-{{ congress.pk }}"
+                                    value="{{ congress.pk }}"
+                                    id="id-congress-cb-{{ master.pk }}-{{ congress.pk }}"
+                                    {% if congress.pk in selected_congresses %} checked {% endif %}
+                                >
+                                <label class="form-check-label text-dark" for="id-congress-cb-{{ congress.pk }}">
+                                    <b>{{ congress.name }} ({{ congress.year }})</b>
+                                </label>
+                            </div>
+
+                            {% if congress.event_set.all|length > 1 %}
+                                <!-- events within a congress -->
+                                <div
+                                    class="row flex_column congress-detail"
+                                    id="id-congress-detail-{{ congress.pk }}"
+                                    {% if congress.pk in selected_congresses %} style="display: none" {% endif %}
+                                >
+                                    {% for event in congress.event_set.all %}
+                                        <div class="col-12" style="margin-left: 110px;">
+                                            <!-- event -->
+                                            <input
+                                                class="form-check-input event-cb event-cb-in-congress-{{ congress.pk }}"
+                                                type="checkbox"
+                                                name="event-{{ event.pk }}"
+                                                value="{{ event.pk }}"
+                                                id="id-event-cb-{{ master.pk }}-{{ congress.pk }}-{{ event.pk }}"
+                                                {% if event.pk in selected_events %} checked {% endif %}
+                                            >
+                                            <label class="form-check-label" for="id-event-cb-{{ event.pk }}">
+                                                {{ event.event_name }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% empty %}
+                <div class="row">
+                    <div class="col">
+                        <p>No Congresses</p>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="row">
+                <div class="col-12">
+                    <hr/>
+                    <button type="submit" class="btn btn-primary cobalt-save">
+                        {% if existing_selection %}
+                            Replace existing selection
+                        {% else %}
+                            Save election
+                        {% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+{% endblock payload %}

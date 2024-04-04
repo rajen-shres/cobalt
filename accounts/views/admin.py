@@ -8,7 +8,8 @@ from django.views.decorators.http import require_POST
 from accounts.models import User, UnregisteredUser
 from cobalt.settings import GLOBAL_TITLE, GLOBAL_ORG
 from logs.views import log_event
-from masterpoints.views import user_summary
+
+# from masterpoints.views import user_summary
 from notifications.views.core import send_cobalt_email_with_template
 from organisations.models import Organisation
 from utils.utils import cobalt_paginator
@@ -123,27 +124,29 @@ def invite_to_join(
     return False
 
 
-def check_system_number(system_number):
-    """Check if system number is valid and also if it is registered already in Cobalt, either as a member or as an
-    unregistered user
+#  JPG TO DO: Clean-up - moved to utils.py
 
-    Args:
-        system_number (int): number to check
+# def check_system_number(system_number):
+#     """Check if system number is valid and also if it is registered already in Cobalt, either as a member or as an
+#     unregistered user
 
-    Returns:
-        list: is_valid (bool), is_in_use_member (bool), is_in_use_un_reg (bool)
+#     Args:
+#         system_number (int): number to check
 
-    Returns whether this is a valid (current, active) ABF number, whether we have a user registered with this
-    number already or not, whether we have an unregistered user already with this number
-    """
+#     Returns:
+#         list: is_valid (bool), is_in_use_member (bool), is_in_use_un_reg (bool)
 
-    # TODO: Add visitors
+#     Returns whether this is a valid (current, active) ABF number, whether we have a user registered with this
+#     number already or not, whether we have an unregistered user already with this number
+#     """
 
-    summary = user_summary(system_number)
-    is_valid = bool(summary)
-    is_in_use_member = User.objects.filter(system_number=system_number).exists()
-    is_in_use_un_reg = UnregisteredUser.objects.filter(
-        system_number=system_number
-    ).exists()
+#     # TODO: Add visitors
 
-    return is_valid, is_in_use_member, is_in_use_un_reg
+#     summary = user_summary(system_number)
+#     is_valid = bool(summary)
+#     is_in_use_member = User.objects.filter(system_number=system_number).exists()
+#     is_in_use_un_reg = UnregisteredUser.objects.filter(
+#         system_number=system_number
+#     ).exists()
+
+#     return is_valid, is_in_use_member, is_in_use_un_reg

@@ -20,7 +20,9 @@ from payments.views.payments_api import payment_api_interactive
 from utils.templatetags.cobalt_tags import cobalt_credits
 from notifications.views.core import (
     send_cobalt_email_with_template,
+    create_rbac_batch_id,
 )
+from notifications.models import BatchID
 from accounts.models import User, TeamMate
 from rbac.core import (
     rbac_user_allowed_for_model,
@@ -1201,9 +1203,18 @@ def _delete_event_entry_handle_post(
         extra_tags="cobalt-message-success",
     )
 
+    # create batch ID
+    batch_id = create_rbac_batch_id(
+        rbac_role=f"events.org.{event_entry.event.congress.congress_master.org.id}.view",
+        organisation=event_entry.event.congress.congress_master.org,
+        batch_type=BatchID.BATCH_TYPE_ENTRY,
+        description=f"Entry cancelled to {event_entry.event.event_name}",
+    )
+    batch_size = 0
+
     # Notify conveners
-    _delete_event_entry_handle_post_notify_conveners(
-        request, event_entry, event_entry_players
+    batch_size += _delete_event_entry_handle_post_notify_conveners(
+        request, event_entry, event_entry_players, batch_id
     )
 
     # Handle refunds
@@ -1212,9 +1223,14 @@ def _delete_event_entry_handle_post(
     )
 
     # Notify people
-    _delete_event_entry_handle_post_notify_users(
-        request, event_entry, event_entry_players, refunds, cancelled
+    batch_size += _delete_event_entry_handle_post_notify_users(
+        request, event_entry, event_entry_players, refunds, cancelled, batch_id
     )
+
+    # update the batch_id
+    batch_id.batch_size = batch_size
+    batch_id.state = BatchID.BATCH_STATE_COMPLETE
+    batch_id.save()
 
     return redirect("events:view_events")
 
@@ -1239,9 +1255,11 @@ def _delete_event_entry_handle_post_basket(event_entry, request, basket_item):
 
 
 def _delete_event_entry_handle_post_notify_conveners(
-    request, event_entry, event_entry_players
+    request, event_entry, event_entry_players, batch_id
 ):
-    """Notify conveners when entry is deleted"""
+    """Notify conveners when entry is deleted
+
+    Returns count of emails sent"""
 
     html = loader.render_to_string(
         "events/players/email/notify_convener_about_event_entry_cancellation.html",
@@ -1252,11 +1270,12 @@ def _delete_event_entry_handle_post_notify_conveners(
         },
     )
 
-    notify_conveners(
+    return notify_conveners(
         event_entry.event.congress,
         event_entry.event,
         f"Entry cancelled to {event_entry.event.event_name}",
         html,
+        batch_id=batch_id,
     )
 
 
@@ -1335,9 +1354,13 @@ def _delete_event_entry_handle_post_refunds(request, event_entry, event_entry_pl
 
 
 def _delete_event_entry_handle_post_notify_users(
-    request, event_entry, event_entry_players, refunds, cancelled
+    request, event_entry, event_entry_players, refunds, cancelled, batch_id
 ):
-    """After the refunds have been done and the entry cancelled we let them know"""
+    """After the refunds have been done and the entry cancelled we let them know
+
+    Returns count of emails sent"""
+
+    sent_count = 0
 
     for member, value in refunds.items():
 
@@ -1370,7 +1393,10 @@ def _delete_event_entry_handle_post_notify_users(
             "subject": "Entry Cancelled - %s" % event_entry.event,
         }
 
-        send_cobalt_email_with_template(to_address=member.email, context=context)
+        send_cobalt_email_with_template(
+            to_address=member.email, context=context, batch_id=batch_id
+        )
+        sent_count += 1
 
     # There can be people left on cancelled who didn't pay for their entry - let them know
     for member in cancelled:
@@ -1400,7 +1426,12 @@ def _delete_event_entry_handle_post_notify_users(
             "box_colour": "danger",
         }
 
-        send_cobalt_email_with_template(to_address=member.email, context=context)
+        send_cobalt_email_with_template(
+            to_address=member.email, context=context, batch_id=batch_id
+        )
+        sent_count += 1
+
+    return sent_count
 
 
 @login_required()

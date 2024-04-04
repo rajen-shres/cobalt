@@ -1,0 +1,408 @@
+{% extends 'notifications/batch_email.html' %}
+
+{% load humanize %}
+{% load cobalt_tags %}
+
+{% block header %}
+    <script>
+
+        function showContactForm() {
+            $('#add-contact-form-container').css('display', 'block');
+            $('#add-contact-button').removeClass('btn-primary').addClass('btn-dark');
+        }
+
+        function hideContactForm() {
+            $('#add-contact-form-container').css('display', 'none');
+            $('#add-contact-button').removeClass('btn-dark').addClass('btn-primary');
+        }
+
+        function toggleContactForm() {
+            if ($('#add-contact-form-container').css('display') === "none") {
+                showContactForm()
+                hideTagsPane()
+                hideMemberSearchPane()
+            } else {
+                hideContactForm()
+            }
+        }
+
+        function showTagsPane() {
+            $('#tags-pane').css('display', 'block');
+            $('#add-tags-button').removeClass('btn-primary').addClass('btn-dark');
+        }
+
+        function hideTagsPane() {
+            $('#tags-pane').css('display', 'none');
+            $('#add-tags-button').removeClass('btn-dark').addClass('btn-primary');
+        }
+
+        function toggleTagsPane() {
+            if ($('#tags-pane').css('display') === "none") {
+                showTagsPane()
+                hideContactForm()
+                hideMemberSearchPane()
+            } else {
+                hideTagsPane()
+            }
+        }
+
+        function showMemberSearchPane() {
+            $('#member-search-pane').css('display', 'block');
+            $('#member-search-button').removeClass('btn-primary').addClass('btn-dark');
+        }
+
+        function hideMemberSearchPane() {
+            $('#member-search-pane').css('display', 'none');
+            $('#member-search-button').removeClass('btn-dark').addClass('btn-primary');
+        }
+
+        function toggleMemberSearchPane() {
+            if ($('#member-search-pane').css('display') === "none") {
+                showMemberSearchPane()
+                hideContactForm()
+                hideTagsPane()
+            } else {
+                hideMemberSearchPane()
+            }
+        }
+
+
+    </script>
+{% endblock header %}
+
+
+{% block payload %}
+
+    <div id="ignore_cobalt_save"></div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- left column : candidates -->
+
+            <div class="table-responsive">
+
+                <table class="table table-condensed table-hover">
+                    <thead>
+                        <tr>
+                            <th class="text-center">
+                                Include
+                            </th>
+                            <th class="text-left">
+                                Name
+                            </th>
+                            <th class="text-left">
+                                {{ GLOBAL_ORG }} Number
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {%if page.object_list %}
+                            {% for recipient in page %}
+
+                                {% if added_header_before_row and forloop.counter == added_header_before_row %}
+                                    <tr>
+                                        <td></td>
+                                        <td class="text-left" colspan="2">
+                                            <b>Added Recipients:</b>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+
+                                {% if initial_header_before_row and forloop.counter == initial_header_before_row %}
+                                    <tr>
+                                        <td></td>
+                                        <td class="text-left" colspan="2">
+                                            <b>Initial Recipients</b>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+
+                                <tr>
+                                    <td class="text-center">
+                                        <input
+                                            type="checkbox"
+                                            id="id_include_{{ recipient.id }}"
+                                            name="include_{{ recipient.id }}"
+                                            {% if recipient.include %}checked{% endif %}
+                                            hx-post="{% url 'notifications:compose_email_recipients_toggle_recipient_htmx' recipient.id %}"
+                                            hx-trigger="change"
+                                        >
+                                    </td>
+                                    <td class="text-left">
+                                        {{ recipient.full_name }}
+                                    </td>
+                                    <td class="text-left">
+                                        {{ recipient.system_number }}
+                                    </td>
+                                </tr>
+
+                            {% endfor %}
+
+                        {% else %}
+
+                            <tr>
+                                <td class="text-center" colspan="3">
+                                    No recipients selected yet
+                                </td>
+                            </tr>
+
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page.paginator.num_pages > 1 %}
+                <div class="row">
+                    <div class="col d-flex justify-content-center">
+                        <ul class="pagination pagination-info">
+                            {% if page.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">FIRST</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page.previous_page_number }}">PREV </a>
+                                </li>
+                            {% endif %}
+                            {% for page_num in page_range %}
+                                {% if page_num == page.number %}
+                                    <li class="active page-item">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_num }}">{{ page_num }} </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if page.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page.next_page_number }}">NEXT</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page.paginator.num_pages }}">LAST</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+
+        </div>
+        <div class="col-lg-4">
+            <!-- right column : actions -->
+
+            {% if congress_stream %}
+
+                <!-- Event/Congress specific actions -->
+
+                <div class="row">
+                    <a
+                        class="btn btn-sm w-100 btn-primary"
+                        href="{% url 'notifications:compose_email_recipients_add_congress_email' club_id=club.id batch_id_id=batch.id %}"
+                    >
+                        Add congress contact email
+                    </a>
+                </div>
+
+                <div class="row">
+                    <a
+                        class="btn btn-sm w-100 btn-primary"
+                        href="{% url 'notifications:compose_email_recipients_add_tadmins' club_id=club.id batch_id_id=batch.id %}"
+                    >
+                        Add tournament admins
+                    </a>
+                </div>
+
+            {% else %}
+
+                <!-- Add club members by tags button and pane -->
+
+                <div class="row">
+                    <button
+                        class="btn btn-sm w-100 btn-{% if show_tags_pane %}dark{% else %}primary{% endif %}"
+                        id="add-tags-button"
+                        hx-get="{% url 'notifications:compose_email_recipients_tags_pane_htmx' club_id=club.id batch_id_id=batch.id %}"
+                        hx-target="#tags-pane"
+                        onclick="toggleTagsPane()"
+                    >
+                        Add Tagged Club Members
+                    </button>
+                </div>
+
+                <div class="row" id="tags-pane" style="display: {% if show_tags_pane %}block{% else %}none{% endif %};">
+                </div>
+
+            {% endif %}
+
+            <!-- Club member search button and pane -->
+
+            <div class="row">
+                <button
+                    class="btn btn-sm w-100 btn-{% if show_member_search %}dark{% else %}primary{% endif %}"
+                    id="member-search-button"
+                    onclick="toggleMemberSearchPane()"
+                >
+                    Search Club Members
+                </button>
+            </div>
+
+            <div id="member-search-pane" style="display: {% if show_member_search %}block{% else %}none{% endif %};">
+                <div class="row form-group">
+                    <input
+                        class="search-input form-control"
+                        type="text"
+                        name="member-search-first"
+                        id="member-search-first"
+                        placeholder="First name"
+                        hx-post="{% url 'notifications:compose_email_recipients_member_search_htmx' club_id=club.id batch_id_id=batch.id %}"
+                        hx-target="#member_search_results"
+                        hx-trigger="keyup changed delay:100ms"
+                        hx-include=".search-input"
+                    >
+                </div>
+                <div class="row form-group">
+                    <input
+                        class="search-input form-control"
+                        type="text"
+                        name="member-search-last"
+                        id="member-search-last"
+                        placeholder="Last name"
+                        hx-post="{% url 'notifications:compose_email_recipients_member_search_htmx' club_id=club.id batch_id_id=batch.id %}"
+                        hx-target="#member_search_results"
+                        hx-trigger="keyup changed delay:100ms"
+                        hx-include=".search-input"
+                    >
+                </div>
+                <div class="row form-group">
+                    <input
+                        class="search-input form-control"
+                        type="text"
+                        name="member-search-number"
+                        id="member-search-number"
+                        placeholder="{{ GLOBAL_ORG }} Number"
+                        hx-post="{% url 'notifications:compose_email_recipients_member_search_htmx' club_id=club.id batch_id_id=batch.id %}"
+                        hx-target="#member_search_results"
+                        hx-trigger="keyup changed delay:100ms"
+                        hx-include=".search-input"
+                    >
+                </div>
+                <div class="row d-flex justify-content-center" id="member_search_results">
+                    <span class="text-secondary">No results</span>
+                </div>
+                <div class="row justify-content-center">
+                    <button
+                        class="btn btn-sm w-25 btn-info"
+                        onclick="toggleMemberSearchPane()"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add contact button and form -->
+            <!-- Hide this until contacts implemented fully -->
+
+            {% if allow_contacts %}
+                <div class="row">
+                    <button
+                        class="btn btn-sm w-100 btn-{% if show_contact_form %}dark{% else %}primary{% endif %}"
+                        id="add-contact-button"
+                        onclick="toggleContactForm()"
+                    >
+                        Add Contact
+                    </button>
+                </div>
+
+                <div class="row" id="add-contact-form-container" style="display: {% if show_contact_form %}block{% else %}none{% endif %};">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="container">
+                            <div class="row form-group">
+                                {{ add_contact_form.first_name.errors }}
+                                <input
+                                    type="text"
+                                    placeholder="First Name"
+                                    name="{{ add_contact_form.first_name.name }}"
+                                    id="id_first_name"
+                                    class="form-control"
+                                    value="{{ add_contact_form.first_name.value|default_if_none:'' }}"
+                                >
+                            </div>
+                            <div class="row form-group">
+                                {{ add_contact_form.last_name.errors }}
+                                <input
+                                    type="text"
+                                    placeholder="Last Name"
+                                    name="{{ add_contact_form.last_name.name }}"
+                                    id="id_last_name"
+                                    class="form-control"
+                                    value="{{ add_contact_form.last_name.value|default_if_none:'' }}"
+                                >
+                            </div>
+                            <div class="row form-group">
+                                {{ add_contact_form.email.errors }}
+                                <input
+                                    type="text"
+                                    placeholder="Email"
+                                    name="{{ add_contact_form.email.name }}"
+                                    id="id_email"
+                                    class="form-control"
+                                    value="{{ add_contact_form.email.value|default_if_none:'' }}"
+                                >
+                            </div>
+                            <div class="row justify-content-center">
+                                <button class="btn btn-sm w-25 btn-success" type="submit">Add</button>
+                                <button class="btn btn-sm w-25 btn-info" onclick="toggleContactForm()">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            {% endif %}
+
+            <!-- Add self button -->
+
+            <div class="row">
+                <a
+                    class="btn btn-sm w-100 btn-primary"
+                    href="{% url 'notifications:compose_email_recipients_add_self' club_id=club.id batch_id_id=batch.id %}"
+                >
+                    Add self
+                </a>
+            </div>
+
+            <!-- Remove unselected recipients from the list -->
+
+            <div class="row">
+                <a
+                    class="btn btn-sm w-100 btn-warning"
+                    href="{% url 'notifications:compose_email_recipients_remove_unselected_htmx' club_id=club.id batch_id_id=batch.id %}"
+                >
+                    Remove unselected recipients
+                </a>
+            </div>
+
+            <div class="row">
+                &nbsp;
+            </div>
+
+            <!-- Next button -->
+
+            <div class="row">
+                <a
+                    class="btn btn-sm w-100 btn-info"
+                    href="{% url 'notifications:compose_email_options' club_id=club.id batch_id_id=batch.id %}"
+                >
+                    Next Step
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+
+
+{% endblock payload %}

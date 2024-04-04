@@ -1,0 +1,21 @@
+{# Shows the email attachments section of the email create form #}
+{# The list of attachments can change dynamically so we include that and update it separately using htmx #}
+
+{# Hide the details by default #}
+<a href="javascript:void(0)" _="on click remove .d-none from attachment_section then hide me">Attachments</a>
+
+<div id="attachment_section" class="d-none card">
+    <div class="card-header card-header-warning">
+        <h4>Attachments</h4>
+        <p class="font-italic">It is better to upload a file and link it in the email than to attach it. Attaching the file
+            will send it to your members and
+            take up space in their inbox. Linking to it will not.</p>
+    </div>
+    <div class="card-body">
+
+        <div id="list_of_attachments">
+            {% include "notifications/batch_email_content_email_attachments_list_htmx.html" %}
+        </div>
+
+    </div>
+</div>

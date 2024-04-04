@@ -28,7 +28,13 @@ class StripeTransactionAdmin(admin.ModelAdmin):
 class MemberTransactionAdmin(admin.ModelAdmin):
     """Admin class for model MemberTransaction"""
 
-    search_fields = ["reference_no", "type", "member__system_number"]
+    search_fields = [
+        "reference_no",
+        "type",
+        "member__system_number",
+        "member__first_name",
+        "member__last_name",
+    ]
     autocomplete_fields = [
         "member",
         "stripe_transaction",
@@ -40,7 +46,14 @@ class MemberTransactionAdmin(admin.ModelAdmin):
 class OrganisationTransactionAdmin(admin.ModelAdmin):
     """Admin class for model OrganisationTransaction"""
 
-    search_fields = ["reference_no", "type"]
+    search_fields = [
+        "reference_no",
+        "type",
+        "organisation__name",
+        "member__first_name",
+        "member__last_name",
+        "member__system_number",
+    ]
     autocomplete_fields = [
         "organisation",
         "member",

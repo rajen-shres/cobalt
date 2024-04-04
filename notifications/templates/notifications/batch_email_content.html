@@ -1,0 +1,167 @@
+{% extends 'notifications/batch_email.html' %}
+
+{% load crispy_forms_filters %}
+{% load widget_tweaks %}
+{% load cobalt_tags %}
+
+{% block payload %}
+
+    {% include "utils/summernote_heading.html" %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="col-lg-8 justify-content-center">
+                <!-- left column : subject and content -->
+
+                <div class="row">
+                    <div class="col">
+                        {% cobalt_bs4_field email_content_form.subject %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        {% cobalt_bs4_field email_content_form.email_body %}
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+                <!-- right column : attachments and buttons -->
+
+                <div class="row">
+                    <div class="col-12">
+                        <div
+                            id="email_attachments"
+                            class="col"
+                            hx-post="{% url "notifications:compose_email_content_attachment_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}, batch_id_id:{{ batch.id }}"
+                            hx-trigger="load"
+                            hx-target="#email_attachments"
+                        >
+                        </div>
+                    </div>
+
+                    {# Show user their attachments #}
+
+                    <div class="col-12 mb-4">
+                        <div id="selected_attachments_view">
+
+                            <table
+                                id="included_attachments"
+                                hx-post="{% url 'notifications:compose_email_content_included_attachments_htmx' %}"
+                                hx-vars="club_id:{{ club.id }}, batch_id_id:{{ batch.id }}"
+                                hx-trigger="load"
+                                hx-target="#included_attachments"
+                            ></table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <!-- action buttons -->
+
+                    <div class="col-12">
+                        <button
+                            class="btn btn-sm w-100 btn-info cobalt-save"
+                            {% if ready_to_send %}disabled{% endif %}
+                            id="id_save_button"
+                            type="submit"
+                        >Save</button>
+                    </div>
+
+                    <div class="col-12 mb-4">
+                        <a
+                            class="btn btn-sm w-100 btn-info"
+                            href="{% url 'notifications:compose_email_options' club_id=club.id batch_id_id=batch.id %}"
+                        >
+                            Previous Step
+                        </a>
+                    </div>
+
+                    <div class="col-12">
+                        <button
+                            class="btn btn-info btn-sm w-100 tm-5"
+                            {% if not ready_to_send %}disabled{% endif %}
+                            name="test"
+                            id="id_test_button"
+                            hx-post="{% url "notifications:compose_email_content_send_htmx" club_id=club.id batch_id_id=batch.id %}"
+                            hx-target="#email-test-response"
+                            hx-vars="test:'test'"
+                        >Send a Test Email</button>
+                    </div>
+
+                    <div class="col-12">
+                        <button
+                            class="btn btn-warning btn-sm w-100"
+                            {% if not ready_to_send %}disabled{% endif %}
+                            name="test"
+                            id="id_test_button"
+                            hx-post="{% url "notifications:compose_email_content_send_htmx" club_id=club.id batch_id_id=batch.id %}"
+                            hx-target="#email-test-response"
+                        >Send the emails</button>
+                    </div>
+
+                    <div class="col-12">
+                        <div id="email-test-response"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+
+    <script>
+
+        // Stackoverflow delay function
+        function delay(callback, ms) {
+            let timer = 0;
+            return function() {
+                const context = this, args = arguments;
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    callback.apply(context, args);
+                }, ms || 0);
+            };
+        }
+
+        // function to run when subject or content changes
+        function email_subject_or_content_changed(){
+            $("#id_test_button").prop("disabled", true);
+            $("#id_send_button").prop("disabled", true);
+            $("#id_save_button").prop("disabled", false);
+        }
+
+
+        $(document).ready( function(){
+
+            $('#id_template').on('change', email_subject_or_content_changed);
+
+            $('#id_subject').on('change', email_subject_or_content_changed);
+
+            $('#id_subject').keyup(delay(function (e) {
+                email_subject_or_content_changed();
+            }, 500));
+
+            // Handle Summernote changes
+            $('#id_email_body').summernote({
+                callbacks: {
+                    onKeyup: delay(function (e) {
+                        email_subject_or_content_changed();
+                    }, 500)
+                },
+
+                {# This is defined on the form but we need it here as we override the summernote call #}
+                "height": "400",
+                "codemirror": {"theme": "monokai"},
+                "placeholder": "<br><br>Enter the body of your email. You can use the test button as many times as you like.",
+            });
+
+        });
+    </script>
+
+
+{% endblock payload %}

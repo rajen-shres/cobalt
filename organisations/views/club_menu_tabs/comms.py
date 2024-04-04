@@ -40,41 +40,94 @@ from utils.utils import cobalt_paginator
 logger = logging.getLogger("cobalt")
 
 
+# JPG TO DO: access validation
 @check_club_menu_access(check_comms=True)
 def email_htmx(request, club, message=None):
     """build the comms email tab in club menu"""
 
+    # build a list of batch types to include in the selector
+    hidden_types = [BatchID.BATCH_TYPE_MEMBER, BatchID.BATCH_TYPE_UNKNOWN]
+    batch_types = [
+        (option, description)
+        for (option, description) in BatchID.BATCH_TYPE
+        if option not in hidden_types
+    ]
+
+    # determine which batch types to show
+    if request.method == "POST":
+        print("*** POST ***")
+        batch_type_selected = request.POST.get("batch_type_picker")
+        print(batch_type_selected)
+        if not batch_type_selected:
+            batch_type_selected = "ALL"
+    else:
+        # JPG TO DO: clean-up
+        print("*** GET ***")
+        batch_type_selected = "ALL"
+
+    if batch_type_selected == "ALL":
+        batch_types_to_show = [batch_type for (batch_type, _) in batch_types]
+    else:
+        batch_types_to_show = [batch_type_selected]
+
+    # get the batch header information
+    batches = BatchID.objects.filter(
+        batch_type__in=batch_types_to_show, organisation=club
+    ).order_by("-pk")
+
     # Get the batch IDs for this club (and prefetch the other things we want)
-    batch_ids = (
-        EmailBatchRBAC.objects.prefetch_related(
-            "batch_id__snooper_set__post_office_email"
-        )
-        .filter(rbac_role=f"notifications.orgcomms.{club.id}.edit")
-        .order_by("-pk")
-    )
+    # batch_ids = (
+    #     EmailBatchRBAC.objects.prefetch_related(
+    #         "batch_id__snooper_set__post_office_email"
+    #     )
+    #     .filter(rbac_role=f"notifications.orgcomms.{club.id}.edit")
+    #     .order_by("-pk")
+    # )
 
     # COB-793 - UI changes if limiting notifications
     # Augment data
-    for batch_id in batch_ids:
-        snoopers = Snooper.objects.filter(batch_id=batch_id.batch_id)
-        batch_id.number_sent = snoopers.count()
-        first_snooper = snoopers.first()
-        if first_snooper:
-            batch_id.created = first_snooper.post_office_email.created
-            batch_id.subject = first_snooper.post_office_email.context["subject"]
-            batch_id.limited_notifications = first_snooper.limited_notifications
-        else:
-            batch_id.limited_notifications = False
+    # for batch_id in batch_ids:
+    #     snoopers = Snooper.objects.filter(batch_id=batch_id.batch_id)
+    #     batch_id.number_sent = snoopers.count()
+    #     first_snooper = snoopers.first()
+    #     if first_snooper:
+    #         batch_id.created = first_snooper.post_office_email.created
+    #         batch_id.subject = first_snooper.post_office_email.context["subject"]
+    #         batch_id.limited_notifications = first_snooper.limited_notifications
+    #     else:
+    #         batch_id.limited_notifications = False
 
-    things = cobalt_paginator(request, batch_ids)
+    # things = cobalt_paginator(request, batch_ids)
+
+    things = cobalt_paginator(request, batches)
+
+    print(f"Rendering with {len(batches)} batches")
 
     return render(
         request,
         "organisations/club_menu/comms/email_htmx.html",
-        {"club": club, "message": message, "things": things},
+        {
+            "club": club,
+            "message": message,
+            "things": things,
+            "batch_types": batch_types,
+            "type_selected": batch_type_selected,
+        },
     )
 
 
+def edit_inflight_batch_htmx(request):
+    """Resume editing an incomplete batch"""
+
+    return HttpResponse("Coming soon - Edit inflight batch")
+
+
+def delete_inflight_batch_htmx(request):
+
+    return HttpResponse("Coming soon - Delete inflight batch")
+
+
+# JPG TO DO deprecate?
 def _send_email_to_tags(request, club, tags, email_form, club_template, attachments):
     """Send an email to a group of members identified by tags
 
@@ -234,6 +287,16 @@ def _send_email_sub(
     )
 
 
+@check_club_menu_access(check_comms=True)
+def entrant_email_send_htmx(request, club):
+    """Send an email to a range of congresses and/or events
+
+    Note: club argument is added by the check_club_menu_access decorator"""
+
+    return HttpResponse("Coming soon - compose an entrant email")
+
+
+# JPG TO DO Deprecate
 @check_club_menu_access(check_comms=True)
 def email_send_htmx(request, club):
     """send an email"""
@@ -596,6 +659,7 @@ def email_preview_htmx(request):
     )
 
 
+# JPG To Do Deprecated
 @check_club_menu_access(check_comms=True)
 def from_and_reply_to_htmx(request, club):
     """rebuild the from and reply_to fields in the send email form if the template changes"""
@@ -619,6 +683,8 @@ def from_and_reply_to_htmx(request, club):
 def email_attachment_htmx(request, club):
     """Upload an email attachment"""
 
+    # JPG TO DO: Deprecate - moved to compose_email_content_attachment_htmx
+
     # TODO: Move this to notifications and make it more generic - organisation or member
 
     email_attachments = EmailAttachment.objects.filter(organisation=club).order_by(
@@ -639,6 +705,7 @@ def email_attachment_htmx(request, club):
     )
 
 
+# JPG TO DO Deprecated - moved to notifications
 def _email_attachment_list_htmx(request, club, hx_trigger_response=None):
     """Shows just the list of attachments, called if we delete or add an attachment"""
 

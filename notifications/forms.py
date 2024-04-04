@@ -8,6 +8,7 @@ from cobalt.settings import (
     BLEACH_ALLOWED_STYLES,
 )
 from organisations.models import OrgEmailTemplate
+from notifications.models import EmailAttachment
 
 
 class EmailContactForm(forms.Form):
@@ -87,3 +88,96 @@ class OrgEmailForm(forms.Form):
         body = body.replace("<", "\n<")
 
         return body
+
+
+class AddContactForm(forms.Form):
+    """Simple form to get details of a contact"""
+
+    first_name = forms.CharField(label="First name", max_length=100, required=False)
+    last_name = forms.CharField(label="Last name", max_length=100, required=False)
+    email = forms.EmailField(label="Email", max_length=100, required=True)
+
+
+class EmailOptionsForm(forms.Form):
+    """Form to get email options (compose email step 2)"""
+
+    reply_to = forms.EmailField(max_length=100, required=False)
+    from_name = forms.CharField(max_length=100, required=False)
+    template = forms.ChoiceField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        """create list of templates"""
+
+        # Get club
+        self.club = kwargs.pop("club", None)
+        super().__init__(*args, **kwargs)
+
+        print(f"Initialising EmailOptionsForm with club {self.club}")
+
+        # Only show this club's templates
+        choices = [
+            (choice.pk, choice.template_name)
+            for choice in OrgEmailTemplate.objects.filter(organisation=self.club)
+        ]
+        print(f"{len(choices)} templates found")
+        self.fields["template"].choices = choices
+
+    def clean_body(self):
+        # Clean the data - we get some stuff through from cut and paste that messes up emails
+        body = self.cleaned_data["body"]
+
+        body = bleach.clean(
+            body,
+            strip=True,
+            tags=BLEACH_ALLOWED_TAGS,
+            attributes=BLEACH_ALLOWED_ATTRIBUTES,
+            styles=BLEACH_ALLOWED_STYLES,
+        )
+
+        body = body.replace("<", "\n<")
+
+        return body
+
+
+class EmailContentForm(forms.Form):
+    """Form to get email content (compose email step 3)"""
+
+    subject = forms.CharField(max_length=100)
+    email_body = forms.CharField(
+        label="Email Body",
+        widget=SummernoteInplaceWidget(
+            attrs={
+                "summernote": {
+                    "height": "400",
+                    "codemirror": {"theme": "monokai"},
+                    "placeholder": "<br><br>Enter the body of your email. You can use the test button as many times as you like.",
+                }
+            }
+        ),
+    )
+
+    def clean_body(self):
+        # Clean the data - we get some stuff through from cut and paste that messes up emails
+        body = self.cleaned_data["body"]
+
+        body = bleach.clean(
+            body,
+            strip=True,
+            tags=BLEACH_ALLOWED_TAGS,
+            attributes=BLEACH_ALLOWED_ATTRIBUTES,
+            styles=BLEACH_ALLOWED_STYLES,
+        )
+
+        body = body.replace("<", "\n<")
+
+        return body
+
+
+class EmailAttachmentForm(forms.ModelForm):
+    """Form for uploading an attachment for a club"""
+
+    class Meta:
+
+        model = EmailAttachment
+        fields = ("attachment",)
+        widgets = {"attachment": forms.FileInput(attrs={"accept": "*/*"})}

@@ -29,14 +29,38 @@
 
         <div class="container-flow">
 
-            <!-- BUTTON TO SEND NEW EMAIL -->
-            <button class="text-left btn btn-primary"
-                hx-target="#id_comms_email_tab"
-                hx-vars="club_id:{{ club.id }}"
-                hx-post="{% url "organisations:club_menu_tab_comms_email_send_htmx" %}"
+            <!-- BUTTON TO SEND NEW CLUB EMAIL -->
+            <a
+                class="text-left btn btn-primary"
+                href="{% url 'notifications:compose_club_email' club_id=club.id %}"
             >
-                Compose New Email
-            </button>
+                Compose Club Email
+            </a>
+
+            <!-- BUTTON TO SEND NEW ENTRANT EMAIL (MULTI) -->
+            <a
+                class="text-left btn btn-primary"
+                href="{% url 'notifications:initiate_admin_multi_email' club_id=club.id %}"
+            >
+                Compose Entrant Email
+            </a>
+
+            <!-- BATCH TYPE SELECTOR -->
+            <label for="id_batch_type">Type</label>
+            <select
+                class="selectpicker"
+                data-style="btn btn-info"
+                id="id_batch_type"
+                name="batch_type_picker"
+                hx-post="{% url "organisations:club_menu_tab_comms_email_htmx" %}"
+                hx-target="#id_panel_comms"
+                hx-trigger="change"
+                hx-vars="club_id:{{ club.id }}">
+                <option value="ALL" {% if type_selected == 'ALL' %}selected{% endif %}>All</option>
+                {% for batch_type in batch_types %}
+                    <option value="{{ batch_type.0 }}"{% if type_selected == batch_type.0 %}selected{% endif %}>{{ batch_type.1|title }}</option>
+                {% endfor %}
+            </select>
 
             <div class="row">
                 <div class="col-md-6">
@@ -52,6 +76,7 @@
                                             <tr class="text-primary">
                                                 <th class="text-left">Date</th>
                                                 <th class="text-left">Subject</th>
+                                                <th class="text-left">Type</th>
                                                 <th class="text-right">Recipients</th>
                                             </tr>
                                         </thead>
@@ -60,8 +85,8 @@
                                                 <tr
                                                     style="cursor: pointer;"
 
-                                                    {#  Don't make clickable if nothing was sent #}
-                                                    {% if thing.number_sent > 0 %}
+                                                    {#  Don't make clickable if nothing was sent or incomplete #}
+                                                    {% if thing.batch_size > 0 and thing.complete %}
 
                                                         hx-post="{% url "organisations:club_menu_tab_comms_email_view_htmx" %}"
                                                         hx-vars="club_id:{{ club.id }},batch_id:{{ thing.id }}"
@@ -71,12 +96,21 @@
 
                                                     {% endif %}
                                                 >
-                                                    <td class="text-left">{{ thing.created|cobalt_nice_datetime|default_if_none:"Nothing sent" }}</td>
-                                                    <td class="text-left">{{ thing.subject }}</td>
+                                                    <td class="text-left">
+                                                        {% if thing.complete %}
+                                                            {{ thing.created|cobalt_nice_datetime|default_if_none:"Nothing sent" }}
+                                                        {% elif thing.state == 'INF' %}
+                                                            Being sent
+                                                        {% else %}
+                                                            Not yet sent
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-left">{{ thing.description }}</td>
+                                                    <td class="text-left">{{ thing.get_batch_type_display }}</td>
                                                     <td class="text-right">
 
                                                         {#  Don't show buttons if nothing was sent #}
-                                                        {% if thing.number_sent > 0 %}
+                                                        {% if thing.batch_size > 0 and thing.complete %}
 
                                                             <button class="btn btn-sm btn-success">View</button>
 
@@ -90,7 +124,32 @@
                                                                 end
                                                                 "
                                                             >
-                                                                {{ thing.number_sent|intcomma }}
+                                                                {{ thing.batch_size|intcomma }}
+                                                            </button>
+
+                                                        {% endif %}
+
+                                                        {% if thing.state == 'WIP' %}
+
+                                                            <!-- ACTION BUTTONS FOR INCOMPLETE BATCHES -->
+
+                                                            <a
+                                                                class="btn btn-sm btn-warning"
+                                                                id="id_{{ thing.id }}_edit_button"
+                                                                {% if thing.batch_type == "MLT" %}
+                                                                    href="{% url 'notifications:compose_email_multi_select' club_id=club.id batch_id_id=thing.id %}"
+                                                                {% else %}
+                                                                    href="{% url 'notifications:compose_email_recipients' club_id=club.id batch_id_id=thing.id %}"
+                                                                {% endif %}
+                                                            >
+                                                                Edit
+                                                            </a>
+                                                            <a
+                                                                class="btn btn-sm btn-danger"
+                                                                id="id_{{ thing.id }}_edit_button"
+                                                                href="{% url 'notifications:delete_email_batch' thing.id %}""
+                                                            >
+                                                                Delete
                                                             </button>
 
                                                         {% endif %}
@@ -182,13 +241,19 @@
     </div>
 </div>
 
-<!-- COB-793 fade out the message over time -->
+
 <script>
     $(document).ready(function(){
+
+        // COB-793 fade out the message over time
         setTimeout(function(){
             $("#user_list_message").fadeOut("slow", function() {
                 $(this).remove();
             });
         }, 10000);
+
+        // Activate select pickers
+        $('.selectpicker').selectpicker();
+
     });
 </script>

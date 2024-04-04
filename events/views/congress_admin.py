@@ -20,7 +20,7 @@ from events.views.core import (
     get_completed_congresses_with_money_due,
     fix_closed_congress,
 )
-from notifications.models import BlockNotification, BatchID, BatchActivity
+from notifications.models import BlockNotification, BatchID, BatchActivity, Recipient
 from notifications.views.core import (
     contact_member,
     send_cobalt_email_with_template,
@@ -892,6 +892,17 @@ def admin_evententry_delete(request, evententry_id):
 
                 # send
                 if not is_tba:
+
+                    # create batch ID
+                    batch_id = create_rbac_batch_id(
+                        rbac_role=f"events.org.{event_entry.event.congress.congress_master.org.id}.view",
+                        organisation=event_entry.event.congress.congress_master.org,
+                        batch_type=BatchID.BATCH_TYPE_ENTRY,
+                        description=f"Event Entry Cancelled - {event_entry.event}",
+                        batch_size=1,
+                        complete=True,
+                    )
+
                     contact_member(
                         member=player,
                         msg="Entry to %s cancelled" % event_entry.event.event_name,
@@ -899,6 +910,7 @@ def admin_evententry_delete(request, evententry_id):
                         html_msg=email_body,
                         link="/events/view",
                         subject="Event Entry Cancelled - %s" % event_entry.event,
+                        batch_id=batch_id,
                     )
 
         # Log it
@@ -1085,6 +1097,7 @@ def admin_event_player_discount(request, event_id):
     )
 
 
+# DEPRECATED - replaced by initiate_admin_event_email
 @login_required()
 def admin_event_email(request, event_id):
     """Email all entrants to an event"""
@@ -1107,6 +1120,7 @@ def admin_event_email(request, event_id):
     return _admin_email_common(request, all_recipients, event.congress, event)
 
 
+# DEPRECATED - replaced by initiate_admin_unpaid_email
 @login_required()
 def admin_unpaid_email(request, event_id):
     """Email all entrants to an event who have not paid"""
@@ -1151,6 +1165,7 @@ def admin_unpaid_email(request, event_id):
     return _admin_email_common(request, all_recipients, event.congress, event)
 
 
+# DEPRECATED - replaced by initiate_admin_congress_email
 @login_required()
 def admin_congress_email(request, congress_id):
     """Email all entrants to an entire congress"""
@@ -1173,6 +1188,7 @@ def admin_congress_email(request, congress_id):
     return _admin_email_common(request, all_recipients, congress, event=None)
 
 
+# DEPRECATED - replaced by club menu | comms | edit batch etc
 def _admin_email_common_thread(request, congress, subject, body, recipients, batch_id):
     """we run a thread so we can return to the user straight away.
     Probably not necessary now we have Django Post Office"""
@@ -1204,6 +1220,7 @@ def _admin_email_common_thread(request, congress, subject, body, recipients, bat
     connection.close()
 
 
+# DEPRECATED - replaced by club menu | comms | edit batch etc
 def _admin_email_common(request, all_recipients, congress, event=None):
     """Common function for sending emails to entrants"""
 
@@ -1322,6 +1339,175 @@ def _admin_email_common(request, all_recipients, congress, event=None):
             "count": recipient_count,
             "recipients": all_recipients,
         },
+    )
+
+
+@login_required()
+def initiate_admin_event_email(request, event_id):
+    """Start a new email batch to all entrants to an event"""
+
+    event = get_object_or_404(Event, pk=event_id)
+
+    # check access
+    role = f"events.org.{event.congress.congress_master.org.id}.edit"
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    # get entrants
+    candidates = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .exclude(event_entry__entry_status="Cancelled")
+        .values_list(
+            "player__system_number",
+            "player__first_name",
+            "player__last_name",
+            "player__email",
+        )
+        .distinct()
+    )
+
+    return _initiate_entrant_batch(
+        request,
+        candidates,
+        f"Email to entrants in {event.event_name}",
+        event.congress,
+        event,
+    )
+
+
+@login_required()
+def initiate_admin_unpaid_email(request, event_id):
+    """Start a new email batch to entrants of an event who have not paid"""
+
+    event = get_object_or_404(Event, pk=event_id)
+
+    # check access
+    role = f"events.org.{event.congress.congress_master.org.id}.edit"
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    # Real people
+    candidates_real = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .exclude(player_id=TBA_PLAYER)
+        .exclude(payment_status="Paid")
+        .exclude(payment_status="Free")
+        .exclude(event_entry__entry_status="Cancelled")
+        .values_list(
+            "player__system_number",
+            "player__first_name",
+            "player__last_name",
+            "player__email",
+        )
+        .distinct()
+    )
+
+    # For TBAs get the primary entrant
+    candidates_tba = (
+        EventEntryPlayer.objects.filter(event_entry__event=event)
+        .filter(player_id=TBA_PLAYER)
+        .exclude(payment_status="Paid")
+        .exclude(payment_status="Free")
+        .exclude(event_entry__entry_status="Cancelled")
+        .values_list(
+            "event_entry__primary_entrant__system_number",
+            "event_entry__primary_entrant__first_name",
+            "event_entry__primary_entrant__last_name",
+            "event_entry__primary_entrant__email",
+        )
+        .distinct()
+    )
+
+    candidates = list(chain(candidates_real, candidates_tba))
+
+    return _initiate_entrant_batch(
+        request,
+        candidates,
+        f"Email to unpaid entrants in {event.event_name}",
+        event.congress,
+        event,
+    )
+
+
+@login_required()
+def initiate_admin_congress_email(request, congress_id):
+    """Start a new email batch to all entrants to an entire congress"""
+
+    congress = get_object_or_404(Congress, pk=congress_id)
+
+    # check access
+    role = f"events.org.{congress.congress_master.org.id}.edit"
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    # get entrants
+    candidates = (
+        EventEntryPlayer.objects.filter(event_entry__event__congress=congress)
+        .exclude(event_entry__entry_status="Cancelled")
+        .values_list(
+            "player__system_number",
+            "player__first_name",
+            "player__last_name",
+            "player__email",
+        )
+        .distinct()
+    )
+
+    return _initiate_entrant_batch(
+        request,
+        candidates,
+        f"Email to entrants in {congress.name}",
+        congress,
+        event=None,
+    )
+
+
+@login_required()
+def _initiate_entrant_batch(request, candidates, description, congress, event=None):
+    """Initiate a new email batch with the specified candidate recipients for
+    the specified congress or event.
+
+    Creates the batch, saves the candidate recipients, then starts the edit batch flow
+    under the club menu, comms tab.
+    """
+
+    # create the batch header
+    batch_id = create_rbac_batch_id(
+        f"events.org.{congress.congress_master.org.id}.view",
+        organisation=congress.congress_master.org,
+        batch_type=BatchID.BATCH_TYPE_EVENT if event else BatchID.BATCH_TYPE_CONGRESS,
+        batch_size=len(candidates),
+        description=description,
+        complete=False,
+    )
+
+    # create a BatchActivity record
+    batch = BatchID.objects.get(batch_id=batch_id)
+    activity = BatchActivity()
+    activity.batch = batch
+    activity.activity_type = (
+        BatchActivity.ACTIVITY_TYPE_EVENT
+        if event
+        else BatchActivity.ACTIVITY_TYPE_CONGRESS
+    )
+    activity.activity_id = event.id if event else congress.id
+    activity.save()
+
+    # save the recipients
+    for candidate in candidates:
+        recpient = Recipient()
+        recpient.batch = batch
+        recpient.system_number = candidate[0]
+        recpient.first_name = candidate[1]
+        recpient.last_name = candidate[2]
+        recpient.email = candidate[3]
+        recpient.save()
+
+    # go to club menu, comms tab, edit batch
+    return redirect(
+        "notifications:compose_email_recipients",
+        congress.congress_master.org.id,
+        batch.id,
     )
 
 
@@ -1449,6 +1635,15 @@ def admin_move_entry(request, event_entry_id):
 
         # Notify players
 
+        # create batch ID
+        batch_id = create_rbac_batch_id(
+            rbac_role=f"events.org.{congress.congress_master.org.id}.view",
+            organisation=congress.congress_master.org,
+            batch_type=BatchID.BATCH_TYPE_ENTRY,
+            description="Entry moved to new event",
+        )
+        batch_size = 0
+
         for recipient in event_entry.evententryplayer_set.all():
             # send
             contact_member(
@@ -1458,7 +1653,14 @@ def admin_move_entry(request, event_entry_id):
                 html_msg=f"{request.user.full_name} has moved your entry to {event_entry.event}.<br><br>",
                 link="/events/view",
                 subject="Entry moved to new event",
+                batch_id=batch_id,
             )
+            batch_size += 1
+
+        # update the batch_id
+        batch_id.batch_size = batch_size
+        batch_id.state = BatchID.BATCH_STATE_COMPLETE
+        batch_id.save()
 
         messages.success(request, "Entry Moved", extra_tags="cobalt-message-success")
 
@@ -1540,6 +1742,16 @@ def admin_event_entry_add(request, event_id):
             event_entry_player.save()
 
         # notify players
+
+        # create batch ID
+        batch_id = create_rbac_batch_id(
+            rbac_role=f"events.org.{event.congress.congress_master.org.id}.view",
+            organisation=event.congress.congress_master.org.id,
+            batch_type=BatchID.BATCH_TYPE_ENTRY,
+            description="New convener entry",
+        )
+        batch_size = 0
+
         for recipient in players:
             # send
             contact_member(
@@ -1549,7 +1761,9 @@ def admin_event_entry_add(request, event_id):
                 html_msg=f"{request.user.full_name} has entered you into {event}.<br><br>",
                 link="/events/view",
                 subject="New convener entry",
+                batch_id=batch_id,
             )
+            batch_size += 1
 
             # Log it
             EventLog(
@@ -1558,6 +1772,11 @@ def admin_event_entry_add(request, event_id):
                 action=f"Player {recipient} added to entry: {event_entry.id} by convener",
                 event_entry=event_entry,
             ).save()
+
+        # update the batch_id
+        batch_id.batch_size = batch_size
+        batch_id.state = BatchID.BATCH_STATE_COMPLETE
+        batch_id.save()
 
         messages.success(request, "Entry Added", extra_tags="cobalt-message-success")
 
@@ -1662,6 +1881,16 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
             )
         else:
 
+            # create batch ID
+            batch_id = create_rbac_batch_id(
+                rbac_role=f"events.org.{event_entry.event.congress.congress_master.org.id}.view",
+                organisation=event_entry.event.congress.congress_master.org,
+                batch_type=BatchID.BATCH_TYPE_ENTRY,
+                description="Removed from team by Convener",
+                batch_size=1,
+                complete=True,
+            )
+
             contact_member(
                 member=event_entry_player.player,
                 msg="Convener removed you from team",
@@ -1669,6 +1898,7 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
                 html_msg=f"{request.user.full_name} has removed you from a team entry to {event_entry.event}.<br><br>",
                 link="/events/view",
                 subject="Removed from team by Convener",
+                batch_id=batch_id,
             )
 
             tba = User.objects.get(pk=TBA_PLAYER)
@@ -2126,6 +2356,18 @@ def edit_player_name_htmx(request):
     event_entry_player.save()
     message = "User changed"
 
+    # create batch ID if an email is going to be sent
+    if old_user.id != TBA_PLAYER or new_user.id != TBA_PLAYER:
+        batch_id = create_rbac_batch_id(
+            rbac_role=f"events.org.{event.congress.congress_master.org.id}.view",
+            organisation=event.congress.congress_master.org.id,
+            batch_type=BatchID.BATCH_TYPE_ENTRY,
+            description=f"Edited player name in {event}",
+        )
+        batch_size = 0
+    else:
+        batch_id = None
+
     # notify deleted member
     if old_user.id != TBA_PLAYER:
         # send
@@ -2136,7 +2378,9 @@ def edit_player_name_htmx(request):
             html_msg=f"The convener, {request.user.full_name}, has removed you from this event.<br><br>",
             link="/events/view",
             subject=f"Removed from - {event}",
+            batch_id=batch_id,
         )
+        batch_size += 1
 
     # notify added member
     if new_user.id != TBA_PLAYER:
@@ -2148,7 +2392,15 @@ def edit_player_name_htmx(request):
             html_msg=f"The convener, {request.user.full_name}, has added you to this event.<br><br>",
             link="/events/view",
             subject="Added to - %s" % event,
+            batch_id=batch_id,
         )
+        batch_size += 1
+
+    if batch_id:
+        # update the batch_id
+        batch_id.batch_size = batch_size
+        batch_id.state = BatchID.BATCH_STATE_COMPLETE
+        batch_id.save()
 
     EventLog(
         event=event,

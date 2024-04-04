@@ -63,6 +63,8 @@ class APITokenAdmin(admin.ModelAdmin):
 class UserAdditionalInfoAdmin(admin.ModelAdmin):
     """Admin class for model UserAdditionalInfo"""
 
+    search_fields = ["user__first_name", "user__last_name", "user__system_number"]
+
     autocomplete_fields = [
         "user",
     ]

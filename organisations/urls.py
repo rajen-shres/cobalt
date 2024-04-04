@@ -140,6 +140,21 @@ urlpatterns = [
         name="club_menu_tab_comms_email_send_htmx",
     ),
     path(
+        "club-menu/tabs/comms/entrant-email-send",
+        organisations.views.club_menu_tabs.comms.entrant_email_send_htmx,
+        name="club_menu_tab_comms_entrant_email_send_htmx",
+    ),
+    path(
+        "club-menu/tabs/comms/edit-inflight-batch",
+        organisations.views.club_menu_tabs.comms.edit_inflight_batch_htmx,
+        name="club_menu_tab_comms_edit_inflight_batch_htmx",
+    ),
+    path(
+        "club-menu/tabs/comms/delete-inflight-batch",
+        organisations.views.club_menu_tabs.comms.delete_inflight_batch_htmx,
+        name="club_menu_tab_comms_delete_inflight_batch_htmx",
+    ),
+    path(
         "club-menu/tabs/comms/email-view",
         organisations.views.club_menu_tabs.comms.email_view_htmx,
         name="club_menu_tab_comms_email_view_htmx",
@@ -193,6 +208,16 @@ urlpatterns = [
         "club-menu/tabs/finance/<int:club_id>",
         club_menu.tab_finance_statement,
         name="club_menu_tab_finance_statement",
+    ),
+    path(
+        "club-menu/tabs/comms/edit-batch-ep/<int:club_id>/<int:batch_id_id>",
+        club_menu.tab_comms_edit_batch_ep,
+        name="club_menu_tab_comms_edit_batch_ep",
+    ),
+    path(
+        "club-menu/tab-entry/<int:club_id>/<str:tab_name>",
+        club_menu.tab_entry_point,
+        name="club_menu_tab_entry_point",
     ),
     path(
         "club-menu/tabs/members",

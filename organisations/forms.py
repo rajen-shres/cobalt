@@ -5,7 +5,11 @@ from crispy_forms.helper import FormHelper
 from django import forms
 from django_summernote.widgets import SummernoteInplaceWidget
 from PIL import Image
-import accounts.views.admin
+
+#  Moved to avoid circular reference issue on imports
+# import accounts.views.admin
+from accounts.utils import check_system_number
+
 from cobalt.settings import (
     ABF_STATES,
     BLEACH_ALLOWED_TAGS,
@@ -282,7 +286,7 @@ class UnregisteredUserAddForm(forms.Form):
     def clean_system_number(self):
         system_number = self.cleaned_data["system_number"]
 
-        is_valid, is_member, _ = accounts.views.admin.check_system_number(system_number)
+        is_valid, is_member, _ = check_system_number(system_number)
 
         if not is_valid:
             self.add_error("system_number", "Invalid number")
@@ -465,6 +469,7 @@ class TemplateBannerForm(forms.ModelForm):
         return email_template
 
 
+# JPG TO DO Deprecated - moved to notifications
 class EmailAttachmentForm(forms.ModelForm):
     """Form for uploading an attachment for a club"""
 

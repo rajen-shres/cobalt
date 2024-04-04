@@ -48,7 +48,9 @@ from utils.utils import cobalt_paginator
 
 
 @login_required()
-def club_menu(request, club_id, change_to_last_visited=False, show_tab="dashboard"):
+def club_menu(
+    request, club_id, change_to_last_visited=False, show_tab="dashboard", click_id=None
+):
     """Main menu for club administrators to handle things.
 
     This uses a tabbed navigation panel with each tab providing distinct information.
@@ -57,6 +59,7 @@ def club_menu(request, club_id, change_to_last_visited=False, show_tab="dashboar
     Args:
         club_id - organisation to view
         show_tab - the name of the tab to be shown initially (for COB-766)
+        click_id - the html id of a control on teh tab to be sent a click event on entry
 
     Returns:
         HttpResponse - page to edit organisation
@@ -124,6 +127,7 @@ def club_menu(request, club_id, change_to_last_visited=False, show_tab="dashboar
             "show_sessions": show_sessions,
             "other_clubs": other_clubs,
             "show_tab": show_tab,
+            "click_id": click_id,
         },
     )
 
@@ -264,6 +268,27 @@ def tab_finance_statement(request, club_id):
     """Entry point for the new club finance statement, for COB-766"""
 
     return club_menu(request, club_id, show_tab="finance")
+
+
+@login_required()
+def tab_comms_edit_batch_ep(request, club_id, batch_id_id):
+    """Entry point for editing an email batch under the comms tab
+
+    Used when wanting to navigate from outside the club menu to the comms tab
+    and editing a specific inflight batch"""
+
+    # JPG TO DO: security
+    return club_menu(
+        request, club_id, show_tab="comms", click_id=f"id_{batch_id_id}_edit_button"
+    )
+
+
+@login_required()
+def tab_entry_point(request, club_id, tab_name):
+    """Entry point for showing a specified tab"""
+
+    # JPG TO DO: security
+    return club_menu(request, club_id, show_tab=tab_name)
 
 
 @check_club_menu_access()

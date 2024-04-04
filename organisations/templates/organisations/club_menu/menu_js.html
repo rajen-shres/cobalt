@@ -42,9 +42,34 @@
             // if in doubt show the dashboard
             htmx.trigger(htmx.find("#id_panel_dashboard"), "tab_load_event");
         } else {
+            // add an event listener to click an element after the initial tab load
+            if (click_id.length > 0) {
+                document.body.addEventListener('htmx:afterSwap', function(event) {
+                    // Check if the triggered element is the initial tab
+                    if(event.detail.triggeringElement.id === '#id_tab_' + show_tab) {
+                        // Attempt to find and click the specified element
+                        const nextActionBtn = document.getElementById(click_id);
+                        if(nextActionBtn) {
+                            nextActionBtn.click();
+                        }
+                        // clear the click target so that it only happens once
+                        const click_id = ""
+                    }
+                });
+            }
             // select the specified initial tab
             $('#id_tab_' + show_tab).trigger('click')
         }
     });
 
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        // Check if the triggered element is the one you're interested in
+        if(event.detail.triggeringElement.id === 'post-trigger') {
+            // Attempt to find and click the new button
+            const nextActionBtn = document.getElementById('next-action');
+            if(nextActionBtn) {
+                nextActionBtn.click();
+            }
+        }
+    });
 </script>

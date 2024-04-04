@@ -2,7 +2,7 @@
 Data conversion script to populate BatchId fields added in sprint-48.
 
 Script can be executed multiple times safely. On any given run it will
-only try to update rows with type of UNKNOWN and incomplete.
+only try to update rows with type of UNKNOWN and state of in progress.
 
 Once it has processed a row it will mark it as complete.
 """
@@ -20,7 +20,7 @@ from post_office.models import Email as PostOfficeEmail
 
 class Command(BaseCommand):
     def update_batch(self, batch_id_id):
-        """Update a single batch - not complete and batch_type UNKNOWN"""
+        """Update a single batch - in progress and batch_type UNKNOWN"""
 
         with transaction.atomic():
             # Perform the databse updates as a single LUW
@@ -35,7 +35,10 @@ class Command(BaseCommand):
 
             # Check that the batch still meets the criteria, should not happen unless
             # some other process is concurrently updating the database
-            if batch.batch_type != BatchID.BATCH_TYPE_UNKNOWN or batch.complete:
+            if (
+                batch.batch_type != BatchID.BATCH_TYPE_UNKNOWN
+                or batch.STATE != BatchID.BATCH_STATE_WIP
+            ):
                 self.skipped_count += 1
                 return
 
@@ -85,7 +88,7 @@ class Command(BaseCommand):
                     if len(snooper.post_office_email.subject) > 0
                     else "No subject available"
                 )
-                batch.complete = True
+                batch.state = BatchID.BATCH_STATE_COMPLETE
             else:
                 self.stdout.write(
                     f"ERROR - no Snooper records for BatchId id {batch_id_id}"
@@ -107,7 +110,7 @@ class Command(BaseCommand):
         # get a list of candidate batch id keys
         batch_id_ids = list(
             BatchID.objects.filter(
-                batch_type=BatchID.BATCH_TYPE_UNKNOWN, complete=False
+                batch_type=BatchID.BATCH_TYPE_UNKNOWN, state=BatchID.BATCH_STATE_WIP
             ).values_list("id", flat=True)
         )
 

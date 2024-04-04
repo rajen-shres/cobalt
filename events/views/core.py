@@ -20,8 +20,11 @@ from cobalt.settings import (
 )
 
 from logs.views import log_event
-from notifications.models import BlockNotification
-from notifications.views.core import send_cobalt_email_with_template
+from notifications.models import BlockNotification, BatchID
+from notifications.views.core import (
+    send_cobalt_email_with_template,
+    create_rbac_batch_id,
+)
 from payments.views.payments_api import (
     payment_api_batch,
     calculate_auto_topup_amount,
@@ -570,8 +573,20 @@ def send_email_to_player_entered_into_event_by_another(
         "subject": f"Event Entry - {congress}",
     }
 
+    # create batch ID
+    batch_id = create_rbac_batch_id(
+        rbac_role=f"events.org.{congress.congress_master.org.id}.view",
+        organisation=congress.congress_master.org,
+        batch_type=BatchID.BATCH_TYPE_ENTRY,
+        description=f"Event entry - {congress}",
+        batch_size=1,
+        complete=True,
+    )
+
     logger.info(f"Sending email to {player}")
-    send_cobalt_email_with_template(to_address=player.email, context=context)
+    send_cobalt_email_with_template(
+        to_address=player.email, context=context, batch_id=batch_id
+    )
 
 
 def _send_notifications_build_struct(event_entry_players):
@@ -644,12 +659,26 @@ def _send_notifications_notify_conveners(event_entries):
         event = event_entry.event
         congress = event.congress
 
-        notify_conveners(
+        # create batch ID
+        batch_id = create_rbac_batch_id(
+            rbac_role=f"events.org.{congress.congress_master.org.id}.view",
+            organisation=congress.congress_master.org,
+            batch_type=BatchID.BATCH_TYPE_ENTRY,
+            description=f"New Entry to {event.event_name} in {congress}",
+        )
+
+        batch_size = notify_conveners(
             congress,
             event,
             f"New Entry to {event.event_name} in {congress}",
             html,
+            batch_id=batch_id,
         )
+
+        # update the batch_id
+        batch_id.batch_size = batch_size
+        batch_id.state = BatchID.BATCH_STATE_COMPLETE
+        batch_id.save()
 
 
 def _clean_up(notify_event_entries):
@@ -838,8 +867,12 @@ def convener_wishes_to_be_notified(congress, convener):
     )
 
 
-def notify_conveners(congress, event, subject, email_msg):
-    """Let conveners know about things that change."""
+def notify_conveners(congress, event, subject, email_msg, batch_id=None):
+    """Let conveners know about things that change.
+
+    Returns a count of the emails sent"""
+
+    sent_count = 0
 
     congress_contact_already_emailed = False
     conveners = get_conveners_for_congress(congress)
@@ -860,7 +893,12 @@ def notify_conveners(congress, event, subject, email_msg):
             "link_text": "View Event",
         }
 
-        send_cobalt_email_with_template(to_address=convener.email, context=context)
+        send_cobalt_email_with_template(
+            to_address=convener.email,
+            context=context,
+            batch_id=batch_id,
+        )
+        sent_count += 1
 
         if congress.contact_email and convener.email == congress.contact_email:
             congress_contact_already_emailed = True
@@ -878,8 +916,13 @@ def notify_conveners(congress, event, subject, email_msg):
         }
 
         send_cobalt_email_with_template(
-            to_address=congress.contact_email, context=context
+            to_address=congress.contact_email,
+            context=context,
+            batch_id=batch_id,
         )
+        sent_count += 1
+
+    return sent_count
 
 
 def events_status_summary():

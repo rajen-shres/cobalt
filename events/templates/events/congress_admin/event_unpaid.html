@@ -26,7 +26,7 @@
                     <div class="card">
                         <div class="card-header card-header-info">
                             <h2>{{ event.event_name }} - Unpaid Entries</h2>
-                            <a href="{% url "events:admin_unpaid_email" event_id=event.id %}" class="btn btn-secondary">Email All Unpaid</a>
+                            <a href="{% url 'events:initiate_admin_unpaid_email' event_id=event.id %}" class="btn btn-secondary">Email All Unpaid</a>
                         </div>
 
                         <div class="card-body table-responsive">

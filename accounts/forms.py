@@ -8,7 +8,10 @@ from crispy_forms.helper import FormHelper
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 
-import accounts.views.admin
+#  Moved to avoid circular reference issue on imports
+# import accounts.views.admin
+from accounts.utils import check_system_number
+
 from cobalt.settings import GLOBAL_ORG
 from masterpoints.factories import masterpoint_factory_creator
 from .models import User, UnregisteredUser, SystemCard
@@ -211,7 +214,7 @@ class UnregisteredUserForm(forms.ModelForm):
             is_valid,
             is_member,
             is_un_reg,
-        ) = accounts.views.admin.check_system_number(system_number)
+        ) = check_system_number(system_number)
 
         if not is_valid:
             self.add_error("system_number", f"{GLOBAL_ORG} Number invalid")

@@ -1,0 +1,114 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Batch email composition view                                           #}
+{#                                                                        #}
+{# Updates are done using HTMX                                            #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% extends 'base.html' %}
+{% load static %}
+{% load cobalt_tags %}
+
+{% block title %} - Compose Email{% endblock %}
+
+<script src="{% static "assets/js/cobalt-unsaved.js" %}"></script>
+
+{% block header %}
+{% endblock header %}
+
+{% block content %}
+
+    <!-- MAIN CARD ON PAGE -->
+
+    <div class="card">
+
+        <!-- CARD HEADER -->
+        <div class="card-header card-header-warning">
+            <h1>
+                <div class="d-flex justify-content-between">
+                    <div>
+                        Compose Email
+                    </div>
+                    <!-- DONT SHOW ICON ON SMALL SCREENS - OVERLAPS -->
+                    <div class="d-none d-md-inline">
+                        <i class="material-icons" style="font-size:50px">email</i>
+                    </div>
+                </div>
+            </h1>
+            <h2>
+                {% if batch.description %}
+                    {{ batch.description }}
+                {% else %}
+                    No subject specified
+                {% endif %}
+            </h2>
+            <a
+                class="btn btn-sm btn-danger"
+                id="id_{{ thing.id }}_edit_button"
+                href="{% url 'notifications:delete_email_batch' batch.id %}"
+            >
+                Delete
+            </a>
+            <a
+                class="btn btn-sm btn-info"
+                href="{% url 'organisations:club_menu_tab_entry_point' club.id 'comms' %}"
+            >
+                Emails
+            </a>
+        </div>
+
+        <!-- CARD BODY -->
+        <div class="container">
+            <div class="card-body">
+
+                <div class="row">
+                    <div class="col-12 mb-4">
+
+                        <!-- STEP BUTTONS -->
+
+                        {% if batch.batch_type == "MLT" %}
+
+                            <a
+                                class="btn btn-med btn-{% if step == 0 %}dark{% else %}info{% endif %}"
+                                id="step_0_button"
+                                href="{% url 'notifications:compose_email_multi_select' club_id=club.id batch_id_id=batch.id %}"
+                            >
+                                1. Select Events
+                            </a>
+
+                        {% endif %}
+
+                        <a
+                            class="btn btn-med btn-{% if step == 1 %}dark{% else %}info{% endif %}"
+                            id="step_1_button"
+                            href="{% url 'notifications:compose_email_recipients' club_id=club.id batch_id_id=batch.id %}"
+                        >
+                            {% if batch.batch_type == "MLT" %}2{% else %}1{% endif %}. Review Recipients
+                        </a>
+
+                        <a
+                            class="btn btn-med btn-{% if step == 2 %}dark{% else %}info{% endif %}"
+                            id="step_1_button"
+                            href="{% url 'notifications:compose_email_options' club_id=club.id batch_id_id=batch.id %}"
+                        >
+                            {% if batch.batch_type == "MLT" %}3{% else %}2{% endif %}. Email Options
+                        </a>
+                        <a
+                            class="btn btn-med btn-{% if step == 3 %}dark{% else %}info{% endif %}"
+                            id="step_1_button"
+                            href="{% url 'notifications:compose_email_content' club_id=club.id batch_id_id=batch.id %}"
+                        >
+                            {% if batch.batch_type == "MLT" %}4{% else %}3{% endif %}. Email Content
+                        </a>
+                    </div>
+                </div>
+
+
+                {% block payload %}
+                {% endblock %}
+
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}

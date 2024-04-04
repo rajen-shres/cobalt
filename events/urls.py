@@ -373,20 +373,38 @@ urlpatterns = [
         congress_admin.admin_event_summary,
         name="admin_event_summary",
     ),
+    # DEPRECATED
+    # path(
+    #     "congress-admin/email/event/<int:event_id>",
+    #     congress_admin.admin_event_email,
+    #     name="admin_event_email",
+    # ),
     path(
         "congress-admin/email/event/<int:event_id>",
-        congress_admin.admin_event_email,
-        name="admin_event_email",
+        congress_admin.initiate_admin_event_email,
+        name="initiate_admin_event_email",
     ),
+    # DEPRECATED
+    # path(
+    #     "congress-admin/email/congress/<int:congress_id>",
+    #     congress_admin.admin_congress_email,
+    #     name="admin_congress_email",
+    # ),
     path(
         "congress-admin/email/congress/<int:congress_id>",
-        congress_admin.admin_congress_email,
-        name="admin_congress_email",
+        congress_admin.initiate_admin_congress_email,
+        name="initiate_admin_congress_email",
     ),
+    # DEPRECATED
+    # path(
+    #     "congress-admin/email/event-unpaid/<int:event_id>",
+    #     congress_admin.admin_unpaid_email,
+    #     name="admin_unpaid_email",
+    # ),
     path(
         "congress-admin/email/event-unpaid/<int:event_id>",
-        congress_admin.admin_unpaid_email,
-        name="admin_unpaid_email",
+        congress_admin.initiate_admin_unpaid_email,
+        name="initiate_admin_unpaid_email",
     ),
     path(
         "congress-admin/summary/event-player-discount/<int:event_id>",

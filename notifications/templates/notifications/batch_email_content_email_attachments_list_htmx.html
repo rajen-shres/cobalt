@@ -1,0 +1,106 @@
+{% load cobalt_tags %}
+{% if email_attachments %}
+    <div class="table-responsive">
+        <table id="id_table_attachments" class="table table-condensed">
+            <thead>
+                <tr class="text-rose">
+                    <th class="text-left">Recent Files</th>
+                    <th class="text-left">Date Uploaded</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for email_attachment in email_attachments %}
+                    <tr>
+                        <td class="text-left">{{ email_attachment.filename }}</td>
+                        <td class="text-left">{{ email_attachment.created_at|cobalt_nice_datetime_short }}</td>
+                        <td style="white-space: nowrap;">
+                            <a href="/media/{{ email_attachment.attachment.name }}" target="_blank"
+                                class="text-info">
+                                <span class="a_tooltip" data-toggle="tooltip" title="View Document" data-delay="100">
+                                    <i class="material-icons">visibility</i>
+                                </span>
+                            </a>
+                            <a class="text-success"
+                                hx-post="{% url 'notifications:compose_email_content_include_attachment_htmx' %}"
+                                hx-vars="club_id:{{ club.id }}, batch_id_id:{{ batch.id }}, attachment_id: {{ email_attachment.id }}"
+                                hx-target="#included_attachments"
+                            >
+                                <span class="a_tooltip" data-toggle="tooltip" title="Attach to Email" data-delay="100">
+                                    <i class="material-icons">attach_file</i>
+                                </span>
+                            </a>
+
+                            <a class="text-success" onclick="copyToClipboard('http://{{ COBALT_HOSTNAME }}/media/{{ email_attachment.attachment.name }}')">
+                                <span class="a_tooltip" data-toggle="tooltip" title="Copy Link" data-delay="100">
+                                    <i class="material-icons">insert_link</i>
+                                </span>
+                            </a>
+
+                            {% url 'organisations:club_menu_tab_comms_delete_email_attachment_htmx' as hx_delete %}
+                            {% include "utils/htmx_confirm_modal.html" with id=email_attachment.modal_id delete_item="this from server" hx_target="#list_of_attachments" hx_post=hx_delete hx_vars=email_attachment.hx_vars delete_button="Delete" %}
+
+                            <a class="text-dark a_tooltip" data-toggle="tooltip" title="Delete from Server" data-delay="100">
+                                <i class="material-icons" data-toggle="modal" data-target="#deleteModal{{ email_attachment.modal_id }}">
+                                    delete
+                                </i>
+                            </a>
+
+                        </td>
+                    </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+
+{# We put the form in here too so it gets reloaded, otherwise hovering on button shows last uploaded file #}
+
+<form hx-encoding='multipart/form-data'
+    hx-post="{% url "notifications:compose_email_content_upload_new_email_attachment_htmx" %}"
+    hx-vars="club_id:{{ club.id }}, batch_id_id:{{ batch.id }}"
+    hx-target="#list_of_attachments"
+    hx-trigger="change"
+    id="upload_attachment_form"
+>
+
+    <div class="fileinput fileinput-new text-center" data-provides="fileinput">
+        <div class="fileinput-preview fileinput-exists thumbnail img-circle img-raised"></div>
+        <div>
+            <span class="btn btn-sm btn-warning btn-file">
+                <span class="fileinput-new">Upload New File</span>
+                <input type="file" name="attachment" id="id_upload_email_att_btn"/>
+            </span>
+
+        </div>
+    </div>
+
+
+</form>
+
+<script>
+
+    function copyToClipboard(text) {
+        const $temp = $("<input>");
+        $("body").append($temp);
+        $temp.val(text).select();
+        document.execCommand("copy");
+        $temp.remove();
+        swal.fire({ title:"Copied", html: "Link copied to clipboard. You can paste this into your email body.", icon: "success"})
+    }
+
+    $(document).ready(function() {
+
+        // initialise the tooltips
+        $(".a_tooltip").tooltip();
+
+        $('#id_table_attachments').DataTable({
+            drawCallback: function(settings) {
+                const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+                pagination.toggle(this.api().page.info().pages > 1);
+            },
+        });
+
+    })
+</script>

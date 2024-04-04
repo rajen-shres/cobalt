@@ -9,8 +9,12 @@ from django.conf import settings
 from fcm_django.models import FCMDevice
 from post_office.models import Email as PostOfficeEmail
 
+from cobalt.settings import (
+    GLOBAL_ORG,
+)
+
 from accounts.models import User, UnregisteredUser
-from organisations.models import Organisation
+from organisations.models import Organisation, OrgEmailTemplate
 
 
 def _json_converter(in_string):
@@ -140,8 +144,22 @@ class BatchID(models.Model):
         null=True,
         blank=True,
     )
-    complete = models.BooleanField("Complete", default=False)
-    """ Has the batch been sent (or can it be edited) """
+
+    BATCH_STATE_WIP = "WIP"
+    BATCH_STATE_IN_FLIGHT = "INF"
+    BATCH_STATE_COMPLETE = "CMP"
+    BATCH_STATE = [
+        (BATCH_STATE_WIP, "In progress"),
+        (BATCH_STATE_IN_FLIGHT, "Being Sent"),
+        (BATCH_STATE_COMPLETE, "Complete"),
+    ]
+
+    state = models.CharField(
+        "State",
+        max_length=3,
+        choices=BATCH_STATE,
+        default=BATCH_STATE_WIP,
+    )
 
     BATCH_TYPE_ADMIN = "ADM"
     BATCH_TYPE_COMMS = "COM"
@@ -150,6 +168,7 @@ class BatchID(models.Model):
     BATCH_TYPE_MEMBER = "MBR"
     BATCH_TYPE_MULTI = "MLT"
     BATCH_TYPE_RESULTS = "RES"
+    BATCH_TYPE_ENTRY = "ENT"
     BATCH_TYPE_UNKNOWN = "UNK"
     BATCH_TYPE = [
         (BATCH_TYPE_ADMIN, "Admin"),
@@ -159,6 +178,7 @@ class BatchID(models.Model):
         (BATCH_TYPE_MEMBER, "Member"),
         (BATCH_TYPE_MULTI, "Multi"),
         (BATCH_TYPE_RESULTS, "Results"),
+        (BATCH_TYPE_ENTRY, "Entry"),
         (BATCH_TYPE_UNKNOWN, "Unknown"),
     ]
     batch_type = models.CharField(
@@ -175,6 +195,23 @@ class BatchID(models.Model):
         "Description", max_length=989, blank=True, default="New batch"
     )
     """ A meaningful description when created, but should ultimately be the subject line"""
+    template = models.ForeignKey(
+        OrgEmailTemplate,
+        related_name="batches",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    """ The club template to be used. Note could be deleted out from under this record """
+    reply_to = models.EmailField("Reply To", null=True, blank=True)
+    """ A reply to address that overrides the template value """
+    from_name = models.CharField("From Name", max_length=100, null=True, blank=True)
+    """ A from name string that overrides the template value """
+
+    @property
+    def complete(self):
+        """Has the batch been queued for delivery"""
+        return self.state == BatchID.BATCH_STATE_COMPLETE
 
     def create_new(self):
         """create a new batch id"""
@@ -209,6 +246,86 @@ class BatchActivity(models.Model):
         choices=ACTIVITY_TYPE,
     )
     activity_id = models.IntegerField("Activity Id")
+
+
+class Recipient(models.Model):
+    """Temporary store of recipients for a batch email
+
+    A point in time record of a recipient's details. To be deleted
+    once the batch has been sent."""
+
+    batch = models.ForeignKey(
+        BatchID,
+        related_name="recipients",
+        on_delete=models.CASCADE,
+    )
+    system_number = models.IntegerField("%s Number" % GLOBAL_ORG, blank=True, null=True)
+    first_name = models.CharField("First Name", max_length=150, blank=True, null=True)
+    last_name = models.CharField("Last Name", max_length=150, blank=True, null=True)
+    email = models.EmailField(
+        "Email Address",
+        unique=False,
+    )
+    initial = models.BooleanField(
+        "Initial Selection",
+        default=True,
+    )
+    # allows initial and additional recipients to be differentiated
+    # particularly to show added recipients at the top of the list
+    include = models.BooleanField(
+        "Include",
+        default=True,
+    )
+    # allows recipients to be excluded without removing from the list
+    # so that they can be re-added without searching.
+
+    class Meta:
+        unique_together = ["batch", "system_number"]
+
+    def create_from_user(self, batch, user, initial=True):
+        """Initialise with the user's details"""
+        self.batch = batch
+        self.first_name = user.first_name
+        self.last_name = user.last_name
+        self.system_number = user.system_number
+        self.email = user.email
+        self.include = True
+        self.initial = initial
+
+    @property
+    def full_name(self):
+        """Full name, including if first name is ommitted or first name is TBA"""
+        if self.first_name:
+            if self.last_name:
+                return f"{self.first_name} {self.last_name}"
+            else:
+                return self.first_name
+        else:
+            if self.last_name:
+                return self.last_name
+            else:
+                return "Unknown"
+
+    @property
+    def name_and_number(self):
+        """Name and system number if supplied (otherwise add email)"""
+        if self.system_number:
+            return f"{self.full_name} ({self.system_number})"
+        else:
+            return f"{self.full_name} ({self.email})"
+
+
+class BatchContent(models.Model):
+    """The email body for a batch email"""
+
+    batch = models.OneToOneField(
+        BatchID,
+        on_delete=models.CASCADE,
+    )
+    email_body = models.TextField(
+        "Email Body",
+        blank=True,
+    )
 
 
 class Snooper(models.Model):
@@ -413,6 +530,21 @@ class EmailAttachment(models.Model):
 
     def filename(self):
         return os.path.basename(self.attachment.name)
+
+
+class BatchAttachment(models.Model):
+    """An attachment for a batch email"""
+
+    batch = models.ForeignKey(
+        BatchID,
+        related_name="attachments",
+        on_delete=models.CASCADE,
+    )
+    attachment = models.ForeignKey(
+        EmailAttachment,
+        related_name="batches",
+        on_delete=models.CASCADE,
+    )
 
 
 class UnregisteredBlockedEmail(models.Model):
