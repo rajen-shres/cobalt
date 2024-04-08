@@ -1147,35 +1147,71 @@ def compose_email_multi_select(request, club_id, batch_id_id):
 
         Recipient.objects.filter(batch=batch).delete()
 
-        # build a list of all of the events selected, and add the activities
-        event_ids = []
-        for key, value in request.POST.items():
-            if key == "csrfmiddlewaretoken" or key == "select-all":
-                continue
-            print(f"{key} : {value} ({type(value)})")
-            parts = key.split("-")
-            activity = BatchActivity(batch=batch, activity_id=int(value))
-            if parts[0] == "event":
-                activity.activity_type = BatchActivity.ACTIVITY_TYPE_EVENT
-                event_ids.append(int(value))
-            elif parts[0] == "congress":
-                activity.activity_type = BatchActivity.ACTIVITY_TYPE_CONGRESS
-                congress = get_object_or_404(Congress, pk=int(value))
-                event_ids += congress.event_set.all().values_list("id", flat=True)
-            elif parts[0] == "master":
-                activity.activity_type = BatchActivity.ACTIVITY_TYPE_SERIES
-                master = get_object_or_404(CongressMaster, pk=int(value))
-                for congress in master.congress_set.all():
-                    event_ids += congress.event_set.all().values_list("id", flat=True)
-            activity.save()
-            print(
-                f"Activity created: {activity.get_activity_type_display()} {activity.activity_id}"
-            )
+        # The form will return all selected items in the tree, including components
+        # of a higher level item (eg all events within a selected congress), so need
+        # to only add activities for the highest level items (eg the congress, not
+        # the events). The set of events, however, can be used to select the recipients.
 
-        # add the reciepients for the events
+        selected_masters = []
+        selected_congresses = []
+        selected_events = []
         added_count = 0
-        for event_id in event_ids:
-            event = Event.objects.get(pk=event_id)
+
+        # trouble shooting
+        print("||  POST fields:")
+        for key, value in request.POST.items():
+            print(f"||    {key} : {value}")
+
+        # process masters first (note - cannot trust the order keys are returned)
+        for key, value in request.POST.items():
+            parts = key.split("-")
+            if parts[0] != "master":
+                continue
+            print(f"{key} - {value}")
+            master = get_object_or_404(CongressMaster, pk=int(value))
+            selected_masters.append(master.pk)
+            BatchActivity(
+                batch=batch,
+                activity_id=int(value),
+                activity_type=BatchActivity.ACTIVITY_TYPE_SERIES,
+            ).save()
+
+        # process congresses, ignoring if part of a selected series
+        for key, value in request.POST.items():
+            parts = key.split("-")
+            if parts[0] != "congress":
+                continue
+            print(f"{key} - {value}")
+            congress = get_object_or_404(Congress, pk=int(value))
+            if congress.congress_master.pk not in selected_masters:
+                selected_congresses.append(congress.pk)
+                BatchActivity(
+                    batch=batch,
+                    activity_id=int(value),
+                    activity_type=BatchActivity.ACTIVITY_TYPE_CONGRESS,
+                ).save()
+
+        # process events, adding an activity if not in a selected congress / master
+        # and always adding entrants to recipients
+        for key, value in request.POST.items():
+            parts = key.split("-")
+            if parts[0] != "event":
+                print(f"Skipping {key} - {value}")
+                continue
+            print(f"{key} - {value}")
+            event = get_object_or_404(Event, pk=int(value))
+            selected_events.append(event.pk)
+            if (
+                event.congress.pk not in selected_congresses
+                and event.congress.congress_master.pk not in selected_masters
+            ):
+                BatchActivity(
+                    batch=batch,
+                    activity_id=int(value),
+                    activity_type=BatchActivity.ACTIVITY_TYPE_EVENT,
+                ).save()
+
+            # create recipients for the event
             entered_players = EventEntryPlayer.objects.filter(
                 event_entry__event=event
             ).select_related("player")
@@ -1201,32 +1237,47 @@ def compose_email_multi_select(request, club_id, batch_id_id):
 
     else:
         # build the view from the selected batch activities
+        # Note that when a branch is selected (eg a series or congress), all elements
+        # on that branch must be added (eg if all events for a selected congress)
 
         print("Not POST")
+
+        selected_masters = []
+        selected_congresses = []
+        selected_events = []
 
         activities = BatchActivity.objects.filter(
             batch=batch,
         ).all()
 
-        selected_masters = [
-            activity.activity_id
-            for activity in activities
-            if activity.activity_type == BatchActivity.ACTIVITY_TYPE_SERIES
-        ]
-        selected_congresses = [
-            activity.activity_id
-            for activity in activities
-            if activity.activity_type == BatchActivity.ACTIVITY_TYPE_CONGRESS
-        ]
-        selected_events = [
-            activity.activity_id
-            for activity in activities
-            if activity.activity_type == BatchActivity.ACTIVITY_TYPE_EVENT
-        ]
+        for activity in activities:
 
-        print(f"Selected masters = {selected_masters}")
-        print(f"Selected congresses = {selected_congresses}")
-        print(f"Selected events = {selected_events}")
+            # add all congresses and events for a series
+            if activity.activity_type == BatchActivity.ACTIVITY_TYPE_SERIES:
+                master = get_object_or_404(CongressMaster, pk=activity.activity_id)
+                selected_masters.append(master.pk)
+                for congress in master.congress_set.all():
+                    selected_congresses.append(congress.pk)
+                    for event in congress.event_set.all():
+                        selected_events.append(event.pk)
+
+            if activity.activity_type == BatchActivity.ACTIVITY_TYPE_CONGRESS:
+                congress = get_object_or_404(Congress, pk=activity.activity_id)
+                selected_congresses.append(congress.pk)
+                for event in congress.event_set.all():
+                    selected_events.append(event.pk)
+
+            if activity.activity_type == BatchActivity.ACTIVITY_TYPE_EVENT:
+                event = get_object_or_404(Event, pk=activity.activity_id)
+                selected_events.append(event.pk)
+
+        # Troubleshooting : list structure
+        for master in masters:
+            print(f"   {master}")
+            for congress in master.congress_set.all():
+                print(f"   - {congress} ({congress.year})")
+                for event in congress.event_set.all():
+                    print(f"       - {event}")
 
     return render(
         request,
@@ -1243,6 +1294,8 @@ def compose_email_multi_select(request, club_id, batch_id_id):
                 len(selected_masters) + len(selected_congresses) + len(selected_events)
             )
             > 0,
+            "show_keys": True,
+            "show_hidden": False,
         },
     )
 
@@ -1288,6 +1341,9 @@ def compose_email_recipients(request, club_id, batch_id_id):
         try:
             page_number = int(request.GET.get("page"))
         except ValueError:
+            page_number = 1
+        except TypeError:
+            # None passed
             page_number = 1
     else:
         page_number = 1
