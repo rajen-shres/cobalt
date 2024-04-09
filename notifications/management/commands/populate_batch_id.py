@@ -37,7 +37,7 @@ class Command(BaseCommand):
             # some other process is concurrently updating the database
             if (
                 batch.batch_type != BatchID.BATCH_TYPE_UNKNOWN
-                or batch.STATE != BatchID.BATCH_STATE_WIP
+                or batch.state != BatchID.BATCH_STATE_WIP
             ):
                 self.skipped_count += 1
                 return
