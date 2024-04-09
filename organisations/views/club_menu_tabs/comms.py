@@ -40,29 +40,71 @@ from utils.utils import cobalt_paginator
 logger = logging.getLogger("cobalt")
 
 
-# JPG TO DO: access validation
-@check_club_menu_access(check_comms=True)
+# Comms check removed as access required by someone with congress only access
+# @check_club_menu_access(check_comms=True)
+@check_club_menu_access()
 def email_htmx(request, club, message=None):
     """build the comms email tab in club menu"""
 
+    # check relevant user access
+    comms_access = rbac_user_has_role(
+        request.user, f"notifications.orgcomms.{club.id}.edit"
+    )
+    congress_edit_access = rbac_user_has_role(
+        request.user, f"events.org.{club.id}.edit"
+    )
+    if congress_edit_access:
+        congress_view_access = True
+    else:
+        congress_view_access = rbac_user_has_role(
+            request.user, f"events.org.{club.id}.view"
+        )
+
+    if not (comms_access or congress_view_access or congress_edit_access):
+        # No releavnt access so block and tell them about the comms role
+        return rbac_forbidden(request, f"notifications.org.{club.id}.edit", htmx=True)
+
+    # build a list of permitted batch types to view for this user
+    # and a list of the WIP batch types they can edit or delete
+    if comms_access:
+        permitted_batch_types = [
+            BatchID.BATCH_TYPE_ADMIN,
+            BatchID.BATCH_TYPE_COMMS,
+            BatchID.BATCH_TYPE_RESULTS,
+        ]
+        editable_batch_types = permitted_batch_types[:]
+    else:
+        permitted_batch_types = []
+        editable_batch_types = []
+
+    if congress_edit_access or congress_view_access:
+        permitted_batch_types += [
+            BatchID.BATCH_TYPE_CONGRESS,
+            BatchID.BATCH_TYPE_EVENT,
+            BatchID.BATCH_TYPE_MULTI,
+            BatchID.BATCH_TYPE_ENTRY,
+        ]
+        if congress_edit_access:
+            editable_batch_types += [
+                BatchID.BATCH_TYPE_CONGRESS,
+                BatchID.BATCH_TYPE_EVENT,
+                BatchID.BATCH_TYPE_MULTI,
+                BatchID.BATCH_TYPE_ENTRY,
+            ]
+
     # build a list of batch types to include in the selector
-    hidden_types = [BatchID.BATCH_TYPE_MEMBER, BatchID.BATCH_TYPE_UNKNOWN]
     batch_types = [
         (option, description)
         for (option, description) in BatchID.BATCH_TYPE
-        if option not in hidden_types
+        if option in permitted_batch_types
     ]
 
     # determine which batch types to show
     if request.method == "POST":
-        print("*** POST ***")
         batch_type_selected = request.POST.get("batch_type_picker")
-        print(batch_type_selected)
         if not batch_type_selected:
             batch_type_selected = "ALL"
     else:
-        # JPG TO DO: clean-up
-        print("*** GET ***")
         batch_type_selected = "ALL"
 
     if batch_type_selected == "ALL":
@@ -75,33 +117,7 @@ def email_htmx(request, club, message=None):
         batch_type__in=batch_types_to_show, organisation=club
     ).order_by("-pk")
 
-    # Get the batch IDs for this club (and prefetch the other things we want)
-    # batch_ids = (
-    #     EmailBatchRBAC.objects.prefetch_related(
-    #         "batch_id__snooper_set__post_office_email"
-    #     )
-    #     .filter(rbac_role=f"notifications.orgcomms.{club.id}.edit")
-    #     .order_by("-pk")
-    # )
-
-    # COB-793 - UI changes if limiting notifications
-    # Augment data
-    # for batch_id in batch_ids:
-    #     snoopers = Snooper.objects.filter(batch_id=batch_id.batch_id)
-    #     batch_id.number_sent = snoopers.count()
-    #     first_snooper = snoopers.first()
-    #     if first_snooper:
-    #         batch_id.created = first_snooper.post_office_email.created
-    #         batch_id.subject = first_snooper.post_office_email.context["subject"]
-    #         batch_id.limited_notifications = first_snooper.limited_notifications
-    #     else:
-    #         batch_id.limited_notifications = False
-
-    # things = cobalt_paginator(request, batch_ids)
-
     things = cobalt_paginator(request, batches)
-
-    print(f"Rendering with {len(batches)} batches")
 
     return render(
         request,
@@ -112,6 +128,10 @@ def email_htmx(request, club, message=None):
             "things": things,
             "batch_types": batch_types,
             "type_selected": batch_type_selected,
+            "comms_access": comms_access,
+            "congress_edit_access": congress_edit_access,
+            "congress_view_access": congress_view_access,
+            "editable_batch_types": editable_batch_types,
         },
     )
 
@@ -453,6 +473,9 @@ def email_view_htmx(request, club):
 
     batch_id = request.POST.get("batch_id")
 
+    # NOTE : batch_id in this context ios the key to
+    # the EmailBatchRBAC record, not the BatchID record
+
     # Get the matching batch
     email_batch = EmailBatchRBAC.objects.prefetch_related(
         "batch_id__snooper_set__post_office_email"
@@ -784,8 +807,6 @@ def club_menu_tab_comms_emails_from_tags_htmx(request, club):
 
     tag_list = request.POST.getlist("selected_tags")
 
-    print(tag_list)
-
     # Check for everyone
     if "0" in tag_list:
         members = get_members_for_club(club)
@@ -794,7 +815,6 @@ def club_menu_tab_comms_emails_from_tags_htmx(request, club):
         system_numbers = MemberClubTag.objects.filter(
             club_tag__pk__in=tag_list
         ).values_list("system_number")
-        print(system_numbers)
         members = get_club_members_from_system_number_list(system_numbers, club)
 
     return render(
@@ -804,6 +824,7 @@ def club_menu_tab_comms_emails_from_tags_htmx(request, club):
     )
 
 
+# TO DO - move to notifications
 @check_club_menu_access(check_comms=True)
 def email_recipients_list_htmx(request, club):
     """show the recipients for a batch of emails."""

@@ -29,21 +29,25 @@
 
         <div class="container-flow">
 
-            <!-- BUTTON TO SEND NEW CLUB EMAIL -->
-            <a
-                class="text-left btn btn-primary"
-                href="{% url 'notifications:compose_club_email' club_id=club.id %}"
-            >
-                Compose Club Email
-            </a>
+            {% if comms_access %}
+                <!-- BUTTON TO SEND NEW CLUB EMAIL -->
+                <a
+                    class="text-left btn btn-primary"
+                    href="{% url 'notifications:compose_club_email' club_id=club.id %}"
+                >
+                    Compose Club Email
+                </a>
+            {% endif %}
 
-            <!-- BUTTON TO SEND NEW ENTRANT EMAIL (MULTI) -->
-            <a
-                class="text-left btn btn-primary"
-                href="{% url 'notifications:initiate_admin_multi_email' club_id=club.id %}"
-            >
-                Compose Entrant Email
-            </a>
+            {% if congress_edit_access %}
+                <!-- BUTTON TO SEND NEW ENTRANT EMAIL (MULTI) -->
+                <a
+                    class="text-left btn btn-primary"
+                    href="{% url 'notifications:initiate_admin_multi_email' club_id=club.id %}"
+                >
+                    Compose Entrant Email
+                </a>
+            {% endif %}
 
             <!-- BATCH TYPE SELECTOR -->
             <label for="id_batch_type">Type</label>
@@ -82,30 +86,38 @@
                                         </thead>
                                         <tbody>
                                             {% for thing in things %}
-                                                <tr
+                                                <tr {% if thing.state == 'ERR' %}class="text-danger"{% endif %}
                                                     style="cursor: pointer;"
 
                                                     {#  Don't make clickable if nothing was sent or incomplete #}
                                                     {% if thing.batch_size > 0 and thing.complete %}
 
                                                         hx-post="{% url "organisations:club_menu_tab_comms_email_view_htmx" %}"
-                                                        hx-vars="club_id:{{ club.id }},batch_id:{{ thing.id }}"
+                                                        hx-vars="club_id:{{ club.id }},batch_id:{{ thing.emailbatchrbac_set.all.0.id }}"
                                                         hx-target="#id_comms_email_details"
                                                         {# hide the sidebar if there so it doesn't jump #}
                                                         onclick='$("#email_info").hide();'
 
                                                     {% endif %}
                                                 >
-                                                    <td class="text-left">
+                                                    <td class="text-left {% if thing.state == 'ERR' %}text-danger{% endif %}">
                                                         {% if thing.complete %}
                                                             {{ thing.created|cobalt_nice_datetime|default_if_none:"Nothing sent" }}
                                                         {% elif thing.state == 'INF' %}
                                                             Being sent
+                                                        {% elif thing.state == 'ERR' %}
+                                                            Errored
                                                         {% else %}
                                                             Not yet sent
                                                         {% endif %}
                                                     </td>
-                                                    <td class="text-left">{{ thing.description }}</td>
+                                                    <td class="text-left">
+                                                        {% if thing.description %}
+                                                            {{ thing.description }}
+                                                        {% else %}
+                                                            No subject provided
+                                                        {% endif %}
+                                                    </td>
                                                     <td class="text-left">{{ thing.get_batch_type_display }}</td>
                                                     <td class="text-right">
 
@@ -129,29 +141,33 @@
 
                                                         {% endif %}
 
-                                                        {% if thing.state == 'WIP' %}
+                                                        {% if thing.state == 'WIP' or thing.state == 'ERR' %}
+                                                            {% if thing.batch_type in editable_batch_types %}
 
-                                                            <!-- ACTION BUTTONS FOR INCOMPLETE BATCHES -->
+                                                                <!-- ACTION BUTTONS FOR INCOMPLETE BATCHES -->
 
-                                                            <a
-                                                                class="btn btn-sm btn-warning"
-                                                                id="id_{{ thing.id }}_edit_button"
-                                                                {% if thing.batch_type == "MLT" %}
-                                                                    href="{% url 'notifications:compose_email_multi_select' club_id=club.id batch_id_id=thing.id %}"
-                                                                {% else %}
-                                                                    href="{% url 'notifications:compose_email_recipients' club_id=club.id batch_id_id=thing.id %}"
+                                                                {% if thing.state == 'WIP' %}
+                                                                    <a
+                                                                        class="btn btn-sm btn-warning"
+                                                                        id="id_{{ thing.id }}_edit_button"
+                                                                        {% if thing.batch_type == "MLT" %}
+                                                                            href="{% url 'notifications:compose_email_multi_select' club_id=club.id batch_id_id=thing.id %}"
+                                                                        {% else %}
+                                                                            href="{% url 'notifications:compose_email_recipients' club_id=club.id batch_id_id=thing.id %}"
+                                                                        {% endif %}
+                                                                    >
+                                                                        Edit
+                                                                    </a>
                                                                 {% endif %}
-                                                            >
-                                                                Edit
-                                                            </a>
-                                                            <a
-                                                                class="btn btn-sm btn-danger"
-                                                                id="id_{{ thing.id }}_edit_button"
-                                                                href="{% url 'notifications:delete_email_batch' thing.id %}""
-                                                            >
-                                                                Delete
-                                                            </button>
+                                                                <a
+                                                                    class="btn btn-sm btn-danger"
+                                                                    id="id_{{ thing.id }}_delete_button"
+                                                                    href="{% url 'notifications:delete_email_batch' club_id=club.id batch_id_id=thing.id %}"
+                                                                >
+                                                                    Delete
+                                                                </button>
 
+                                                            {% endif %}
                                                         {% endif %}
 
                                                     </td>

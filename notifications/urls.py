@@ -229,32 +229,32 @@ urlpatterns = [
         name="compose_email_content_send_htmx",
     ),
     path(
-        "compose-email/content-attachment-htmx",
+        "compose-email/content-attachment-htmx/<int:club_id>/<int:batch_id_id>",
         notifications.views.core.compose_email_content_attachment_htmx,
         name="compose_email_content_attachment_htmx",
     ),
     path(
-        "compose-email/content-upload-attachment-htmx",
+        "compose-email/content-upload-attachment-htmx/<int:club_id>/<int:batch_id_id>",
         notifications.views.core.compose_email_content_upload_new_email_attachment_htmx,
         name="compose_email_content_upload_new_email_attachment_htmx",
     ),
     path(
-        "compose-email/content-include-attachment-htmx",
+        "compose-email/content-include-attachment-htmx/<int:club_id>/<int:batch_id_id>/<int:attachment_id>",
         notifications.views.core.compose_email_content_include_attachment_htmx,
         name="compose_email_content_include_attachment_htmx",
     ),
     path(
-        "compose-email/content-remove-attachment-htmx",
+        "compose-email/content-remove-attachment-htmx/<int:club_id>/<int:batch_id_id>/<int:batch_attachment_id>",
         notifications.views.core.compose_email_content_remove_attachment_htmx,
         name="compose_email_content_remove_attachment_htmx",
     ),
     path(
-        "compose-email/content-included-attachment-htmx",
+        "compose-email/content-included-attachment-htmx/<int:club_id>/<int:batch_id_id>",
         notifications.views.core.compose_email_content_included_attachments_htmx,
         name="compose_email_content_included_attachments_htmx",
     ),
     path(
-        "compose-email/delete-batch/<int:batch_id_id>",
+        "compose-email/delete-batch/<int:club_id>/<int:batch_id_id>",
         notifications.views.core.delete_email_batch,
         name="delete_email_batch",
     ),

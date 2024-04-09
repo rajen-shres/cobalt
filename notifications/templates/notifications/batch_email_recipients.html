@@ -389,20 +389,34 @@
                 &nbsp;
             </div>
 
-            <!-- Next button -->
 
-            <div class="row">
-                <a
-                    class="btn btn-sm w-100 btn-info"
-                    href="{% url 'notifications:compose_email_options' club_id=club.id batch_id_id=batch.id %}"
-                >
-                    Next Step
-                </a>
-            </div>
 
         </div>
     </div>
 
+    <div class="row">
+        <div class="col text-right">
+
+            {% if batch.batch_type == "MLT" %}
+                <!-- Previous buton -->
+                <a
+                    class="btn btn-sm w-25 btn-info"
+                    href="{% url 'notifications:compose_email_multi_select' club_id=club.id batch_id_id=batch.id %}"
+                >
+                    Previous Step
+                </a>
+            {% endif %}
+
+            <!-- Next button -->
+
+            <a
+                class="btn btn-sm w-25 btn-info"
+                href="{% url 'notifications:compose_email_options' club_id=club.id batch_id_id=batch.id %}"
+            >
+                Next Step
+            </a>
+        </div>
+    </div>
 
 
 {% endblock payload %}

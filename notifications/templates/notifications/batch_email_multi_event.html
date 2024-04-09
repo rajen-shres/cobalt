@@ -34,29 +34,48 @@
 
             // check each unchecked master for some selected subcomponents
             $(".master-cb").each(function() {
-                if (!this.checked) {
+                if (this.checked) {
+                    $(this).prop('indeterminate', false);
+                } else {
                     const parts = this.id.split('-');
                     const master_id = parts[parts.length - 1];
                     const mcChecked = $('[id^="congress-cb-' + master_id + '"]:checked').length;
                     const meChecked = $('[id^="event-cb-' + master_id + '"]:checked').length;
                     $(this).prop('indeterminate', (mcChecked + meChecked) > 0);
-                } else {
-                    $(this).prop('indeterminate', false);
                 }
             });
 
             // check each unchecked congress for some selected events
             $(".congress-cb").each(function() {
-                if (!this.checked) {
+                if (this.checked) {
+                    $(this).prop('indeterminate', false);
+                } else {
                     const parts = this.id.split('-');
                     const master_id = parts[parts.length - 2];
                     const congress_id = parts[parts.length - 1];
-                    const evSelector = '[id^="event-cb-' + master_id + '-' + congress_id + '"]:checked';
+                    const evSelector = '[id^="event-cb-' + master_id + '-' + congress_id + '-' + '"]:checked';
                     const evChecked = $(evSelector).length;
                     $(this).prop('indeterminate', evChecked > 0);
-                } else {
-                    $(this).prop('indeterminate', false);
                 }
+            });
+        }
+
+
+        // expand all collapsible divs that contain checkboxes with checked attribute
+        // use once off on entry to expand to show restored selection
+        function expandAllSelected() {
+            $('.event-cb:checked').each(function() {
+                var parts = this.id.split('-');
+                var master_id = parts[parts.length - 3];
+                var congress_id = parts[parts.length - 2];
+                $('#master-detail-' + master_id).collapse('show')
+                $('#congress-detail-' + master_id + '-' + congress_id).collapse('show')
+            });
+            $('.congress-cb:checked').each(function() {
+                var parts = this.id.split('-');
+                var master_id = parts[parts.length - 3];
+                var congress_id = parts[parts.length - 2];
+                $('#master-detail-' + master_id).collapse('show')
             });
         }
 
@@ -70,18 +89,16 @@
 
             // change the label on the toggle control when hiding
             $('.collapse').on('hide.bs.collapse', function() {
-                console.info('hiding ' + this.id);
                 $('#toggle-' + this.id).text('[Show]');
             });
 
             setSelectAll();
             setPartials();
 
+            expandAllSelected();
 
             // select all event handler
             $('#id-select-all').change(function() {
-
-                console.info('select all changed');
 
                 $('.master-cb').prop('checked', this.checked).prop('indeterminate', false);
                 $('.congress-cb').prop('checked', this.checked).prop('indeterminate', false);
@@ -93,7 +110,6 @@
 
             // event checkbox change event handler
             $('.event-cb').change(function() {
-                console.info('event cb changed - ' + this.id);
 
                 var parts = this.id.split('-');
                 var master_id = parts[parts.length - 3];
@@ -120,7 +136,6 @@
 
             // congress checkbox change event handler
             $('.congress-cb').change(function() {
-                console.info('congress cb changed - ' + this.id);
 
                 var parts = this.id.split('-');
                 var master_id = parts[parts.length - 2];
@@ -148,7 +163,6 @@
 
             // master/series checkbox change event handler
             $('.master-cb').change(function() {
-                console.info('master cb changed - ' + this.id);
 
                 var parts = this.id.split('-');
                 var master_id = parts[parts.length - 1];
@@ -209,7 +223,6 @@
                             <label class="form-check-label text-dark" for="master-cb-{{ master.pk }}">
                                 <u>
                                     {{ master.name }} (Series of {{ master.congress_set.all|length }})
-                                    {% if show_keys %} |master-{{ master.pk }}|{% endif %}
                                 </u> &nbsp;
                             </label>
                             <span
@@ -225,23 +238,11 @@
 
                     <!-- Single congress in series, so master is hidden -->
 
-                    {% if show_hidden %}
-                        <div class="col-12">
-                    {% endif %}
                     <input
-                        class="{% if not show_hidden %} d-none {% endif %} form-check-input master-cb" type="checkbox"
+                        class="d-none form-check-input master-cb" type="checkbox"
                         name="master-{{ master.pk }}" value="{{ master.pk }}" id="master-cb-{{ master.pk }}"
                         {% if master.pk in selected_masters %} checked {% endif %}
                     >
-                    {% if show_hidden %}
-                        <label class="form-check-label text-danger" for="master-cb-{{ master.pk }}">
-                            <u>
-                                {{ master.name }} (Series)
-                                {% if show_keys %} |master-{{ master.pk }}|{% endif %}
-                            </u>
-                        </label>
-                        </div>
-                    {% endif %}
 
                 {% endif %}
 
@@ -269,7 +270,6 @@
                                     <b>
                                         {{ congress.name }} ({{ congress.year }})
                                         {% if congress.event_set.all|length == 1 %} - {{ congress.event_set.all.0.event_name }} {% endif %}
-                                        {% if show_keys %} |congress-{{ master.pk }}-{{ congress.pk }}| {% endif %}
                                     </b> &nbsp;
                                 </label>
 
@@ -305,7 +305,7 @@
                                             >
                                             <label class="form-check-label" for="event-cb-{{ master.pk }}-{{ congress.pk }}-{{ event.pk }}">
                                                 {{ event.event_name }}
-                                                {% if show_keys %} |event-{{ master.pk }}-{{ congress.pk }}-{{ event.pk }}| {% endif %}
+
                                             </label>
                                         </div>
                                     {% endfor %} <!-- Events -->
@@ -314,22 +314,12 @@
                             {% else %}
 
                                 <!-- Single event in congress, so is hidden (user selects the congress) -->
-                                {% if show_hidden %}
-                                    <div class="col-12" style="margin-left: {% if master.congress_set.all|length > 1 %} 110px {% else %} 75px {% endif %};">
-                                {% endif %}
                                 <input
-                                    class="{% if not show_hidden %} d-none {% endif %} form-check-input event-cb event-cb-in-congress-{{ congress.pk }}" type="checkbox"
+                                    class="d-none form-check-input event-cb event-cb-in-congress-{{ congress.pk }}" type="checkbox"
                                     name="event-{{ congress.event_set.all.0.pk }}" value="{{ congress.event_set.all.0.pk }}"
                                     id="event-cb-{{ master.pk }}-{{ congress.pk }}-{{ congress.event_set.all.0.pk }}"
                                     {% if congress.event_set.all.0.pk in selected_events %} checked {% endif %}
                                 >
-                                {% if show_hidden %}
-                                    <label class="form-check-label text-danger" for="event-cb-{{ master.pk }}-{{ congress.pk }}-{{ congress.event_set.all.0.pk }}">
-                                        {{ event.event_name }}
-                                        {% if show_keys %} |event-{{ master.pk }}-{{ congress.pk }}-{{ congress.event_set.all.0.pk }}| {% endif %}
-                                    </label>
-                                    </div>
-                                {% endif %}
 
                             {% endif %}
                         {% endfor %}  <!-- Congress -->
@@ -354,7 +344,7 @@
                     {% if existing_selection %}
                         Replace existing selection
                     {% else %}
-                        Save election
+                        Save selection
                     {% endif %}
                 </button>
             </div>

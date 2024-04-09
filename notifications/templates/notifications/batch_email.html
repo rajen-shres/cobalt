@@ -35,7 +35,7 @@
                     </div>
                 </div>
             </h1>
-            <h2>
+            <h2 id="subject-header">
                 {% if batch.description %}
                     {{ batch.description }}
                 {% else %}
@@ -44,8 +44,7 @@
             </h2>
             <a
                 class="btn btn-sm btn-danger"
-                id="id_{{ thing.id }}_edit_button"
-                href="{% url 'notifications:delete_email_batch' batch.id %}"
+                href="{% url 'notifications:delete_email_batch' club_id=club.id batch_id_id=batch.id %}"
             >
                 Delete
             </a>

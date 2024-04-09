@@ -147,10 +147,12 @@ class BatchID(models.Model):
 
     BATCH_STATE_WIP = "WIP"
     BATCH_STATE_IN_FLIGHT = "INF"
+    BATCH_STATE_ERRORED = "ERR"
     BATCH_STATE_COMPLETE = "CMP"
     BATCH_STATE = [
         (BATCH_STATE_WIP, "In progress"),
         (BATCH_STATE_IN_FLIGHT, "Being Sent"),
+        (BATCH_STATE_ERRORED, "Errored"),
         (BATCH_STATE_COMPLETE, "Complete"),
     ]
 
@@ -192,7 +194,7 @@ class BatchID(models.Model):
     created = models.DateTimeField("Created Date", default=timezone.now)
     """ create DTS until sent, then should be updated with the sent DTS """
     description = models.CharField(
-        "Description", max_length=989, blank=True, default="New batch"
+        "Description", max_length=989, blank=True, null=True, default=None
     )
     """ A meaningful description when created, but should ultimately be the subject line"""
     template = models.ForeignKey(

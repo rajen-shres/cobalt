@@ -36,8 +36,7 @@
                         <div
                             id="email_attachments"
                             class="col"
-                            hx-post="{% url "notifications:compose_email_content_attachment_htmx" %}"
-                            hx-vars="club_id:{{ club.id }}, batch_id_id:{{ batch.id }}"
+                            hx-post="{% url 'notifications:compose_email_content_attachment_htmx' club_id=club.id batch_id_id=batch.id %}"
                             hx-trigger="load"
                             hx-target="#email_attachments"
                         >
@@ -51,8 +50,7 @@
 
                             <table
                                 id="included_attachments"
-                                hx-post="{% url 'notifications:compose_email_content_included_attachments_htmx' %}"
-                                hx-vars="club_id:{{ club.id }}, batch_id_id:{{ batch.id }}"
+                                hx-post="{% url 'notifications:compose_email_content_included_attachments_htmx' club_id=club.id batch_id_id=batch.id %}"
                                 hx-trigger="load"
                                 hx-target="#included_attachments"
                             ></table>
@@ -133,10 +131,11 @@
             $("#id_test_button").prop("disabled", true);
             $("#id_send_button").prop("disabled", true);
             $("#id_save_button").prop("disabled", false);
+            $('#subject-header').text($('#id_subject').val());
         }
 
 
-        $(document).ready( function(){
+        $(document).ready( function() {
 
             $('#id_template').on('change', email_subject_or_content_changed);
 

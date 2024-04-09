@@ -643,7 +643,6 @@ def _send_notifications_notify_conveners(event_entries):
     # Notify conveners
 
     for event_entry in event_entries:
-        print(event_entry)
         players = EventEntryPlayer.objects.filter(event_entry=event_entry).order_by(
             "pk"
         )

@@ -1369,7 +1369,7 @@ def initiate_admin_event_email(request, event_id):
     return _initiate_entrant_batch(
         request,
         candidates,
-        f"Email to entrants in {event.event_name}",
+        None,
         event.congress,
         event,
     )
@@ -1423,7 +1423,7 @@ def initiate_admin_unpaid_email(request, event_id):
     return _initiate_entrant_batch(
         request,
         candidates,
-        f"Email to unpaid entrants in {event.event_name}",
+        None,
         event.congress,
         event,
     )
@@ -1456,7 +1456,7 @@ def initiate_admin_congress_email(request, congress_id):
     return _initiate_entrant_batch(
         request,
         candidates,
-        f"Email to entrants in {congress.name}",
+        None,
         congress,
         event=None,
     )

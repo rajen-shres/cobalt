@@ -112,14 +112,11 @@ class EmailOptionsForm(forms.Form):
         self.club = kwargs.pop("club", None)
         super().__init__(*args, **kwargs)
 
-        print(f"Initialising EmailOptionsForm with club {self.club}")
-
         # Only show this club's templates
         choices = [
             (choice.pk, choice.template_name)
             for choice in OrgEmailTemplate.objects.filter(organisation=self.club)
         ]
-        print(f"{len(choices)} templates found")
         self.fields["template"].choices = choices
 
     def clean_body(self):

@@ -85,6 +85,7 @@ from organisations.models import (
 )
 from organisations.decorators import check_club_menu_access
 from rbac.core import rbac_user_has_role, rbac_get_users_with_role
+from rbac.views import rbac_forbidden
 
 from post_office.models import Email as PostOfficeEmail
 
@@ -208,25 +209,6 @@ def send_cobalt_email_with_template(
     unregistered_identifier: will use alternative footer and show link to unregistered user preferences
 
     """
-
-    print("+-----------------------------------+")
-    print("|  send_cobalt_email_with_template  |")
-    print("+-----------------------------------+")
-    print(f"   to_address      : {to_address}")
-    print("   context         :")
-    for context_key in context:
-        print(f"                   : {context_key} : {context[context_key]}")
-    print(f"   template        : {template} [type={type(template)}]")
-    print(f"                   : [type={type(template)}]")
-    print(f"   sender          : {sender if sender else 'None'}")
-    print(f"   priority        : {priority}")
-    print(f"   batch_id        : {batch_id if batch_id else 'None'}")
-    print(f"   reply_to        : {reply_to if reply_to else 'None'}")
-    print(
-        f"   attachments     : {('#=' + {len(attachments)}) if attachments else 'None'}"
-    )
-    print(f"   batch_size      : {batch_size}")
-    print("=====================================")
 
     # Check if on bounce list
     if _email_address_on_bounce_list(to_address):
@@ -364,7 +346,7 @@ def create_rbac_batch_id(
         batch_id.create_new()
         batch_id.batch_type = batch_type
         batch_id.batch_size = batch_size
-        batch_id.description = description if description else "New email batch"
+        batch_id.description = description if description else None
         batch_id.state = (
             BatchID.BATCH_STATE_COMPLETE if complete else BatchID.BATCH_STATE_WIP
         )
@@ -1032,7 +1014,6 @@ def _add_to_recipient_with_system_number(batch, club, system_number):
     ).first()
 
     if existing:
-        print("--- found")
         if existing.include:
             return (0, "Recipient already included")
         else:
@@ -1081,12 +1062,15 @@ def _add_to_recipient_with_system_number(batch, club, system_number):
             return (0, "Recipient not found")
 
 
+@login_required
 def compose_club_email(request, club_id):
     """Entry point for starting a new club batch email
 
     Just create the batchId and then start the composition flow"""
 
-    # JPG TO DO Security
+    role = f"notifications.orgcomms.{club_id}.edit"
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
 
     club = get_object_or_404(Organisation, pk=club_id)
 
@@ -1096,19 +1080,22 @@ def compose_club_email(request, club_id):
         user=request.user,
         organisation=club,
         batch_type=BatchID.BATCH_TYPE_COMMS,
-        description=f"Email to {club} members",
+        description=None,
         complete=False,
     )
 
     return redirect("notifications:compose_email_recipients", club_id, batch.id)
 
 
+@login_required
 def initiate_admin_multi_email(request, club_id):
     """Entry point for multi congress / event selection view
 
     Just create the batch record and start the composition process"""
 
-    # JPG TO DO SECURITY
+    role = f"events.org.{club_id}.edit"
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
 
     org = get_object_or_404(Organisation, pk=club_id)
 
@@ -1118,7 +1105,6 @@ def initiate_admin_multi_email(request, club_id):
         organisation=org,
         batch_type=BatchID.BATCH_TYPE_MULTI,
         batch_size=0,
-        description=f"Email to entrants of {org} events",
         complete=False,
     )
 
@@ -1126,21 +1112,87 @@ def initiate_admin_multi_email(request, club_id):
     return redirect("notifications:compose_email_multi_select", club_id, batch.id)
 
 
-@login_required()
-def compose_email_multi_select(request, club_id, batch_id_id):
+def check_user_has_batch_access(user, batch):
+    """Check whether the user has the appropriate RBAC role for the batch
+
+    Returns a tuple of boolean successs and the role checked (None if invalid batch type)
+    """
+
+    if (
+        batch.batch_type
+        in batch.batch_type
+        in [
+            BatchID.BATCH_TYPE_ADMIN,
+            BatchID.BATCH_TYPE_COMMS,
+            BatchID.BATCH_TYPE_RESULTS,
+        ]
+    ):
+        role = f"notifications.orgcomms.{batch.organisation.id}.edit"
+    elif (
+        batch.batch_type
+        in batch.batch_type
+        in [
+            BatchID.BATCH_TYPE_CONGRESS,
+            BatchID.BATCH_TYPE_EVENT,
+            BatchID.BATCH_TYPE_MULTI,
+            BatchID.BATCH_TYPE_ENTRY,
+        ]
+    ):
+        role = f"events.org.{batch.organisation.id}.edit"
+    else:
+        return (False, None)
+
+    return (rbac_user_has_role(user, role), role)
+
+
+def check_club_and_batch_access():
+    """Decorator to check club and batch email access rights when editing batches
+
+    Expects a request, club_id and batch_id_id.
+    Passes request, club and batch to the called function
+
+    Modelled on organisations/decorators.py/check_club_menu_access
+    """
+
+    def _method_wrapper(function):
+        def _arguments_wrapper(request, club_id, batch_id_id, *args, **kwargs):
+
+            # Test if logged in
+            if not request.user.is_authenticated:
+                return redirect("/")
+
+            club = get_object_or_404(Organisation, pk=club_id)
+            batch = get_object_or_404(BatchID, pk=batch_id_id)
+
+            # need to check for comms or congress permissions depending
+            # on the batch type being manipulated
+
+            access_granted, role_required = check_user_has_batch_access(
+                request.user, batch
+            )
+
+            if not access_granted:
+                if role_required:
+                    return rbac_forbidden(request, role_required)
+                else:
+                    return HttpResponse("Error - not an editable batch type")
+
+            # all ok
+            return function(request, club, batch, *args, **kwargs)
+
+        return _arguments_wrapper
+
+    return _method_wrapper
+
+
+@check_club_and_batch_access()
+def compose_email_multi_select(request, club, batch):
     """Compose batch emails - step 0 - select events (multis only)"""
-
-    # JPG TO DO SECURITY
-
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     masters = CongressMaster.objects.filter(org=club)
 
     if request.method == "POST":
         # update the selected batch activities and rebuild the recipients
-
-        print("POST recieved")
 
         # delete existing activities and recipients
         BatchActivity.objects.filter(batch=batch).delete()
@@ -1157,17 +1209,11 @@ def compose_email_multi_select(request, club_id, batch_id_id):
         selected_events = []
         added_count = 0
 
-        # trouble shooting
-        print("||  POST fields:")
-        for key, value in request.POST.items():
-            print(f"||    {key} : {value}")
-
         # process masters first (note - cannot trust the order keys are returned)
         for key, value in request.POST.items():
             parts = key.split("-")
             if parts[0] != "master":
                 continue
-            print(f"{key} - {value}")
             master = get_object_or_404(CongressMaster, pk=int(value))
             selected_masters.append(master.pk)
             BatchActivity(
@@ -1181,10 +1227,9 @@ def compose_email_multi_select(request, club_id, batch_id_id):
             parts = key.split("-")
             if parts[0] != "congress":
                 continue
-            print(f"{key} - {value}")
             congress = get_object_or_404(Congress, pk=int(value))
+            selected_congresses.append(congress.pk)
             if congress.congress_master.pk not in selected_masters:
-                selected_congresses.append(congress.pk)
                 BatchActivity(
                     batch=batch,
                     activity_id=int(value),
@@ -1196,9 +1241,7 @@ def compose_email_multi_select(request, club_id, batch_id_id):
         for key, value in request.POST.items():
             parts = key.split("-")
             if parts[0] != "event":
-                print(f"Skipping {key} - {value}")
                 continue
-            print(f"{key} - {value}")
             event = get_object_or_404(Event, pk=int(value))
             selected_events.append(event.pk)
             if (
@@ -1229,9 +1272,7 @@ def compose_email_multi_select(request, club_id, batch_id_id):
         if added_count > 0:
             # and redirect to the next step
 
-            return redirect(
-                "notifications:compose_email_recipients", club_id, batch_id_id
-            )
+            return redirect("notifications:compose_email_recipients", club.id, batch.id)
         else:
             messages.add_message(request, messages.INFO, "No entrants found")
 
@@ -1239,8 +1280,6 @@ def compose_email_multi_select(request, club_id, batch_id_id):
         # build the view from the selected batch activities
         # Note that when a branch is selected (eg a series or congress), all elements
         # on that branch must be added (eg if all events for a selected congress)
-
-        print("Not POST")
 
         selected_masters = []
         selected_congresses = []
@@ -1271,14 +1310,6 @@ def compose_email_multi_select(request, club_id, batch_id_id):
                 event = get_object_or_404(Event, pk=activity.activity_id)
                 selected_events.append(event.pk)
 
-        # Troubleshooting : list structure
-        for master in masters:
-            print(f"   {master}")
-            for congress in master.congress_set.all():
-                print(f"   - {congress} ({congress.year})")
-                for event in congress.event_set.all():
-                    print(f"       - {event}")
-
     return render(
         request,
         "notifications/batch_email_multi_event.html",
@@ -1294,20 +1325,13 @@ def compose_email_multi_select(request, club_id, batch_id_id):
                 len(selected_masters) + len(selected_congresses) + len(selected_events)
             )
             > 0,
-            "show_keys": True,
-            "show_hidden": False,
         },
     )
 
 
-@login_required()
-def compose_email_recipients(request, club_id, batch_id_id):
+@check_club_and_batch_access()
+def compose_email_recipients(request, club, batch):
     """Compose batch emails - step 1 - review recipients"""
-
-    # JPG TO DO SECURITY
-
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     congress_stream = batch.batch_type in [
         BatchID.BATCH_TYPE_CONGRESS,
@@ -1354,8 +1378,7 @@ def compose_email_recipients(request, club_id, batch_id_id):
         batch=batch,
     ).order_by("initial", "last_name", "first_name")
 
-    # JPG TO DO - increase for release
-    page_size = 10
+    page_size = 20
     pages = Paginator(recipients, page_size)
     page = pages.get_page(page_number)
 
@@ -1384,7 +1407,6 @@ def compose_email_recipients(request, club_id, batch_id_id):
                 initial_header_before_row = None
 
     # determine range of pages to show in pagination row
-    # JPG TO DO - no longer required?
 
     half_span = 4
     # the number of pages to the left and right if in the middle of a large number of pages
@@ -1423,31 +1445,19 @@ def compose_email_recipients(request, club_id, batch_id_id):
     )
 
 
-@login_required()
-def compose_email_recipients_add_self(request, club_id, batch_id_id):
+@check_club_and_batch_access()
+def compose_email_recipients_add_self(request, club, batch):
     """Add current user to the recipient list"""
-
-    # JPG TO DO SECURITY
-
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     _, feedback = _add_user_to_recipients(club, batch, request.user, initial=False)
     messages.add_message(request, messages.INFO, feedback)
 
-    return redirect("notifications:compose_email_recipients", club_id, batch_id_id)
+    return redirect("notifications:compose_email_recipients", club.id, batch.id)
 
 
-@login_required
-def compose_email_recipients_add_congress_email(request, club_id, batch_id_id):
+@check_club_and_batch_access()
+def compose_email_recipients_add_congress_email(request, club, batch):
     """Add the congress contact email(s) to the recipient list"""
-
-    # JPG TO DO SECURITY
-
-    print("=== compose_email_recipients_add_congress_email ===")
-
-    # club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     # build a list of congress email addresses from batch activities
     congress_emails = []
@@ -1498,20 +1508,14 @@ def compose_email_recipients_add_congress_email(request, club_id, batch_id_id):
             f"{added_count} contact email{'s' if added_count > 1 else ''} added",
         )
 
-    print(f"=== {added_count} added ===")
-
-    return redirect("notifications:compose_email_recipients", club_id, batch_id_id)
+    return redirect("notifications:compose_email_recipients", club.id, batch.id)
 
 
-def compose_email_recipients_add_tadmins(request, club_id, batch_id_id):
+@check_club_and_batch_access()
+def compose_email_recipients_add_tadmins(request, club, batch):
     """Add club tournament organisers to the recipients"""
 
-    # JPG TO DO SECURITY
-
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
-
-    tournament_admins = rbac_get_users_with_role(f"events.org.{club_id}.edit")
+    tournament_admins = rbac_get_users_with_role(f"events.org.{club.id}.edit")
 
     added_count = 0
 
@@ -1528,35 +1532,39 @@ def compose_email_recipients_add_tadmins(request, club_id, batch_id_id):
             f"{added_count} tournament admin{'s' if added_count > 1 else ''} added",
         )
 
-    return redirect("notifications:compose_email_recipients", club_id, batch_id_id)
+    return redirect("notifications:compose_email_recipients", club.id, batch.id)
 
 
+@login_required()
 def compose_email_recipients_toggle_recipient_htmx(request, recipient_id):
     """Toggle the include state of the recipient"""
 
-    # JPG TO DO SECURITY
-
     recipient = get_object_or_404(Recipient, pk=recipient_id)
+
+    # check access
+    access_granted, role_required = check_user_has_batch_access(
+        request.user, recipient.batch
+    )
+    if not access_granted:
+        return rbac_forbidden(request, role_required, htmx=True)
+
     recipient.include = not recipient.include
     recipient.save()
 
     return HttpResponse(status=204)
 
 
-def compose_email_recipients_remove_unselected_htmx(request, club_id, batch_id_id):
+@check_club_and_batch_access()
+def compose_email_recipients_remove_unselected_htmx(request, club, batch):
     """Remove all unselected recipients from a batch"""
-
-    # JPG TO DO SECURITY
-
-    # club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     Recipient.objects.filter(batch=batch, include=False).delete()
 
-    return redirect("notifications:compose_email_recipients", club_id, batch_id_id)
+    return redirect("notifications:compose_email_recipients", club.id, batch.id)
 
 
-def compose_email_recipients_tags_pane_htmx(request, club_id, batch_id_id):
+@check_club_and_batch_access()
+def compose_email_recipients_tags_pane_htmx(request, club, batch):
     """Display the club tags pane in the add recipient view
 
     Note: This code generates counts of members by tag, regardless of
@@ -1564,11 +1572,6 @@ def compose_email_recipients_tags_pane_htmx(request, club_id, batch_id_id):
     with a club email). This could confuse users, eg adding a tag with N members
     but having less than N recipients added to the list.
     """
-
-    # JPG TO DO SECURITY
-
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     total_members = (
         MemberMembershipType.objects.filter(membership_type__organisation=club)
@@ -1600,7 +1603,8 @@ def compose_email_recipients_tags_pane_htmx(request, club_id, batch_id_id):
     )
 
 
-def compose_email_recipients_member_search_htmx(request, club_id, batch_id_id):
+@check_club_and_batch_access()
+def compose_email_recipients_member_search_htmx(request, club, batch):
     """Returns a list of club member search candidates
 
     Searches by first name, last name or system number (not a combination)
@@ -1611,11 +1615,6 @@ def compose_email_recipients_member_search_htmx(request, club_id, batch_id_id):
     It may be less confusing if a known member is on teh list but
     not selectable, rather than not there at all.
     """
-
-    # JPG TO DO SECURITY
-
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     first_name_search = request.POST.get("member-search-first", "")
     last_name_search = request.POST.get("member-search-last", "")
@@ -1681,12 +1680,9 @@ def compose_email_recipients_member_search_htmx(request, club_id, batch_id_id):
     )
 
 
-def compose_email_recipients_add_tag(request, club_id, batch_id_id, tag_id):
+@check_club_and_batch_access()
+def compose_email_recipients_add_tag(request, club, batch, tag_id):
     """Add recipients from a club tag"""
-
-    # JPG TO DO SECURITY
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     added_count = 0
     if tag_id == EVERYONE_TAG_ID:
@@ -1718,32 +1714,24 @@ def compose_email_recipients_add_tag(request, club_id, batch_id_id, tag_id):
         f"{added_count} recipient{'s' if added_count != 1 else ''} added",
     )
 
-    return redirect("notifications:compose_email_recipients", club_id, batch_id_id)
+    return redirect("notifications:compose_email_recipients", club.id, batch.id)
 
 
-def compose_email_recipients_add_member(request, club_id, batch_id_id, system_number):
+@check_club_and_batch_access()
+def compose_email_recipients_add_member(request, club, batch, system_number):
     """Add a club member by system number as a recipient"""
-
-    # JPG TO DO SECURITY
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     added, feedback = _add_to_recipient_with_system_number(batch, club, system_number)
 
     messages.add_message(request, messages.INFO, feedback)
 
-    return redirect("notifications:compose_email_recipients", club_id, batch_id_id)
+    return redirect("notifications:compose_email_recipients", club.id, batch.id)
 
 
-def compose_email_recipients_remove_tag(
-    request, club_id, batch_id_id, tag_id, from_all
-):
+@check_club_and_batch_access()
+def compose_email_recipients_remove_tag(request, club, batch, tag_id, from_all):
     """Remove tagged club members from a batch's recipients
     Either from all recipeinets, or from added (ie not initial) recipients only"""
-
-    # JPG TO DO SECURITY
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     if tag_id == EVERYONE_TAG_ID:
         source = MemberMembershipType.objects.filter(membership_type__organisation=club)
@@ -1774,16 +1762,12 @@ def compose_email_recipients_remove_tag(
         f"{'EVERYONE' if tag_id == EVERYONE_TAG_ID else tag.tag_name} removed",
     )
 
-    return redirect("notifications:compose_email_recipients", club_id, batch_id_id)
+    return redirect("notifications:compose_email_recipients", club.id, batch.id)
 
 
-@login_required()
-def compose_email_options(request, club_id, batch_id_id):
+@check_club_and_batch_access()
+def compose_email_options(request, club, batch):
     """Compose batch emails - step 2 - email options"""
-
-    # JPG TO DO SECURITY
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     if request.method == "POST":
 
@@ -1795,8 +1779,6 @@ def compose_email_options(request, club_id, batch_id_id):
             # from the template. These values can be changed and would then override
             # the template values. Rather than implement complex logic to determine
             # whether the values are being overridden, just save the values as provided.
-
-            print("Doing post logic")
 
             if email_options_form.cleaned_data.get("template"):
                 selected_template_id = email_options_form.cleaned_data.get("template")
@@ -1814,12 +1796,8 @@ def compose_email_options(request, club_id, batch_id_id):
             batch.from_name = email_options_form.cleaned_data.get("from_name")
             batch.save()
 
-            print(
-                f"Saved template id {batch.template.id}, reply_to '{batch.reply_to}', from_name '{batch.from_name}'"
-            )
-
             #  proceed to step 3 - content
-            return redirect("notifications:compose_email_content", club_id, batch_id_id)
+            return redirect("notifications:compose_email_content", club.id, batch.id)
 
     else:
         email_options_form = EmailOptionsForm(club=club)
@@ -1854,14 +1832,9 @@ def compose_email_options(request, club_id, batch_id_id):
     )
 
 
-def compose_email_options_from_and_reply_to_htmx(request, club_id, batch_id_id):
+@check_club_and_batch_access()
+def compose_email_options_from_and_reply_to_htmx(request, club, batch):
     """Rebuild the from and reply_to fields in the send email form if the template changes"""
-
-    print("*** compose_email_options_from_and_reply_to_htmx ***")
-
-    # JPG TO DO SECURITY
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     template_id = request.POST.get("template")
     template = get_object_or_404(OrgEmailTemplate, pk=template_id)
@@ -1878,13 +1851,10 @@ def compose_email_options_from_and_reply_to_htmx(request, club_id, batch_id_id):
     )
 
 
-@login_required()
-def compose_email_content(request, club_id, batch_id_id):
+@check_club_and_batch_access()
+def compose_email_content(request, club, batch):
     """Compose batch emails - step 1 - review recipients"""
 
-    # JPG TO DO SECURITY
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
     ready_to_send = False
 
     if request.method == "POST":
@@ -1892,8 +1862,6 @@ def compose_email_content(request, club_id, batch_id_id):
         email_content_form = EmailContentForm(request.POST)
 
         if email_content_form.is_valid():
-
-            # TO DO post logic
 
             if hasattr(batch, "batchcontent"):
                 batch.batchcontent.email_body = email_content_form.cleaned_data.get(
@@ -1941,20 +1909,15 @@ def compose_email_content(request, club_id, batch_id_id):
     )
 
 
-def compose_email_content_send_htmx(request, club_id, batch_id_id):
+@check_club_and_batch_access()
+def compose_email_content_send_htmx(request, club, batch):
     """Handle sending a test message or the full batch
 
     Redirects to one of the process steps if there is an issue, otherwise
     redirects to the watch email view.
     """
 
-    # JPG TO DO SECURITY
-    club = get_object_or_404(Organisation, pk=club_id)
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
-
-    (ok_to_send, error_message, rectification_step) = _validate_batch_details(
-        batch_id_id
-    )
+    (ok_to_send, error_message, rectification_step) = _validate_batch_details(batch)
 
     if ok_to_send:
         (attachments, attachment_size) = _attachment_dict_for_batch(batch)
@@ -2006,17 +1969,17 @@ def compose_email_content_send_htmx(request, club_id, batch_id_id):
     if rectification_step == 1:
         response["HX-Redirect"] = reverse(
             "notifications:compose_email_recipients",
-            kwargs={"club_id": club_id, "batch_id": batch_id_id},
+            kwargs={"club_id": club.id, "batch_id": batch.id},
         )
     elif rectification_step == 2:
         response["HX-Redirect"] = reverse(
             "notifications:compose_email_options",
-            kwargs={"club_id": club_id, "batch_id": batch_id_id},
+            kwargs={"club_id": club.id, "batch_id": batch.id},
         )
     else:
         response["HX-Redirect"] = reverse(
             "notifications:compose_email_content",
-            kwargs={"club_id": club_id, "batch_id": batch_id_id},
+            kwargs={"club_id": club.id, "batch_id": batch.id},
         )
 
     messages.error(
@@ -2054,7 +2017,7 @@ def _attachment_dict_for_batch(batch):
     return (attachments, total_size)
 
 
-def _validate_batch_details(batch_id_id):
+def _validate_batch_details(batch):
     """Check whether the batch is really ready to send
 
     Returns a tuple of:
@@ -2062,11 +2025,6 @@ def _validate_batch_details(batch_id_id):
         User error message
         Process step to rectify (1,2, 3)
     """
-
-    try:
-        batch = BatchID.objects.get(pk=batch_id_id)
-    except BatchID.DoesNotExist:
-        return (False, "Batch does not exist")
 
     if batch.state != BatchID.BATCH_STATE_WIP:
         return (False, "Batch has already been sent")
@@ -2112,8 +2070,6 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
     else:
         org_template = OrgEmailTemplate(organisation=club)
 
-    print(f"*** org template = {org_template}")
-
     context["img_src"] = org_template.banner.url
     context["footer"] = org_template.footer
     context["box_colour"] = org_template.box_colour
@@ -2158,8 +2114,6 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
 
         context["title"] = batch.description
         po_template = "system - default"
-
-    print(f"*** po template = {po_template}")
 
     # other arguements required to send the email
 
@@ -2219,33 +2173,37 @@ def _dispatch_batch_thread(
     batch.batch_size = len(recipients)
     batch.save()
 
-    for recipient in recipients:
+    try:
+        for recipient in recipients:
 
-        context["name"] = recipient.first_name
+            context["name"] = recipient.first_name
 
-        send_cobalt_email_with_template(
-            to_address=recipient.email,
-            context=context,
-            template=po_template,
-            batch_id=batch,
-            reply_to=reply_to,
-            attachments=attachments if len(attachments) > 0 else None,
-            batch_size=batch.batch_size,
-        )
+            send_cobalt_email_with_template(
+                to_address=recipient.email,
+                context=context,
+                template=po_template,
+                batch_id=batch,
+                reply_to=reply_to,
+                attachments=attachments if len(attachments) > 0 else None,
+                batch_size=batch.batch_size,
+            )
 
-        logger.info(
-            f"Queued email to {recipient.first_name} {recipient.first_name}, {recipient.email}"
-        )
+            logger.info(
+                f"Queued email to {recipient.first_name} {recipient.first_name}, {recipient.email}"
+            )
+    except Exception as e:
+        # something went wrong, so mark the batch as errored and reraise the exception
+        batch.state = BatchID.BATCH_STATE_ERRORED
+        batch.save()
+        logger.error(f"Error queuing email batch, Exception {e}")
+        raise
 
     _finalise_email_batch(batch)
 
 
-@check_club_menu_access(check_comms=True)
-def compose_email_content_attachment_htmx(request, club):
+@check_club_and_batch_access()
+def compose_email_content_attachment_htmx(request, club, batch):
     """Handle the attachments pane"""
-
-    batch_id_id = request.POST.get("batch_id_id")
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     email_attachments = EmailAttachment.objects.filter(organisation=club).order_by(
         "-pk"
@@ -2264,19 +2222,12 @@ def compose_email_content_attachment_htmx(request, club):
         {"club": club, "batch": batch, "email_attachments": email_attachments},
     )
 
-    return HttpResponse("Work in progress")
 
-
-@check_club_menu_access(check_comms=True)
-def compose_email_content_upload_new_email_attachment_htmx(request, club):
+@check_club_and_batch_access()
+def compose_email_content_upload_new_email_attachment_htmx(request, club, batch):
     """Upload a new email attachment for a club
     Use the HTMX hx-trigger response header to tell the browser about it
     """
-
-    # JPG TO DO SECURITY
-
-    batch_id_id = request.POST.get("batch_id_id")
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
 
     form = EmailAttachmentForm(request.POST, request.FILES)
     if form.is_valid():
@@ -2322,24 +2273,12 @@ def _email_attachment_list_htmx(request, club, batch, hx_trigger_response=None):
     return response
 
 
-@check_club_menu_access(check_comms=True)
-def compose_email_content_include_attachment_htmx(request, club):
+@check_club_and_batch_access()
+def compose_email_content_include_attachment_htmx(request, club, batch, attachment_id):
     """Include an attachment in the email
-
-    Needs to be called with hx-vars for club_id, batch_id_id, attachement_id
 
     Save to the model and return the list of included attachments"""
 
-    print(
-        f"*** compose_email_content_include_attachment_htmx att_id: {request.POST.get('attachment_id')}"
-    )
-
-    # JPG TO DO SECURITY
-
-    batch_id_id = request.POST.get("batch_id_id")
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
-
-    attachment_id = request.POST.get("attachment_id")
     attachment = get_object_or_404(EmailAttachment, pk=attachment_id)
 
     existing = BatchAttachment.objects.filter(
@@ -2347,30 +2286,22 @@ def compose_email_content_include_attachment_htmx(request, club):
     ).first()
 
     if not existing:
-        print(f"*** adding attachment {attachment} to batch {batch}")
         batch_attachment = BatchAttachment()
         batch_attachment.batch = batch
         batch_attachment.attachment = attachment
         batch_attachment.save()
-        print(f"*** ADDED batch attachment {batch_attachment}")
 
     return _compose_email_content_included_attachments_htmx(request, club, batch)
 
 
-@check_club_menu_access(check_comms=True)
-def compose_email_content_remove_attachment_htmx(request, club):
+@check_club_and_batch_access()
+def compose_email_content_remove_attachment_htmx(
+    request, club, batch, batch_attachment_id
+):
     """Remove a batch attachment from the email
-
-    Needs to be called with hx-vars for club_id, batch_id_id and batch_attachment_id
 
     Update the model and return the list of included attachments"""
 
-    # JPG TO DO SECURITY
-
-    batch_id_id = request.POST.get("batch_id_id")
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
-
-    batch_attachment_id = request.POST.get("batch_attachment_id")
     batch_attachment = get_object_or_404(BatchAttachment, pk=batch_attachment_id)
 
     batch_attachment.delete()
@@ -2378,19 +2309,9 @@ def compose_email_content_remove_attachment_htmx(request, club):
     return _compose_email_content_included_attachments_htmx(request, club, batch)
 
 
-@check_club_menu_access(check_comms=True)
-def compose_email_content_included_attachments_htmx(request, club):
-    """Return the list of included attachments (ie batch attachments)
-
-    Request must specify the batch_id_id
-    """
-
-    print("*** compose_email_content_included_attachments_htmx")
-
-    # JPG TO DO SECURITY
-
-    batch_id_id = request.POST.get("batch_id_id")
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
+@check_club_and_batch_access()
+def compose_email_content_included_attachments_htmx(request, club, batch):
+    """Return the list of included attachments (ie batch attachments)"""
 
     return _compose_email_content_included_attachments_htmx(request, club, batch)
 
@@ -2398,11 +2319,7 @@ def compose_email_content_included_attachments_htmx(request, club):
 def _compose_email_content_included_attachments_htmx(request, club, batch):
     """Return the list of included attachments (ie batch attachments)"""
 
-    print(f"   >>> _compose_email_content_included_attachments_htmx batch={batch}")
-
     batch_attachments = BatchAttachment.objects.filter(batch=batch)
-
-    print(f"   >>> {len(batch_attachments)} batch attachments found ")
 
     return render(
         request,
@@ -2421,6 +2338,7 @@ def _finalise_email_batch(batch, batch_size=None):
     if batch_size is not None:
         batch.batch_size = batch_size
 
+    batch.created = timezone.now()
     batch.state = BatchID.BATCH_STATE_COMPLETE
     batch.save()
 
@@ -2432,12 +2350,10 @@ def _finalise_email_batch(batch, batch_size=None):
     BatchAttachment.objects.filter(batch=batch).delete()
 
 
-def delete_email_batch(request, batch_id_id):
+@check_club_and_batch_access()
+def delete_email_batch(request, club, batch):
     """Delete an incomplete batch"""
 
-    # JPG TO DO SECURITY
-
-    batch = get_object_or_404(BatchID, pk=batch_id_id)
     batch.delete()
 
     return redirect(

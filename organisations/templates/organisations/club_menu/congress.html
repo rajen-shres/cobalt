@@ -3,6 +3,16 @@
 <div class="card">
     <div class="card-header card-header-warning">
         <h2>Congresses</h2>
+        <div class="float-left">
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary dropdown-toggle btn-round" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Actions
+                </button>
+                <div class="dropdown-menu">
+                    <a href="{% url 'notifications:initiate_admin_multi_email' club_id=club.id %}" class="btn btn-sm btn-secondary">Email entrants from multiple events/congresses</a>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="card-body">
         <div id="id_panel_congress"

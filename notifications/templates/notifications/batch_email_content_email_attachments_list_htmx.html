@@ -22,8 +22,7 @@
                                 </span>
                             </a>
                             <a class="text-success"
-                                hx-post="{% url 'notifications:compose_email_content_include_attachment_htmx' %}"
-                                hx-vars="club_id:{{ club.id }}, batch_id_id:{{ batch.id }}, attachment_id: {{ email_attachment.id }}"
+                                hx-post="{% url 'notifications:compose_email_content_include_attachment_htmx' club_id=club.id batch_id_id=batch.id attachment_id=email_attachment.id %}"
                                 hx-target="#included_attachments"
                             >
                                 <span class="a_tooltip" data-toggle="tooltip" title="Attach to Email" data-delay="100">
@@ -58,8 +57,7 @@
 {# We put the form in here too so it gets reloaded, otherwise hovering on button shows last uploaded file #}
 
 <form hx-encoding='multipart/form-data'
-    hx-post="{% url "notifications:compose_email_content_upload_new_email_attachment_htmx" %}"
-    hx-vars="club_id:{{ club.id }}, batch_id_id:{{ batch.id }}"
+    hx-post="{% url 'notifications:compose_email_content_upload_new_email_attachment_htmx' club_id=club.id batch_id_id=batch.id %}"
     hx-target="#list_of_attachments"
     hx-trigger="change"
     id="upload_attachment_form"
