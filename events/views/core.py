@@ -575,7 +575,7 @@ def send_email_to_player_entered_into_event_by_another(
 
     # create batch ID
     batch_id = create_rbac_batch_id(
-        rbac_role=f"events.org.{congress.congress_master.org.id}.view",
+        rbac_role=f"events.org.{congress.congress_master.org.id}.edit",
         organisation=congress.congress_master.org,
         batch_type=BatchID.BATCH_TYPE_ENTRY,
         description=f"Event entry - {congress}",
@@ -585,7 +585,10 @@ def send_email_to_player_entered_into_event_by_another(
 
     logger.info(f"Sending email to {player}")
     send_cobalt_email_with_template(
-        to_address=player.email, context=context, batch_id=batch_id
+        to_address=player.email,
+        context=context,
+        batch_id=batch_id,
+        apply_default_template_for_club=congress.congress_master.org,
     )
 
 
@@ -660,10 +663,11 @@ def _send_notifications_notify_conveners(event_entries):
 
         # create batch ID
         batch_id = create_rbac_batch_id(
-            rbac_role=f"events.org.{congress.congress_master.org.id}.view",
+            rbac_role=f"events.org.{congress.congress_master.org.id}.edit",
             organisation=congress.congress_master.org,
             batch_type=BatchID.BATCH_TYPE_ENTRY,
             description=f"New Entry to {event.event_name} in {congress}",
+            complete=True,
         )
 
         batch_size = notify_conveners(
@@ -896,6 +900,7 @@ def notify_conveners(congress, event, subject, email_msg, batch_id=None):
             to_address=convener.email,
             context=context,
             batch_id=batch_id,
+            apply_default_template_for_club=congress.congress_master.org,
         )
         sent_count += 1
 
@@ -918,6 +923,7 @@ def notify_conveners(congress, event, subject, email_msg, batch_id=None):
             to_address=congress.contact_email,
             context=context,
             batch_id=batch_id,
+            apply_default_template_for_club=congress.congress_master.org,
         )
         sent_count += 1
 

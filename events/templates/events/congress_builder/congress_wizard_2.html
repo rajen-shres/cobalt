@@ -317,9 +317,12 @@
                     }
                 }
 
-                var display_date = start_day + start_month + start_year + " to " + end_date;
-
-                $("#id_date_string").val(display_date);
+                if ($("#id_start_date").val() == $("#id_end_date").val()) {
+                    $("#id_date_string").val(end_date);
+                } else {
+                    var display_date = start_day + start_month + start_year + " to " + end_date;
+                    $("#id_date_string").val(display_date);
+                }
             }
         }
 

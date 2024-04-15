@@ -473,7 +473,7 @@ def email_view_htmx(request, club):
 
     batch_id = request.POST.get("batch_id")
 
-    # NOTE : batch_id in this context ios the key to
+    # NOTE : batch_id in this context is the key to
     # the EmailBatchRBAC record, not the BatchID record
 
     # Get the matching batch

@@ -806,6 +806,9 @@ def admin_event_log(request, event_id):
 def admin_evententry_delete(request, evententry_id):
     """Delete an event entry"""
 
+    # JPG debug
+    print("**** admin_evententry_delete")
+
     event_entry = get_object_or_404(EventEntry, pk=evententry_id)
 
     # check access
@@ -895,7 +898,7 @@ def admin_evententry_delete(request, evententry_id):
 
                     # create batch ID
                     batch_id = create_rbac_batch_id(
-                        rbac_role=f"events.org.{event_entry.event.congress.congress_master.org.id}.view",
+                        rbac_role=f"events.org.{event_entry.event.congress.congress_master.org.id}.edit",
                         organisation=event_entry.event.congress.congress_master.org,
                         batch_type=BatchID.BATCH_TYPE_ENTRY,
                         description=f"Event Entry Cancelled - {event_entry.event}",
@@ -1473,7 +1476,7 @@ def _initiate_entrant_batch(request, candidates, description, congress, event=No
 
     # create the batch header
     batch_id = create_rbac_batch_id(
-        f"events.org.{congress.congress_master.org.id}.view",
+        f"events.org.{congress.congress_master.org.id}.edit",
         organisation=congress.congress_master.org,
         batch_type=BatchID.BATCH_TYPE_EVENT if event else BatchID.BATCH_TYPE_CONGRESS,
         batch_size=len(candidates),
@@ -1599,6 +1602,9 @@ def admin_latest_news(request, congress_id):
 def admin_move_entry(request, event_entry_id):
     """Move an entry to another event"""
 
+    # JPG debug
+    print("delete_player_from_entry_ajax")
+
     event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
 
     congress = event_entry.event.congress
@@ -1637,10 +1643,11 @@ def admin_move_entry(request, event_entry_id):
 
         # create batch ID
         batch_id = create_rbac_batch_id(
-            rbac_role=f"events.org.{congress.congress_master.org.id}.view",
+            rbac_role=f"events.org.{congress.congress_master.org.id}.edit",
             organisation=congress.congress_master.org,
             batch_type=BatchID.BATCH_TYPE_ENTRY,
             description="Entry moved to new event",
+            complete=True,
         )
         batch_size = 0
 
@@ -1683,6 +1690,10 @@ def admin_move_entry(request, event_entry_id):
 @login_required()
 @transaction.atomic
 def admin_event_entry_add(request, event_id):
+
+    # JPG debug
+    print("**** admin_event_entry_add")
+
     event = get_object_or_404(Event, pk=event_id)
 
     # check access
@@ -1745,10 +1756,11 @@ def admin_event_entry_add(request, event_id):
 
         # create batch ID
         batch_id = create_rbac_batch_id(
-            rbac_role=f"events.org.{event.congress.congress_master.org.id}.view",
+            rbac_role=f"events.org.{event.congress.congress_master.org.id}.edit",
             organisation=event.congress.congress_master.org.id,
             batch_type=BatchID.BATCH_TYPE_ENTRY,
             description="New convener entry",
+            complete=True,
         )
         batch_size = 0
 
@@ -1847,6 +1859,9 @@ def admin_event_entry_player_add(request, event_entry_id):
 def admin_event_entry_player_delete(request, event_entry_player_id):
     """Delete a player from a team"""
 
+    # JPG debug
+    print("**** admin_event_entry_player_delete")
+
     event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
     event_entry = event_entry_player.event_entry
 
@@ -1883,7 +1898,7 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
 
             # create batch ID
             batch_id = create_rbac_batch_id(
-                rbac_role=f"events.org.{event_entry.event.congress.congress_master.org.id}.view",
+                rbac_role=f"events.org.{event_entry.event.congress.congress_master.org.id}.edit",
                 organisation=event_entry.event.congress.congress_master.org,
                 batch_type=BatchID.BATCH_TYPE_ENTRY,
                 description="Removed from team by Convener",
@@ -2337,6 +2352,9 @@ def edit_team_name_htmx(request):
 def edit_player_name_htmx(request):
     """HTMX snippet to edit the player name on an EventEntryPlayer"""
 
+    # JPG debug
+    print("**** edit_player_name_htmx")
+
     event_entry_player = get_object_or_404(
         EventEntryPlayer, pk=request.POST.get("event_entry_player_id")
     )
@@ -2359,10 +2377,11 @@ def edit_player_name_htmx(request):
     # create batch ID if an email is going to be sent
     if old_user.id != TBA_PLAYER or new_user.id != TBA_PLAYER:
         batch_id = create_rbac_batch_id(
-            rbac_role=f"events.org.{event.congress.congress_master.org.id}.view",
+            rbac_role=f"events.org.{event.congress.congress_master.org.id}.edit",
             organisation=event.congress.congress_master.org.id,
             batch_type=BatchID.BATCH_TYPE_ENTRY,
             description=f"Edited player name in {event}",
+            complete=True,
         )
         batch_size = 0
     else:

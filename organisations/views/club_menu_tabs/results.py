@@ -116,7 +116,7 @@ def _send_results_emails(results_file, club, request):
 
     # Get results template if we have one
     results_template = OrgEmailTemplate.objects.filter(
-        organisation=club, template_name="Results"
+        organisation=club, template_name__iexact="Results"
     ).first()
 
     if not results_template:

@@ -113,8 +113,11 @@ def invite_to_join(
         "unregistered_identifier": un_reg.identifier,
     }
 
-    if send_cobalt_email_with_template(to_address=email, context=context):
-
+    if send_cobalt_email_with_template(
+        to_address=email,
+        context=context,
+        apply_default_template_for_club=requested_by_org,
+    ):
         un_reg.last_registration_invite_sent = timezone.now()
         un_reg.last_registration_invite_by_user = requested_by_user
         un_reg.last_registration_invite_by_club = requested_by_org

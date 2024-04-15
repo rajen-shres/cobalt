@@ -54,7 +54,10 @@ def send_first_warning(congress):
         "link_text": "View Congress",
     }
 
-    send_cobalt_email_with_template(to_address=congress.contact_email, context=context)
+    send_cobalt_email_with_template(
+        to_address=congress.contact_email,
+        context=context,
+    )
 
 
 def send_last_warning(congress):
@@ -90,7 +93,10 @@ def send_last_warning(congress):
         "link_text": "View Congress",
     }
 
-    send_cobalt_email_with_template(to_address=congress.contact_email, context=context)
+    send_cobalt_email_with_template(
+        to_address=congress.contact_email,
+        context=context,
+    )
 
 
 def fix_congress_normal(congress, system_account):
@@ -121,7 +127,10 @@ def fix_congress_normal(congress, system_account):
         "link_text": "View Congress",
     }
 
-    send_cobalt_email_with_template(to_address=congress.contact_email, context=context)
+    send_cobalt_email_with_template(
+        to_address=congress.contact_email,
+        context=context,
+    )
 
 
 def fix_congress_after_extension(congress, system_account):
@@ -152,7 +161,10 @@ def fix_congress_after_extension(congress, system_account):
         "link_text": "View Congress",
     }
 
-    send_cobalt_email_with_template(to_address=congress.contact_email, context=context)
+    send_cobalt_email_with_template(
+        to_address=congress.contact_email,
+        context=context,
+    )
 
 
 class Command(BaseCommand):

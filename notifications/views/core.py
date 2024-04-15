@@ -168,6 +168,60 @@ def _email_address_on_bounce_list(to_address):
     return False
 
 
+def update_context_for_club_default_template(club, context):
+    """Update the context dictionary with club default styling
+
+    Returns the OrgEmailTemplate objected used or None"""
+
+    # determine which template (if any) to use
+    org_templates = OrgEmailTemplate.objects.filter(organisation=club).all()
+
+    default_template = None
+    if len(org_templates) == 0:
+        # no club templates
+        return None
+    elif len(org_templates) == 1:
+        # only one template, use it
+        default_template = org_templates.first()
+    else:
+        # more than one template, so see what we have
+        named_default = None
+        named_results = None
+        other_names = []
+        for org_template in org_templates:
+            if org_template.template_name.upper() == "RESULTS":
+                named_results = org_template
+            elif org_template.template_name.upper() == "DEFAULT":
+                named_default = org_template
+            else:
+                other_names.append(org_template)
+        if named_default:
+            # there is a "Default" so use it
+            default_template = named_default
+        elif named_results and len(other_names) == 1:
+            # there is a "Results" and only one other, so use the other
+            default_template = other_names[0]
+        else:
+            return None
+
+    if default_template:
+        # update the context
+
+        if default_template.banner:
+            context["img_src"] = default_template.banner.url
+
+        if default_template.footer:
+            context["footer"] = default_template.footer
+
+        if default_template.box_colour:
+            context["box_colour"] = default_template.box_colour
+
+        if default_template.box_font_colour:
+            context["box_font_colour"] = default_template.box_font_colour
+
+    return default_template
+
+
 def send_cobalt_email_with_template(
     to_address,
     context,
@@ -178,11 +232,12 @@ def send_cobalt_email_with_template(
     reply_to=None,
     attachments=None,
     batch_size=1,
+    apply_default_template_for_club=None,
 ):
     """Queue an email using a template and context.
 
     Args:
-        to_address (str or list): who to send to
+        to_address (str or list): who to send to  (JPG Comment - does not appear to support list)
         context (dict): values to substitute into email template
         template (str or EmailTemplate instance): it is more efficient to use an instance for multiple calls
         sender (str): who to send from (None will use default from settings file)
@@ -190,6 +245,7 @@ def send_cobalt_email_with_template(
         batch_id (BatchID): batch_id for this batch of emails
         reply_to (str): email address to send replies to
         attachments (dict): optional dictionary of attachments
+        apply_default_template_for_club (Organisation): apply style settings from a default template for this club
 
     Returns:
         boolean: True if the message was sent, False otherwise
@@ -210,6 +266,12 @@ def send_cobalt_email_with_template(
 
     """
 
+    # JPG debug
+    print(
+        f"**** SCEWT: {to_address}, {batch_id.batch_type if batch_id else 'No batch_id'}, "
+        + f"size={batch_size}, apply club defaulk:{apply_default_template_for_club}"
+    )
+
     # Check if on bounce list
     if _email_address_on_bounce_list(to_address):
         logger.info(f"Ignoring email on bounce list {to_address}")
@@ -217,6 +279,19 @@ def send_cobalt_email_with_template(
 
     # Augment context
     context["host"] = COBALT_HOSTNAME
+
+    if apply_default_template_for_club:
+        default_org_template = update_context_for_club_default_template(
+            apply_default_template_for_club, context
+        )
+    else:
+        default_org_template = None
+
+    # JPG debug
+    print(
+        f"****   default template = {default_org_template.template_name if default_org_template else 'None'}"
+    )
+
     if "img_src" not in context:
         context["img_src"] = "notifications/img/myabf-email.png"
     if "box_colour" not in context:
@@ -242,9 +317,19 @@ def send_cobalt_email_with_template(
 
     if reply_to:
         headers["Reply-to"] = reply_to
+    elif default_org_template and default_org_template.reply_to:
+        headers["Reply-to"] = default_org_template.reply_to
+
+    this_sender = sender
+    if this_sender is None:
+        if default_org_template and default_org_template.from_name:
+            this_sender = f"{default_org_template.from_name}<donotreply@myabf.com.au>"
+
+    # JPG debug
+    print(f"****   sender = {this_sender}")
 
     email = po_email.send(
-        sender=sender,
+        sender=this_sender,
         recipients=to_address,
         template=template,
         context=context,
@@ -340,6 +425,11 @@ def create_rbac_batch_id(
     Returns: BatchID
 
     """
+
+    #  JPG debug
+    print(
+        f"====== create_rbac_batch_id: {rbac_role}, {batch_type}, {batch_size} '{description}'"
+    )
 
     if not batch_id:
         batch_id = BatchID()
@@ -633,11 +723,11 @@ def contact_member(
 
     This is for simple cases:
 
-    It uses the default template with a link. If you don't provide the link it will looks silly.
+    It uses the default template with a link. If you don't provide the link it will lookCommon function for contacting users silly.
     msg = short description to go on the in-app notification
     subject is also used as the title (inside body of email)
 
-    batch_id is am option BatchID object for use when sending entry related emails
+    batch_id is an option BatchID object for use when sending entry related emails
 
     """
 
@@ -664,7 +754,10 @@ def contact_member(
         }
 
         send_cobalt_email_with_template(
-            to_address=member.email, context=context, batch_id=batch_id
+            to_address=member.email,
+            context=context,
+            batch_id=batch_id,
+            apply_default_template_for_club=batch_id.organisation if batch_id else None,
         )
 
     if contact_type == "SMS":
@@ -904,6 +997,7 @@ def send_cobalt_email_to_system_number(
         context=context,
         batch_id=batch_id,
         template="system - club",
+        apply_default_template_for_club=club if club else None,
     )
 
 
@@ -1101,7 +1195,7 @@ def initiate_admin_multi_email(request, club_id):
 
     # create the batch header
     batch = create_rbac_batch_id(
-        f"events.org.{club_id}.view",
+        f"events.org.{club_id}.edit",
         organisation=org,
         batch_type=BatchID.BATCH_TYPE_MULTI,
         batch_size=0,

@@ -842,6 +842,9 @@ def give_player_refund_ajax(request):
 def change_player_entry_ajax(request):
     """Change a player in an event. Also update entry_fee if required"""
 
+    # JPG debug
+    print("**** change_player_entry_ajax")
+
     member_id = request.GET["member_id"]
     event_entry_player_id = request.GET["player_event_entry"]
 
@@ -881,7 +884,7 @@ def change_player_entry_ajax(request):
 
     # create batch ID
     batch_id = create_rbac_batch_id(
-        rbac_role=f"events.org.{congress.congress_master.org.id}.view",
+        rbac_role=f"events.org.{congress.congress_master.org.id}.edit",
         organisation=congress.congress_master.org,
         batch_type=BatchID.BATCH_TYPE_ENTRY,
         description=f"Event entry - {congress}",
@@ -941,6 +944,9 @@ def change_player_entry_ajax(request):
         batch_id.batch_size = batch_size
         batch_id.state = BatchID.BATCH_STATE_COMPLETE
         batch_id.save()
+
+        # JPG Debug
+        print(f"BatchID updated, size = {batch_id.batch_size}")
 
         return JsonResponse({"message": "Success", "html": return_html})
 
@@ -1046,6 +1052,9 @@ def change_player_entry_ajax(request):
     batch_id.state = BatchID.BATCH_STATE_COMPLETE
     batch_id.save()
 
+    # JPG Debug
+    print(f"BatchID updated, size = {batch_id.batch_size}")
+
     # the HTML screen reloads but we need to tell the user what happened first
     # Also if the player has just deleted themselves then take them back to the dashboard
     return JsonResponse(
@@ -1112,6 +1121,9 @@ def add_player_to_existing_entry_ajax(request):
 def delete_player_from_entry_ajax(request):
     """Delete a player (5 or 6 only) from a team from the edit entry screen"""
 
+    # JPG debug
+    print("**** delete_player_from_entry_ajax")
+
     if request.method == "GET":
         event_entry_player_id = request.GET["event_entry_player_id"]
         event_entry_player = get_object_or_404(
@@ -1166,10 +1178,11 @@ def delete_player_from_entry_ajax(request):
 
             # create batch ID
             batch_id = create_rbac_batch_id(
-                rbac_role=f"events.org.{congress.congress_master.org.id}.view",
+                rbac_role=f"events.org.{congress.congress_master.org.id}.edit",
                 organisation=congress.congress_master.org,
                 batch_type=BatchID.BATCH_TYPE_ENTRY,
                 description=f"Removal from {event}",
+                complete=True,
             )
             batch_size = 1
 
@@ -1234,10 +1247,11 @@ def change_category_on_existing_entry_ajax(request, event_entry_id, category_id)
 
     # create batch ID
     batch_id = create_rbac_batch_id(
-        rbac_role=f"events.org.{event_entry.event.congress.congress_master.org.id}.view",
+        rbac_role=f"events.org.{event_entry.event.congress.congress_master.org.id}.edit",
         organisation=event_entry.event.congress.congress_master.org,
         batch_type=BatchID.BATCH_TYPE_ENTRY,
         description=f"{event_entry.event} - {request.user.full_name} Changed category",
+        complete=True,
     )
 
     # tell the conveners

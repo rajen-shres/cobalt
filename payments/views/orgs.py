@@ -10,7 +10,8 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone, dateformat
 
 from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS, TIME_ZONE
-from notifications.views.core import contact_member
+from notifications.models import BatchID
+from notifications.views.core import contact_member, create_rbac_batch_id
 
 from organisations.models import Organisation
 from organisations.views.general import org_balance
@@ -280,6 +281,16 @@ def member_transfer_org(request, org_id):
                             This transfer was made by {request.user}.
                             <br><br>"""
 
+            # create batch ID
+            batch_id = create_rbac_batch_id(
+                rbac_role=f"notifications.orgcomms.{organisation}.edit",
+                organisation=organisation,
+                batch_type=BatchID.BATCH_TYPE_ADMIN,
+                description=f"Transfer from {organisation}",
+                batch_size=1,
+                complete=True,
+            )
+
             # send
             contact_member(
                 member=member,
@@ -289,6 +300,7 @@ def member_transfer_org(request, org_id):
                 html_msg=email_body,
                 link="/payments",
                 subject="Transfer from %s" % organisation,
+                batch_id=batch_id,
             )
 
             msg = "Transferred %s%s to %s" % (
