@@ -15,6 +15,7 @@ from notifications.models import Snooper, BatchID
 from notifications.views.core import (
     create_rbac_batch_id,
     send_cobalt_email_with_template,
+    club_default_template,
 )
 from organisations.decorators import check_club_menu_access
 from organisations.forms import ResultsFileForm, ResultsEmailMessageForm
@@ -120,7 +121,9 @@ def _send_results_emails(results_file, club, request):
     ).first()
 
     if not results_template:
-        results_template = OrgEmailTemplate(organisation=club)
+        results_template = club_default_template(club) or OrgEmailTemplate(
+            organisation=club
+        )
 
     # set up context
     context = {
@@ -134,6 +137,8 @@ def _send_results_emails(results_file, club, request):
     from_name = results_template.from_name
     if results_template.banner:
         context["img_src"] = results_template.banner.url
+        #  JPG debug
+        print(f"++++++ _send_results_emails url={results_template.banner.url}")
 
     sender = f"{from_name}<donotreply@myabf.com.au>" if from_name else None
 

@@ -17,6 +17,7 @@ from cobalt.settings import (
 from masterpoints.views import user_summary
 from notifications.models import (
     EmailBatchRBAC,
+    BatchID,
     Snooper,
     RealtimeNotificationHeader,
     RealtimeNotification,
@@ -50,6 +51,12 @@ def admin_view_all_emails(request):
 def admin_view_email_by_batch(request, batch_id):
     """Show an email from a batch"""
 
+    # NOTE: the batch_id parameter passed in is the key to the
+    # EmailBatchRBAC table, NOT the key to the BatchID table
+    # Prior to April 24 it was being used for both, which only
+    # worked because the two were identical in production.
+    # This can not be guarenteed.
+
     batch = get_object_or_404(EmailBatchRBAC, pk=batch_id)
 
     admin_role = "notifications.admin.view"
@@ -60,7 +67,9 @@ def admin_view_email_by_batch(request, batch_id):
     ):
         return rbac_forbidden(request, batch.rbac_role)
 
-    snoopers = Snooper.objects.filter(batch_id=batch_id)
+    # snoopers = Snooper.objects.filter(batch_id=batch_id)
+
+    snoopers = Snooper.objects.filter(batch_id=batch.batch_id)
 
     if not snoopers:
         return HttpResponse("Not found")

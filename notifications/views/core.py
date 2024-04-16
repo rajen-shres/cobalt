@@ -32,6 +32,8 @@ from firebase_admin.messaging import (
 )
 from post_office import mail as po_email
 
+from cobalt.settings import MEDIA_ROOT
+
 from accounts.models import User, UserAdditionalInfo, UnregisteredUser
 from cobalt.settings import (
     COBALT_HOSTNAME,
@@ -168,20 +170,25 @@ def _email_address_on_bounce_list(to_address):
     return False
 
 
-def update_context_for_club_default_template(club, context):
-    """Update the context dictionary with club default styling
+def club_default_template(club):
+    """Determine a reasonable default email template for the club, or None
 
-    Returns the OrgEmailTemplate objected used or None"""
-
-    # determine which template (if any) to use
+    This uses the following rules:
+    0. If there are no club templates return None
+    1. If there is only one club template, regardless of name, use it (ie could be "Results")
+    2. If there is one called "Default" use it, regardless of what others exist
+    3. If there is no "Default", but "Results" and one other, use the other
+    4. If there is more than one and no "Default" (and not case 3) return None
+    """
     org_templates = OrgEmailTemplate.objects.filter(organisation=club).all()
 
     default_template = None
+
     if len(org_templates) == 0:
-        # no club templates
+        # no club templates (rule 0)
         return None
     elif len(org_templates) == 1:
-        # only one template, use it
+        # only one template, use it (rule 1)
         default_template = org_templates.first()
     else:
         # more than one template, so see what we have
@@ -196,19 +203,32 @@ def update_context_for_club_default_template(club, context):
             else:
                 other_names.append(org_template)
         if named_default:
-            # there is a "Default" so use it
+            # there is a "Default" so use it (rule 2)
             default_template = named_default
         elif named_results and len(other_names) == 1:
-            # there is a "Results" and only one other, so use the other
+            # there is a "Results" and only one other, so use the other (rule 3)
             default_template = other_names[0]
-        else:
-            return None
+
+    return default_template
+
+
+def update_context_for_club_default_template(club, context):
+    """Update the context dictionary with club default styling
+
+    Returns the OrgEmailTemplate objected used or None"""
+
+    default_template = club_default_template(club)
 
     if default_template:
         # update the context
 
         if default_template.banner:
             context["img_src"] = default_template.banner.url
+
+            #  JPG debug
+            print(
+                f"++++++ update_context_for_club_default_template url={default_template.banner.url}"
+            )
 
         if default_template.footer:
             context["footer"] = default_template.footer
@@ -269,7 +289,7 @@ def send_cobalt_email_with_template(
     # JPG debug
     print(
         f"**** SCEWT: {to_address}, {batch_id.batch_type if batch_id else 'No batch_id'}, "
-        + f"size={batch_size}, apply club defaulk:{apply_default_template_for_club}"
+        + f"size={batch_size}, apply club default:{apply_default_template_for_club}"
     )
 
     # Check if on bounce list
@@ -294,6 +314,12 @@ def send_cobalt_email_with_template(
 
     if "img_src" not in context:
         context["img_src"] = "notifications/img/myabf-email.png"
+
+        #  JPG debug
+        print(
+            "++++++ send_cobalt_email_with_template url=notifications/img/myabf-email.png"
+        )
+
     if "box_colour" not in context:
         context["box_colour"] = "primary"
     if "link_colour" not in context:
@@ -327,6 +353,9 @@ def send_cobalt_email_with_template(
 
     # JPG debug
     print(f"****   sender = {this_sender}")
+    print(f"****   img_src= {context['img_src'] if 'img_src' in context else 'None'}")
+    context["img_src"] = "notifications/img/myabf-email.png"
+    print(f"****    OVERRIDING img_src to known safe value: {context['img_src']}")
 
     email = po_email.send(
         sender=this_sender,
@@ -2162,11 +2191,21 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
     if batch.template:
         org_template = batch.template
     else:
-        org_template = OrgEmailTemplate(organisation=club)
+        org_template = club_default_template(club) or OrgEmailTemplate(
+            organisation=club
+        )
 
-    context["img_src"] = org_template.banner.url
-    context["footer"] = org_template.footer
-    context["box_colour"] = org_template.box_colour
+    if org_template.banner:
+        context["img_src"] = org_template.banner.url
+
+    #  JPG debug
+    print(f"++++++ _dispatch_batch url={org_template.banner.url}")
+
+    if org_template.footer:
+        context["footer"] = org_template.footer
+
+    if org_template.box_colour:
+        context["box_colour"] = org_template.box_colour
 
     # determine which EmailTemplate to use, and update context with
     # and template specific parameters
@@ -2203,7 +2242,8 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
 
         po_template = "system - club"
         context["title"] = batch.description
-        context["box_font_colour"] = org_template.box_font_colour
+        if org_template.box_font_colour:
+            context["box_font_colour"] = org_template.box_font_colour
     else:
 
         context["title"] = batch.description

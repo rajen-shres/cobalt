@@ -25,6 +25,7 @@ from notifications.models import UnregisteredBlockedEmail, BatchID
 from notifications.views.core import (
     send_cobalt_email_with_template,
     create_rbac_batch_id,
+    club_default_template,
 )
 from organisations.decorators import check_club_menu_access
 from organisations.forms import (
@@ -636,12 +637,30 @@ def _send_welcome_pack(club, first_name, email, user, invite_to_join):
     }
 
     # Get the extra fields from the template if we have one
-    use_template = welcome_pack.template or OrgEmailTemplate()
+    # Use a reasonable club default if possible, otherwise a general default
+    use_template = (
+        welcome_pack.template
+        or club_default_template(club)
+        or OrgEmailTemplate(organisation=club)
+    )
+
+    # JPG debug
+    print(f"---- _send_welcome_pack using template {use_template}")
+
     reply_to = use_template.reply_to
     from_name = use_template.from_name
     if use_template.banner:
         context["img_src"] = use_template.banner.url
+        #  JPG debug
+        print(f"++++++ _send_welcome_pack url={use_template.banner.url}")
+
     context["footer"] = use_template.footer
+
+    if use_template.box_colour:
+        context["box_colour"] = use_template.box_colour
+
+    if use_template.box_font_colour:
+        context["box_font_colour"] = use_template.box_font_colour
 
     sender = f"{from_name}<donotreply@myabf.com.au>" if from_name else None
 
