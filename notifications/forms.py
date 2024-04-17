@@ -117,6 +117,11 @@ class EmailOptionsForm(forms.Form):
             (choice.pk, choice.template_name)
             for choice in OrgEmailTemplate.objects.filter(organisation=self.club)
         ]
+
+        # JPG debug
+        for (index, value) in choices:
+            print(f"#### EmailOptionsForm template choice: {index} : {value}")
+
         self.fields["template"].choices = choices
 
     def clean_body(self):

@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMultiAlternatives
 from django.core.paginator import Paginator
 from django.db import connection, IntegrityError
-from django.db.models import Count, OuterRef, Subquery, CharField
+from django.db.models import Count, OuterRef, Subquery, CharField, Q
 from django.db.models.functions import Cast
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1312,7 +1312,19 @@ def check_club_and_batch_access():
 def compose_email_multi_select(request, club, batch):
     """Compose batch emails - step 0 - select events (multis only)"""
 
-    masters = CongressMaster.objects.filter(org=club)
+    # non_draft_congress_count=Count('congress_set', filter=~Q(congress_set__status='Draft'))
+
+    # select masters and count non-draft congresses, exclude any master with no non-draft congresses
+    masters = (
+        CongressMaster.objects.filter(org=club)
+        .annotate(
+            non_draft_congress_count=Count(
+                "congress",
+                filter=Q(congress__status="Published") | Q(congress__status="Closed"),
+            )
+        )
+        .filter(non_draft_congress_count__gt=0)
+    )
 
     if request.method == "POST":
         # update the selected batch activities and rebuild the recipients
@@ -1362,6 +1374,10 @@ def compose_email_multi_select(request, club, batch):
         # process events, adding an activity if not in a selected congress / master
         # and always adding entrants to recipients
         for key, value in request.POST.items():
+
+            # JPG debug
+            print(f"compose_email_multi_select POST key={key}, value={value}")
+
             parts = key.split("-")
             if parts[0] != "event":
                 continue
@@ -1936,6 +1952,11 @@ def compose_email_options(request, club, batch):
             template = get_object_or_404(OrgEmailTemplate, pk=selected_template_id)
             email_options_form.fields["from_name"].initial = template.from_name
             email_options_form.fields["reply_to"].initial = template.reply_to
+            # save these to the batch
+            batch.template = template
+            batch.from_name = template.from_name
+            batch.reply_to = template.reply_to
+            batch.save()
         else:
             # no templates so just use defaults
             selected_template_id = None
@@ -1960,12 +1981,22 @@ def compose_email_options_from_and_reply_to_htmx(request, club, batch):
     """Rebuild the from and reply_to fields in the send email form if the template changes"""
 
     template_id = request.POST.get("template")
+
+    # JPG debug
+    print(f".... template_id = {template_id}")
+
     template = get_object_or_404(OrgEmailTemplate, pk=template_id)
 
     email_options_form = EmailOptionsForm(club=club)
 
     email_options_form.fields["from_name"].initial = template.from_name
     email_options_form.fields["reply_to"].initial = template.reply_to
+
+    # save these to the batch
+    batch.template = template
+    batch.from_name = template.from_name
+    batch.reply_to = template.reply_to
+    batch.save()
 
     return render(
         request,
@@ -2195,6 +2226,11 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
             organisation=club
         )
 
+    # JPG debug
+    print(
+        f"++++++ _dispatch_batch template={org_template.template_name} ({org_template.id})"
+    )
+
     if org_template.banner:
         context["img_src"] = org_template.banner.url
 
@@ -2203,6 +2239,9 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
 
     if org_template.footer:
         context["footer"] = org_template.footer
+
+        # JPG debug
+        print(f"++++++ _dispatch_batch fotter={org_template.footer})")
 
     if org_template.box_colour:
         context["box_colour"] = org_template.box_colour

@@ -710,11 +710,6 @@ class Event(models.Model):
         if not start:  # no start will also mean no end
             return None
 
-        # JPG Debug
-        print(
-            f"++++++++++++ print_dates: start={start}, end={end}, {'== if start == end else '!=''} "
-        )
-
         if start == end:
             return f'{ordinal(start.strftime("%d"))} {start.strftime("%B %Y")}'
 

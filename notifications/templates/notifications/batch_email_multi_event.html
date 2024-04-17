@@ -210,7 +210,7 @@
 
         <div class="container">
             {% for master in masters %}
-                {% if master.congress_set.all|length > 1 %}
+                {% if master.non_draft_congress_count > 1 %}
 
                     <!-- Multiple congresses in the series -->
                     <div class="row">
@@ -222,7 +222,7 @@
                             >
                             <label class="form-check-label text-dark" for="master-cb-{{ master.pk }}">
                                 <u>
-                                    {{ master.name }} (Series of {{ master.congress_set.all|length }})
+                                    {{ master.name }} (Series of {{ master.non_draft_congress_count }})
                                 </u> &nbsp;
                             </label>
                             <span
@@ -234,7 +234,8 @@
                             </span>
                         </div>
                     </div>
-                {% elif master.congress_set.all|length == 1 %}
+
+                {% elif master.non_draft_congress_count == 1 %}
 
                     <!-- Single congress in series, so master is hidden -->
 
@@ -246,82 +247,85 @@
 
                 {% endif %}
 
-                {% if master.congress_set.all|length > 0 %}
+                {% if master.non_draft_congress_count > 0 %}
                     <!-- Congresses in a hideable div -->
                     <div
-                        class="row flex_column master-detail {% if master.congress_set.all|length > 1 %} collapse {% endif %}"
+                        class="row flex_column master-detail {% if master.non_draft_congress_count > 1 %} collapse {% endif %}"
                         id="master-detail-{{ master.pk }}"
                     >
 
                         {% for congress in master.congress_set.all %}
 
-                            <!-- Congress - always visible -->
-                            <div
-                                class="col-12 mt-2"
-                                style="margin-left: {% if master.congress_set.all|length > 1 %} 60px {% else %} 30px {% endif %};"
-                            >
-                                <input
-                                    class="form-check-input congress-cb congress-cb-in-master-{{ master.pk }}" type="checkbox"
-                                    name="congress-{{ congress.pk }}" value="{{ congress.pk }}"
-                                    id="congress-cb-{{ master.pk }}-{{ congress.pk }}"
-                                    {% if congress.pk in selected_congresses %} checked {% endif %}
+                            {% if not congress.status == 'Draft' %}
+
+                                <!-- Congress - always visible -->
+                                <div
+                                    class="col-12 mt-2"
+                                    style="margin-left: {% if master.non_draft_congress_count > 1 %} 60px {% else %} 30px {% endif %};"
                                 >
-                                <label class="form-check-label text-dark" for="congress-cb-{{ master.pk }}-{{ congress.pk }}">
-                                    <b>
-                                        {{ congress.name }} ({{ congress.year }})
-                                        {% if congress.event_set.all|length == 1 %} - {{ congress.event_set.all.0.event_name }} {% endif %}
-                                    </b> &nbsp;
-                                </label>
-
-                                <!-- Only show expand/collapse control if multiple events -->
-                                {% if congress.event_set.all|length > 1 %}
-                                    <span
-                                        class="text-secondary" style="cursor: pointer;"
-                                        data-toggle="collapse" data-target="#congress-detail-{{ master.pk }}-{{ congress.pk }}"
-                                        id="toggle-congress-detail-{{ master.pk }}-{{ congress.pk }}"
+                                    <input
+                                        class="form-check-input congress-cb congress-cb-in-master-{{ master.pk }}" type="checkbox"
+                                        name="congress-{{ congress.pk }}" value="{{ congress.pk }}"
+                                        id="congress-cb-{{ master.pk }}-{{ congress.pk }}"
+                                        {% if congress.pk in selected_congresses %} checked {% endif %}
                                     >
-                                        [Show]
-                                    </span>
-                                {% endif %}
-                            </div>
+                                    <label class="form-check-label text-dark" for="congress-cb-{{ master.pk }}-{{ congress.pk }}">
+                                        <b>
+                                            {{ congress.name }} ({{ congress.year }})
+                                            {% if congress.event_set.all|length == 1 %} - {{ congress.event_set.all.0.event_name }} {% endif %}
+                                        </b> &nbsp;
+                                    </label>
 
-                            {% if congress.event_set.all|length > 1 %}
-
-                                <!-- Multiple events in a hideable div -->
-                                <div class="row flex_column congress-detail collapse" id="congress-detail-{{ master.pk }}-{{ congress.pk }}">
-
-                                    {% for event in congress.event_set.all %}
-
-                                        <!-- Event -->
-                                        <div
-                                            class="col-12"
-                                            style="margin-left: {% if master.congress_set.all|length > 1 %} 110px {% else %} 75px {% endif %};"
+                                    <!-- Only show expand/collapse control if multiple events -->
+                                    {% if congress.event_set.all|length > 1 %}
+                                        <span
+                                            class="text-secondary" style="cursor: pointer;"
+                                            data-toggle="collapse" data-target="#congress-detail-{{ master.pk }}-{{ congress.pk }}"
+                                            id="toggle-congress-detail-{{ master.pk }}-{{ congress.pk }}"
                                         >
-                                            <input
-                                                class="form-check-input event-cb event-cb-in-congress-{{ congress.pk }}" type="checkbox"
-                                                name="event-{{ event.pk }}" value="{{ event.pk }}"
-                                                id="event-cb-{{ master.pk }}-{{ congress.pk }}-{{ event.pk }}"
-                                                {% if event.pk in selected_events %} checked {% endif %}
-                                            >
-                                            <label class="form-check-label" for="event-cb-{{ master.pk }}-{{ congress.pk }}-{{ event.pk }}">
-                                                {{ event.event_name }}
-
-                                            </label>
-                                        </div>
-                                    {% endfor %} <!-- Events -->
+                                            [Show]
+                                        </span>
+                                    {% endif %}
                                 </div>
 
-                            {% else %}
+                                {% if congress.event_set.all|length > 1 %}
 
-                                <!-- Single event in congress, so is hidden (user selects the congress) -->
-                                <input
-                                    class="d-none form-check-input event-cb event-cb-in-congress-{{ congress.pk }}" type="checkbox"
-                                    name="event-{{ congress.event_set.all.0.pk }}" value="{{ congress.event_set.all.0.pk }}"
-                                    id="event-cb-{{ master.pk }}-{{ congress.pk }}-{{ congress.event_set.all.0.pk }}"
-                                    {% if congress.event_set.all.0.pk in selected_events %} checked {% endif %}
-                                >
+                                    <!-- Multiple events in a hideable div -->
+                                    <div class="row flex_column congress-detail collapse" id="congress-detail-{{ master.pk }}-{{ congress.pk }}">
 
-                            {% endif %}
+                                        {% for event in congress.event_set.all %}
+
+                                            <!-- Event -->
+                                            <div
+                                                class="col-12"
+                                                style="margin-left: {% if master.non_draft_congress_count > 1 %} 110px {% else %} 75px {% endif %};"
+                                            >
+                                                <input
+                                                    class="form-check-input event-cb event-cb-in-congress-{{ congress.pk }}" type="checkbox"
+                                                    name="event-{{ event.pk }}" value="{{ event.pk }}"
+                                                    id="event-cb-{{ master.pk }}-{{ congress.pk }}-{{ event.pk }}"
+                                                    {% if event.pk in selected_events %} checked {% endif %}
+                                                >
+                                                <label class="form-check-label" for="event-cb-{{ master.pk }}-{{ congress.pk }}-{{ event.pk }}">
+                                                    {{ event.event_name }}
+
+                                                </label>
+                                            </div>
+                                        {% endfor %} <!-- Events -->
+                                    </div>
+
+                                {% else %}
+
+                                    <!-- Single event in congress, so is hidden (user selects the congress) -->
+                                    <input
+                                        class="d-none form-check-input event-cb event-cb-in-congress-{{ congress.pk }}" type="checkbox"
+                                        name="event-{{ congress.event_set.all.0.pk }}" value="{{ congress.event_set.all.0.pk }}"
+                                        id="event-cb-{{ master.pk }}-{{ congress.pk }}-{{ congress.event_set.all.0.pk }}"
+                                        {% if congress.event_set.all.0.pk in selected_events %} checked {% endif %}
+                                    >
+
+                                {% endif %}
+                            {% endif %} <!-- Congress not draft -->
                         {% endfor %}  <!-- Congress -->
                     </div> <!-- congresses div -->
                 {% endif %}
