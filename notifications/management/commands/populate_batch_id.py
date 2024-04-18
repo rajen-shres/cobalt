@@ -83,11 +83,12 @@ class Command(BaseCommand):
             if snooper:
                 batch.batch_size = batch.snooper_set.count()
                 batch.created = snooper.post_office_email.created
-                batch.description = (
-                    snooper.post_office_email.subject
-                    if len(snooper.post_office_email.subject) > 0
-                    else "No subject available"
-                )
+                if len(snooper.post_office_email.subject) > 0:
+                    batch.description = snooper.post_office_email.subject
+                elif "title" in snooper.post_office_email.context:
+                    batch.description = snooper.post_office_email.context["title"]
+                else:
+                    batch.description = "No subject available"
                 batch.state = BatchID.BATCH_STATE_COMPLETE
             else:
                 self.stdout.write(
