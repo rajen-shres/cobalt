@@ -245,7 +245,7 @@ def update_context_for_club_default_template(club, context):
 def send_cobalt_email_with_template(
     to_address,
     context,
-    template="system - default",
+    template="system - default flex",
     sender=None,
     priority="medium",
     batch_id=None,
@@ -253,6 +253,7 @@ def send_cobalt_email_with_template(
     attachments=None,
     batch_size=1,
     apply_default_template_for_club=None,
+    show_club_footer=True,
 ):
     """Queue an email using a template and context.
 
@@ -266,6 +267,7 @@ def send_cobalt_email_with_template(
         reply_to (str): email address to send replies to
         attachments (dict): optional dictionary of attachments
         apply_default_template_for_club (Organisation): apply style settings from a default template for this club
+        show_club_footer (bool): allows caller to hide the footer from any club template being applied
 
     Returns:
         boolean: True if the message was sent, False otherwise
@@ -299,6 +301,7 @@ def send_cobalt_email_with_template(
 
     # Augment context
     context["host"] = COBALT_HOSTNAME
+    context["show_club_footer"] = show_club_footer
 
     if apply_default_template_for_club:
         default_org_template = update_context_for_club_default_template(
@@ -320,10 +323,14 @@ def send_cobalt_email_with_template(
             "++++++ send_cobalt_email_with_template url=notifications/img/myabf-email.png"
         )
 
-    if "box_colour" not in context:
-        context["box_colour"] = "primary"
+    # no need to defaul box colour now - default is in template html
+    # if "box_colour" not in context:
+    #     context["box_colour"] = "primary"
+
+    # Note - link colour is not used in the template html
     if "link_colour" not in context:
         context["link_colour"] = "primary"
+
     if "subject" not in context and "title" in context:
         context["subject"] = context["title"]
 
@@ -354,8 +361,8 @@ def send_cobalt_email_with_template(
     # JPG debug
     print(f"****   sender = {this_sender}")
     print(f"****   img_src= {context['img_src'] if 'img_src' in context else 'None'}")
-    context["img_src"] = "notifications/img/myabf-email.png"
-    print(f"****    OVERRIDING img_src to known safe value: {context['img_src']}")
+    # context["img_src"] = "notifications/img/myabf-email.png"
+    # print(f"****    OVERRIDING img_src to known safe value: {context['img_src']}")
 
     email = po_email.send(
         sender=this_sender,
@@ -2239,12 +2246,10 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
 
     if org_template.footer:
         context["footer"] = org_template.footer
-
-        # JPG debug
-        print(f"++++++ _dispatch_batch fotter={org_template.footer})")
-
     if org_template.box_colour:
         context["box_colour"] = org_template.box_colour
+    if org_template.box_font_colour:
+        context["box_font_colour"] = org_template.box_font_colour
 
     # determine which EmailTemplate to use, and update context with
     # and template specific parameters
@@ -2254,7 +2259,7 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
         BatchID.BATCH_TYPE_EVENT,
     ]:
 
-        po_template = "system - two headings"
+        po_template = "system - two headings flex"
         activity = BatchActivity.objects.filter(batch=batch).first()
         if activity.activity_type == BatchActivity.ACTIVITY_TYPE_CONGRESS:
             congress = get_object_or_404(Congress, pk=activity.activity_id)
@@ -2270,7 +2275,7 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
         BatchID.BATCH_TYPE_MULTI,
     ]:
 
-        po_template = "system - two headings"
+        po_template = "system - two headings flex"
         context["title1"] = f"Message from {request.user.full_name} on behalf of {club}"
         context["title2"] = batch.description
 
@@ -2281,12 +2286,11 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
 
         po_template = "system - club"
         context["title"] = batch.description
-        if org_template.box_font_colour:
-            context["box_font_colour"] = org_template.box_font_colour
+
     else:
 
         context["title"] = batch.description
-        po_template = "system - default"
+        po_template = "system - default flex"
 
     # other arguements required to send the email
 

@@ -21,6 +21,16 @@ SYSTEM_EMAIL_TEMPLATES = [
         "po_club_template.html",
         "Base template for club emails. Clubs can change logo and footer etc.",
     ),
+    (
+        "default flex",
+        "po_email_default_flex.html",
+        "This is the main system email with a button and link which are used if link is specified  (flexible formatting).",
+    ),
+    (
+        "two headings flex",
+        "po_email_with_two_headings_flex.html",
+        "System email with a heading and a sub-heading (flexible formatting)",
+    ),
 ]
 
 
