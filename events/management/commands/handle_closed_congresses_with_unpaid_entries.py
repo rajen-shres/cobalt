@@ -49,7 +49,7 @@ def send_first_warning(congress):
         "name": "Tournament Organiser",
         "title": f"Congress Requiring Attention - {congress}",
         "email_body": email_body,
-        "box_colour": "primary",
+        "box_colour": "#007bff",
         "link": reverse("events:admin_summary", kwargs={"congress_id": congress.id}),
         "link_text": "View Congress",
     }
@@ -88,7 +88,7 @@ def send_last_warning(congress):
         "name": "Tournament Organiser",
         "title": f"Congress Requiring Attention - Final Notice - {congress}",
         "email_body": email_body,
-        "box_colour": "primary",
+        "box_colour": "#007bff",
         "link": reverse("events:admin_summary", kwargs={"congress_id": congress.id}),
         "link_text": "View Congress",
     }
@@ -122,7 +122,7 @@ def fix_congress_normal(congress, system_account):
         "name": "Tournament Organiser",
         "title": f"Congress Issues Resolved - {congress}",
         "email_body": email_body,
-        "box_colour": "primary",
+        "box_colour": "#007bff",
         "link": reverse("events:admin_summary", kwargs={"congress_id": congress.id}),
         "link_text": "View Congress",
     }
@@ -156,7 +156,7 @@ def fix_congress_after_extension(congress, system_account):
         "name": "Tournament Organiser",
         "title": f"Congress Issues Resolved - {congress}",
         "email_body": email_body,
-        "box_colour": "primary",
+        "box_colour": "#007bff",
         "link": reverse("events:admin_summary", kwargs={"congress_id": congress.id}),
         "link_text": "View Congress",
     }

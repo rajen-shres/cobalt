@@ -1436,7 +1436,7 @@ def _delete_event_entry_handle_post_notify_users(
             "link": "/events/view",
             "link_text": "View Congress Entries",
             "subject": "Entry Cancelled - %s" % event_entry.event,
-            "box_colour": "danger",
+            "box_colour": "#dc3545",
         }
 
         send_cobalt_email_with_template(

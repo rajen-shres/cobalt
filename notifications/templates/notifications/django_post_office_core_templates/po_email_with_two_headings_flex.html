@@ -22,7 +22,7 @@
                                 <tr>
                                     <td class="align-center" style="font-family: Helvetica, sans-serif; font-size: 14px; vertical-align: top; text-align: center;" valign="top" align="center">
                                         <a href="http://{{ host }}" target="_blank"> <img
-                                            {% if system_banner %}
+                                            {% if inline_banner %}
                                                 src="{% inline_image img_src %}"
                                             {% else %}
                                                 src="http://{{ host }}{{ img_src }}"

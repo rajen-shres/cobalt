@@ -540,7 +540,7 @@ class OrgEmailTemplate(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     template_name = models.CharField(max_length=100)
     banner = models.ImageField(
-        upload_to="email_banners/", default="email_banners/default_banner.jpg"
+        upload_to="email_banners/", default="email_banners/myabf-email.png"
     )
     footer = models.TextField(blank=True, null=True)
     from_name = models.CharField(max_length=100, default=GLOBAL_TITLE)

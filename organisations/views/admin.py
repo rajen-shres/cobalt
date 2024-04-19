@@ -157,7 +157,7 @@ def admin_add_club(request):
                 "link": link,
                 "link_text": "Set up your Club",
                 "subject": f"{org} has been set up in {GLOBAL_TITLE}",
-                "box_colour": "danger",
+                "box_colour": "#dc3545",
             }
 
             # We are doing a bulk upload and defaulting the blank ones to the ABF account.

@@ -1385,7 +1385,7 @@ def low_balance_warning(member: User):
         "name": member.first_name,
         "title": "Low Balance Warning",
         "email_body": email_body,
-        "box_colour": "danger",
+        "box_colour": "#dc3545",
         "link": reverse("payments:manual_topup"),
         "link_text": "Manual Top Up Now",
         "additional_words": additional_words,

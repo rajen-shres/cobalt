@@ -302,7 +302,6 @@ def send_cobalt_email_with_template(
     # Augment context
     context["host"] = COBALT_HOSTNAME
     context["show_club_footer"] = show_club_footer
-    context["system_banner"] = apply_default_template_for_club is None
 
     if apply_default_template_for_club:
         default_org_template = update_context_for_club_default_template(
@@ -364,6 +363,12 @@ def send_cobalt_email_with_template(
     print(f"****   img_src= {context['img_src'] if 'img_src' in context else 'None'}")
     # context["img_src"] = "notifications/img/myabf-email.png"
     # print(f"****    OVERRIDING img_src to known safe value: {context['img_src']}")
+
+    if "img_src" in context:
+        context["inline_banner"] = context["img_src"][0] != "/"
+    else:
+        context["inline_banner"] = True
+        context["img_src"] = "notifications/img/myabf-email.png"
 
     email = po_email.send(
         sender=this_sender,

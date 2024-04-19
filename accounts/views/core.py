@@ -339,7 +339,7 @@ def _check_duplicate_email(user):
             "title": "Someone is Using Your Email Address",
             "email_body": html,
             "subject": "Email notification",
-            "box_colour": "danger",
+            "box_colour": "#dc3545",
         }
 
         send_cobalt_email_with_template(

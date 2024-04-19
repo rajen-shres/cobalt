@@ -111,7 +111,7 @@ def _notify_user_common(ticket, subject, email_ticket_msg, email_ticket_footer="
     )
 
     context = {
-        "box_colour": "warn",
+        "box_colour": "#ffc107",
         "name": first_name,
         "title": subject,
         "host": COBALT_HOSTNAME,
@@ -289,7 +289,7 @@ def _notify_staff_common(
     link = reverse("support:helpdesk_edit", kwargs={"ticket_id": ticket.id})
 
     context = {
-        "box_colour": "danger",
+        "box_colour": "#dc3545",
         "name": staff_first_name,
         "title": subject,
         "host": COBALT_HOSTNAME,
