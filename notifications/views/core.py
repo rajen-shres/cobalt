@@ -302,6 +302,7 @@ def send_cobalt_email_with_template(
     # Augment context
     context["host"] = COBALT_HOSTNAME
     context["show_club_footer"] = show_club_footer
+    context["system_banner"] = apply_default_template_for_club is None
 
     if apply_default_template_for_club:
         default_org_template = update_context_for_club_default_template(
