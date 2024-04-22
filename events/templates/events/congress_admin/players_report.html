@@ -63,7 +63,7 @@
                                                     </button>
                                                     <div class="dropdown-menu">
                                                         <a href="{% url "events:admin_evententryplayer" evententryplayer_id=event_entry_player.id %}" class="dropdown-item">Edit</a>
-                                                        <a href="{% url "notifications:email_contact" member_id=event_entry_player.player.id %}" class="dropdown-item">Email</a>
+                                                        <a href="{% url "notifications:email_contact" member_id=event_entry_player.player.id event_id=event.id %}" class="dropdown-item">Email</a>
                                                     </div>
                                                 </div>
                                             </td>

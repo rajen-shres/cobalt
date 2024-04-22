@@ -84,7 +84,7 @@ urlpatterns = [
         name="admin_view_email",
     ),
     path(
-        "email/send-email/<int:member_id>",
+        "email/send-email/<int:member_id>/<int:event_id>",
         notifications.views.core.email_contact,
         name="email_contact",
     ),

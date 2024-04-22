@@ -65,7 +65,7 @@
                                                         View
                                                     </a>
                                                     <a
-                                                        href="{% url "notifications:email_contact" member_id=event_entry_player.player.id %}"
+                                                        href="{% url "notifications:email_contact" member_id=event_entry_player.player.id event_id=event.id %}"
                                                         class="btn btn-sm btn-danger view-unpaid"
                                                         id="button_unpaid_{{ event_entry_player.id }}"
                                                     >

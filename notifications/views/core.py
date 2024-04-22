@@ -815,8 +815,10 @@ def add_in_app_notification(member, msg, link=None):
 
 
 @login_required()
-def email_contact(request, member_id):
-    """email contact form"""
+def email_contact(request, member_id, event_id):
+    """email contact form
+
+    Event parameter added to all allow org template to be applied"""
 
     member = get_object_or_404(User, pk=member_id)
 
@@ -838,10 +840,24 @@ def email_contact(request, member_id):
             "email_body": msg,
         }
 
+        event = get_object_or_404(Event, pk=event_id)
+
+        # Create batch id so admins can see this email
+        batch_id = create_rbac_batch_id(
+            rbac_role=f"events.org.{event.congress.congress_master.org.id}.edit",
+            organisation=event.congress.congress_master.org,
+            batch_type=BatchID.BATCH_TYPE_ENTRY,
+            batch_size=1,
+            description=title,
+            complete=True,
+        )
+
         send_cobalt_email_with_template(
             to_address=member.email,
             context=context,
+            batch_id=batch_id,
             reply_to=request.user.email,
+            apply_default_template_for_club=event.congress.congress_master.org,
         )
 
         messages.success(
