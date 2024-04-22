@@ -1093,6 +1093,9 @@ def _add_user_to_recipients(club, batch, user, initial=True):
 
     If the user is already a recipient, set as included"""
 
+    if user.system_number in ALL_SYSTEM_ACCOUNTS:
+        return (0, f"{user.full_name} is a system account")
+
     recipients = Recipient.objects.filter(batch=batch, system_number=user.system_number)
 
     if recipients.exists():
@@ -1145,6 +1148,9 @@ def _add_to_recipient_with_system_number(batch, club, system_number):
     Returns 1 if the user has been added or reincluded, 0 otherwise
     Returns a user message
     """
+
+    if system_number in ALL_SYSTEM_ACCOUNTS:
+        return (0, "A system account")
 
     #  is the system number already a recipient?
     existing = Recipient.objects.filter(
