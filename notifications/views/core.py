@@ -1112,6 +1112,9 @@ def _add_user_to_recipients(club, batch, user, initial=True):
     if user.system_number in ALL_SYSTEM_ACCOUNTS:
         return (0, f"{user.full_name} is a system account")
 
+    if not user.is_active:
+        return (0, f"{user.full_name} is inactive")
+
     recipients = Recipient.objects.filter(batch=batch, system_number=user.system_number)
 
     if recipients.exists():
@@ -1182,19 +1185,24 @@ def _add_to_recipient_with_system_number(batch, club, system_number):
             return (1, "Recipient added")
 
     # is this a User or UnregisteredUser
-    user = User.objects.filter(system_number=system_number).first()
+    user = User.objects.filter(
+        system_number=system_number,
+    ).first()
 
     if user:
-        recipient = Recipient()
-        recipient.system_number = system_number
-        recipient.batch = batch
-        recipient.first_name = user.first_name
-        recipient.last_name = user.last_name
-        recipient.email = user.email
-        recipient.include = True
-        recipient.initial = False
-        recipient.save()
-        return (1, "Recipient added")
+        if user.is_active:
+            recipient = Recipient()
+            recipient.system_number = system_number
+            recipient.batch = batch
+            recipient.first_name = user.first_name
+            recipient.last_name = user.last_name
+            recipient.email = user.email
+            recipient.include = True
+            recipient.initial = False
+            recipient.save()
+            return (1, "Recipient added")
+        else:
+            return (0, f"{user.full_name} is inactive")
 
     else:
         # is not a user, so try an unregistered club member
@@ -1940,8 +1948,8 @@ def compose_email_recipients_member_search_htmx(request, club, batch):
     Matches on teh start of the relevent field, and can include members
     with no club email address (unregistered users).
 
-    Such unregsistered users will be shown in teh UI without a link.
-    It may be less confusing if a known member is on teh list but
+    Such unregsistered users will be shown in the UI without a link.
+    It may be less confusing if a known member is on the list but
     not selectable, rather than not there at all.
     """
 
@@ -1959,7 +1967,10 @@ def compose_email_recipients_member_search_htmx(request, club, batch):
         membership_type__organisation=club
     ).values_list("system_number", flat=True)
 
-    users = User.objects.filter(system_number__in=member_list)
+    users = User.objects.filter(
+        system_number__in=member_list,
+        is_active=True,
+    )
     un_regs = UnregisteredUser.objects.filter(system_number__in=member_list)
 
     # Subquery of MemberClubEmail filtering by system_number from UnregisteredUser

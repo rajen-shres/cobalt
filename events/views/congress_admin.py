@@ -1350,6 +1350,9 @@ def _admin_email_common(request, all_recipients, congress, event=None):
 def initiate_admin_event_email(request, event_id):
     """Start a new email batch to all entrants to an event"""
 
+    # JPG debug
+    print("*** initiate_admin_event_email ***")
+
     event = get_object_or_404(Event, pk=event_id)
 
     # check access
@@ -1359,8 +1362,12 @@ def initiate_admin_event_email(request, event_id):
 
     # get entrants
     candidates = (
-        EventEntryPlayer.objects.filter(event_entry__event=event)
-        .exclude(event_entry__entry_status="Cancelled")
+        EventEntryPlayer.objects.filter(
+            event_entry__event=event, player__is_active=True
+        )
+        .exclude(
+            event_entry__entry_status="Cancelled",
+        )
         .values_list(
             "player__system_number",
             "player__first_name",
@@ -1369,6 +1376,9 @@ def initiate_admin_event_email(request, event_id):
         )
         .distinct()
     )
+
+    # JPG debug
+    # print(str(candidates.query))
 
     return _initiate_entrant_batch(
         request,
@@ -1392,7 +1402,10 @@ def initiate_admin_unpaid_email(request, event_id):
 
     # Real people
     candidates_real = (
-        EventEntryPlayer.objects.filter(event_entry__event=event)
+        EventEntryPlayer.objects.filter(
+            event_entry__event=event,
+            player__is_active=True,
+        )
         .exclude(player_id=TBA_PLAYER)
         .exclude(payment_status="Paid")
         .exclude(payment_status="Free")
@@ -1413,6 +1426,7 @@ def initiate_admin_unpaid_email(request, event_id):
         .exclude(payment_status="Paid")
         .exclude(payment_status="Free")
         .exclude(event_entry__entry_status="Cancelled")
+        .exclude(event_entry__primary_entrant__is_active=False)
         .values_list(
             "event_entry__primary_entrant__system_number",
             "event_entry__primary_entrant__first_name",
@@ -1446,7 +1460,10 @@ def initiate_admin_congress_email(request, congress_id):
 
     # get entrants
     candidates = (
-        EventEntryPlayer.objects.filter(event_entry__event__congress=congress)
+        EventEntryPlayer.objects.filter(
+            event_entry__event__congress=congress,
+            player__is_active=True,
+        )
         .exclude(event_entry__entry_status="Cancelled")
         .values_list(
             "player__system_number",
