@@ -233,6 +233,17 @@
                 <div class="row" id="tags-pane" style="display: {% if show_tags_pane %}block{% else %}none{% endif %};">
                 </div>
 
+                <!-- Add all members -->
+
+                <div class="row">
+                    <a
+                        class="btn btn-sm w-100 btn-primary"
+                        href="{% url 'notifications:compose_email_recipients_add_tag' club_id=club.id batch_id_id=batch.id tag_id=9999999 %}"
+                    >
+                        Add all club members
+                    </a>
+                </div>
+
             {% endif %}
 
             <!-- Club member search button and pane -->
