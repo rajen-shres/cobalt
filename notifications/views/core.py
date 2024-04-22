@@ -1443,7 +1443,10 @@ def compose_email_multi_select(request, club, batch):
                 event_entry__event=event
             ).select_related("player")
             for entered_player in entered_players:
-                if entered_player.player.system_number not in ALL_SYSTEM_ACCOUNTS:
+                if (
+                    entered_player.player.system_number not in ALL_SYSTEM_ACCOUNTS
+                    and entered_player.player.is_active
+                ):
                     recipient = Recipient()
                     recipient.create_from_user(batch, entered_player.player)
                     try:
