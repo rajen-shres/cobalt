@@ -1759,7 +1759,7 @@ def admin_event_entry_add(request, event_id):
         # create batch ID
         batch_id = create_rbac_batch_id(
             rbac_role=f"events.org.{event.congress.congress_master.org.id}.edit",
-            organisation=event.congress.congress_master.org.id,
+            organisation=event.congress.congress_master.org,
             batch_type=BatchID.BATCH_TYPE_ENTRY,
             description="New convener entry",
             complete=True,
@@ -2380,7 +2380,7 @@ def edit_player_name_htmx(request):
     if old_user.id != TBA_PLAYER or new_user.id != TBA_PLAYER:
         batch_id = create_rbac_batch_id(
             rbac_role=f"events.org.{event.congress.congress_master.org.id}.edit",
-            organisation=event.congress.congress_master.org.id,
+            organisation=event.congress.congress_master.org,
             batch_type=BatchID.BATCH_TYPE_ENTRY,
             description=f"Edited player name in {event}",
             complete=True,
