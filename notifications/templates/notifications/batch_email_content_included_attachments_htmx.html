@@ -12,7 +12,7 @@
                 </td>
                 <td>
                     <button
-                        class="btn btn-warning btn-sm cobalt-delete"
+                        class="btn btn-warning btn-sm ml-2 cobalt-delete"
                         hx-post="{% url 'notifications:compose_email_content_remove_attachment_htmx' club_id=club.id  batch_id_id=batch.id batch_attachment_id=batch_attachment.id %}"
                         hx-target="#included_attachments"
                     >
@@ -23,7 +23,7 @@
         {% endfor %}
 
     {% else %}
-        <td>
+        <td class="text-center">
             No attachments selected
         </td>
     {% endif %}

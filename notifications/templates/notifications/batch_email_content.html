@@ -32,9 +32,8 @@
                 <!-- right column : attachments and buttons -->
 
                 <div class="row">
-                    <div class="col-12">
+                    <div class="col-12" id="email_attachments">
                         <div
-                            id="email_attachments"
                             class="col"
                             hx-post="{% url 'notifications:compose_email_content_attachment_htmx' club_id=club.id batch_id_id=batch.id %}"
                             hx-trigger="load"
