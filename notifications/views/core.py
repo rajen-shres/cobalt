@@ -1,8 +1,10 @@
 import logging
 import re
 import mimetypes
+from datetime import datetime, date
 from threading import Thread
 from itertools import chain
+from urllib.parse import urlencode
 
 import boto3
 import firebase_admin.messaging
@@ -1477,8 +1479,161 @@ def compose_email_multi_select(request, club, batch):
                 len(selected_masters) + len(selected_congresses) + len(selected_events)
             )
             > 0,
+            "start_date_str": request.GET.get("start_date_str", ""),
+            "end_date_str": request.GET.get("end_date_str", ""),
         },
     )
+
+
+@check_club_and_batch_access()
+def compose_email_multi_select_by_date(request, club, batch):
+    """User should have specified a start and end date to select by
+
+    Creates BatchActivities based on date and then redirects to main select view"""
+
+    # get and validate the date range
+    start_date_str = request.POST.get("start_date")
+    end_date_str = request.POST.get("end_date")
+
+    # JPG debug
+    print(f"start date str = '{start_date_str}', end date str = '{end_date_str}'")
+
+    date_format = "%d/%m/%Y"
+    error_msg = None
+    try:
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, date_format).date()
+        else:
+            start_date = date(2020, 12, 1)
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, date_format).date()
+        else:
+            end_date = date.today()
+    except ValueError:
+        error_msg = "Invalid date"
+
+    if error_msg or end_date < start_date:
+        # invalid date range. Note message must be added to the request, not the response
+        messages.error(
+            request,
+            error_msg if error_msg else "Invalid date range",
+            extra_tags="cobalt-message-error",
+        )
+        base_url = reverse(
+            "notifications:compose_email_multi_select",
+            kwargs={
+                "club_id": club.id,
+                "batch_id_id": batch.id,
+            },
+        )
+        query_params = urlencode(
+            {"start_date_str": start_date_str, "end_date_str": end_date_str}
+        )
+        response = HttpResponse("Redirecting...", status=302)
+        response["HX-Redirect"] = f"{base_url}?{query_params}"
+        return response
+
+    # delete the existing batch activities
+    BatchActivity.objects.filter(batch=batch).delete()
+
+    # build the new set of batch activities
+    masters = CongressMaster.objects.filter(org=club)
+
+    total_event_count = 0
+
+    for master in masters:
+
+        selected_congresses = []
+        excluded_congresses = []
+
+        for congress in master.congress_set.all():
+            if congress.status != "Draft":
+                selected_events = []
+                excluded_events = []
+
+                # check each of the events in this congress
+                for event in congress.event_set.all():
+
+                    # calculate event date range from session dates
+                    event_start_date = None
+                    event_end_date = None
+                    for session in event.session_set.all():
+                        if event_start_date is None:
+                            event_start_date = session.session_date
+                            event_end_date = session.session_date
+                        elif session.session_date < event_start_date:
+                            event_start_date = session.session_date
+                        elif session.session_date > event.session_date:
+                            event_end_date = session.session_date
+
+                    if event_start_date >= start_date and event_end_date <= end_date:
+                        selected_events.append(event)
+                        total_event_count += 1
+                    else:
+                        excluded_events.append(event)
+
+                if len(excluded_events) == 0:
+                    # all events selected (ie none excluded), so include the congress
+                    selected_congresses.append(congress)
+
+                else:
+                    # count the congress as excluded and create batch activities for the events
+                    excluded_congresses.append(congress)
+
+                    for selected_event in selected_congresses:
+                        BatchActivity(
+                            batch=batch,
+                            activity_type=BatchActivity.ACTIVITY_TYPE_EVENT,
+                            activity_id=selected_event.id,
+                        ).save()
+
+        if len(excluded_congresses) == 0:
+            # all congresses in the master selected so create a batch activity for the master
+
+            BatchActivity(
+                batch=batch,
+                activity_type=BatchActivity.ACTIVITY_TYPE_SERIES,
+                activity_id=master.id,
+            ).save()
+
+        else:
+            # some subset of congresses selected (possibly none), so create congress batch activities
+
+            for selected_congress in selected_congresses:
+                BatchActivity(
+                    batch=batch,
+                    activity_type=BatchActivity.ACTIVITY_TYPE_CONGRESS,
+                    activity_id=selected_congress.id,
+                ).save()
+
+    # display the new list, with an appropriate message about the results
+
+    if total_event_count == 0:
+        messages.warning(
+            request,
+            f"Nothing selected for the date range {start_date.strftime(date_format)} to {end_date.strftime(date_format)}",
+            extra_tags="cobalt-message-warning",
+        )
+    else:
+        messages.info(
+            request,
+            f"{total_event_count} event{'' if total_event_count==1 else 's'} selected for the date range {start_date.strftime(date_format)} to {end_date.strftime(date_format)}",
+        )
+
+    base_url = reverse(
+        "notifications:compose_email_multi_select",
+        kwargs={
+            "club_id": club.id,
+            "batch_id_id": batch.id,
+        },
+    )
+    query_params = urlencode(
+        {"start_date_str": start_date_str, "end_date_str": end_date_str}
+    )
+
+    response = HttpResponse("Redirecting...", status=302)
+    response["HX-Redirect"] = f"{base_url}?{query_params}"
+    return response
 
 
 @check_club_and_batch_access()
@@ -2131,6 +2286,12 @@ def compose_email_content_send_htmx(request, club, batch):
                 3,
             )
 
+    messages.error(
+        request,
+        error_message,
+        extra_tags="cobalt-message-error",
+    )
+
     response = HttpResponse("Redirecting...", status=302)
 
     if rectification_step == 1:
@@ -2148,12 +2309,6 @@ def compose_email_content_send_htmx(request, club, batch):
             "notifications:compose_email_content",
             kwargs={"club_id": club.id, "batch_id": batch.id},
         )
-
-    messages.error(
-        response,
-        error_message,
-        extra_tags="cobalt-message-error",
-    )
 
     return response
 

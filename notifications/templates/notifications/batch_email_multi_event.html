@@ -3,9 +3,13 @@
 {% extends 'notifications/batch_email.html' %}
 
 {% load humanize %}
+{% load static %}
 {% load cobalt_tags %}
 
 {% block header %}
+    <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
+    <script src="{% static "assets/js/plugins/bootstrap-datetimepicker.min.js" %}"></script>
+
     <script>
 
         // check whether all checkboxes for a selector are checked
@@ -81,6 +85,22 @@
 
 
         $(document).ready(function() {
+
+            $('#id_start_date').datetimepicker({
+                format: 'DD/MM/YYYY'
+            });
+            $('#id_end_date').datetimepicker({
+                format: 'DD/MM/YYYY',
+                useCurrent: false
+            });
+
+            $("#id_start_date").on("dp.change", function(e) {
+                $('#id_end_date').data("DateTimePicker").minDate(e.date);
+            });
+            $("#id_end_date").on("dp.change", function(e) {
+                $('#id_start_date').data("DateTimePicker").maxDate(e.date);
+            });
+
 
             // change the label on the toggle control when showing
             $('.collapse').on('show.bs.collapse', function() {
@@ -190,7 +210,7 @@
 
         <div class="container">
             <div class="row">
-                <div class="col-12" style="margin-left: 30px;">
+                <div class="col-3" style="margin-left: 30px;">
                     <input
                         type="checkbox"
                         class="form-check-input"
@@ -202,6 +222,30 @@
                         Select all
                     </label>
                 </div>
+                <div class="col-2">
+                    <div class="form-group">
+                        <label class="bmd-label-float" style="font-size:11px">Start</label>
+                        <input type="text" name="start_date" id="id_start_date" required class="form-control datepicker" value="{{ start_date_str }}">
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="form-group">
+                        <label class="bmd-label-float" style="font-size:11px">End</label>
+                        <input type="text" name="end_date" id="id_end_date" required class="form-control datepicker" value="{{ end_date_str }}">
+                    </div>
+                </div>
+                <div class="col-2">
+                    <a href="#"
+                        class="btn btn-sm btn-primary cobalt-save"
+                        hx-trigger="click"
+                        hx-post="{% url 'notifications:compose_email_multi_select_by_date' club_id=club.id batch_id_id=batch.id %}"
+                        hx-include="#id_start_date, #id_end_date"
+                    >
+                        Select date range
+                    </a>
+                </div>
+            </div>
+            <div class="row">
                 <div class="col-12">
                     <hr/>
                 </div>

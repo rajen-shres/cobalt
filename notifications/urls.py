@@ -149,6 +149,11 @@ urlpatterns = [
         name="compose_email_multi_select",
     ),
     path(
+        "compose-email/multi-event-by-date/<int:club_id>/<int:batch_id_id>",
+        notifications.views.core.compose_email_multi_select_by_date,
+        name="compose_email_multi_select_by_date",
+    ),
+    path(
         "compose-email/recipients/<int:club_id>/<int:batch_id_id>",
         notifications.views.core.compose_email_recipients,
         name="compose_email_recipients",
