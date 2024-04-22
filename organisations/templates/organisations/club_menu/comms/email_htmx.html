@@ -49,28 +49,29 @@
                 </a>
             {% endif %}
 
-            <!-- BATCH TYPE SELECTOR -->
-            <label for="id_batch_type">Type</label>
-            <select
-                class="selectpicker"
-                data-style="btn btn-info"
-                id="id_batch_type"
-                name="batch_type_picker"
-                hx-post="{% url "organisations:club_menu_tab_comms_email_htmx" %}"
-                hx-target="#id_panel_comms"
-                hx-trigger="change"
-                hx-vars="club_id:{{ club.id }}">
-                <option value="ALL" {% if type_selected == 'ALL' %}selected{% endif %}>All</option>
-                {% for batch_type in batch_types %}
-                    <option value="{{ batch_type.0 }}"{% if type_selected == batch_type.0 %}selected{% endif %}>{{ batch_type.1|title }}</option>
-                {% endfor %}
-            </select>
-
             <div class="row">
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header-info">
                             <h3>Sent Emails</h3>
+
+                            <!-- BATCH TYPE SELECTOR -->
+                            <label for="id_batch_type" class="text-dark">View by email type</label>
+                            <select
+                                class="selectpicker"
+                                data-style="btn bg-light text-dark ml-2"
+                                id="id_batch_type"
+                                name="batch_type_picker"
+                                hx-post="{% url "organisations:club_menu_tab_comms_email_htmx" %}"
+                                hx-target="#id_panel_comms"
+                                hx-trigger="change"
+                                hx-vars="club_id:{{ club.id }}">
+                                <option value="ALL" {% if type_selected == 'ALL' %}selected{% endif %}>All</option>
+                                {% for batch_type in batch_types %}
+                                    <option value="{{ batch_type.0 }}"{% if type_selected == batch_type.0 %}selected{% endif %}>{{ batch_type.1|title }}</option>
+                                {% endfor %}
+                            </select>
+
                         </div>
                         <div class="card-body">
                             {% if things %}
