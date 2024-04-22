@@ -178,7 +178,7 @@ class BatchID(models.Model):
         (BATCH_TYPE_CONGRESS, "Congress"),
         (BATCH_TYPE_EVENT, "Event"),
         (BATCH_TYPE_MEMBER, "Member"),
-        (BATCH_TYPE_MULTI, "Multi"),
+        (BATCH_TYPE_MULTI, "Multi-event"),
         (BATCH_TYPE_RESULTS, "Results"),
         (BATCH_TYPE_ENTRY, "Entry"),
         (BATCH_TYPE_UNKNOWN, "Unknown"),
