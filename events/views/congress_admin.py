@@ -70,6 +70,7 @@ from cobalt.settings import (
     BLEACH_ALLOWED_TAGS,
     BLEACH_ALLOWED_ATTRIBUTES,
     BLEACH_ALLOWED_STYLES,
+    ALL_SYSTEM_ACCOUNTS,
 )
 from utils.utils import cobalt_paginator
 import pytz
@@ -1498,13 +1499,14 @@ def _initiate_entrant_batch(request, candidates, description, congress, event=No
 
     # save the recipients
     for candidate in candidates:
-        recpient = Recipient()
-        recpient.batch = batch
-        recpient.system_number = candidate[0]
-        recpient.first_name = candidate[1]
-        recpient.last_name = candidate[2]
-        recpient.email = candidate[3]
-        recpient.save()
+        if candidate[0] not in ALL_SYSTEM_ACCOUNTS:
+            recpient = Recipient()
+            recpient.batch = batch
+            recpient.system_number = candidate[0]
+            recpient.first_name = candidate[1]
+            recpient.last_name = candidate[2]
+            recpient.email = candidate[3]
+            recpient.save()
 
     # go to club menu, comms tab, edit batch
     return redirect(
