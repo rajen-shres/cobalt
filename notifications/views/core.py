@@ -2178,11 +2178,19 @@ def compose_email_options(request, club, batch):
         if batch.template:
             # use the stored template, but override the template value for the other two fields
             selected_template_id = batch.template.id
+
+            # JPG debug
+            print(f"*** selected_template_id {selected_template_id} = from batch")
+
             email_options_form.fields["from_name"].initial = batch.from_name
             email_options_form.fields["reply_to"].initial = batch.reply_to
         elif len(email_options_form.fields["template"].choices) > 0:
             # first time through an templates exist so use the first and set the other fields accordingly
             selected_template_id = email_options_form.fields["template"].choices[0][0]
+
+            # JPG debug
+            print(f"*** selected_template_id {selected_template_id} = FIRST OPTION")
+
             template = get_object_or_404(OrgEmailTemplate, pk=selected_template_id)
             email_options_form.fields["from_name"].initial = template.from_name
             email_options_form.fields["reply_to"].initial = template.reply_to
@@ -2201,7 +2209,7 @@ def compose_email_options(request, club, batch):
         request,
         "notifications/batch_email_options.html",
         {
-            "seleceted_template_id": selected_template_id,
+            "selected_template_id": selected_template_id,
             "step": 2,
             "batch": batch,
             "club": club,

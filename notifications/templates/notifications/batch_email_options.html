@@ -36,8 +36,13 @@
                                     hx-trigger="change"
                                     hx-vars="club_id:'{{ club.id }}'"
                                 >
-                                    {% for index, value in email_options_form.fields.template.choices %}
-                                        <option value="{{ index }}" {% if index == selected_template_id %}selected{% endif %} >{{ value }}</option>
+                                    {% for choice_template_id, choice_template_name in email_options_form.fields.template.choices %}
+                                        <option
+                                            value="{{ choice_template_id }}"
+                                            {% if choice_template_id == selected_template_id %}selected{% endif %}
+                                        >
+                                            {{ choice_template_name }}
+                                        </option>
                                     {% endfor %}
                                 </select>
                             </div>
