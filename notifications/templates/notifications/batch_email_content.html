@@ -8,13 +8,78 @@
 {% block header %}
 
     {% include 'notifications/batch_email_common_scripts.html' %}
+    {% include "utils/summernote_heading.html" %}
+
+    <script>
+
+        // function to run when subject or content changes
+        function email_content_changed(){
+            $("#id_test_button").prop("disabled", true);
+            $("#id_send_button").prop("disabled", true);
+            $("#id_preview_button").prop("disabled", true);
+            $("#id_save_button").prop("disabled", false);
+        }
+
+        function email_subject_changed(){
+            $("#id_test_button").prop("disabled", true);
+            $("#id_send_button").prop("disabled", true);
+            $("#id_preview_button").prop("disabled", true);
+            $("#id_save_button").prop("disabled", false);
+            $('#subject-header').text($('#id_subject').val());
+        }
+
+        // Stackoverflow delay function
+        function delay(callback, ms) {
+            let timer = 0;
+            return function() {
+                const context = this, args = arguments;
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    callback.apply(context, args);
+                }, ms || 0);
+            };
+        }
+
+        $(document).ready( function() {
+
+            $('#id_subject').on('keyup', email_subject_changed);
+            $('#id_subject').on('change', email_subject_changed);
+
+            // $('#id_subject').keyup(delay(function (e) {
+            //     email_subject_or_content_changed();
+            // }, 500));
+
+            // Handle Summernote changes
+            $('#id_email_body').summernote({
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'underline', 'clear']],
+                    ['fontname', ['fontname']],
+                    ['fontsize', ['fontsize']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture']],
+                    ['view', ['fullscreen', 'help']]
+                ],
+                callbacks: {
+                    onKeyup: email_content_changed
+                },
+
+                {# This is defined on the form but we need it here as we override the summernote call #}
+                "height": "400",
+                "codemirror": {"theme": "monokai"},
+                "placeholder": "<br><br>Enter the body of your email. You can use the test button as many times as you like.",
+            });
+
+        });
+    </script>
+
 
 {% endblock header %}
 
 
 {% block payload %}
-
-    {% include "utils/summernote_heading.html" %}
 
     <form method="post">
         {% csrf_token %}
@@ -79,12 +144,13 @@
                     </div>
 
                     <div class="col-12">
-                        <a
+                        <button
                             class="btn btn-info btn-sm w-100 tm-5"
+                            id="id_preview_button"
                             {% if not ready_to_send %}disabled{% endif %}
                             onclick='window.open("{% url 'notifications:compose_email_content_preview_htmx' club_id=club.id batch_id_id=batch.id %}", "Preview","width=1000,height=1500");'
                             href="javascript:void(0)"
-                        >Preview the email</a>
+                        >Preview the email</button>
                     </div>
 
                     <div class="col-12">
@@ -104,7 +170,7 @@
                             class="btn btn-warning btn-sm w-100"
                             {% if not ready_to_send %}disabled{% endif %}
                             name="test"
-                            id="id_test_button"
+                            id="id_send_button"
                             hx-post="{% url "notifications:compose_email_content_send_htmx" club_id=club.id batch_id_id=batch.id %}"
                             hx-target="#email-test-response"
                         >Send the emails</button>
@@ -152,68 +218,5 @@
         </div>
 
     </form>
-
-
-    <script>
-
-        // Stackoverflow delay function
-        function delay(callback, ms) {
-            let timer = 0;
-            return function() {
-                const context = this, args = arguments;
-                clearTimeout(timer);
-                timer = setTimeout(function () {
-                    callback.apply(context, args);
-                }, ms || 0);
-            };
-        }
-
-        // function to run when subject or content changes
-        function email_subject_or_content_changed(){
-            $("#id_test_button").prop("disabled", true);
-            $("#id_send_button").prop("disabled", true);
-            $("#id_save_button").prop("disabled", false);
-            $('#subject-header').text($('#id_subject').val());
-        }
-
-
-        $(document).ready( function() {
-
-            $('#id_template').on('change', email_subject_or_content_changed);
-
-            $('#id_subject').on('change', email_subject_or_content_changed);
-
-            $('#id_subject').keyup(delay(function (e) {
-                email_subject_or_content_changed();
-            }, 500));
-
-            // Handle Summernote changes
-            $('#id_email_body').summernote({
-                toolbar: [
-                    ['style', ['style']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['fontname', ['fontname']],
-                    ['fontsize', ['fontsize']],
-                    ['color', ['color']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['table', ['table']],
-                    ['insert', ['link', 'picture']],
-                    ['view', ['fullscreen', 'help']]
-                ],
-                callbacks: {
-                    onKeyup: delay(function (e) {
-                        email_subject_or_content_changed();
-                    }, 500)
-                },
-
-                {# This is defined on the form but we need it here as we override the summernote call #}
-                "height": "400",
-                "codemirror": {"theme": "monokai"},
-                "placeholder": "<br><br>Enter the body of your email. You can use the test button as many times as you like.",
-            });
-
-        });
-    </script>
-
 
 {% endblock payload %}
