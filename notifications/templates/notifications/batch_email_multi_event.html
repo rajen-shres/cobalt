@@ -7,6 +7,9 @@
 {% load cobalt_tags %}
 
 {% block header %}
+
+    {% include 'notifications/batch_email_common_scripts.html' %}
+
     <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
     <script src="{% static "assets/js/plugins/bootstrap-datetimepicker.min.js" %}"></script>
 
@@ -62,6 +65,9 @@
                     $(this).prop('indeterminate', evChecked > 0);
                 }
             });
+
+            // set cancelable state depending on whether any events are selected
+            makeCancelable($(".master-cb:checked").length + $(".congress-cb:checked").length + $(".event-cb:checked").length == 0);
         }
 
 
@@ -125,6 +131,8 @@
                 $('.event-cb').prop('checked', this.checked).prop('indeterminate', false);
 
                 $(this).prop('indeterminate', false);
+
+                makeCancelable(!this.checked)
             });
 
 
@@ -385,15 +393,34 @@
             {% endfor %}  <!-- Master -->
         </div>
 
+        <hr/>
+
         <div class="row">
-            <div class="col-12">
-                <hr/>
-                <button type="submit" class="btn btn-primary cobalt-save">
-                    {% if existing_selection %}
-                        Replace existing selection
-                    {% else %}
-                        Save selection
-                    {% endif %}
+            <div class="col-6 text-left">
+
+                <!-- cancel button, deletes without checking -->
+                <a
+                    id="id-cancel-button"
+                    class="btn btn-sm btn-info {% if not cancelable %}d-none{% endif %}"
+                    href="{% url 'notifications:delete_email_batch' club_id=club.id batch_id_id=batch.id %}"
+                >
+                    Cancel
+                </a>
+
+                <!-- delete button, asks for confirmation -->
+
+                <span
+                    id="id-delete-button"
+                    class="btn btn-sm btn-danger {% if cancelable %}d-none{% endif %}"
+                    onclick="confirmDelete('{% url "notifications:delete_email_batch" club_id=club.id batch_id_id=batch.id %}')"
+                >
+                    Delete
+                </span>
+
+            </div>
+            <div class="col-6 text-right">
+                <button type="submit" class="btn btn-sm btn-info cobalt-save">
+                    Next Step
                 </button>
             </div>
         </div>

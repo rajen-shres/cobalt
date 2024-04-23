@@ -4,6 +4,9 @@
 {% load cobalt_tags %}
 
 {% block header %}
+
+    {% include 'notifications/batch_email_common_scripts.html' %}
+
     <script>
 
         function showContactForm() {
@@ -406,12 +409,34 @@
     </div>
 
     <div class="row">
-        <div class="col text-right">
+        <div class="col-6 text-left">
+
+            <!-- cancel button, deletes without checking -->
+            <a
+                id="id-cancel-button"
+                class="btn btn-sm btn-info {% if not cancelable %}d-none{% endif %}"
+                href="{% url 'notifications:delete_email_batch' club_id=club.id batch_id_id=batch.id %}"
+            >
+                Cancel
+            </a>
+
+            <!-- delete button, asks for confirmation -->
+
+            <span
+                class="btn btn-sm btn-danger {% if cancelable %}d-none{% endif %}"
+                id="id-delete-button"
+                onclick="confirmDelete('{% url "notifications:delete_email_batch" club_id=club.id batch_id_id=batch.id %}')"
+            >
+                Delete
+            </span>
+
+        </div>
+        <div class="col-6 text-right">
 
             {% if batch.batch_type == "MLT" %}
                 <!-- Previous buton -->
                 <a
-                    class="btn btn-sm w-25 btn-info"
+                    class="btn btn-sm btn-info"
                     href="{% url 'notifications:compose_email_multi_select' club_id=club.id batch_id_id=batch.id %}"
                 >
                     Previous Step
@@ -421,13 +446,12 @@
             <!-- Next button -->
 
             <a
-                class="btn btn-sm w-25 btn-info"
+                class="btn btn-sm btn-info"
                 href="{% url 'notifications:compose_email_options' club_id=club.id batch_id_id=batch.id %}"
             >
                 Next Step
             </a>
         </div>
     </div>
-
 
 {% endblock payload %}

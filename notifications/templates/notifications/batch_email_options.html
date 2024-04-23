@@ -1,6 +1,6 @@
 {% extends 'notifications/batch_email.html' %}
 
-{% block header %}
+{% block header-plus %}
     <script>
 
         $(document).ready(function() {
@@ -10,7 +10,7 @@
         });
 
     </script>
-{% endblock header %}
+{% endblock header-plus %}
 
 {% block payload %}
 
@@ -52,15 +52,50 @@
                     {% include "notifications/batch_email_options_from_and_reply_to_htmx.html" %}
 
                 </div>
-                <div class="text-right">
-                    <a
-                        class="btn btn-sm w-25 btn-info"
-                        href="{% url 'notifications:compose_email_recipients' club_id=club.id batch_id_id=batch.id %}"
-                    >
-                        Previous Step
-                    </a>
 
-                    <button class="btn btn-sm w-25 btn-info cobalt-save" type="submit">Next Step</button>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-6 text-left">
+
+                            <!-- cancel button, deletes without checking -->
+                            <a
+                                id="id-cancel-button"
+                                class="btn btn-sm btn-info {% if not cancelable %}d-none{% endif %}"
+                                href="{% url 'notifications:delete_email_batch' club_id=club.id batch_id_id=batch.id %}"
+                            >
+                                Cancel
+                            </a>
+
+                            <!-- delete button, asks for confirmation -->
+
+                            <span
+                                class="btn btn-sm btn-danger {% if cancelable %}d-none{% endif %}"
+                                id="id-delete-button"
+                                onclick="confirmDelete('{% url "notifications:delete_email_batch" club_id=club.id batch_id_id=batch.id %}')"
+                            >
+                                Delete
+                            </span>
+
+                        </div>
+                        <div class="col-6 text-right">
+
+                            <a
+                                class="btn btn-sm btn-info"
+                                href="{% url 'notifications:compose_email_recipients' club_id=club.id batch_id_id=batch.id %}"
+                            >
+                                Previous Step
+                            </a>
+
+                            <!-- Next button -->
+
+                            <button
+                                class="btn btn-sm w-25 btn-info cobalt-save"
+                                type="submit"
+                            >
+                                Next Step
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>

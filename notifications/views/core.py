@@ -1353,6 +1353,34 @@ def check_club_and_batch_access():
     return _method_wrapper
 
 
+def _batch_has_been_customised(batch):
+    """Returns whether a batch has been customised at all
+
+    Used to determine whether to show cancel or delete"""
+
+    # check the batch header information
+    if batch.description or batch.template or batch.reply_to or batch.from_name:
+        return True
+
+    # check for batch activities
+    if BatchActivity.objects.filter(batch=batch).count() > 0:
+        return True
+
+    # check for recipients
+    if Recipient.objects.filter(batch=batch).count() > 0:
+        return True
+
+    # check for batch content
+    if BatchContent.objects.filter(batch=batch).count() > 0:
+        return True
+
+    # check for attachements
+    if BatchAttachment.objects.filter(batch=batch).count() > 0:
+        return True
+
+    return False
+
+
 @check_club_and_batch_access()
 def compose_email_multi_select(request, club, batch):
     """Compose batch emails - step 0 - select events (multis only)"""
@@ -1504,6 +1532,7 @@ def compose_email_multi_select(request, club, batch):
             "step": 0,
             "batch": batch,
             "club": club,
+            "cancelable": not _batch_has_been_customised(batch),
             "masters": masters,
             "selected_masters": selected_masters,
             "selected_congresses": selected_congresses,
@@ -1773,6 +1802,7 @@ def compose_email_recipients(request, club, batch):
             "step": 1,
             "batch": batch,
             "club": club,
+            "cancelable": not _batch_has_been_customised(batch),
             "page": page,
             "page_range": page_range,
             "allow_contacts": False,  # NOTE - disable until contacts implememnted
@@ -2175,6 +2205,7 @@ def compose_email_options(request, club, batch):
             "step": 2,
             "batch": batch,
             "club": club,
+            "cancelable": not _batch_has_been_customised(batch),
             "email_options_form": email_options_form,
         },
     )
@@ -2261,6 +2292,7 @@ def compose_email_content(request, club, batch):
             "step": 3,
             "batch": batch,
             "club": club,
+            "cancelable": not _batch_has_been_customised(batch),
             "email_content_form": email_content_form,
             "ready_to_send": ready_to_send,
         },

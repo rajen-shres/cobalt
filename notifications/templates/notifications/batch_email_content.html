@@ -4,6 +4,14 @@
 {% load widget_tweaks %}
 {% load cobalt_tags %}
 
+
+{% block header %}
+
+    {% include 'notifications/batch_email_common_scripts.html' %}
+
+{% endblock header %}
+
+
 {% block payload %}
 
     {% include "utils/summernote_heading.html" %}
@@ -63,20 +71,11 @@
 
                     <div class="col-12">
                         <button
-                            class="btn btn-sm w-100 btn-info cobalt-save"
+                            class="btn btn-sm w-100 btn-info cobalt-save mb-3"
                             {% if ready_to_send %}disabled{% endif %}
                             id="id_save_button"
                             type="submit"
                         >Save</button>
-                    </div>
-
-                    <div class="col-12 mb-4">
-                        <a
-                            class="btn btn-sm w-100 btn-info"
-                            href="{% url 'notifications:compose_email_options' club_id=club.id batch_id_id=batch.id %}"
-                        >
-                            Previous Step
-                        </a>
                     </div>
 
                     <div class="col-12">
@@ -117,6 +116,41 @@
                 </div>
             </div>
         </div>
+
+        <div class="row">
+            <div class="col-6 text-left">
+
+                <!-- cancel button, deletes without checking -->
+                <a
+                    id="id-cancel-button"
+                    class="btn btn-sm btn-info {% if not cancelable %}d-none{% endif %}"
+                    href="{% url 'notifications:delete_email_batch' club_id=club.id batch_id_id=batch.id %}"
+                >
+                    Cancel
+                </a>
+
+                <!-- delete button, asks for confirmation -->
+
+                <span
+                    class="btn btn-sm btn-danger {% if cancelable %}d-none{% endif %}"
+                    id="id-delete-button"
+                    onclick="confirmDelete('{% url "notifications:delete_email_batch" club_id=club.id batch_id_id=batch.id %}')"
+                >
+                    Delete
+                </span>
+
+            </div>
+            <div class="col-6 text-right">
+
+                <a
+                    class="btn btn-sm btn-info"
+                    href="{% url 'notifications:compose_email_options' club_id=club.id batch_id_id=batch.id %}"
+                >
+                    Previous Step
+                </a>
+            </div>
+        </div>
+
     </form>
 
 
