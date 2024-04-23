@@ -1,6 +1,9 @@
 {% extends 'notifications/batch_email.html' %}
 
-{% block header-plus %}
+{% block header %}
+
+    {% include 'notifications/batch_email_common_scripts.html' %}
+
     <script>
 
         $(document).ready(function() {
@@ -10,7 +13,8 @@
         });
 
     </script>
-{% endblock header-plus %}
+
+{% endblock header %}
 
 {% block payload %}
 
