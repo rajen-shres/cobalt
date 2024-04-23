@@ -234,6 +234,11 @@ urlpatterns = [
         name="compose_email_content_send_htmx",
     ),
     path(
+        "compose-email/content-preview-htmx/<int:club_id>/<int:batch_id_id>",
+        notifications.views.core.compose_email_content_preview_htmx,
+        name="compose_email_content_preview_htmx",
+    ),
+    path(
         "compose-email/content-attachment-htmx/<int:club_id>/<int:batch_id_id>",
         notifications.views.core.compose_email_content_attachment_htmx,
         name="compose_email_content_attachment_htmx",

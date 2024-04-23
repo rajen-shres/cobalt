@@ -2268,6 +2268,92 @@ def compose_email_content(request, club, batch):
 
 
 @check_club_and_batch_access()
+def compose_email_content_preview_htmx(request, club, batch):
+    """Show a preview of the emails in the batch in a separate window"""
+
+    context = {
+        "host": COBALT_HOSTNAME,
+        "batch": batch,
+        "name": "Member",
+    }
+
+    # determine the html template and title values based on the batch type
+    if batch.batch_type in [
+        BatchID.BATCH_TYPE_CONGRESS,
+        BatchID.BATCH_TYPE_EVENT,
+    ]:
+
+        context["po_template_name"] = "two_headings"
+        context["po_template_html_name"] = "po_email_with_two_headings_flex.html"
+        activity = BatchActivity.objects.filter(batch=batch).first()
+        if activity.activity_type == BatchActivity.ACTIVITY_TYPE_CONGRESS:
+            congress = get_object_or_404(Congress, pk=activity.activity_id)
+        else:
+            event = get_object_or_404(Event, pk=activity.activity_id)
+            congress = event.congress
+        context[
+            "title1"
+        ] = f"Message from {request.user.full_name} on behalf of {congress}"
+        context["title2"] = batch.description
+
+    elif batch.batch_type in [
+        BatchID.BATCH_TYPE_MULTI,
+    ]:
+
+        context["po_template_name"] = "two_headings"
+        context["po_template_html_name"] = "po_email_with_two_headings_flex.html"
+        context["title1"] = f"Message from {request.user.full_name} on behalf of {club}"
+        context["title2"] = batch.description
+
+    elif batch.batch_type in [
+        BatchID.BATCH_TYPE_COMMS,
+        BatchID.BATCH_TYPE_RESULTS,
+    ]:
+
+        context["po_template_name"] = "club"
+        context["po_template_html_name"] = "po_club_template.html"
+        context["title"] = batch.description
+
+    else:
+
+        context["po_template_name"] = "defaults"
+        context["po_template_html_name"] = "po_email_default_flex.html"
+        context["title"] = batch.description
+
+    batch_content = get_object_or_404(BatchContent, batch=batch)
+    context["email_body"] = batch_content.email_body
+
+    if batch.template:
+        org_template = batch.template
+    else:
+        org_template = club_default_template(club) or OrgEmailTemplate(
+            organisation=club
+        )
+
+    context["img_src"] = org_template.banner.url
+    context["box_colour"] = org_template.box_colour
+    context["box_font_colour"] = org_template.box_font_colour
+    context["footer"] = org_template.footer
+    context["from_name"] = org_template.from_name
+    context["reply_to"] = org_template.reply_to
+
+    context["attachment_objects"] = EmailAttachment.objects.filter(batches__batch=batch)
+
+    # host
+    # img_src
+    # box_colour
+    # box_font_colour
+    # subject
+    # email_body
+
+    return render(
+        request,
+        "notifications/batch_email_content_preview_htmx.html",
+        context,
+    )
+
+
+@check_club_and_batch_access()
 def compose_email_content_send_htmx(request, club, batch):
     """Handle sending a test message or the full batch
 

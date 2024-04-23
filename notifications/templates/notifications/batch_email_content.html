@@ -80,8 +80,17 @@
                     </div>
 
                     <div class="col-12">
-                        <button
+                        <a
                             class="btn btn-info btn-sm w-100 tm-5"
+                            {% if not ready_to_send %}disabled{% endif %}
+                            onclick='window.open("{% url 'notifications:compose_email_content_preview_htmx' club_id=club.id batch_id_id=batch.id %}", "Preview","width=1000,height=1500");'
+                            href="javascript:void(0)"
+                        >Preview the email</a>
+                    </div>
+
+                    <div class="col-12">
+                        <button
+                            class="btn btn-info btn-sm w-100"
                             {% if not ready_to_send %}disabled{% endif %}
                             name="test"
                             id="id_test_button"
