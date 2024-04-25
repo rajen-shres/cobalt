@@ -138,6 +138,8 @@ class Congress(models.Model):
         BBO = "B", "BBO"
         REAL_BRIDGE = "R", "RealBridge"
         STEP_BRIDGE = "S", "StepBridge"
+        MS_TEAMS = "T", "Microsoft Teams"
+        ZOOM = "Z", "Zoom"
         UNKNOWN = "U"
 
     name = models.CharField("Name", max_length=100)

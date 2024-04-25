@@ -2236,11 +2236,28 @@ def compose_email_options(request, club, batch):
             email_options_form.fields["from_name"].initial = batch.from_name
             email_options_form.fields["reply_to"].initial = batch.reply_to
         elif len(email_options_form.fields["template"].choices) > 0:
-            # first time through an templates exist so use the first and set the other fields accordingly
-            selected_template_id = email_options_form.fields["template"].choices[0][0]
+            # first time through
 
-            # JPG debug
-            print(f"*** selected_template_id {selected_template_id} = FIRST OPTION")
+            # apply the rules for determining a default
+            # (could return None even if there are templates defined)
+            org_default_template = club_default_template(club)
+
+            if org_default_template:
+                selected_template_id = org_default_template.id
+            else:
+                # use the first one, unless it is RESULTS and there is another option
+
+                selected_template_id = email_options_form.fields["template"].choices[0][
+                    0
+                ]
+                if (
+                    email_options_form.fields["template"].choices[0][1].upper()
+                    == "RESULTS"
+                ):
+                    if len(email_options_form.fields["template"].choices) > 1:
+                        selected_template_id = email_options_form.fields[
+                            "template"
+                        ].choices[1][0]
 
             template = get_object_or_404(OrgEmailTemplate, pk=selected_template_id)
             email_options_form.fields["from_name"].initial = template.from_name
