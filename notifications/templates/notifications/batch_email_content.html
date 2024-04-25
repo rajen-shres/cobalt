@@ -63,7 +63,8 @@
                     ['view', ['fullscreen', 'help']]
                 ],
                 callbacks: {
-                    onKeyup: email_content_changed
+                    onKeyup: email_content_changed,
+                    onChange: email_content_changed
                 },
 
                 {# This is defined on the form but we need it here as we override the summernote call #}
@@ -168,12 +169,12 @@
                     <div class="col-12">
                         <button
                             class="btn btn-warning btn-sm w-100"
-                            {% if not ready_to_send %}disabled{% endif %}
+                            {% if not ready_to_send or batch.batch_size == 0 %}disabled{% endif %}
                             name="test"
                             id="id_send_button"
                             hx-post="{% url "notifications:compose_email_content_send_htmx" club_id=club.id batch_id_id=batch.id %}"
                             hx-target="#email-test-response"
-                        >Send the emails</button>
+                        >Send the email{{ batch.batch_size|pluralize }} ({{ batch.batch_size }} recipient{{ batch.batch_size|pluralize }})</button>
                     </div>
 
                     <div class="col-12">

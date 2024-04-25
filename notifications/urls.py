@@ -194,6 +194,16 @@ urlpatterns = [
         name="compose_email_recipients_toggle_recipient_htmx",
     ),
     path(
+        "compose-email/recipients-select-all/<int:club_id>/<int:batch_id_id>",
+        notifications.views.core.compose_email_recipients_select_all,
+        name="compose_email_recipients_select_all",
+    ),
+    path(
+        "compose-email/recipients-deselect-all/<int:club_id>/<int:batch_id_id>",
+        notifications.views.core.compose_email_recipients_deselect_all,
+        name="compose_email_recipients_deselect_all",
+    ),
+    path(
         "compose-email/recipients-remove-unselected/<int:club_id>/<int:batch_id_id>",
         notifications.views.core.compose_email_recipients_remove_unselected_htmx,
         name="compose_email_recipients_remove_unselected_htmx",

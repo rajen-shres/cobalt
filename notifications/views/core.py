@@ -1625,7 +1625,7 @@ def compose_email_multi_select_by_date(request, club, batch):
                             event_end_date = session.session_date
                         elif session.session_date < event_start_date:
                             event_start_date = session.session_date
-                        elif session.session_date > event.session_date:
+                        elif session.session_date > event_end_date:
                             event_end_date = session.session_date
 
                     if event_start_date >= start_date and event_end_date <= end_date:
@@ -1747,6 +1747,11 @@ def compose_email_recipients(request, club, batch):
         batch=batch,
     ).order_by("initial", "last_name", "first_name")
 
+    recipient_count = recipients.filter(include=True).count()
+    if recipient_count != batch.batch_size:
+        batch.batch_size = recipient_count
+        batch.save()
+
     page_size = 20
     pages = Paginator(recipients, page_size)
     page = pages.get_page(page_number)
@@ -1755,6 +1760,10 @@ def compose_email_recipients(request, club, batch):
 
     added_count = Recipient.objects.filter(batch=batch, initial=False).count()
     initial_count = Recipient.objects.filter(batch=batch, initial=True).count()
+
+    # JPG debug
+    print(f"**** added_count = {added_count}, initial copunt = {initial_count}")
+
     if added_count == 0 or initial_count == 0:
         initial_header_before_row = None
         added_header_before_row = None
@@ -1771,9 +1780,14 @@ def compose_email_recipients(request, club, batch):
             # top of page is in the added section, so show a header
             added_header_before_row = 1
             if added_count < last_row_on_page:
-                initial_header_before_row = added_count - first_row_on_page + 1
+                initial_header_before_row = added_count - (first_row_on_page - 1) + 1
             else:
                 initial_header_before_row = None
+
+    # JPG debug
+    print(
+        f"**** initial_header_before_row = {initial_header_before_row}, added_header_before_row = {added_header_before_row}"
+    )
 
     # determine range of pages to show in pagination row
 
@@ -1811,6 +1825,7 @@ def compose_email_recipients(request, club, batch):
             "add_contact_form": add_contact_form,
             "show_contact_form": show_contact_form,
             "congress_stream": congress_stream,
+            "recipient_count": recipient_count,
         },
     )
 
@@ -1830,18 +1845,18 @@ def compose_email_recipients_add_congress_email(request, club, batch):
     """Add the congress contact email(s) to the recipient list"""
 
     # build a list of congress email addresses from batch activities
-    congress_emails = []
+    congress_emails = set()  # set to avoid duplicates
     for activity in batch.activities.all():
-        email = None
         if activity.activity_type == BatchActivity.ACTIVITY_TYPE_CONGRESS:
             congress = get_object_or_404(Congress, pk=activity.activity_id)
-            email = congress.contact_email
+            congress_emails.add(congress.contact_email)
         elif activity.activity_type == BatchActivity.ACTIVITY_TYPE_EVENT:
             event = get_object_or_404(Event, pk=activity.activity_id)
-            email = event.congress.contact_email
-        if email:
-            if email not in congress_emails:
-                congress_emails.append(email)
+            congress_emails.add(event.congress.contact_email)
+        elif activity.activity_type == BatchActivity.ACTIVITY_TYPE_SERIES:
+            series = get_object_or_404(CongressMaster, pk=activity.activity_id)
+            for congress in series.congress_set.all():
+                congress_emails.add(congress.contact_email)
 
     # add the contact emails as recipients
     added_count = 0
@@ -1862,7 +1877,7 @@ def compose_email_recipients_add_congress_email(request, club, batch):
             recipient.batch = batch
             recipient.email = email
             recipient.first_name = None
-            recipient.last_name = "Contact Email"
+            recipient.last_name = f"Contact Email {email}"
             recipient.system_number = None
             recipient.include = True
             recipient.initial = False
@@ -1905,6 +1920,23 @@ def compose_email_recipients_add_tadmins(request, club, batch):
     return redirect("notifications:compose_email_recipients", club.id, batch.id)
 
 
+def _updated_recipient_count(request, batch):
+    """Return an HTML snippet with te updated recipent count for the batch"""
+
+    recipient_count = Recipient.objects.filter(
+        batch=batch,
+        include=True,
+    ).count()
+
+    if recipient_count != batch.batch_size:
+        batch.batch_size = recipient_count
+        batch.save()
+
+    return HttpResponse(
+        f"{recipient_count if recipient_count else 'No'} recipient{'' if recipient_count==1 else 's'}"
+    )
+
+
 @login_required()
 def compose_email_recipients_toggle_recipient_htmx(request, recipient_id):
     """Toggle the include state of the recipient"""
@@ -1921,7 +1953,26 @@ def compose_email_recipients_toggle_recipient_htmx(request, recipient_id):
     recipient.include = not recipient.include
     recipient.save()
 
-    return HttpResponse(status=204)
+    # return HttpResponse(status=204)
+    return _updated_recipient_count(request, recipient.batch)
+
+
+@check_club_and_batch_access()
+def compose_email_recipients_select_all(request, club, batch):
+    """Include all current recipients"""
+
+    Recipient.objects.filter(batch=batch, include=False).update(include=True)
+
+    return redirect("notifications:compose_email_recipients", club.id, batch.id)
+
+
+@check_club_and_batch_access()
+def compose_email_recipients_deselect_all(request, club, batch):
+    """Deselect all current recipients"""
+
+    Recipient.objects.filter(batch=batch, include=True).update(include=False)
+
+    return redirect("notifications:compose_email_recipients", club.id, batch.id)
 
 
 @check_club_and_batch_access()
@@ -2315,6 +2366,7 @@ def compose_email_content_preview_htmx(request, club, batch):
         "host": COBALT_HOSTNAME,
         "batch": batch,
         "name": "Member",
+        "subject": batch.description,
     }
 
     # determine the html template and title values based on the batch type

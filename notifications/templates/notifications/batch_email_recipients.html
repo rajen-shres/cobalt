@@ -130,6 +130,7 @@
                                             {% if recipient.include %}checked{% endif %}
                                             hx-post="{% url 'notifications:compose_email_recipients_toggle_recipient_htmx' recipient.id %}"
                                             hx-trigger="change"
+                                            hx-target="#id_recipient_count"
                                         >
                                     </td>
                                     <td class="text-left">
@@ -194,6 +195,14 @@
         </div>
         <div class="col-lg-4">
             <!-- right column : actions -->
+
+            {% if page.object_list %}
+                <div class="row">
+                    <div class="col text-center">
+                        <p id="id_recipient_count">{{ recipient_count }} recipient{{ recipient_count|pluralize }}</p>
+                    </div>
+                </div>
+            {% endif %}
 
             {% if congress_stream %}
 
@@ -385,6 +394,26 @@
                     href="{% url 'notifications:compose_email_recipients_add_self' club_id=club.id batch_id_id=batch.id %}"
                 >
                     Add self
+                </a>
+            </div>
+
+            <!-- Select / Deselect all -->
+
+            <div class="row">
+                <a
+                    class="btn btn-sm w-100 btn-primary"
+                    href="{% url 'notifications:compose_email_recipients_select_all' club_id=club.id batch_id_id=batch.id %}"
+                >
+                    Select all
+                </a>
+            </div>
+
+            <div class="row">
+                <a
+                    class="btn btn-sm w-100 btn-primary"
+                    href="{% url 'notifications:compose_email_recipients_deselect_all' club_id=club.id batch_id_id=batch.id %}"
+                >
+                    Deselect all
                 </a>
             </div>
 

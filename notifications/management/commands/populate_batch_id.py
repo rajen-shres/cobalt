@@ -87,6 +87,8 @@ class Command(BaseCommand):
                     batch.description = snooper.post_office_email.subject
                 elif "title" in snooper.post_office_email.context:
                     batch.description = snooper.post_office_email.context["title"]
+                elif "title2" in snooper.post_office_email.context:
+                    batch.description = snooper.post_office_email.context["title2"]
                 else:
                     batch.description = "No subject available"
                 batch.state = BatchID.BATCH_STATE_COMPLETE

@@ -21,15 +21,24 @@
 
         <div class="container">
 
-            <p class="font-italic text-dark mt-3">Using the test button to send yourself a test email is the best way to
-                check how your email will look before you send it.</p>
+            <p class="font-italic text-dark mt-3 ml-5 mr-5">You can also use the 'Send a Test Email' button to send the email to yourself to check how it will look in an email client before you send it.</p>
+
+            {% if subject %}
+                <p class="text-dark mt-3">Subject: {{ subject }}</p>
+            {% endif %}
 
             {% if from_name %}
-                <p class="text-dark mt-3">This email will be send from '{{ from_name }}&lt;donotreply@myabf.com.au&gt;'</p>
+                <p class="text-dark mt-3">From: '{{ from_name }}&lt;donotreply@myabf.com.au&gt;'</p>
             {% endif %}
 
             {% if reply_to %}
-                <p class="text-dark mt-3">Replies will be sent to '{{ reply_to }}'</p>
+                <p class="text-dark mt-3">Reply to: '{{ reply_to }}'</p>
+            {% endif %}
+
+            {% if batch.batch_size %}
+                <p class="text-dark mt-3">To: {{ batch.batch_size }} recipient{{ batch.batch_size|pluralize }}.</p>
+            {% else %}
+                <p class="text-dark mt-3">No recipients have been selected. Go to 'Review Recipients' to modify the list of recipients.</p>
             {% endif %}
 
             {% if attachment_objects %}
