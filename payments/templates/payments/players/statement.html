@@ -71,7 +71,7 @@
                     {% if auto_button %} ({{GLOBAL_CURRENCY_SYMBOL}}{{ auto_amount }}) {% endif %}
                     <label for="auto-button"></label><input id="auto-button" class="cobalt-save another" type="checkbox" data-toggle="toggle" data-onstyle="success" data-size="sm" {% if auto_button %} checked {% endif %}>
                     {% if auto_button %}
-                        &nbsp;<a class="btn btn-sm btn-secondary" href="{% url "payments:setup_autotopup" %}">Update</a>
+                        &nbsp;<a class="btn btn-sm btn-success" href="{% url "payments:setup_autotopup" %}">Change card or top up amount</a>
                     {% endif %}
                     <div id="console-event"></div>
                 </div>
