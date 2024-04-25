@@ -546,10 +546,12 @@
             // see if form is now complete
             var complete = 0;
             $(".cobalt-playerN").each(function(i, obj){
+                console.log("is_form_complete "+i+" value = "+$(this).val())
                 if ($(this).val()>0) {
                     complete+=1;
                 }
             });
+            console.log("--- "+complete+" vs {{ min_entries }}")
 
             if (complete=={{ min_entries }}){
                 $("#id_checkout").prop("disabled", false);
@@ -748,8 +750,9 @@
                 return false;
             });
 
+            console.log("enter_for_another = {{ enter_for_another }}")
             // for an individual enable the buttons
-            {% if event.player_format == "Individual" %}
+            {% if event.player_format == "Individual" and not enter_for_another %}
                 $("#id_checkout").prop("disabled", false);
                 $("#id_cart").prop("disabled", false);
             {% endif %}
