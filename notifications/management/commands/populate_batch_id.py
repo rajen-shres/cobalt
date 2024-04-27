@@ -48,10 +48,10 @@ class Command(BaseCommand):
                 # use the RBAC role to set the batch type
 
                 if rbac.rbac_role.startswith("events.org"):
-                    # treat all congress and event batches as multis
+                    # treat all congress and event batches as congress
                     # don't know what activity was targetted
                     role_components = rbac.rbac_role.split(".")
-                    batch.batch_type = BatchID.BATCH_TYPE_MULTI
+                    batch.batch_type = BatchID.BATCH_TYPE_CONGRESS
                     # emailBatchRBAC does not have org populated for these so get from the role
                     try:
                         org = Organisation.objects.get(pk=int(role_components[2]))

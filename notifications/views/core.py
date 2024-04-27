@@ -1161,15 +1161,32 @@ def _add_contact_to_recipients(batch, first_name, last_name, email):
     return (True, f"{email} added")
 
 
+_ADD_RECIPIENT_RESULT_OK = "OK"
+_ADD_RECIPIENT_RESULT_SYSTEM_AC = "SYS"
+_ADD_RECIPIENT_RESULT_DUPLICATE = "DUP"
+_ADD_RECIPIENT_RESULT_INACTIVE = "INA"
+_ADD_RECIPIENT_RESULT_NO_EMAIL = "NOE"
+_ADD_RECIPIENT_RESULT_NOT_FOUND = "NOF"
+_ADD_RECIPIENT_RESULTS = [
+    (_ADD_RECIPIENT_RESULT_OK, "added"),
+    (_ADD_RECIPIENT_RESULT_SYSTEM_AC, "system accounts"),
+    (_ADD_RECIPIENT_RESULT_DUPLICATE, "duplicates"),
+    (_ADD_RECIPIENT_RESULT_INACTIVE, "inactive users"),
+    (_ADD_RECIPIENT_RESULT_NO_EMAIL, "no email address"),
+    (_ADD_RECIPIENT_RESULT_NOT_FOUND, "not found"),
+]
+
+
 def _add_to_recipient_with_system_number(batch, club, system_number):
     """Add a user or unregistered user to the batch
 
-    Returns 1 if the user has been added or reincluded, 0 otherwise
-    Returns a user message
+    Returns:
+        A result code
+        A user message
     """
 
     if system_number in ALL_SYSTEM_ACCOUNTS:
-        return (0, "A system account")
+        return (_ADD_RECIPIENT_RESULT_SYSTEM_AC, "A system account")
 
     #  is the system number already a recipient?
     existing = Recipient.objects.filter(
@@ -1178,11 +1195,11 @@ def _add_to_recipient_with_system_number(batch, club, system_number):
 
     if existing:
         if existing.include:
-            return (0, "Recipient already included")
+            return (_ADD_RECIPIENT_RESULT_DUPLICATE, "Recipient already included")
         else:
             existing.include = True
             existing.save()
-            return (1, "Recipient added")
+            return (_ADD_RECIPIENT_RESULT_OK, "Recipient added")
 
     # is this a User or UnregisteredUser
     user = User.objects.filter(
@@ -1200,9 +1217,9 @@ def _add_to_recipient_with_system_number(batch, club, system_number):
             recipient.include = True
             recipient.initial = False
             recipient.save()
-            return (1, "Recipient added")
+            return (_ADD_RECIPIENT_RESULT_OK, "Recipient added")
         else:
-            return (0, f"{user.full_name} is inactive")
+            return (_ADD_RECIPIENT_RESULT_INACTIVE, f"{user.full_name} is inactive")
 
     else:
         # is not a user, so try an unregistered club member
@@ -1224,10 +1241,13 @@ def _add_to_recipient_with_system_number(batch, club, system_number):
             recipient.include = True
             recipient.initial = False
             recipient.save()
-            return (1, "Recipient added")
+            return (_ADD_RECIPIENT_RESULT_OK, "Recipient added")
+
+        elif member_email:
+            return (_ADD_RECIPIENT_RESULT_NO_EMAIL, "No email address available")
 
         else:
-            return (0, "Recipient not found")
+            return (_ADD_RECIPIENT_RESULT_NOT_FOUND, "Recipient not found")
 
 
 @login_required
@@ -2108,7 +2128,8 @@ def compose_email_recipients_member_search_htmx(request, club, batch):
 def compose_email_recipients_add_tag(request, club, batch, tag_id):
     """Add recipients from a club tag"""
 
-    added_count = 0
+    reason_counts = {reason_code: 0 for (reason_code, _) in _ADD_RECIPIENT_RESULTS}
+
     if tag_id == EVERYONE_TAG_ID:
         #  add all members
 
@@ -2116,10 +2137,10 @@ def compose_email_recipients_add_tag(request, club, batch, tag_id):
             membership_type__organisation=club
         )
         for mmt in all_members:
-            added, _ = _add_to_recipient_with_system_number(
+            result, _ = _add_to_recipient_with_system_number(
                 batch, club, mmt.system_number
             )
-            added_count += added
+            reason_counts[result] += 1
 
     else:
         # add from a real club tag
@@ -2127,15 +2148,26 @@ def compose_email_recipients_add_tag(request, club, batch, tag_id):
         tag = get_object_or_404(ClubTag, pk=tag_id)
         tag_members = MemberClubTag.objects.filter(club_tag=tag)
         for mct in tag_members:
-            added, _ = _add_to_recipient_with_system_number(
+            result, _ = _add_to_recipient_with_system_number(
                 batch, club, mct.system_number
             )
-            added_count += added
+            reason_counts[result] += 1
+
+    msg = f"{reason_counts[_ADD_RECIPIENT_RESULT_OK]} recipient{'s' if reason_counts[_ADD_RECIPIENT_RESULT_OK] != 1 else ''} added"
+
+    excluded_count = 0
+    excluded_msg = ""
+    for excluded_reason, excluded_desc in _ADD_RECIPIENT_RESULTS[1:]:
+        if reason_counts[excluded_reason]:
+            excluded_count += reason_counts[excluded_reason]
+            excluded_msg += f"{reason_counts[excluded_reason]} {excluded_desc}, "
+    if excluded_count:
+        msg += f" ({excluded_count} not added: {excluded_msg[:-2]})"
 
     messages.add_message(
         request,
         messages.INFO,
-        f"{added_count} recipient{'s' if added_count != 1 else ''} added",
+        msg,
     )
 
     return redirect("notifications:compose_email_recipients", club.id, batch.id)
@@ -2145,7 +2177,7 @@ def compose_email_recipients_add_tag(request, club, batch, tag_id):
 def compose_email_recipients_add_member(request, club, batch, system_number):
     """Add a club member by system number as a recipient"""
 
-    added, feedback = _add_to_recipient_with_system_number(batch, club, system_number)
+    _, feedback = _add_to_recipient_with_system_number(batch, club, system_number)
 
     messages.add_message(request, messages.INFO, feedback)
 
