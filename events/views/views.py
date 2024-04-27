@@ -1691,6 +1691,11 @@ def enter_event_non_post(event, congress, request, enter_for_another):
     # categories
     categories = Category.objects.filter(event=event)
 
+    # organiser check
+    is_tournament_admin = rbac_user_has_role(
+        request.user, f"events.org.{congress.congress_master.org.id}.edit"
+    )
+
     return render(
         request,
         "events/players/enter_event.html",
@@ -1707,6 +1712,7 @@ def enter_event_non_post(event, congress, request, enter_for_another):
             "description": description,
             "min_entries": min_entries,
             "enter_for_another": enter_for_another,
+            "is_tournament_admin": is_tournament_admin,
         },
     )
 

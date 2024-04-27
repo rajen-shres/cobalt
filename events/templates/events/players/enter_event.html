@@ -153,11 +153,18 @@
 
                                                                 {% for val,item in player0.name_choices %}
 
-                                                                    <option value="{{ val }}"
-                                                                        {% if our_form_row.name_selected == val %}
-                                                                            selected
-                                                                        {% endif %}
-                                                                    >{{ item }}</option>
+                                                                    <!-- don't show TBA option for individual events -->
+                                                                    <!-- if entering for another and not an organiser. See COB-777 -->
+
+                                                                    {% if is_tournament_admin or min_entries > 1 or not enter_for_another or item != "TBA" %}
+
+                                                                        <option value="{{ val }}"
+                                                                            {% if our_form_row.name_selected == val %}
+                                                                                selected
+                                                                            {% endif %}
+                                                                        >{{ item }}</option>
+
+                                                                    {% endif %}
 
                                                                 {% endfor %}
                                                             </select>
