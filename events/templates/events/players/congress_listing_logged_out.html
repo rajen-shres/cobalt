@@ -85,7 +85,7 @@
         <a href="{% url "accounts:register" %}" style="text-decoration: underline; color: blue;">sign up</a>
     </div>
 
-    <h1>Upcoming Congresses</h1>
+    <h1>Upcoming Events</h1>
 
     {% for month,congresses in month_list.items %}
 
@@ -95,9 +95,9 @@
             <thead>
                 <tr class="text-primary">
                     <th>Start Date</th>
-                    <th>Congress</th>
+                    <th>Name</th>
                     <th>State</th>
-                    <th>Congress Type</th>
+                    <th>Event Type</th>
                     <th>Organiser</th>
                 </tr>
             </thead>

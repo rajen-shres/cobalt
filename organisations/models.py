@@ -456,7 +456,7 @@ class OrganisationFrontPage(models.Model):
                         <p style="font-size: 18px; line-height: 0.5;"><b>{{ State }} {{ Postcode }}</b></p>
                         <p style="line-height: 0.5;"><br></p>
                         <p>{{ RESULTS }}</p>
-                        <p>{{ CONGRESSES }}</p>
+                        <p>{{ CALENDAR }}</p>
             """
 
             self.summary = self.summary.replace(

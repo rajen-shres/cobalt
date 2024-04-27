@@ -227,6 +227,7 @@ def org_profile(request, org_id):
     congresses = f""" <div hx-post="{url}" hx-vars="club_id:{org.id}" hx-trigger="load" id="club-congresses"></div> """
 
     front_page.summary = front_page.summary.replace("{{ CONGRESSES }}", congresses)
+    front_page.summary = front_page.summary.replace("{{ CALENDAR }}", congresses)
 
     # See if this user is an admin for this club
     is_admin = is_admin_for_organisation(request.user, org)
