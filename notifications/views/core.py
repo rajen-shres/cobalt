@@ -1365,6 +1365,31 @@ def check_club_and_batch_access():
                 else:
                     return HttpResponse("Error - not an editable batch type")
 
+            if batch.state != BatchID.BATCH_STATE_WIP:
+                # batch is no longer editable, presumably has been sent by another user
+
+                messages.error(
+                    request,
+                    "This batch is no longer editable",
+                    extra_tags="cobalt-message-error",
+                )
+
+                # response = HttpResponse("Redirecting...", status=302)
+
+                # response["HX-Redirect"] = reverse(
+                #     "organisations:club_menu_tab_comms_email_htmx",
+                # )
+
+                # JPG debug
+                print("Redirecting - batch not WIP")
+
+                # return redirect("organisations:club_menu", club.id)
+                return redirect(
+                    "organisations:club_menu_tab_entry_point",
+                    batch.organisation.id,
+                    "comms",
+                )
+
             # all ok
             return function(request, club, batch, *args, **kwargs)
 
