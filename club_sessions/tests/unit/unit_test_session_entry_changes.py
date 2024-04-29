@@ -611,7 +611,7 @@ def _call_helper(
 
     if tran_type == "bridge_credits":
 
-        message, session_entry = edit_session_entry_handle_bridge_credits(
+        message, session_entry, _ = edit_session_entry_handle_bridge_credits(
             main_class.club,
             main_class.session,
             main_class.session_entry,

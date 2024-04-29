@@ -300,7 +300,7 @@ def _edit_session_entry_handle_post(request, club, session, session_entry):
         new_payment_method.payment_method,
         old_payment_method.payment_method,
     ]:
-        message, session_entry = edit_session_entry_handle_bridge_credits(
+        message, session_entry, new_is_paid = edit_session_entry_handle_bridge_credits(
             club,
             session,
             session_entry,

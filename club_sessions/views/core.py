@@ -585,11 +585,12 @@ def edit_session_entry_handle_bridge_credits(
     Returns:
         message(str): message to return to user, can be empty
         session_entry(SessionEntry)
+        new_is_paid(Boolean): possibly modified value for new_is_paid flag (used to indicate error)
 
     """
 
     if not is_user:
-        return "Player is not a registered user.", session_entry
+        return "Player is not a registered user.", session_entry, new_is_paid
 
     # Get Bridge Credits
     bridge_credit_payment_method = bridge_credits_for_club(club)
@@ -602,7 +603,7 @@ def edit_session_entry_handle_bridge_credits(
         session_entry.payment_method = new_payment_method
         session_entry.fee = new_fee
         session_entry.save()
-        return "Data saved", session_entry
+        return "Data saved", session_entry, new_is_paid
 
     # if it was paid using bridge credits, and we change the fee, block the change
     if (
@@ -614,21 +615,26 @@ def edit_session_entry_handle_bridge_credits(
             "Cannot change the amount of an entry paid with Bridge Credits. You may need to do this in two steps, "
             "or use Extras.",
             session_entry,
+            new_is_paid,
         )
 
     # if it has gone from unpaid to paid, and new_payment_method is bridge credits, then pay it and any extras
+    # COB-817 Scenario 2 - also need to do it if old method was IOU
     if (
         new_payment_method == bridge_credit_payment_method
         and new_is_paid
-        and not old_is_paid
+        and (not old_is_paid or old_payment_method.payment_method == "IOU")
     ):
+        # JPG debug
+        print("*** PROCESSING BC ****")
+
         session_entry.fee = new_fee
         session_entry.payment_method = new_payment_method
 
         member = User.objects.filter(system_number=session_entry.system_number).first()
 
         if not member:
-            return "Error retrieving user", session_entry
+            return "Error retrieving user", session_entry, new_is_paid
 
         # Get all of the unpaid bridge credit extras
         extras = SessionMiscPayment.objects.filter(
@@ -666,6 +672,7 @@ def edit_session_entry_handle_bridge_credits(
             return (
                 f"Payment made of {GLOBAL_CURRENCY_SYMBOL}{session_entry.fee:,.2f}",
                 session_entry,
+                new_is_paid,
             )
 
         else:
@@ -676,7 +683,9 @@ def edit_session_entry_handle_bridge_credits(
             session_entry.session.status = Session.SessionStatus.DATA_LOADED
             session_entry.session.save()
 
-            return "Payment failed", session_entry
+            # Note - COB-817: return False for new_is_paid to stop the session being marked as paid
+            # if it is being changed from IOU to Bridge Credits
+            return "Payment failed", session_entry, False
 
     # If we have changed from bridge credits and it was paid, or from paid to unpaid, then process refund
     if (
@@ -688,7 +697,7 @@ def edit_session_entry_handle_bridge_credits(
         and old_is_paid
         and not new_is_paid
     ):
-        return handle_bridge_credit_changes_refund(
+        return_msg, return_session_entry = handle_bridge_credit_changes_refund(
             club,
             session_entry,
             director,
@@ -697,8 +706,9 @@ def edit_session_entry_handle_bridge_credits(
             new_payment_method,
             new_is_paid,
         )
+        return return_msg, return_session_entry, new_is_paid
 
-    return "", session_entry
+    return "", session_entry, new_is_paid
 
 
 def edit_session_entry_handle_other(
