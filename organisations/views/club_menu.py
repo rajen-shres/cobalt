@@ -277,7 +277,6 @@ def tab_comms_edit_batch_ep(request, club_id, batch_id_id):
     Used when wanting to navigate from outside the club menu to the comms tab
     and editing a specific inflight batch"""
 
-    # JPG TO DO: security
     return club_menu(
         request, club_id, show_tab="comms", click_id=f"id_{batch_id_id}_edit_button"
     )
@@ -287,7 +286,6 @@ def tab_comms_edit_batch_ep(request, club_id, batch_id_id):
 def tab_entry_point(request, club_id, tab_name):
     """Entry point for showing a specified tab"""
 
-    # JPG TO DO: security
     return club_menu(request, club_id, show_tab=tab_name)
 
 

@@ -1098,9 +1098,6 @@ def edit_event_entry(
 def delete_event_entry(request, event_entry_id):
     """Delete an entry to an event"""
 
-    # JPG Debug
-    print("***** delete_event_entry")
-
     # Get data
     event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
     event_entry_players = EventEntryPlayer.objects.filter(
@@ -1186,9 +1183,6 @@ def _delete_event_entry_handle_post(
 ):
     """Handle a user posting a delete request to the delete event entry screen"""
 
-    # JPG debug
-    print("*****    _delete_event_entry_handle_post")
-
     # If in basket and no payments then delete
     if basket_item and not event_entry_players.exclude(payment_received=0).exists():
         return _delete_event_entry_handle_post_basket(event_entry, request, basket_item)
@@ -1238,9 +1232,6 @@ def _delete_event_entry_handle_post(
     batch_id.batch_size = batch_size
     batch_id.state = BatchID.BATCH_STATE_COMPLETE
     batch_id.save()
-
-    # JPG debug
-    print(f"****    batch_size = {batch_size}")
 
     return redirect("events:view_events")
 

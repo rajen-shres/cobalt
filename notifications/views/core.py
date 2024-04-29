@@ -290,12 +290,6 @@ def send_cobalt_email_with_template(
 
     """
 
-    # JPG debug
-    print(
-        f"**** SCEWT: {to_address}, {batch_id.batch_type if batch_id else 'No batch_id'}, "
-        + f"size={batch_size}, apply club default:{apply_default_template_for_club}"
-    )
-
     # Check if on bounce list
     if _email_address_on_bounce_list(to_address):
         logger.info(f"Ignoring email on bounce list {to_address}")
@@ -312,18 +306,8 @@ def send_cobalt_email_with_template(
     else:
         default_org_template = None
 
-    # JPG debug
-    print(
-        f"****   default template = {default_org_template.template_name if default_org_template else 'None'}"
-    )
-
     if "img_src" not in context:
         context["img_src"] = "notifications/img/myabf-email.png"
-
-        #  JPG debug
-        print(
-            "++++++ send_cobalt_email_with_template url=notifications/img/myabf-email.png"
-        )
 
     # no need to defaul box colour now - default is in template html
     # if "box_colour" not in context:
@@ -359,12 +343,6 @@ def send_cobalt_email_with_template(
     if this_sender is None:
         if default_org_template and default_org_template.from_name:
             this_sender = f"{default_org_template.from_name}<donotreply@myabf.com.au>"
-
-    # JPG debug
-    print(f"****   sender = {this_sender}")
-    print(f"****   img_src= {context['img_src'] if 'img_src' in context else 'None'}")
-    # context["img_src"] = "notifications/img/myabf-email.png"
-    # print(f"****    OVERRIDING img_src to known safe value: {context['img_src']}")
 
     if "img_src" in context:
         context["inline_banner"] = context["img_src"][0] != "/"
@@ -1374,15 +1352,6 @@ def check_club_and_batch_access():
                     extra_tags="cobalt-message-error",
                 )
 
-                # response = HttpResponse("Redirecting...", status=302)
-
-                # response["HX-Redirect"] = reverse(
-                #     "organisations:club_menu_tab_comms_email_htmx",
-                # )
-
-                # JPG debug
-                print("Redirecting - batch not WIP")
-
                 # return redirect("organisations:club_menu", club.id)
                 return redirect(
                     "organisations:club_menu_tab_entry_point",
@@ -1493,9 +1462,6 @@ def compose_email_multi_select(request, club, batch):
         # and always adding entrants to recipients
         for key, value in request.POST.items():
 
-            # JPG debug
-            print(f"compose_email_multi_select POST key={key}, value={value}")
-
             parts = key.split("-")
             if parts[0] != "event":
                 continue
@@ -1601,9 +1567,6 @@ def compose_email_multi_select_by_date(request, club, batch):
     # get and validate the date range
     start_date_str = request.POST.get("start_date")
     end_date_str = request.POST.get("end_date")
-
-    # JPG debug
-    print(f"start date str = '{start_date_str}', end date str = '{end_date_str}'")
 
     date_format = "%d/%m/%Y"
     error_msg = None
@@ -1806,9 +1769,6 @@ def compose_email_recipients(request, club, batch):
     added_count = Recipient.objects.filter(batch=batch, initial=False).count()
     initial_count = Recipient.objects.filter(batch=batch, initial=True).count()
 
-    # JPG debug
-    print(f"**** added_count = {added_count}, initial copunt = {initial_count}")
-
     if added_count == 0 or initial_count == 0:
         initial_header_before_row = None
         added_header_before_row = None
@@ -1828,11 +1788,6 @@ def compose_email_recipients(request, club, batch):
                 initial_header_before_row = added_count - (first_row_on_page - 1) + 1
             else:
                 initial_header_before_row = None
-
-    # JPG debug
-    print(
-        f"**** initial_header_before_row = {initial_header_before_row}, added_header_before_row = {added_header_before_row}"
-    )
 
     # determine range of pages to show in pagination row
 
@@ -2287,9 +2242,6 @@ def compose_email_options(request, club, batch):
             # use the stored template, but override the template value for the other two fields
             selected_template_id = batch.template.id
 
-            # JPG debug
-            print(f"*** selected_template_id {selected_template_id} = from batch")
-
             email_options_form.fields["from_name"].initial = batch.from_name
             email_options_form.fields["reply_to"].initial = batch.reply_to
         elif len(email_options_form.fields["template"].choices) > 0:
@@ -2349,9 +2301,6 @@ def compose_email_options_from_and_reply_to_htmx(request, club, batch):
     """Rebuild the from and reply_to fields in the send email form if the template changes"""
 
     template_id = request.POST.get("template")
-
-    # JPG debug
-    print(f".... template_id = {template_id}")
 
     template = get_object_or_404(OrgEmailTemplate, pk=template_id)
 
@@ -2682,16 +2631,8 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
             organisation=club
         )
 
-    # JPG debug
-    print(
-        f"++++++ _dispatch_batch template={org_template.template_name} ({org_template.id})"
-    )
-
     if org_template.banner:
         context["img_src"] = org_template.banner.url
-
-    #  JPG debug
-    print(f"++++++ _dispatch_batch url={org_template.banner.url}")
 
     if org_template.footer:
         context["footer"] = org_template.footer

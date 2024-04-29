@@ -625,8 +625,6 @@ def edit_session_entry_handle_bridge_credits(
         and new_is_paid
         and (not old_is_paid or old_payment_method.payment_method == "IOU")
     ):
-        # JPG debug
-        print("*** PROCESSING BC ****")
 
         session_entry.fee = new_fee
         session_entry.payment_method = new_payment_method

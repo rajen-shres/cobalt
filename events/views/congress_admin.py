@@ -807,9 +807,6 @@ def admin_event_log(request, event_id):
 def admin_evententry_delete(request, evententry_id):
     """Delete an event entry"""
 
-    # JPG debug
-    print("**** admin_evententry_delete")
-
     event_entry = get_object_or_404(EventEntry, pk=evententry_id)
 
     # check access
@@ -1350,9 +1347,6 @@ def _admin_email_common(request, all_recipients, congress, event=None):
 def initiate_admin_event_email(request, event_id):
     """Start a new email batch to all entrants to an event"""
 
-    # JPG debug
-    print("*** initiate_admin_event_email ***")
-
     event = get_object_or_404(Event, pk=event_id)
 
     # check access
@@ -1376,9 +1370,6 @@ def initiate_admin_event_email(request, event_id):
         )
         .distinct()
     )
-
-    # JPG debug
-    # print(str(candidates.query))
 
     return _initiate_entrant_batch(
         request,
@@ -1621,9 +1612,6 @@ def admin_latest_news(request, congress_id):
 def admin_move_entry(request, event_entry_id):
     """Move an entry to another event"""
 
-    # JPG debug
-    print("delete_player_from_entry_ajax")
-
     event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
 
     congress = event_entry.event.congress
@@ -1709,9 +1697,6 @@ def admin_move_entry(request, event_entry_id):
 @login_required()
 @transaction.atomic
 def admin_event_entry_add(request, event_id):
-
-    # JPG debug
-    print("**** admin_event_entry_add")
 
     event = get_object_or_404(Event, pk=event_id)
 
@@ -1877,9 +1862,6 @@ def admin_event_entry_player_add(request, event_entry_id):
 @transaction.atomic
 def admin_event_entry_player_delete(request, event_entry_player_id):
     """Delete a player from a team"""
-
-    # JPG debug
-    print("**** admin_event_entry_player_delete")
 
     event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
     event_entry = event_entry_player.event_entry
@@ -2370,9 +2352,6 @@ def edit_team_name_htmx(request):
 @login_required()
 def edit_player_name_htmx(request):
     """HTMX snippet to edit the player name on an EventEntryPlayer"""
-
-    # JPG debug
-    print("**** edit_player_name_htmx")
 
     event_entry_player = get_object_or_404(
         EventEntryPlayer, pk=request.POST.get("event_entry_player_id")

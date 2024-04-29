@@ -644,9 +644,6 @@ def _send_welcome_pack(club, first_name, email, user, invite_to_join):
         or OrgEmailTemplate(organisation=club)
     )
 
-    # JPG debug
-    print(f"---- _send_welcome_pack using template {use_template}")
-
     reply_to = use_template.reply_to
     from_name = use_template.from_name
     if use_template.banner:

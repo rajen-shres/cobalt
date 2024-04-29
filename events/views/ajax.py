@@ -842,9 +842,6 @@ def give_player_refund_ajax(request):
 def change_player_entry_ajax(request):
     """Change a player in an event. Also update entry_fee if required"""
 
-    # JPG debug
-    print("**** change_player_entry_ajax")
-
     member_id = request.GET["member_id"]
     event_entry_player_id = request.GET["player_event_entry"]
 
@@ -944,9 +941,6 @@ def change_player_entry_ajax(request):
         batch_id.batch_size = batch_size
         batch_id.state = BatchID.BATCH_STATE_COMPLETE
         batch_id.save()
-
-        # JPG Debug
-        print(f"BatchID updated, size = {batch_id.batch_size}")
 
         return JsonResponse({"message": "Success", "html": return_html})
 
@@ -1052,9 +1046,6 @@ def change_player_entry_ajax(request):
     batch_id.state = BatchID.BATCH_STATE_COMPLETE
     batch_id.save()
 
-    # JPG Debug
-    print(f"BatchID updated, size = {batch_id.batch_size}")
-
     # the HTML screen reloads but we need to tell the user what happened first
     # Also if the player has just deleted themselves then take them back to the dashboard
     return JsonResponse(
@@ -1120,9 +1111,6 @@ def add_player_to_existing_entry_ajax(request):
 @login_required()
 def delete_player_from_entry_ajax(request):
     """Delete a player (5 or 6 only) from a team from the edit entry screen"""
-
-    # JPG debug
-    print("**** delete_player_from_entry_ajax")
 
     if request.method == "GET":
         event_entry_player_id = request.GET["event_entry_player_id"]
