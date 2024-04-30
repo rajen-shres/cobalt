@@ -13,6 +13,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone, dateformat
 from django.db.models import Sum
+from django.db.utils import IntegrityError
 
 from events.decorators import check_convener_access
 from events.views.core import (
@@ -1508,13 +1509,18 @@ def _initiate_entrant_batch(request, candidates, description, congress, event=No
     # save the recipients
     for candidate in candidates:
         if candidate[0] not in ALL_SYSTEM_ACCOUNTS:
-            recpient = Recipient()
-            recpient.batch = batch
-            recpient.system_number = candidate[0]
-            recpient.first_name = candidate[1]
-            recpient.last_name = candidate[2]
-            recpient.email = candidate[3]
-            recpient.save()
+            try:
+                recpient = Recipient()
+                recpient.batch = batch
+                recpient.system_number = candidate[0]
+                recpient.first_name = candidate[1]
+                recpient.last_name = candidate[2]
+                recpient.email = candidate[3]
+                recpient.save()
+            except IntegrityError:
+                # TBAs may result in duplicates in unpaid batches where the primary entrant is emailed
+                # instead of the TBA, just ignore it
+                pass
 
     # go to club menu, comms tab, edit batch
     return redirect(
