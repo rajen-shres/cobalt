@@ -2,6 +2,7 @@ import operator
 import logging
 
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -702,16 +703,17 @@ def add_misc_payment_htmx(request, club, session, session_entry):
     return response
 
 
-def _session_health_check(club, session, club_bc_pm, user):
+def _session_health_check(club, session, club_bc_pm, user, send_emails=False):
     """Check for duplicate bridge credit payments in the session
 
     Parameters:
         club (Organisation)
         session (Session)
         club_bc_pm (OrgPaymentMethod) - BC payment method for this club
+        send_emails (Boolean) - send email notification to support and director?
 
     Returns an error message if an issue detected
-    Sends an email to the support contact if an issue is found
+    Sends an email to the support contact if an issue is found (and send_emails set)
     """
 
     # calculate the total fees for the session, paid by Bridge Credits
@@ -747,43 +749,44 @@ def _session_health_check(club, session, club_bc_pm, user):
         f"{BRIDGE_CREDITS} Health Check: fees {total_session_fees:.2f}, misc {total_session_misc:.2f}, payments {total_session_payments:.2f}"
     )
 
-    # send an email to support
-    html = (
-        f"<p>The {GLOBAL_TITLE} {BRIDGE_CREDITS} Health Check detected an issue with this club session:</p>"
-        f"<p>Session: {session}, {club}</p>"
-        f"<p>Director: {session.director.full_name} ({session.director.email})</p>"
-        f"<p>Total table money paid by {BRIDGE_CREDITS}: {total_session_fees:.2f}</p>"
-        f"<p>Total miscellaneous items paid by {BRIDGE_CREDITS}: {total_session_misc:.2f}</p>"
-        f"<p>Total expected {BRIDGE_CREDITS} payments: {total_session_fees + total_session_misc:.2f}</p>"
-        f"<p>Total member {BRIDGE_CREDITS} payments: {-total_session_payments:.2f}</p>"
-        f"<p>{BRIDGE_CREDITS} {'overpayment' if discrepancy < 0 else 'underpayment'}: {-discrepancy:.2f}</p>"
-    )
+    if send_emails:
+        # send an email to support
+        html = (
+            f"<p>The {GLOBAL_TITLE} {BRIDGE_CREDITS} Health Check detected an issue with this club session:</p>"
+            f"<p>Session: {session}, {club}</p>"
+            f"<p>Director: {session.director.full_name} ({session.director.email})</p>"
+            f"<p>Total table money paid by {BRIDGE_CREDITS}: {total_session_fees:.2f}</p>"
+            f"<p>Total miscellaneous items paid by {BRIDGE_CREDITS}: {total_session_misc:.2f}</p>"
+            f"<p>Total expected {BRIDGE_CREDITS} payments: {total_session_fees + total_session_misc:.2f}</p>"
+            f"<p>Total member {BRIDGE_CREDITS} payments: {-total_session_payments:.2f}</p>"
+            f"<p>{BRIDGE_CREDITS} {'overpayment' if discrepancy < 0 else 'underpayment'}: {-discrepancy:.2f}</p>"
+        )
 
-    context = {
-        "name": f"{GLOBAL_TITLE} Support",
-        "title": f"ALERT: Session {BRIDGE_CREDITS} Health Check Issue",
-        "email_body": html,
-        "subject": f"ALERT: Session {BRIDGE_CREDITS} Health Check Issue",
-    }
+        context = {
+            "name": f"{GLOBAL_TITLE} Support",
+            "title": f"ALERT: Session {BRIDGE_CREDITS} Health Check Issue",
+            "email_body": html,
+            "subject": f"ALERT: Session {BRIDGE_CREDITS} Health Check Issue",
+        }
 
-    send_cobalt_email_with_template(
-        to_address=SUPPORT_EMAIL,
-        context=context,
-    )
-
-    # Send it to the director as well, if they are not the current user
-    if user != session.director:
-        html += f"Please contact {GLOBAL_TITLE} Support for assistance."
-        context["name"] = session.director.first_name
         send_cobalt_email_with_template(
-            to_address=session.director.email,
+            to_address=SUPPORT_EMAIL,
             context=context,
         )
+
+        # Send it to the director as well, if they are not the current user
+        if user != session.director:
+            html += f"Please contact {GLOBAL_TITLE} Support for assistance."
+            context["name"] = session.director.first_name
+            send_cobalt_email_with_template(
+                to_address=session.director.email,
+                context=context,
+            )
 
     return (
         f"ERROR: An issue has occurred, please contact Support. "
         f"Expected {total_session_fees + total_session_misc:.2f} {BRIDGE_CREDITS} payments, "
-        f"{-discrepancy:.2f} processed"
+        f"{-discrepancy:.2f} {'overpayment' if discrepancy < 0 else 'underpayment'}"
     )
 
 
@@ -793,40 +796,52 @@ def process_bridge_credits_htmx(request, club, session):
 
     failures = None
 
-    # Get bridge credits for this org
-    bridge_credits = bridge_credits_for_club(club)
+    with transaction.atomic():
 
-    if not bridge_credits:
-        return tab_session_htmx(
-            request,
-            message="Bridge Credits are not set up for this organisation. Add through Settings if you wish to use Bridge Credits",
+        session = Session.objects.select_for_update().get(pk=session.id)
+
+        # Get bridge credits for this org
+        bridge_credits = bridge_credits_for_club(club)
+
+        if not bridge_credits:
+            return tab_session_htmx(
+                request,
+                message="Bridge Credits are not set up for this organisation. Add through Settings if you wish to use Bridge Credits",
+            )
+
+        # Get any extras
+        extras = get_extras_as_total_for_session_entries(
+            session, payment_method_string=BRIDGE_CREDITS, unpaid_only=True
         )
 
-    # Get any extras
-    extras = get_extras_as_total_for_session_entries(
-        session, payment_method_string=BRIDGE_CREDITS, unpaid_only=True
-    )
+        # For each player go through and work out what they owe
+        session_entries = SessionEntry.objects.filter(
+            session=session, is_paid=False, payment_method=bridge_credits
+        ).exclude(system_number__in=ALL_SYSTEM_ACCOUNTS)
 
-    # For each player go through and work out what they owe
-    session_entries = SessionEntry.objects.filter(
-        session=session, is_paid=False, payment_method=bridge_credits
-    ).exclude(system_number__in=ALL_SYSTEM_ACCOUNTS)
+        # Process payments if we have any to make
+        if session_entries or extras:
+            success, failures = process_bridge_credits(
+                session_entries, session, club, bridge_credits, extras
+            )
 
-    # Process payments if we have any to make
-    if session_entries or extras:
-        success, failures = process_bridge_credits(
-            session_entries, session, club, bridge_credits, extras
-        )
+            message = _session_health_check(
+                club, session, bridge_credits, request.user, send_emails=True
+            )
 
-        message = _session_health_check(club, session, bridge_credits, request.user)
+            if message is None:
+                message = f"{BRIDGE_CREDITS} processed. Success: {success}. Failure {len(failures)}."
+            else:
+                if session.director_notes:
+                    session.director_notes = f"{message}\n\n{session.director_notes}"
+                else:
+                    session.director_notes = message
+                session.save()
 
-        if message is None:
-            message = f"{BRIDGE_CREDITS} processed. Success: {success}. Failure {len(failures)}."
-
-    else:
-        session.status = Session.SessionStatus.CREDITS_PROCESSED
-        session.save()
-        message = f"No {BRIDGE_CREDITS} to process. Moving to Off-System Payments."
+        else:
+            session.status = Session.SessionStatus.CREDITS_PROCESSED
+            session.save()
+            message = f"No {BRIDGE_CREDITS} to process. Moving to Off-System Payments."
 
     # Include HX-Trigger in response so we know to update the totals too
     response = tab_session_htmx(
