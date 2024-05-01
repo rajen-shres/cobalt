@@ -91,9 +91,9 @@
 
             <!-- REVERSE ORDER -->
             {% if reverse_list %}
-                <a href="{% url "events:congress_listing" %}" class="text-white" style="text-decoration: underline">View running and upcoming congresses</a>
+                <a href="{% url "events:congress_listing" %}" class="text-white" style="text-decoration: underline">View running and upcoming events</a>
             {% else %}
-                <a href="{% url "events:congress_listing" reverse_list="reverse" %}" class="text-white" style="text-decoration: underline">View completed congresses</a>
+                <a href="{% url "events:congress_listing" reverse_list="reverse" %}" class="text-white" style="text-decoration: underline">View completed events</a>
             {% endif %}
 
         </div>
