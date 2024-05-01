@@ -1331,7 +1331,21 @@ def check_club_and_batch_access():
                 return redirect("/")
 
             club = get_object_or_404(Organisation, pk=club_id)
-            batch = get_object_or_404(BatchID, pk=batch_id_id)
+
+            batch = BatchID.objects.filter(pk=batch_id_id).first()
+            if not batch:
+                messages.error(
+                    request,
+                    "This batch no longer exists",
+                    extra_tags="cobalt-message-error",
+                )
+
+                # return redirect("organisations:club_menu", club.id)
+                return redirect(
+                    "organisations:club_menu_tab_entry_point",
+                    club.id,
+                    "comms",
+                )
 
             # need to check for comms or congress permissions depending
             # on the batch type being manipulated
@@ -1358,7 +1372,7 @@ def check_club_and_batch_access():
                 # return redirect("organisations:club_menu", club.id)
                 return redirect(
                     "organisations:club_menu_tab_entry_point",
-                    batch.organisation.id,
+                    club.id,
                     "comms",
                 )
 
