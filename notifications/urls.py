@@ -278,4 +278,9 @@ urlpatterns = [
         notifications.views.core.delete_email_batch,
         name="delete_email_batch",
     ),
+    path(
+        "compose-email/batch-queue-progress-htmx/<int:batch_id_id>",
+        notifications.views.core.batch_queue_progress_htmx,
+        name="batch_queue_progress_htmx",
+    ),
 ]

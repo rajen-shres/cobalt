@@ -6,6 +6,9 @@ from threading import Thread
 from itertools import chain
 from urllib.parse import urlencode
 
+# JPG debug - to test queue progress
+# import time
+
 import boto3
 import firebase_admin.messaging
 from botocore.exceptions import ClientError
@@ -2512,8 +2515,14 @@ def compose_email_content_send_htmx(request, club, batch):
                 # is this really useful for very samll batches (eg 1-4 recipients)
 
                 response = HttpResponse("Redirecting...", status=302)
+
+                # response["HX-Redirect"] = reverse(
+                #     "notifications:watch_emails", kwargs={"batch_id": batch.batch_id}
+                # )
+
                 response["HX-Redirect"] = reverse(
-                    "notifications:watch_emails", kwargs={"batch_id": batch.batch_id}
+                    "organisations:club_menu_tab_entry_point",
+                    kwargs={"club_id": club.id, "tab_name": "comms"},
                 )
                 return response
         else:
@@ -2743,6 +2752,9 @@ def _dispatch_batch_thread(
     try:
         for recipient in recipients:
 
+            # JPG debug - to test queuing progress
+            # time.sleep(3)
+
             context["name"] = recipient.first_name
 
             send_cobalt_email_with_template(
@@ -2756,7 +2768,7 @@ def _dispatch_batch_thread(
             )
 
             logger.info(
-                f"Queued email to {recipient.first_name} {recipient.first_name}, {recipient.email}"
+                f"Queued email to {recipient.first_name} {recipient.last_name}, {recipient.email}"
             )
     except Exception as e:
         # something went wrong, so mark the batch as errored and reraise the exception
@@ -2926,3 +2938,42 @@ def delete_email_batch(request, club, batch):
     return redirect(
         "organisations:club_menu_tab_entry_point", batch.organisation.id, "comms"
     )
+
+
+def batch_queue_progress_htmx(request, batch_id_id):
+    """Return an HTML fragment with the batches queuing progress"""
+
+    # JPG debug
+    print(f"*** batch_queue_progress_htmx {batch_id_id}")
+
+    def _final_response(msg, refresh=True):
+        response = HttpResponse(msg, status=286)
+        response["HX-Refresh"] = "true"
+        return response
+
+    if not request.user.is_authenticated:
+        return redirect("/")
+
+    batch = BatchID.objects.filter(pk=batch_id_id).first()
+
+    if not batch:
+        # batch has been deleted by someone?
+        return _final_response("Deleted")
+
+    if batch.state != BatchID.BATCH_STATE_IN_FLIGHT:
+        # batch is no longer in flight
+        return _final_response("All queued")
+
+    if batch.batch_size == 0:
+        return HttpResponse("Unknown", status=286)
+
+    queued = (
+        Snooper.objects.select_related("post_office_email")
+        .filter(batch_id=batch)
+        .count()
+    )
+
+    if queued == batch.batch_size:
+        return _final_response("All queued")
+    else:
+        return HttpResponse(f"{ queued / batch.batch_size:.0%} queued")

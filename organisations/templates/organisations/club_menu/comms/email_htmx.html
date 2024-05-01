@@ -122,6 +122,26 @@
                                                     <td class="text-left">{{ thing.get_batch_type_display }}</td>
                                                     <td class="text-right">
 
+                                                        {% if thing.state == 'INF' %}
+
+                                                            <!-- Show queuing progress -->
+                                                            <span
+                                                                id="id_queue_progress_{{ thing.id }}"
+                                                                hx-get="{% url 'notifications:batch_queue_progress_htmx' batch_id_id=thing.id %}"
+                                                                {% if batch.batch_size < 50 %}
+                                                                    hx-trigger="every 2s"
+                                                                    {% elif batch.batch_size < 1000 }
+                                                                    hx-trigger="every 5s"
+                                                                {% else %}
+                                                                    hx-trigger="every 10s"
+                                                                {% endif %}
+                                                            >
+                                                                0% queued
+                                                            </span>
+
+                                                        {% endif %}
+
+
                                                         {#  Don't show buttons if nothing was sent #}
                                                         {% if thing.batch_size > 0 and thing.complete %}
 
