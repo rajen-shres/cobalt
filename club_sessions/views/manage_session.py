@@ -1,6 +1,9 @@
 import operator
 import logging
 
+# JPG debug
+import os
+
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Sum
@@ -743,13 +746,14 @@ def _session_health_check(club, session, club_bc_pm, user, send_emails=False):
 
     # discrpancy found !
 
-    # log it
-    logger.error(f"{BRIDGE_CREDITS} Health Check: {session}, {club}")
-    logger.error(
-        f"{BRIDGE_CREDITS} Health Check: fees {total_session_fees:.2f}, misc {total_session_misc:.2f}, payments {total_session_payments:.2f}"
-    )
-
     if send_emails:
+
+        # log it
+        logger.error(f"{BRIDGE_CREDITS} Health Check: {session}, {club}")
+        logger.error(
+            f"{BRIDGE_CREDITS} Health Check: fees {total_session_fees:.2f}, misc {total_session_misc:.2f}, payments {total_session_payments:.2f}"
+        )
+
         # send an email to support
         html = (
             f"<p>The {GLOBAL_TITLE} {BRIDGE_CREDITS} Health Check detected an issue with this club session:</p>"
@@ -783,10 +787,13 @@ def _session_health_check(club, session, club_bc_pm, user, send_emails=False):
                 context=context,
             )
 
+    # NOTE: The batch health check script relies on the returned message starting with 'ERROR:'
+    #       to detect whether the message has already been added to the start of the director's
+    #       notes.
+
     return (
-        f"ERROR: An issue has occurred, please contact Support. "
-        f"Expected {total_session_fees + total_session_misc:.2f} {BRIDGE_CREDITS} payments, "
-        f"{-discrepancy:.2f} {'overpayment' if discrepancy < 0 else 'underpayment'}"
+        f"ERROR: Expected {total_session_fees + total_session_misc:.2f} {BRIDGE_CREDITS} payments, "
+        f"{-discrepancy:.2f} {'overpayment' if discrepancy < 0 else 'underpayment'} found. Please contact support."
     )
 
 
@@ -798,7 +805,13 @@ def process_bridge_credits_htmx(request, club, session):
 
     with transaction.atomic():
 
+        # JPG debug - for COB-804 race condition testing
+        # print(f"{os.getpid()} process_bridge_credits_htmx acquiring lock ...")
+
         session = Session.objects.select_for_update().get(pk=session.id)
+
+        # JPG debug - for COB-804 race condition testing
+        # print(f"{os.getpid()} process_bridge_credits_htmx acquired lock")
 
         # Get bridge credits for this org
         bridge_credits = bridge_credits_for_club(club)
@@ -832,8 +845,13 @@ def process_bridge_credits_htmx(request, club, session):
             if message is None:
                 message = f"{BRIDGE_CREDITS} processed. Success: {success}. Failure {len(failures)}."
             else:
+                # add the message to the start of the director's notes, this will trigger a
+                # warning icon next to the session in the listm with the message as a tool tip
                 if session.director_notes:
-                    session.director_notes = f"{message}\n\n{session.director_notes}"
+                    if not session.director_notes.startswith("ERROR:"):
+                        session.director_notes = (
+                            f"{message}\n\n{session.director_notes}"
+                        )
                 else:
                     session.director_notes = message
                 session.save()

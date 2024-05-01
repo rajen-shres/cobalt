@@ -26,6 +26,10 @@ Key Points:
    ./payments_overview.html
 
 """
+
+# JPG debug - for COB-804 race condition testing
+# import time
+
 import json
 import logging
 from decimal import Decimal
@@ -789,6 +793,10 @@ def update_account(
         MemberTransaction
 
     """
+
+    # JPG debug - for COB-804 race condition testing
+    # time.sleep(2)
+
     # Get new balance
     balance = get_balance(member) + float(amount)
 

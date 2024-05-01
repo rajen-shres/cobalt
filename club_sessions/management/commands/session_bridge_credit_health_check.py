@@ -81,10 +81,21 @@ class Command(BaseCommand):
 
                 check_count += 1
                 msg = _session_health_check(club, session, bc_payment_type, None)
-                msg = "test payload"
 
                 if msg:
                     error_count += 1
+
+                    # add message to front of director's notes if not already there
+                    if session.director_notes:
+                        if not session.director_notes.startswith("ERROR:"):
+                            session.director_notes = (
+                                f"{msg}\n\n{session.director_notes}"
+                            )
+                            session.save()
+                    else:
+                        session.director_notes = msg
+                        session.save()
+
                     out_file.write(
                         f"Session: {session}, club: {club}, director: {session.director.full_name} ({session.director.email})\n"
                     )

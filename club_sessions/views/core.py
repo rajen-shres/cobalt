@@ -1,6 +1,9 @@
 # Define some constants
 from decimal import Decimal
 
+# JPG debug - for COB-804 race condition testing
+# import os
+
 from django.db.models import Sum, Max
 
 from accounts.models import User, UnregisteredUser
@@ -1295,6 +1298,9 @@ def process_bridge_credits(session_entries, session, club, bridge_credits, extra
 
     # loop through and try to make payments
     for session_entry in session_entries:
+
+        # JPG debug - for COB-804 race condition testing
+        # print(f"{os.getpid()} process_bridge_credits processing SessionEntry {session_entry}")
 
         amount_paid = float(session_entry.fee) if session_entry.is_paid else 0
         fee = float(session_entry.fee) if session_entry.fee else 0
