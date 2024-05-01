@@ -140,11 +140,33 @@ Environment: {{ COBALT_HOSTNAME }}
                             </a>
                         </li>
 
+                        <hr>
+
+                        <li class="nav-item {% if request.path|slice:":7" == "/events" %}active{% endif %} ">
+                            <a class="nav-link" href="/events">
+                                <i class="material-icons">book_online</i>
+                                <p>Calendar</p>
+                            </a>
+                        </li>
 
                         <li class="nav-item {% if request.path|slice:":8" == "/results" %}active{% endif %} ">
                             <a class="nav-link" href="/results">
                                 <i class="material-icons">content_paste</i>
                                 <p>Results</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item {% if request.path|slice:":9" == "/payments" %}active{% endif %} ">
+                            <a class="nav-link" href="/payments">
+                                <i class="material-icons">account_balance</i>
+                                <p>Bridge Credits</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item {% if request.path|slice:":13" == "/masterpoints" %}active{% endif %} ">
+                            <a class="nav-link" href="/masterpoints">
+                                <i class="material-icons">call_made</i>
+                                <p>Masterpoints</p>
                             </a>
                         </li>
 
@@ -155,24 +177,6 @@ Environment: {{ COBALT_HOSTNAME }}
                             </a>
                         </li>
 
-                        <li class="nav-item {% if request.path|slice:":13" == "/masterpoints" %}active{% endif %} ">
-                            <a class="nav-link" href="/masterpoints">
-                                <i class="material-icons">call_made</i>
-                                <p>Masterpoints</p>
-                            </a>
-                        </li>
-                        <li class="nav-item {% if request.path|slice:":7" == "/events" %}active{% endif %} ">
-                            <a class="nav-link" href="/events">
-                                <i class="material-icons">book_online</i>
-                                <p>Calendar</p>
-                            </a>
-                        </li>
-                        <!-- <li class="nav-item {% if request.path|slice:":9" == "/calendar" %}active{% endif %} ">
-            <a class="nav-link" href="/calendar">
-              <i class="material-icons">date_range</i>
-              <p>Calendar</p>
-            </a>
-          </li> -->
                         <li class="nav-item {% if request.path|slice:":7" == "/forums" %}active{% endif %} ">
 
                             <a class="nav-link" href="/forums">
@@ -180,12 +184,7 @@ Environment: {{ COBALT_HOSTNAME }}
                                 <p>Forums</p>
                             </a>
                         </li>
-                        <li class="nav-item {% if request.path|slice:":9" == "/payments" %}active{% endif %} ">
-                            <a class="nav-link" href="/payments">
-                                <i class="material-icons">account_balance</i>
-                                <p>Bridge Credits</p>
-                            </a>
-                        </li>
+
                         <hr>
 
                         {% if club_staff %}
