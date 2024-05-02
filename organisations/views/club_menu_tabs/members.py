@@ -26,6 +26,7 @@ from notifications.views.core import (
     send_cobalt_email_with_template,
     create_rbac_batch_id,
     club_default_template,
+    get_emails_sent_to_address,
 )
 from organisations.decorators import check_club_menu_access
 from organisations.forms import (
@@ -448,17 +449,21 @@ def _un_reg_edit_htmx_common(
     email_address = active_email_for_un_reg(un_reg, club)
 
     # Get recent emails if allowed
-    if rbac_user_has_role(
-        request.user, f"notifications.orgcomms.{club.id}.edit"
-    ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
-        if email_address:
-            emails = PostOfficeEmail.objects.filter(to=[email_address]).order_by("-pk")[
-                :20
-            ]
-        else:
-            emails = None
-    else:
-        emails = None
+    # if rbac_user_has_role(
+    #     request.user, f"notifications.orgcomms.{club.id}.edit"
+    # ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
+    #     if email_address:
+    #         emails = PostOfficeEmail.objects.filter(to=[email_address]).order_by("-pk")[
+    #             :20
+    #         ]
+    #     else:
+    #         emails = None
+    # else:
+    #     emails = None
+
+    # JPG cleanup
+
+    emails = get_emails_sent_to_address(email_address, club, request.user)
 
     # See if there are blocks on either email address - we don't just look for this user
     if club_email_entry:
@@ -793,12 +798,16 @@ def edit_member_htmx(request, club, message=""):
     )
 
     # Get recent emails too
-    if rbac_user_has_role(
-        request.user, f"notifications.orgcomms.{club.id}.edit"
-    ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
-        emails = PostOfficeEmail.objects.filter(to=[member.email]).order_by("-pk")[:20]
-    else:
-        emails = None
+    # if rbac_user_has_role(
+    #     request.user, f"notifications.orgcomms.{club.id}.edit"
+    # ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
+    #     emails = PostOfficeEmail.objects.filter(to=[member.email]).order_by("-pk")[:20]
+    # else:
+    #     emails = None
+
+    # JPG cleanup
+
+    emails = get_emails_sent_to_address(member.email, club, request.user)
 
     # Get payment stuff
     recent_payments, misc_payment_types = _get_misc_payment_vars(member, club)

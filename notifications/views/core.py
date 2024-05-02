@@ -2991,3 +2991,77 @@ def batch_queue_progress_htmx(request, batch_id_id):
         return _final_response("All queued")
     else:
         return HttpResponse(f"{ queued / batch.batch_size:.0%} queued")
+
+
+def get_emails_sent_to_address(email_address, club, viewing_user, slice=20):
+    """
+    Return a list of Post Office Email objects sent to the specified email address.
+
+    Only emails relevant to the club are returned, and only those that the viewing
+    user has access rights to read.
+
+    Returns the most recent <slice> emails, or None
+    """
+
+    if rbac_user_has_role(
+        viewing_user, "notifications.admin.view"
+    ) or rbac_user_has_role(viewing_user, "orgs.admin.edit"):
+
+        # user has global access so return all recent emails
+        post_office_emails = PostOfficeEmail.objects.filter(
+            to=[email_address]
+        ).order_by("-pk")[:slice]
+
+        # JPG debug
+        print("*** get_emails_sent_to_address - Global access")
+
+    else:
+
+        # check relevant user access
+        comms_access = rbac_user_has_role(
+            viewing_user, f"notifications.orgcomms.{club.id}.edit"
+        )
+        congress_access = rbac_user_has_role(viewing_user, f"events.org.{club.id}.edit")
+        if not congress_access:
+            congress_access = rbac_user_has_role(
+                viewing_user, f"events.org.{club.id}.view"
+            )
+
+        if comms_access or congress_access:
+
+            # build a list of permitted batch types to view for this user
+            if comms_access:
+                permitted_batch_types = [
+                    BatchID.BATCH_TYPE_ADMIN,
+                    BatchID.BATCH_TYPE_COMMS,
+                    BatchID.BATCH_TYPE_RESULTS,
+                ]
+
+                # JPG debug
+                print("*** get_emails_sent_to_address - Comms access")
+            else:
+                permitted_batch_types = []
+
+            if congress_access:
+                permitted_batch_types += [
+                    BatchID.BATCH_TYPE_CONGRESS,
+                    BatchID.BATCH_TYPE_EVENT,
+                    BatchID.BATCH_TYPE_MULTI,
+                    BatchID.BATCH_TYPE_ENTRY,
+                ]
+
+                # JPG debug
+                print("*** get_emails_sent_to_address - Congress access")
+
+            # Query PostOfficeEmail objects through the reverse relation from Snooper
+            post_office_emails = PostOfficeEmail.objects.filter(
+                snooper__batch_id__batch_type__in=permitted_batch_types,
+                to=[email_address],
+            ).order_by("-pk")[:slice]
+
+        else:
+
+            # No releavnt access so return nothing
+            post_office_emails = None
+
+    return post_office_emails

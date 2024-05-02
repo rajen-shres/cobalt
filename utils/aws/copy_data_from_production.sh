@@ -27,7 +27,7 @@ SESSIONID=$(openssl rand -hex 12)
 DUMPFILE="$SESSIONID.json.gz"
 
 # Load default environment settings
-. ~/Dropbox/bin/cobalt_env.sh
+. ~/Development/cobalt_prod_copy/myenv/cobalt_env.sh
 
 # Override some vars
 export RDS_DB_NAME=prod_load
@@ -73,8 +73,8 @@ echo "scp -i ~/.ssh/cobalt.pem ec2-user@$IP:/cobalt-media/$DUMPFILE ~/cobalt_bac
 scp -i ~/.ssh/cobalt.pem ec2-user@$IP:/cobalt-media/$DUMPFILE ~/cobalt_backup/$DUMPFILE
 
 # Delete dump file from server
-echo "sshing to $ENV to delete backup file..."
-eb ssh -n 1 $ENV --command "-f sudo rm /cobalt-media/$DUMPFILE"
+echo "***NOT*** sshing to $ENV to delete backup file..."
+#eb ssh -n 1 $ENV --command "-f sudo rm /cobalt-media/$DUMPFILE"
 
 # Check we can load the database
 echo "Loading database, dropping old DB..."
