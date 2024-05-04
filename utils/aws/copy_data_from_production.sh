@@ -31,8 +31,8 @@ DUMPFILE="$SESSIONID.json.gz"
 
 # Override some vars
 export RDS_DB_NAME=prod_load
-unset AWS_SECRET_ACCESS_KEY
-unset AWS_ACCESS_KEY_ID
+# unset AWS_SECRET_ACCESS_KEY
+# unset AWS_ACCESS_KEY_ID
 
 # set up virtual env and get the prod version of the code
 cd ~/Development/cobalt_prod_copy
