@@ -10,11 +10,10 @@ import sys
 from django.core.management.base import BaseCommand, CommandParser
 from django.db.models import Sum
 
-from cobalt.settings import COBALT_HOSTNAME, MEDIA_ROOT
-from club_sessions.models import Session, SessionEntry
-from club_sessions.views.manage_session import _session_health_check
+from cobalt.settings import COBALT_HOSTNAME, MEDIA_ROOT, BRIDGE_CREDITS
+from club_sessions.models import Session, SessionEntry, SessionMiscPayment
 from organisations.models import Organisation
-from payments.models import OrgPaymentMethod
+from payments.models import OrgPaymentMethod, MemberTransaction
 
 
 class Command(BaseCommand):
@@ -22,6 +21,60 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("from", nargs=1, type=str, help="From date (dd-mm-yyyy)")
+
+    def get_session_totals(self, club, session, club_bc_pm):
+        """Return the relevant totals for the session:
+
+        SessionEntry table money Bridge Credits (+ve)
+        Session misc charges Bridge Credits (+ve)
+        MemberTransaction session Bridge Credits payed (-ve)
+        MemberTransaction refunds (+ve), matched using the description
+        Discrepancy
+        """
+
+        # calculate the total fees for the session, paid by Bridge Credits
+        total_fee = SessionEntry.objects.filter(
+            session=session, is_paid=True, payment_method=club_bc_pm
+        ).aggregate(total=Sum("fee"))
+        total_session_fees = total_fee.get("total", 0) if total_fee else 0
+        total_session_fees = total_session_fees or 0
+
+        # calculate the total misc payments for the session, paid by Bridge Credits
+        total_misc = SessionMiscPayment.objects.filter(
+            session_entry__session=session, payment_made=True, payment_method=club_bc_pm
+        ).aggregate(total=Sum("amount"))
+        total_session_misc = total_misc.get("total", 0) if total_misc else 0
+        total_session_misc = total_session_misc or 0
+
+        # calculate the amount accounted for in member transactions for the session
+        total_payments = MemberTransaction.objects.filter(
+            club_session_id=session.id,
+        ).aggregate(total=Sum("amount"))
+        total_session_payments = total_payments.get("total", 0) if total_payments else 0
+        total_session_payments = total_session_payments or 0
+
+        # calculate the amount refunded in member transactions with a description matching the session
+        total_refunds = MemberTransaction.objects.filter(
+            club_session_id=session.id,
+            description__startswith=f"Bridge Credits returned for {session.description}",
+        ).aggregate(total=Sum("amount"))
+        total_session_refunds = total_refunds.get("total", 0) if total_refunds else 0
+        total_session_refunds = total_session_refunds or 0
+
+        discrepancy = (
+            total_session_fees
+            + total_session_misc
+            + total_session_payments
+            + total_session_refunds
+        )
+
+        return (
+            total_session_fees,
+            total_session_misc,
+            total_session_payments,
+            total_session_refunds,
+            discrepancy,
+        )
 
     def handle(self, *args, **options):
         self.stdout.write(
@@ -40,7 +93,7 @@ class Command(BaseCommand):
             out_path = "/tmp/"
         else:
             out_path = MEDIA_ROOT + "/admin/"
-        out_path += f"health-check-{datetime.now().strftime('%Y%m%d%H%M')}.txt"
+        out_path += f"health-check-{datetime.now().strftime('%Y%m%d%H%M')}.csv"
 
         self.stdout.write(f"Writing to {out_path}")
 
@@ -49,9 +102,12 @@ class Command(BaseCommand):
             out_file.write(
                 "Health Check for Duplicate Bridge Credit Payments in Club Sessions\n"
             )
-            out_file.write(f"Sessions from {from_date.strftime('%d-%m-%Y')}\n\n")
+            out_file.write(f"Sessions from {from_date.strftime('%d-%m-%Y')}\n")
+            out_file.write(
+                "Session,Club,Director,Director Email,Fees Charged,Misc Charges,Payments,Refunds,Disprepancy,Direction\n"
+            )
 
-            # get all comppleted session in the date range
+            # get all compp\leted session in the date range
             sessions = Session.objects.filter(
                 session_date__gte=from_date, status=Session.SessionStatus.COMPLETE
             )
@@ -80,10 +136,22 @@ class Command(BaseCommand):
                     continue
 
                 check_count += 1
-                msg = _session_health_check(club, session, bc_payment_type, None)
+                (
+                    table_money,
+                    misc,
+                    payments,
+                    refunds,
+                    discrepancy,
+                ) = self.get_session_totals(club, session, bc_payment_type)
 
-                if msg:
+                if discrepancy:
                     error_count += 1
+
+                    msg = (
+                        f"ERROR: Expected {table_money + misc:.2f} {BRIDGE_CREDITS} payments, "
+                        + f"{-discrepancy:.2f} {'overpayment' if discrepancy < 0 else 'underpayment'} found."
+                        + " Please contact support."
+                    )
 
                     # add message to front of director's notes if not already there
                     if session.director_notes:
@@ -96,15 +164,15 @@ class Command(BaseCommand):
                         session.director_notes = msg
                         session.save()
 
-                    out_file.write(
-                        f"Session: {session}, club: {club}, director: {session.director.full_name} ({session.director.email})\n"
+                    log_line = (
+                        f"{session},{club},{session.director.full_name},{session.director.email},"
+                        + f"{table_money},{misc},{payments},{refunds},{discrepancy},"
+                        + f"{'Overpayment' if discrepancy < 0 else 'Underpayment'}\n"
                     )
-                    out_file.write(f"    {msg}\n\n")
-                    self.stdout.write(f"   {session} [{session.id}]")
-                    self.stdout.write(f"      {msg}")
+                    out_file.write(log_line)
 
             out_file.write(
-                f"{check_count} sessions checked, {skip_count} skipped, {error_count} errors found"
+                f"{check_count} sessions checked with {skip_count} skipped and {error_count} errors found\n"
             )
 
         self.stdout.write(
