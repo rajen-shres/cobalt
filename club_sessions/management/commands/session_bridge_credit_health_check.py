@@ -35,13 +35,13 @@ class Command(BaseCommand):
 
         # get a list of all Users who played in the session
         # (ie people who could have received a Bridge Credit refund)
-        playing_system_numbers = SessionEntry.objects.filter(session=session).values(
-            "system_number",
-        )
+        # playing_system_numbers = SessionEntry.objects.filter(session=session).values(
+        #     "system_number",
+        # )
 
-        playing_users = User.objects.filter(
-            system_number__in=Subquery(playing_system_numbers)
-        )
+        # playing_users = User.objects.filter(
+        #     system_number__in=Subquery(playing_system_numbers)
+        # )
 
         # calculate the total fees for the session, paid by Bridge Credits
         total_fee = SessionEntry.objects.filter(
@@ -65,10 +65,19 @@ class Command(BaseCommand):
         total_session_payments = total_session_payments or 0
 
         # calculate the amount refunded in member transactions with a description matching the session
+
         # but constrain to users in this session in case of duplicated session descriptions
+        # total_refunds = MemberTransaction.objects.filter(
+        #     description__startswith=f"Bridge Credits returned for {session.description}",
+        #     member__in=playing_users,
+        # ).aggregate(total=Sum("amount"))
+        # total_session_refunds = total_refunds.get("total", 0) if total_refunds else 0
+        # total_session_refunds = total_session_refunds or 0
+
+        # but constrain to payments from this club in case of duplicated session descriptions
         total_refunds = MemberTransaction.objects.filter(
-            description__startswith=f"Bridge Credits returned for {session.description}",
-            member__in=playing_users,
+            description__startswith=f"Bridge Credits returned for {session}",
+            organisation=club,
         ).aggregate(total=Sum("amount"))
         total_session_refunds = total_refunds.get("total", 0) if total_refunds else 0
         total_session_refunds = total_session_refunds or 0
@@ -116,10 +125,10 @@ class Command(BaseCommand):
             )
             out_file.write(f"Sessions from {from_date.strftime('%d-%m-%Y')}\n")
             out_file.write(
-                "Session,Club,Director,Director Email,Fees Charged,Misc Charges,Payments,Refunds,Disprepancy,Direction\n"
+                "Session,Club,Director,Director Email,Fees Charged,Misc Charges,Payments,Refunds,Discrepancy,Direction\n"
             )
 
-            # get all compp\leted session in the date range
+            # get all completed session in the date range
             sessions = Session.objects.filter(
                 session_date__gte=from_date, status=Session.SessionStatus.COMPLETE
             ).order_by("session_date")
@@ -159,22 +168,23 @@ class Command(BaseCommand):
                 if discrepancy:
                     error_count += 1
 
-                    msg = (
-                        f"ERROR: Expected {table_money + misc:.2f} {BRIDGE_CREDITS} payments, "
-                        + f"{-discrepancy:.2f} {'overpayment' if discrepancy < 0 else 'underpayment'} found."
-                        + " Please contact support."
-                    )
+                    # Too many false positives to flag them to the users :
 
+                    # msg = (
+                    #     f"ERROR: Expected {table_money + misc:.2f} {BRIDGE_CREDITS} payments, "
+                    #     + f"{-discrepancy:.2f} {'overpayment' if discrepancy < 0 else 'underpayment'} found."
+                    #     + " Please contact support."
+                    # )
                     # add message to front of director's notes if not already there
-                    if session.director_notes:
-                        if not session.director_notes.startswith("ERROR:"):
-                            session.director_notes = (
-                                f"{msg}\n\n{session.director_notes}"
-                            )
-                            session.save()
-                    else:
-                        session.director_notes = msg
-                        session.save()
+                    # if session.director_notes:
+                    #     if not session.director_notes.startswith("ERROR:"):
+                    #         session.director_notes = (
+                    #             f"{msg}\n\n{session.director_notes}"
+                    #         )
+                    #         session.save()
+                    # else:
+                    #     session.director_notes = msg
+                    #     session.save()
 
                     log_line = (
                         f"{session} [{session.id}],{club} [{club.id}],{session.director.full_name},{session.director.email},"
