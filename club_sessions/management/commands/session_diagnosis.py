@@ -226,7 +226,7 @@ class Command(BaseCommand):
 
                 for rt in recent_txns:
                     self.stdout.write(
-                        f"{rt.created_date:12}  {rt.amount:8.2f}  {rt.balance:8.2f}  {rt.description:20}  {rt.type:20}"
+                        f"{rt.created_date.strftime('%d-%m-%Y'):12}  {rt.amount:8.2f}  {rt.balance:8.2f}  {rt.description:20}  {rt.type:20}"
                     )
 
                 self.stdout.write(f"{'-' * len(header)}\n\n")
