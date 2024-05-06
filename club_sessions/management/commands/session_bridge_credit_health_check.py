@@ -8,10 +8,11 @@ from datetime import datetime
 import sys
 
 from django.core.management.base import BaseCommand, CommandParser
-from django.db.models import Sum
+from django.db.models import Sum, Subquery
 
 from cobalt.settings import COBALT_HOSTNAME, MEDIA_ROOT, BRIDGE_CREDITS
 from club_sessions.models import Session, SessionEntry, SessionMiscPayment
+from accounts.models import User
 from organisations.models import Organisation
 from payments.models import OrgPaymentMethod, MemberTransaction
 
@@ -31,6 +32,16 @@ class Command(BaseCommand):
         MemberTransaction refunds (+ve), matched using the description
         Discrepancy
         """
+
+        # get a list of all Users who played in the session
+        # (ie people who could have received a Bridge Credit refund)
+        playing_system_numbers = SessionEntry.objects.filter(session=session).values(
+            "system_number",
+        )
+
+        playing_users = User.objects.filter(
+            system_number__in=Subquery(playing_system_numbers)
+        )
 
         # calculate the total fees for the session, paid by Bridge Credits
         total_fee = SessionEntry.objects.filter(
@@ -54,9 +65,10 @@ class Command(BaseCommand):
         total_session_payments = total_session_payments or 0
 
         # calculate the amount refunded in member transactions with a description matching the session
+        # but constrain to users in this session in case of duplicated session descriptions
         total_refunds = MemberTransaction.objects.filter(
-            club_session_id=session.id,
             description__startswith=f"Bridge Credits returned for {session.description}",
+            member__in=playing_users,
         ).aggregate(total=Sum("amount"))
         total_session_refunds = total_refunds.get("total", 0) if total_refunds else 0
         total_session_refunds = total_session_refunds or 0
@@ -170,6 +182,7 @@ class Command(BaseCommand):
                         + f"{'Overpayment' if discrepancy < 0 else 'Underpayment'}\n"
                     )
                     out_file.write(log_line)
+                    self.stdout.write(log_line)
 
             out_file.write(
                 f"{check_count} sessions checked with {skip_count} skipped and {error_count} errors found\n"
