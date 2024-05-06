@@ -244,14 +244,14 @@ class Command(BaseCommand):
 
             self.stdout.write("Refunds:\n".upper())
 
-            header = f"{'Date':12}  {'Amount':8}  {'Balance':8}  {'Description':20}  {'Type':20}"
+            header = f"{'Date':12}  {'Sys No':12}  {'name':20}  {'Amount':8}  {'Balance':8}  {'Description':30}  {'Type':20}"
             self.stdout.write(f"{header}\n")
             self.stdout.write(f"{'-' * len(header)}\n")
 
             total_refunds = 0
             for refund in refunds:
                 self.stdout.write(
-                    f"{refund.created_date:12}  {refund.amount:8.2f}  {refund.balance:8.2f}  {refund.description:20}  {refund.type:20}"
+                    f"{refund.created_date.strftime('%d-%m-%Y'):12}  {refund.member.system_number:12}  {refund.member.full_name[:20]:20}  {refund.amount:8.2f}  {refund.balance:8.2f}  {refund.description[:30]:30}  {refund.type:20}"
                 )
                 total_refunds += refund.amount
 
