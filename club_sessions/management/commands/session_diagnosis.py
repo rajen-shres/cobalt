@@ -120,7 +120,7 @@ class Command(BaseCommand):
                     player_id = player.id
 
             self.stdout.write(
-                f"{se.system_number:<12}  {player_type}  {player_id:<6}  {player_name:20}  {se.fee:>8.2f}  {se.payment_method.payment_method:15}  {'Yes' if se.is_paid else 'No'}\n"
+                f"{se.system_number:<12}  {player_type}  {player_id:<6}  {player_name:20}  {se.fee:>8.2f}  {se.payment_method.payment_method if se.payment_method else '!!! NONE !!!':15}  {'Yes' if se.is_paid else 'No'}\n"
             )
             if se.is_paid:
                 nonbc_table_money_payments += 1
@@ -178,11 +178,13 @@ class Command(BaseCommand):
 
         mt_payments = 0
         mt_count_by_sysno = {}
+        dups_found = 0
         for mt in member_txns:
             mt_payments += mt.amount
             if mt.member.system_number in mt_count_by_sysno:
                 mt_count_by_sysno[mt.member.system_number] += 1
                 is_dup = True
+                dups_found += 1
                 if mt.member not in suspect_members:
                     suspect_members.append(mt.member)
             else:
@@ -199,7 +201,7 @@ class Command(BaseCommand):
 
         self.stdout.write(f"{'-' * len(header)}\n")
         self.stdout.write(
-            f"{len(suspect_members):10} duplicate found, Total payments: {mt_payments:>8.2f}\n\n"
+            f"{dups_found:10} duplicate found, Total payments: {mt_payments:>8.2f}\n\n"
         )
 
         # show recent transactions for the members with duplicates
