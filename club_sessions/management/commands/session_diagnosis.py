@@ -172,7 +172,7 @@ class Command(BaseCommand):
         # member transactions (ie actual payments)
 
         self.stdout.write("Member Transactions:\n".upper())
-        header = f"{'System no':12}  {'Id':6}  {'Name':20}  {'Amount':8}  {'Description':20}  Entry?   Dup?"
+        header = f"{'Date':12}  {'System no':12}  {'Id':6}  {'Name':20}  {'Amount':8}  {'Description':20}  Entry?   Dup?"
         self.stdout.write(f"{header}\n")
         self.stdout.write(f"{'-' * len(header)}\n")
 
@@ -190,7 +190,7 @@ class Command(BaseCommand):
                 is_dup = False
 
             self.stdout.write(
-                f"{mt.member.system_number:12}  {mt.member.id:6}  {mt.member.full_name:20}  {mt.amount:8.2f}  {mt.description[:15]:20}  {'Yes ' if mt.member.system_number in bc_session_enties_nos else 'No  '}   {'Yes' if is_dup else ''}\n"
+                f"{mt.created_date.strftime('%d-%m-%Y'):12}  {mt.member.system_number:<12}  {mt.member.id:6}  {mt.member.full_name:20}  {mt.amount:8.2f}  {mt.description[:15]:20}  {'Yes ' if mt.member.system_number in bc_session_enties_nos else 'No  '}   {'Yes' if is_dup else ''}\n"
             )
 
             if mt.member.system_number not in bc_session_enties_nos:
@@ -220,13 +220,13 @@ class Command(BaseCommand):
                 )
 
                 self.stdout.write(f"{user.system_number} {user.full_name}\n")
-                header = f"{'Date':12}  {'Amount':8}  {'Balance':8}  {'Description':20}  {'Type':20}"
+                header = f"{'Date':12}  {'Amount':8}  {'Balance':8}  {'Description':30}  {'Type':20}"
                 self.stdout.write(f"{header}\n")
                 self.stdout.write(f"{'-' * len(header)}\n")
 
                 for rt in recent_txns:
                     self.stdout.write(
-                        f"{rt.created_date.strftime('%d-%m-%Y'):12}  {rt.amount:8.2f}  {rt.balance:8.2f}  {rt.description:20}  {rt.type:20}"
+                        f"{rt.created_date.strftime('%d-%m-%Y'):12}  {rt.amount:8.2f}  {rt.balance:8.2f}  {rt.description[:30]:30}  {rt.type:20}"
                     )
 
                 self.stdout.write(f"{'-' * len(header)}\n\n")
@@ -251,7 +251,7 @@ class Command(BaseCommand):
             total_refunds = 0
             for refund in refunds:
                 self.stdout.write(
-                    f"{refund.created_date.strftime('%d-%m-%Y'):12}  {refund.member.system_number:12}  {refund.member.full_name[:20]:20}  {refund.amount:8.2f}  {refund.balance:8.2f}  {refund.description[:30]:30}  {refund.type:20}"
+                    f"{refund.created_date.strftime('%d-%m-%Y'):<12}  {refund.member.system_number:12}  {refund.member.full_name[:20]:20}  {refund.amount:8.2f}  {refund.balance:8.2f}  {refund.description[:30]:30}  {refund.type:20}"
                 )
                 total_refunds += refund.amount
 
