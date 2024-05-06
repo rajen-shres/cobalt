@@ -26,6 +26,8 @@ class Command(BaseCommand):
 
         club = session.session_type.organisation
 
+        suspect_members = []
+
         self.stdout.write("Session Diagnostics\n")
         self.stdout.write("===================\n\n")
 
@@ -72,6 +74,8 @@ class Command(BaseCommand):
             if se.is_paid:
                 bc_table_money_payments += 1
                 bc_table_money += se.fee
+                if se.system_number not in member_txns_nos:
+                    suspect_members.append(user)
 
         self.stdout.write(f"{'-' * len(header)}\n")
         self.stdout.write(
@@ -173,14 +177,13 @@ class Command(BaseCommand):
 
         mt_payments = 0
         mt_count_by_sysno = {}
-        duplicate_members = []
         for mt in member_txns:
             mt_payments += mt.amount
             if mt.member.system_number in mt_count_by_sysno:
                 mt_count_by_sysno[mt.member.system_number] += 1
                 is_dup = True
-                if mt.member not in duplicate_members:
-                    duplicate_members.append(mt.member)
+                if mt.member not in suspect_members:
+                    suspect_members.append(mt.member)
             else:
                 mt_count_by_sysno[mt.member.system_number] = 1
                 is_dup = False
@@ -191,18 +194,18 @@ class Command(BaseCommand):
 
         self.stdout.write(f"{'-' * len(header)}\n")
         self.stdout.write(
-            f"{len(duplicate_members):10} duplicate found, Total payments: {mt_payments:>8.2f}\n\n"
+            f"{len(suspect_members):10} duplicate found, Total payments: {mt_payments:>8.2f}\n\n"
         )
 
         # show recent transactions for the members with duplicates
 
-        if len(duplicate_members) > 0:
+        if len(suspect_members) > 0:
 
             self.stdout.write(
-                "Recent Transactions for members with duplicates:\n\n".upper()
+                "Recent Transactions for members with duplicates or missing transactions:\n\n".upper()
             )
 
-            for user in duplicate_members:
+            for user in suspect_members:
 
                 recent_txns = MemberTransaction.objects.filter(
                     member=user,
