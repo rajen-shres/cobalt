@@ -177,7 +177,7 @@ class Command(BaseCommand):
                         session.save()
 
                     log_line = (
-                        f"{session},{club},{session.director.full_name},{session.director.email},"
+                        f"{session} [{session.id}],{club} [{club.id}],{session.director.full_name},{session.director.email},"
                         + f"{table_money},{misc},{payments},{refunds},{discrepancy},"
                         + f"{'Overpayment' if discrepancy < 0 else 'Underpayment'}\n"
                     )
