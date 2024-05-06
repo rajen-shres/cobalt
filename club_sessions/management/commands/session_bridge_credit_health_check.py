@@ -4,7 +4,7 @@ Health Check for Duplicate Bridge Credit Payments in Club Sessions
 Looks at all completed club session from a specified date
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import sys
 
 from django.core.management.base import BaseCommand, CommandParser
@@ -75,10 +75,11 @@ class Command(BaseCommand):
         # total_session_refunds = total_session_refunds or 0
 
         # but constrain to payments from this club in case of duplicated session descriptions
-        # assumes that the transactions are on the same date as the session
+        # assumes that the transactions are on the same date as the session or within a few days
         total_refunds = MemberTransaction.objects.filter(
             description__startswith=f"Bridge Credits returned for {session.description}",
-            created_date__date=session.session_date,
+            created_date__date__gte=session.session_date,
+            created_date__date__lte=session.session_date + timedelta(days=5),
             organisation=club,
         ).aggregate(total=Sum("amount"))
         total_session_refunds = total_refunds.get("total", 0) if total_refunds else 0
