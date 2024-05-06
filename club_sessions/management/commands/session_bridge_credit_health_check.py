@@ -122,7 +122,7 @@ class Command(BaseCommand):
             # get all compp\leted session in the date range
             sessions = Session.objects.filter(
                 session_date__gte=from_date, status=Session.SessionStatus.COMPLETE
-            )
+            ).order_by("session_date")
 
             candidate_count = sessions.count()
 
