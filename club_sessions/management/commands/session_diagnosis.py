@@ -75,7 +75,8 @@ class Command(BaseCommand):
                 bc_table_money_payments += 1
                 bc_table_money += se.fee
                 if se.system_number not in member_txns_nos:
-                    suspect_members.append(user)
+                    if user not in suspect_members:
+                        suspect_members.append(user)
 
         self.stdout.write(f"{'-' * len(header)}\n")
         self.stdout.write(
@@ -191,6 +192,10 @@ class Command(BaseCommand):
             self.stdout.write(
                 f"{mt.member.system_number:12}  {mt.member.id:6}  {mt.member.full_name:20}  {mt.amount:8.2f}  {mt.description[:15]:20}  {'Yes ' if mt.member.system_number in bc_session_enties_nos else 'No  '}   {'Yes' if is_dup else ''}\n"
             )
+
+            if mt.member.system_number not in bc_session_enties_nos:
+                if mt.member not in suspect_members:
+                    suspect_members.append(mt.member)
 
         self.stdout.write(f"{'-' * len(header)}\n")
         self.stdout.write(
