@@ -75,8 +75,10 @@ class Command(BaseCommand):
         # total_session_refunds = total_session_refunds or 0
 
         # but constrain to payments from this club in case of duplicated session descriptions
+        # assumes that the transactions are on the same date as the session
         total_refunds = MemberTransaction.objects.filter(
-            description__startswith=f"Bridge Credits returned for {session}",
+            description__startswith=f"Bridge Credits returned for {session.description}",
+            created_date__date=session.session_date,
             organisation=club,
         ).aggregate(total=Sum("amount"))
         total_session_refunds = total_refunds.get("total", 0) if total_refunds else 0
