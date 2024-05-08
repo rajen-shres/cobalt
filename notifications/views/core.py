@@ -2960,9 +2960,6 @@ def delete_email_batch(request, club, batch):
 def batch_queue_progress_htmx(request, batch_id_id):
     """Return an HTML fragment with the batches queuing progress"""
 
-    # JPG debug
-    print(f"*** batch_queue_progress_htmx {batch_id_id}")
-
     def _final_response(msg, refresh=True):
         response = HttpResponse(msg, status=286)
         response["HX-Refresh"] = "true"
@@ -3015,9 +3012,6 @@ def get_emails_sent_to_address(email_address, club, viewing_user, slice=20):
             to=[email_address]
         ).order_by("-pk")[:slice]
 
-        # JPG debug
-        print("*** get_emails_sent_to_address - Global access")
-
     else:
 
         # check relevant user access
@@ -3040,8 +3034,6 @@ def get_emails_sent_to_address(email_address, club, viewing_user, slice=20):
                     BatchID.BATCH_TYPE_RESULTS,
                 ]
 
-                # JPG debug
-                print("*** get_emails_sent_to_address - Comms access")
             else:
                 permitted_batch_types = []
 
@@ -3053,14 +3045,17 @@ def get_emails_sent_to_address(email_address, club, viewing_user, slice=20):
                     BatchID.BATCH_TYPE_ENTRY,
                 ]
 
-                # JPG debug
-                print("*** get_emails_sent_to_address - Congress access")
-
             # Query PostOfficeEmail objects through the reverse relation from Snooper
             post_office_emails = PostOfficeEmail.objects.filter(
                 snooper__batch_id__batch_type__in=permitted_batch_types,
+                snooper__batch_id__organisation=club,
                 to=[email_address],
             ).order_by("-pk")[:slice]
+
+            # JPG Query - should this really be testing for the role in EmailBatchRBAC?
+            # I think it gives the same result and is more efficient this way, but
+            # is perhaps building in a hidden dependency between RBAC roels and batch types
+            # The RBAC role is checked if the user tries to access the email.
 
         else:
 
