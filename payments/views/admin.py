@@ -542,7 +542,7 @@ def _admin_view_specific_transactions_csv_download(
             local_dt = timezone.localtime(org.created_date, TZ)
 
             gross_fee = -org.amount - org.bank_settlement_amount
-            gst = round(float(gross_fee) * 10 / 11, 2)
+            gst = round(float(gross_fee) * 1 / 11, 2)
 
             writer.writerow(
                 [
