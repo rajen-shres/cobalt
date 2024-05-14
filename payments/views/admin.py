@@ -532,11 +532,17 @@ def _admin_view_specific_transactions_csv_download(
                 "Organisation",
                 "Description",
                 "Amount",
+                "Payment",
+                "Fee (gross)",
+                "GST",
             ]
         )
 
         for org in manual_org:
             local_dt = timezone.localtime(org.created_date, TZ)
+
+            gross_fee = -org.amount - org.bank_settlement_amount
+            gst = round(float(gross_fee) * 10 / 11, 2)
 
             writer.writerow(
                 [
@@ -548,6 +554,9 @@ def _admin_view_specific_transactions_csv_download(
                     org.organisation,
                     org.description,
                     org.amount,
+                    org.bank_settlement_amount,
+                    gross_fee,
+                    gst,
                 ]
             )
 
