@@ -90,6 +90,16 @@
         }
 
 
+        // check for some date range value, and clear it both on the view and at the back end
+        function clearDateRange() {
+            if ($('#id_start_date').val() != '' || $('#id_end_date').val('')) {
+                $('#id_start_date').val('')
+                $('#id_end_date').val('')
+                htmx.ajax('POST', '{% url "notifications:compose_email_multi_clear_date_range_htmx" club_id=club.id batch_id_id=batch.id %}', {});
+            }
+        }
+
+
         $(document).ready(function() {
 
             $('#id_start_date').datetimepicker({
@@ -132,6 +142,8 @@
 
                 $(this).prop('indeterminate', false);
 
+                clearDateRange()
+
                 makeCancelable(!this.checked)
             });
 
@@ -159,6 +171,8 @@
                     setSelectAll();
                     setPartials();
                 }
+
+                clearDateRange()
             });
 
 
@@ -186,6 +200,8 @@
                     setSelectAll();
                     setPartials();
                 }
+
+                clearDateRange()
             });
 
 

@@ -1556,6 +1556,13 @@ def compose_email_multi_select(request, club, batch):
                 event = get_object_or_404(Event, pk=activity.activity_id)
                 selected_events.append(event.pk)
 
+    start_date_str = (
+        batch.date_range_from.strftime("%d/%m/%Y") if batch.date_range_from else ""
+    )
+    end_date_str = (
+        batch.date_range_to.strftime("%d/%m/%Y") if batch.date_range_to else ""
+    )
+
     return render(
         request,
         "notifications/batch_email_multi_event.html",
@@ -1572,8 +1579,8 @@ def compose_email_multi_select(request, club, batch):
                 len(selected_masters) + len(selected_congresses) + len(selected_events)
             )
             > 0,
-            "start_date_str": request.GET.get("start_date_str", ""),
-            "end_date_str": request.GET.get("end_date_str", ""),
+            "start_date_str": start_date_str,
+            "end_date_str": end_date_str,
         },
     )
 
@@ -1622,6 +1629,11 @@ def compose_email_multi_select_by_date(request, club, batch):
         response = HttpResponse("Redirecting...", status=302)
         response["HX-Redirect"] = f"{base_url}?{query_params}"
         return response
+
+    # save the date range
+    batch.date_range_from = start_date
+    batch.date_range_to = end_date
+    batch.save()
 
     # delete the existing batch activities
     BatchActivity.objects.filter(batch=batch).delete()
@@ -1724,6 +1736,19 @@ def compose_email_multi_select_by_date(request, club, batch):
     response = HttpResponse("Redirecting...", status=302)
     response["HX-Redirect"] = f"{base_url}?{query_params}"
     return response
+
+
+@check_club_and_batch_access()
+def compose_email_multi_clear_date_range_htmx(request, club, batch):
+    """Clear the date range stored in the batch
+    Called whenever a change is made after a select by date"""
+
+    batch.date_range_from = None
+    batch.date_range_to = None
+    batch.save()
+
+    # Return a 204 No Content response
+    return HttpResponse(status=204)
 
 
 @check_club_and_batch_access()

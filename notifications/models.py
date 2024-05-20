@@ -209,6 +209,9 @@ class BatchID(models.Model):
     """ A reply to address that overrides the template value """
     from_name = models.CharField("From Name", max_length=100, null=True, blank=True)
     """ A from name string that overrides the template value """
+    date_range_from = models.DateField("From Date", null=True, blank=True, default=None)
+    date_range_to = models.DateField("To Date", null=True, blank=True, default=None)
+    # Date range for multi event batchs only
 
     @property
     def complete(self):
