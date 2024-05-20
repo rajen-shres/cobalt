@@ -1682,7 +1682,8 @@ def compose_email_multi_select_by_date(request, club, batch):
                     # count the congress as excluded and create batch activities for the events
                     excluded_congresses.append(congress)
 
-                    for selected_event in selected_congresses:
+                    # for selected_event in selected_congresses:
+                    for selected_event in selected_events:
                         BatchActivity(
                             batch=batch,
                             activity_type=BatchActivity.ACTIVITY_TYPE_EVENT,
