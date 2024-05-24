@@ -175,6 +175,20 @@ def _email_address_on_bounce_list(to_address):
     return False
 
 
+def custom_sender(from_name):
+    """Returns a sender address string of the form "from_name<default_email_addres>" or None
+    The default email address is picked up from settings (eg "MyABF<donotreply@myabf.com.au>")
+    """
+    if not from_name:
+        return None
+
+    match = re.search(r"<([^<>]+)>", DEFAULT_FROM_EMAIL)
+    if match:
+        return f"{from_name}<{match.group(1)}>"
+    else:
+        return None
+
+
 def club_default_template(club):
     """Determine a reasonable default email template for the club, or None
 
@@ -345,7 +359,8 @@ def send_cobalt_email_with_template(
     this_sender = sender
     if this_sender is None:
         if default_org_template and default_org_template.from_name:
-            this_sender = f"{default_org_template.from_name}<donotreply@myabf.com.au>"
+            # this_sender = f"{default_org_template.from_name}<donotreply@myabf.com.au>"
+            this_sender = custom_sender(default_org_template.from_name)
 
     if "img_src" in context:
         context["inline_banner"] = context["img_src"][0] != "/"
@@ -451,10 +466,10 @@ def create_rbac_batch_id(
 
     """
 
-    #  JPG debug
-    print(
-        f"====== create_rbac_batch_id: {rbac_role}, {batch_type}, {batch_size} '{description}'"
-    )
+    # JPG debug
+    # print(
+    #     f"====== create_rbac_batch_id: {rbac_role}, {batch_type}, {batch_size} '{description}'"
+    # )
 
     if not batch_id:
         batch_id = BatchID()
@@ -2742,6 +2757,8 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
     if len(recipients) == 1:
 
         context["name"] = recipients[0].first_name
+        # sender = f"{batch.from_name}<donotreply@myabf.com.au>" if batch.from_name else None
+        sender = custom_sender(batch.from_name)
 
         send_cobalt_email_with_template(
             to_address=recipients[0].email,
@@ -2749,6 +2766,7 @@ def _dispatch_batch(request, club, batch, attachments, test_user=None):
             template=po_template,
             batch_id=batch,
             reply_to=reply_to,
+            sender=sender,
             attachments=attachments if len(attachments) > 0 else None,
             batch_size=1,
         )
@@ -2792,6 +2810,9 @@ def _dispatch_batch_thread(
     batch.batch_size = len(recipients)
     batch.save()
 
+    # sender = f"{batch.from_name}<donotreply@myabf.com.au>" if batch.from_name else None
+    sender = custom_sender(batch.from_name)
+
     try:
         for recipient in recipients:
 
@@ -2806,6 +2827,7 @@ def _dispatch_batch_thread(
                 template=po_template,
                 batch_id=batch,
                 reply_to=reply_to,
+                sender=sender,
                 attachments=attachments if len(attachments) > 0 else None,
                 batch_size=batch.batch_size,
             )
@@ -3028,6 +3050,9 @@ def get_emails_sent_to_address(email_address, club, viewing_user, slice=20):
 
     Returns the most recent <slice> emails, or None
     """
+
+    if not email_address:
+        return []
 
     if rbac_user_has_role(
         viewing_user, "notifications.admin.view"

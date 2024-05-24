@@ -47,18 +47,27 @@ def email_htmx(request, club, message=None):
     """build the comms email tab in club menu"""
 
     # check relevant user access
-    comms_access = rbac_user_has_role(
-        request.user, f"notifications.orgcomms.{club.id}.edit"
-    )
-    congress_edit_access = rbac_user_has_role(
-        request.user, f"events.org.{club.id}.edit"
-    )
-    if congress_edit_access:
+
+    if rbac_user_has_role(request.user, "notifications.admin.view"):
+        # Global access
+        comms_access = True
         congress_view_access = True
+        congress_edit_access = False
+
     else:
-        congress_view_access = rbac_user_has_role(
-            request.user, f"events.org.{club.id}.view"
+
+        comms_access = rbac_user_has_role(
+            request.user, f"notifications.orgcomms.{club.id}.edit"
         )
+        congress_edit_access = rbac_user_has_role(
+            request.user, f"events.org.{club.id}.edit"
+        )
+        if congress_edit_access:
+            congress_view_access = True
+        else:
+            congress_view_access = rbac_user_has_role(
+                request.user, f"events.org.{club.id}.view"
+            )
 
     if not (comms_access or congress_view_access or congress_edit_access):
         # No releavnt access so block and tell them about the comms role

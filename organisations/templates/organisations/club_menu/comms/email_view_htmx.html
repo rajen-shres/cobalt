@@ -2,7 +2,11 @@
 {% load cobalt_tags %}
 
 <h3>{{ details.subject }}</h3>
-<h4>Sent by: {{ email_batch.meta_sender.full_name }} ({{ email_batch.meta_organisation }})</h4>
+{% if email_batch.meta_sender %}
+    <h4>Sent by: {{ email_batch.meta_sender.full_name }} ({% if email_batch.meta_organisation %}{{ email_batch.meta_organisation }}{% else %}{{ club }}{% endif %})</h4>
+{% else %}
+    <h4>Sent by: {% if email_batch.meta_organisation %}{{ email_batch.meta_organisation }}{% else %}{{ club }}{% endif %}</h4>
+{% endif %}
 
 <a
     onclick='window.open("{% url "notifications:admin_view_email_by_batch" batch_id=email_batch.id %}", "email","width=1000,height=1500");'

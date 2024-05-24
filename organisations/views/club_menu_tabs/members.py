@@ -23,6 +23,7 @@ from cobalt.settings import (
 )
 from notifications.models import UnregisteredBlockedEmail, BatchID
 from notifications.views.core import (
+    custom_sender,
     send_cobalt_email_with_template,
     create_rbac_batch_id,
     club_default_template,
@@ -664,7 +665,8 @@ def _send_welcome_pack(club, first_name, email, user, invite_to_join):
     if use_template.box_font_colour:
         context["box_font_colour"] = use_template.box_font_colour
 
-    sender = f"{from_name}<donotreply@myabf.com.au>" if from_name else None
+    # sender = f"{from_name}<donotreply@myabf.com.au>" if from_name else None
+    sender = custom_sender(from_name)
 
     # Create batch id to allow any admin for this club to view the email
     batch_id = create_rbac_batch_id(
