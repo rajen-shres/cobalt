@@ -49,16 +49,22 @@ def email_htmx(request, club, message=None):
     # check relevant user access
 
     if rbac_user_has_role(request.user, "notifications.admin.view"):
-        # Global access
+        # Global comms access
         comms_access = True
         congress_view_access = True
-        congress_edit_access = False
+
+        # may also have club specific or global event access
+        congress_edit_access = rbac_user_has_role(
+            request.user, f"events.org.{club.id}.edit"
+        )
 
     else:
-
+        # Club specific comms access
         comms_access = rbac_user_has_role(
             request.user, f"notifications.orgcomms.{club.id}.edit"
         )
+
+        # club or gloabl event update access
         congress_edit_access = rbac_user_has_role(
             request.user, f"events.org.{club.id}.edit"
         )
