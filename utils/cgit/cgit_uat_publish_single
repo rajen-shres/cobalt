@@ -1,0 +1,120 @@
+#!/bin/bash
+
+# about: deploy changes to UAT assuming a single UAT server\n
+
+echo ""
+echo ""
+echo "Ready to Deploy to UAT."
+echo ""
+echo "First we will give this release a new version number."
+echo "Then we will create a release branch and deploy it to UAT."
+echo ""
+
+OLDRELEASE=`grep VER $CGIT_ENV/version.py | awk '{print $3}' | tr -d "\""`
+
+echo "Last release was $OLDRELEASE"
+echo ""
+echo -n "Release Number: "
+read RELEASE
+echo "$RELEASE"
+
+echo ""
+echo "Switching to develop branch..."
+echo ""
+
+git checkout develop
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+echo ""
+echo "Ensuring develop branch is up to date..."
+echo ""
+git pull origin develop
+if [ $? -ne 0 ];then
+   exit 1
+fi
+
+echo ""
+echo "Updating release version in $CGIT_ENV code..."
+echo ""
+
+echo "COBALT_VERSION = \"$RELEASE\"" > $CGIT_ENV/version.py
+
+echo ""
+echo "Saving version number to develop..."
+echo ""
+
+git add -A
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+# Unless something stupid is put in for a release number this wont fail the pre-commits
+git commit -a -m "Updating release version to $RELEASE"
+git push origin develop
+
+echo ""
+echo "Creating release branch..."
+echo ""
+
+git checkout -b release/$RELEASE
+if [ $? -ne 0 ];then
+  echo "There is a problem with the branch."
+  echo "If you need to delete a local branch use: git branch -d release/$RELEASE"
+  echo "Use -D to force."
+  echo ""
+  echo "If you need to delete a remote branch use git push -d origin release/$RELEASE"
+  echo ""
+
+  exit 1
+fi
+
+echo ""
+echo "Pushing release branch to github..."
+echo ""
+
+git push origin release/$RELEASE
+if [ $? -ne 0 ];then
+  exit 1
+fi
+
+echo ""
+echo "Deploying to UAT server..."
+echo ""
+
+UATENV=`eb list | grep $CGIT_ENV-uat`
+
+echo "Deploying code to $UATENV..."
+DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
+eb deploy -m "release/$RELEASE@$DATE" $UATENV
+
+
+# UATNUM=`eb list | grep $CGIT_ENV-uat | wc | awk '{print $1}'`
+
+# if [ "$UATNUM" = "1" ]
+# then
+#     # Get number of EC2 instances running. We want at least 2
+#     utils/cgit/_cgit_scale_environment_for_deployment $UATENV
+#     ec2_instances=$?
+
+#   echo "Original instance number was $ec2_instances"
+
+#    echo "Deploying code to $UATENV..."
+#    DATE=$(date '+%a_%d/%m/%Y_%H:%M:%S')
+#    eb deploy -m "release/$RELEASE@$DATE" $UATENV
+
+#    if [ "$ec2_instances" = "1" ]
+#     then
+
+#       echo "Restoring instance number to $ec2_instances. Could take a few minutes..."
+
+#       eb scale "$ec2_instances" "$UATENV"
+
+#    fi
+
+# else
+#    echo "Cannot deploy to UAT, found more than one UAT environment."
+#    echo $UATENV
+# fi
+
