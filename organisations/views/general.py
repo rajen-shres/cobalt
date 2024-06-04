@@ -305,6 +305,15 @@ def get_membership_for_player(system_number, club):
     return None
 
 
+def is_player_a_member(system_number, club):
+    """Returns whether the player is a current member (of any type) of the club
+    Used in determining event entry fees where membership is relevant.
+
+    Note: This will need to change with implementation of full club admin"""
+
+    return get_membership_for_player(system_number, club) is not None
+
+
 @login_required()
 def generic_org_search_htmx(request):
     """basic search for organisation by name

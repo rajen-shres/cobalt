@@ -21,6 +21,7 @@ from cobalt.settings import (
     TBA_PLAYER,
 )
 from organisations.models import Organisation
+from organisations.views.general import is_player_a_member
 from payments.models import MemberTransaction
 from rbac.core import rbac_user_has_role
 from utils.templatetags.cobalt_tags import cobalt_credits
@@ -189,6 +190,10 @@ class Congress(models.Model):
     youth_payment_discount_age = models.IntegerField("Cut off age", default=26)
     senior_date = models.DateField("Date for age check", null=True, blank=True)
     senior_age = models.IntegerField("Cut off age", default=60)
+    members_only = models.BooleanField("Members Only", default=False)
+    allow_member_entry_fee = models.BooleanField(
+        "Allow Member Specific Entry Fee", default=False
+    )
     # Open and close dates can be overridden at the event level
     entry_open_date = models.DateField(null=True, blank=True)
     entry_close_date = models.DateField(null=True, blank=True)
@@ -442,7 +447,22 @@ class Event(models.Model):
     entry_open_date = models.DateField(null=True, blank=True)
     entry_close_date = models.DateField(null=True, blank=True)
     entry_close_time = models.TimeField(null=True, blank=True)
-    entry_fee = models.DecimalField("Entry Fee", max_digits=12, decimal_places=2)
+    entry_fee = models.DecimalField(
+        "Entry Fee",
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=Decimal(0.0),
+    )
+    member_entry_fee = models.DecimalField(
+        "Member Entry Fee",
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=Decimal(0.0),
+    )
     entry_early_payment_discount = models.DecimalField(
         "Early Payment Discount",
         max_digits=12,
@@ -610,13 +630,29 @@ class Event(models.Model):
 
         # default
         discount = 0.0
-        reason = "Full fee"
-        description = reason
+        base_fee_reason = None
+        discount_reasons = []
         players_per_entry = EVENT_PLAYER_FORMAT_SIZE[self.player_format]
         # Need a better approach for teams
         if self.player_format == "Teams":
             players_per_entry = 4
-        entry_fee = cobalt_round(self.entry_fee / players_per_entry)
+
+        # determine base entry fee, considering club membership
+        if self.congress.members_only:
+            base_entry_fee = self.member_entry_fee
+        elif self.congress.allow_member_entry_fee:
+            if is_player_a_member(
+                user.system_number, self.congress.congress_master.org
+            ):
+                base_entry_fee = self.member_entry_fee
+                base_fee_reason = "Member"
+            else:
+                base_entry_fee = self.entry_fee
+                base_fee_reason = "Non-member"
+        else:
+            base_entry_fee = self.entry_fee
+
+        entry_fee = cobalt_round(base_entry_fee / players_per_entry)
 
         # date
         if (
@@ -624,12 +660,11 @@ class Event(models.Model):
             and self.congress.early_payment_discount_date
         ) and self.congress.early_payment_discount_date >= check_date:
             entry_fee = (
-                self.entry_fee - self.entry_early_payment_discount
+                base_entry_fee - self.entry_early_payment_discount
             ) / players_per_entry
             entry_fee = cobalt_round(entry_fee)
-            reason = "Early discount"
-            discount = float(self.entry_fee) / players_per_entry - float(entry_fee)
-            description = "Early discount " + cobalt_credits(discount)
+            discount = float(base_entry_fee) / players_per_entry - float(entry_fee)
+            discount_reasons.append("Early")
 
         # youth discounts apply after early entry discounts
         if (
@@ -651,15 +686,25 @@ class Event(models.Model):
                     float(entry_fee) * float(self.entry_youth_payment_discount) / 100.0
                 )
                 entry_fee = cobalt_round(entry_fee)
-                discount = float(self.entry_fee) / players_per_entry - entry_fee
-                if reason == "Early discount":
-                    reason = "Youth+Early discount"
-                    description = "Youth+Early discount " + cobalt_credits(discount)
-                else:
-                    reason = "Youth discount"
-                    description = (
-                        "Youth discount %s%%" % self.entry_youth_payment_discount
-                    )
+                discount = float(base_entry_fee) / players_per_entry - entry_fee
+                discount_reasons.append("Youth")
+
+        #  Build the reason and description strings
+        if discount:
+            if base_fee_reason:
+                reason = f"{base_fee_reason} {'+'.join(discount_reasons)} discount"
+            else:
+                reason = f"{'+'.join(discount_reasons)} discount"
+            if "Youth" in discount_reasons and len(discount_reasons) == 1:
+                # just youth discount, so show percentage
+                description = f"{reason} {self.entry_youth_payment_discount}%"
+            else:
+                # show amount of total discount
+                description = f"{reason} {cobalt_credits(discount)}"
+        else:
+            # No discount, either full fee or member fee
+            reason = f"{base_fee_reason if base_fee_reason else 'Full'} fee"
+            description = reason
 
         # EventPlayerDiscount
         event_player_discount = (

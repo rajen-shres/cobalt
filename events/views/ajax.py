@@ -16,6 +16,7 @@ from logs.views import log_event
 from notifications.views.core import contact_member, create_rbac_batch_id
 from notifications.models import BatchID
 from organisations.models import Organisation
+from organisations.views.general import is_player_a_member
 from payments.views.core import (
     update_account,
     update_organisation,
@@ -736,6 +737,33 @@ def check_player_entry_ajax(request):
             return JsonResponse({"message": "Already Entered"})
         else:
             return JsonResponse({"message": "Not Entered"})
+
+
+@login_required()
+def check_player_is_member_ajax(request):
+    """Check if a player is a member of the events hosting club
+    if appropriate"""
+
+    # JPG debug
+    print(f"check_player_is_member_ajax {request.method}")
+
+    if request.method == "GET":
+        member_id = request.GET["member_id"]
+        event_id = request.GET["event_id"]
+
+        member = get_object_or_404(User, pk=member_id)
+        event = get_object_or_404(Event, pk=event_id)
+
+        if not event.congress.members_only:
+            return JsonResponse({"message": "OK"})
+
+        if member.id == TBA_PLAYER:
+            return JsonResponse({"message": "OK"})
+
+        if is_player_a_member(member.system_number, event.congress.congress_master.org):
+            return JsonResponse({"message": "OK"})
+        else:
+            return JsonResponse({"message": "ERROR"})
 
 
 @login_required()

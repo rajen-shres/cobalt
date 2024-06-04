@@ -13,6 +13,7 @@ from .models import (
     Bulletin,
     CongressDownload,
     PartnershipDesk,
+    EVENT_PLAYER_FORMAT_SIZE,
 )
 from organisations.models import Organisation
 from django_summernote.widgets import SummernoteInplaceWidget
@@ -69,6 +70,8 @@ class CongressForm(forms.ModelForm):
         self.fields["youth_payment_discount_age"].label = False
         self.fields["senior_date"].label = False
         self.fields["senior_age"].label = False
+        self.fields["members_only"].label = False
+        self.fields["allow_member_entry_fee"].label = False
         self.fields["bank_transfer_details"].label = False
         self.fields["cheque_details"].label = False
         self.fields["automatic_refund_cutoff"].label = False
@@ -109,6 +112,8 @@ class CongressForm(forms.ModelForm):
         self.fields["youth_payment_discount_age"].required = False
         self.fields["senior_date"].required = False
         self.fields["senior_age"].required = False
+        self.fields["members_only"].required = False
+        self.fields["allow_member_entry_fee"].required = False
         self.fields["bank_transfer_details"].required = False
         self.fields["cheque_details"].required = False
         self.fields["automatic_refund_cutoff"].required = False
@@ -263,6 +268,8 @@ class CongressForm(forms.ModelForm):
             "allow_partnership_desk",
             "senior_date",
             "senior_age",
+            "members_only",
+            "allow_member_entry_fee",
             "youth_payment_discount_date",
             "youth_payment_discount_age",
             "early_payment_discount_date",
@@ -317,6 +324,7 @@ class EventForm(forms.ModelForm):
             "entry_close_time",
             "player_format",
             "entry_fee",
+            "member_entry_fee",
             "entry_early_payment_discount",
             "entry_youth_payment_discount",
             "free_format_question",
@@ -340,6 +348,26 @@ class EventForm(forms.ModelForm):
             )
 
         return entry_youth_payment_discount
+
+    def save(self, commit=True):
+        """Override to deal with translating per player to per entry"""
+
+        instance = super(EventForm, self).save(commit=False)
+
+        players_per_entry = EVENT_PLAYER_FORMAT_SIZE[instance.player_format]
+        if instance.player_format == "Teams":
+            players_per_entry = 4
+
+        instance.member_entry_fee = instance.member_entry_fee * players_per_entry
+        instance.entry_fee = instance.entry_fee * players_per_entry
+        instance.entry_early_payment_discount = (
+            instance.entry_early_payment_discount * players_per_entry
+        )
+
+        if commit:
+            instance.save()
+
+        return instance
 
 
 class SessionForm(forms.ModelForm):

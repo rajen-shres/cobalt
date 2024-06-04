@@ -404,10 +404,24 @@
 
         // edit player
         function cobaltMemberSearchOk(search_id) {
+
             var member = member_id[search_id];
-            var name = member_name[search_id];
-            var pic = member_pic[search_id];
-            editPlayer(member, name, pic, search_id);
+
+            $.getJSON("{% url "events:check_player_is_member_ajax" %}" + "?member_id=" + member + "&event_id={{ event.id }}")
+                .done(response => {
+                if (response['message'] == "ERROR") {
+                    // not a member
+                    swal.fire({
+                        title: "Error",
+                        html: member_name[search_id] + " is not a club member",
+                        icon: "error"
+                    })
+                } else {
+                    var name = member_name[search_id];
+                    var pic = member_pic[search_id];
+                    editPlayer(member, name, pic, search_id);
+                }
+            });
         }
 
         // reload page

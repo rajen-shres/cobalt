@@ -48,6 +48,34 @@
                                         <div class="col-6">
                                             <div class="form-check">
                                                 <label class="form-check-label">
+                                                    <input class="form-check-input" id="id_members_only" name="members_only" type="checkbox" {% if form.members_only.value %}checked="Checked" {% endif %}>
+                                                    Members Only
+                                                    <span class="form-check-sign">
+                                                        <span class="check"></span>
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row" id="allow_member_entry_fee">
+                                        <div class="col-6">
+                                            <div class="form-check">
+                                                <label class="form-check-label">
+                                                    <input class="form-check-input" id="id_allow_member_entry_fee" name="allow_member_entry_fee" type="checkbox" {% if form.allow_member_entry_fee.value %}checked="Checked" {% endif %}>
+                                                    Different Entry Fee for Members
+                                                    <span class="form-check-sign">
+                                                        <span class="check"></span>
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-check">
+                                                <label class="form-check-label">
                                                     <input class="form-check-input" id="id_allow_partnership_desk" name="allow_partnership_desk" type="checkbox" {% if form.allow_partnership_desk.value %}checked="Checked" {% endif %}>
                                                     Run Partnership Desk
                                                     <span class="form-check-sign">
@@ -303,6 +331,18 @@
                     $("#discount_date").show()
                 } else {
                     $("#discount_date").hide()
+                }
+            });
+
+            if ($('#id_members_only').is(":checked")) {
+                $("#allow_member_entry_fee").hide()
+            }
+
+            $('#id_members_only').change(function() {
+                if(this.checked) {
+                    $("#allow_member_entry_fee").hide()
+                } else {
+                    $("#allow_member_entry_fee").show()
                 }
             });
 

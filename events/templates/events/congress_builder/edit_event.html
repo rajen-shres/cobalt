@@ -142,25 +142,48 @@
                                         </div>
                                     </div>
 
-                                    <div class="row">
-                                        <div class="col-3 justify-content-center align-self-center">
-                                            Entry Fee per entry
-                                        </div>
-                                        <div class="col-7">
-                                            <div id="div_id_entry_fee" class="form-group">
-                                                <span class="cobalt-form-error" id="id_entry_fee_errors">{{ form.entry_fee.errors|striptags }}</span>
-                                                {% render_field form.entry_fee class+="form-control" %}
+                                    {% if congress.allow_member_entry_fee or congress.members_only %}
+                                        <div class="row">
+                                            <div class="col-3 justify-content-center align-self-center">
+                                                Entry Fee - Member (per player)
+                                            </div>
+                                            <div class="col-7">
+                                                <div id="div_id_member_entry_fee" class="form-group">
+                                                    <span class="cobalt-form-error" id="id_entry_fee_errors">{{ form.member_entry_fee.errors|striptags }}</span>
+                                                    {% render_field form.member_entry_fee class+="form-control" %}
+                                                </div>
+                                            </div>
+                                            <div class="col-2 justify-content-center align-self-center">
+                                                <a href="javascript:void(0)" onclick='help("Entry Fee", "The standard member entry fee without discounts. This is the fee per player. For teams events this is the fee per player in a team of four.");'>help</a>
                                             </div>
                                         </div>
-                                        <div class="col-2 justify-content-center align-self-center">
-                                            <a href="javascript:void(0)" onclick='help("Entry Fee", "The standard entry fee without discounts. This is the fee per pair or team, not per player.");'>help</a>
+                                    {% endif %}
+
+                                    {% if not congress.members_only %}
+                                        <div class="row">
+                                            <div class="col-3 justify-content-center align-self-center">
+                                                {% if congress.allow_member_entry_fee %}
+                                                    Entry Fee - Non-member (per player)
+                                                {% else %}
+                                                    Entry Fee (per player)
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-7">
+                                                <div id="div_id_entry_fee" class="form-group">
+                                                    <span class="cobalt-form-error" id="id_entry_fee_errors">{{ form.entry_fee.errors|striptags }}</span>
+                                                    {% render_field form.entry_fee class+="form-control" %}
+                                                </div>
+                                            </div>
+                                            <div class="col-2 justify-content-center align-self-center">
+                                                <a href="javascript:void(0)" onclick='help("Entry Fee", "The standard entry fee without discounts. This is the fee per player. For teams events this is the fee per player in a team of four.");'>help</a>
+                                            </div>
                                         </div>
-                                    </div>
+                                    {% endif %}
 
                                     {% if congress.allow_early_payment_discount %}
                                         <div class="row">
                                             <div class="col-3 justify-content-center align-self-center">
-                                                Early Entry Discount per entry
+                                                Early Entry Discount (per player)
                                             </div>
                                             <div class="col-7">
                                                 <div id="div_id_entry_early_payment_discount" class="form-group">

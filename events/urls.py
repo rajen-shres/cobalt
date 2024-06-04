@@ -167,6 +167,11 @@ urlpatterns = [
         name="check_player_entry_ajax",
     ),
     path(
+        "congress/event/check_player_is_member_ajax",
+        ajax.check_player_is_member_ajax,
+        name="check_player_is_member_ajax",
+    ),
+    path(
         "congress/event/change-player-entry",
         ajax.change_player_entry_ajax,
         name="change_player_entry_ajax",

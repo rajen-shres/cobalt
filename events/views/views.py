@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from organisations.models import Organisation
+from organisations.views.general import is_player_a_member
 from payments.views.payments_api import payment_api_interactive
 from utils.templatetags.cobalt_tags import cobalt_credits
 from notifications.views.core import (
@@ -63,7 +64,7 @@ from events.views.core import (
     notify_conveners,
     get_basket_for_user,
 )
-from utils.utils import cobalt_paginator
+from utils.utils import cobalt_paginator, cobalt_round
 
 TZ = pytz.timezone(TIME_ZONE)
 
@@ -400,8 +401,18 @@ def view_congress(request, congress_id, fullscreen=False):
             for key, value in sorted(events_list.items(), key=lambda item: item[1])
         }
 
+    # check on eligibility to enter
+    if congress.members_only:
+        eligible_to_enter = is_player_a_member(
+            request.user.system_number, congress.congress_master.org
+        )
+    else:
+        eligible_to_enter = True
+
     # program_list will be passed to the template, each entry is a <tr> element
     program_list = []
+
+    includes_teams_event = False
 
     # every day of an event gets its own row so we use rowspan for event name and links
     for event in events_list_sorted:
@@ -435,7 +446,34 @@ def view_congress(request, congress_id, fullscreen=False):
         first_row_for_event = True
         for day in days:
             if first_row_for_event:
-                entry_fee = cobalt_credits(event.entry_fee)
+
+                players_per_entry = EVENT_PLAYER_FORMAT_SIZE[event.player_format]
+                if event.player_format == "Teams":
+                    players_per_entry = 4
+
+                if congress.members_only:
+                    entry_fee = cobalt_credits(
+                        cobalt_round(event.member_entry_fee / players_per_entry)
+                    )
+                else:
+                    if congress.allow_member_entry_fee:
+                        members_fee = cobalt_credits(
+                            cobalt_round(event.member_entry_fee / players_per_entry)
+                        )
+                        non_members_fee = cobalt_credits(
+                            cobalt_round(event.entry_fee / players_per_entry)
+                        )
+                        entry_fee = (
+                            f"{members_fee} members / {non_members_fee} non-members"
+                        )
+                    else:
+                        entry_fee = cobalt_credits(
+                            cobalt_round(event.entry_fee / players_per_entry)
+                        )
+                if event.player_format == "Teams":
+                    entry_fee += "*"
+                    includes_teams_event = True
+
                 program[
                     "event"
                 ] = f"<td rowspan='{rows}'><span class='title'>{event.event_name}</td><td rowspan='{rows}'><span class='title'>{entry_fee}</span></td>"
@@ -449,9 +487,17 @@ def view_congress(request, congress_id, fullscreen=False):
 
                     if is_open:
 
-                        program[
-                            "links"
-                        ] = f"<td rowspan='{rows}'><a href='/events/congress/event/enter/{congress.id}/{event.id}' class='btn btn-block btn-sm btn-success'>Enter</a>"
+                        if eligible_to_enter:
+
+                            program[
+                                "links"
+                            ] = f"<td rowspan='{rows}'><a href='/events/congress/event/enter/{congress.id}/{event.id}' class='btn btn-block btn-sm btn-success'>Enter</a>"
+
+                        else:
+
+                            program[
+                                "links"
+                            ] = f"<td rowspan='{rows}'><button class='btn btn-block btn-sm btn-success' disabled>Enter</button>"
 
                     else:
                         program[
@@ -543,6 +589,7 @@ def view_congress(request, congress_id, fullscreen=False):
             "downloads": downloads,
             "msg": msg,
             "is_admin": is_admin,
+            "includes_teams_event": includes_teams_event,
         },
     )
 
@@ -1089,6 +1136,7 @@ def edit_event_entry(
             "pay_all": pay_all,
             "payment_methods": payment_methods,
             "has_only_one_real_player": has_only_one_real_player,
+            "check_membership": congress.members_only,
         },
     )
 
@@ -1571,8 +1619,16 @@ def enter_event_non_post(event, congress, request, enter_for_another):
 
     name_list = [(0, "Search..."), (TBA_PLAYER, "TBA")]
     for team_mate in team_mates:
-        item = team_mate.team_mate.id, f"{team_mate.team_mate.full_name}"
-        name_list.append(item)
+        if congress.members_only:
+            #  filter out non-members amongst team mates
+            if is_player_a_member(
+                team_mate.team_mate.system_number, congress.congress_master.org
+            ):
+                item = team_mate.team_mate.id, f"{team_mate.team_mate.full_name}"
+                name_list.append(item)
+        else:
+            item = team_mate.team_mate.id, f"{team_mate.team_mate.full_name}"
+            name_list.append(item)
 
     # set values for player0 (the user)
     entry_fee, discount, reason, description = event.entry_fee_for(request.user)
@@ -1704,6 +1760,7 @@ def enter_event_non_post(event, congress, request, enter_for_another):
             "min_entries": min_entries,
             "enter_for_another": enter_for_another,
             "is_tournament_admin": is_tournament_admin,
+            "check_membership": congress.members_only,
         },
     )
 

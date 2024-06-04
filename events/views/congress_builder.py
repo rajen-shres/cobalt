@@ -37,8 +37,10 @@ from events.models import (
     Session,
     CongressDownload,
     EventEntry,
+    EVENT_PLAYER_FORMAT_SIZE,
 )
 from utils.models import Slug
+from utils.utils import cobalt_round
 
 TZ = pytz.timezone(TIME_ZONE)
 
@@ -462,6 +464,11 @@ def create_congress_wizard_5(request, step_list, congress):
             congress.senior_age = form.cleaned_data["senior_age"]
             congress.senior_date = form.cleaned_data["senior_date"]
 
+            congress.members_only = form.cleaned_data["members_only"]
+            congress.allow_member_entry_fee = form.cleaned_data[
+                "allow_member_entry_fee"
+            ]
+
             congress.bank_transfer_details = form.cleaned_data["bank_transfer_details"]
             congress.cheque_details = form.cleaned_data["cheque_details"]
             congress.save()
@@ -679,7 +686,12 @@ def create_event(request, congress_id):
         return rbac_forbidden(request, role)
 
     form = EventForm(
-        request.POST or None, initial={"entry_early_payment_discount": 0.0}
+        request.POST or None,
+        initial={
+            "entry_early_payment_discount": 0.0,
+            "entry_fee": 0.0,
+            "member_entry_fee": 0.0,
+        },
     )
 
     if request.method == "POST":
@@ -743,6 +755,21 @@ def edit_event(request, congress_id, event_id):
             initial["entry_close_date"] = event.entry_close_date.strftime("%d/%m/%Y")
         if event.entry_close_time:
             initial["entry_close_time"] = event.entry_close_time.strftime("%H:%M")
+
+        # convert saved entry fee values from per entry to per player
+
+        players_per_entry = EVENT_PLAYER_FORMAT_SIZE[event.player_format]
+        if event.player_format == "Teams":
+            players_per_entry = 4
+
+        initial["member_entry_fee"] = cobalt_round(
+            event.member_entry_fee / players_per_entry
+        )
+        initial["entry_fee"] = cobalt_round(event.entry_fee / players_per_entry)
+        initial["entry_early_payment_discount"] = cobalt_round(
+            event.entry_early_payment_discount / players_per_entry
+        )
+
         form = EventForm(instance=event, initial=initial)
 
     categories = Category.objects.filter(event=event)

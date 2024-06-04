@@ -337,8 +337,9 @@
         // callback from generic search if user is chosen
         function cobaltMemberSearchOk(search_id) {
 
-            // check if this member is already on this page
             var search_member_id = member_id[search_id];
+
+            // check if this member is already on this page
             var already = false;
             $('.cobalt-playerN').each(function(i, obj) {
                 if ($(this).val() == search_member_id){
@@ -378,33 +379,60 @@
                         }
                     } else {
 
-                        // add option if not already there
-                        if ($('#id_player' + search_id + ' option[value=' + member_id[search_id] + ']').length==0) {
-                            // not found so add
-                            // if we get Alan Admin (100) change to Alan Admin
-                            var name = member_name[search_id].split("(")[0]
-                            $("#id_player" + search_id).append('<option value="'+member_id[search_id]+'" selected="">'+name+'</option>');
-                        } else {
-                            // already present - set as selected
-                            //  $("#id_player" + search_id).val(member_id[search_id]).selectpicker('refresh');
-                            $("#id_player" + search_id).val(member_id[search_id]);
+                        // check membership if necessary
+
+                        $.getJSON("{% url "events:check_player_is_member_ajax" %}" + "?member_id=" + search_member_id + "&event_id={{ event.id }}")
+                            .done(response => {
+                            if (response['message'] == "ERROR") {
+                                // not a member
+                                swal.fire({
+                                    title: "Error",
+                                    html: member_name[search_id] + " is not a club member",
+                                    icon: "error"
+                                })
+                                if (previous[search_id]){  // if we have a previous then reset it
+                                    $("#id_player" + search_id).val(previous[search_id]);
+                                } else {
+                                    $("#id_player" + search_id).prop('selectedIndex', 0);
+                                    $("#fee_" + search_id + "_now").val('');
+                                    $("#fee_" + search_id + "_later").val('');
+                                    $("#id_player" + search_id + "_payment").val('');
+                                    $("#id_player" + search_id + "_payment").prop("disabled", false);
+                                }
+                            } else {
+
+                                // all ok, so proceed with update logic
+
+                                // add option if not already there
+                                if ($('#id_player' + search_id + ' option[value=' + member_id[search_id] + ']').length==0) {
+                                    // not found so add
+                                    // if we get Alan Admin (100) change to Alan Admin
+                                    var name = member_name[search_id].split("(")[0]
+                                    $("#id_player" + search_id).append('<option value="'+member_id[search_id]+'" selected="">'+name+'</option>');
+                                } else {
+                                    // already present - set as selected
+                                    //  $("#id_player" + search_id).val(member_id[search_id]).selectpicker('refresh');
+                                    $("#id_player" + search_id).val(member_id[search_id]);
+                                }
+
+                                // check on fees and payment methods
+
+                                // for teams don't charge for players 5 and 6 (4 and 5 in computer counting)
+                                if (search_id<4){
+                                    user_entry_fee(member_id[search_id], search_id);
+                                }
+                                is_form_complete();
+
+                                // Update team name if appropriate
+                                if (search_id === 0){
+                                    update_team_name();
+                                }
+                            }
                         }
-
-                        // check on fees and payment methods
-
-                        // for teams don't charge for players 5 and 6 (4 and 5 in computer counting)
-                        if (search_id<4){
-                            user_entry_fee(member_id[search_id], search_id);
-                        }
-                        is_form_complete();
-
-                        // Update team name if appropriate
-                        if (search_id === 0){
-                            update_team_name();
-                        }
-
+                        );
                     }
-                });
+                }
+                );
             }
             is_form_complete();
         }

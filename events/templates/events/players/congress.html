@@ -336,12 +336,22 @@
                                         <h4 class="card-title">Program</h4>
                                         <a name="Program"></a>
                                     </div>
+                                    {% if congress.members_only %}
+                                        <div class="card-body">
+                                            <b>Note: Entry to this congress is restricted to members of {{ congress.congress_master.org }}.</b>
+                                        </div>
+                                    {% endif %}
+                                    {% if includes_teams_event %}
+                                        <div class="card-body">
+                                            <b>* For teams events Entry fee per player assumes a team of 4. Amounts will differ for teams of 5 or 6.</b>
+                                        </div>
+                                    {% endif %}
                                     <div class="card-body table-responsive">
                                         <div class="table-responsive">
                                             <table border class="table">
                                                 <thead class="text-primary">
                                                     <th id="program">Event</th>
-                                                    <th>Entry Fee</th>
+                                                    <th>Entry fee per player</th>
                                                     <th>Day</th>
                                                     <th>Time</th>
                                                     <th>Entries</th>
