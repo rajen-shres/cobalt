@@ -126,6 +126,16 @@
                         allowEscapeKey: true,
                     })
 
+                } else if (response['message'] == "Not a Member"){
+
+                    swal.fire({
+                        title: "Error",
+                        html: name + " is not a club member",
+                        icon: "error",
+                        allowEnterKey: true,
+                        allowEscapeKey: true,
+                    })
+
                 } else {
 
                     // not entered so set up player

@@ -12,9 +12,18 @@
 
             // already entered
             if (response['message'] == "Already Entered"){
+
                 swal.fire({
                     title: "Error",
                     html: name + " is already entered in this event",
+                    icon: "error"
+                })
+
+            } else if (response['message'] == "Not a Member"){
+
+                swal.fire({
+                    title: "Error",
+                    html: name + " is not a club member",
                     icon: "error"
                 })
 

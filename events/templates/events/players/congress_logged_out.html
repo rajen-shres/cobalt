@@ -100,23 +100,28 @@
         <!-- COB-780: Do not show venue details if an online event -->
         {% if congress.get_congress_venue_type_display != "Online" %}
 
-            <div class="map-container">
-                <div style="width: 80%">
-                    <h2>Location - {{ congress.venue_name }}</h2>
-                    <iframe
-                        width="100%"
-                        height="450"
-                        style="border:0"
-                        loading="lazy"
-                        allowfullscreen
-                        referrerpolicy="no-referrer-when-downgrade"
-                        src="https://www.google.com/maps/embed/v1/place?key=AIzaSyAAXnhnh7zL17kiLo59SnWbTiy4rwoi9VY
-                        &q={{ congress.venue_location }}">
-                    </iframe>
+            {% if congress.venue_name %}
+
+                <div class="map-container">
+                    <div style="width: 80%">
+                        <h2>Location - {{ congress.venue_name }}</h2>
+                        {% if congress.venue_location %}
+                            <iframe
+                                width="100%"
+                                height="450"
+                                style="border:0"
+                                loading="lazy"
+                                allowfullscreen
+                                referrerpolicy="no-referrer-when-downgrade"
+                                src="https://www.google.com/maps/embed/v1/place?key=AIzaSyAAXnhnh7zL17kiLo59SnWbTiy4rwoi9VY
+                                &q={{ congress.venue_location }}">
+                            </iframe>
+                        {% endif %}
+                    </div>
+
                 </div>
 
-            </div>
-
+            {% endif %}
 
             <div class="flex-container">
 
@@ -163,7 +168,22 @@
             <a name="program"></a>
             <div style="width: 80%">
                 <h2> PROGRAM </h2>
-                <br>
+
+                {% if congress.members_only %}
+                    <p>
+                        <b>Note: Entry to this congress is restricted to members of {{ congress.congress_master.org }}.</b>
+                    </p>
+                {% endif %}
+
+                {% if includes_teams_event %}
+                    <p>
+                        <b>* For teams events Entry fee per player assumes a team of 4. Amounts will differ for teams of 5 or 6.</b>
+                    </p>
+                {% endif %}
+
+                {% if not congress.members_only and not includes_teams_event %}
+                    <br>
+                {% endif %}
 
                 <table class="program">
                     <tr>

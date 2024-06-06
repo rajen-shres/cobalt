@@ -1,7 +1,7 @@
-  // ---------------------------------------- //
-  // Generic user search. See documentation   //
-  // for useage instructions.                 //
-  // ---------------------------------------- //
+// ---------------------------------------- //
+// Generic user search. See documentation   //
+// for useage instructions.                 //
+// ---------------------------------------- //
 
 //
 // Constants - if search id is set then it allows multiple user searches per page
@@ -28,13 +28,14 @@ var member_pic = {};
 
 function okSearch{{ search_id }}(id){
 
-  clearModal{{ search_id }}();
+clearModal{{ search_id }}();
+document.removeEventListener('keyup', enterKeyListenerSingleMember{{ search_id }});
 
-  try {
-    cobaltMemberSearchOk(id);
-  } catch (error) {
-    // no function defined in calling module - just ignore
-  }
+try {
+cobaltMemberSearchOk(id);
+} catch (error) {
+// no function defined in calling module - just ignore
+}
 
 }
 
@@ -44,13 +45,14 @@ function okSearch{{ search_id }}(id){
 
 function cancelSearch{{ search_id }}(){
 
-  clearModal{{ search_id }}();
+clearModal{{ search_id }}();
+document.removeEventListener('keyup', enterKeyListenerSingleMember{{ search_id }});
 
-  try {
-    cobaltMemberSearchCancel({{ search_id }});
-  } catch (error) {
-    // no cancel function defined in calling module - just ignore
-  }
+try {
+cobaltMemberSearchCancel({{ search_id }});
+} catch (error) {
+// no cancel function defined in calling module - just ignore
+}
 
 }
 
@@ -59,28 +61,28 @@ function cancelSearch{{ search_id }}(){
 //
 
 function clearModal{{ search_id }}(){
-  $('.dynamic_search{{ search_id}}').each(function(i, obj) {
-    obj.val("");
-  })
-  $('#search-results{{ search_id }}').html("");
-  $('#cobalt-member{{ search_id }}').html("");
-  $('#id_system_number{{ search_id }}').val("");
+$('.dynamic_search{{ search_id}}').each(function(i, obj) {
+obj.val("");
+})
+$('#search-results{{ search_id }}').html("");
+$('#cobalt-member{{ search_id }}').html("");
+$('#id_system_number{{ search_id }}').val("");
 
-  // show search boxes
-  $("#id-cobalt-search-top{{ search_id }}").show();
+// show search boxes
+$("#id-cobalt-search-top{{ search_id }}").show();
 
-  $('#cobalt_general_member_search{{ search_id }}').modal('hide');
+$('#cobalt_general_member_search{{ search_id }}').modal('hide');
 }
 
 //
 // enter key listener function for single member view
 //
 function enterKeyListenerSingleMember{{ search_id }}(e) {
-  if (e.keyCode == 13) {
-    e.preventDefault();
-    document.removeEventListener('keyup', enterKeyListenerSingleMember{{ search_id }});
-    okSearch{{ search_id }}({{ search_id }});
-  }
+if (e.keyCode == 13) {
+e.preventDefault();
+document.removeEventListener('keyup', enterKeyListenerSingleMember{{ search_id }});
+okSearch{{ search_id }}({{ search_id }});
+}
 }
 
 //
@@ -88,140 +90,140 @@ function enterKeyListenerSingleMember{{ search_id }}(e) {
 //
 
 function showSingleMember{{search_id}}(id) {
-  $.getJSON(member_detail{{ search_id }} + "?member_id=" + id + "&search_id={{ search_id }}")
-    .done(response => {
-      // clear results
-      search_results{{ search_id }}.html("");
+$.getJSON(member_detail{{ search_id }} + "?member_id=" + id + "&search_id={{ search_id }}")
+.done(response => {
+// clear results
+search_results{{ search_id }}.html("");
 
-      // show the member
-      member_display{{ search_id }}.html(response['data']);
+// show the member
+member_display{{ search_id }}.html(response['data']);
 
-      // set member_id, name and picture
-      member_id[{{ search_id }}] = id;
-      member_name[{{ search_id }}] = response['member'];
-      member_pic[{{ search_id }}] = response['pic'];
+// set member_id, name and picture
+member_id[{{ search_id }}] = id;
+member_name[{{ search_id }}] = response['member'];
+member_pic[{{ search_id }}] = response['pic'];
 
-      // listen for ok button
-      $(".cobalt-search-ok{{ search_id }}").click(function(event){
-        okSearch{{ search_id }}({{ search_id }});
-      });
+// listen for ok button
+$(".cobalt-search-ok{{ search_id }}").click(function(event){
+okSearch{{ search_id }}({{ search_id }});
+});
 
-      // listen for cancel button
-      $(".cobalt-search-cancel{{ search_id }}").click(function(event){
-        cancelSearch{{ search_id }}();
-      });
+// listen for cancel button
+$(".cobalt-search-cancel{{ search_id }}").click(function(event){
+cancelSearch{{ search_id }}();
+});
 
-      // hide search boxes
-      $("#id-cobalt-search-top{{ search_id }}").hide();
+// hide search boxes
+$("#id-cobalt-search-top{{ search_id }}").hide();
 
-      // add listener for Enter
-      document.addEventListener('keyup', enterKeyListenerSingleMember{{ search_id }});
+// add listener for Enter
+document.addEventListener('keyup', enterKeyListenerSingleMember{{ search_id }});
 
-    })
- }
+})
+}
 
- //
- // handle escape key
- //
- function escapeSearch{{ search_id }}(e) {
-   if (e.keyCode == 27) {
+//
+// handle escape key
+//
+function escapeSearch{{ search_id }}(e) {
+if (e.keyCode == 27) {
 //     document.removeEventListener('keyup', escapeSearch{{ search_id }});
-     cancelSearch{{search_id}}();
-   }
- }
+cancelSearch{{search_id}}();
+}
+}
 
 jQuery(document).ready(function() {
 
 //
 // dynamic search
 //
-  $(".dynamic-search{{ search_id }}").on('keyup', function(event){
+$(".dynamic-search{{ search_id }}").on('keyup', function(event){
 
-    event.stopPropagation();
-    event.stopImmediatePropagation();
+event.stopPropagation();
+event.stopImmediatePropagation();
 
-    // Get values and search if enough letters typed
+// Get values and search if enough letters typed
 
-    var ln = lastname{{ search_id }}.val();
-    var fn = firstname{{ search_id }}.val();
+var ln = lastname{{ search_id }}.val();
+var fn = firstname{{ search_id }}.val();
 
-    search_results{{ search_id }}.html("");
+search_results{{ search_id }}.html("");
 
-    if (ln.length + fn.length > 1) {
-      $.getJSON(member_search{{ search_id }} + "?lastname=" + ln + "&firstname=" + fn + "&search_id={{ search_id }}{% if include_me %}&include_me=1{% endif %}")
-        .done(response => {
+if (ln.length + fn.length > 1) {
+$.getJSON(member_search{{ search_id }} + "?lastname=" + ln + "&firstname=" + fn + "&search_id={{ search_id }}{% if include_me %}&include_me=1{% endif %}")
+.done(response => {
 
-        // update screen with results
-        search_results{{ search_id }}.html(response['data']);
+// update screen with results
+search_results{{ search_id }}.html(response['data']);
 
-        // watch for user selecting member and change screen again
-        $(".cobalt-names{{ search_id }}").click(function(event){
-          var id=$(this).attr("value");
-          lastname{{ search_id }}.val('');
-          firstname{{ search_id }}.val('');
-          system_number{{ search_id }}.val('');
-          showSingleMember{{ search_id }}(id);
-        });
+// watch for user selecting member and change screen again
+$(".cobalt-names{{ search_id }}").click(function(event){
+var id=$(this).attr("value");
+lastname{{ search_id }}.val('');
+firstname{{ search_id }}.val('');
+system_number{{ search_id }}.val('');
+showSingleMember{{ search_id }}(id);
+});
 
-      });
-    }
-  });
+});
+}
+});
 
 //
 // system number search
 //
 
-  $("#system_number_search_button{{search_id}}").click(function(event){
-       if(system_number{{ search_id }}.val() == ""){
-          $("#top_content").prepend("\
-            <div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\"> \
-            You need to provide <stong> System number </strong> for using search facility !!\
-            <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"> \
-            <span aria-hidden=\"true\">&times;</span> </button> </div> ")
-          return;
-        }
-    $.getJSON(system_number_search{{ search_id }} + "?system_number=" + system_number{{ search_id }}.val() + "&search_id={{ search_id }}")
-      .done(response => {
+$("#system_number_search_button{{search_id}}").click(function(event){
+if(system_number{{ search_id }}.val() == ""){
+$("#top_content").prepend("\
+<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\"> \
+    You need to provide <stong> System number </strong> for using search facility !!\
+    <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"> \
+        <span aria-hidden=\"true\">&times;</span> </button> </div> ")
+return;
+}
+$.getJSON(system_number_search{{ search_id }} + "?system_number=" + system_number{{ search_id }}.val() + "&search_id={{ search_id }}")
+.done(response => {
 
-      if (response['data']['status'] == "Success") {
-        showSingleMember{{ search_id }}(response['data']['member_id']);
-      } else {
-        search_results{{ search_id }}.html(response['data']['msg']);
-      }
-    });
-  });
+if (response['data']['status'] == "Success") {
+showSingleMember{{ search_id }}(response['data']['member_id']);
+} else {
+search_results{{ search_id }}.html(response['data']['msg']);
+}
+});
+});
 
 //
 // listen to close button
 //
 
-  $("#close{{search_id}}").click(function(event){
-    cancelSearch{{search_id}}();
-  });
+$("#close{{search_id}}").click(function(event){
+cancelSearch{{search_id}}();
+});
 
 //
 // listen for escape and close dialog
 //
-  document.addEventListener('keyup', escapeSearch{{ search_id }});
+document.addEventListener('keyup', escapeSearch{{ search_id }});
 
 //
 // Fix for bootstrap on ios not showing the modal window
 //
 {# ------- This breaks summernote file upload so allow it to be disabled ------- #}
-    {% if not prevent_ios_fix %}
-  $(document).on('show.bs.modal', '.modal', function () {
+{% if not prevent_ios_fix %}
+    $(document).on('show.bs.modal', '.modal', function () {
     $(this).appendTo('body');
-  });
-    {% endif %}
+    });
+{% endif %}
 
 // Link enter key to clicking the search button
-  var input = $("#id_system_number{{ search_id }}");
+var input = $("#id_system_number{{ search_id }}");
 
-  input.on("keyup", function(event) {
-    if (event.keyCode === 13) {
-      event.preventDefault();
-      $("#system_number_search_button{{ search_id }}").click();
-    }
-  });
+input.on("keyup", function(event) {
+if (event.keyCode === 13) {
+event.preventDefault();
+$("#system_number_search_button{{ search_id }}").click();
+}
+});
 
 }); // end document ready

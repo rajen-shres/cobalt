@@ -714,7 +714,8 @@ def admin_player_discount_delete_ajax(request):
 
 @login_required()
 def check_player_entry_ajax(request):
-    """Check if a player is already entered in an event"""
+    """Check if a player is already entered in an event
+    and whether the playter is a club member if the event is members only"""
 
     if request.method == "GET":
         member_id = request.GET["member_id"]
@@ -725,6 +726,12 @@ def check_player_entry_ajax(request):
 
         if member.id == TBA_PLAYER:
             return JsonResponse({"message": "Not Entered"})
+
+        if event.congress.members_only:
+            if not is_player_a_member(
+                member.system_number, event.congress.congress_master.org
+            ):
+                return JsonResponse({"message": "Not a Member"})
 
         event_entry = (
             EventEntryPlayer.objects.filter(player=member)
@@ -744,6 +751,7 @@ def check_player_is_member_ajax(request):
     """Check if a player is a member of the events hosting club
     if appropriate"""
 
+    # JPG Deprecated - replaced by mods to check_player_entry_ajax()
     # JPG debug
     print(f"check_player_is_member_ajax {request.method}")
 

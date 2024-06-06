@@ -405,6 +405,8 @@
         // edit player
         function cobaltMemberSearchOk(search_id) {
 
+            console.log("=== cobaltMemberSearchOk === " + search_id)
+
             var member = member_id[search_id];
 
             $.getJSON("{% url "events:check_player_is_member_ajax" %}" + "?member_id=" + member + "&event_id={{ event.id }}")

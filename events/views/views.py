@@ -401,8 +401,9 @@ def view_congress(request, congress_id, fullscreen=False):
             for key, value in sorted(events_list.items(), key=lambda item: item[1])
         }
 
-    # check on eligibility to enter
-    if congress.members_only:
+    # check on eligibility to enter a members only event
+    # Note - not relevant if the user is not logged in
+    if congress.members_only and request.user.is_authenticated:
         eligible_to_enter = is_player_a_member(
             request.user.system_number, congress.congress_master.org
         )
