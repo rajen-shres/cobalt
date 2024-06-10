@@ -339,7 +339,7 @@
                                     {% if congress.members_only or includes_teams_event %}
                                         <div class="card-body">
                                             {% if congress.members_only %}
-                                                <p class="font-weight-bold">Note: Entry to this congress is restricted to members of {{ congress.congress_master.org }}.</p>
+                                                <p class="font-weight-bold">Note: Entry is restricted to members of {{ congress.congress_master.org }}.</p>
                                             {% endif %}
                                             {% if includes_teams_event %}
                                                 <p>* For teams events Entry fee per player assumes a team of 4. Amounts will differ for teams of 5 or 6.</p>
@@ -351,7 +351,7 @@
                                             <table border class="table">
                                                 <thead class="text-primary">
                                                     <th id="program">Event</th>
-                                                    <th>Entry fee per player</th>
+                                                    <th>Full entry fee per player</th>
                                                     <th>Day</th>
                                                     <th>Time</th>
                                                     <th>Entries</th>

@@ -715,7 +715,16 @@ def admin_player_discount_delete_ajax(request):
 @login_required()
 def check_player_entry_ajax(request):
     """Check if a player is already entered in an event
-    and whether the playter is a club member if the event is members only"""
+    and whether the player is a club member if the event is members only
+
+    Returns one of the following messages:
+        Not Entered         OK to proceed
+        Already Entered     Cannot be entered again
+        Not a Member        Not entered, but not a member in a members only event,
+                            and user does not have admin rights to override
+        Membership Warning  Not entered, but not a member in a members only event,
+                            and user has admin rights so could override and enter anyway
+    """
 
     if request.method == "GET":
         member_id = request.GET["member_id"]
@@ -727,11 +736,9 @@ def check_player_entry_ajax(request):
         if member.id == TBA_PLAYER:
             return JsonResponse({"message": "Not Entered"})
 
-        if event.congress.members_only:
-            if not is_player_a_member(
-                member.system_number, event.congress.congress_master.org
-            ):
-                return JsonResponse({"message": "Not a Member"})
+        membership_issue = event.congress.members_only and not is_player_a_member(
+            member.system_number, event.congress.congress_master.org
+        )
 
         event_entry = (
             EventEntryPlayer.objects.filter(player=member)
@@ -743,17 +750,30 @@ def check_player_entry_ajax(request):
         if event_entry:
             return JsonResponse({"message": "Already Entered"})
         else:
-            return JsonResponse({"message": "Not Entered"})
+            if membership_issue:
+                if rbac_user_has_role(
+                    request.user,
+                    f"events.org.{event.congress.congress_master.org.id}.edit",
+                ):
+                    return JsonResponse({"message": "Membership Warning"})
+                else:
+                    return JsonResponse({"message": "Not a Member"})
+            else:
+                return JsonResponse({"message": "Not Entered"})
 
 
 @login_required()
 def check_player_is_member_ajax(request):
     """Check if a player is a member of the events hosting club
-    if appropriate"""
+    if appropriate
 
-    # JPG Deprecated - replaced by mods to check_player_entry_ajax()
-    # JPG debug
-    print(f"check_player_is_member_ajax {request.method}")
+    Returns:
+        OK          OK to proceeed
+        ERROR       player is not a member and this is a members only event
+                    and user does not have admin rights to override
+        WARNING     player is not a member and this is a members only event
+                    but user has admin rights and could override and enter anyway
+    """
 
     if request.method == "GET":
         member_id = request.GET["member_id"]
@@ -771,7 +791,12 @@ def check_player_is_member_ajax(request):
         if is_player_a_member(member.system_number, event.congress.congress_master.org):
             return JsonResponse({"message": "OK"})
         else:
-            return JsonResponse({"message": "ERROR"})
+            if rbac_user_has_role(
+                request.user, f"events.org.{event.congress.congress_master.org.id}.edit"
+            ):
+                return JsonResponse({"message": "WARNING"})
+            else:
+                return JsonResponse({"message": "ERROR"})
 
 
 @login_required()

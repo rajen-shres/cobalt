@@ -367,7 +367,7 @@
                             html: member_name[search_id] + " is already entered in this event",
                             icon: "error"
                         })
-                        //    $("#id_player" + search_id).val('').selectpicker('refresh');
+                        cobaltMemberSearchAbort(search_id);
 
                     } else if (response['message'] == "Not a Member") {
 
@@ -376,53 +376,73 @@
                             html: member_name[search_id] + " is not a club member",
                             icon: "error"
                         })
-                    }
+                        cobaltMemberSearchAbort(search_id);
 
-                    if ((response['message'] == "Already Entered") || (response['message'] == "Not a Member")) {
+                    } else if (response['message'] == "Membership Warning") {
 
-                        if (previous[search_id]){  // if we have a previous then reset it
-                            $("#id_player" + search_id).val(previous[search_id]);
-                        } else {
-                            $("#id_player" + search_id).prop('selectedIndex', 0);
-                            $("#fee_" + search_id + "_now").val('');
-                            $("#fee_" + search_id + "_later").val('');
-                            $("#id_player" + search_id + "_payment").val('');
-                            $("#id_player" + search_id + "_payment").prop("disabled", false);
-                        }
-
+                        Swal.fire({
+                            title: 'Enter Non-member?',
+                            text: member_name[search_id] + " is not a club member. Proceed with entry?",
+                            icon: 'info',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                cobaltMemberSearchUpdate(search_id);
+                            } else {
+                                cobaltMemberSearchAbort(search_id);
+                            }
+                        });
                     } else {
-
-                        // all ok, so proceed with update logic
-
-                        // add option if not already there
-                        if ($('#id_player' + search_id + ' option[value=' + member_id[search_id] + ']').length==0) {
-                            // not found so add
-                            // if we get Alan Admin (100) change to Alan Admin
-                            var name = member_name[search_id].split("(")[0]
-                            $("#id_player" + search_id).append('<option value="'+member_id[search_id]+'" selected="">'+name+'</option>');
-                        } else {
-                            // already present - set as selected
-                            //  $("#id_player" + search_id).val(member_id[search_id]).selectpicker('refresh');
-                            $("#id_player" + search_id).val(member_id[search_id]);
-                        }
-
-                        // check on fees and payment methods
-
-                        // for teams don't charge for players 5 and 6 (4 and 5 in computer counting)
-                        if (search_id<4){
-                            user_entry_fee(member_id[search_id], search_id);
-                        }
-                        is_form_complete();
-
-                        // Update team name if appropriate
-                        if (search_id === 0){
-                            update_team_name();
-                        }
+                        cobaltMemberSearchUpdate(search_id);
                     }
                 });
             }
             is_form_complete();
         }
+
+
+        // Abort search (eg after non-member, or duplicate entry found)
+        function cobaltMemberSearchAbort(search_id) {
+            if (previous[search_id]){  // if we have a previous then reset it
+                $("#id_player" + search_id).val(previous[search_id]);
+            } else {
+                $("#id_player" + search_id).prop('selectedIndex', 0);
+                $("#fee_" + search_id + "_now").val('');
+                $("#fee_" + search_id + "_later").val('');
+                $("#id_player" + search_id + "_payment").val('');
+                $("#id_player" + search_id + "_payment").prop("disabled", false);
+            }
+        }
+
+        // Update logic for a successful search
+        function cobaltMemberSearchUpdate(search_id) {
+            // add option if not already there
+            if ($('#id_player' + search_id + ' option[value=' + member_id[search_id] + ']').length==0) {
+                // not found so add
+                // if we get Alan Admin (100) change to Alan Admin
+                var name = member_name[search_id].split("(")[0]
+                $("#id_player" + search_id).append('<option value="'+member_id[search_id]+'" selected="">'+name+'</option>');
+            } else {
+                // already present - set as selected
+                $("#id_player" + search_id).val(member_id[search_id]);
+            }
+
+            // check on fees and payment methods
+
+            // for teams don't charge for players 5 and 6 (4 and 5 in computer counting)
+            if (search_id<4){
+                user_entry_fee(member_id[search_id], search_id);
+            }
+            is_form_complete();
+
+            // Update team name if appropriate
+            if (search_id === 0){
+                update_team_name();
+            }
+        }
+
 
         // if generic search is cancelled reset the player field and disable the
         // payment method

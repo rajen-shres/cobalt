@@ -171,7 +171,7 @@
 
                 {% if congress.members_only %}
                     <p>
-                        <b>Note: Entry to this congress is restricted to members of {{ congress.congress_master.org }}.</b>
+                        <b>Note: Entry is restricted to members of {{ congress.congress_master.org }}.</b>
                     </p>
                 {% endif %}
 
@@ -188,10 +188,10 @@
                 <table class="program">
                     <tr>
                         <th>Event</th>
-                        <th>Entry Fee</th>
+                        <th>Full entry fee per player</th>
                         <th>Day</th>
                         <th>Time</th>
-                        <th>Total Entries</th>
+                        <th>Total entries</th>
                         <th>Action</th>
                     </tr>
                     {% for program in program_list %}

@@ -465,7 +465,7 @@ def view_congress(request, congress_id, fullscreen=False):
                             cobalt_round(event.entry_fee / players_per_entry)
                         )
                         entry_fee = (
-                            f"{members_fee} members / {non_members_fee} non-members"
+                            f"{members_fee} members<br>{non_members_fee} non-members"
                         )
                     else:
                         entry_fee = cobalt_credits(
@@ -1860,6 +1860,7 @@ def enter_event_post(request, congress, event):
             event_entry_player.entry_fee = entry_fee
             event_entry_player.reason = reason
         else:
+            # JPG Note for teams of 5/6
             event_entry_player.entry_fee = 0
             event_entry_player.reason = "Team > 4"
             event_entry_player.payment_status = "Free"

@@ -1,11 +1,13 @@
 """ This file contains all of the code relating to an convener building
     a congress or editing a congress. """
 from datetime import date
+from decimal import Decimal
 
 import pytz
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import ProtectedError
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -472,6 +474,10 @@ def create_congress_wizard_5(request, step_list, congress):
             congress.bank_transfer_details = form.cleaned_data["bank_transfer_details"]
             congress.cheque_details = form.cleaned_data["cheque_details"]
             congress.save()
+
+            if congress.members_only or congress.allow_member_entry_fee:
+                _congress_builder_populate_member_entry_fee(congress)
+
             return redirect(
                 "events:create_congress_wizard", step=6, congress_id=congress.id
             )
@@ -532,6 +538,19 @@ def create_congress_wizard_5(request, step_list, congress):
         "events/congress_builder/congress_wizard_5.html",
         {"form": form, "step_list": step_list, "congress": congress},
     )
+
+
+def _congress_builder_populate_member_entry_fee(congress):
+    """Either the members only or the separate member and non-member entry fee
+    option has been enabled. Default the member entry fee for any existing
+    events (if zero) to be the same as the general entry fee"""
+
+    # update any existing events
+    events = Event.objects.filter(congress=congress)
+    for event in events:
+        if event.member_entry_fee == Decimal(0.00) and event.entry_fee != Decimal(0.00):
+            event.member_entry_fee = event.entry_fee
+            event.save()
 
 
 def create_congress_wizard_6(request, step_list, congress):
