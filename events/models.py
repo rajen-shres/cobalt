@@ -620,7 +620,7 @@ class Event(models.Model):
 
         return True, "Open"
 
-    def entry_fee_for(self, user, check_date=None):
+    def entry_fee_for(self, user, check_date=None, actual_team_size=None):
         """return entry fee for user based on age and date. Also any EventPlayerDiscount applied
         We accept a check_date to work out what the entry fee would be for that date, if not
         provided then we use today."""
@@ -633,9 +633,8 @@ class Event(models.Model):
         base_fee_reason = None
         discount_reasons = []
         players_per_entry = EVENT_PLAYER_FORMAT_SIZE[self.player_format]
-        # Need a better approach for teams
         if self.player_format == "Teams":
-            players_per_entry = 4
+            players_per_entry = actual_team_size if actual_team_size else 4
 
         # determine base entry fee, considering club membership
         if self.congress.members_only:

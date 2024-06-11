@@ -419,32 +419,33 @@
 
             $.getJSON("{% url "events:check_player_is_member_ajax" %}" + "?member_id=" + member + "&event_id={{ event.id }}")
                 .done(response => {
-                if (response['message'] == "ERROR") {
+                if ((response['message'] == "ERROR") ||  (response['message'] == "WARNING")) {
 
-                    // not a member and user is not an admin
+                    // not a member
                     swal.fire({
                         title: "Error",
                         html: member_name[search_id] + " is not a club member",
                         icon: "error"
                     })
 
-                } else if (response['message'] == "WARNING") {
+                    // REMOVED - No admin override on the player views
+                    // } else if (response['message'] == "WARNING") {
 
-                    // not a member, but user is an admin and can override
-                    Swal.fire({
-                        title: 'Enter Non-member?',
-                        text: member_name[search_id] + " is not a club member. Proceed with entry?",
-                        icon: 'info',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            var name = member_name[search_id];
-                            var pic = member_pic[search_id];
-                            editPlayer(member, name, pic, search_id);
-                        }
-                    });
+                    //     // not a member, but user is an admin and can override
+                    //     Swal.fire({
+                    //         title: 'Enter Non-member?',
+                    //         text: member_name[search_id] + " is not a club member. Proceed with entry?",
+                    //         icon: 'info',
+                    //         showCancelButton: true,
+                    //         confirmButtonColor: '#3085d6',
+                    //         cancelButtonColor: '#d33',
+                    //     }).then((result) => {
+                    //         if (result.isConfirmed) {
+                    //             var name = member_name[search_id];
+                    //             var pic = member_pic[search_id];
+                    //             editPlayer(member, name, pic, search_id);
+                    //         }
+                    //     });
 
                 } else {
                     var name = member_name[search_id];

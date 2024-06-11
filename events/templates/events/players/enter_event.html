@@ -369,7 +369,7 @@
                         })
                         cobaltMemberSearchAbort(search_id);
 
-                    } else if (response['message'] == "Not a Member") {
+                    } else if ((response['message'] == "Not a Member") || (response['message'] == "Membership Warning")) {
 
                         swal.fire({
                             title: "Error",
@@ -378,22 +378,23 @@
                         })
                         cobaltMemberSearchAbort(search_id);
 
-                    } else if (response['message'] == "Membership Warning") {
+                        // REMOVED - No admin override on the player views
+                        // } else if (response['message'] == "Membership Warning") {
 
-                        Swal.fire({
-                            title: 'Enter Non-member?',
-                            text: member_name[search_id] + " is not a club member. Proceed with entry?",
-                            icon: 'info',
-                            showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                cobaltMemberSearchUpdate(search_id);
-                            } else {
-                                cobaltMemberSearchAbort(search_id);
-                            }
-                        });
+                        //     Swal.fire({
+                        //         title: 'Enter Non-member?',
+                        //         text: member_name[search_id] + " is not a club member. Proceed with entry?",
+                        //         icon: 'info',
+                        //         showCancelButton: true,
+                        //         confirmButtonColor: '#3085d6',
+                        //         cancelButtonColor: '#d33',
+                        //     }).then((result) => {
+                        //         if (result.isConfirmed) {
+                        //             cobaltMemberSearchUpdate(search_id);
+                        //         } else {
+                        //             cobaltMemberSearchAbort(search_id);
+                        //         }
+                        //     });
                     } else {
                         cobaltMemberSearchUpdate(search_id);
                     }
@@ -447,9 +448,7 @@
         // if generic search is cancelled reset the player field and disable the
         // payment method
         function cobaltMemberSearchCancel(search_id) {
-            console.log("*** Cancelled search on " + search_id)
             if (previous[search_id]){  // if we have a previous then reset it
-                console.log("  * Restoring previous " + previous[search_id])
                 $("#id_player" + search_id).val(previous[search_id]);
             } else {
                 $("#id_player" + search_id).prop('selectedIndex', 0);
@@ -794,7 +793,6 @@
                 return false;
             });
 
-            console.log("enter_for_another = {{ enter_for_another }}")
             // for an individual enable the buttons
             {% if event.player_format == "Individual" and not enter_for_another %}
                 $("#id_checkout").prop("disabled", false);
