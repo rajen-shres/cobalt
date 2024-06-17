@@ -306,17 +306,20 @@ def delete_session_ajax(request):
 
 
 @login_required()
+@require_GET
 def fee_for_user_ajax(request):
     """Ajax call to get entry fee for a user in an event"""
 
-    if request.method == "GET":
-        event_id = request.GET["event_id"]
-        user_id = request.GET["user_id"]
+    event_id = request.GET["event_id"]
+    user_id = request.GET["user_id"]
+    actual_team_size = int(request.GET["team_size"])
 
     event = get_object_or_404(Event, pk=event_id)
     user = get_object_or_404(User, pk=user_id)
 
-    entry_fee, discount, reason, description = event.entry_fee_for(user)
+    entry_fee, discount, reason, description = event.entry_fee_for(
+        user, actual_team_size=actual_team_size
+    )
 
     response_data = {
         "entry_fee": entry_fee,
@@ -807,8 +810,6 @@ def recalculate_team_fees_ajax(request):
     Expects a list of 6 player ids (some of which may be 'Select...')
     Returns a JSON response with the list of recalcualted fees (-1 for any missing players)
     """
-    # JPG debug
-    print("recalculate_team_fees_ajax")
 
     event_id = request.GET["event_id"]
     event = get_object_or_404(Event, pk=event_id)
@@ -1056,10 +1057,21 @@ def change_player_entry_ajax(request):
         return JsonResponse({"message": "Success", "html": return_html})
 
     # get the entry fee based upon when the entry was created
-    entry_fee, discount, reason, description = event.entry_fee_for(
-        event_entry_player.player,
-        event_entry_player.event_entry.first_created_date.date(),
-    )
+
+    if event_entry.paying_players <= 4:
+        # use standard calculation
+        entry_fee, discount, reason, description = event.entry_fee_for(
+            event_entry_player.player,
+            event_entry_player.event_entry.first_created_date.date(),
+        )
+    else:
+        # team of 5.6 and a recalculation has been done, so use number
+        # of paying players
+        entry_fee, discount, reason, description = event.entry_fee_for(
+            event_entry_player.player,
+            event_entry_player.event_entry.first_created_date.date(),
+            actual_team_size=event_entry.paying_players,
+        )
 
     event_entry_player.entry_fee = entry_fee
     event_entry_player.reason = reason
@@ -1217,6 +1229,49 @@ def add_player_to_existing_entry_ajax(request):
         )
 
         return JsonResponse({"message": "Success"})
+
+
+@login_required()
+@require_GET
+def recalculate_team_fees_on_edit_ajax(request):
+    """Recalculate team entry fees, called from player edit entry"""
+
+    event_entry_id = request.GET["event_entry_id"]
+    event_entry = get_object_or_404(EventEntry, pk=event_entry_id)
+
+    # check access
+    if not event_entry.user_can_change(request.user):
+        return JsonResponse({"message": "Access Denied"})
+
+    # check ok to recalcualte (should not be called if not, but to be safe)
+    if not event_entry.can_recalculate:
+        return JsonResponse({"message": "Recalculation not permitted"})
+
+    # update the event entry player records
+    event_entry_players = EventEntryPlayer.objects.filter(
+        event_entry=event_entry,
+    )
+
+    actual_team_size = event_entry_players.count()
+
+    for event_entry_player in event_entry_players:
+
+        entry_fee, discount, reason, description = event_entry.event.entry_fee_for(
+            event_entry_player.player,
+            check_date=event_entry.first_created_date.date(),
+            actual_team_size=actual_team_size,
+        )
+
+        event_entry_player.entry_fee = entry_fee
+        event_entry_player.reason = description
+
+        if event_entry_player.payment_type == "Free":
+            event_entry_player.payment_type = "my-system-dollars"
+            event_entry_player.payment_status = "Unpaid"
+
+        event_entry_player.save()
+
+    return JsonResponse({"message": "Success"})
 
 
 @login_required()

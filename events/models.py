@@ -1005,6 +1005,45 @@ class EventEntry(models.Model):
         else:
             return self.primary_entrant.last_name.upper()[:15]
 
+    @property
+    def paying_players(self):
+        """return the number of players in the entry who are paying (ie not Free)"""
+
+        return (
+            EventEntryPlayer.objects.filter(
+                event_entry=self,
+            )
+            .exclude(payment_status="Free")
+            .count()
+        )
+
+    @property
+    def can_recalculate(self):
+        """Return whether the entry fees can be recalculated, ie a teams event with
+        more than 4 entries and no payments made"""
+
+        # JPG DEBUG
+        print("*** CAN_RECALCULATE ***")
+
+        if self.event.player_format == "Teams":
+
+            players = EventEntryPlayer.objects.filter(event_entry=self)
+
+            if players.count() > 4:
+
+                total_payments_received = 0
+                for player in players:
+                    total_payments_received += float(player.payment_received)
+
+                # JPG DEBUG
+                print(f"*** CAN_RECALCULATE = {total_payments_received == 0} ***")
+
+                return total_payments_received == 0
+
+        # JPG DEBUG
+        print("*** CAN_RECALCULATE = False ***")
+        return False
+
 
 class EventEntryPlayer(models.Model):
     """A player who is entering an event"""

@@ -187,6 +187,11 @@ urlpatterns = [
         name="add_player_to_existing_entry_ajax",
     ),
     path(
+        "congress/event/recalculate_team_fees",
+        ajax.recalculate_team_fees_on_edit_ajax,
+        name="recalculate_team_fees_on_edit_ajax",
+    ),
+    path(
         "congress/event/delete-player-from-entry",
         ajax.delete_player_from_entry_ajax,
         name="delete_player_from_entry_ajax",

@@ -1016,6 +1016,9 @@ def edit_event_entry(
 
     """
 
+    # JPG debug
+    print("=== edit_event_entry ===")
+
     # If we got an event entry, then try to load it.
     if event_entry_id:
         event_entry = get_object_or_404(EventEntry, pk=event_entry_id)

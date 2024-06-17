@@ -406,6 +406,7 @@
                 });
             }
             is_form_complete();
+            checkRecalculateAllowed()
         }
 
 
@@ -421,6 +422,37 @@
                 $("#id_player" + search_id + "_payment").prop("disabled", false);
             }
         }
+
+
+        // Returns the number of players to be used in calculating fees
+        // If it is a team of 5/6 return the number of non-free players
+        // in case a recalulation has already been done
+        function actual_team_size() {
+            if ("{{ event.player_format }}" == "Individual") {
+                return 1;
+            }
+            if ("{{ event.player_format }}" == "Pairs") {
+                return 2;
+            }
+            if ("{{ event.player_format }}" == "Teams of 3") {
+                return 3;
+            }
+
+            // teams, so count players
+            var player_count = 0;
+            $('.payment-method').each(function(){
+                if ($(this).val() != 'free') {
+                    player_count += 1;
+                }
+            });
+
+            if (player_count > 4) {
+                return player_count;
+            } else {
+                return 4;
+            }
+        };
+
 
         // Update logic for a successful search
         function cobaltMemberSearchUpdate(search_id) {
@@ -438,8 +470,13 @@
             // check on fees and payment methods
 
             // for teams don't charge for players 5 and 6 (4 and 5 in computer counting)
-            if (search_id<4){
+            if (search_id<4) {
                 user_entry_fee(member_id[search_id], search_id);
+            } else {
+                // update players 5/6 if already have a fee from a recalculation
+                if ($(`#id_player${search_id}_payment`).val() != 'free') {
+                    user_entry_fee(member_id[search_id], search_id);
+                }
             }
             is_form_complete();
 
@@ -447,6 +484,8 @@
             if (search_id === 0){
                 update_team_name();
             }
+
+            checkRecalculateAllowed()
         }
 
 
@@ -506,7 +545,7 @@
 
         // get entry fee for user
         function user_entry_fee(user_id, search_id){
-            $.get("{% url "events:fee_for_user_ajax" %}?event_id={{ event.id }}&user_id=" + user_id)
+            $.get("{% url "events:fee_for_user_ajax" %}?event_id={{ event.id }}&user_id=" + user_id + "&team_size=" + actual_team_size())
                 .done(response => {
                 msg = response['data']['message'];
 
@@ -594,12 +633,10 @@
             // see if form is now complete
             var complete = 0;
             $(".cobalt-playerN").each(function(i, obj){
-                //console.log("is_form_complete "+i+" value = "+$(this).val())
                 if ($(this).val()>0) {
                     complete+=1;
                 }
             });
-            // console.log("--- "+complete+" vs {{ min_entries }}")
 
             if (complete=={{ min_entries }}){
                 $("#id_checkout").prop("disabled", false);
@@ -733,18 +770,15 @@
             // loop through all player fields
             var playerCount = 0;
             $(".cobalt-playerN").each(function(){
-                console.log("--->" + this.value)
                 if (this.value >= 2) {
                     playerCount = playerCount + 1
                 }
             });
-            console.log("playerCount = " + playerCount)
             $("#id_recalculate").prop("disabled", playerCount <= 4);
         }
 
         // Recalculate the entry fees across the entire team
         function recalculateTeamFees(event) {
-            console.log("recalculateTeamFees")
 
             // build a list of all of the player select values
             const playerList = [];
@@ -752,22 +786,14 @@
                 playerList.push(this.value)
             });
 
-            console.log("playersList = "+playerList)
             var playerJSON = JSON.stringify(playerList)
-            console.log("playerJSON = "+playerJSON)
 
             // get the recalcualted entry fees and update the display
             $.get(
                 "{% url 'events:recalculate_team_fees_ajax' %}",
                 { 'event_id': '{{ event.id }}', 'players': playerJSON}
             ).done(response => {
-                let newOptions = [
-                    { value: '4', text: 'Option 4' },
-                    { value: '5', text: 'Option 5' },
-                    { value: '6', text: 'Option 6' }
-                ];
                 response['fee_by_player'].forEach((entry, index) => {
-                    console.log(`recalculateTeamFeesUpdate player ${index}: ${entry['entry_fee']}`);
                     if (entry['entry_fee'] > 0) {
                         var payment_options = $(`#id_player${index}_payment`)
                         if (payment_options.val() == 'free') {

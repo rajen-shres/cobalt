@@ -154,9 +154,9 @@ class Command(BaseCommand):
             for mi in bc_misc_items:
                 user = User.objects.get(system_number=mi.session_entry.system_number)
                 self.stdout.write(
-                    f"{user.system_number:<12}  {user.id:<6}  {user.full_name:20}  {mi.amount:>8.2f}  {mi.description:20}  {'Yes ' if mi.is_paid else 'No  '}\n"
+                    f"{user.system_number:<12}  {user.id:<6}  {user.full_name:20}  {mi.amount:>8.2f}  {mi.description:20}  {'Yes ' if mi.payment_made else 'No  '}\n"
                 )
-                if mi.is_paid:
+                if mi.payment_made:
                     total_misc_bc += mi.amount
 
             self.stdout.write(f"{'-' * len(header)}\n")

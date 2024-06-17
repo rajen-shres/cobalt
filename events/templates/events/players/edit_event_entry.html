@@ -229,7 +229,7 @@
                                             <div style="white-space: nowrap;">
                                                 <!-- ONLY SHOW DELETE IF PLAYER ISN'T ALREADY TBA -->
                                                 <!-- ALSO, THE DELETE BUTTON IS DIFFERENT FOR PLAYERS 5 AND 6 (ACTUALLY DELETES) -->
-                                                {% if event_entry_player.extra_player %}
+                                                {% if event_entry_player.extra_player and event_entry_player.payment_status == "Free" %}
                                                     <!-- DELETE SHOULD ACTUALLY DELETE PLAYER -->
                                                     <button type="button" id="really_delete_team_mate_{{ event_entry_player.id }}"
                                                         data-toggle="tooltip"
@@ -363,15 +363,31 @@
                             <i class="material-icons text-primary" id="id_team_name" style="cursor: pointer">edit</i></a>
                         {% endif %}
 
-                        <!-- SHOW PAY ALL IF VALID OPTION -->
-                        {% if pay_all %}
+                        <!-- FIRST ROW OF ACTION BUTTONS -->
+                        {% if event_entry.can_recalculate or pay_all %}
                             <div class="text-center py-3">
 
-                                <button class="btn btn-info font-weight-bold"
-                                    id="pay_all"
-                                    data-toggle="tooltip"
-                                    title="Pay all outstanding now using your bridge credits"
-                                >Pay For Everyone</button>
+                                <!-- SHOW RECALCULATE BUTTON IF APPROPRIATE -->
+                                {% if event_entry.can_recalculate %}
+
+                                    <button class="btn btn-info font-weight-bold"
+                                        id="recalculate"
+                                        data-toggle="tooltip"
+                                        title="Split entry fees across all team members"
+                                    >Recalculate</button>
+
+                                {% endif %}
+
+                                <!-- SHOW PAY ALL IF VALID OPTION -->
+                                {% if pay_all %}
+
+                                    <button class="btn btn-info font-weight-bold"
+                                        id="pay_all"
+                                        data-toggle="tooltip"
+                                        title="Pay all outstanding now using your bridge credits"
+                                    >Pay For Everyone</button>
+
+                                {% endif %}
 
                                 <div>
                         {% endif %}
@@ -589,6 +605,18 @@
                     }
                 });
             });
+
+            // handle team recalculation
+            $("#recalculate").click(function(){
+
+                $.getJSON("{% url "events:recalculate_team_fees_on_edit_ajax" %}?event_entry_id={{ event_entry.id }}")
+                    .done(response => {
+                    if (response['message'] == "Success"){
+                        reloadPage();
+                    }
+                });
+            });
+
 
             // handle categories
             $("#id_category").on("change", function(){
