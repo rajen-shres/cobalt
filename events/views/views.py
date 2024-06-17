@@ -1821,13 +1821,24 @@ def enter_event_post(request, congress, event):
     basket_item.event_entry = event_entry
     basket_item.save()
 
+    # COB-569: Teams of 5 or 6
+    # ------------------------
+    # Prior to this change team members 5 and 6 were always treated as free
+    # and the entry fee was rederived in this function with Event.entry_fee_for.
+    # With COB-569 this function needs to cater for both a recalculation of team fees
+    # (team members 5/6 sharing the cost) or not (team members 5/6 free).
+    # The normal solution would be to retirve all of the data from the page, but this
+    # would involve extensive changes (eg returning teh feesa dn reasons). A simpler
+    # approach is to count the number of paying entrants and recalculate accordingly
+    # (ie if >4 have paid => user has recalced, otherwise use the old logic)
+
     # Get players from form
-    #    players = {0: request.user}
-    #    player_payments = {0: request.POST.get("player0_payment")}
     players = {}
     player_payments = {}
+    team_size_for_fee_calc = 0
 
     for p_id in range(6):
+        # names of player id and payment method fields
         p_string = f"player{p_id}"
         ppay_string = f"player{p_id}_payment"
         if p_string in request.POST:
@@ -1835,9 +1846,12 @@ def enter_event_post(request, congress, event):
             if p_string_value != "":
                 players[p_id] = get_object_or_404(User, pk=int(p_string_value))
                 player_payments[p_id] = request.POST.get(ppay_string)
-            # regardless of what we get sent - 5th and 6th players are free
-            if p_id > 3:
-                player_payments[p_id] = "Free"
+                if player_payments[p_id] is None:
+                    player_payments[p_id] = "Free"
+                if player_payments[p_id] != "Free":
+                    team_size_for_fee_calc += 1
+
+    recalc_done = team_size_for_fee_calc > 4
 
     # validate
     if (event.player_format == "Pairs" and len(players) != 2) or (
@@ -1852,18 +1866,31 @@ def enter_event_post(request, congress, event):
         event_entry_player = EventEntryPlayer()
         event_entry_player.event_entry = event_entry
         event_entry_player.player = players[p_id]
-        event_entry_player.payment_type = player_payments[p_id]
-        entry_fee, discount, reason, description = event.entry_fee_for(
-            event_entry_player.player
-        )
-        if p_id < 4:
+
+        if recalc_done:
+            # team of 5/6 and a recalculation done, so treat all team members the
+            # same and split the costs
+            entry_fee, discount, reason, description = event.entry_fee_for(
+                event_entry_player.player, actual_team_size=team_size_for_fee_calc
+            )
             event_entry_player.entry_fee = entry_fee
             event_entry_player.reason = reason
+            event_entry_player.payment_type = player_payments[p_id]
         else:
-            # JPG Note for teams of 5/6
-            event_entry_player.entry_fee = 0
-            event_entry_player.reason = "Team > 4"
-            event_entry_player.payment_status = "Free"
+            # pre COB-569 logic
+            entry_fee, discount, reason, description = event.entry_fee_for(
+                event_entry_player.player
+            )
+            if p_id < 4:
+                event_entry_player.entry_fee = entry_fee
+                event_entry_player.reason = reason
+                event_entry_player.payment_type = player_payments[p_id]
+            else:
+                # team of 5/6 but no recalculation so 5/6 are free
+                event_entry_player.entry_fee = 0
+                event_entry_player.reason = "Team > 4"
+                event_entry_player.payment_status = "Free"
+                event_entry_player.payment_type = "Free"
 
         # set payment status depending on payment type
         if event_entry_player.payment_status not in [

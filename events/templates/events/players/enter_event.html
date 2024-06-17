@@ -298,6 +298,11 @@
                                 <!-- ROW OF ACTION BUTTONS -->
                                 <div class="row">
                                     <div class="col text-center">
+                                        {% if event.player_format == "Teams" %}
+                                            <button id="id_recalculate" type="button"
+                                                class="btn btn-success" style="width:200px" disabled>Recalculate Fees
+                                            </button>
+                                        {% endif %}
                                         <button id="id_checkout" type="submit" name="now"
                                             class="btn btn-success cobalt-save" style="width:200px" disabled>Confirm
                                             and Pay Now
@@ -611,6 +616,7 @@
             $('.cobalt-playerN').off('change', player_has_changed_wrapper);
             player_has_changed(event);
             $('.cobalt-playerN').on('change', player_has_changed_wrapper);
+            checkRecalculateAllowed()
         }
 
         // handle a player changing - invoke search, get entry fee, get payment method
@@ -722,6 +728,89 @@
             $(this).on('change', player_has_changed_wrapper);
         }
 
+        // check whether the recalculate button should be enabled
+        function checkRecalculateAllowed() {
+            // loop through all player fields
+            var playerCount = 0;
+            $(".cobalt-playerN").each(function(){
+                console.log("--->" + this.value)
+                if (this.value >= 2) {
+                    playerCount = playerCount + 1
+                }
+            });
+            console.log("playerCount = " + playerCount)
+            $("#id_recalculate").prop("disabled", playerCount <= 4);
+        }
+
+        // Recalculate the entry fees across the entire team
+        function recalculateTeamFees(event) {
+            console.log("recalculateTeamFees")
+
+            // build a list of all of the player select values
+            const playerList = [];
+            $('.cobalt-playerN').each(function() {
+                playerList.push(this.value)
+            });
+
+            console.log("playersList = "+playerList)
+            var playerJSON = JSON.stringify(playerList)
+            console.log("playerJSON = "+playerJSON)
+
+            // get the recalcualted entry fees and update the display
+            $.get(
+                "{% url 'events:recalculate_team_fees_ajax' %}",
+                { 'event_id': '{{ event.id }}', 'players': playerJSON}
+            ).done(response => {
+                let newOptions = [
+                    { value: '4', text: 'Option 4' },
+                    { value: '5', text: 'Option 5' },
+                    { value: '6', text: 'Option 6' }
+                ];
+                response['fee_by_player'].forEach((entry, index) => {
+                    console.log(`recalculateTeamFeesUpdate player ${index}: ${entry['entry_fee']}`);
+                    if (entry['entry_fee'] > 0) {
+                        var payment_options = $(`#id_player${index}_payment`)
+                        if (payment_options.val() == 'free') {
+                            // need to build the payment option list and set to my bridge credits
+                            payment_options.empty()
+                            {% for val, item in our_form.1.payment_choices %}
+                                payment_options.append($('<option>', {
+                                    value: '{{ val }}',
+                                    text : '{{ item }}'
+                                }));
+                            {% endfor %}
+                            payment_options.prop('disabled', false)
+                        }
+                        // format nicely with credits on the end
+                        var entry_fee = parseFloat(entry['entry_fee']);
+                        var entry_fee_string;
+                        if (entry_fee % 1 === 0){
+                            entry_fee_string = entry_fee + " credits";
+                        } else {
+                            entry_fee_string = entry_fee.toFixed(2) + " credits";
+                        }
+                        var now_payment = $(`#fee_${index}_now`);
+                        var later_payment = $(`#fee_${index}_later`);
+                        if ($(`#id_player${index}_payment`).val() == 'my-system-dollars') {
+                            now_payment.val(entry_fee_string);
+                            later_payment.val("");
+                        } else {
+                            now_payment.val("");
+                            later_payment.val(entry_fee_string);
+                        }
+                        if (entry['discount']>0) {
+                            $(`#player${index}_discount_alert`).html('<span class="myHover" data-toggle="tooltip" title="'
+                                + entry['description']
+                                + '" data-delay="100" data-placement="bottom"><i class="fas fa-tag"></i></span>');
+
+                            $(".myHover").tooltip();
+                        }
+                    }
+                })
+                totals()
+            });
+        }
+
         // Doc Ready
         $(document).ready(function(){
 
@@ -770,6 +859,8 @@
             // we need to change
             $('.payment-method').on('change', payment_has_changed);
 
+            $('#id_recalculate').click(recalculateTeamFees);
+
             // for teams add row when plus sign clicked
             $('#plus_sign_4').click(function(event){
                 event.preventDefault();
@@ -802,7 +893,7 @@
             // if player0 changes then change the team name
             $("#id_player0").on("change", update_team_name);
 
-
+            checkRecalculateAllowed()
         });
     </script>
 

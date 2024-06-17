@@ -801,6 +801,56 @@ def check_player_is_member_ajax(request):
 
 @login_required()
 @require_GET
+def recalculate_team_fees_ajax(request):
+    """
+    Recalculate the team entry fees based on the number in the team
+    Expects a list of 6 player ids (some of which may be 'Select...')
+    Returns a JSON response with the list of recalcualted fees (-1 for any missing players)
+    """
+    # JPG debug
+    print("recalculate_team_fees_ajax")
+
+    event_id = request.GET["event_id"]
+    event = get_object_or_404(Event, pk=event_id)
+
+    players_json = request.GET.get("players")
+    player_ids = json.loads(players_json) if players_json else []
+
+    team_size = 0
+    players = []
+    for player_id in player_ids:
+        try:
+            player_pk = int(player_id)
+            if player_pk >= 2:
+                team_size += 1
+                players.append(get_object_or_404(User, pk=player_pk))
+            else:
+                players.append(None)
+        except ValueError:
+            players.append(None)
+
+    fee_by_player = []
+    for player in players:
+        if player:
+            entry_fee, discount, reason, description = event.entry_fee_for(
+                player, actual_team_size=team_size
+            )
+            fee_by_player.append(
+                {
+                    "entry_fee": entry_fee,
+                    "discount": discount,
+                    "reason": reason,
+                    "description": description,
+                }
+            )
+        else:
+            fee_by_player.append({"entry_fee": -1})
+
+    return JsonResponse({"fee_by_player": fee_by_player})
+
+
+@login_required()
+@require_GET
 def get_player_payment_amount_ajax(request):
     """Before we change a player in an entry, see if the old player qualifies for a refund"""
 

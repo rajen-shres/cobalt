@@ -28,7 +28,7 @@ Key Points:
 """
 
 # JPG debug - for COB-804 race condition testing
-# import time
+import time
 
 import json
 import logging
@@ -120,6 +120,7 @@ def get_balance(member):
 
     """
 
+    # JPG - needs to take an update lock !!
     last_tran = MemberTransaction.objects.filter(member=member).last()
     return float(last_tran.balance) if last_tran else 0.0
 
@@ -795,7 +796,7 @@ def update_account(
     """
 
     # JPG debug - for COB-804 race condition testing
-    # time.sleep(2)
+    time.sleep(2)
 
     # Get new balance
     balance = get_balance(member) + float(amount)
@@ -845,6 +846,7 @@ def update_organisation(
         session (club_sessions.models.Session, optional): club_session.session linked to this transaction
     """
 
+    # JPG - needs to take an update lock !!
     last_tran = OrganisationTransaction.objects.filter(organisation=organisation).last()
     balance = last_tran.balance if last_tran else 0.0
     act = OrganisationTransaction()

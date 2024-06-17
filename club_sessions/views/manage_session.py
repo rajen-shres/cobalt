@@ -801,6 +801,11 @@ def _session_health_check(club, session, club_bc_pm, user, send_emails=False):
 def process_bridge_credits_htmx(request, club, session):
     """handle bridge credits for the session - called from a big button"""
 
+    # JPG Debug
+    print(f">>> Starting process_bridge_credits_htmx {session.id}")
+
+    logger.info(f"Starting processing bridge credits for session {session.id}")
+
     failures = None
 
     with transaction.atomic():
@@ -832,6 +837,16 @@ def process_bridge_credits_htmx(request, club, session):
             session=session, is_paid=False, payment_method=bridge_credits
         ).exclude(system_number__in=ALL_SYSTEM_ACCOUNTS)
 
+        bc_txn_count = session_entries.count()
+        logger.info(
+            f"{bc_txn_count} bridge credit payments to process for session {session.id}"
+        )
+
+        # JPG Debug
+        print(
+            f"... {bc_txn_count} bridge credit payments to process for session {session.id}"
+        )
+
         # Process payments if we have any to make
         if session_entries or extras:
             success, failures = process_bridge_credits(
@@ -860,6 +875,11 @@ def process_bridge_credits_htmx(request, club, session):
             session.status = Session.SessionStatus.CREDITS_PROCESSED
             session.save()
             message = f"No {BRIDGE_CREDITS} to process. Moving to Off-System Payments."
+
+    logger.info(f"Finished processing bridge credits for session {session.id}")
+
+    # JPG Debug
+    print(f"<<< Ending process_bridge_credits_htmx {session.id}")
 
     # Include HX-Trigger in response so we know to update the totals too
     response = tab_session_htmx(
