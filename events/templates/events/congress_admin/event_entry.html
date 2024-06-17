@@ -35,7 +35,12 @@
                             {% endif %}
                             <h3>Entry by: {{ event_entry.primary_entrant }}</h3>
                             {% if event.player_format == "Teams" %}
-                                <a href=" {% url "events:admin_event_entry_player_add" event_entry_id=event_entry.id %}" class='btn btn-sm btn-secondary'>Add player</a>
+                                <a href="{% url "events:admin_event_entry_player_add" event_entry_id=event_entry.id %}" class='btn btn-sm btn-secondary'>Add player</a>
+                                <button
+                                    hx-post="{% url 'events:admin_event_entry_recalculate_htmx' evententry_id=event_entry.id %}"
+                                    class='btn btn-sm btn-secondary'
+                                    {% if not event_entry.can_recalculate %} disabled {% endif %}
+                                >Recalculate</button>
                             {% endif %}
                         </div>
 

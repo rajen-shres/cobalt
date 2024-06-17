@@ -432,6 +432,11 @@ urlpatterns = [
         name="admin_evententry",
     ),
     path(
+        "congress-admin/detail/event-entry-recalculate/<int:evententry_id>",
+        congress_admin.admin_event_entry_recalculate_htmx,
+        name="admin_event_entry_recalculate_htmx",
+    ),
+    path(
         "congress-admin/player_events_list/<int:member_id>/<int:congress_id>",
         congress_admin.player_events_list,
         name="admin_player_events_list",

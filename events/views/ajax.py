@@ -1247,29 +1247,9 @@ def recalculate_team_fees_on_edit_ajax(request):
     if not event_entry.can_recalculate:
         return JsonResponse({"message": "Recalculation not permitted"})
 
-    # update the event entry player records
-    event_entry_players = EventEntryPlayer.objects.filter(
-        event_entry=event_entry,
-    )
-
-    actual_team_size = event_entry_players.count()
-
-    for event_entry_player in event_entry_players:
-
-        entry_fee, discount, reason, description = event_entry.event.entry_fee_for(
-            event_entry_player.player,
-            check_date=event_entry.first_created_date.date(),
-            actual_team_size=actual_team_size,
-        )
-
-        event_entry_player.entry_fee = entry_fee
-        event_entry_player.reason = description
-
-        if event_entry_player.payment_type == "Free":
-            event_entry_player.payment_type = "my-system-dollars"
-            event_entry_player.payment_status = "Unpaid"
-
-        event_entry_player.save()
+    if not event_entry.recalculate_fees():
+        # fails if not ok to recalcualte (should not be called if not, but to be safe)
+        return JsonResponse({"message": "Recalculation not permitted"})
 
     return JsonResponse({"message": "Success"})
 

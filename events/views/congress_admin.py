@@ -11,6 +11,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import formset_factory
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from django.utils import timezone, dateformat
 from django.db.models import Sum
 from django.db.utils import IntegrityError
@@ -271,6 +272,30 @@ def admin_evententry(request, evententry_id):
             "has_categories": has_categories,
         },
     )
+
+
+@login_required()
+def admin_event_entry_recalculate_htmx(request, evententry_id):
+    """Recalculate entry fees for a team of 5/6"""
+
+    event_entry = get_object_or_404(EventEntry, pk=evententry_id)
+    event = event_entry.event
+    congress = event.congress
+
+    role = f"events.org.{congress.congress_master.org.id}.edit"
+    if not rbac_user_has_role(request.user, role):
+        return rbac_forbidden(request, role)
+
+    if not event_entry.recalculate_fees():
+        # should never happen as button should be disabled
+        return HttpResponse("Recalculate not allowed")
+
+    response = HttpResponse("Redirecting...", status=302)
+    response["HX-Redirect"] = reverse(
+        "events:admin_evententry",
+        kwargs={"evententry_id": evententry_id},
+    )
+    return response
 
 
 @login_required()

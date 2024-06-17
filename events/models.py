@@ -699,7 +699,7 @@ class Event(models.Model):
                 description = f"{reason} {self.entry_youth_payment_discount}%"
             else:
                 # show amount of total discount
-                description = f"{reason} {cobalt_credits(discount)}"
+                description = f"{reason} {cobalt_credits(cobalt_round(discount))}"
         else:
             # No discount, either full fee or member fee
             reason = f"{base_fee_reason if base_fee_reason else 'Full'} fee"
@@ -1022,9 +1022,6 @@ class EventEntry(models.Model):
         """Return whether the entry fees can be recalculated, ie a teams event with
         more than 4 entries and no payments made"""
 
-        # JPG DEBUG
-        print("*** CAN_RECALCULATE ***")
-
         if self.event.player_format == "Teams":
 
             players = EventEntryPlayer.objects.filter(event_entry=self)
@@ -1035,14 +1032,43 @@ class EventEntry(models.Model):
                 for player in players:
                     total_payments_received += float(player.payment_received)
 
-                # JPG DEBUG
-                print(f"*** CAN_RECALCULATE = {total_payments_received == 0} ***")
-
                 return total_payments_received == 0
 
-        # JPG DEBUG
-        print("*** CAN_RECALCULATE = False ***")
         return False
+
+    def recalculate_fees(self):
+        """Recalculate the entry fees for an existing team entry of 5/6
+        Returns success or failure.
+        Note: the EventEntryPlayer objects must already exist and will be updated"""
+
+        if not self.can_recalculate:
+            return False
+
+        # update the event entry player records
+        event_entry_players = EventEntryPlayer.objects.filter(
+            event_entry=self,
+        )
+
+        actual_team_size = event_entry_players.count()
+
+        for event_entry_player in event_entry_players:
+
+            entry_fee, discount, reason, description = self.event.entry_fee_for(
+                event_entry_player.player,
+                check_date=self.first_created_date.date(),
+                actual_team_size=actual_team_size,
+            )
+
+            event_entry_player.entry_fee = entry_fee
+            event_entry_player.reason = description
+
+            if event_entry_player.payment_type == "Free":
+                event_entry_player.payment_type = "my-system-dollars"
+                event_entry_player.payment_status = "Unpaid"
+
+            event_entry_player.save()
+
+        return True
 
 
 class EventEntryPlayer(models.Model):
