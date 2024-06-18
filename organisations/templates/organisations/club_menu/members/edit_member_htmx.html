@@ -177,7 +177,15 @@
 
         <div class="col-md-6">
             {% include "organisations/club_menu/members/drag_and_drop.html" %}
-            {% include "organisations/club_menu/members/recent_emails.html" %}
+            <!-- include "organisations/club_menu/members/recent_emails.html" -->
+            <div
+                id="email-list"
+                hx-post="{% url 'organisations:get_recent_emails_htmx' %}"
+                hx-vars="club_id:{{ club.id }},member_id:{{ member.id }}"
+                hx-trigger="load"
+            >
+                Loading emails ...
+            </div>
         </div>
     </div>
 </div>

@@ -775,6 +775,9 @@ def add_member_search_htmx(request):
 def edit_member_htmx(request, club, message=""):
     """Edit a club member manually"""
 
+    # JPG debug
+    print("*** edit_member_htmx ***")
+
     member_id = request.POST.get("member")
     member = get_object_or_404(User, pk=member_id)
 
@@ -867,6 +870,26 @@ def edit_member_htmx(request, club, message=""):
             "club_balance": club_balance,
             "user_has_payments_edit": user_has_payments_edit,
             "user_has_payments_view": user_has_payments_view,
+        },
+    )
+
+
+@check_club_menu_access(check_members=True)
+def get_recent_emails_htmx(request, club):
+    """Delayed load of recent emails for the member detail view"""
+
+    member_id = request.POST.get("member_id")
+    member = get_object_or_404(User, pk=member_id)
+
+    emails = get_emails_sent_to_address(member.email, club, request.user)
+
+    return render(
+        request,
+        "organisations/club_menu/members/recent_emails.html",
+        {
+            "club": club,
+            "member": member,
+            "emails": emails,
         },
     )
 
