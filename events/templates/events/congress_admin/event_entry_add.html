@@ -136,22 +136,43 @@
                         allowEscapeKey: true,
                     })
 
+                } else if (response['message'] == "Membership Warning"){
+
+                    // not a member, but user is an admin and can override
+                    swal.fire({
+                        title: 'Enter Non-member?',
+                        text: member_name[search_id] + " is not a club member. Proceed with entry?",
+                        icon: 'info',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            editPlayerPostLogic(search_id)
+                        }
+                    });
+
                 } else {
 
                     // not entered so set up player
-                    $("#player_name_" + search_id).text(member_name[search_id]);
-                    $("#player_name_" + search_id).addClass("cobalt-complete");
-                    $("#id_player_" + search_id).val(member_id[search_id]);
-
-                    // enable next button
-                    var next_search_id = parseInt(search_id) + 1;
-                    $("#id_player_button_" + next_search_id).prop("disabled", false);
-                    $("#id_player_tba_" + next_search_id).prop("disabled", false);
-
-                    check_submit_button();
-
+                    editPlayerPostLogic(search_id)
                 }
             })
+        }
+
+        // Member selected by search is ok to set-up
+        function editPlayerPostLogic(search_id) {
+
+            $("#player_name_" + search_id).text(member_name[search_id]);
+            $("#player_name_" + search_id).addClass("cobalt-complete");
+            $("#id_player_" + search_id).val(member_id[search_id]);
+
+            // enable next button
+            var next_search_id = parseInt(search_id) + 1;
+            $("#id_player_button_" + next_search_id).prop("disabled", false);
+            $("#id_player_tba_" + next_search_id).prop("disabled", false);
+
+            check_submit_button();
         }
 
         $(document).ready(function(){
