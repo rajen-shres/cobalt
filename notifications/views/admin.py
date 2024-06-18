@@ -337,7 +337,14 @@ def global_admin_view_emails(request, member_id):
     member = get_object_or_404(User, pk=member_id)
     summary = user_summary(member.system_number)
 
-    email_list = PostOfficeEmail.objects.filter(to=[member.email]).order_by("-pk")[:50]
+    one_year_ago = timezone.now() - timedelta(days=365)
+
+    # emails are indexed by created date, so this may help performance
+    last_year_email = PostOfficeEmail.objects.filter(created__gte=one_year_ago)
+
+    email_list = last_year_email.filter(to=[member.email]).order_by("-pk")[:50]
+
+    # email_list = PostOfficeEmail.objects.filter(to=[member.email]).order_by("-pk")[:50]
 
     return render(
         request,
