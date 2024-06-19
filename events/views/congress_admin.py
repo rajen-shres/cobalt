@@ -1897,6 +1897,10 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
     event_entry_player = get_object_or_404(EventEntryPlayer, pk=event_entry_player_id)
     event_entry = event_entry_player.event_entry
 
+    event_entry_player_count = EventEntryPlayer.objects.filter(
+        event_entry=event_entry
+    ).count()
+
     # check access
     role = "events.org.%s.edit" % event_entry.event.congress.congress_master.org.id
     if not rbac_user_has_role(request.user, role):
@@ -1919,9 +1923,14 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
             event_entry=event_entry,
         ).save()
 
-        # Delete if payment_type is free (5th or 6th player) otherwise change to TBA
+        # Previously - delete if payment_type is free (5th or 6th player) otherwise change to TBA
+        # COB-569: Deletes if zero received and zero fee
 
-        if event_entry_player.payment_type == "Free":
+        if (
+            event_entry_player.payment_received == 0
+            and event_entry_player.entry_fee == 0
+            and event_entry_player_count > 4
+        ):
             event_entry_player.delete()
             messages.success(
                 request, "Player Deleted", extra_tags="cobalt-message-success"
@@ -1952,11 +1961,21 @@ def admin_event_entry_player_delete(request, event_entry_player_id):
             event_entry_player.player = tba
             event_entry_player.save()
 
-            messages.success(
-                request,
-                "Player payment type is not Free so changed player to TBA. To Delete player first set payment type to Free.",
-                extra_tags="cobalt-message-success",
-            )
+            if event_entry_player_count == 4:
+
+                messages.success(
+                    request,
+                    "Player changed player to TBA. The entry must include at least four players.",
+                    extra_tags="cobalt-message-success",
+                )
+
+            else:
+
+                messages.success(
+                    request,
+                    "Player changed player to TBA. To delete the player the entry fee and payments recieved must be zero",
+                    extra_tags="cobalt-message-success",
+                )
 
         return redirect("events:admin_evententry", evententry_id=event_entry.id)
 
