@@ -47,13 +47,20 @@ def cobalt_round(number):
     # Note on type conversion:
     # Decimal(float(21.6)) = Decimal(21.60000000000000142108547152020037174224853515625)
     # so if this conversion is used 2.6 will be rounded to 2.61.
-    # Decimal("21.6") = Decimal(21.60) which will round correctly
+    # Decimal("21.6") = Decimal(21.6) which will round correctly
     # If the supplied number is already a Decimal, just use it.
 
     cent = decimal.Decimal("0.01")
-    dec_input = number if type(number) == type(cent) else decimal.Decimal(f"{number}")
+    dec_input = (
+        number if type(number) == type(cent) else decimal.Decimal(f"{number:.4f}")
+    )
 
-    return float(dec_input.quantize(cent, rounding=decimal.ROUND_UP))
+    result = float(dec_input.quantize(cent, rounding=decimal.ROUND_UP))
+
+    # JPG Debug
+    # print(f"*** cobalt_round *** {number} => {result}   Input: {type(number)}")
+
+    return result
 
     # return float(
     #     decimal.Decimal(float(number)).quantize(cent, rounding=decimal.ROUND_UP)

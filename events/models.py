@@ -715,6 +715,7 @@ class Event(models.Model):
         if event_player_discount:
             discount_fee = cobalt_round(event_player_discount.entry_fee)
             if discount_fee < entry_fee:
+                discount = entry_fee - discount_fee
                 entry_fee = discount_fee
                 reason = event_player_discount.reason
                 description = f"Manual override {reason}"

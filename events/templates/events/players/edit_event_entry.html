@@ -229,7 +229,7 @@
                                             <div style="white-space: nowrap;">
                                                 <!-- ONLY SHOW DELETE IF PLAYER ISN'T ALREADY TBA -->
                                                 <!-- ALSO, THE DELETE BUTTON IS DIFFERENT FOR PLAYERS 5 AND 6 (ACTUALLY DELETES) -->
-                                                {% if event_entry_player.extra_player and event_entry_player.payment_status == "Free" %}
+                                                {% if event_entry_player.extra_player and event_entry_player.payment_received == 0 and event_entry_player.entry_fee == 0 %}
                                                     <!-- DELETE SHOULD ACTUALLY DELETE PLAYER -->
                                                     <button type="button" id="really_delete_team_mate_{{ event_entry_player.id }}"
                                                         data-toggle="tooltip"
