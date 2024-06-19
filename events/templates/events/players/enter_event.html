@@ -187,17 +187,19 @@
 
                                                     <!-- DISCOUNT ALERT -->
                                                     <td class="col">
-                                                        {% if discount %}
-                                                            <span class="myHover"
-                                                                data-toggle="tooltip"
-                                                                title="{{ description }}"
-                                                                data-delay="100"
-                                                                data-placement="bottom">
-                                                                <i class="fas fa-tag"></i>
-                                                            </span>
-                                                        {% else %}
-                                                            &nbsp;
-                                                        {% endif %}
+                                                        <span id="player0_discount_alert">
+                                                            {% if discount %}
+                                                                <span class="myHover"
+                                                                    data-toggle="tooltip"
+                                                                    title="{{ description }}"
+                                                                    data-delay="100"
+                                                                    data-placement="bottom">
+                                                                    <i class="fas fa-tag"></i>
+                                                                </span>
+                                                            {% else %}
+                                                                &nbsp;
+                                                            {% endif %}
+                                                        </span>
                                                     </td>
 
                                                     <!-- READ ONLY AMOUNT TO PAY NOW -->
@@ -824,6 +826,7 @@
                             now_payment.val("");
                             later_payment.val(entry_fee_string);
                         }
+                        console.log(`DISCOUNT for ${index}: ${entry['discount']}: ${entry['description']}`)
                         if (entry['discount']>0) {
                             $(`#player${index}_discount_alert`).html('<span class="myHover" data-toggle="tooltip" title="'
                                 + entry['description']

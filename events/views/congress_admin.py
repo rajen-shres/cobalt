@@ -286,7 +286,7 @@ def admin_event_entry_recalculate_htmx(request, evententry_id):
     if not rbac_user_has_role(request.user, role):
         return rbac_forbidden(request, role)
 
-    if not event_entry.recalculate_fees():
+    if not event_entry.recalculate_fees(default_payment_type="other-system-dollars"):
         # should never happen as button should be disabled
         return HttpResponse("Recalculate not allowed")
 

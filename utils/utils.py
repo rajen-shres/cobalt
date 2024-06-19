@@ -44,11 +44,20 @@ def cobalt_round(number):
     Returns: Float
     """
 
-    cent = decimal.Decimal("0.01")
+    # Note on type conversion:
+    # Decimal(float(21.6)) = Decimal(21.60000000000000142108547152020037174224853515625)
+    # so if this conversion is used 2.6 will be rounded to 2.61.
+    # Decimal("21.6") = Decimal(21.60) which will round correctly
+    # If the supplied number is already a Decimal, just use it.
 
-    return float(
-        decimal.Decimal(float(number)).quantize(cent, rounding=decimal.ROUND_UP)
-    )
+    cent = decimal.Decimal("0.01")
+    dec_input = number if type(number) == type(cent) else decimal.Decimal(f"{number}")
+
+    return float(dec_input.quantize(cent, rounding=decimal.ROUND_UP))
+
+    # return float(
+    #     decimal.Decimal(float(number)).quantize(cent, rounding=decimal.ROUND_UP)
+    # )
 
 
 def cobalt_currency(number):

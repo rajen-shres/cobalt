@@ -658,12 +658,17 @@ class Event(models.Model):
             self.congress.allow_early_payment_discount
             and self.congress.early_payment_discount_date
         ) and self.congress.early_payment_discount_date >= check_date:
-            entry_fee = (
-                base_entry_fee - self.entry_early_payment_discount
-            ) / players_per_entry
-            entry_fee = cobalt_round(entry_fee)
-            discount = float(base_entry_fee) / players_per_entry - float(entry_fee)
+            early_entry_fee = cobalt_round(
+                (base_entry_fee - self.entry_early_payment_discount) / players_per_entry
+            )
+            # entry_fee = cobalt_round(entry_fee)
+            # discount = float(base_entry_fee) / players_per_entry - float(entry_fee)
+            discount = entry_fee - early_entry_fee
+            entry_fee = early_entry_fee
             discount_reasons.append("Early")
+
+            # JPG debug
+            print(f"enntry fee after early discount of {discount} = {entry_fee}")
 
         # youth discounts apply after early entry discounts
         if (
@@ -1036,9 +1041,10 @@ class EventEntry(models.Model):
 
         return False
 
-    def recalculate_fees(self):
+    def recalculate_fees(self, default_payment_type="my-system-dollars"):
         """Recalculate the entry fees for an existing team entry of 5/6
         Returns success or failure.
+        default_payment_type is used for player entries that were previously free.
         Note: the EventEntryPlayer objects must already exist and will be updated"""
 
         if not self.can_recalculate:
@@ -1063,7 +1069,9 @@ class EventEntry(models.Model):
             event_entry_player.reason = description
 
             if event_entry_player.payment_type == "Free":
-                event_entry_player.payment_type = "my-system-dollars"
+                event_entry_player.payment_type = default_payment_type
+
+            if event_entry_player.payment_status == "Free":
                 event_entry_player.payment_status = "Unpaid"
 
             event_entry_player.save()
