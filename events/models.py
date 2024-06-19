@@ -667,9 +667,6 @@ class Event(models.Model):
             entry_fee = early_entry_fee
             discount_reasons.append("Early")
 
-            # JPG debug
-            print(f"enntry fee after early discount of {discount} = {entry_fee}")
-
         # youth discounts apply after early entry discounts
         if (
             self.congress.allow_youth_payment_discount
@@ -722,7 +719,7 @@ class Event(models.Model):
                 reason = event_player_discount.reason
                 description = f"Manual override {reason}"
 
-        return entry_fee, discount, reason[:40], description
+        return entry_fee, discount, reason[:40], description[:40]
 
     def already_entered(self, user):
         """check if a user has already entered"""
