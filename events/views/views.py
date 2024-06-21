@@ -1867,8 +1867,8 @@ def enter_event_post(request, congress, event):
         event_entry_player.event_entry = event_entry
         event_entry_player.player = players[p_id]
 
-        if recalc_done:
-            # team of 5/6 and a recalculation done, so treat all team members the
+        if recalc_done and player_payments[p_id] != "Free":
+            # team of 5/6 and a recalculation done, so treat all paying team members the
             # same and split the costs
             entry_fee, discount, reason, description = event.entry_fee_for(
                 event_entry_player.player, actual_team_size=team_size_for_fee_calc

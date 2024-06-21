@@ -302,7 +302,9 @@
                                     <div class="col text-center">
                                         {% if event.player_format == "Teams" %}
                                             <button id="id_recalculate" type="button"
-                                                class="btn btn-success" style="width:200px" disabled>Recalculate Fees
+                                                data-toggle="tooltip"
+                                                title="Split entry fees across all team members"
+                                                class="btn btn-success myHover" style="width:200px" disabled>Recalculate Fees
                                             </button>
                                         {% endif %}
                                         <button id="id_checkout" type="submit" name="now"
@@ -521,7 +523,7 @@
                 if (total_now % 1 === 0){
                     $("#total_now").val(total_now + " credits");
                 } else {
-                    $("#total_now").val(total_now + " credits");
+                    $("#total_now").val(total_now.toFixed(2) + " credits");
                 }
             }
 
