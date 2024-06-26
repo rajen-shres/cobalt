@@ -117,6 +117,9 @@
                             hx-post="{% url "club_sessions:process_bridge_credits_htmx" %}"
                             hx-vars="club_id:{{ club.id }}, session_id:{{ session.id }}"
                             hx-target="#id_pane_session"
+                            hx-on="click: console.log('*** Click ***')"
+                            hx-on="htmx:beforeRequest: console.log('*** before-request ***');"
+                            hx-on="htmx:afterRequest: console.log('*** after-request ***');"
                         >
                             {% if paying_with_bridge_credits %}
                                 Process {{ BRIDGE_CREDITS }}

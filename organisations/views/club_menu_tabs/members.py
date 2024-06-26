@@ -655,7 +655,7 @@ def _send_welcome_pack(club, first_name, email, user, invite_to_join):
     if use_template.banner:
         context["img_src"] = use_template.banner.url
         #  JPG debug
-        print(f"++++++ _send_welcome_pack url={use_template.banner.url}")
+        # print(f"++++++ _send_welcome_pack url={use_template.banner.url}")
 
     context["footer"] = use_template.footer
 
@@ -776,7 +776,7 @@ def edit_member_htmx(request, club, message=""):
     """Edit a club member manually"""
 
     # JPG debug
-    print("*** edit_member_htmx ***")
+    # print("*** edit_member_htmx ***")
 
     member_id = request.POST.get("member")
     member = get_object_or_404(User, pk=member_id)

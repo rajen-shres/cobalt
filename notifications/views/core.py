@@ -245,9 +245,9 @@ def update_context_for_club_default_template(club, context):
             context["img_src"] = default_template.banner.url
 
             #  JPG debug
-            print(
-                f"++++++ update_context_for_club_default_template url={default_template.banner.url}"
-            )
+            # print(
+            #     f"++++++ update_context_for_club_default_template url={default_template.banner.url}"
+            # )
 
         if default_template.footer:
             context["footer"] = default_template.footer

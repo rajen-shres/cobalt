@@ -1870,7 +1870,8 @@ def admin_event_entry_player_add(request, event_entry_id):
     event_entry_player = EventEntryPlayer()
     event_entry_player.event_entry = event_entry
     event_entry_player.player = tba
-    event_entry_player.payment_type = "TBA"
+    # event_entry_player.payment_type = "TBA"
+    event_entry_player.payment_type = "other-system-dollars"
     event_entry_player.entry_fee = 0.0
     event_entry_player.save()
 

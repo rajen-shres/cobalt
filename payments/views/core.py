@@ -796,7 +796,7 @@ def update_account(
     """
 
     # JPG debug - for COB-804 race condition testing
-    time.sleep(2)
+    # time.sleep(2)
 
     # Get new balance
     balance = get_balance(member) + float(amount)

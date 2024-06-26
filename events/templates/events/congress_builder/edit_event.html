@@ -157,6 +157,8 @@
                                                 <a href="javascript:void(0)" onclick='help("Entry Fee", "The standard member entry fee without discounts. This is the fee per player. For teams events this is the fee per player in a team of four.");'>help</a>
                                             </div>
                                         </div>
+                                    {% else %}
+                                        {{ form.member_entry_fee }}
                                     {% endif %}
 
                                     {% if not congress.members_only %}

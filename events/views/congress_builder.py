@@ -7,6 +7,7 @@ import pytz
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import ProtectedError
+from django.forms.widgets import HiddenInput
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -790,6 +791,12 @@ def edit_event(request, congress_id, event_id):
         )
 
         form = EventForm(instance=event, initial=initial)
+
+    # the member_entry_fee field needs to be on the view even when disabled (ie hidden)
+    # otherwise the value becomes corrupted when the event is saved (seems to pick up
+    # the database value and saves that multiplied by the number of players)
+    if not (congress.allow_member_entry_fee or congress.members_only):
+        form.fields["member_entry_fee"].widget = HiddenInput()
 
     categories = Category.objects.filter(event=event)
 

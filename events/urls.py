@@ -649,4 +649,17 @@ urlpatterns = [
         events.views.global_admin.events_activity_view_logs_htmx,
         name="events_activity_view_logs_htmx",
     ),
+    ########################################################
+    # Public API / web services                            #
+    ########################################################
+    #     path(
+    #         'api/get-calendar-html/',
+    #         events.views.api.get_calendar_html,
+    #         name='get_calendar_html'
+    #     ),
+    #     path(
+    #         'api/get-calendar-json/',
+    #         events.views.api.get_calendar_json,
+    #         name='get_calendar_json'
+    #     ),
 ]
