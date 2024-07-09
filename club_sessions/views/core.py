@@ -976,6 +976,7 @@ def handle_bridge_credit_changes_refund(
         description=f"{BRIDGE_CREDITS} returned for {session_entry.session}",
         payment_type="Refund",
         organisation=club,
+        session=session_entry.session,
     )
 
     update_organisation(
@@ -984,6 +985,7 @@ def handle_bridge_credit_changes_refund(
         description=f"{BRIDGE_CREDITS} returned for {session_entry.session}",
         payment_type="Refund",
         member=player,
+        session=session_entry.session,
     )
 
     # log it
