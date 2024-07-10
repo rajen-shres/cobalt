@@ -904,12 +904,16 @@ def refund_bridge_credit_for_extra(
 ):
     """ " Handle an extra with paid bridge credits being changed"""
 
+    # JPG debug
+    # print("*** refund_bridge_credit_for_extra ***")
+
     update_account(
         member=player,
         amount=session_misc_payment.amount,
         description=f"{BRIDGE_CREDITS} returned for {session_misc_payment.description}",
         payment_type="Refund",
         organisation=club,
+        session=session_misc_payment.session_entry.session,
     )
 
     update_organisation(
@@ -918,6 +922,7 @@ def refund_bridge_credit_for_extra(
         description=f"{BRIDGE_CREDITS} returned for {session_misc_payment.description}",
         payment_type="Refund",
         member=player,
+        session=session_misc_payment.session_entry.session,
     )
 
     # log it

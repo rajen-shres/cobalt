@@ -1095,7 +1095,11 @@ def change_player_htmx(request, club, session, session_entry):
     )
 
     # return whole edit page
-    return tab_session_htmx(request, message=message)
+    # return tab_session_htmx(request, message=message)
+
+    response = tab_session_htmx(request, message=message)
+    response["HX-Trigger"] = "update_totals"
+    return response
 
 
 @user_is_club_director(include_session_entry=True)
