@@ -1,4 +1,5 @@
 import bleach
+from datetime import date, timedelta
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.conf import settings
@@ -80,6 +81,12 @@ ORGS_RBAC_GROUPS_AND_ROLES = {
 }
 
 
+def no_future(value):
+    today = date.today()
+    if value > today:
+        raise ValidationError("Date cannot be in the future.")
+
+
 class Organisation(models.Model):
     """Many of these fields map to fields in the Masterpoints Database
     We don't worry about phone numbers and addresses for secretaries and MP secretaries
@@ -153,6 +160,10 @@ class Organisation(models.Model):
         null=True,
         validators=[account_regex],
     )
+
+    full_club_admin = models.BooleanField("Use full club admin", default=False)
+    """ enable full club admin functionality """
+
     membership_renewal_date_day = models.IntegerField(
         "Membership Renewal Date - Day",
         default=1,
@@ -160,6 +171,7 @@ class Organisation(models.Model):
         blank=True,
         null=True,
     )
+
     membership_renewal_date_month = models.IntegerField(
         "Membership Renewal Date - Month",
         default=1,
@@ -167,21 +179,7 @@ class Organisation(models.Model):
         blank=True,
         null=True,
     )
-    membership_part_year_date_day = models.IntegerField(
-        "Membership Part Year Date - Day",
-        default=1,
-        validators=[MaxValueValidator(31), MinValueValidator(1)],
-        blank=True,
-        null=True,
-    )
-    membership_part_year_date_month = models.IntegerField(
-        "Membership Part Year Date - Month",
-        default=7,
-        validators=[MaxValueValidator(12), MinValueValidator(1)],
-        blank=True,
-        null=True,
-    )
-    """After this date membership discounts for the rest of the year apply"""
+
     last_updated_by = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
@@ -216,6 +214,42 @@ class Organisation(models.Model):
 
     use_last_payment_method_for_player_sessions = models.BooleanField(default=False)
     """ some clubs want to default payments for sessions to use whatever the player last paid with """
+
+    @property
+    def next_renewal_date(self):
+        """the forthcoming annual renewal date (could be today)"""
+
+        today = timezone.now().date()
+        renewal_date = date(
+            today.year,
+            self.membership_renewal_date_month,
+            self.membership_renewal_date_day,
+        )
+        if renewal_date < today:
+            renewal_date = date(
+                today.year + 1,
+                self.membership_renewal_date_month,
+                self.membership_renewal_date_day,
+            )
+        return renewal_date
+
+    @property
+    def current_end_date(self):
+        """The end date of the current membership period (today or later)"""
+        today = timezone.now().date()
+        renewal_date = self.next_renewal_date
+        if renewal_date == today:
+            end_date = renewal_date + timedelta(years=1) - timedelta(days=1)
+        else:
+            end_date = renewal_date - timedelta(days=1)
+        return end_date
+
+    @property
+    def next_end_date(self):
+        """the end date of the forthcoming annual renewal cycle
+        One year on from the current_renewal_date"""
+        current_end = self.next_renewal_date
+        return date(current_end.year + 1, current_end.month, current_end.day)
 
     @property
     def settlement_fee_percent(self):
@@ -264,28 +298,32 @@ class Organisation(models.Model):
 
 
 class MembershipType(models.Model):
-    """Clubs can have multiple membership types. A member can only belong to one membership type per club"""
+    """Clubs can have multiple membership types. A member can only belong to one membership type per club at one time"""
 
     organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT)
+
     name = models.CharField("Name of Membership", max_length=20)
+
     description = models.TextField("Description", blank=True, null=True)
+
     annual_fee = models.DecimalField(
         "Annual Fee", max_digits=12, decimal_places=2, blank=True, null=True
     )
-    part_year_fee = models.DecimalField(
-        "Part Year Fee (for joining later in year)",
-        max_digits=12,
-        decimal_places=2,
-        blank=True,
-        null=True,
-    )
+
+    grace_period_days = models.IntegerField("Payment Grace Period (days)", default=31)
+
     is_default = models.BooleanField("Default Membership Type", default=False)
+
     does_not_pay_session_fees = models.BooleanField(
         "Play Normal Sessions for Free", default=False
     )
+
     does_not_renew = models.BooleanField("Never Expires", default=False)
+
     last_modified_by = models.ForeignKey(User, on_delete=models.PROTECT)
+
     created_at = models.DateTimeField(auto_now_add=True)
+
     updated_at = models.DateTimeField(auto_now=True)
 
     # Order so is_default is at the top
@@ -297,56 +335,127 @@ class MembershipType(models.Model):
 
 
 class MemberMembershipType(models.Model):
-    """This links members to a club membership"""
+    """
+    This links members to a club membership.
+    Note that a player can have multiple records for an organistaion, but they
+    should be non-overlapping in time. Only the most recent determies the overall
+    membership status for the person.
+    """
 
-    # Originally we used a model_manager to load active members ad had a start date and expiry date on this
-    # however it wasn't working properly. Changed to be a binary thing with an archive table. If this comment and the
-    # commented out parts below are still here later (15/8/2022) then delete them.
-
-    # TERMINATION_REASON = [
-    #     ("Cancelled by Member", "Cancelled by Member"),
-    #     ("Cancelled by Club", "Cancelled by Club"),
-    #     ("Expired", "Expired"),
-    # ]
     system_number = models.IntegerField("%s Number" % GLOBAL_ORG, blank=True)
-    membership_type = models.ForeignKey(MembershipType, on_delete=models.CASCADE)
-    # termination_reason = models.CharField(
-    #     "Reason for Membership Termination",
-    #     choices=TERMINATION_REASON,
-    #     max_length=20,
-    #     blank=True,
-    #     null=True,
-    # )
+
+    # Note: deleting a MembershipType that has any references will cause an exception
+    membership_type = models.ForeignKey(MembershipType, on_delete=models.PROTECT)
+
     home_club = models.BooleanField("Is Member's Home Club", default=False)
+
     start_date = models.DateField("Started At", auto_now_add=True)
-    # end_date = models.DateField("Ends At", blank=True, null=True)
+
+    end_date = models.DateField("Ends At", blank=True, null=True, default=None)
+    """ Membership end date, None if membershipy type is perpetual """
+
+    paid_until_date = models.DateField(
+        "Paid Until", blank=True, null=True, default=None
+    )
+    """ Typically either the end_date or the end of the previous period  """
+
+    due_date = models.DateField("Payment due date", blank=True, null=True, default=None)
+    """ Date by which payment is due, none if paid, otherwise typically paid_unitl_date plus a grace period """
+
+    fee = models.DecimalField(
+        "Fee", max_digits=12, decimal_places=2, blank=True, null=True
+    )
+    """ The last fee payable """
+
+    MEMBERSHIP_STATE_CURRENT = "CUR"
+    MEMBERSHIP_STATE_DUE = "DUE"
+    MEMBERSHIP_STATE_ENDED = "END"
+    MEMBERSHIP_STATE_LAPSED = "LAP"
+    MEMBERSHIP_STATE_RESIGNED = "RES"
+    MEMBERSHIP_STATE_TERMINATED = "TRM"
+    MEMBERSHIP_STATE_DECEASED = "DEC"
+
+    MEMBERSHIP_STATE = [
+        (MEMBERSHIP_STATE_CURRENT, "Current"),
+        (MEMBERSHIP_STATE_DUE, "Due"),
+        (MEMBERSHIP_STATE_ENDED, "Ended"),
+        (MEMBERSHIP_STATE_LAPSED, "Lapsed"),
+        (MEMBERSHIP_STATE_RESIGNED, "Resigned"),
+        (MEMBERSHIP_STATE_TERMINATED, "Terminated"),
+        (MEMBERSHIP_STATE_DECEASED, "Deceased"),
+    ]
+
+    membership_state = models.CharField(
+        "State",
+        max_length=4,
+        choices=MEMBERSHIP_STATE,
+        default=MEMBERSHIP_STATE_CURRENT,
+    )
+    """ The current state of this membership, note this is date dependent"""
+
     last_modified_by = models.ForeignKey(
         User, on_delete=models.PROTECT, related_name="last_modified_by"
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    #   updated_at = models.DateTimeField(auto_now=True)
-
-    # It is valid to have duplicates as someone can leave and come back
-    # class Meta:
-    #     unique_together = ["system_number", "membership_type"]
 
     @property
-    def active(self):
-        """Get if this is active or not"""
-        now = timezone.now()
-        if self.start_date > now:
-            return False
-        # if self.end_date < now:
-        #     return False
-        return True
+    def is_paid(self):
+        """Has the membership been paid?"""
+        if not self.end_date:
+            # A perpetual membership type
+            return True
+        return self.paid_until_date == self.end_date
+
+    @property
+    def is_final_state(self):
+        """Is this in a finalised state (ie not current or due)"""
+        return self.membership_state not in [
+            self.MEMBERSHIP_STATE_CURRENT,
+            self.MEMBERSHIP_STATE_DUE,
+        ]
+
+    def refresh_state(self, as_at_date=None, commit=True):
+        """Ensure that the membership state is correct.
+
+        No changes are made if the object is already in a finalised state
+        (eg deceased) or the membership type is not renewing
+
+        Args:
+            as_at_date (Date or None): the date to use, current if None
+            commit (boolean): save changes?
+
+        Returns:
+            boolean: was a change made?
+        """
+
+        old_state = self.membership_state
+        if not self.is_final_state and self.end_date:
+            now = as_at_date if as_at_date else timezone.now().date()
+            if self.paid_until_date <= now:
+                self.membership_state = self.MEMBERSHIP_STATE_CURRENT
+            elif now <= self.due_date:
+                self.membership_state = self.MEMBERSHIP_STATE_DUE
+            else:
+                self.membership_state = self.MEMBERSHIP_STATE_LAPSED
+            if self.membership_state != old_state and commit:
+                self.save()
+        return self.membership_state != old_state
+
+    # JPG clean-up after testing, should not be used
+    # @property
+    # def active(self):
+    #     """Get if this is active or not"""
+    #     now = timezone.now()
+    #     if self.start_date > now:
+    #         return False
+    #     # if self.end_date < now:
+    #     #     return False
+    #     return True
 
     def __str__(self):
         return (
             f"{self.system_number}, member of {self.membership_type.organisation.name}"
         )
-
-
-#    objects = MemberMembershipTypeManager()
 
 
 class ClubLog(models.Model):
@@ -361,6 +470,208 @@ class ClubLog(models.Model):
         return f"{self.organisation} -  {self.actor}"
 
 
+class MemberClubDetails(models.Model):
+    """Club specific details about a member.
+
+    Note that this is a different model to the previous MemberClubEmail model. All club members
+    will have a MemberClubDetails record regardless of whether they are registered or unregistered
+    in My ABF, and regardless of whether their is a club specific email.
+
+    latest+membership and membership_status are programatically set, not determined at runtime,
+    to allow database queries to use these attributes efficiently.
+
+    Note that some fields are duplicates of fields in the User model. This is to allow members
+    to supply different information to clubs."""
+
+    club = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+
+    system_number = models.IntegerField("%s Number" % GLOBAL_ORG)
+
+    latest_membership = models.ForeignKey(
+        MemberMembershipType, on_delete=models.SET_NULL, null=True
+    )
+    """ The most recent MemberMembershipRecord for this member, may not be current """
+
+    MEMBERSHIP_STATUS_CURRENT = "CUR"
+    MEMBERSHIP_STATUS_DUE = "DUE"
+    MEMBERSHIP_STATUS_ENDED = "END"
+    MEMBERSHIP_STATUS_LAPSED = "LAP"
+    MEMBERSHIP_STATUS_RESIGNED = "RES"
+    MEMBERSHIP_STATUS_TERMINATED = "TRM"
+    MEMBERSHIP_STATUS_DECEASED = "DEC"
+    MEMBERSHIP_STATUS_CONTACT = "CON"
+
+    MEMBERSHIP_STATUS = [
+        (MEMBERSHIP_STATUS_CURRENT, "Current"),
+        (MEMBERSHIP_STATUS_DUE, "Due"),
+        (MEMBERSHIP_STATUS_ENDED, "Ended"),
+        (MEMBERSHIP_STATUS_LAPSED, "Lapsed"),
+        (MEMBERSHIP_STATUS_RESIGNED, "Resigned"),
+        (MEMBERSHIP_STATUS_TERMINATED, "Terminated"),
+        (MEMBERSHIP_STATUS_DECEASED, "Deceased"),
+        (MEMBERSHIP_STATUS_CONTACT, "Contact"),
+    ]
+
+    membership_status = models.CharField(
+        "Membership Status",
+        max_length=4,
+        choices=MEMBERSHIP_STATUS,
+        default=MEMBERSHIP_STATUS_CURRENT,
+    )
+    """ The current state of this membership, note this is date dependent"""
+
+    joined_date = models.DateField("Date Joined", null=True, blank=True)
+
+    address1 = models.CharField("Address Line 1", max_length=100, blank=True, null=True)
+
+    address2 = models.CharField("Address Line 2", max_length=100, blank=True, null=True)
+
+    state = models.CharField(max_length=3, blank=True, null=True)
+
+    postcode = models.CharField(max_length=10, blank=True, null=True)
+
+    mobile_regex = RegexValidator(
+        regex=r"^04\d{8}$",
+        message="We only accept Australian phone numbers starting 04 which are 10 numbers long.",
+    )
+    mobile = models.CharField(
+        "Mobile Number",
+        blank=True,
+        unique=True,
+        null=True,
+        max_length=15,
+        validators=[mobile_regex],
+    )
+
+    phone_regex = RegexValidator(
+        regex=r"^(\d{8}|\d{10})$",
+        message="We only accept Australian phone numbers with 8 or 10 digits.",
+    )
+    other_phone = models.CharField(
+        "Phone",
+        blank=True,
+        unique=True,
+        null=True,
+        max_length=15,
+        validators=[phone_regex],
+    )
+
+    dob = models.DateField(blank="True", null=True, validators=[no_future])
+
+    club_membership_number = models.CharField(max_length=15, blank=True, null=True)
+
+    emergency_contact = models.CharField(
+        "Emergency Contact", max_length=150, blank=True, null=True
+    )
+
+    notes = models.TextField(blank=True, null=True)
+
+    email = models.EmailField(
+        "Email for your club only", unique=False, null=True, blank=True
+    )
+    """ Club specific email address """
+
+    email_hard_bounce = models.BooleanField(default=False)
+    """ Set this flag if we get a hard bounce from sending an email """
+
+    email_hard_bounce_reason = models.TextField(null=True, blank=True)
+    """ Reason for the bounce """
+
+    email_hard_bounce_date = models.DateTimeField(null=True, blank=True)
+    """ Date of a hard bounce """
+
+    class Meta:
+        unique_together = ("club", "system_number")
+
+    @property
+    def left_date(self):
+        """Date left the club, or None"""
+        if self.membership_status in [
+            self.MEMBERSHIP_STATUS_CURRENT,
+            self.MEMBERSHIP_STATUS_DUE,
+            self.MEMBERSHIP_STATUS_CONTACT,
+        ]:
+            return None
+        else:
+            return self.latest_membership.end_date if self.latest_membership else None
+
+    def refresh_status(self, as_at_date=None, commit=True):
+        """Ensure that the membership status and current membership are correct.
+
+        Args:
+            as_at_date (Date or None): the date to use, current if None
+            commit (boolean): save changes?
+
+        Returns:
+            boolean: was a change made?
+
+        Note: this calls refresh_state on the most recent MemberMembershipType.
+        Note: if this is called with commit=False, the caller needs to handle saving
+        any changes made to the most recent MemberMembershipType."""
+
+        if self.membership_status == self.MEMBERSHIP_STATUS_DECEASED:
+            return False
+
+        changed = False
+
+        latest_mmt = (
+            MemberMembershipType.objects.filter(
+                system_number=self.system_number,
+                membership_type__organisation=self.club,
+            )
+            .order_by("end_date")
+            .last()
+        )
+
+        if not latest_mmt:
+            # no membership type association, so should be a contact
+            if (
+                self.membership_status != self.MEMBERSHIP_STATUS_CONTACT
+                or self.latest_membership
+            ):
+                self.membership_status = self.MEMBERSHIP_STATUS_CONTACT
+                self.latest_membership = None
+                changed = True
+        else:
+            changed = latest_mmt.refresh_state(as_at_date=as_at_date, commit=commit)
+            if self.latest_membership != latest_mmt or changed:
+                self.latest_membership = latest_mmt
+                self.membership_status = latest_mmt.membership_state
+                changed = True
+            elif self.membership_status != latest_mmt.membership_state:
+                self.membership_status = latest_mmt.membership_state
+                changed = True
+
+        if changed:
+            self.save()
+
+        return changed
+
+    def __str__(self):
+        return f"{self.organisation} - {self.system_number}"
+
+
+class ClubMemberLog(models.Model):
+    """log of things that happen for a member in a club"""
+
+    club = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    actor = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    system_number = models.IntegerField("System number")
+    date = models.DateTimeField(auto_now_add=True)
+    description = models.TextField("Description")
+
+    class Meta:
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.organisation} {self.member_system_number} - {self.actor}"
+
+
+# JPG TO DO: Deprecated - delete after club admin release data conversion
 class MemberClubEmail(models.Model):
     """This is used for people who are NOT signed yp to Cobalt. This is for Clubs to keep track of
     the email addresses of their members. Email addresses are an emotive topic in Australian bridge

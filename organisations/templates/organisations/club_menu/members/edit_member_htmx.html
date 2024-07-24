@@ -90,10 +90,61 @@
             <div id="id_main_member_card" class="card">
 
                 <div class="card-header card-header-rose">
-                    <h2 class="text-center">Edit Membership</h2>
+                    <h2 class="text-center">Membership Details</h2>
                 </div>
 
-                <!-- EDIT MEMBER CARD BODY -->
+                <div class="card-body">
+
+                    <h3>{{ member }}</h3>
+
+                    <div class="row">
+                        <div class="col-md-4 font-weight-bold">Membership period:</div>
+                        {% if membership_details.membership_status in terminal_states %}
+                            <div class="col-md-8">Joined {{ membership_details.joined_date }}, left {{ membership_details.left_date }}</div>
+                        {% else %}
+                            <div class="col-md-8">Joined {{ membership_details.joined_date }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 font-weight-bold">User type:</div>
+                        <div class="col-md-8">{{ membership_details.user_type }}</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 font-weight-bold">Membership type:</div>
+                        <div class="col-md-8">
+                            {{ membership_details.latest_membership.membership_type.name }}
+                            {% if membership_details.membership_status == 'CUR' %}
+                                , paid until {{ membership_details.latest_membership.paid_until_date }}
+                            {% elif membership_details.membership_status == 'DUE' %}
+                                , paid until {{ membership_details.latest_membership.paid_until_date }}
+                                , {{ membership_details.latest_membership.fee }} due by {{ membership_details.latest_membership.due_date }}
+                            {% else %}
+                                , ended {{ membership_details.latest_membership.end_date }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 font-weight-bold">Membership status:</div>
+                        <div class="col-md-8">{{ membership_details.get_membership_status_display }}</div>
+                    </div>
+
+                    <a
+                        class="btn btn-primary"
+                        href="{% url 'organisations:club_admin_edit_member' club.id membership_details.system_number %}"
+                    >
+                        Edit Member Details
+                    </a>
+
+                </div>
+
+
+                <!-- JPG CLEAN UP - replaced with read only Membership Details pane
+                <div class="card-header card-header-rose">
+                    <h2 class="text-center">Edit Membership</h2>
+                </div>
 
                 <div class="card-body">
 
@@ -102,23 +153,14 @@
 
                     <h3>{{ member }}</h3>
 
-                    <!-- FORM -->
-
                     <form
                         hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
                         hx-target="#id_panel_members"
                         hx-vars="club_id:{{ club.id }},member:{{ member.id }}"
                     >
-
-                        <!-- ERRORS -->
-
                         <div class="cobalt_form_errors">{{ form.errors }}</div>
 
-                        <!-- SYSTEM NUMBER -->
-
                         <input type="hidden" name="system_number" value="{{ member.system_number }}">
-
-                        <!-- MEMBERSHIP TYPE -->
 
                         <div id="div_id_membership_type" class="form-group row">
                             <div class="col-6">
@@ -137,13 +179,6 @@
                             </div>
                         </div>
 
-                        {#                    <div class="form-group row">#}
-                        {#                        <input id="id_home_club" type="checkbox" name="home_club" {% if form.home_club.value %}checked=checked{% endif %}">#}
-                        {#                        <label for="id_home_club" style="color: black">&nbsp;Home Club</label><br>#}
-                        {#                    </div>#}
-
-                        <!-- BUTTONS -->
-
                         <button type="submit" name="save" class="btn btn-success">Save</button>
                         {% include "utils/htmx_confirm_modal.html" with id="memdel" delete_item=member.first_name delete_button="Remove" hx_target="#id_panel_members" hx_post=hx_delete hx_vars=hx_vars %}
                         <button id="id_delete_user_1" type="button" class="btn btn-danger" data-toggle="modal"
@@ -151,6 +186,7 @@
                         </button>
                     </form>
                 </div>
+                -->
             </div>
 
 

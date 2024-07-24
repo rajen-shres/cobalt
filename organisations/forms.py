@@ -29,6 +29,7 @@ from .models import (
     OrgVenue,
     OrgEmailTemplate,
     WelcomePack,
+    MemberClubDetails,
 )
 
 
@@ -160,7 +161,6 @@ class MembershipTypeForm(forms.ModelForm):
             "name",
             "description",
             "annual_fee",
-            "part_year_fee",
             "is_default",
             "does_not_pay_session_fees",
             "does_not_renew",
@@ -180,8 +180,6 @@ class OrgDatesForm(forms.ModelForm):
         fields = (
             "membership_renewal_date_day",
             "membership_renewal_date_month",
-            "membership_part_year_date_day",
-            "membership_part_year_date_month",
         )
 
     def clean(self):
@@ -199,15 +197,16 @@ class OrgDatesForm(forms.ModelForm):
             self.add_error("membership_renewal_date_month", "Invalid date")
             return
 
-        try:
-            datetime.datetime(
-                year=1967,
-                month=cleaned_data["membership_part_year_date_month"],
-                day=cleaned_data["membership_part_year_date_day"],
-            )
-        except ValueError:
-            self.add_error("membership_part_year_date_month", "Invalid date")
-            return
+        # JPG CLEAN UP
+        # try:
+        #     datetime.datetime(
+        #         year=1967,
+        #         month=cleaned_data["membership_part_year_date_month"],
+        #         day=cleaned_data["membership_part_year_date_day"],
+        #     )
+        # except ValueError:
+        #     self.add_error("membership_part_year_date_month", "Invalid date")
+        #     return
 
         return self.cleaned_data
 
@@ -218,6 +217,43 @@ class MemberClubEmailForm(forms.Form):
     email = forms.EmailField(
         label="Email address (accessible by this club only)", required=False
     )
+
+
+class MemberClubDetailsForm(forms.ModelForm):
+    """Form for editing club member details"""
+
+    class Meta:
+        model = MemberClubDetails
+        fields = (
+            "email",
+            "address1",
+            "address2",
+            "state",
+            "postcode",
+            "mobile",
+            "other_phone",
+            "dob",
+            "club_membership_number",
+            "emergency_contact",
+            "notes",
+        )
+
+
+class MembershipExtendForm(forms.Form):
+    """Form for extending an existing membership"""
+
+    new_end_date = forms.DateField(
+        label="New end date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        required=True,
+    )
+    fee = forms.DecimalField(label="Fee", max_digits=10, decimal_places=2)
+    due_date = forms.DateField(
+        label="Payment due date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        required=False,
+    )
+    is_paid = forms.BooleanField(label="Mark as paid", required=False)
 
 
 class UserMembershipForm(forms.Form):

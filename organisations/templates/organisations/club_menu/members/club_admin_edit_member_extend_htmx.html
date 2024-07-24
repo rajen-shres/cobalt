@@ -1,0 +1,89 @@
+<!--
+View for extending an existing membership
+This will be rendered in the action pane of the club admin edit member window
+-->
+{% load static %}
+{% load cobalt_tags %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+<div class="card-body">
+    <div class="card mt-5">
+        <div class="card-header card-header-primary">
+            Extend the current membership
+        </div>
+        <div class="container">
+            <div class="card-body">
+                <form
+                    hx-post="{% url 'organisations:club_admin_edit_member_extend_htmx' club_id=club.id system_number=system_number %}"
+                    hx-target="#id_action_pane"
+                >
+                    {% csrf_token %}
+
+                    {% if message %}
+                        <div class="row justify-content-center">
+                            <div class="col-auto">
+                                <h3 class="text-danger">{{ message }}</h3>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="row pb-2">
+
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            New end date
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_new_end_date" class="form-group">
+                                <span class="cobalt-form-error" id="id_new_end_date_errors">
+                                    {{ form.new_end_date.errors|striptags }}
+                                </span>
+                                {% render_field form.new_end_date class+="form-control" %}
+                            </div>
+                        </div>
+
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Due date
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_due_date" class="form-group">
+                                <span class="cobalt-form-error" id="id_new_date_errors">
+                                    {{ form.due_date.errors|striptags }}
+                                </span>
+                                {% render_field form.due_date class+="form-control" %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row pb-2">
+
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Fee
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_fee" class="form-group">
+                                <span class="cobalt-form-error" id="id_fee_errors">
+                                    {{ form.new_end_date.errors|striptags }}
+                                </span>
+                                {% render_field form.fee class+="form-control" %}
+                            </div>
+                        </div>
+
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Mark as paid
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_is_paid" class="form-group">
+                                <span class="cobalt-form-error" id="id_is_paid_errors">
+                                    {{ form.is_paid.errors|striptags }}
+                                </span>
+                                {% render_field form.is_paid class+="form-control" %}
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success cobalt-save">Extend</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

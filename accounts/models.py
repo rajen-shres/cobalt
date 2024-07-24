@@ -47,6 +47,12 @@ class User(AbstractUser):
         db_index=True,
     )
 
+    deceased = models.BooleanField("Deceased", default=False)
+    """ Player is deceased, status set by My ABF support """
+
+    share_with_clubs = models.BooleanField("Share details with clubs", default=False)
+    """ Has the player consented to share selected informatin with clubs that claim them as a member """
+
     phone_regex = RegexValidator(
         #  regex=r"^\+?1?\d{9,15}$",
         regex=r"^04\d{8}$",
@@ -167,6 +173,10 @@ class UnregisteredUser(models.Model):
     first_name = models.CharField("First Name", max_length=150, blank=True, null=True)
     last_name = models.CharField("Last Name", max_length=150, blank=True, null=True)
     origin = models.CharField("Origin", choices=ORIGINS, max_length=10)
+
+    deceased = models.BooleanField("Deceased", default=False)
+    """ Player is deceased, status set by My ABF support """
+
     last_updated_by = models.ForeignKey(
         User, on_delete=models.PROTECT, related_name="last_updated"
     )
@@ -305,6 +315,8 @@ class UserAdditionalInfo(models.Model):
     email_hard_bounce_date = models.DateTimeField(null=True, blank=True)
     congress_view_filters = models.CharField(max_length=200, blank=True)
     """ user preferences for the congress listing page """
+    member_sort_order = models.CharField(max_length=20, blank=True)
+    """ sort order for the club menu members tab list """
     last_club_visited = models.IntegerField(null=True, blank=True)
     """ used to store which club was last visited for users with access to multiple clubs """
 

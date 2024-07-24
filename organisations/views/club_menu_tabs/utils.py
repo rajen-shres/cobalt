@@ -194,6 +194,7 @@ def invite_user_to_join_htmx(request, club):
         )
 
 
+# JPG Deprecated - Confirm
 def get_members_for_club(club, sort_option="first_desc"):
     """Gets all of the members and unregistered users for a club"""
 
@@ -207,6 +208,7 @@ def get_members_for_club(club, sort_option="first_desc"):
     )
 
 
+# JPG Deprecated - Confirm
 def get_club_members_from_system_number_list(
     system_numbers, club, sort_option="first_desc"
 ):
@@ -221,6 +223,8 @@ def get_club_members_from_system_number_list(
     )
 
     # combine lists - use set for uniqueness
+    # JPG Query: can't see that objects from these two tables could be equal,
+    # or how there would be dupliates in either table (ie returning the same hash value)
     combined_set = set(chain(cobalt_members, unregistered_members))
 
     # Add in membership type

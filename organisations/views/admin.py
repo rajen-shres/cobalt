@@ -65,12 +65,9 @@ def add_club_defaults(club: Organisation):
         organisation=club,
         name="Standard",
         description="Normal membership type for standard members.\n\nThis is the default membership type. "
-        "You can edit the values to suit your club. \n\nThere is a membership fee as well as a "
-        "reduced fee which takes effect part way through the year. Use the General tab to set "
-        "when membership is due and when the reduced fee will start to apply.\n\n"
+        "You can edit the values to suit your club. \n\n"
         "The checkboxes are generally used for special memberships such as Life Members.",
         annual_fee=50,
-        part_year_fee=25,
         last_modified_by=system,
         is_default=True,
     ).save()

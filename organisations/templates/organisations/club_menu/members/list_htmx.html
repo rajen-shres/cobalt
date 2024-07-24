@@ -20,7 +20,39 @@
 
         <!-- HEADINGS -->
 
-        <h3>{{ club }} has {{ total_members|intcomma }} Member{{ total_members|pluralize }}</h3>
+        {% if former_members %}
+            <h3>
+                {{ club }} has {{ total_members|intcomma }} Current and Former Member{{ total_members|pluralize }}
+                <span style="font-size: 1rem;">
+                    (
+                    <a
+                        href="javascript:void(0)"
+                        hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
+                        hx-vars="club_id:{{ club.id }}, former_members:'off'"
+                        hx-target="#id_panel_members"
+                    >
+                        Show current members only
+                    </a>
+                    )
+                </span>
+            </h3>
+        {% else %}
+            <h3>
+                {{ club }} has {{ total_members|intcomma }} Member{{ total_members|pluralize }}
+                <span style="font-size: 1rem;">
+                    (
+                    <a
+                        href="javascript:void(0)"
+                        hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
+                        hx-vars="club_id:{{ club.id }}, former_members:'on'"
+                        hx-target="#id_panel_members"
+                    >
+                        Also show former members
+                    </a>
+                    )
+                </span>
+            </h3>
+        {% endif %}
         <h3 class="text-info font-weight-bold settings_message" id="user_list_message">{{ message| default_if_none:"" }}</h3>
 
         {% if things %}
@@ -32,9 +64,9 @@
                 <table id="id_attach_table" class="table table-condensed table-hover">
                     <thead>
                         <tr>
-                            <th class="text-left">
+                            <!-- SORTABLE COLUMNS -->
 
-                                <!-- SORTABLE COLUMNS -->
+                            <th class="text-left">
 
                                 <!-- FIRST NAME -->
 
@@ -42,11 +74,10 @@
                                     hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
 
                                     {% if sort_option == "first_desc" %}
-                                        hx-vars="club_id:{{ club.id }}, sort_by:'first_asc'"
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'first_asc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
                                     {% else %}
-                                        hx-vars="club_id:{{ club.id }}, sort_by:'first_desc'"
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'first_desc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
                                     {% endif %}
-
                                     hx-target="#id_panel_members"
                                 >
                                     <span class="cobalt-no-wrap">
@@ -58,8 +89,8 @@
                                         {% endif %}
                                     </span>
                                 </a>
-
                             </th>
+
                             <th class="text-left">
 
                                 <!-- LAST NAME -->
@@ -68,9 +99,9 @@
                                     hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
 
                                     {% if sort_option == "last_desc" %}
-                                        hx-vars="club_id:{{ club.id }}, sort_by:'last_asc'"
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'last_asc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
                                     {% else %}
-                                        hx-vars="club_id:{{ club.id }}, sort_by:'last_desc'"
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'last_desc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
                                     {% endif %}
 
                                     hx-target="#id_panel_members"
@@ -84,18 +115,19 @@
                                         {% endif %}
                                     </span>
                                 </a>
-
-
                             </th>
+
                             <th class="text-left">
+
+                                <!-- SYSTEM NUMBER -->
 
                                 <a href="javascript:void(0)"
                                     hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
 
                                     {% if sort_option == "system_number_desc" %}
-                                        hx-vars="club_id:{{ club.id }}, sort_by:'system_number_asc'"
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'system_number_asc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
                                     {% else %}
-                                        hx-vars="club_id:{{ club.id }}, sort_by:'system_number_desc'"
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'system_number_desc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
                                     {% endif %}
 
                                     hx-target="#id_panel_members"
@@ -109,23 +141,25 @@
                                         {% endif %}
                                     </span>
                                 </a>
-
-
                             </th>
+
                             <th class="text-left">
+
+                                <!-- MEMBERSHIP TYPE -->
+
                                 <a href="javascript:void(0)"
                                     hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
 
                                     {% if sort_option == "membership_desc" %}
-                                        hx-vars="club_id:{{ club.id }}, sort_by:'membership_asc'"
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'membership_asc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
                                     {% else %}
-                                        hx-vars="club_id:{{ club.id }}, sort_by:'membership_desc'"
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'membership_desc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
                                     {% endif %}
 
                                     hx-target="#id_panel_members"
                                 >
                                     <span class="cobalt-no-wrap">
-                                        Membership
+                                        Membership Type
                                         {% if sort_option == "membership_desc" %}
                                             &darr;
                                         {% elif sort_option == "membership_asc"  %}
@@ -133,16 +167,44 @@
                                         {% endif %}
                                     </span>
                                 </a>
-
                             </th>
+
+                            <!-- HOME CLUB : Reistate when Masterpoints implemented-->
+                            <!-- <th class="text-left">
+
+                                <a href="javascript:void(0)"
+                                    hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
+
+                                    {% if sort_option == "home_desc" %}
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'home_asc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
+                                    {% else %}
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'home_desc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
+                                    {% endif %}
+
+                                    hx-target="#id_panel_members"
+                                >
+                                    <span class="cobalt-no-wrap">
+                                        Home
+                                        {% if sort_option == "home_desc" %}
+                                            &darr;
+                                        {% elif sort_option == "home_asc"  %}
+                                            &uarr;
+                                        {% endif %}
+                                    </span>
+                                </a>
+                            </th> -->
+
                             <th class="text-left">
+
+                                <!-- MEMBERSHIP STATUS -->
+
                                 <a href="javascript:void(0)"
                                     hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
 
                                     {% if sort_option == "status_desc" %}
-                                        hx-vars="club_id:{{ club.id }}, sort_by:'status_asc'"
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'status_asc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
                                     {% else %}
-                                        hx-vars="club_id:{{ club.id }}, sort_by:'status_desc'"
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'status_desc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
                                     {% endif %}
 
                                     hx-target="#id_panel_members"
@@ -158,6 +220,33 @@
                                 </a>
 
                             </th>
+
+                            <th class="text-left">
+
+                                <!-- USER TYPE -->
+
+                                <a href="javascript:void(0)"
+                                    hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
+
+                                    {% if sort_option == "type_desc" %}
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'type_asc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
+                                    {% else %}
+                                        hx-vars="club_id:{{ club.id }}, sort_by:'type_desc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
+                                    {% endif %}
+
+                                    hx-target="#id_panel_members"
+                                >
+                                    <span class="cobalt-no-wrap">
+                                        User Type
+                                        {% if sort_option == "type_desc" %}
+                                            &darr;
+                                        {% elif sort_option == "type_asc"  %}
+                                            &uarr;
+                                        {% endif %}
+                                    </span>
+                                </a>
+                            </th>
+
                             <th class="text-center">Action</th>
                         </tr>
                     </thead>
@@ -172,13 +261,13 @@
                                         <a href="javascript:void(0)"
                                             id="t_edit_member1_{{ member.id }}"
                                             hx-target="#id_member_list_tab"
-                                            {% if thing|get_class == "User" %}
+                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
+                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
                                                 hx-push-url="{{ club.id }}"
                                             {% else %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
+                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
                                                 hx-push-url="{{ club.id }}"
                                             {% endif %}
                                         >
@@ -197,13 +286,13 @@
                                         <a href="#"
                                             id="t_edit_member2_{{ thing.id }}"
                                             hx-target="#id_member_list_tab"
-                                            {% if thing|get_class == "User" %}
+                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
+                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
                                                 hx-push-url="{{ club.id }}"
                                             {% else %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
+                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
                                                 hx-push-url="{{ club.id }}"
                                             {% endif %}
                                         >
@@ -222,13 +311,13 @@
                                         <a href="#"
                                             id="t_edit_member3_{{ thing.id }}"
                                             hx-target="#id_member_list_tab"
-                                            {% if thing|get_class == "User" %}
+                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
+                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
                                                 hx-push-url="{{ club.id }}"
                                             {% else %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
+                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
                                                 hx-push-url="{{ club.id }}"
                                             {% endif %}
                                         >
@@ -247,22 +336,71 @@
                                         <!-- ONLY SHOW LINKS IF ADMIN -->
 
                                         <a href="#"
-                                            id="t_edit_member3_{{ thing.id }}"
+                                            id="t_edit_member4_{{ thing.id }}"
                                             hx-target="#id_member_list_tab"
-                                            {% if thing|get_class == "User" %}
+                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
+                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
                                                 hx-push-url="{{ club.id }}"
                                             {% else %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
+                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
                                                 hx-push-url="{{ club.id }}"
                                             {% endif %}
                                         >
-                                            {{ thing.membership }}
+                                            {{ thing.latest_membership.membership_type.name }}
                                         </a>
                                     {% else %}
-                                        {{ thing.membership }}
+                                        {{ thing.latest_membership.membership_type.name }}
+                                    {% endif %}
+                                </td>
+
+                                <!-- HOME CLUB : Reistate when Masterpoints implemented-->
+                                <!-- <td class="text-left">
+                                    {% if member_admin %}
+
+                                        <a href="#"
+                                            id="t_edit_member5_{{ thing.id }}"
+                                            hx-target="#id_member_list_tab"
+                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
+                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
+                                                hx-push-url="{{ club.id }}"
+                                            {% else %}
+                                                hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
+                                                hx-push-url="{{ club.id }}"
+                                            {% endif %}
+                                        >
+                                            {% if thing.latest_membership.home_club %}Yes{% else %}No{% endif %}
+                                        </a>
+                                    {% else %}
+                                        {% if thing.latest_membership.home_club %}Yes{% else %}No{% endif %}
+                                    {% endif %}
+                                </td> -->
+
+                                <td class="text-left">
+                                    {% if member_admin %}
+
+                                        <!-- ONLY SHOW LINKS IF ADMIN -->
+
+                                        <a href="#"
+                                            id="t_edit_member6_{{ thing.id }}"
+                                            hx-target="#id_member_list_tab"
+                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
+                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
+                                                hx-push-url="{{ club.id }}"
+                                            {% else %}
+                                                hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
+                                                hx-push-url="{{ club.id }}"
+                                            {% endif %}
+                                        >
+                                            {{ thing.get_membership_status_display }}
+                                        </a>
+                                    {% else %}
+                                        {{ thing.get_membership_status_display }}
                                     {% endif %}
                                 </td>
 
@@ -272,33 +410,33 @@
                                         <!-- ONLY SHOW LINKS IF ADMIN -->
 
                                         <a href="#"
-                                            id="t_edit_member3_{{ thing.id }}"
+                                            id="t_edit_member7_{{ thing.id }}"
                                             hx-target="#id_member_list_tab"
-                                            {% if thing|get_class == "User" %}
+                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.id }}"
+                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
                                                 hx-push-url="{{ club.id }}"
                                             {% else %}
                                                 hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
+                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
                                                 hx-push-url="{{ club.id }}"
                                             {% endif %}
                                         >
-                                            {{ thing.status }}
+                                            {{ thing.user_type }}
                                         </a>
                                     {% else %}
-                                        {{ thing.status }}
+                                        {{ thing.user_type }}
                                     {% endif %}
                                 </td>
 
                                 <td class="text-center">
-                                    {% if thing|get_class == "User" %}
-                                        <a target="_blank" href="{% url "accounts:public_profile" pk=thing.id %}" style="width: 150px" class="btn btn-sm btn-info text-center">view profile</a>
+                                    {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
+                                        <a target="_blank" href="{% url "accounts:public_profile" pk=thing.user_or_unreg_id %}" style="width: 150px" class="btn btn-sm btn-info text-center">view profile</a>
                                     {% else %}
                                         <a style="width: 150px"
                                             class="btn btn-sm btn-success text-center text-white"
                                             hx-post="{% url "organisations:club_menu_tab_members_invite_user_to_join_htmx" %}"
-                                            hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.id }}"
+                                            hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
                                             hx-target="#id_panel_members"
                                             onclick="GrowlNotification.notify({
                                             title: 'Sending invite...',

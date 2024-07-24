@@ -1,11 +1,12 @@
 import csv
+from datetime import date, timedelta
 import logging
 from itertools import chain
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse, HttpRequest
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 
@@ -13,7 +14,7 @@ import organisations.views.club_menu_tabs.utils
 from accounts.views.admin import invite_to_join
 from accounts.views.api import search_for_user_in_cobalt_and_mpc
 from accounts.forms import UnregisteredUserForm
-from accounts.models import User, UnregisteredUser
+from accounts.models import User, UnregisteredUser, UserAdditionalInfo
 from club_sessions.models import SessionEntry
 from cobalt.settings import (
     GLOBAL_ORG,
@@ -29,12 +30,24 @@ from notifications.views.core import (
     club_default_template,
     get_emails_sent_to_address,
 )
+from organisations.club_admin_core import (
+    get_member_details,
+    get_club_members,
+    get_member_log,
+    mark_member_as_lapsed,
+    mark_member_as_resigned,
+    mark_member_as_deceased,
+    renew_membership,
+    MEMBERSHIP_STATES_TERMINAL,
+)
 from organisations.decorators import check_club_menu_access
 from organisations.forms import (
     MemberClubEmailForm,
     UserMembershipForm,
     UnregisteredUserAddForm,
     UnregisteredUserMembershipForm,
+    MemberClubDetailsForm,
+    MembershipExtendForm,
 )
 from organisations.models import (
     MemberMembershipType,
@@ -72,14 +85,45 @@ logger = logging.getLogger("cobalt")
 @check_club_menu_access()
 def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
     """build the members tab in club menu"""
-    from organisations.views.club_menu_tabs.utils import get_members_for_club
+
+    DEFAULT_SORT = "last_desc"
+
+    def save_sort_order(new_order):
+        """Save the selected sort order"""
+        additional_info = UserAdditionalInfo.objects.filter(user=request.user).last()
+        if additional_info:
+            if additional_info.member_sort_order != new_order:
+                additional_info.member_sort_order = new_order
+                additional_info.save()
+        elif new_order != DEFAULT_SORT:
+            additional_info = UserAdditionalInfo()
+            additional_info.user = request.user
+            additional_info.member_sort_order = new_order
+            additional_info.save()
 
     # get sort options, could be POST or GET
     sort_option = request.GET.get("sort_by")
     if not sort_option:
-        sort_option = request.POST.get("sort_by", "first_desc")
+        sort_option = request.POST.get("sort_by")
+        if not sort_option:
+            additional_info = UserAdditionalInfo.objects.filter(
+                user=request.user
+            ).last()
+            if additional_info and additional_info.member_sort_order:
+                sort_option = additional_info.member_sort_order
+            else:
+                sort_option = "last_desc"
+        else:
+            save_sort_order(sort_option)
+    else:
+        save_sort_order(sort_option)
 
-    members = get_members_for_club(club, sort_option=sort_option)
+    #  show former members
+    former_members = request.POST.get("former_members") == "on"
+
+    members = get_club_members(
+        club, sort_option=sort_option, active_only=not former_members
+    )
 
     # pagination and params
     things = cobalt_paginator(request, members)
@@ -107,6 +151,7 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
             "hx_post": hx_post,
             "searchparams": searchparams,
             "sort_option": sort_option,
+            "former_members": former_members,
         },
     )
 
@@ -776,7 +821,7 @@ def edit_member_htmx(request, club, message=""):
     """Edit a club member manually"""
 
     # JPG debug
-    # print("*** edit_member_htmx ***")
+    print("*** edit_member_htmx ***")
 
     member_id = request.POST.get("member")
     member = get_object_or_404(User, pk=member_id)
@@ -850,6 +895,10 @@ def edit_member_htmx(request, club, message=""):
             request.user, f"payments.manage.{club.id}.view"
         )
 
+    # JPG clean up - note this only handles User members
+    # Get augmented membership details
+    membership_details = get_member_details(club, member.system_number)
+
     return render(
         request,
         "organisations/club_menu/members/edit_member_htmx.html",
@@ -870,6 +919,8 @@ def edit_member_htmx(request, club, message=""):
             "club_balance": club_balance,
             "user_has_payments_edit": user_has_payments_edit,
             "user_has_payments_view": user_has_payments_view,
+            "membership_details": membership_details,
+            "terminal_states": MEMBERSHIP_STATES_TERMINAL,
         },
     )
 
@@ -1382,3 +1433,208 @@ def recent_sessions_for_member_htmx(request, club):
             "hx_target": hx_target,
         },
     )
+
+
+def club_admin_edit_member(request, club_id, system_number, message=None):
+
+    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+
+    # JPG debug
+    print(
+        f"\n**** club_admin_edit_member({club_id}, {system_number}, '{message}') ****"
+    )
+
+    club = get_object_or_404(Organisation, pk=club_id)
+    member_details = get_member_details(club, system_number)
+
+    # get the members complete set of memberships
+    member_history = (
+        MemberMembershipType.objects.filter(
+            system_number=system_number,
+            membership_type__organisation=club,
+        )
+        .select_related("membership_type")
+        .order_by("-start_date")
+    )
+
+    # get the members log history
+    log_history = get_member_log(club, system_number)
+
+    if request.method == "POST":
+        form = MemberClubDetailsForm(request.POST, instance=member_details)
+        if form.is_valid():
+            form.save()
+
+    else:
+        form = MemberClubDetailsForm(instance=member_details)
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_edit_member.html",
+        {
+            "club": club,
+            "member_details": member_details,
+            "member_history": member_history,
+            "log_history": log_history[:20],
+            "form": form,
+            "allow_deletion": True,
+            "message": message,
+        },
+    )
+
+
+def club_admin_edit_member_paid(request, club_id, system_number):
+
+    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+
+    # JPG debug
+    print(f"club_admin_edit_member_paid({club_id}, {system_number})")
+
+    return HttpResponse("WORK IN PROGRESS")
+
+
+def club_admin_edit_member_extend_htmx(request, club_id, system_number):
+
+    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+
+    # JPG debug
+    print(
+        f"club_admin_edit_member_extend_htmx({club_id}, {system_number}) {request.method}"
+    )
+
+    club = get_object_or_404(Organisation, pk=club_id)
+    member_details = get_member_details(club, system_number)
+
+    if request.method == "POST":
+        form = MembershipExtendForm(request.POST)
+        if form.is_valid():
+
+            success, message = renew_membership(
+                club,
+                system_number,
+                form.cleaned_data["new_end_date"],
+                form.cleaned_data["fee"],
+                form.cleaned_data["due_date"],
+                is_paid=form.cleaned_data["is_paid"],
+                requester=request.user,
+            )
+
+            if success:
+                response = HttpResponse()
+                response["hx-redirect"] = reverse(
+                    "organisations:club_admin_edit_member",
+                    kwargs={
+                        "club_id": club.id,
+                        "system_number": system_number,
+                        "message": "Membership extended",
+                    },
+                )
+                return response
+
+    else:
+        message = None
+        default_due_date = club.next_renewal_date + timedelta(
+            days=member_details.latest_membership.membership_type.grace_period_days
+        )
+
+        initial_data = {
+            "new_end_date": club.next_end_date.strftime("%Y-%m-%d"),
+            "fee": member_details.latest_membership.membership_type.annual_fee,
+            "due_date": default_due_date.strftime("%Y-%m-%d"),
+            "is_paid": False,
+        }
+        form = MembershipExtendForm(initial=initial_data)
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_edit_member_extend_htmx.html",
+        {
+            "club": club,
+            "system_number": system_number,
+            "form": form,
+            "message": message,
+        },
+    )
+
+
+def club_admin_edit_member_reinstate_htmx(request, club_id, system_number):
+
+    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+
+    # JPG debug
+    print(f"club_admin_edit_member_reinstate_htmx({club_id}, {system_number})")
+
+    return HttpResponse("WORK IN PROGRESS")
+
+
+def club_admin_edit_member_change_htmx(request, club_id, system_number):
+
+    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+
+    # JPG debug
+    print(f"club_admin_edit_member_change_htmx({club_id}, {system_number})")
+
+    return HttpResponse("WORK IN PROGRESS")
+
+
+def club_admin_edit_member_lapsed(request, club_id, system_number):
+
+    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+
+    club = get_object_or_404(Organisation, pk=club_id)
+    success, message = mark_member_as_lapsed(
+        club, system_number, requester=request.user
+    )
+
+    return redirect(
+        "organisations:club_admin_edit_member",
+        club.id,
+        system_number,
+        message if message else "Membership marked as lapsed",
+    )
+
+
+def club_admin_edit_member_resigned(request, club_id, system_number):
+
+    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+
+    club = get_object_or_404(Organisation, pk=club_id)
+    success, message = mark_member_as_resigned(
+        club, system_number, requester=request.user
+    )
+
+    return redirect(
+        "organisations:club_admin_edit_member",
+        club.id,
+        system_number,
+        message if message else "Membership marked as resigned",
+    )
+
+
+def club_admin_edit_member_deceased(request, club_id, system_number):
+
+    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+
+    club = get_object_or_404(Organisation, pk=club_id)
+    mark_member_as_deceased(club, system_number, requester=request.user)
+
+    return redirect(
+        "organisations:club_admin_edit_member",
+        club.id,
+        system_number,
+        "Membership marked as Deceased",
+    )
+
+
+def club_admin_edit_member_terminate(request, club_id, system_number):
+
+    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+
+    return HttpResponse("WORK IN PROGRESS")
+
+
+def club_admin_edit_member_delete(request, club_id, system_number):
+
+    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+
+    return HttpResponse("WORK IN PROGRESS")
