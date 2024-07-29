@@ -74,13 +74,23 @@
                                     </thead>
                                     <tbody>
                                         {% for mmt in member_history %}
-                                            <tr>
+                                            <tr
+                                                {% if forloop.first %}
+                                                    class="font-weight-bold"
+                                                {% else %}
+                                                    class="text-muted"
+                                                {% endif %}
+                                            >
                                                 <td class="text-left">{{ mmt.start_date }}</td>
                                                 <td class="text-left">{{ mmt.membership_type.name }}</td>
                                                 <td class="text-left">{{ mmt.get_membership_state_display }}</td>
                                                 <td class="text-left">
                                                     {% if mmt.membership_state == 'CUR' %}
-                                                        Paid until {{ mmt.paid_until_date }}
+                                                        {% if paid_until_date %}
+                                                            Paid until {{ mmt.paid_until_date }}
+                                                        {% else %}
+                                                            Perpetual
+                                                        {% endif %}
                                                     {% elif membership_details.membership_status == 'DUE' %}
                                                         Paid until {{ mmt.paid_until_date }}
                                                         , {{ mmt.fee }} due by {{mmt.due_date }}
@@ -105,26 +115,55 @@
 
                                     {% else %}
 
+                                        <!-- CHANGE STATUS DROPDOWN -->
+
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                Change Status
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                {% if member_details.membership_status == 'CUR' or member_details.membership_status == 'DUE' %}
+                                                    <a
+                                                        class="btn btn-sm btn-secondary"
+                                                        href="{% url 'organisations:club_admin_edit_member_lapsed' club_id=club.id system_number=member_details.system_number %}"
+                                                    >
+                                                        Lapsed
+                                                    </a>
+                                                    <a
+                                                        class="btn btn-sm btn-secondary"
+                                                        href="{% url 'organisations:club_admin_edit_member_resigned' club_id=club.id system_number=member_details.system_number %}"
+                                                    >
+                                                        Resigned
+                                                    </a>
+                                                    <a
+                                                        class="btn btn-sm btn-secondary"
+                                                        href="{% url 'organisations:club_admin_edit_member_terminate' club_id=club.id system_number=member_details.system_number %}"
+                                                    >
+                                                        Terminated
+                                                    </a>
+                                                {% endif %}
+                                                <a
+                                                    class="btn btn-sm btn-secondary"
+                                                    href="{% url 'organisations:club_admin_edit_member_deceased' club_id=club.id system_number=member_details.system_number %}"
+                                                >
+                                                    Deceased
+                                                </a>
+                                            </div>
+                                        </div>
+
                                         {% if member_details.membership_status == 'DUE' %}
                                             <a
-                                                class="btn btn-sm btn-primary w-25"
+                                                class="btn btn-sm btn-primary"
                                                 href="{% url 'organisations:club_admin_edit_member_paid' club_id=club.id system_number=member_details.system_number %}"
                                             >
                                                 Mark as Paid
                                             </a>
 
-                                            <a
-                                                class="btn btn-sm btn-primary w-25"
-                                                href="{% url 'organisations:club_admin_edit_member_lapsed' club_id=club.id system_number=member_details.system_number %}"
-                                            >
-                                                Mark as Lapsed
-                                            </a>
-
                                         {% endif %}
 
-                                        {% if member_details.membership_status == 'CUR' %}
+                                        {% if member_details.membership_status == 'CUR' and not member_details.latest_membership.membership_type.does_not_renew %}
                                             <button
-                                                class="btn btn-sm btn-primary w-25"
+                                                class="btn btn-sm btn-primary"
                                                 hx-get="{% url 'organisations:club_admin_edit_member_extend_htmx' club_id=club.id system_number=member_details.system_number %}"
                                                 hx-target="#id_action_pane"
                                             >
@@ -135,7 +174,7 @@
                                         {% if member_details.membership_status == 'LAP' or member_details.membership_status == 'RES' or member_details.membership_status == 'TRM' %}
 
                                             <button
-                                                class="btn btn-sm btn-primary w-25"
+                                                class="btn btn-sm btn-primary"
                                                 hx-post="{% url 'organisations:club_admin_edit_member_reinstate_htmx' club_id=club.id system_number=member_details.system_number %}"
                                                 hx-target="#id_action_pane"
                                             >
@@ -147,41 +186,21 @@
                                         {% if member_details.membership_status == 'DUE' or member_details.membership_status == 'CUR' %}
 
                                             <button
-                                                class="btn btn-sm btn-primary w-25"
-                                                hx-post="{% url 'organisations:club_admin_edit_member_change_htmx' club_id=club.id system_number=member_details.system_number %}"
+                                                class="btn btn-sm btn-primary"
+                                                hx-get="{% url 'organisations:club_admin_edit_member_change_htmx' club_id=club.id system_number=member_details.system_number %}"
                                                 hx-target="#id_action_pane"
                                                 hx-trigger="click"
                                             >
                                                 Change Membership Type
                                             </button>
 
-                                            <a
-                                                class="btn btn-sm btn-primary w-25"
-                                                href="{% url 'organisations:club_admin_edit_member_resigned' club_id=club.id system_number=member_details.system_number %}"
-                                            >
-                                                Mark as Resigned
-                                            </a>
-
-                                            <a
-                                                class="btn btn-sm btn-primary w-25"
-                                                href="{% url 'organisations:club_admin_edit_member_deceased' club_id=club.id system_number=member_details.system_number %}"
-                                            >
-                                                Mark as Deceased
-                                            </a>
-
-                                            <a
-                                                class="btn btn-sm btn-primary w-25"
-                                                href="{% url 'organisations:club_admin_edit_member_terminate' club_id=club.id system_number=member_details.system_number %}"
-                                            >
-                                                Terminate Membership
-                                            </a>
                                         {% endif %}
 
                                     {% endif %}
 
                                     {% if allow_deletion %}
                                         <a
-                                            class="btn btn-sm btn-primary w-25"
+                                            class="btn btn-sm btn-primary"
                                             href="{% url 'organisations:club_admin_edit_member_delete' club_id=club.id system_number=member_details.system_number %}"
                                         >
                                             Delete
@@ -411,5 +430,17 @@
             </div>
         </div>
     </div>
+
+
+    <script>
+        document.addEventListener('htmx:afterSettle', function(event) {
+
+            if (event.detail.target.id === 'id_action_pane') {
+                // hook for any initialisation required for the form entry in the action pane
+                initialiseHTMXForm();
+            }
+        });
+
+    </script>
 
 {% endblock content %}

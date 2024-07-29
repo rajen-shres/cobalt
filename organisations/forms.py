@@ -4,6 +4,7 @@ import bleach
 from crispy_forms.helper import FormHelper
 from django import forms
 from django_summernote.widgets import SummernoteInplaceWidget
+from django.utils import timezone
 from PIL import Image
 
 #  Moved to avoid circular reference issue on imports
@@ -254,6 +255,51 @@ class MembershipExtendForm(forms.Form):
         required=False,
     )
     is_paid = forms.BooleanField(label="Mark as paid", required=False)
+
+
+class MembershipChangeTypeForm(forms.Form):
+    """Form for changing or creating a new membership
+    Membership type options are passed to init as membership_choices
+    a list of tuples of (id, name) for valid membership types"""
+
+    membership_type = forms.ChoiceField(label="Membership Type", required=True)
+    start_date = forms.DateField(
+        label="Start date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        required=False,
+    )
+    end_date = forms.DateField(
+        label="End date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        required=False,
+    )
+    fee = forms.DecimalField(label="Fee", max_digits=10, decimal_places=2)
+    due_date = forms.DateField(
+        label="Payment due date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        required=False,
+    )
+    is_paid = forms.BooleanField(label="Mark as paid", required=False)
+
+    def __init__(self, *args, **kwargs):
+        membership_choices = kwargs.pop("membership_choices", [])
+        super(MembershipChangeTypeForm, self).__init__(*args, **kwargs)
+        self.fields["membership_type"].choices = membership_choices
+
+    def clean_start_date(self):
+        start_date = self.cleaned_data.get("start_date")
+        today = timezone.now().date()
+        if start_date > today:
+            raise forms.ValidationError("Start date cannot be in the future")
+        return start_date
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = self.cleaned_data.get("start_date")
+        end_date = self.cleaned_data.get("end_date")
+        if start_date and end_date and start_date > end_date:
+            raise forms.ValidationError("End date must be after the start date")
+        return cleaned_data
 
 
 class UserMembershipForm(forms.Form):

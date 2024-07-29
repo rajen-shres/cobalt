@@ -38,6 +38,7 @@ from organisations.club_admin_core import (
     mark_member_as_resigned,
     mark_member_as_deceased,
     renew_membership,
+    change_membership,
     MEMBERSHIP_STATES_TERMINAL,
 )
 from organisations.decorators import check_club_menu_access
@@ -48,6 +49,7 @@ from organisations.forms import (
     UnregisteredUserMembershipForm,
     MemberClubDetailsForm,
     MembershipExtendForm,
+    MembershipChangeTypeForm,
 )
 from organisations.models import (
     MemberMembershipType,
@@ -85,6 +87,9 @@ logger = logging.getLogger("cobalt")
 @check_club_menu_access()
 def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
     """build the members tab in club menu"""
+
+    # JPG debug
+    print("**** list_htmx ****")
 
     DEFAULT_SORT = "last_desc"
 
@@ -1454,7 +1459,7 @@ def club_admin_edit_member(request, club_id, system_number, message=None):
             membership_type__organisation=club,
         )
         .select_related("membership_type")
-        .order_by("-start_date")
+        .order_by("-created_at")
     )
 
     # get the members log history
@@ -1568,13 +1573,123 @@ def club_admin_edit_member_reinstate_htmx(request, club_id, system_number):
 
 
 def club_admin_edit_member_change_htmx(request, club_id, system_number):
+    """HTMX endpoint to change a member to a new membership type.
+    Displays and processes a form to get the new type and related attributes.
+    Redirects to reload the main edit member view on completion or fatal error.
+
+    Args:
+        request (HttpRequest): the request
+        club_id (int): the club's Organisation id
+        system_number (int): the member's system number
+
+    Returns:
+        HttpResponse: the response
+    """
 
     # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
 
     # JPG debug
     print(f"club_admin_edit_member_change_htmx({club_id}, {system_number})")
 
-    return HttpResponse("WORK IN PROGRESS")
+    message = None
+    club = get_object_or_404(Organisation, pk=club_id)
+    member_details = get_member_details(club, system_number)
+
+    # Build the list of available membership types, and associated default fees and dates.
+    # When the user selects a type in the form the corresponding fee and dates need to be set
+    # Note: end_date is nto set for types which do not renew (eg Life membership)
+    # Note: values are converted to types that JavaScript can ingest
+    membership_types = (
+        MembershipType.objects.filter(organisation=club)
+        .exclude(id=member_details.latest_membership.membership_type.id)
+        .all()
+    )
+    membership_choices = [(mt.id, mt.name) for mt in membership_types]
+    today = timezone.now().date()
+    fees_and_due_dates = {
+        f"{mt.id}": {
+            "annual_fee": float(mt.annual_fee),
+            "due_date": (today + timedelta(mt.grace_period_days)).strftime("%Y-%m-%d"),
+            "end_date": " "
+            if mt.does_not_renew
+            else club.current_end_date.strftime("%Y-%m-%d"),
+            "perpetual": "Y" if mt.does_not_renew else "N",
+        }
+        for mt in membership_types
+    }
+
+    if len(membership_choices) == 0:
+        # no choices so go back to the main view
+        response = HttpResponse()
+        response["hx-redirect"] = reverse(
+            "organisations:club_admin_edit_member",
+            kwargs={
+                "club_id": club.id,
+                "system_number": system_number,
+                "message": "Unable to change type, no alternatives available",
+            },
+        )
+        return response
+
+    if request.method == "POST":
+        form = MembershipChangeTypeForm(
+            request.POST, membership_choices=membership_choices
+        )
+        if form.is_valid():
+
+            membership_type = get_object_or_404(
+                MembershipType, pk=int(form.cleaned_data["membership_type"])
+            )
+
+            # post logic
+            success, message = change_membership(
+                club,
+                system_number,
+                membership_type,
+                request.user,
+                fee=form.cleaned_data["fee"],
+                start_date=form.cleaned_data["start_date"],
+                end_date=form.cleaned_data["end_date"],
+                due_date=form.cleaned_data["due_date"],
+                is_paid=form.cleaned_data["is_paid"],
+            )
+
+            if success:
+                response = HttpResponse()
+                response["hx-redirect"] = reverse(
+                    "organisations:club_admin_edit_member",
+                    kwargs={
+                        "club_id": club.id,
+                        "system_number": system_number,
+                        "message": message if message else "Membership type changed",
+                    },
+                )
+                return response
+
+    else:
+        initial_data = {
+            "membership_type": membership_choices[0][0],
+            "start_date": today.strftime("%Y-%m-%d"),
+            # "end_date": club.current_end_date.strftime("%Y-%m-%d"),
+            # "fee": fees_and_due_dates[f"{membership_choices[0][0]}"]['annual_fee'],
+            # "due_date": fees_and_due_dates[f"{membership_choices[0][0]}"]['due_date'],
+            "is_paid": False,
+        }
+        form = MembershipChangeTypeForm(
+            initial=initial_data, membership_choices=membership_choices
+        )
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_edit_member_change_htmx.html",
+        {
+            "club": club,
+            "system_number": system_number,
+            "form": form,
+            "fees_and_dates": f"{fees_and_due_dates}",
+            "message": message,
+        },
+    )
 
 
 def club_admin_edit_member_lapsed(request, club_id, system_number):

@@ -512,30 +512,126 @@ def renew_membership(
     return (True, "Membership extended")
 
 
-def add_membership(
+def change_membership(
     club,
     system_number,
     membership_type,
-    annual_fee=None,
-    grace_period_days=None,
+    requester,
+    fee=None,
+    start_date=None,
+    end_date=None,
+    due_date=None,
     is_paid=False,
 ):
-    """Add a new membership to an existing club member.
+    """Change the membership type for an existing club member by adding a new MemberMembershipType.
     The member may have a current membership, or may have lapsed, resigned etc.
+    The member must not be deceased or a contact
 
     Args:
         club (Organisation): the club
         system_number (int): the member's system number
-        membership_type (MembershipType): the membership type to be linked to
-        annual_fee (Decimal): optional fee to override the default from the membership type
-        grace_period_days (int): optional payment grace period to override the default from the membership type
-        is_paid (bool): has the fee been paid
+        membership_type (MembershipType): the new membership type to be linked to
+        requester (User): the user making teh change, required for the new record
+        fee (Decimal): optional fee to override the default from the membership type
+        start_date (Date): optional start date, otherwise will use today
+        end_date (Date): optional end date, otherwise will use the club default or None if perpetual
+        due_date (Date): optional due_date, otherwise use the payment type grace period if a fees is set
+        is_paid (bool): has the fee been paid, used to set the paid until date
 
     Returns:
         bool: success
         string: explanatory message or None
+
+    Raises:
+        CobaltMemberNotFound : no member record found
     """
-    pass
+
+    today = timezone.now().date()
+
+    # get the member data and latest membership
+    member_details = (
+        MemberClubDetails.objects.filter(
+            club=club,
+            system_number=system_number,
+        )
+        .exclude(
+            membership_status=MemberClubDetails.MEMBERSHIP_STATUS_DECEASED,
+        )
+        .select_related("latest_membership")
+        .last()
+    )
+
+    if not member_details or not member_details.latest_membership:
+        # either not a member, or is a contact
+        raise CobaltMemberNotFound(club, system_number)
+
+    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DECEASED:
+        return (False, "Cannot change membership type for a deceased member")
+
+    # build the new membership record
+    new_membership = MemberMembershipType()
+    new_membership.system_number = system_number
+    new_membership.last_modified_by = requester
+    new_membership.membership_type = membership_type
+    new_membership.fee = fee if fee else membership_type.annual_fee
+    new_membership.start_date = start_date if start_date else today
+    if membership_type.does_not_renew:
+        new_membership.end_date = None
+    else:
+        new_membership.end_date = end_date if end_date else club.current_end_date
+    if is_paid or new_membership.fee == 0:
+        new_membership.due_date = None
+        new_membership.paid_until_date = new_membership.end_date
+        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+    else:
+        new_membership.due_date = (
+            due_date
+            if due_date
+            else new_membership.start_date
+            + timedelta(days=membership_type.grace_period_days)
+        )
+        new_membership.paid_until_date = new_membership.start_date - timedelta(days=1)
+        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DUE
+
+    # last minute validatation
+
+    if new_membership.start_date > today:
+        return (False, "Start date cannot be in the future")
+
+    if new_membership.start_date and new_membership.end_date:
+        if new_membership.start_date > new_membership.end_date:
+            return (False, "End date must be after start date")
+
+    # update the member record and the previous membership record
+    new_membership.save()
+
+    if member_details.latest_membership.membership_state in MEMBERSHIP_STATES_ACTIVE:
+        member_details.latest_membership.membership_state = (
+            MemberMembershipType.MEMBERSHIP_STATE_ENDED
+        )
+        member_details.latest_membership.end_date = (
+            new_membership.start_date - timedelta(days=1)
+        )
+        member_details.latest_membership.save()
+
+    member_details.latest_membership = new_membership
+    member_details.membership_status = new_membership.membership_state
+    member_details.save()
+
+    # and log it
+    message = f"Membership changed to {membership_type.name}"
+
+    if is_paid and new_membership.paid_until_date:
+        message += f", paid to {new_membership.paid_until_date.strftime('%d-%m-%Y')}"
+
+    log_member_change(
+        club,
+        system_number,
+        requester,
+        message,
+    )
+
+    return (True, message)
 
 
 def add_member(

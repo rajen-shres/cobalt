@@ -1,0 +1,199 @@
+<!--
+View for changing membership type for an existing member
+This will be rendered in the action pane of the club admin edit member window
+-->
+{% load static %}
+{% load cobalt_tags %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+<div class="card-body">
+    <div class="card mt-5">
+        <div class="card-header card-header-primary">
+            Change Membership Type
+        </div>
+        <div class="container">
+            <div class="card-body">
+                <form
+                    hx-post="{% url 'organisations:club_admin_edit_member_change_htmx' club_id=club.id system_number=system_number %}"
+                    hx-target="#id_action_pane"
+                >
+                    {% csrf_token %}
+
+                    {% if message %}
+                        <div class="row justify-content-center">
+                            <div class="col-auto">
+                                <h3 class="text-danger">{{ message }}</h3>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="row pb-2">
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Membership Type
+                        </div>
+                        <div class="col-8">
+                            <div id="div_id_membership_type" class="form-group">
+                                <span class="cobalt-form-error" id="id_membership_type_errors">
+                                    {{ form.membership_type.errors|striptags }}
+                                </span>
+                                {% render_field form.membership_type class+="form-control" %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row pb-2">
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Start date
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_start_date" class="form-group">
+                                <span class="cobalt-form-error" id="id_start_date_errors">
+                                    {{ form.start_date.errors|striptags }}
+                                </span>
+                                {% render_field form.start_date class+="form-control" %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="id_optional_end_date">
+                        <div class="row pb-2">
+                            <div class="col-2 justify-content-center align-self-center pt-3">
+                                End date
+                            </div>
+                            <div class="col-3">
+                                <div id="div_id_end_date" class="form-group">
+                                    <span class="cobalt-form-error" id="id_end_date_errors">
+                                        {{ form.end_date.errors|striptags }}
+                                    </span>
+                                    {% render_field form.end_date class+="form-control" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row pb-2">
+
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Fee
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_fee" class="form-group">
+                                <span class="cobalt-form-error" id="id_fee_errors">
+                                    {{ form.new_end_date.errors|striptags }}
+                                </span>
+                                {% render_field form.fee class+="form-control" %}
+                            </div>
+                        </div>
+
+                        <!-- <div class="col-2 justify-content-center align-self-center pt-3">
+                            Mark as paid
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_is_paid" class="form-group">
+                                <span class="cobalt-form-error" id="id_is_paid_errors">
+                                    {{ form.is_paid.errors|striptags }}
+                                </span>
+                                {% render_field form.is_paid class+="form-control" %}
+                            </div>
+                        </div> -->
+
+                        <div class="col-5">
+                            <div class="form-check">
+                                <div class="row justify-content-center">
+                                    <span class="cobalt-form-error" id="id_receive_email_errors">{{ form.is_paid.errors|striptags }}</span>
+                                </div>
+                                <label class="form-check-label">
+                                    <input
+                                        class="form-check-input"
+                                        id="id_is_paid" name="is_paid"
+                                        type="checkbox"
+                                        {% if form.is_paid.value %}checked="Checked"{% endif %}>
+                                    Mark as paid
+                                    <span class="form-check-sign">
+                                        <span class="check"></span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <div id="id_optional_due_date">
+                        <div class="row pb-2">
+                            <div class="col-2 justify-content-center align-self-center pt-3">
+                                Due date
+                            </div>
+                            <div class="col-3">
+                                <div id="div_id_due_date" class="form-group">
+                                    <span class="cobalt-form-error" id="id_new_date_errors">
+                                        {{ form.due_date.errors|striptags }}
+                                    </span>
+                                    {% render_field form.due_date class+="form-control" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="Save" class="btn btn-success cobalt-save">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    // set up to change date and fees when the membership type selection changes
+    function initialiseHTMXForm() {
+
+        const membershipTypeField = document.getElementById('id_membership_type');
+        const feeField = document.getElementById('id_fee');
+        const dueDateField = document.getElementById('id_due_date');
+        const endDateField = document.getElementById('id_end_date');
+        const isPaidField = document.getElementById('id_is_paid')
+        const endDateDiv = document.getElementById('id_optional_end_date');
+        const dueDateDiv = document.getElementById('id_optional_due_date');
+
+        feesAndDates = {{ fees_and_dates|safe }};
+
+        membershipTypeField.addEventListener('change', function() {
+
+            const selectedType = membershipTypeField.value;
+            if (selectedType in feesAndDates) {
+                feeField.value = feesAndDates[selectedType].annual_fee;
+                feeField.dispatchEvent(new Event('change'));
+                dueDateField.value = feesAndDates[selectedType].due_date;
+                endDateField.value = feesAndDates[selectedType].end_date;
+                if (feesAndDates[selectedType].perpetual == 'Y') {
+                    endDateDiv.style.display = 'none';
+                } else {
+                    endDateDiv.style.display = 'block';
+                }
+            }
+        });
+
+        feeField.addEventListener('change', function() {
+            if (this.value == 0 || isPaidField.checked) {
+                dueDateDiv.style.display = 'none';
+            } else {
+                dueDateDiv.style.display = 'block';
+            }
+        });
+
+        isPaidField.addEventListener('change', function() {
+            if (feeField.value == 0 || this.checked) {
+                dueDateDiv.style.display = 'none';
+            } else {
+                dueDateDiv.style.display = 'block';
+            }
+        });
+
+        // Trigger change event on page load to set initial values
+        membershipTypeField.dispatchEvent(new Event('change'));
+        feeField.dispatchEvent(new Event('change'));
+        isPaidField.dispatchEvent(new Event('change'));
+    };
+
+</script>
